@@ -4,9 +4,9 @@ import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress, parseBirthday} from "../misc/Formatter"
+import {parseBirthday} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import {
 	ContactMailAddressTypeToLabel,
 	ContactPhoneNumberTypeToLabel,
@@ -26,7 +26,7 @@ import {ContactAddressTypeRef, createContactAddress} from "../api/entities/tutan
 import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
-import {clone, neverNull} from "../api/common/utils/Utils"
+import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
@@ -34,6 +34,8 @@ import {Keys} from "../misc/KeyManager"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {NotFoundError} from "../api/common/error/RestError"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 
 assertMainOrNode()
@@ -137,10 +139,11 @@ export class ContactEditor {
 			.setValue((this.contact.presharedPassword: any))
 			.onUpdate(value => this.contact.presharedPassword = value) : null
 
-		let headerBar = new DialogHeaderBar()
-			.addLeft(new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary))
-			.setMiddle(name)
-			.addRight(new Button('save_action', () => this.save()).setType(ButtonType.Primary))
+		let headerBarAttrs: DialogHeaderBarAttrs = {
+			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			middle: name,
+			right: [{label: 'save_action', click: () => this.save(), type: ButtonType.Primary}]
+		}
 		this.view = () => m("#contact-editor", [
 			m(".wrapping-row", [
 				m(firstName),
@@ -197,19 +200,19 @@ export class ContactEditor {
 			m(".pb")
 		])
 
-		this.dialog = Dialog.largeDialog(headerBar, this)
-			.addShortcut({
-				key: Keys.ESC,
-				exec: () => this._close(),
-				help: "close_alt"
-			})
-			.addShortcut({
-				key: Keys.S,
-				ctrl: true,
-				exec: () => this.save(),
-				help: "save_action"
-			})
-			.setCloseHandler(() => this._close())
+		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
+		                    .addShortcut({
+			                    key: Keys.ESC,
+			                    exec: () => this._close(),
+			                    help: "close_alt"
+		                    })
+		                    .addShortcut({
+			                    key: Keys.S,
+			                    ctrl: true,
+			                    exec: () => this.save(),
+			                    help: "save_action"
+		                    })
+		                    .setCloseHandler(() => this._close())
 	}
 
 	show() {
@@ -228,25 +231,27 @@ export class ContactEditor {
 			return
 		}
 		this.contact.mailAddresses = this.mailAddressEditors.filter(e => e.isInitialized)
-			.map(e => ((e.aggregate: any): ContactMailAddress))
+		                                 .map(e => ((e.aggregate: any): ContactMailAddress))
 		this.contact.phoneNumbers = this.phoneEditors.filter(e => e.isInitialized)
-			.map(e => ((e.aggregate: any): ContactPhoneNumber))
+		                                .map(e => ((e.aggregate: any): ContactPhoneNumber))
 		this.contact.addresses = this.addressEditors.filter(e => e.isInitialized)
-			.map(e => ((e.aggregate: any): ContactAddress))
+		                             .map(e => ((e.aggregate: any): ContactAddress))
 		this.contact.socialIds = this.socialEditors.filter(e => e.isInitialized)
-			.map(e => ((e.aggregate: any): ContactSocialId))
+		                             .map(e => ((e.aggregate: any): ContactSocialId))
 
 		let promise
 		if (this.contact._id) {
-			promise = update(this.contact)  // FIXME error handling
+			// FIXME error handling
+			promise = update(this.contact)
+				.catch(NotFoundError, noOp)
 		} else {
 			this.contact._area = "0" // legacy
 			this.contact.autoTransmitPassword = "" // legacy
 			this.contact._owner = logins.getUserController().user._id
 			this.contact._ownerGroup = neverNull(logins.getUserController()
-				.user
-				.memberships
-				.find(m => m.groupType === GroupType.Contact)).group
+			                                           .user
+			                                           .memberships
+			                                           .find(m => m.groupType === GroupType.Contact)).group
 			promise = setup(this.listId, this.contact).then(contactId => {
 				if (this._newContactIdReceiver) {
 					this._newContactIdReceiver(contactId)
@@ -263,7 +268,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.mailAddressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -280,7 +286,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.number = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.phoneEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -297,7 +304,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.address = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.addressEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -314,7 +322,8 @@ export class ContactEditor {
 		a.customTypeName = ""
 		a.socialId = ""
 		let editor = new ContactAggregateEditor(a, e => remove(this.socialEditors, e), true, false)
-		let value = editor.textfield.value.map(address => {
+		let value = editor.textfield.value.map(identity)
+		value.map(address => {
 			if (address.trim().length > 0) {
 				editor.isInitialized = true
 				editor.animateCreate = false
@@ -339,12 +348,12 @@ class ContactAggregateEditor {
 	view: Function;
 
 	constructor(aggregate: ContactMailAddress | ContactPhoneNumber | ContactAddress | ContactSocialId,
-				cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false,
-				allowCancel: boolean = true) {
+	            cancelAction: handler<ContactAggregateEditor>, animateCreate: boolean = false,
+	            allowCancel: boolean = true) {
 		this.aggregate = aggregate
 		this.isInitialized = allowCancel
 		this.animateCreate = animateCreate
-		this.id = aggregate._id
+		this.id = aggregate._id || String(Date.now())
 
 		let value = ""
 		let onUpdate = () => {
@@ -388,39 +397,40 @@ class ContactAggregateEditor {
 		let typeButton = createDropDownButton("more_label",
 			() => Icons.More,
 			() => Object.keys(TypeToLabelMap)
-				.map(key => {
-					return new Button((TypeToLabelMap: any)[key], e => {
-						if (isCustom(key)) {
-							let tagDialogActionBar = new DialogHeaderBar()
-							/* Unused Variable*/
-							let tagName = new TextField("customLabel_label")
-								.setValue(this.aggregate.customTypeName)
-
-							setTimeout(() => {
-								Dialog.showTextInputDialog("customLabel_label",
-									"customLabel_label",
-									null,
-									this.aggregate.customTypeName,
-									null//validator needed?
-								).then((name) => {
-									this.aggregate.customTypeName = name
-									this.aggregate.type = key
-								})
-							}, DefaultAnimationTime)// wait till the dropdown is hidden
-						} else {
-							this.aggregate.type = key
-						}
-					}).setType(ButtonType.Dropdown)
-				}))
+			            .map(key => {
+				            return new Button((TypeToLabelMap: any)[key], e => {
+					            if (isCustom(key)) {
+						            setTimeout(() => {
+							            Dialog.showTextInputDialog("customLabel_label",
+								            "customLabel_label",
+								            null,
+								            this.aggregate.customTypeName,
+								            null//validator needed?
+							            ).then((name) => {
+								            this.aggregate.customTypeName = name
+								            this.aggregate.type = key
+							            })
+						            }, DefaultAnimationTime)// wait till the dropdown is hidden
+					            } else {
+						            this.aggregate.type = key
+					            }
+				            }).setType(ButtonType.Dropdown)
+			            }))
 
 
 		let cancelButton = new Button('cancel_action', () => cancelAction(this), () => Icons.Cancel)
 
 		this.textfield._injectionsRight = () => {
 			return [
-				m(typeButton), this.isInitialized ? m(cancelButton, {
-					oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
-				}) : null
+				m(typeButton),
+				this.isInitialized
+					? m(cancelButton, {
+						oncreate: vnode => {
+							vnode.dom.style.opacity = 0
+							return animations.add(vnode.dom, opacity(0, 1, true))
+						}
+					})
+					: null
 			]
 		}
 
@@ -435,12 +445,15 @@ class ContactAggregateEditor {
 
 	animate(domElement: HTMLElement, fadein: boolean) {
 		let childHeight = domElement.offsetHeight
+		if (fadein) {
+			domElement.style.opacity = "0"
+		}
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
 			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-				.then(() => {
-					domElement.style.height = ''
-				})
+			          .then(() => {
+				          domElement.style.height = ''
+			          })
 		])
 	}
 }

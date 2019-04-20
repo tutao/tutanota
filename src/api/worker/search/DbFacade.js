@@ -2,21 +2,58 @@
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
-export const SearchIndexOS = "SearchIndex"
-export const SearchIndexMetaDataOS = "SearchIndexMeta"
-export const ElementDataOS = "ElementData"
-export const MetaDataOS = "MetaData"
-export const GroupDataOS = "GroupMetaData"
-export const SearchTermSuggestionsOS = "SearchTermSuggestions"
 
-const DB_VERSION = 2
+export type ObjectStoreName = string
+export const SearchIndexOS: ObjectStoreName = "SearchIndex"
+export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
+export const ElementDataOS: ObjectStoreName = "ElementData"
+export const MetaDataOS: ObjectStoreName = "MetaData"
+export const GroupDataOS: ObjectStoreName = "GroupMetaData"
+export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
+
+export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
+
+export type IndexName = string
+export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
+export const indexName = (indexName: IndexName): string => indexName
+
+const DB_VERSION = 3
+
+
+export interface DbTransaction {
+	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]>;
+
+	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T>;
+
+	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]>;
+
+	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any>;
+
+
+	delete(objectStore: ObjectStoreName, key: string | number): Promise<void>;
+
+	abort(): void;
+
+	wait(): Promise<void>;
+
+	aborted: boolean
+}
+
+
+function extractErrorProperties(e: any) {
+	const requestErrorEntries = {}
+	for (let key in e) {
+		requestErrorEntries[key] = e[key]
+	}
+	return JSON.stringify(requestErrorEntries)
+}
 
 export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
 	_activeTransactions: number;
 
-	constructor(supported: boolean) {
+	constructor(supported: boolean, onupgrade?: () => void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
@@ -29,31 +66,41 @@ export class DbFacade {
 					try {
 
 						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
-						DBOpenRequest.onerror = (error) => {
-							callback(new DbError(`could not open indexeddb ${this._id}`, error))
+						DBOpenRequest.onerror = (event) => {
+							// Copy all the keys from the error, including inheritent ones so we can get some info
+
+							const requestErrorEntries = extractErrorProperties(DBOpenRequest.error)
+							const eventProperties = extractErrorProperties(event)
+							callback(new DbError("DbFacade.open.onerror: " + this._id +
+								"\nrequest.error: " + requestErrorEntries +
+								"\nevent: " + eventProperties +
+								"\nevent.target.error" + (event.target ? event.target.error : "[none]"), DBOpenRequest.error))
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
 							//console.log("upgrade db", event)
 							let db = event.target.result
 							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
+								if (onupgrade) onupgrade()
+
 								this._deleteObjectStores(db,
 									SearchIndexOS,
 									ElementDataOS,
 									MetaDataOS,
 									GroupDataOS,
 									SearchTermSuggestionsOS,
-									SearchIndexMetaDataOS)
+									SearchIndexMetaDataOS
+								)
 							}
 
 							try {
 								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
-								db.createObjectStore(SearchIndexMetaDataOS)
+								const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
 								db.createObjectStore(ElementDataOS)
 								db.createObjectStore(MetaDataOS)
 								db.createObjectStore(GroupDataOS)
 								db.createObjectStore(SearchTermSuggestionsOS)
-
+								metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
 							} catch (e) {
 								callback(new DbError("could not create object store searchindex", e))
 							}
@@ -120,10 +167,10 @@ export class DbFacade {
 	/**
 	 * @pre open() must have been called before, but the promise does not need to have returned.
 	 */
-	createTransaction(readOnly: boolean, objectStores: string[]): Promise<DbTransaction> {
+	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
 		return this._db.getAsync().then(db => {
 			try {
-				const transaction = new DbTransaction(db.transaction(objectStores, readOnly ? "readonly" : "readwrite"))
+				const transaction = new IndexedDbTransaction(db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite"))
 				this._activeTransactions++
 				transaction.wait().finally(() => {
 					this._activeTransactions--
@@ -147,7 +194,7 @@ type DbRequest = {
  * returned results handled, and no new requests have been placed against the transaction.
  * @see https://w3c.github.io/IndexedDB/#ref-for-transaction-finish
  */
-export class DbTransaction {
+export class IndexedDbTransaction implements DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
 	aborted: boolean;
@@ -156,7 +203,10 @@ export class DbTransaction {
 		this._transaction = transaction
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
-				callback(new DbError("IDB transaction error!", event))
+				const errorEntries = extractErrorProperties(event)
+				callback(new DbError("IndexedDbTransaction.transaction.onerror, \nevent:" + errorEntries +
+					"\ntransaction.error" + (transaction.error ? transaction.error.message : '') +
+					"\nevent.target.error: " + event.target.error, transaction.error))
 			}
 			transaction.oncomplete = (event) => {
 				callback()
@@ -167,13 +217,14 @@ export class DbTransaction {
 		})
 	}
 
-	getAll(objectStore: string): Promise<{key: string, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to retrieve data from database!", event))
+					callback(new DbError("IndexedDbTransaction.getAll().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + request.error && request.error.message, request.error))
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -185,67 +236,77 @@ export class DbTransaction {
 					}
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data os:" + objectStore, e))
+				callback(new DbError("IndexedDbTransaction.getAll().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}
 
-	get<T>(objectStore: string, key: (string | number)): Promise<?T> {
+	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T> {
 		return Promise.fromCallback((callback) => {
 			try {
-				let request = this._transaction.objectStore(objectStore).get(key)
+				const os = this._transaction.objectStore(objectStore)
+				let request
+				if (indexName) {
+					request = os.index(indexName).get(key)
+				} else {
+					request = os.get(key)
+				}
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to retrieve data from database!", event))
+					callback(new DbError("IndexedDbTransaction.get().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data os:" + objectStore + " key:" + key, e))
+				callback(new DbError("IndexedDbTransaction.get().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}
 
-	getAsList<T>(objectStore: string, key: string | number): Promise<T[]> {
-		return this.get(objectStore, key).then(result => {
-			if (!result) {
-				return []
-			}
-			return result
-		})
+	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
+		return this.get(objectStore, key, indexName)
+		           .then(result => result || [])
 	}
 
-	put(objectStore: string, key: ?(string | number), value: any): Promise<any> {
+	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = key
 					? this._transaction.objectStore(objectStore).put(value, key)
 					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to write data to database!", event))
+					const errorProperties = extractErrorProperties(event)
+					callback(new DbError("IndexedDbTransaction.put().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]") +
+						"\nkey: " + String(key) +
+						"\nvalue: " + JSON.stringify(value), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not write data", e))
+				callback(new DbError("IndexedDbTransaction.put().catch\nos: " + objectStore + "\nmessage: " + e.message +
+					"\nkey: " + key +
+					"\nvalue: " + value, e))
 			}
 		})
 	}
 
 
-	delete(objectStore: string, key: string | number): Promise<void> {
+	delete(objectStore: ObjectStoreName, key: string | number): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to delete key from database!", event))
+					callback(new DbError("IndexedDbTransaction.delete().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback()
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not delete key", e))
+				callback(new DbError("IndexedDbTransaction.delete().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}

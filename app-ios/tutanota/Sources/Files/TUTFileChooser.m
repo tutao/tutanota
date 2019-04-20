@@ -35,7 +35,7 @@
 @implementation TUTFileChooser
 
 - (TUTFileChooser*) initWithViewController:(UIViewController *)viewController {
-	_supportedUTIs = @[@"public.content"];
+	_supportedUTIs = @[@"public.content", @"public.archive", @"public.data"];
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
 	_sourceController = viewController;

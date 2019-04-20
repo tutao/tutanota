@@ -15,7 +15,8 @@ import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
-import type {BrowserData} from "../../misc/ClientDetector"
+import type {BrowserData} from "../../misc/ClientConstants"
+import type {InfoMessage} from "../common/CommonTypes"
 
 assertWorkerOrNode()
 
@@ -25,7 +26,7 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean, browserData: BrowserData) {
+	constructor(self: ?DedicatedWorkerGlobalScope, browserData: BrowserData) {
 		if (browserData == null) {
 			throw new ProgrammingError("Browserdata is not passed")
 		}
@@ -35,7 +36,7 @@ export class WorkerImpl {
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this, indexedDbSupported, browserData);
+		initLocator(this, browserData);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
@@ -47,6 +48,9 @@ export class WorkerImpl {
 				}
 				let ErrorType = errorTypes[message.args[0].errorType]
 				return Promise.reject(new ErrorType(`wtf: ${message.args[0].errorType}`))
+			},
+			generateSignupKeys: (message: Request) => {
+				return locator.customer.generateSignupKeys.apply(locator.customer, message.args)
 			},
 			signup: (message: Request) => {
 				return locator.customer.signup.apply(locator.customer, message.args)
@@ -68,9 +72,6 @@ export class WorkerImpl {
 			},
 			sendExternalPasswordSms: (message: Request) => {
 				return locator.login.sendExternalPasswordSms.apply(locator.login, message.args)
-			},
-			retrieveExternalSmsPassword: (message: Request) => {
-				return locator.login.retrieveExternalSmsPassword.apply(locator.login, message.args)
 			},
 			reset: (message: Request) => {
 				return resetLocator()
@@ -224,6 +225,10 @@ export class WorkerImpl {
 			disableMailIndexing: (message: Request) => {
 				return locator.indexer.disableMailIndexing()
 			},
+
+			extendMailIndex: (message: Request) => {
+				return locator.indexer.extendMailIndex.apply(locator.indexer, message.args)
+			},
 			cancelMailIndexing: (message: Request) => {
 				return locator.indexer.cancelMailIndexing()
 			},
@@ -318,8 +323,16 @@ export class WorkerImpl {
 	}
 
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws state: ", state)
+		console.log("ws displayed state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
+	}
+
+	updateCounter(update: WebsocketCounterData): Promise<void> {
+		return this._queue.postMessage(new Request("counterUpdate", [update]))
+	}
+
+	infoMessage(message: InfoMessage) {
+		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
 }
 

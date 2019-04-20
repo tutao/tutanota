@@ -10,7 +10,7 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError
 } from "../api/common/error/RestError"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
@@ -31,8 +31,17 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import {ButtonType} from "../gui/base/ButtonN"
+import {CheckboxN} from "../gui/base/CheckboxN"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
+
+type FeedbackContent = {|
+	message: string,
+	subject: string
+|}
 
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
@@ -40,6 +49,11 @@ let invalidSoftwareVersionActive = false
 let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
+const ignoredMessages = [
+	"webkitExitFullScreen",
+	"googletag",
+	"avast_submit"
+]
 
 export function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
@@ -58,13 +72,9 @@ export function handleUncaughtError(e: Error) {
 					})
 				}
 				img.onerror = function () {
-					// if (tutao.env.isAndroidApp()) {
-					// 	tutao.locator.modalDialogViewModel.showDialog([tutao.lang("upgradeSystemWebView_msg")], ["ok_action"], null, "https://play.google.com/store/apps/details?id=com.google.android.webview", null)
-					// } else {
 					Dialog.error("serverNotReachable_msg").then(() => {
 						notConnectedDialogActive = false
 					})
-					// }
 				}
 				img.src = "https://tutanota.com/images/maintenancecheck.png"
 			}
@@ -81,35 +91,26 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
 			loginDialogActive = true
-			let errorMessage = stream("")
-			const dialog = Dialog.showRequestPasswordDialog((pwInput) => {
-				showProgressDialog("pleaseWait_msg",
-					worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
-						pwInput.value(), client.getIdentifier(), false, true)
-					      .then(() => {
-						      dialog.close()
-						      loginDialogActive = false
-					      })
-					      .catch(AccessBlockedError, e => {
-						      errorMessage(lang.get('loginFailedOften_msg'))
-						      m.redraw()
-					      })
-					      .catch(NotAuthenticatedError, e => {
-						      errorMessage(lang.get('loginFailed_msg'))
-						      m.redraw()
-					      })
-					      .catch(AccessDeactivatedError, e => {
-						      errorMessage(lang.get('loginFailed_msg'))
-						      m.redraw()
-					      })
-					      .catch(ConnectionError, e => {
-						      errorMessage(lang.get('emptyString_msg'))
-						      m.redraw()
-						      throw e;
-					      })
-				)
-					.finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			}, errorMessage)
+			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
+			Dialog.showRequestPasswordDialog(errorMessage)
+			      .map(pw => {
+					      showProgressDialog("pleaseWait_msg",
+						      worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
+							      pw, client.getIdentifier(), false, true))
+						      .then(() => {
+							      errorMessage("")
+							      loginDialogActive = false
+						      })
+						      .catch(AccessBlockedError, e => errorMessage(lang.get('loginFailedOften_msg')))
+						      .catch(NotAuthenticatedError, e => errorMessage(lang.get('loginFailed_msg')))
+						      .catch(AccessDeactivatedError, e => errorMessage(lang.get('loginFailed_msg')))
+						      .catch(ConnectionError, e => {
+							      errorMessage(lang.get('emptyString_msg'))
+							      throw e
+						      })
+						      .finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+				      }
+			      )
 		}
 	} else if (e instanceof SecondFactorPendingError) {
 		secondFactorHandler.showWaitingForSecondFactorDialog(e.data.sessionId, e.data.challenges, e.data.mailAddress)
@@ -136,28 +137,13 @@ export function handleUncaughtError(e: Error) {
 		if (logins.isInternalUserLoggedIn()) {
 			Dialog.error("searchDisabled_msg")
 		}
+	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
 		if (!unknownErrorDialogActive) {
 			unknownErrorDialogActive = true
+			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
-				// only logged in users can report errors
-				let timestamp = new Date()
-				let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
-				textField.type = Type.Area
-				let errorOkAction = (dialog) => {
-					unknownErrorDialogActive = false
-					_sendFeedbackMail(textField.value(), timestamp, e)
-					dialog.close() // show progress & then close?
-				}
-
-				Dialog.showActionDialog({
-					title: lang.get("errorReport_label"),
-					child: {view: () => m(textField)},
-					okAction: errorOkAction,
-					cancelAction: () => {
-						unknownErrorDialogActive = false
-					}
-				})
+				promptForFeedbackAndSend(e)
 			} else {
 				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
@@ -168,32 +154,154 @@ export function handleUncaughtError(e: Error) {
 	}
 }
 
-function _sendFeedbackMail(message: string, timestamp: Date, error: Error): Promise<void> {
-	let type = neverNull(Object.keys(AccountType)
-	                           .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
-	message += "\n\n Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
-		+ " app" : "Browser")
-	message += "\n Type: " + type
-	message += "\n Tutanota version: " + env.versionNumber
-	message += "\n Timestamp (UTC): " + timestamp.toUTCString()
-	message += "\n User agent: \n" + navigator.userAgent
+function ignoredError(e: Error): boolean {
+	return e.message != null && ignoredMessages.some(s => e.message.includes(s))
+}
+
+export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
+	return new Promise(resolve => {
+		const preparedContent = prepareFeedbackContent(e)
+		const detailsExpanded = stream(false)
+
+		let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
+		textField.type = Type.Area
+		let errorOkAction = (dialog) => {
+			unknownErrorDialogActive = false
+			preparedContent.message = textField.value() + "\n" + preparedContent.message
+			resolve(preparedContent)
+			dialog.close()
+		}
+
+		const ignoreChecked = stream()
+		notificationOverlay.show({
+				view: () =>
+					m("", [
+						"An error occurred",
+						m(CheckboxN, {
+							label: () => "Ignore the error for this session",
+							checked: ignoreChecked
+						})
+					])
+			},
+			{
+				label: "close_alt", click: () => {
+					addToIgnored()
+					unknownErrorDialogActive = false
+					resolve()
+				}
+			},
+			[
+				{
+					label: () => "Send report",
+					click: () => {
+						addToIgnored()
+						showReportDialog()
+					},
+					type: ButtonType.Secondary
+				}
+			])
+
+		function addToIgnored() {
+			if (ignoreChecked()) {
+				ignoredMessages.push(e.message)
+			}
+		}
+
+		function showReportDialog() {
+			Dialog.showActionDialog({
+				title: lang.get("sendErrorReport_action"),
+				type: DialogType.EditMedium,
+				child: {
+					view: () => {
+						return [
+							m(textField),
+							m(".flex-end",
+								m(".right",
+									m(ExpanderButtonN, {
+										label: "details_label",
+										expanded: detailsExpanded,
+									})
+								)
+							),
+							m(ExpanderPanelN, {expanded: detailsExpanded},
+								[
+									m("", preparedContent.subject),
+								].concat(preparedContent.message.split("\n")
+								                        .map(l => l.trim() === "" ? m(".pb-m", "") : m("", l)))
+							)
+						]
+					}
+				},
+				okAction: errorOkAction,
+				cancelAction: () => {
+					unknownErrorDialogActive = false
+					resolve(null)
+				}
+			})
+		}
+	}).then(content => {
+		if (content) {
+			sendFeedbackMail(content)
+		}
+	})
+}
+
+function prepareFeedbackContent(error: Error): FeedbackContent {
+	const timestamp = new Date()
+	const type = neverNull(Object.keys(AccountType)
+	                             .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
+	const client = (() => {
+		let client = env.platformId
+		switch (env.mode) {
+			case Mode.App:
+			case Mode.Desktop:
+				client = env.platformId
+				break
+			case Mode.Browser:
+			case Mode.Test:
+				client = env.mode
+		}
+		return client ? client : ""
+	})()
+
+	let message = `\n\n Client: ${client}`
+	message += `\n Type: ${type}`
+	message += `\n Tutanota version: ${env.versionNumber}`
+	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
+	message += `\n User agent:\n${navigator.userAgent}`
 	if (error && error.message) {
-		message += "\n\n Error message: \n" + error.message
+		message += `\n\n Error message: \n${error.message}`
 	}
 
 	if (error && error.stack) {
 		// the error id is included in the stacktrace
-		message += "\n\n Stacktrace: \n" + error.stack
+		message += `\n\n Stacktrace: \n${error.stack}`
 	}
+	const subject = `Feedback v${env.versionNumber} - ${(error && error.name) ? error.name : '?'} - ${type} - ${client}`
+	return {
+		message,
+		subject
+	}
+}
 
-	message = message.split("\n").join("<br>")
-	var subject = ((error && error.name) ? "Feedback new client - " + error.name : "Feedback new client - ?") + " "
-		+ type
-	var recipient = createRecipientInfo("support@tutao.de", "", null, true)
-	return worker.createMailDraft(subject, message, neverNull(logins.getUserController().userGroupInfo.mailAddress), "", [recipient], [], [], ConversationType.NEW, null, [], true, [])
-	             .then(draft => {
-		             return worker.sendMailDraft(draft, [recipient], "de")
-	             })
+export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
+	const recipient = createRecipientInfo("support@tutao.de", "", null, true)
+	return worker.createMailDraft(
+		content.subject,
+		content.message.split("\n").join("<br>"),
+		neverNull(logins.getUserController().userGroupInfo.mailAddress),
+		"",
+		[recipient],
+		[],
+		[],
+		ConversationType.NEW,
+		null,
+		[],
+		true,
+		[]
+	).then(draft => {
+		return worker.sendMailDraft(draft, [recipient], "de")
+	})
 }
 
 /**
@@ -207,10 +315,10 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 		return Promise.resolve(true)
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
-		let status = (customer.approvalStatus == "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
-		if (["1", "5", "7"].indexOf(status) != -1) {
+		let status = (customer.approvalStatus === "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
+		if (["1", "5", "7"].indexOf(status) !== -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (status == "6") {
+		} else if (status === "6") {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
 				return Dialog.error("requestApproval_msg").return(true)
 			} else {
@@ -259,4 +367,8 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 export function loggingOut() {
 	isLoggingOut = true
 	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
+}
+
+if (typeof window !== "undefined") {
+	window.tutao.testError = () => handleUncaughtError(new Error("test error!"))
 }

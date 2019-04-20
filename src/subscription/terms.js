@@ -451,7 +451,7 @@ export const privacy_de = `<section id="privacy-de" class="content">
         gespeichert, so dass die Tutao GmbH selbst keinen Zugriff auf diese Daten hat. Diese Daten können vom Kunden
         selbst gelöscht werden.</p>
     <p>Zur Aufrechterhaltung des Mailserver-Betriebs, zur Fehlerdiagnose und zur Verhinderung von Missbrauch werden
-        Mail-Server-Logs maximal 30 Tage gespeichert. Diese enthalten Sender- und Empfänger-E-Mail-Adressen sowie den
+        Mail-Server-Logs maximal 7 Tage gespeichert. Diese enthalten Sender- und Empfänger-E-Mail-Adressen sowie den
         Zeitpunkt der Verbindung, jedoch keine IP-Adressen der Kunden. Diese Speicherung erfolgt zur Wahrung der
         berechtigten
         Interessen des Verantwortlichen nach Art. 6 DSGVO 1. f).</p>
@@ -908,7 +908,7 @@ export const privacy_en = `<section id="privacy-en" class="content">
         Art. 6 DSGVO 1. a). All textual content is encrypted for the user and its communication partners in a way that
         even Tutao GmbH has no access to the data. This data can be deleted by the user.</p>
     <p>In order to maintain email server operations, for error diagnosis and for prevention of abuse, mail server logs
-        are stored max. 30 days. These logs contain sender and recipient email addresses and time of connection but no
+        are stored max. 7 days. These logs contain sender and recipient email addresses and time of connection but no
         customer IP addresses. Storage takes place for the purposes of the legitimate interests pursued by the
         controller according to Art. 6 DSGVO 1. f).</p>
     <p>In order to maintain operations, for prevention of abuse and and for visitors analysis, IP addresses of users are

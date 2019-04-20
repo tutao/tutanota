@@ -1,0 +1,2 @@
+- [ ] This is not a feature request. I will request features on the forum or via support (see [contact page](https://tutanota.com/contact?page=feature)).
+- [ ] This issue doesn't fit into provided templates.

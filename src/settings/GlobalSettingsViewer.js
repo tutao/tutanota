@@ -9,7 +9,7 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
 import {GroupType, OperationType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
@@ -31,8 +31,8 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -104,14 +104,14 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					]),
 					m(spamRulesExpander.panel),
 					m("small", lang.get("adminSpamRuleInfo_msg")),
-					m("small.text-break", [m(`a[href=${this._getSpamRulesInfoLink()}][target=_blank]`, this._getSpamRulesInfoLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink('spamRules_link')}][target=_blank]`, lang.getInfoLink('spamRules_link'))]),
 					m(".flex-space-between.items-center.mb-s.mt-l", [
 						m(".h4", lang.get('customEmailDomains_label')),
 						m(domainsExpander)
 					]),
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
-					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
+					m("small.text-break", [m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))]),
 					m(".mt-l", [
 						m(".h4", lang.get('security_title')),
 						m(saveIpAddressDropdown),
@@ -137,11 +137,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._updateDomains()
 		this._updateCustomerServerProperties()
 		this._updateAuditLog()
-	}
-
-	_getSpamRulesInfoLink(): string {
-		return (lang.code === "de" || lang.code
-			=== "de_sie") ? "http://tutanota.uservoice.com/knowledgebase/articles/780153" : "https://tutanota.uservoice.com/knowledgebase/articles/780147"
 	}
 
 	_updateCustomerServerProperties(): void {
@@ -246,7 +241,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateDomains() {
 		this._customerInfo.getAsync().then(customerInfo => {
-			let customDomainInfos = customerInfo.domainInfos.filter(domainInfo => domainInfo.certificate == null)
+			let customDomainInfos = getCustomMailDomains(customerInfo)
 			Promise.map(customDomainInfos, domainInfo => {
 				let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"))
 				if (domainInfo.catchAllMailGroup) {

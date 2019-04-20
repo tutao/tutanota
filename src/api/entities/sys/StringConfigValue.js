@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createStringConfigValue(): StringConfigValue {
-	return create(_TypeModel)
+	return create(_TypeModel, StringConfigValueTypeRef)
 }

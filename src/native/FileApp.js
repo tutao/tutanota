@@ -2,12 +2,11 @@
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import type {Dialog} from "../gui/base/Dialog"
-import {asyncImport} from "../api/common/utils/Utils"
 
 
 export const fileApp = {
 	openFileChooser,
+	openFolderChooser,
 	download,
 	upload,
 	open,
@@ -43,7 +42,11 @@ function openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>
 		"height": boundingRect.height
 	}
 
-	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect])).map(uriToFileRef)
+	return nativeApp.invokeNative(new Request("openFileChooser", [srcRect, false])).map(uriToFileRef)
+}
+
+function openFolderChooser(): Promise<Array<string>> {
+	return nativeApp.invokeNative(new Request("openFileChooser", [null, true]))
 }
 
 /**
@@ -87,9 +90,8 @@ export function putFileIntoDownloadsFolder(localFileUri: string): Promise<string
 	return nativeApp.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
 }
 
-function saveBlob(data: DataFile): Promise<FileReference> {
+function saveBlob(data: DataFile): Promise<void> {
 	return nativeApp.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
-	                .then(uriToFileRef)
 }
 
 /**

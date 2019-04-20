@@ -54,9 +54,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createSession(): Session {
-	return create(_TypeModel)
+	return create(_TypeModel, SessionTypeRef)
 }

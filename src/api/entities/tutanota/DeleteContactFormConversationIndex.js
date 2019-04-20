@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createDeleteContactFormConversationIndex(): DeleteContactFormConversationIndex {
-	return create(_TypeModel)
+	return create(_TypeModel, DeleteContactFormConversationIndexTypeRef)
 }

@@ -46,9 +46,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createUpdateAdminshipData(): UpdateAdminshipData {
-	return create(_TypeModel)
+	return create(_TypeModel, UpdateAdminshipDataTypeRef)
 }

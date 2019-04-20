@@ -7,11 +7,11 @@ import {sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {load, loadRange} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
+import {getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getArchiveFolder, getInboxFolder, getSenderOrRecipientHeading, getTrashFolder, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
+import {getArchiveFolder, getFolderName, getInboxFolder, getSenderOrRecipientHeading, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
@@ -21,6 +21,11 @@ import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
+import {theme} from "../gui/theme"
+import {ButtonColors} from "../gui/base/Button"
+import {Dialog} from "../gui/base/Dialog"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -37,7 +42,7 @@ const iconMap: {[MailFolderTypeEnum]: string} = {
 }
 
 
-export class MailListView {
+export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
@@ -78,7 +83,7 @@ export class MailListView {
 				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed == true) {
+					if (confirmed === true) {
 						mailModel.deleteMails([listElement])
 					} else {
 						return Promise.resolve()
@@ -99,17 +104,51 @@ export class MailListView {
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")
 		})
+	}
 
-		this.view = (): VirtualElement => {
-			return m(this.list)
+	view(): Children {
+		const purgeButtonAttrs: ButtonAttrs = {
+			label: "clearFolder_action",
+			type: ButtonType.Primary,
+			colors: ButtonColors.Nav,
+			click: () => {
+				Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.mailView.selectedFolder)}))
+				      .then(confirmed => {
+					      if (confirmed) {
+						      this.mailView._finallyDeleteAllMailsInSelectedFolder()
+					      }
+				      })
+			}
 		}
+
+		return this.showingTrashOrSpamFolder()
+			? m(".flex.flex-column.fill-absolute", [
+				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg", {
+					style: {
+						'border-bottom': `1px solid ${theme.list_border}`,
+					}
+				}, [
+					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
+				]),
+				m(".rel.flex-grow", m(this.list))
+			])
+			: m(this.list)
 	}
 
 	targetInbox() {
-		const mailboxDetail = this.mailView.selectedFolder ? mailModel.getMailboxDetailsForMailListId(this.mailView.selectedFolder.mails) : null
-		if (mailboxDetail) {
-			return this.mailView.selectedFolder === getArchiveFolder(mailboxDetail.folders)
-				|| this.mailView.selectedFolder === getTrashFolder(mailboxDetail.folders)
+		if (this.mailView.selectedFolder) {
+			return this.mailView.selectedFolder.folderType === MailFolderType.ARCHIVE
+				|| this.mailView.selectedFolder.folderType === MailFolderType.TRASH
+		} else {
+			return false
+		}
+	}
+
+	showingTrashOrSpamFolder(): boolean {
+		if (this.mailView.selectedFolder) {
+			return this.mailView.selectedFolder.folderType === MailFolderType.SPAM
+				|| this.mailView.selectedFolder.folderType === MailFolderType.TRASH
 		} else {
 			return false
 		}
@@ -148,6 +187,7 @@ export class MailRow {
 	_domSender: HTMLElement;
 	_domDate: HTMLElement;
 	_iconsDom: HTMLElement;
+	_domUnread: HTMLElement;
 	_showFolderIcon: boolean;
 	_domFolderIcons: {[key: MailFolderTypeEnum]: HTMLElement};
 	_domTeamLabel: HTMLElement;
@@ -171,8 +211,10 @@ export class MailRow {
 	update(mail: Mail, selected: boolean): void {
 		if (selected) {
 			this.domElement.classList.add("row-selected")
+			this._iconsDom.classList.add("secondary")
 		} else {
 			this.domElement.classList.remove("row-selected")
+			this._iconsDom.classList.remove("secondary")
 		}
 
 		this._iconsDom.textContent = this._iconsText(mail)
@@ -181,8 +223,10 @@ export class MailRow {
 		this._domSender.textContent = getSenderOrRecipientHeading(mail, true)
 		this._domSubject.textContent = mail.subject
 		if (mail.unread) {
+			this._domUnread.classList.remove("hidden")
 			this._domSubject.classList.add("b")
 		} else {
+			this._domUnread.classList.add("hidden")
 			this._domSubject.classList.remove("b")
 		}
 
@@ -198,7 +242,7 @@ export class MailRow {
 		let iconText = "";
 		if (this._showFolderIcon) {
 			let folder = mailModel.getMailFolder(mail._id[0])
-			iconText += folder ? this._getFolderIcon(folder.folderType) : ""
+			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
 		}
 		iconText += mail._errors ? FontIcons.Warning : "";
 		switch (mail.replyType) {
@@ -226,26 +270,32 @@ export class MailRow {
 	 * Only the structure is managed by mithril. We set all contents on our own (see update) in order to avoid the vdom overhead (not negligible on mobiles)
 	 */
 	render(): Children {
-		return [
-			m(".top.flex.badge-line-height", [
-				m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
-				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
-				m(".flex-grow"),
-				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
-			]),
-			m(".bottom.flex-space-between", {
-					style: {
-						marginTop: px(2)
-					}
-				}, [
-					m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-					m("span.ion.ml-s.list-font-icons", {
-						oncreate: (vnode) => this._iconsDom = vnode.dom
-					})
+		return m(".flex", [
+			m(".flex.items-start.flex-no-grow.no-shrink.pr-s.pb-xs", m(".circle.bg-accent-fg.hidden", {
+					oncreate: vnode => this._domUnread = vnode.dom,
+				})
+			),
+			m(".flex-grow.min-width-0", [
+				m(".top.flex.badge-line-height", [
+					m(Badge, {classes: ".small.mr-s", oncreate: (vnode) => this._domTeamLabel = vnode.dom}, "Tutanota Team"),
+					m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
+					m(".flex-grow"),
+					m("small.text-ellipsis.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
+				]),
+				m(".bottom.flex-space-between", {
+						style: {
+							marginTop: px(2)
+						}
+					}, [
+						m(".text-ellipsis.flex-grow", {oncreate: (vnode) => this._domSubject = vnode.dom}),
+						m("span.ion.ml-s.list-font-icons.secondary", {
+							oncreate: (vnode) => this._iconsDom = vnode.dom
+						})
 
-				]
-			)
-		]
+					]
+				)
+			])
+		])
 	}
 
 	_getFolderIcon(type: MailFolderTypeEnum): string {

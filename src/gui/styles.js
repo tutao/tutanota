@@ -1,5 +1,5 @@
 // @flow
-import {log, timer, Cat} from "../misc/Log"
+import {Cat, log, timer} from "../misc/Log"
 import {size} from "./size"
 import {assertMainOrNodeBoot} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"

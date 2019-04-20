@@ -1,7 +1,7 @@
 //@flow
 
 import {noOp} from "../api/common/utils/Utils"
-import {isApp} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 
 function _showNotification(title: string, options: ?NotificationOptions, onclick: clickHandler): ?Notification {
@@ -37,7 +37,7 @@ export class Notifications {
 	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
 	 */
 	requestPermission(): void {
-		if (isApp() || typeof Notification === "undefined") {
+		if (isDesktop() || isApp() || typeof Notification === "undefined") {
 			return
 		}
 		try {

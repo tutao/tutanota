@@ -29,7 +29,7 @@ export class DatePicker {
 	invalidDate: boolean;
 	date: Stream<?Date>;
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: string = "emptyString_msg") {
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg") {
 		this.date = stream(null)
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => Icons.Calendar)

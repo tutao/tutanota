@@ -26,6 +26,7 @@ import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
+import {generateRsaKey} from "../crypto/Rsa"
 
 assertWorkerOrNode()
 
@@ -169,22 +170,23 @@ export class UserManagementFacade {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
-		return this._groupManagement.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey)
-		           .then(userGroupData => {
-			           return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
-			                      .then(() => {
-				                      let data = createUserAccountCreateData()
-				                      data.date = Const.CURRENT_DATE
-				                      data.userGroupData = userGroupData
-				                      data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
-					                      password, name, this._login.generateRecoveryCode(userGroupKey))
-				                      return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
-					                      .then(() => {
-						                      return this._worker.sendProgress((userIndex + 1)
-							                      / overallNbrOfUsersToCreate * 100)
-					                      })
-			                      })
-		           })
+		return generateRsaKey()
+			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey))
+			.then(userGroupData => {
+				return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
+				           .then(() => {
+					           let data = createUserAccountCreateData()
+					           data.date = Const.CURRENT_DATE
+					           data.userGroupData = userGroupData
+					           data.userData = this.generateUserAccountData(userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress,
+						           password, name, this._login.generateRecoveryCode(userGroupKey))
+					           return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data)
+						           .then(() => {
+							           return this._worker.sendProgress((userIndex + 1)
+								           / overallNbrOfUsersToCreate * 100)
+						           })
+				           })
+			})
 	}
 
 	generateUserAccountData(userGroupKey: Aes128Key, userGroupInfoSessionKey: Aes128Key, customerGroupKey: Aes128Key, mailAddress: string, password: string,

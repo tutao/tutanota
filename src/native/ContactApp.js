@@ -4,7 +4,7 @@ import {ContactSuggestion} from "../mail/MailEditor"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {PermissionError} from "../api/common/error/PermissionError"
-import {isMailAddress} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 
 assertMainOrNode()
 

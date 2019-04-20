@@ -23,8 +23,8 @@ import {header} from "../gui/base/Header"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {contains} from "../api/common/utils/ArrayUtils"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 
 assertMainOrNode()
 

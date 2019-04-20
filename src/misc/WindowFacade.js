@@ -16,6 +16,7 @@ class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?TimeoutID;
 	windowCloseConfirmation: boolean;
+	_windowCloseListeners: Set<() => void>;
 	_worker: WorkerClient;
 	// following two properties are for the iOS
 	_keyboardSize = 0;
@@ -25,6 +26,7 @@ class WindowFacade {
 		this._windowSizeListeners = []
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
+		this._windowCloseListeners = new Set()
 		this.init()
 		asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/api/main/WorkerClient.js`)
@@ -48,6 +50,15 @@ class WindowFacade {
 		if (index > -1) {
 			this._windowSizeListeners.splice(index, 1)
 		}
+	}
+
+	addWindowCloseListener(listener: () => void): Function {
+		this._windowCloseListeners.add(listener)
+		return () => this._windowCloseListeners.delete(listener)
+	}
+
+	notifyCloseListeners() {
+		this._windowCloseListeners.forEach(f => f())
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {
@@ -104,6 +115,7 @@ class WindowFacade {
 	}
 
 	_beforeUnload(e: any) { // BeforeUnloadEvent
+		this.notifyCloseListeners()
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m
@@ -157,18 +169,27 @@ class WindowFacade {
 	}
 
 	addPageInBackgroundListener() {
-		if (isAndroidApp()) {
+		if (isApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 				if (document.hidden) {
-					setTimeout(() => {
-						// if we're still in background after timeout, pause WebSocket
-						if (document.hidden) {
-							this._worker.closeEventBus(CloseEventBusOption.Pause)
-						}
-					}, 30 * 1000)
+					if (isAndroidApp()) {
+						setTimeout(() => {
+							// if we're still in background after timeout, pause WebSocket
+							if (document.hidden) {
+								this._worker.closeEventBus(CloseEventBusOption.Pause)
+							}
+						}, 30 * 1000)
+					}
 				} else {
-					this._worker.tryReconnectEventBus(false, true)
+					// On iOS devices the WebSocket close event fires when the app comes back to foreground
+					// so we try to reconnect with a delay to receive _close event first. Otherwise
+					// we may try to reconnect while we think that we're still connected
+					// (e.g. first reconnect and then receive close).
+					// We used to handle it in the EventBus and reconnect immediately but isIosApp()
+					// check does not work in the worker currently.
+					// Doing this for all apps just to be sure.
+					setTimeout(() => this._worker.tryReconnectEventBus(false, true), 100)
 				}
 			})
 		}

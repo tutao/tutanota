@@ -43,9 +43,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createWhitelabelChild(): WhitelabelChild {
-	return create(_TypeModel)
+	return create(_TypeModel, WhitelabelChildTypeRef)
 }

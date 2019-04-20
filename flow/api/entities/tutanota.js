@@ -170,6 +170,7 @@ type Mail = {
 	confidential: boolean;
 	differentEnvelopeSender: ?string;
 	listUnsubscribe: boolean;
+	movedTime: ?Date;
 	receivedDate: Date;
 	replyType: NumberString;
 	sentDate: Date;
@@ -308,6 +309,7 @@ type TutanotaProperties = {
 	defaultUnconfidential: boolean;
 	emailSignatureType: NumberString;
 	groupEncEntropy: ?Uint8Array;
+	lastSeenAnnouncement: NumberString;
 	noAutomaticContacts: boolean;
 	notificationMailLanguage: ?string;
 	sendPlaintextOnly: boolean;

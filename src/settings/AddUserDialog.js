@@ -12,7 +12,7 @@ import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll} from "../api/common/utils/ArrayUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -60,8 +60,7 @@ export function show(): Promise<void> {
 export function getAvailableDomains(onlyCustomDomains: ?boolean): Promise<string[]> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			let availableDomains = customerInfo.domainInfos.filter(info => info.certificate == null)
-				.map(info => info.domain)
+			let availableDomains = getCustomMailDomains(customerInfo).map(info => info.domain)
 			if (!onlyCustomDomains && logins.getUserController().user.accountType !== AccountType.STARTER &&
 				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())) {
 				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)

@@ -4,7 +4,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
-import {assertMainOrNode, isApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -121,12 +121,13 @@ export class LoginView {
 					}
 				}, [
 					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					m(".flex-center.pt-l", [
+					(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
 						m(optionsExpander),
-					]),
-					m(".pb-l", [
+					]) : null,
+					(this._anyMoreItemVisible()) ? m("", [
 						m(optionsExpander.panel),
-					])
+					]) : null,
+					(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
 				]),
 			])
 		}
@@ -172,6 +173,15 @@ export class LoginView {
 		return isTutanotaDomain()
 	}
 
+	_anyMoreItemVisible(): boolean {
+		return this._signupLinkVisible()
+			|| this._loginAnotherLinkVisible()
+			|| this._deleteCredentialsLinkVisible()
+			|| this._knownCredentialsLinkVisible()
+			|| this._switchThemeLinkVisible()
+			|| this._recoverLoginVisible()
+	}
+
 	_expanderButton(): ExpanderButton {
 		const panel = {
 			view: () => m(".flex-center.flex-column", [
@@ -215,11 +225,6 @@ export class LoginView {
 					},
 					type: ButtonType.Secondary,
 				}) : null,
-				m(ButtonN, {
-					label: "imprint_label",
-					click: () => windowFacade.openLink(getImprintLink()),
-					type: ButtonType.Secondary,
-				})
 			])
 		}
 		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
@@ -255,7 +260,7 @@ export class LoginView {
 					}, lang.get("recoverAccountAccess_action"))
 					: null
 			])),
-			!isApp() && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
+			!(isApp() || isDesktop()) && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
 	}
 
@@ -298,6 +303,8 @@ export class LoginView {
 
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
+		} else if (args.action) {
+			this._requestedPath = this.targetPath + `?action=${args.action}`
 		} else {
 			this._requestedPath = this.targetPath
 		}
@@ -402,10 +409,28 @@ export function getWhitelabelRegistrationDomains(): string[] {
 		whitelabelCustomizations.registrationDomains : []
 }
 
-export function getImprintLink() {
-	return (whitelabelCustomizations && whitelabelCustomizations.imprintUrl) ?
-		whitelabelCustomizations.imprintUrl : "https://tutanota.com/contact"
+export function getImprintLink(): ?string {
+	return (whitelabelCustomizations) ?
+		whitelabelCustomizations.imprintUrl : "https://tutanota.com/about"
 }
 
+export function getPrivacyStatementLink(): ?string {
+	return (whitelabelCustomizations) ?
+		whitelabelCustomizations.privacyStatementUrl : "https://tutanota.com/privacy"
+}
+
+
+export function renderPrivacyAndImprintLinks() {
+	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl", [
+		(getPrivacyStatementLink()) ? m("a.plr", {
+			href: getPrivacyStatementLink(),
+			target: "_blank"
+		}, lang.get("privacyLink_label")) : null,
+		(getImprintLink()) ? m("a.plr", {
+			href: getImprintLink(),
+			target: "_blank"
+		}, lang.get("imprint_label")) : null,
+	])
+}
 
 export const login: LoginView = new LoginView()

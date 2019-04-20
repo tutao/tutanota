@@ -27,7 +27,16 @@ export const _TypeModel: TypeModel = {
 		},
 		"imprintUrl": {"name": "imprintUrl", "id": 1425, "since": 37, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"jsonTheme": {"name": "jsonTheme", "id": 1133, "since": 22, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"metaTags": {"name": "metaTags", "id": 1281, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"metaTags": {"name": "metaTags", "id": 1281, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"privacyStatementUrl": {
+			"name": "privacyStatementUrl",
+			"id": 1496,
+			"since": 42,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"bootstrapCustomizations": {
@@ -38,12 +47,21 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"refType": "BootstrapFeature",
 			"final": false
+		},
+		"certificateInfo": {
+			"name": "certificateInfo",
+			"id": 1506,
+			"since": 44,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "CertificateInfo",
+			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createWhitelabelConfig(): WhitelabelConfig {
-	return create(_TypeModel)
+	return create(_TypeModel, WhitelabelConfigTypeRef)
 }

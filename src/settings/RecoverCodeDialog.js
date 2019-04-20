@@ -2,7 +2,6 @@
 
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {neverNull} from "../api/common/utils/Utils"
@@ -12,29 +11,25 @@ import {assertMainOrNode, isApp} from "../api/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
+import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
 
 type Action = 'get' | 'create'
 
 assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
-	const errorMessageStream = stream("")
-	const dialog = Dialog.showRequestPasswordDialog((passwordField) => {
-		showProgressDialog("loading_msg",
-			action === 'get' ? worker.getRecoveryCode(passwordField.value()) : worker.createRecoveryCode(passwordField.value()))
-			.then((recoverCode) => {
-				dialog.close()
-				return showRecoverCodeDialog(recoverCode, showMessage)
-			})
-			.catch(NotAuthenticatedError, () => {
-				errorMessageStream(lang.get("invalidPassword_msg"))
-				passwordField.focus()
-			})
-			.catch(AccessBlockedError, () => {
-				errorMessageStream(lang.get("tooManyAttempts_msg"))
-				passwordField.focus()
-			})
-	}, errorMessageStream, () => { dialog.close()})
+	const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
+	Dialog.showRequestPasswordDialog(errorMessage)
+	      .map(pw => showProgressDialog("loading_msg", action === 'get'
+		      ? worker.getRecoveryCode(pw)
+		      : worker.createRecoveryCode(pw))
+		      .then(recoverCode => {
+			      errorMessage("")
+			      showRecoverCodeDialog(recoverCode, showMessage)
+		      })
+		      .catch(NotAuthenticatedError, () => errorMessage(lang.get("invalidPassword_msg")))
+		      .catch(AccessBlockedError, () => errorMessage(lang.get("tooManyAttempts_msg")))
+	      )
 }
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {

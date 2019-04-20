@@ -45,6 +45,14 @@ o.spec("ClientDetector test", function () {
 		o(client.isMobileDevice()).equals(false)
 	})
 
+	o("ClientDetector detects Waterfox", () => {
+		client.init("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0 Waterfox/56.2.7", "Windows")
+		o(client.browser).equals(BrowserType.WATERFOX)
+		o(client.browserVersion).equals(56.2)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+	})
+
 	o("ClientDetector detect safari 5.1 ipad", () => {
 		client.init("Mozilla/5.0 (iPad CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3", "Linux")
 		o(client.browser).equals(BrowserType.SAFARI)
@@ -378,5 +386,15 @@ o.spec("ClientDetector test", function () {
 		o(client.device).equals(DeviceType.OTHER_MOBILE)
 		o(client.isMobileDevice()).equals(true)
 		env.mode = Mode.Browser
+	})
+
+	o("old Chrome is not supported", function () {
+		client.init("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36", "Linux")
+		o(client.isSupportedBrowserVersion()).equals(false)
+	})
+
+	o("newer Chrome is supported", function () {
+		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36", "Linux")
+		o(client.isSupportedBrowserVersion()).equals(true)
 	})
 })

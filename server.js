@@ -2,14 +2,14 @@
 
 // http2 server
 const port = 9000
-const root = "./build"
+const root = "./" // set to . to be able to run test cases
 const nodeStatic = require('node-static')
 const file = new nodeStatic.Server(root, {cache: false, gzip: true});
 const http = require('http')
 const fs = require('fs')
 const os = require('os')
 
-const prefix = `http://localhost:${port}`
+const prefix = `http://localhost:${port}/build`
 const distPrefix = prefix + "/dist"
 
 const server = http.createServer(function (req, res) {

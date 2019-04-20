@@ -1,23 +1,25 @@
 // @flow
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "./utils/Encoding"
 import EC from "./EntityConstants"
-import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {asyncImport} from "./utils/Utils"
+import {last} from "./utils/ArrayUtils"
+
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
 
-export const HttpMethod = {
+export const HttpMethod = Object.freeze({
 	GET: 'GET',
 	POST: 'POST',
 	PUT: 'PUT',
 	DELETE: 'DELETE'
-}
+})
 export type HttpMethodEnum = $Values<typeof HttpMethod>;
 
-export const MediaType = {
+export const MediaType = Object.freeze({
 	Json: 'application/json',
 	Binary: 'application/octet-stream',
-}
+})
 export type MediaTypeEnum = $Values<typeof MediaType>;
 
 /**
@@ -39,18 +41,21 @@ export const GENERATED_ID_BYTES_LENGTH = 9
 export const CUSTOM_MIN_ID = ""
 
 export const RANGE_ITEM_LIMIT = 1000
+export const LOAD_MULTIPLE_LIMIT = 100
+
+export const READ_ONLY_HEADER = "read-only"
 
 /**
  * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
  */
 export class TypeRef<T> {
-
-	app: string;
-	type: string;
+	+app: string;
+	+type: string;
 
 	constructor(app: string, type: string) {
-		this.app = app;
-		this.type = type;
+		this.app = app
+		this.type = type
+		Object.freeze(this)
 	}
 }
 
@@ -75,9 +80,9 @@ export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> 
 		})
 }
 
-export function create(typeModel: TypeModel): any {
+export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>): T {
 	let i = {
-		_type: new TypeRef(typeModel.app, typeModel.name)
+		_type: typeRef
 	}
 	if (typeModel.type === Type.Element || typeModel.type === Type.ListElement) {
 		(i: any)._errors = {}
@@ -94,7 +99,7 @@ export function create(typeModel: TypeModel): any {
 			i[associationName] = null // set to null even if the cardinality is One
 		}
 	}
-	return i;
+	return (i: any);
 }
 
 function _getDefaultValue(value: ModelValue): any {
@@ -180,17 +185,30 @@ export function _loadEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParam
 }
 
 
-export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface): Promise<T[]> {
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
+export function _loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[], target: EntityRestInterface, extraHeaders?: Params): Promise<T[]> {
+	// split the ids into chunks
+	let idChunks = [];
+	for (let i = 0; i < elementIds.length; i += LOAD_MULTIPLE_LIMIT) {
+		idChunks.push(elementIds.slice(i, i + LOAD_MULTIPLE_LIMIT))
+	}
 	return resolveTypeReference(typeRef).then(typeModel => {
 		_verifyType(typeModel)
-		let queryParams = {
-			ids: elementIds.join(",")
-		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+		return Promise.map(idChunks, idChunk => {
+			let queryParams = {
+				ids: idChunk.join(",")
+			}
+			return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
+		}, {concurrency: 1}).then(instanceChunks => {
+			return Array.prototype.concat.apply([], instanceChunks);
+		})
 	})
 }
 
-export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface): Promise<T[]> {
+export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, target: EntityRestInterface,
+                                    extraHeaders?: Params): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		let queryParams = {
@@ -198,26 +216,40 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 			count: count + "",
 			reverse: reverse.toString()
 		}
-		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams): any)
+		return (target.entityRequest(typeRef, HttpMethod.GET, listId, null, null, queryParams, extraHeaders): any)
 	})
 }
 
-export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface): Promise<T[]> {
+export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
+                                                         rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, true, target)
-			.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
-			.then(entities => {
-				if (entities.length === RANGE_ITEM_LIMIT) {
-					return _loadReverseRangeBetween(typeRef, listId, getLetId(entities[entities.length
-					- 1])[1], end, target).then(remainingEntities => {
-						return entities.concat(remainingEntities)
-					})
+		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target, extraHeaders)
+			.then(loadedEntities => {
+				const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
+				if (filteredEntities.length === rangeItemLimit) {
+					const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
+					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit, extraHeaders)
+						.then(({elements: remainingEntities, loadedCompletely}) => {
+							return {elements: filteredEntities.concat(remainingEntities), loadedCompletely}
+						})
 				} else {
-					return entities
+					return {elements: filteredEntities, loadedCompletely: loadedReverseRangeCompletely(rangeItemLimit, loadedEntities, filteredEntities)}
 				}
 			})
 	})
+}
+
+function loadedReverseRangeCompletely<T:ListElement>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>): boolean {
+	if (loadedEntities.length < rangeItemLimit) {
+		const lastLoaded = last(loadedEntities)
+		const lastFiltered = last(filteredEntities)
+		if (!lastLoaded) {
+			return true
+		}
+		return lastLoaded === lastFiltered
+	}
+	return false
 }
 
 export function _verifyType(typeModel: TypeModel) {
@@ -357,3 +389,6 @@ export function customIdToString(customId: string) {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
 }
 
+export function readOnlyHeaders(): Params {
+	return {[READ_ONLY_HEADER]: "true"}
+}

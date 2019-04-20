@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isIOSApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
@@ -39,8 +39,17 @@ import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
-import type {EntityUpdateData} from "../api/main/EntityEventController"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import type {EntityUpdateData} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {Dialog} from "../gui/base/Dialog"
+import {
+	getIncludedAliases,
+	getIncludedStorageCapacity,
+	getSubscriptionType,
+	getTotalAliases,
+	getTotalStorageCapacity,
+	isWhitelabelActive, SubscriptionType
+} from "./SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -77,26 +86,42 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._isPro = false
 		this._subscriptionField = new TextField("subscription_label")
 		let subscriptionAction = new Button("subscription_label", () => {
-			if (this._accountingInfo && this._customer && this._customerInfo) {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else if (this._accountingInfo && this._customer && this._customerInfo) {
 				showSwitchDialog(this._accountingInfo,
 					this._isPro,
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getIncludedStorageCapacity(neverNull(this._customerInfo)),
 					getIncludedAliases(neverNull(this._customerInfo)),
-					this._isWhitelabelActive())
+					isWhitelabelActive(this._lastBooking))
 			}
 		}, () => Icons.Edit)
-		let upgradeAction = new Button("upgrade_action", () => showUpgradeWizard(), () => Icons.Edit)
+
+		let upgradeAction = new Button("upgrade_action", () => {
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				showUpgradeWizard()
+			}
+		}, () => Icons.Edit)
+
 		this._subscriptionField._injectionsRight = () => (
-			logins.getUserController().isFreeAccount()) ? m(upgradeAction) : (logins.getUserController()
-		                                                                            .isPremiumAccount()
-		&& !this._isCancelled ? [m(subscriptionAction)] : null)
+			logins.getUserController().isFreeAccount())
+			? m(upgradeAction)
+			: (logins.getUserController().isPremiumAccount() && !this._isCancelled
+				? [m(subscriptionAction)]
+				: null)
 		this._usageTypeField = new TextField("businessOrPrivateUsage_label")
 			.setValue(lang.get("loading_msg"))
 			.setDisabled()
 		let usageTypeAction = new Button("pricing.businessUse_label", () => {
-			this._switchToBusinessUse()
+			if (isIOSApp()) {
+				Dialog.error("notAvailableInApp_msg")
+			} else {
+				this._switchToBusinessUse()
+			}
 		}, () => Icons.Edit)
 		this._usageTypeField._injectionsRight = () => this._accountingInfo
 		&& !this._accountingInfo.business ? m(usageTypeAction) : null
@@ -314,14 +339,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateSubscriptionField(cancelled: boolean) {
 		let cancelledText = !cancelled ? "" : " "
 			+ lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
-		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro)
-			+ cancelledText).setDisabled()
-	}
-
-	_updatePro(customer: Customer, customerInfo: CustomerInfo, lastBooking: Booking) {
-		let aliases = getTotalAliases(customer, customerInfo, lastBooking)
-		let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
-		this._isPro = this._isWhitelabelActive() && aliases >= 20 && storage >= 10
+		const accountType: AccountTypeEnum = downcast(logins.getUserController().user.accountType)
+		this._subscriptionField.setValue(_getAccountTypeName(accountType, this._isPro) + cancelledText).setDisabled()
 	}
 
 	_updateBookings() {
@@ -337,7 +356,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 							this._isCancelled = customer.canceledPremiumAccount
-							this._updatePro(customer, customerInfo, neverNull(this._lastBooking))
+							this._isPro = getSubscriptionType(this._lastBooking, customer, customerInfo) === SubscriptionType.Pro
 							this._updateSubscriptionField(this._isCancelled)
 							Promise.all([
 									this._updateUserField(),
@@ -411,16 +430,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateWhitelabelField(): Promise<void> {
-		if (this._isWhitelabelActive()) {
+		if (isWhitelabelActive(this._lastBooking)) {
 			this._whitelabelField.setValue(lang.get("active_label"))
 		} else {
 			this._whitelabelField.setValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
-	}
-
-	_isWhitelabelActive(): boolean {
-		return getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) !== 0
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
@@ -444,36 +459,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
 		}
 	}
-}
-
-
-/**
- * Returns the available storage capacity for the customer in GB
- */
-function getTotalStorageCapacity(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeStorageCapacity = getIncludedStorageCapacity(customerInfo)
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeStorageCapacity, getCurrentCount(BookingItemFeatureType.Storage, lastBooking))
-	} else {
-		return freeStorageCapacity
-	}
-}
-
-function getIncludedStorageCapacity(customerInfo: CustomerInfo): number {
-	return Math.max(Number(customerInfo.includedStorageCapacity), Number(customerInfo.promotionStorageCapacity))
-}
-
-function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, lastBooking: ?Booking): number {
-	let freeAliases = getIncludedAliases(customerInfo)
-	if (customer.type === AccountType.PREMIUM) {
-		return Math.max(freeAliases, getCurrentCount(BookingItemFeatureType.Alias, lastBooking))
-	} else {
-		return freeAliases
-	}
-}
-
-function getIncludedAliases(customerInfo: CustomerInfo): number {
-	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
 }
 
 function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {

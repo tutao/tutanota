@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createPasswordRetrievalReturn(): PasswordRetrievalReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, PasswordRetrievalReturnTypeRef)
 }

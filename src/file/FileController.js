@@ -11,6 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
+import {splitInChunks} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -45,30 +46,33 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
-		return showProgressDialog("pleaseWait_msg",
-			Promise
-				.map(tutanotaFiles, (tutanotaFile) => {
-					return worker.downloadFileContent(tutanotaFile)
-					             // We're returning dialogs here so they don't overlap each other
-					             // We're returning null to say that this file is not present.
-					             // (it's void by default and doesn't satisfy type checker)
-					             .catch(CryptoError, e => {
-						             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-						                          .return(null)
-					             })
-					             .catch(ConnectionError, e => {
-						             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
-						                          .return(null)
-					             })
-				}, {concurrency: (isAndroidApp() ? 1 : 5)})
-				.then((files) => files.filter(Boolean)) // filter out failed files
-				.then((files) => {
-					return Promise.each(files, (file) =>
-						(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
-							.finally(() => this._deleteFile(file.location)))
-				}))
-			.return()
-			.catch(() => Dialog.error("couldNotAttachFile_msg"))
+		return Promise
+			.map(tutanotaFiles, (tutanotaFile) => {
+				return worker.downloadFileContent(tutanotaFile)
+				             // We're returning dialogs here so they don't overlap each other
+				             // We're returning null to say that this file is not present.
+				             // (it's void by default and doesn't satisfy type checker)
+				             .catch(CryptoError, e => {
+					             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+					                          .return(null)
+				             })
+				             .catch(ConnectionError, e => {
+					             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+					                          .return(null)
+				             })
+			}, {concurrency: (isAndroidApp() ? 1 : 5)})
+			.then((files) => files.filter(Boolean)) // filter out failed files
+			.then((files) => {
+				return Promise.each(files, (file) =>
+					(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
+						.finally(() => this._deleteFile(file.location)))
+			}).return()
+	}
+
+	downloadBatched(attachments: TutanotaFile[], batchSize: number, delay: number) {
+		return splitInChunks(batchSize, attachments).reduce((p, chunk) => {
+			return p.then(() => this.downloadAll(chunk)).delay(delay)
+		}, Promise.resolve())
 	}
 
 	/**
@@ -208,8 +212,10 @@ export class FileController {
 	}
 
 	_deleteFile(filePath: string) {
-		fileApp.deleteFile(filePath)
-		       .catch((e) => console.log("failed to delete file", filePath, e))
+		if (isApp()) {
+			fileApp.deleteFile(filePath)
+			       .catch((e) => console.log("failed to delete file", filePath, e))
+		}
 	}
 }
 

@@ -68,12 +68,13 @@ static const NSString *CONTACTS_ERROR_DOMAIN = @"ContactsErrorDomain";
 										  usingBlock:^(CNContact * _Nonnull contact, BOOL * _Nonnull stop) {
 											  let name = [CNContactFormatter stringFromContact:contact
 																						 style:CNContactFormatterStyleFullName];
-											  let matchesName =  [name rangeOfString:query options:compareOptions].location != NSNotFound;
+											  let safeName = name == nil ? @"" : name;
+											  let matchesName = [safeName rangeOfString:query options:compareOptions].location != NSNotFound;
 											  foreach(address, contact.emailAddresses) {
 												  if ([address.value rangeOfString:query options:compareOptions].location != NSNotFound
 													  || matchesName) {
 													  [result addObject:@{
-																		  @"name": name,
+																		  @"name": safeName,
 																		  @"mailAddress": address.value
 																		  }];
 													  if (count++ > 10) {

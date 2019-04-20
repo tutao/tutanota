@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createUserDataDelete(): UserDataDelete {
-	return create(_TypeModel)
+	return create(_TypeModel, UserDataDeleteTypeRef)
 }

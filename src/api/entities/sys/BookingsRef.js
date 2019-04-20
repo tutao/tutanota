@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createBookingsRef(): BookingsRef {
-	return create(_TypeModel)
+	return create(_TypeModel, BookingsRefTypeRef)
 }

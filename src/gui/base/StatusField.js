@@ -2,6 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
 import {lang} from "../../misc/LanguageViewModel"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -19,7 +20,7 @@ export class StatusField {
 		return this._status().type === 'valid'
 	}
 
-	getErrorMessageId(): ?string {
+	getErrorMessageId(): ?TranslationKey {
 		return (this._status().type !== "valid") ? this._status().text : null
 	}
 }

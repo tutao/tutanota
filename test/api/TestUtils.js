@@ -1,7 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
 import type {BrowserData} from "../../src/misc/ClientConstants"
-import {BrowserType} from "../../src/misc/ClientConstants"
 import type {Db} from "../../src/api/worker/search/SearchTypes"
 import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
@@ -89,7 +88,7 @@ export function replaceAllMaps(toReplace: any): any {
 }
 
 
-export const browserDataStub: BrowserData = {browserType: BrowserType.OTHER, browserVersion: 0}
+export const browserDataStub: BrowserData = {needsMicrotaskHack: false, needsExplicitIDBIds: false, indexedDbSupported: true}
 
 export function makeCore(args?: {
 	db?: Db,

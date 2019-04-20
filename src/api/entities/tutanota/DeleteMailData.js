@@ -35,9 +35,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createDeleteMailData(): DeleteMailData {
-	return create(_TypeModel)
+	return create(_TypeModel, DeleteMailDataTypeRef)
 }

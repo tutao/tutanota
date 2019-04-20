@@ -60,7 +60,11 @@ function _asyncImport(path: string) {
 client.init(navigator.userAgent, navigator.platform)
 
 _asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
-
+if (client.isIE()) {
+	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
+		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
+	}, "close_alt", []))
+}
 
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
 	? deletedModule.module.state : {prefix: null}
@@ -89,7 +93,7 @@ let initialized = lang.init(en).then(() => {
 				() => [
 					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
 					m("p", m("a", {href: "market://details?id=com.google.android.webview"}, "Update WebView")),
-					m("p", m("a", {href: "https://tutanota.uservoice.com/knowledgebase/articles/1890001-outdated-webview-version-on-android"}, "Learn more"))
+					m("p", m("a", {href: lang.getInfoLink("webview_link")}, "Learn more"))
 				].concat(androidVersion >= 7
 					? [
 						m("p", "Starting from Android N, the WebView version depends on the Chrome version by default. You can change the used version in the settings"),
@@ -138,7 +142,8 @@ let initialized = lang.init(en).then(() => {
 					}
 					promise.then(view => {
 						view.updateUrl(args, requestedPath)
-						routeChange({args, requestedPath})
+						const currentPath = m.route.get()
+						routeChange({args, requestedPath, currentPath})
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})
@@ -226,10 +231,13 @@ let initialized = lang.init(en).then(() => {
 
 	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
 		.then(module => module.worker)
+	workerPromise.then(() => {
+		_asyncImport("src/gui/InfoMessageHandler.js")
+	})
+
 
 	setupExceptionHandling()
 })
-
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {
 	if (requestedPath.indexOf('#mail') !== -1) {
@@ -238,8 +246,9 @@ function forceLogin(args: {[string]: string}, requestedPath: string) {
 		// we do not allow any other hashes except "#mail". this prevents login loops.
 		m.route.set("/login")
 	} else {
-		let pathWithoutParameter = requestedPath.indexOf("?")
-		> 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0
+			? requestedPath.substring(0, requestedPath.indexOf("?"))
+			: requestedPath
 		if (pathWithoutParameter.trim() === '/') {
 			let newQueryString = m.buildQueryString(args)
 			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))

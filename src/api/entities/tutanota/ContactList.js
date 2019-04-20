@@ -48,9 +48,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createContactList(): ContactList {
-	return create(_TypeModel)
+	return create(_TypeModel, ContactListTypeRef)
 }

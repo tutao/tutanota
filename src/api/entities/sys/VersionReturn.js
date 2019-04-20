@@ -24,9 +24,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createVersionReturn(): VersionReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, VersionReturnTypeRef)
 }

@@ -17,13 +17,15 @@ import {SignupPage} from "./SignupPage"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
-import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
+import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream/stream.js"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createUpgradePriceServiceData} from "../api/entities/sys/UpgradePriceServiceData"
 import {SysService} from "../api/entities/sys/Services"
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
+import type {TranslationKey} from "../misc/LanguageViewModel"
+import {assertTranslation} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -45,8 +47,8 @@ export type UpgradeSubscriptionData = {
 	accountingInfo: ?AccountingInfo,
 	newAccountData: ?NewAccountData,
 	campaign: ?string,
-	campaignInfoTextId: ?string,
-	isInitialUpgrade: boolean,
+	campaignInfoTextId: ?TranslationKey,
+	upgradeType: UpgradeTypeEnum,
 	premiumPrices: PlanPrices,
 	proPrices: PlanPrices
 }
@@ -79,10 +81,18 @@ function loadUpgradePrices(): Promise<UpgradePriceServiceReturn> {
 	return serviceRequest(SysService.UpgradePriceService, HttpMethod.GET, data, UpgradePriceServiceReturnTypeRef)
 }
 
+function loadCustomerAndInfo(): Promise<{customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo}> {
+	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		.then((customer) => load(CustomerInfoTypeRef, customer.customerInfo)
+			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+				.then(accountingInfo => {
+					return {customer, customerInfo, accountingInfo}
+				})))
+}
+
 export function showUpgradeWizard(): void {
-	load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-		.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
-		.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+	loadCustomerAndInfo()
+		.then(({customerInfo, accountingInfo}) => {
 				return loadUpgradePrices().then(prices => {
 					const upgradeData: UpgradeSubscriptionData = {
 						options: {
@@ -95,8 +105,7 @@ export function showUpgradeWizard(): void {
 							vatNumber: accountingInfo.invoiceVatIdNo // only for EU countries otherwise empty
 						},
 						paymentData: {
-							paymentMethod: accountingInfo.paymentMethod ? accountingInfo.paymentMethod : PaymentMethod.CreditCard,
-
+							paymentMethod: accountingInfo.paymentMethod || PaymentMethod.CreditCard,
 							creditCardData: null,
 						},
 						price: "",
@@ -105,22 +114,18 @@ export function showUpgradeWizard(): void {
 						accountingInfo: accountingInfo,
 						newAccountData: null,
 						campaign: getCampaign(),
-						campaignInfoTextId: prices.messageTextId,
-						isInitialUpgrade: true,
+						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
+						upgradeType: UpgradeType.Initial,
 						premiumPrices: prices.premiumPrices,
 						proPrices: prices.proPrices,
 					}
-					return upgradeData
+					const wizardPages = [
+						new UpgradeSubscriptionPage(upgradeData, SubscriptionType.Free),
+						new InvoiceAndPaymentDataPage(upgradeData),
+						new UpgradeConfirmPage(upgradeData)
+					]
+					new WizardDialog(wizardPages, () => Promise.resolve()).show()
 				})
-			})
-		)
-		.then(upgradeData => {
-				const wizardPages = [
-					new UpgradeSubscriptionPage(upgradeData),
-					new InvoiceAndPaymentDataPage(upgradeData),
-					new UpgradeConfirmPage(upgradeData)
-				]
-				new WizardDialog(wizardPages, () => Promise.resolve()).show()
 			}
 		)
 }
@@ -148,8 +153,8 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 			accountingInfo: null,
 			newAccountData: null,
 			campaign: getCampaign(),
-			campaignInfoTextId: prices.messageTextId,
-			isInitialUpgrade: true,
+			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
+			upgradeType: UpgradeType.Signup,
 			premiumPrices: prices.premiumPrices,
 			proPrices: prices.proPrices
 		}

@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createFileDataDataGet(): FileDataDataGet {
-	return create(_TypeModel)
+	return create(_TypeModel, FileDataDataGetTypeRef)
 }

@@ -10,12 +10,12 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
-import type {MailEditor} from "../../mail/MailEditor"
-import {assertMainOrNodeBoot, isIOSApp, Mode} from "../../api/Env"
+import {assertMainOrNodeBoot, isIOSApp} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
+import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 
 export const LogoutUrl = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : '/login?noAutoLogin=true'
 
@@ -77,7 +77,7 @@ class Header {
 				.setClickHandler(() => this._showUpgradeDialog()), 0, false)
 			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn())
-				.setClickHandler(() => this._invite()), 0, true)
+				.setClickHandler(() => this._writeInviteMail()), 0, true)
 			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
 				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
@@ -129,7 +129,6 @@ class Header {
 		return this.searchBar != null
 			&& locator != null
 			&& !locator.search.indexState().initializing
-			&& locator.search.indexState().indexingSupported
 			&& !styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()
 			&& (route.startsWith("/search"))
@@ -169,52 +168,27 @@ class Header {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
-	_invite() {
-		this._createMailEditor().then(editor => {
-			let username = logins.getUserController().userGroupInfo.name;
-			let body = lang.get("invitationMailBody_msg", {
-				'{registrationLink}': "https://mail.tutanota.com/signup",
-				'{username}': username,
-				'{githubLink}': "https://github.com/tutao/tutanota"
-			})
-			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
-				editor.show()
-			})
-		})
-	}
-
 	_showUpgradeDialog() {
 		asyncImport(typeof module !== "undefined" ?
 			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
 			.then(upgradeWizard => {
-					return upgradeWizard.showUpgradeWizard()
+					// To not import constant
+					let subscriptionType: SubscriptionTypeEnum = 'Free'
+					return upgradeWizard.showUpgradeWizard(subscriptionType)
 				}
 			)
 	}
 
 	_writeSupportMail() {
-		this._createMailEditor().then(editor => {
-			let signature = "<br><br>--"
-			signature += "<br>Client: " + (env.mode === Mode.App ? (env.platformId != null ? env.platformId : "")
-				+ " app" : "Browser")
-			signature += "<br>Tutanota version: " + env.versionNumber
-			signature += "<br>User agent:<br>" + navigator.userAgent
-			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
-				editor.show()
-			})
-		})
+		asyncImport(typeof module !== "undefined" ?
+			module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`)
+			.then(mailEditorModule => mailEditorModule.MailEditor.writeSupportMail())
 	}
 
-	_createMailEditor(): Promise<MailEditor> {
-		return Promise.join(
-			asyncImport(typeof module !== "undefined" ?
-				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module !== "undefined" ?
-				module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailModel.js`),
-			(mailEditorModule, mailModelModule) =>
-				mailModelModule.mailModel.init()
-				               .then(() => new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails()))
-		)
+	_writeInviteMail() {
+		asyncImport(typeof module !== "undefined" ?
+			module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`)
+			.then(mailEditorModule => mailEditorModule.MailEditor.writeInviteMail())
 	}
 
 	_getCenterContent(): Vnode<mixed> | null {
@@ -280,8 +254,7 @@ class Header {
 	_getViewSlider(): ?IViewSlider {
 		if (this._currentView && this._currentView.getViewSlider) {
 			return this._currentView.getViewSlider()
-		}
-		else {
+		} else {
 			return null
 		}
 	}

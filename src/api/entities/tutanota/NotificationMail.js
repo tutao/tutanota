@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createNotificationMail(): NotificationMail {
-	return create(_TypeModel)
+	return create(_TypeModel, NotificationMailTypeRef)
 }

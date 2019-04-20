@@ -10,19 +10,21 @@ import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
 import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
+import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, isAndroidApp, isIOSApp} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
+import {Request} from "../api/common/WorkerProtocol.js"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {
 	createNewContact,
@@ -70,13 +72,14 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
 assertMainOrNode()
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class MailViewer {
+export class    MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
@@ -93,8 +96,13 @@ export class MailViewer {
 	onbeforeremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
+	mailHeaderDialog: Dialog;
+	mailHeaderInfo: string;
 
 	constructor(mail: Mail, showFolder: boolean) {
+		if(isDesktop()) {
+			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
+		}
 		this.mail = mail
 		this._folderText = null
 		if (showFolder) {
@@ -112,6 +120,22 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
+
+		let closeAction = () => this.mailHeaderDialog.close()
+		const headerBarAttrs: DialogHeaderBarAttrs = {
+			right: [{label: 'ok_action', click: closeAction, type: ButtonType.Secondary}],
+			middle: () => lang.get("mailHeaders_title")
+		}
+		this.mailHeaderInfo = ""
+		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
+			view: () => {
+				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
+			}
+		}).addShortcut({
+			key: Keys.ESC,
+			exec: closeAction,
+			help: "close_alt"
+		}).setCloseHandler(closeAction)
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -350,7 +374,7 @@ export class MailViewer {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
 							},
-							onclick: (event: Event) => this._handleMailto(event),
+							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
 						}, (this._mailBody == null
@@ -391,6 +415,26 @@ export class MailViewer {
 					this._editDraft()
 				},
 				help: "editMail_action"
+			},
+			{
+				key: Keys.H,
+				exec: () => this._showHeaders(),
+				help: "showHeaders_action"
+			},
+			{
+				key: Keys.R,
+				exec: (key: KeyPress) => {
+					this._reply(false)
+				},
+				help: "reply_action"
+			},
+			{
+				key: Keys.R,
+				shift: true,
+				exec: (key: KeyPress) => {
+					this._reply(true)
+				},
+				help: "replyAll_action"
 			},
 		]
 
@@ -470,7 +514,7 @@ export class MailViewer {
 
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
-		update(this.mail)
+		update(this.mail).catch(NotFoundError, noOp)
 	}
 
 	_editDraft() {
@@ -499,7 +543,7 @@ export class MailViewer {
 				let toRecipients = []
 				let ccRecipients = []
 				let bccRecipients = []
-				if (!logins.getUserController().isInternalUser() && this.mail.state !== MailState.SENT) {
+				if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
 					toRecipients.push(this.mail.sender)
 				} else if (this.mail.state === MailState.RECEIVED) {
 					if (this.mail.replyTos.length > 0) {
@@ -613,7 +657,7 @@ export class MailViewer {
 		}
 	}
 
-	_handleMailto(event: Event): void {
+	_handleAnchorClick(event: Event): void {
 		let target = (event.target: any)
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
@@ -626,6 +670,12 @@ export class MailViewer {
 						          mailEditor.show()
 					          })
 				}
+			}
+			// Navigate to the settings menu if they are linked within an email.
+			if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
+				m.route.set(newRoute)
+				event.preventDefault()
 			}
 		}
 	}
@@ -655,6 +705,21 @@ export class MailViewer {
 			const end = dom.scrollHeight - dom.offsetHeight
 			return scroll(dom.scrollTop, end)
 		})
+	}
+
+	_showHeaders() {
+		if (!this.mailHeaderDialog.visible) {
+			if (this.mail.headers) {
+				load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+						this.mailHeaderInfo = mailHeaders.headers
+						this.mailHeaderDialog.show()
+					}
+				).catch(NotFoundError, noOp)
+			} else {
+				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
+				this.mailHeaderDialog.show()
+			}
+		}
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
@@ -701,8 +766,18 @@ export class MailViewer {
 		}
 
 		if (buttons.length >= 3 && !isIOSApp()) {
-			buttons.push(new Button("saveAll_action",
-				() => fileController.downloadAll(this._attachments), null)
+			let downloadStrategy = () => fileController.downloadAll(this._attachments)
+
+			if (client.needsDownloadBatches() && this._attachments.length > 10) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 10, 1000)
+			} else if (!client.canDownloadMultipleFiles()) {
+				downloadStrategy = () => fileController.downloadBatched(this._attachments, 1, 10)
+			}
+
+			buttons.push(new Button(
+				"saveAll_action",
+				() => showProgressDialog("pleaseWait_msg", downloadStrategy()),
+				null)
 				.setType(ButtonType.Secondary))
 		}
 		return buttons

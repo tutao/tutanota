@@ -2,31 +2,30 @@
 import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
-import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral} from "./crypto/CryptoFacade"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
-import {createAuthentication} from "../entities/sys/Authentication"
-import {_TypeModel as WebsocketWrapperTypeModel, createWebsocketWrapper, WebsocketWrapperTypeRef} from "../entities/sys/WebsocketWrapper"
+import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
-import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
+import {ConnectionError, handleRestError, NotFoundError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {identity, neverNull} from "../common/utils/Utils"
+import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType} from "../common/TutanotaConstants"
+import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 
 assertWorkerOrNode()
 
 
-const EventBusState = {
+const EventBusState = Object.freeze({
 	Automatic: "automatic", // automatic reconnection is enabled
 	Suspended: "suspended", // automatic reconnection is suspended but can be enabled again
 	Terminated: "terminated" // automatic reconnection is disabled and websocket is closed but can be opened again by calling connect explicit
-}
+})
 
 type EventBusStateEnum = $Values<typeof EventBusState>;
 
@@ -46,7 +45,7 @@ export class EventBusClient {
 	_lastEntityEventIds: {[key: Id]: Id[]}; // maps group id to last event ids (max. 1000). we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
 	_queueWebsocketEvents: boolean
 
-	_websocketWrapperQueue: WebsocketWrapper[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
+	_websocketWrapperQueue: WebsocketEntityData[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
 	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestCache, mail: MailFacade, login: LoginFacade) {
 		this._worker = worker
@@ -86,46 +85,26 @@ export class EventBusClient {
 		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
 
-		let url = getWebsocketOrigin() + "/event/";
+		const authHeaders = this._login.createAuthHeaders()
+		// Native query building is not supported in old browser, mithril is not available in the worker
+		const authQuery =
+			"modelVersions=" + WebsocketEntityDataTypeModel.version + "." + MailTypeModel.version
+			+ "&clientVersion=" + env.versionNumber
+			+ "&userId=" + this._login.getLoggedInUser()._id
+			+ "&" + ("accessToken=" + authHeaders.accessToken)
+		let url = getWebsocketOrigin() + "/event?" + authQuery;
 		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
 			console.log("ws open: ", new Date(), "state:", this._state);
-			let wrapper = createWebsocketWrapper()
-			wrapper.type = "authentication"
-			wrapper.msgId = "0"
-			// ClientVersion = <SystemModelVersion>.<TutanotaModelVersion>
-			wrapper.modelVersions = WebsocketWrapperTypeModel.version + "." + MailTypeModel.version;
-			wrapper.clientVersion = env.versionNumber;
-			let authenticationData = createAuthentication()
-			let headers = this._login.createAuthHeaders()
-			authenticationData.userId = this._login.getLoggedInUser()._id
-			if (headers.accessToken) {
-				authenticationData.accessToken = headers.accessToken
-			} else {
-				authenticationData.authVerifier = headers.authVerifier
-				authenticationData.externalAuthToken = headers.authToken
-			}
-			wrapper.authentication = authenticationData
-			encryptAndMapToLiteral(WebsocketWrapperTypeModel, wrapper, null).then(entityForSending => {
-				const sendInitialMsg = () => {
-					const socket = (this._socket: any)
-					if (socket.readyState === 1) {
-						socket.send(JSON.stringify(entityForSending));
-					} else if (socket.readyState === 0) {
-						setTimeout(sendInitialMsg, 5)
-					}
-				}
-				sendInitialMsg()
-				let p = ((reconnect) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
-				p.catch(ConnectionError, e => {
-					console.log("not connected in connect(), close websocket", e)
-					this.close(CloseEventBusOption.Reconnect)
-				})
-				 .catch(e => {
-					 this._worker.sendError(e)
-				 })
+			let p = ((reconnect) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+			p.catch(ConnectionError, e => {
+				console.log("not connected in connect(), close websocket", e)
+				this.close(CloseEventBusOption.Reconnect)
 			})
+			 .catch(e => {
+				 this._worker.sendError(e)
+			 })
 			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
@@ -175,38 +154,35 @@ export class EventBusClient {
 	}
 
 	_message(message: MessageEvent): Promise<void> {
-		console.log("ws message: ", message.data);
-		return applyMigrations(WebsocketWrapperTypeRef, JSON.parse((message.data: any))).then(data => {
-			return decryptAndMapToInstance(WebsocketWrapperTypeModel, data, null).then(wrapper => {
-				if (wrapper.type === 'entityUpdate') {
-
+		//console.log("ws message: ", message.data);
+		const [type, value] = downcast(message.data).split(";")
+		if (type === "entityUpdate") {
+			return decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null)
+				.then(data => {
 					// When an event batch is received only process it if there is no other event batch currently processed. Otherwise put it into the cache. After processing an event batch we
 					// start processing the next one from the cache. This makes sure that all events are processed in the order they are received and we do not get an inconsistent state
 					if (this._queueWebsocketEvents) {
-						this._websocketWrapperQueue.push(wrapper)
+						this._websocketWrapperQueue.push(data)
 					} else {
 						this._queueWebsocketEvents = true
-						return this._processEntityEvents(wrapper.eventBatch, neverNull(wrapper.eventBatchOwner),
-							neverNull(wrapper.eventBatchId))
-						           .then(() => {
-							           if (this._websocketWrapperQueue.length > 0) {
-								           return this._processQueuedEvents()
-							           }
-						           })
-						           .catch(ConnectionError, e => {
-							           console.log("not connected in _message(), close websocket", e)
-							           this.close(CloseEventBusOption.Reconnect)
-						           })
-						           .catch(e => {
-							           this._worker.sendError(e)
-						           })
-						           .finally(() => {
-							           this._queueWebsocketEvents = false
-						           })
+						return this._processEntityEvents(data.eventBatch, data.eventBatchOwner, data.eventBatchId).then(() => {
+							if (this._websocketWrapperQueue.length > 0) {
+								return this._processQueuedEvents()
+							}
+						}).catch(ConnectionError, e => {
+							console.log("not connected in _message(), close websocket", e)
+							this.close(CloseEventBusOption.Reconnect)
+						}).catch(e => {
+							this._worker.sendError(e)
+						}).finally(() => {
+							this._queueWebsocketEvents = false
+						})
 					}
-				}
-			})
-		})
+				})
+		} else if (type === "unreadCounterUpdate") {
+			this._worker.updateCounter(JSON.parse(value))
+		}
+		return Promise.resolve()
 	}
 
 	_close(event: CloseEvent) {
@@ -224,15 +200,11 @@ export class EventBusClient {
 		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
 			this._worker.updateWebSocketState("connecting")
 
-			if (this._immediateReconnect || isIOSApp()) {
+			if (this._immediateReconnect) {
 				this._immediateReconnect = false
-				// on ios devices the close event fires when the app comes back to foreground
-				// so try a reconnect immediately. The tryReconnect method is also triggered when
-				// the app  comes to foreground by the "resume" event, but the order in which these
-				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false, false);
 			}
-			setTimeout(() => this.tryReconnect(false, false), 1000 * this._randomIntFromInterval(10, 30));
+			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(30, 120));
 		}
 	}
 
@@ -241,12 +213,12 @@ export class EventBusClient {
 	 */
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
-			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state);
+			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
+			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
 			this._state = EventBusState.Automatic
 		}
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
-			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
 		} else if (
@@ -254,12 +226,10 @@ export class EventBusClient {
 				|| this._socket.readyState === WebSocket.CLOSING)
 			&& this._state !== EventBusState.Terminated
 			&& this._login.isLoggedIn()) {
-			this.connect(true);
+			// Don't try to connect right away because connection may not be actually there
+			// see #1165
+			setTimeout(() => this.connect(true), 100)
 		}
-	}
-
-	_randomIntFromInterval(min: number, max: number): number {
-		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 
 	/**
@@ -324,52 +294,42 @@ export class EventBusClient {
 	}
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		return Promise
-			.map(events, event => {
-				return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
-				           .then(() => event)
-				           .catch(NotFoundError, e => {
-					           // skip this event. NotFoundError may occur if an entity is removed in parallel
-					           return null
-				           })
-				           .catch(NotAuthorizedError, e => {
-					           // skip this event. NotAuthorizedError may occur if the user was removed from the owner group
-					           return null
-				           })
-			})
-			.filter(event => event != null)
-			.then(filteredEvents => {
-				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
-				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
-				           .return(filteredEvents)
-			}).then(filteredEvents => {
-				if (!this._lastEntityEventIds[groupId]) {
-					this._lastEntityEventIds[groupId] = []
-				}
-				this._lastEntityEventIds[groupId].push(batchId)
-				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-				this._lastEntityEventIds[groupId].sort((e1, e2) => {
-					if (e1 === e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
+		return this._executeIfNotTerminated(() => {
+			return this
+				._cache.entityEventsReceived(events)
+				.then(filteredEvents => {
+					return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
+					           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
+					           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
+					           .return(filteredEvents)
 				})
-				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-					this._lastEntityEventIds[groupId].shift()
-				}
-				return filteredEvents
-			}).then(filteredEvents => {
-				// call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that shall not receive the event twice
-				this._executeIfNotTerminated(() => {
+				.then(filteredEvents => {
+					if (!this._lastEntityEventIds[groupId]) {
+						this._lastEntityEventIds[groupId] = []
+					}
+					this._lastEntityEventIds[groupId].push(batchId)
+					// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+					this._lastEntityEventIds[groupId].sort((e1, e2) => {
+						if (e1 === e2) {
+							return 0
+						} else {
+							return firstBiggerThanSecond(e1, e2) ? 1 : -1
+						}
+					})
+					if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+						this._lastEntityEventIds[groupId].shift()
+					}
+
+					// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
+					// shall not receive the event twice.
 					if (!isTest() && !isAdminClient()) {
-						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-						this._indexer.startProcessing()
+						this._executeIfNotTerminated(() => {
+							this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+							this._indexer.startProcessing()
+						})
 					}
 				})
-				return filteredEvents
-			})
+		})
 	}
 
 	/**
@@ -416,5 +376,6 @@ export class EventBusClient {
 		return this._login.getLoggedInUser().memberships
 		           .filter(membership => membership.groupType !== GroupType.MailingList)
 		           .map(membership => membership.group)
+		           .concat(this._login.getLoggedInUser().userGroup.group)
 	}
 }

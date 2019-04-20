@@ -5,7 +5,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {_TypeModel as WhitelabelChildModel, WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {neverNull} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate, userIsGlobalAdmin} from "./IndexUtils"
+import {_createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin} from "./IndexUtils"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
@@ -72,14 +72,14 @@ export class WhitelabelChildIndexer {
 								children = this._entity.loadAll(WhitelabelChildTypeRef, customer.whitelabelChildren.items)
 							}
 							return children.then(allChildren => {
-								let indexUpdate = _createNewIndexUpdate(customer.adminGroup)
+								let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(WhitelabelChildTypeRef))
 								allChildren.forEach(child => {
 									let keyToIndexEntries = this.createWhitelabelChildIndexEntries(child)
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
-								indexUpdate.indexTimestamp = FULL_INDEXED_TIMESTAMP
 								return Promise.all([
-									this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()
+									this._core.writeIndexUpdate([{groupId: customer.adminGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this.suggestionFacade.store()
 								]).return()
 							})
 						}
@@ -96,13 +96,19 @@ export class WhitelabelChildIndexer {
 			if (userIsGlobalAdmin(user)) {
 				if (event.operation === OperationType.CREATE) {
 					return this.processNewWhitelabelChild(event).then(result => {
-						if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
+						if (result) {
+							this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup),
+								result.keyToIndexEntries, indexUpdate)
+						}
 					})
 				} else if (event.operation === OperationType.UPDATE) {
 					return Promise.all([
 						this._core._processDeleted(event, indexUpdate),
 						this.processNewWhitelabelChild(event).then(result => {
-							if (result) this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup), result.keyToIndexEntries, indexUpdate)
+							if (result) {
+								this._core.encryptSearchIndexEntries(result.whitelabelChild._id, neverNull(result.whitelabelChild._ownerGroup),
+									result.keyToIndexEntries, indexUpdate)
+							}
 						})
 					])
 				} else if (event.operation === OperationType.DELETE) {

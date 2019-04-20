@@ -8,6 +8,7 @@ import {logins} from "../api/main/LoginController"
 import {Button} from "../gui/base/Button"
 import {neverNull} from "../api/common/utils/Utils"
 import type {lazyIcon} from "../gui/base/Icon"
+import {isIOSApp} from "../api/Env"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -86,7 +87,7 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 
 export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): Button {
 	return new Button(labelId, () => {
-		if (logins.getUserController().isFreeAccount()) {
+		if (logins.getUserController().isFreeAccount() || isIOSApp()) {
 			showNotAvailableForFreeDialog(isInPremiumIncluded)
 		} else {
 			buyAction()

@@ -5,11 +5,12 @@ import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {getHttpOrigin, isAndroidApp, isIOSApp} from "../api/Env"
+import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
+import {client} from "../misc/ClientDetector.js"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -20,8 +21,10 @@ class PushServiceApp {
 	}
 
 	register(): Promise<void> {
-		if (isAndroidApp()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
+		if (isAndroidApp() || isDesktop()) {
+			return nativeApp.invokeNative(new Request("getPushIdentifier", [
+				logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
+			])).then(identifier => {
 				if (identifier) {
 					this._currentIdentifier = identifier
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
@@ -81,6 +84,7 @@ class PushServiceApp {
 	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceTypeEnum): Promise<PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
 		let pushIdentifier = createPushIdentifier()
+		pushIdentifier.displayName = client.getIdentifier()
 		pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
 		pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
 		pushIdentifier._area = "0"

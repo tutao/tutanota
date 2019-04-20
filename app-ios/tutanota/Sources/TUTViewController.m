@@ -16,6 +16,7 @@
 #import "TUTCrypto.h"
 #import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
+#import "TUTEncodingConverter.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -37,6 +38,8 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) NSMutableDictionary<NSString *, void(^)(NSDictionary * _Nullable value)> *requests;
 @property NSInteger requestId;
 @property (nullable) NSString *pushTokenRequestId;
+@property BOOL webViewInitialized;
+@property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @end
 
 @implementation TUTViewController
@@ -50,6 +53,8 @@ typedef void(^VoidCallback)(void);
 		_fileUtil = [[TUTFileUtil alloc] initWithViewController:self];
 		_contactsSource = [TUTContactsSource new];
 		_keyboardSize = 0;
+		_webViewInitialized = false;
+		_requestsBeforeInit = [NSMutableArray new];
 	}
 	return self;
 }
@@ -105,14 +110,19 @@ typedef void(^VoidCallback)(void);
 	NSString *type = json[@"type"];
 	NSString *requestId = json[@"id"];
 	NSArray *arguments = json[@"args"];
-	
+
 	void (^sendResponseBlock)(id, NSError *) = [self responseBlockForRequestId:requestId];
 
 	if ([@"response" isEqualToString:type]) {
 		id value = json[@"value"];
 		[self handleResponseWithId:requestId value:value];
 	} else if ([@"init" isEqualToString:type]) {
+		_webViewInitialized = YES;
 		[self sendResponseWithId:requestId value:@"ios"];
+		foreach(callback, _requestsBeforeInit) {
+			callback();
+		}
+		[_requestsBeforeInit removeAllObjects];
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
 		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] base64Seed:arguments[2] completion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {
@@ -120,6 +130,7 @@ typedef void(^VoidCallback)(void);
 							   base64Data:arguments[1]
 							   completion:sendResponseBlock];
 	} else if ([@"reload" isEqualToString:type]) {
+		_webViewInitialized = NO;
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self loadMainPageWithParams:arguments[0]];
 		});
@@ -184,6 +195,16 @@ typedef void(^VoidCallback)(void);
 							   completionHandler:^(BOOL success) {
 								   sendResponseBlock(@(success), nil);
 							   }];
+	} else if ([@"saveBlob" isEqualToString:type]) {
+		NSString* fileDataB64 = arguments[1];
+		let fileData = [TUTEncodingConverter base64ToBytes:fileDataB64];
+		[_fileUtil openFile:arguments[0] fileData:fileData completion:^(NSError * _Nullable error) {
+			if (error != nil) {
+				[self sendErrorResponseWithId:requestId value:error];
+			} else {
+				[self sendResponseWithId:requestId value:NSNull.null];
+			}
+		}];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
 		NSLog(@"%@", message);
@@ -218,8 +239,14 @@ typedef void(^VoidCallback)(void);
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
 	var *message = @"";
-	if (value.userInfo) {
-		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value.userInfo options:0 error:nil]
+	if (value.userInfo && [value isKindOfClass:NSDictionary.class]) {
+		let dict = (NSDictionary *)value.userInfo;
+		let newDict = [NSMutableDictionary new];
+		foreach(key, dict) {
+			const NSObject *value = dict[key];
+			newDict[key] = value.description;
+		}
+		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:newDict options:0 error:nil]
 										encoding:NSUTF8StringEncoding];
 	}
 
@@ -276,15 +303,19 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 		decisionHandler(WKNavigationActionPolicyAllow);
 	} else {
 		decisionHandler(WKNavigationActionPolicyCancel);
-		[self presentViewController:[[SFSafariViewController alloc] initWithURL:navigationAction.request.URL]
-						   animated:YES
-						 completion:nil];
+		[[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
 	}
 }
 
 -(void)sendRequestWithType:(NSString * _Nonnull)type
 					  args:(NSArray<id> * _Nonnull)args
 				completion:(void(^ _Nullable)(NSDictionary * _Nullable value))completion {
+	if (!_webViewInitialized) {
+		let callback = ^void() { [self sendRequestWithType:type args:args completion:completion]; };
+		[_requestsBeforeInit addObject:callback];
+		return;
+	}
+
 	let requestId = [NSString stringWithFormat:@"app%ld", (long) _requestId++];
 	if (completion) {
 		_requests[requestId] = completion;

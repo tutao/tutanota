@@ -91,6 +91,7 @@ export class RestClient {
 	}
 
 	_setHeaders(xhr: XMLHttpRequest, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum) {
+		headers['cv'] = env.versionNumber
 		if (body instanceof Uint8Array) {
 			headers["Content-Type"] = MediaType.Binary
 		} else if (typeof body === 'string') {

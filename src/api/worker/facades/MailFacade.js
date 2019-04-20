@@ -28,22 +28,9 @@ import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {
-	containsId,
-	getLetId,
-	HttpMethod,
-	isSameId,
-	isSameTypeRefByAttr,
-	stringToCustomId
-} from "../../common/EntityFunctions"
+import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {
-	defer,
-	downcast,
-	getEnabledMailAddressesForGroupInfo,
-	getUserGroupMemberships,
-	neverNull
-} from "../../common/utils/Utils"
+import {defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -203,8 +190,8 @@ export class MailFacade {
 			let attachments = neverNull(providedFiles)
 			// check which attachments have been removed
 			existingFileIds.forEach(fileId => {
-				if (!attachments.find(attachment => (attachment._type !== "DataFile")
-					&& isSameId(getLetId(downcast(attachment)), fileId))) {
+				if (!attachments.find(attachment =>
+					(attachment._type !== "DataFile" && attachment._type !== "FileReference" && isSameId(getLetId(attachment), fileId)))) {
 					removedAttachmentIds.push(fileId);
 				}
 			})
@@ -244,13 +231,13 @@ export class MailFacade {
 					} else {
 						return null
 					}
-				})
+				}, {concurrency: 1}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
 				.filter(attachment => (attachment != null))
 				.tap(() => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
 						fileApp.clearFileData()
-						              .catch((e) => console.warn("Failed to clear files", e))
+						       .catch((e) => console.warn("Failed to clear files", e))
 					}
 				})
 		} else {
@@ -325,11 +312,11 @@ export class MailFacade {
 				// otherwise load the key information from the server
 				if (recipientInfo.type === recipientInfoType.external && recipientInfo.contact) {
 					let password = recipientInfo.contact.presharedPassword
-					let preshared = true
+
 					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
 						password = recipientInfo.contact.autoTransmitPassword
-						let preshared = false
 					}
+
 					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
 						notFoundRecipients.push(recipientInfo.mailAddress)
 						return Promise.resolve()

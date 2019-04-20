@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "29"
+	"version": "31"
 }
 
 export function createCreateMailFolderReturn(): CreateMailFolderReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, CreateMailFolderReturnTypeRef)
 }

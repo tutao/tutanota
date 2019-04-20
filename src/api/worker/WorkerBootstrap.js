@@ -1,4 +1,4 @@
-importScripts('../../../libs/polyfill.js', '../../../libs/bluebird.js', '../../../libs/system.src.js')
+importScripts('../../../libs/bluebird.js', '../../../libs/system.src.js')
 
 Promise.config({
 	longStackTraces: false,
@@ -13,7 +13,8 @@ self.onmessage = function (msg) {
 	if (data.type === 'setup') {
 		self.env = data.args[0]
 		System.config(self.env.systemConfig)
-		System.import("src/system-resolve.js")
+		System.import("libs/polyfill.js")
+		      .then(() => System.import("src/system-resolve.js"))
 		      .then(() => System.import('systemjs-hot-reloader'))
 		      .then((connect) => {
 			      if (connect instanceof Function && location.protocol !== "https:") {
@@ -25,13 +26,11 @@ self.onmessage = function (msg) {
 
 			      System.import('src/api/worker/WorkerImpl').then((workerModule) => {
 				      const initialRandomizerEntropy = data.args[1]
-				      const indexedDbSupported = data.args[2]
-				      const browserData = data.args[3]
-				      if (initialRandomizerEntropy == null || indexedDbSupported == null || browserData == null) {
+				      const browserData = data.args[2]
+				      if (initialRandomizerEntropy == null || browserData == null) {
 					      throw new Error("Invalid Worker arguments")
 				      }
-				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null,
-					      indexedDbSupported, browserData)
+				      let workerImpl = new workerModule.WorkerImpl(typeof self !== 'undefined' ? self : null, browserData)
 				      workerImpl.addEntropy(initialRandomizerEntropy)
 				      self.postMessage({id: data.id, type: 'response', value: {}})
 			      })

@@ -28,9 +28,22 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
 - (void)openFileAtPath:(NSString * _Nonnull)filePath
 			completion:(void (^ _Nonnull)(NSError * _Nullable))completion {
-	[self->_viewer openFileAtPath:filePath completion:^(NSError * _Nullable error) {
+	[self->_viewer openFileAtPath:filePath completion:completion];
+}
+
+- (void) openFile:(NSString*) name fileData:(NSData*) fileData completion:(void(^)(NSError * error))completion{
+	NSError* error;
+	let decryptedFolder = [TUTFileUtil getDecryptedFolder:&error];
+	NSString *filePath = [decryptedFolder stringByAppendingPathComponent:name];
+	[fileData writeToFile:filePath options: NSDataWritingAtomic error:&error];
+	if (!error) {
+		[self openFileAtPath:filePath completion:^(NSError * error){
+			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+			completion(error);
+		}];
+	} else {
 		completion(error);
-	}];
+	}
 }
 
 - (void)deleteFileAtPath:(NSString *)filePath
@@ -57,13 +70,10 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 - (void)getMimeTypeForPath:(NSString *)filePath completion:(void (^)(NSString *, NSError *))completion {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
-		if (mimeType) {
-			completion(mimeType, nil);
-		} else {
-			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
-												code:1
-												userInfo:@{@"message":@"Could not determine MIME type"}]);
+		if (mimeType == nil) {
+			mimeType = @"application/octet-stream";
 		}
+		completion(mimeType, nil);
 	});
 }
 

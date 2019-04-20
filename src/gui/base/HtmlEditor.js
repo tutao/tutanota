@@ -3,14 +3,15 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Editor} from "./Editor.js"
 import {DropDownSelector} from "./DropDownSelector"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 
-export const Mode = {
+export const Mode = Object.freeze({
 	HTML: "html",
 	WYSIWYG: "what you see is what you get",
-}
+})
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
 export class HtmlEditor {
@@ -22,14 +23,14 @@ export class HtmlEditor {
 	_borderDomElement: HTMLElement;
 	_showBorders: boolean;
 	_minHeight: ?number;
-	_placeholderId: ?string;
+	_placeholderId: ?TranslationKey;
 	view: Function;
 	_placeholderDomElement: HTMLElement;
 	_value: Stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
 
-	constructor(labelIdOrLabelFunction: ?(string | lazy<string>)) {
+	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>)) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -43,6 +44,10 @@ export class HtmlEditor {
 
 		this._mode.map(v => {
 			this.setValue(this._value())
+			this._editor.initialized.promise.then(() => {
+				this._editor._domElement.onfocus = (e) => focus()
+				this._editor._domElement.onblur = (e) => blur()
+			})
 		})
 
 		let focus = () => {
@@ -72,12 +77,6 @@ export class HtmlEditor {
 			}
 			m.redraw()
 		}
-
-		this._editor.initialized.promise.then(() => {
-			this._editor.setHTML(this._value())
-			this._editor._domElement.onfocus = (e) => focus()
-			this._editor._domElement.onblur = (e) => blur()
-		})
 
 		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
@@ -127,7 +126,7 @@ export class HtmlEditor {
 	}
 
 
-	setModeSwitcher(label: string | lazy<string>) {
+	setModeSwitcher(label: TranslationKey | lazy<string>) {
 		this._modeSwitcher = new DropDownSelector(label, null, [
 			{name: lang.get("richText_label"), value: Mode.WYSIWYG},
 			{name: lang.get("htmlSourceCode_label"), value: Mode.HTML}
@@ -149,7 +148,7 @@ export class HtmlEditor {
 		return this
 	}
 
-	setPlaceholderId(placeholderId: string): HtmlEditor {
+	setPlaceholderId(placeholderId: TranslationKey): HtmlEditor {
 		this._placeholderId = placeholderId
 		return this
 	}

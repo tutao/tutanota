@@ -14,6 +14,7 @@ import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
+import type {InfoMessage} from "../common/CommonTypes"
 
 assertMainOrNode()
 
@@ -34,8 +35,10 @@ export class WorkerClient {
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
+	+infoMessages: Stream<InfoMessage>;
 
 	constructor() {
+		this.infoMessages = stream()
 		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
@@ -45,7 +48,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.entityEvent.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -63,6 +66,14 @@ export class WorkerClient {
 			},
 			updateWebSocketState: (message: Message) => {
 				this._wsConnection(downcast(message.args[0]));
+				return Promise.resolve()
+			},
+			counterUpdate: (message: Message) => {
+				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			infoMessage: (message: Message) => {
+				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
 			}
 		})
@@ -83,9 +94,10 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [
-				window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb(), client.browserData()
-			]))
+			this.initialized = this._queue
+			                       .postMessage(new Request('setup', [
+				                       window.env, locator.entropyCollector.getInitialEntropy(), client.browserData()
+			                       ]))
 			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -115,7 +127,11 @@ export class WorkerClient {
 		nativeApp.init()
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
+	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
+		return this.initialized.then(() => this._postRequest(new Request('generateSignupKeys', arguments)))
+	}
+
+	signup(keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair], accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, registrationCode: string, currentLanguage: string): Promise<Hex> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
@@ -151,10 +167,6 @@ export class WorkerClient {
 
 	sendExternalPasswordSms(userId: Id, salt: Uint8Array, phoneNumberId: Id, languageCode: string, symKeyForPasswordTransmission: ?Aes128Key): Promise<{symKeyForPasswordTransmission: Aes128Key, autoAuthenticationId: Id}> {
 		return this._postRequest(new Request('sendExternalPasswordSms', arguments))
-	}
-
-	retrieveExternalSmsPassword(userId: Id, salt: Uint8Array, autoAuthenticationId: Id, symKeyForPasswordTransmission: Aes128Key): Promise<?string> {
-		return this._postRequest(new Request('retrieveExternalSmsPassword', arguments))
 	}
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
@@ -346,7 +358,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('setCatchAllGroup', arguments))
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return this._postRequest(new Request('uploadCertificate', arguments))
 	}
 
@@ -373,6 +385,10 @@ export class WorkerClient {
 
 	disableMailIndexing(): Promise<void> {
 		return this._postRequest(new Request('disableMailIndexing', arguments))
+	}
+
+	extendMailIndex(newEndTimestamp: number): Promise<void> {
+		return this._postRequest(new Request('extendMailIndex', arguments))
 	}
 
 	cancelMailIndexing(): Promise<void> {

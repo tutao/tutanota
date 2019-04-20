@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
-import {px} from "../size"
+import {px, size} from "../size"
 import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
@@ -147,6 +147,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
+					this._width = this._domListContainer.clientWidth
 					this._createVirtualElements()
 					const render = () => {
 						m.render(vnode.dom, [
@@ -177,7 +178,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								},
 								[
 									this._virtualList.map(virtualRow => {
-										return m("li.list-row.plr-l"
+										return m("li.list-row.pl.pr-l"
 											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 											style: {
@@ -542,7 +543,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	_init() {
-		this._width = this._domListContainer.clientWidth
 		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 
 		window.requestAnimationFrame(() => {
@@ -811,8 +811,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				break;
 			}
 		}
-		this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
-		this._entitySelected(scrollTarget, addToSelection)
+
+		this._domInitialized.promise.then(() => {
+			this._domListContainer.scrollTop = this._loadedEntities.indexOf(scrollTarget) * this._config.rowHeight
+			this._entitySelected(scrollTarget, addToSelection)
+		})
 	}
 
 	_loadTill(listElementId: Id): Promise<?T> {
@@ -934,6 +937,12 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 const ActionDistance = 150
 
+const DirectionLock = Object.freeze({
+	Horizontal: 1,
+	Vertical: 2
+})
+type DirectionLockEnum = $Values<typeof DirectionLock>
+
 class SwipeHandler {
 	startPos: {x: number, y: number};
 	virtualElement: ?VirtualRow<*>;
@@ -941,6 +950,7 @@ class SwipeHandler {
 	xoffset: number;
 	touchArea: HTMLElement;
 	animating: Promise<any>;
+	directionLock: ?DirectionLockEnum;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
 		this.startPos = {x: 0, y: 0}
@@ -948,11 +958,11 @@ class SwipeHandler {
 		this.xoffset = 0
 		this.touchArea = touchArea
 		this.animating = Promise.resolve()
+		this.directionLock = null
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), client.passive() ? {passive: false} : false) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
 
 	start(e: TouchEvent) {
@@ -961,35 +971,51 @@ class SwipeHandler {
 	}
 
 	move(e: TouchEvent) {
-		let delta = this.getDelta(e)
-		if (this.animating.isFulfilled() && Math.abs(delta.y) > 40) {
-			window.requestAnimationFrame(() => {
-				if (this.animating.isFulfilled()) {
-					this.reset()
-				}
-			})
-		} else if (this.animating.isFulfilled() && Math.abs(delta.x) > 10 && Math.abs(delta.x) > Math.abs(delta.y)) {
-			e.preventDefault() // stop list scrolling when we are swiping
-			let ve = this.getVirtualElement()
-			window.requestAnimationFrame(() => {
-				// Do not animate the swipe gesture more than necessary
-				this.xoffset = delta.x < 0 ? Math.max(delta.x, -ActionDistance) : Math.min(delta.x, ActionDistance)
+		let {x, y} = this.getDelta(e)
+		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
+		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y) && Math.abs(x) > 14) {
+			this.directionLock = DirectionLock.Horizontal
+			// Do not scroll the list
+			e.preventDefault()
+			if (this.animating.isFulfilled()) {
+				let ve = this.getVirtualElement()
+				window.requestAnimationFrame(() => {
+					// Do not animate the swipe gesture more than necessary
+					this.xoffset = x < 0 ? Math.max(x, -ActionDistance) : Math.min(x, ActionDistance)
 
-				if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
-					ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
-					this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width)
-						+ 'px) translateY(' + ve.top + 'px)'
-					this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width)
-						+ 'px) translateY(' + ve.top + 'px)'
-				}
-			})
+					// Animate the row with following touch
+					if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
+						ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
+						this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
+						this.list._domSwipeSpacerRight.style.transform = `translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
+					}
+				})
+			}
+			// If we don't have a vertical lock yet but we would like to have it, lock vertically
+		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > size.list_row_height) {
+			this.directionLock = DirectionLock.Vertical
+			if (this.animating.isFulfilled()) {
+				// Reset the row
+				window.requestAnimationFrame(() => {
+					if (this.animating.isFulfilled()) {
+						this.reset()
+					}
+				})
+			}
 		}
 	}
 
 	end(e: TouchEvent) {
-		let delta = this.getDelta(e)
-		if (this.animating.isFulfilled() && this.virtualElement && this.virtualElement.entity && Math.abs(delta.x)
-			> ActionDistance && Math.abs(delta.y) < neverNull(this.virtualElement).domElement.offsetHeight) {
+		this.gestureEnd(e)
+	}
+
+	gestureEnd(e: TouchEvent) {
+		const delta = this.getDelta(e)
+		if (this.animating.isFulfilled()
+			&& this.virtualElement
+			&& this.virtualElement.entity
+			&& Math.abs(delta.x) > ActionDistance && this.directionLock === DirectionLock.Horizontal) {
+			// Gesture is completed
 			let entity = this.virtualElement.entity
 			let swipePromise
 			if (delta.x < 0) {
@@ -999,8 +1025,10 @@ class SwipeHandler {
 			}
 			this.animating = this.finish(entity._id, swipePromise)
 		} else if (this.animating.isFulfilled()) {
+			// Gesture is not completed, reset row
 			this.animating = this.reset()
 		}
+		this.directionLock = null
 	}
 
 	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
@@ -1061,7 +1089,6 @@ class SwipeHandler {
 		}
 	}
 
-
 	reset(): Promise<any> {
 		try {
 			if (this.xoffset !== 0) {
@@ -1102,10 +1129,6 @@ class SwipeHandler {
 			x: e.changedTouches[0].clientX - this.startPos.x,
 			y: e.changedTouches[0].clientY - this.startPos.y
 		}
-	}
-
-	cancel(e: TouchEvent) {
-		this.reset()
 	}
 
 	updateWidth() {

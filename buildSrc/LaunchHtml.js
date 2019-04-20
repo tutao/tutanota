@@ -25,15 +25,15 @@ module.exports.renderHtml = function (scripts, env) {
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),
-				cors(m, env),
+				csp(m, env),
 				m("meta[name=apple-mobile-web-app-capable][content=yes]"),
 				m("meta[name=mobile-web-app-capable][content=yes]"),
 				m("meta[name=referrer][content=no-referrer]"),
 				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
 				scripts.map(script => m(`script[src=${script}][defer]`)),
 				m.trust("<!-- TutanotaTags -->"), // everything from here to </head> is replaced at runtime for custom domains with defined metaTags
-				m("title", "Mail. Done. Right. Tutanota Login & Sign up"), // keep in sync with Env.
-				m("meta[name=description][content=Mail. Done. Right. Register with the secure mail service Tutanota for free & take back your privacy. Tutanota encrypts mails and contacts automatically.]"),
+				m("title", "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"), // keep in sync with Env.
+				m("meta[name=description][content=Mail. Done. Right. Make a fresh start in 2019 and get a free mail account that does not abuse your emails for advertising. Tutanota is fast, easy, secure and free of ads.]"),
 				m("link[rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
 				m("meta[name=application-name][content=Tutanota]"),
 				m("link[rel=apple-touch-icon][sizes=152x152][href=/images/logo-favicon-152.png]"),
@@ -69,8 +69,8 @@ module.exports.renderHtml = function (scripts, env) {
 	return html
 }
 
-const cors = (m, env) => {
-	if (env.dist && env.mode === "App") {
+const csp = (m, env) => {
+	if (env.dist && (env.mode === "App" || env.mode === "Desktop")) {
 		// differences in comparison to web csp:
 		// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
 		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: data: *; " +

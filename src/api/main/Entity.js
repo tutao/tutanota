@@ -1,7 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {Element, ListElement, HttpMethodEnum} from "../common/EntityFunctions"
+import type {Element, HttpMethodEnum, ListElement} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -50,6 +50,9 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
 export function loadMultiple<T: (ListElement | Element)>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
 }

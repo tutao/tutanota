@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Country} from "../api/common/CountryList"
 import {CountryType} from "../api/common/CountryList"
@@ -14,7 +15,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
-import {isUpdateForTypeRef} from "../api/main/EntityEventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 
 /**
@@ -89,15 +90,15 @@ export class PaymentMethodInput {
 		this._currentPaymentMethodComponent = this._creditCardComponent
 		this._selectedPaymentMethod = PaymentMethodType.CreditCard
 		this.view = () => m(this._currentPaymentMethodComponent)
-		this.oncreate = () => locator.entityEvent.addListener(accountingInfoListener)
-		this.onremove = () => locator.entityEvent.removeListener(accountingInfoListener)
+		this.oncreate = () => locator.eventController.addEntityListener(accountingInfoListener)
+		this.onremove = () => locator.eventController.removeEntityListener(accountingInfoListener)
 	}
 
 	isPaypalAssigned() {
 		return this._accountingInfo && this._accountingInfo.paypalBillingAgreement != null
 	}
 
-	validatePaymentData(): ?string {
+	validatePaymentData(): ?TranslationKey {
 		const country = this._selectedCountry()
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"

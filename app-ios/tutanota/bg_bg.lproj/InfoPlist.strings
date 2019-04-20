@@ -1,4 +1,0 @@
-NSMicrophoneUsageDescription = "Използва се при запис на видео за прикачване.";
-NSRemindersUsageDescription = "Показва известие, когато пристигне ново писмо.";
-TutaoCancelAction = "Откажи";
-TutaoSettingsAction = "Настройки";

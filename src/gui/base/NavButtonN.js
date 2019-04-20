@@ -11,7 +11,7 @@ import {styles} from "../styles"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 
 export type NavButtonAttrs = {|
-	label: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
 	icon: lazyIcon,
 	href: string | lazy<string>,
 	isSelectedPrefix?: string,
@@ -166,11 +166,11 @@ class _NavButton {
 
 export const NavButtonN: Class<MComponent<NavButtonAttrs>> = _NavButton
 
-export const NavButtonColors = {
+export const NavButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 type NavButtonColorEnum = $Values<typeof NavButtonColors>;
 
 function getColors(buttonColors: ?NavButtonColorEnum) {

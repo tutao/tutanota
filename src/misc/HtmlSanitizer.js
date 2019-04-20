@@ -6,6 +6,7 @@ import {ReplacementImage} from "../gui/base/icons/Icons"
 // '#' character is reserved in URL and FF won't display SVG otherwise
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
+const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
 
 class HtmlSanitizer {
 
@@ -33,7 +34,7 @@ class HtmlSanitizer {
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
-						if (allowedClasses.indexOf(cl[0]) == -1) {
+						if (allowedClasses.indexOf(cl[0]) === -1) {
 							cl.remove(cl[0]);
 						}
 					}
@@ -90,19 +91,19 @@ class HtmlSanitizer {
 
 	_preventExternalImageLoading(htmlNode) {
 		if (htmlNode.attributes) {
-			this._replaceSrcAttributes(htmlNode);
+			this._replaceAttributeValue(htmlNode);
 		}
 		if (htmlNode.style) {
 			if (htmlNode.style.backgroundImage) {
 				//console.log(htmlNode.style.backgroundImage)
-				this._replaceStyleImage(htmlNode, "backgroundImage")
+				this._replaceStyleImage(htmlNode, "backgroundImage", false)
 				htmlNode.style.backgroundRepeat = "no-repeat"
 			}
 			if (htmlNode.style.listStyleImage) {
-				this._replaceStyleImage(htmlNode, "listStyleImage")
+				this._replaceStyleImage(htmlNode, "listStyleImage", true)
 			}
 			if (htmlNode.style.content) {
-				this._replaceStyleImage(htmlNode, "content")
+				this._replaceStyleImage(htmlNode, "content", true)
 			}
 			if (htmlNode.style.cursor) {
 				this._removeStyleImage(htmlNode, "cursor")
@@ -114,14 +115,16 @@ class HtmlSanitizer {
 	}
 
 
-	_replaceSrcAttributes(htmlNode) {
-		let imageSrcAttr = htmlNode.attributes.getNamedItem('src') || htmlNode.attributes.getNamedItem('poster');
-		if (imageSrcAttr) {
-			this._externalContent.push(imageSrcAttr.value)
-			imageSrcAttr.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-			htmlNode.attributes.setNamedItem(imageSrcAttr);
-			htmlNode.style["max-width"] = "100px"
-		}
+	_replaceAttributeValue(htmlNode) {
+		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
+			let attribute = htmlNode.attributes.getNamedItem(attrName)
+			if (attribute) {
+				this._externalContent.push(attribute.value)
+				attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+				htmlNode.attributes.setNamedItem(attribute)
+				htmlNode.style["max-width"] = "100px"
+			}
+		})
 	}
 
 	_removeStyleImage(htmlNode, styleAttributeName: string) {
@@ -132,7 +135,7 @@ class HtmlSanitizer {
 		}
 	}
 
-	_replaceStyleImage(htmlNode, styleAttributeName: string) {
+	_replaceStyleImage(htmlNode, styleAttributeName: string, limitWidth: boolean) {
 		let value = htmlNode.style[styleAttributeName]
 		if (value.match(/^url\(/)) {
 			// remove surrounding url definition. url(<link>)
@@ -141,7 +144,9 @@ class HtmlSanitizer {
 			this._externalContent.push(value)
 			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
-			htmlNode.style["max-width"] = "100px"
+			if (limitWidth) {
+				htmlNode.style["max-width"] = "100px"
+			}
 		}
 	}
 

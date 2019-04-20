@@ -10,7 +10,7 @@ import type {OperationTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {MailFolderType, OperationType} from "../../../src/api/common/TutanotaConstants"
 import {MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {createMailFolder} from "../../../src/api/entities/tutanota/MailFolder"
-import type {EntityUpdateData} from "../../../src/api/main/EntityEventController"
+import type {EntityUpdateData} from "../../../src/api/main/EventController"
 
 o.spec("MailModelTest", function () {
 	let notifications: $Shape<Notifications>
@@ -34,7 +34,7 @@ o.spec("MailModelTest", function () {
 	o.beforeEach(function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
-		model = new MailModel(downcast(notifications))
+		model = new MailModel(downcast(notifications), downcast({}))
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails)
 	})

@@ -27,9 +27,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createCustomDomainReturn(): CustomDomainReturn {
-	return create(_TypeModel)
+	return create(_TypeModel, CustomDomainReturnTypeRef)
 }

@@ -60,7 +60,7 @@ declare class Promise<+R> {
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
 	catch<U, ErrorT: Error>(err: Class<ErrorT>, onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
 
-	finally<U>(onDone?: () => mixed): Promise<U>;
+	finally<R>(onDone?: () => mixed): Promise<R>;
 
 	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
@@ -81,7 +81,7 @@ declare class Promise<+R> {
 
 	tap(handler: (R => $Promisable<mixed>)): Promise<R>;
 
-	static resolve<T>(object?: Promise<T> | T): Promise<T>;
+	static resolve<T>(object: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;
 	static try<T>(fn: () => $Promisable<T>): Promise<T>;

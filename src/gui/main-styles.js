@@ -3,7 +3,7 @@ import {styles} from "./styles"
 import {px, size} from "./size"
 import {client} from "../misc/ClientDetector"
 import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdminClient, isApp} from "../api/Env"
+import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/Env"
 import {theme} from "./theme.js"
 import {BrowserType} from "../misc/ClientConstants"
 
@@ -15,6 +15,31 @@ export function requiresStatusBarHack() {
 
 styles.registerStyle('main', () => {
 	return {
+
+		"#link-tt": isDesktop() ? {
+			"pointer-events": "none",
+			"font-size": px(size.font_size_small),
+			"padding-left": px(size.hpad_small),
+			"padding-right": px(size.hpad_small),
+			"padding-top": px(size.vpad_xs),
+			"position": "fixed",
+			"bottom": px(size.vpad_xs),
+			"left": px(size.vpad_xs),
+			"text-align": "center",
+			"color": theme.content_bg,
+			"text-decoration": "none",
+			"background-color": theme.content_fg,
+			"border": "1px solid " + theme.content_bg,
+			"opacity": 0,
+			"transition": "opacity .1s linear",
+			"font-family": "monospace"
+		} : {},
+
+		"#link-tt.reveal": isDesktop() ? {
+			"opacity": 1,
+			"transition": "opacity .1s linear",
+		} : {},
+
 		"*:not(input):not(textarea)": isAdminClient() ? {} : {
 			"user-select": "none", /* disable selection/Copy for UI elements*/
 			"-ms-user-select": "none",
@@ -110,14 +135,13 @@ styles.registerStyle('main', () => {
 		},
 
 
-		'h1, h2, h3, h4, h5, h6': {margin: 0},
+		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
 		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
 		'h2, .h2': {'font-size': px(size.font_size_base * 1.8)},
 		'h3, .h3': {'font-size': px(size.font_size_base * 1.6)},
 		'h4, .h4': {'font-size': px(size.font_size_base * 1.4)},
 		'h5, .h5': {'font-size': px(size.font_size_base * 1.2)},
 		'h6, .h6': {'font-size': px(size.font_size_base * 1.1)},
-		"h1, h2, h3, h4, h5, h6": {'font-weight': 'normal'},
 		'input, button, select, textarea': {
 			'font-family': 'inherit',
 			'font-size': 'inherit',
@@ -137,6 +161,7 @@ styles.registerStyle('main', () => {
 		'.mt-xs': {'margin-top': px(size.vpad_xs)},
 		'.mt-s': {'margin-top': px(size.vpad_small)},
 		'.mt-l': {'margin-top': px(size.vpad_large)},
+		'.mt-m': {'margin-top': px(size.hpad)},
 		'.mt-xl': {'margin-top': px(size.vpad_xl)},
 		'.mt-form': {'margin-top': px(size.hpad_medium)},
 		'.mb-0': {'margin-bottom': 0},
@@ -158,18 +183,22 @@ styles.registerStyle('main', () => {
 		'.pt-m': {'padding-top': px(size.vpad)},
 		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
+		'.pt-xs': {'padding-top': px(size.vpad_xs)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
 		'.pb-2': {'padding-bottom': '2px'}, // for dropdown toggles
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
+		'.pb-xs': {'padding-bottom': px(size.vpad_xs)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
 		'.pb-m': {'padding-bottom': px(size.vpad)},
+		'.pb-ml': {'padding-bottom': px(size.vpad_ml)},
 		'.pb-floating': {'padding-bottom': px(size.button_floating_size + size.hpad_large)}, // allow scrolling across the floating button
 		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 		'.pl': {'padding-left': px(size.hpad)},
 		'.pl-s': {'padding-left': px(size.hpad_small)},
 		'.pl-m': {'padding-left': px(size.hpad)},
+		'.pl-xs': {'padding-left': px(size.vpad_xs)},
 		'.pr': {'padding-right': px(size.hpad)},
 		'.pr-s': {'padding-right': px(size.hpad_small)},
 		'.pr-m': {'padding-right': px(size.vpad)},
@@ -195,6 +224,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
+		'.min-width-0': {'min-width': 0},
 		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.break-word-links a': {'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
@@ -207,7 +237,6 @@ styles.registerStyle('main', () => {
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
-		'.overflow-x-hidden': {'overflow-x': 'hidden'},
 
 		'.view-column': {'will-change': 'transform'},
 
@@ -229,10 +258,10 @@ styles.registerStyle('main', () => {
 			color: theme.content_accent,
 		},
 		'.content-message-bg': {'background-color': theme.content_message_bg},
-
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
+		'.bg-accent-fg': {'background-color': theme.list_accent_fg},
 		'.list-message-bg': {'background-color': theme.list_message_bg},
 
 		'.password-indicator-bg': {'background-color': theme.content_button},
@@ -251,7 +280,7 @@ styles.registerStyle('main', () => {
 			fill: '#ffffff',
 		},
 		'.blue': {'background-color': "#2196F3"},
-
+		'.underline': {'text-decoration': 'underline'},
 		'.hover-ul:hover': {'text-decoration': isApp() ? 'none' : 'underline'},
 
 		// positioning
@@ -317,6 +346,7 @@ styles.registerStyle('main', () => {
 		'.flex-no-shrink': {flex: "1 0 0"},
 		'.flex-no-grow-no-shrink-auto': {flex: "0 0 auto"},
 		'.flex-no-grow': {flex: "0"},
+		'.no-shrink': {'flex-shrink': '0'},
 		'.flex-no-grow-shrink-auto': {flex: "0 1 auto"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // TODO: migrate to .wrap
 		".wrap": {'flex-wrap': 'wrap'}, // elements may move into the next line
@@ -338,7 +368,6 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
-		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -449,6 +478,13 @@ styles.registerStyle('main', () => {
 			'border-radius': "50%",
 			overflow: "hidden"
 		},
+		'.circle': {
+			width: px(size.hpad_large_mobile + 1),
+			height: px(size.hpad_large_mobile + 1),
+			'border-radius': "50%",
+			overflow: "hidden",
+			'margin-top': px(6)
+		},
 		'.logo': {height: px(size.header_logo_height)},
 		'.logo-text': {height: px(size.header_logo_height), width: px(128)},
 		'.logo-height': {height: px(size.header_logo_height)},
@@ -514,7 +550,25 @@ styles.registerStyle('main', () => {
 		'.folders': {'margin-bottom': px(12)},
 		'.folder-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
-			'margin-right': px(-size.hpad_button)
+			'margin-right': px(-size.hpad_button),
+			'align-items': 'center',
+			position: "relative"
+		},
+		'.folder-counter': {
+			position: 'absolute',
+			top: px(0),
+			left: px(3),
+			color: theme.navigation_button_icon,
+			background: theme.navigation_button,
+			"padding-left": px(4),
+			"padding-right": px(4),
+			"border-radius": px(8),
+			"line-height": px(16),
+			'font-size': px(size.font_size_small),
+			'font-weight': 'bold',
+			'min-width': px(16),
+			'min-height': px(16),
+			'text-align': 'center'
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},
@@ -528,10 +582,11 @@ styles.registerStyle('main', () => {
 			outline: 'none'
 		},
 
-		'blockquote.tutanota_quote': {
+		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),
-			'margin-left': px(0)
+			'margin-left': px(0),
+			'margin-right': px(0)
 		},
 
 		'.MsoNormal': {margin: 0},
@@ -584,13 +639,14 @@ styles.registerStyle('main', () => {
 		".list-font-icons": {
 			"letter-spacing": "8px",
 			"text-align": "right",
-			"margin-right": "-8px",
-			"color": theme.content_accent
+			"margin-right": "-8px"
 		},
 
 		'.monospace': {
 			'font-family': '"Lucida Console", Monaco, monospace'
 		},
+
+		'.hidden': {visibility: 'hidden'},
 
 		// action bar
 		'.action-bar': {width: 'initial', 'margin-left': 'auto'},
@@ -758,7 +814,7 @@ styles.registerStyle('main', () => {
 			margin: 0, // for safari browser
 			background: 'transparent',
 			outline: 'none',
-			width: '100%',
+			width: "100%",
 			overflow: 'hidden',
 			color: theme.content_fg,
 		},
@@ -791,6 +847,7 @@ styles.registerStyle('main', () => {
 		},
 
 		'.column-width-largest': {},
+
 		'.buyOptionBox': {
 			position: 'relative',
 			display: 'inline-block',

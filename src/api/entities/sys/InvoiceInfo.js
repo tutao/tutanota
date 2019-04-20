@@ -76,9 +76,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "39"
+	"version": "44"
 }
 
 export function createInvoiceInfo(): InvoiceInfo {
-	return create(_TypeModel)
+	return create(_TypeModel, InvoiceInfoTypeRef)
 }

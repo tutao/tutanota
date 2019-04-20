@@ -1,10 +1,13 @@
 // @flow
 import m from "mithril"
-import {inputLineHeight, px} from "../gui/size"
+import {px} from "../gui/size"
 import {SegmentControl} from "./SegmentControl"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {PaymentIntervalItems} from "./SubscriptionUtils"
 import {neverNull} from "../api/common/utils/Utils"
+import {Icons} from "../gui/base/icons/Icons"
+import {Icon} from "../gui/base/Icon"
 
 
 export type BuyOptionBoxAttr = {|
@@ -12,7 +15,7 @@ export type BuyOptionBoxAttr = {|
 	actionButton: ?Component,
 	price: string,
 	originalPrice: string,
-	helpLabel: string | lazy<string>,
+	helpLabel: TranslationKey | lazy<string>,
 	features: () => string[],
 	width: number,
 	height: number,
@@ -24,7 +27,11 @@ export type BuyOptionBoxAttr = {|
 export function getActiveSubscriptionActionButtonReplacement() {
 	return {
 		view: () => {
-			return m(".buyOptionBox.content-accent-fg.center-vertically.text-center", lang.get("pricing.currentPlan_label"))
+			return m(".buyOptionBox.content-accent-fg.center-vertically.text-center", {
+				style: {
+					'border-radius': '3px'
+				}
+			}, lang.get("pricing.currentPlan_label"))
 		}
 	}
 }
@@ -32,9 +39,11 @@ export function getActiveSubscriptionActionButtonReplacement() {
 class _BuyOptionBox {
 
 	constructor() {
+
 	}
 
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
+
 		return m("", {
 			style: {
 				margin: "10px",
@@ -43,7 +52,10 @@ class _BuyOptionBox {
 			}
 		}, [
 			m(".buyOptionBox" + (vnode.attrs.highlighted ? ".highlighted" : ""), {
-				style: {height: px(vnode.attrs.height)}
+				style: {
+					height: px(vnode.attrs.height),
+					'border-radius': '3px'
+				}
 			}, [
 				(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
 					? m(".ribbon-vertical", m(".text-center.b.h4", {style: {'padding-top': px(22)}}, "%"))
@@ -70,11 +82,17 @@ class _BuyOptionBox {
 						right: px(10)
 					}
 				}, m(neverNull(vnode.attrs.actionButton))) : null
-			]), m(".flex.col.pt", {
-				style: {lineHeight: px(inputLineHeight)}
-			}, vnode.attrs.features().map(f => m(".flex.center-horizontally.text-center.dialog-header.text-prewrap",
-				// {style: {borderBottom: `1px solid ${theme.content_border}`}},
-				[m(".align-self-center", f)])))
+			]), m("div.mt-m.pl", vnode.attrs.features().map(f => m(".flex",
+				[
+					m(Icon, {
+						icon: Icons.Checkmark,
+						style: {
+							'padding-top': '5px'
+						}
+					}),
+					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {title: window.innerWidth > 809 ? f : ""}, f)
+				]
+			)))
 		])
 	}
 }

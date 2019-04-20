@@ -7,17 +7,22 @@ import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {load} from "../api/main/Entity"
+import {erase, load} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
-import {defer, neverNull} from "../api/common/utils/Utils"
+import {defer, downcast, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
+import {hasMoreResults} from "./SearchModel"
+import {showDeleteConfirmationDialog} from "../mail/MailUtils"
+import {mailModel} from "../mail/MailModel"
+import {Dialog} from "../gui/base/Dialog"
+import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -111,12 +116,12 @@ export class SearchListView {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0 && this._searchResult.moreResultsEntries.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0 && !hasMoreResults(this._searchResult)) {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
-					.then(results => results.map(instance => new SearchResultListEntry(instance)))
-					.finally(m.redraw)
+				           .then(results => results.map(instance => new SearchResultListEntry(instance)))
+				           .finally(m.redraw)
 			},
 			loadSingle: (elementId) => {
 				if (this._searchResult) {
@@ -161,7 +166,8 @@ export class SearchListView {
 			},
 			elementsDraggable: false,
 			multiSelectionAllowed: true,
-			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController().isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))
+			emptyMessage: lang.get("searchNoResults_msg") + "\n" + (logins.getUserController()
+			                                                              .isFreeAccount() ? lang.get("goPremium_msg") : lang.get("switchSearchInMenu_label"))
 		})
 	}
 
@@ -174,7 +180,7 @@ export class SearchListView {
 			return Promise.resolve([])
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
-		if (getMoreFromSearch && currentResult.moreResultsEntries.length > 0) {
+		if (getMoreFromSearch && hasMoreResults(currentResult)) {
 			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
@@ -191,22 +197,23 @@ export class SearchListView {
 							startIndex++ // the start index is already in the list of loaded elements load from the next element
 						}
 					}
-					let toLoad = moreResults.results.slice(startIndex, startIndex + count)
+					// Ignore count when slicing here because we would have to modify SearchResult too
+					let toLoad = moreResults.results.slice(startIndex)
 					return this._loadAndFilterInstances(currentResult.restriction.type, toLoad, moreResults, startIndex)
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
 					return this._loadAndFilterInstances(currentResult.restriction.type, moreResults.results, moreResults, 0)
-						.finally(() => {
-							this.list && this.list.setLoadedCompletely()
-							m.redraw()
-						})
+					           .finally(() => {
+						           this.list && this.list.setLoadedCompletely()
+						           m.redraw()
+					           })
 				} else {
 					// this type is not shown in the search view, e.g. group info
 					return Promise.resolve([])
 				}
 			})
 			.then(results => {
-				return results.length < count && neverNull(this._searchResult).moreResultsEntries.length > 0
+				return results.length < count && hasMoreResults(neverNull(this._searchResult))
 					// Recursively load more until we have enough or there are no more results.
 					// Otherwise List thinks that this is the end
 					? this._loadSearchResults(neverNull(this._searchResult), true, startId, count)
@@ -223,7 +230,7 @@ export class SearchListView {
 	}
 
 	_loadAndFilterInstances<T>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
-							   startIndex: number): Promise<T[]> {
+	                           startIndex: number): Promise<T[]> {
 		return Promise
 			.map(toLoad,
 				(id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
@@ -245,13 +252,6 @@ export class SearchListView {
 			return this.list.isEntitySelected(id)
 		}
 		return false
-	}
-
-	deleteLoadedEntity(elementId: Id): Promise<void> {
-		if (this.list) {
-			return this.list._deleteLoadedEntity(elementId)
-		}
-		return Promise.resolve()
 	}
 
 	getSelectedEntities(): SearchResultListEntry[] {
@@ -297,6 +297,36 @@ export class SearchListView {
 		return this.list != null && this.list.ready
 	}
 
+	deleteSelected(): void {
+		let selected = this.getSelectedEntities()
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMails = selected.map(m => ((m.entry: any): Mail))
+				showDeleteConfirmationDialog(selectedMails).then(confirmed => {
+					if (confirmed) {
+						if (selected.length > 1) {
+							// is needed for correct selection behavior on mobile
+							this.selectNone()
+						}
+						mailModel.deleteMails(selectedMails)
+					}
+				})
+			} else if (isSameTypeRef(selected[0].entry._type, ContactTypeRef)) {
+				let selectedContacts = selected.map(m => ((m.entry: any): Contact))
+				Dialog.confirm("deleteContacts_msg").then(confirmed => {
+					if (confirmed) {
+						if (selected.length > 1) {
+							// is needed for correct selection behavior on mobile
+							this.selectNone()
+						}
+						selectedContacts.forEach((c) => erase(c).catch(NotFoundError, e => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}))
+					}
+				})
+			}
+		}
+	}
 }
 
 export class SearchResultListRow {

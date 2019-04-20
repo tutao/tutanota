@@ -247,6 +247,7 @@ type AccountingInfo = {
 	_errors: Object;
 	_format: NumberString;
 	_id: Id;
+	_modified: Date;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
@@ -617,23 +618,6 @@ type Exception = {
 
 }
 
-type WebsocketWrapper = {
-	_type: TypeRef<WebsocketWrapper>;
-	_format: NumberString;
-	clientVersion: string;
-	eventBatchId: ?Id;
-	eventBatchOwner: ?Id;
-	modelVersions: string;
-	msgId: NumberString;
-	type: string;
-
-	authentication: ?Authentication;
-	chat: ?Chat;
-	entityUpdate: ?EntityUpdate;
-	eventBatch: EntityUpdate[];
-	exception: ?Exception;
-}
-
 type Version = {
 	_type: TypeRef<Version>;
 	_id: Id;
@@ -749,13 +733,16 @@ type RegistrationConfigReturn = {
 
 type PushIdentifier = {
 	_type: TypeRef<PushIdentifier>;
+	_errors: Object;
 	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
 	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	disabled: boolean;
+	displayName: string;
 	identifier: string;
 	language: string;
 	lastNotificationDate: ?Date;
@@ -1222,16 +1209,18 @@ type WhitelabelConfig = {
 	imprintUrl: ?string;
 	jsonTheme: string;
 	metaTags: string;
+	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
+	certificateInfo: CertificateInfo;
 }
 
 type BrandingDomainData = {
 	_type: TypeRef<BrandingDomainData>;
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: Uint8Array;
-	sessionEncPemPrivateKey: Uint8Array;
+	sessionEncPemCertificateChain: ?Uint8Array;
+	sessionEncPemPrivateKey: ?Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
 
 }
@@ -1553,4 +1542,47 @@ type UpgradePriceServiceReturn = {
 
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
+}
+
+type RegistrationCaptchaServiceGetData = {
+	_type: TypeRef<RegistrationCaptchaServiceGetData>;
+	_format: NumberString;
+	mailAddress: string;
+	token: ?string;
+
+}
+
+type WebsocketEntityData = {
+	_type: TypeRef<WebsocketEntityData>;
+	_format: NumberString;
+	eventBatchId: Id;
+	eventBatchOwner: Id;
+
+	eventBatch: EntityUpdate[];
+}
+
+type WebsocketCounterValue = {
+	_type: TypeRef<WebsocketCounterValue>;
+	_id: Id;
+	count: NumberString;
+	mailListId: Id;
+
+}
+
+type WebsocketCounterData = {
+	_type: TypeRef<WebsocketCounterData>;
+	_format: NumberString;
+	mailGroup: Id;
+
+	counterValues: WebsocketCounterValue[];
+}
+
+type CertificateInfo = {
+	_type: TypeRef<CertificateInfo>;
+	_id: Id;
+	expiryDate: ?Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: ?Id;
 }

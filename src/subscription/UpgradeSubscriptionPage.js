@@ -7,14 +7,16 @@ import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/Env"
 import {client} from "../misc/ClientDetector"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {getUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
+import {getUpgradePrice, SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
+import {Dialog} from "../gui/base/Dialog"
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
 	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
 	_upgradeData: UpgradeSubscriptionData;
 
-	constructor(upgradeData: UpgradeSubscriptionData) {
+	constructor(upgradeData: UpgradeSubscriptionData, currentSubscription: ?SubscriptionTypeEnum) {
 		this._upgradeData = upgradeData
 		this.view = () => m("#upgrade-account-dialog.pt", [
 				m(SubscriptionSelector, {
@@ -25,16 +27,21 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 					highlightPremium: true,
 					premiumPrices: upgradeData.premiumPrices,
 					proPrices: upgradeData.proPrices,
-					isInitialUpgrade: upgradeData.isInitialUpgrade,
+					isInitialUpgrade: upgradeData.upgradeType !== UpgradeType.Switch,
+					currentlyActive: currentSubscription,
 					freeActionButton: {
 						view: () => {
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									this._upgradeData.type = SubscriptionType.Free
-									this._upgradeData.price = "0"
-									this._upgradeData.priceNextYear = "0"
-									this._pageActionHandler.showNext(this._upgradeData)
+									Dialog.confirm("signupOneFreeAccountConfirm_msg").then(confirmed => {
+										if (confirmed) {
+											this._upgradeData.type = SubscriptionType.Free
+											this._upgradeData.price = "0"
+											this._upgradeData.priceNextYear = "0"
+											this._pageActionHandler.showNext(this._upgradeData)
+										}
+									})
 								},
 								type: ButtonType.Login,
 							})

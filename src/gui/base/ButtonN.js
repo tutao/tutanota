@@ -8,10 +8,11 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
-export const ButtonType = {
+export const ButtonType = Object.freeze({
 	Action: 'action',
 	ActionLarge: 'action-large', // action button with large icon
 	Primary: 'primary',
@@ -22,14 +23,14 @@ export const ButtonType = {
 	Bubble: 'bubble',
 	TextBubble: 'textBubble',
 	Toggle: 'toggle'
-}
+})
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = {
+export const ButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 function getColors(buttonColors: ?ButtonColorEnum) {
@@ -53,8 +54,8 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 }
 
 export type ButtonAttrs = {
-	label: string | lazy<string>,
-	title?: string | lazy<string>,
+	label: TranslationKey | lazy<string>,
+	title?: TranslationKey | lazy<string>,
 	click: clickHandler,
 	icon?: lazyIcon,
 	type?: ButtonTypeEnum,
@@ -80,6 +81,7 @@ class _Button {
 			{
 				class: this.getButtonClasses(a).join(' '),
 				style: vnode.attrs.type === ButtonType.Login ? {
+					'border-radius': '3px',
 					'background-color': theme.content_accent,
 				} : {},
 				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
@@ -107,7 +109,7 @@ class _Button {
 		)
 	}
 
-	getTitle(title: string | lazy<string>): string {
+	getTitle(title: TranslationKey | lazy<string>): string {
 		return lang.getMaybeLazy(title)
 	}
 

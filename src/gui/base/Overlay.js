@@ -13,30 +13,31 @@ export type PositionRect = {
 	height?: ?string,
 }
 
-type AnimtationProvider = (dom: HTMLElement) => DomMutation
+type AnimationProvider = (dom: HTMLElement) => DomMutation
 
 type OverlayAttrs = {
 	component: Component;
 	position: PositionRect;
-	createAnimation?: AnimtationProvider;
-	closeAnimation?: AnimtationProvider;
+	createAnimation?: AnimationProvider;
+	closeAnimation?: AnimationProvider;
 }
 
-const overlays: Array<[OverlayAttrs, ?HTMLElement]> = []
+const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
 const boxShadow = (() => {
 	const {r, g, b} = hexToRgb(theme.modal_bg)
 	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
 })()
+let key = 0
 
-export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimtationProvider,
-                               closeAnimation?: AnimtationProvider): () => void {
+export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimationProvider,
+                               closeAnimation?: AnimationProvider): () => void {
 	const newAttrs = {
 		position,
 		component,
 		createAnimation,
 		closeAnimation
 	}
-	const pair = [newAttrs, null]
+	const pair = [newAttrs, null, key++]
 	overlays.push(pair)
 	return () => {
 		const dom = pair[1];
@@ -53,9 +54,10 @@ export const overlay = {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
 		}
-	}, overlays.map((pair) => {
-		const [attrs] = pair
+	}, overlays.map((overlayAttrs) => {
+		const [attrs, dom, key] = overlayAttrs
 		return m(".abs.list-bg", {
+			key,
 			style: {
 				width: attrs.position.width,
 				top: attrs.position.top,
@@ -67,13 +69,13 @@ export const overlay = {
 				'box-shadow': boxShadow,
 			},
 			oncreate: (vnode: Vnode<any>) => {
-				pair[1] = vnode.dom
+				overlayAttrs[1] = vnode.dom
 				if (attrs.createAnimation) {
 					animations.add(vnode.dom, attrs.createAnimation(vnode.dom))
 				}
 			},
 			onremove: () => {
-				pair[1] = null
+				overlayAttrs[1] = null
 			}
 		}, m(attrs.component))
 	}))

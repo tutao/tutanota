@@ -32,7 +32,7 @@ import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {notifications} from "../gui/Notifications"
-import {isMailAddress} from "../misc/Formatter"
+import {isMailAddress} from "../misc/FormatValidator"
 import {fileApp} from "../native/FileApp"
 import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
@@ -165,9 +165,16 @@ export class LoginViewController implements ILoginViewController {
 			            return errorAction()
 		            })
 		            .catch(ConnectionError, e => {
-			            this.view.helpText = lang.get('emptyString_msg')
-			            m.redraw()
-			            throw e;
+			            if (client.isIE()) {
+				            // IE says it's error code 0 fore some reason
+				            this.view.helpText = lang.get('loginFailed_msg')
+				            m.redraw()
+				            return errorAction()
+			            } else {
+				            this.view.helpText = lang.get('emptyString_msg')
+				            m.redraw()
+				            throw e;
+			            }
 		            })
 	}
 
@@ -195,7 +202,7 @@ export class LoginViewController implements ILoginViewController {
 			console.log("offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		if (env.mode === Mode.App) {
+		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
 			pushServiceApp.register()
 		}
 
