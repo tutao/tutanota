@@ -657,7 +657,7 @@ module.exports = {
 		"pricing.basePriceIncludesTaxes_msg": "Базовая цена, включая налоги.",
 		"pricing.businessUse_label": "Бизнес",
 		"pricing.comparisonAddUser_msg": "Добавить пользователя ({1})",
-		"pricing.comparisonContactFormPro_msg": "Контактные формы ({цена})",
+		"pricing.comparisonContactFormPro_msg": "Контактные формы ({price})",
 		"pricing.comparisonDomainFree_msg": "Только домены Tutanota",
 		"pricing.comparisonDomainPremium_msg": "Пользовательские домены",
 		"pricing.comparisonInboxRulesPremium_msg": "Правила для Входящих",
