@@ -4,7 +4,7 @@ import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchInd
 import {elementIdPart, firstBiggerThanSecond, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {generatedIdToTimestamp, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {
@@ -41,7 +41,7 @@ import {EventQueue} from "./EventQueue"
 import {CancelledError} from "../../common/error/CancelledError"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
-import {promiseMapCompat} from "../../common/utils/PromiseUtils"
+import {PromisableWrapper, promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {arrayHash, findLastIndex, groupByAndMap, lastThrow} from "../../common/utils/ArrayUtils"
@@ -234,30 +234,40 @@ export class IndexerCore {
 		return this
 			.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS])
 			.then(transaction => {
-				return Promise.resolve()
-				              .then(() => this._moveIndexedInstance(indexUpdate, transaction))
-				              .then(() => this._deleteIndexedInstance(indexUpdate, transaction))
-				              .then(() => this._insertNewIndexEntries(indexUpdate, transaction))
-				              .then((rowKeys: ?EncWordToMetaRow) =>
-					              rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys))
-				              .then(() => updateGroupData(transaction))
-				              .then(() => {
-					              return transaction.wait().then(() => {
-						              this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
-					              })
-				              })
-				              .catch(e => {
-					              transaction.abort()
-					              throw e
-				              })
+				return this
+					._moveIndexedInstance(indexUpdate, transaction)
+					.thenOrApply(() => this._deleteIndexedInstance(indexUpdate, transaction))
+					.thenOrApply(() => this._insertNewIndexEntries(indexUpdate, transaction))
+					.thenOrApply((rowKeys: ?EncWordToMetaRow) =>
+						rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys))
+					.thenOrApply(() => updateGroupData(transaction))
+					.thenOrApply(() => {
+						return transaction.wait().then(() => {
+							this._stats.storageTime += (getPerformanceTimestamp() - startTimeStorage)
+						})
+					})
+					// a la catch(). Must be done in the next step because didReject is not invoked for the current Promise, only for the previous one.
+					// It's probably a bad idea to convert to the Promise first and then catch because it may do Promise.resolve() and this will schedule to
+					// the next event loop iteration and the context will be closed and it will be too late to abort(). Even worse, it will be commited to
+					// IndexedDB already and it will be inconsistent (oops).
+					.thenOrApply(noOp, e => {
+						try {
+							transaction.abort()
+						} catch (e) {
+							console.warn("abort has failed: ", e)
+							// Ignore if abort has failed
+						}
+						throw e
+					})
+					.toPromise()
 			})
 	}
 
-	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): ?Promise<void> {
+	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): PromisableWrapper<void> {
 		this._cancelIfNeeded()
-		if (indexUpdate.move.length === 0) return null // keep transaction context open (only for Safari)
+		if (indexUpdate.move.length === 0) return PromisableWrapper.from() // keep transaction context open (only for Safari)
 
-		return Promise.all(indexUpdate.move.map(moveInstance => {
+		const promise = Promise.all(indexUpdate.move.map(moveInstance => {
 			return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
 				if (elementData) {
 					elementData[0] = moveInstance.newListId
@@ -265,6 +275,7 @@ export class IndexerCore {
 				}
 			})
 		})).return()
+		return PromisableWrapper.from(promise)
 	}
 
 	/**
@@ -341,7 +352,7 @@ export class IndexerCore {
 					} else {
 						return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaDataRow))
 					}
-				})
+				}).value
 			})
 	}
 
@@ -354,7 +365,7 @@ export class IndexerCore {
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
 			const encMetaRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
-			return transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup])
+			promises.push(transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup]))
 		})
 		return Promise.all(promises)
 	}
@@ -386,7 +397,7 @@ export class IndexerCore {
 			.then((metaData: SearchIndexMetaDataRow) => {
 				encryptedEntries.sort((a, b) => a.timestamp - b.timestamp)
 				const writeResult = this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
-				return writeResult ? writeResult.return(metaData) : metaData
+				return writeResult.thenOrApply(() => metaData).value
 			})
 			.then((metaData) => {
 				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result
@@ -415,10 +426,10 @@ export class IndexerCore {
 	 * @private
 	 */
 	_writeEntries(transaction: DbTransaction, entries: Array<EncSearchIndexEntryWithTimestamp>, metaData: SearchIndexMetaDataRow, appId: number,
-	              typeId: number): Promise<*> | null {
+	              typeId: number): PromisableWrapper<void> {
 		if (entries.length === 0) {
 			// Prevent IDB timeouts in Safari casued by Promise.resolve()
-			return null
+			return PromisableWrapper.from()
 		}
 		const oldestTimestamp = entries[0].timestamp
 		const indexOfMetaEntry = this._findMetaDataEntryByTimestamp(metaData, oldestTimestamp, appId, typeId)
@@ -429,7 +440,7 @@ export class IndexerCore {
 			} else {
 				const [toCurrentOne, toNextOnes] = this._splitByTimestamp(entries, nextEntry.oldestElementTimestamp)
 				return this._appendIndexEntriesToRow(transaction, metaData, indexOfMetaEntry, toCurrentOne)
-				           .then(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
+				           .thenOrApply(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
 			}
 		} else {
 			// we have not found any entry which oldest id is lower than oldest id to add but there can be other entries
@@ -450,16 +461,15 @@ export class IndexerCore {
 					: [entries, []]
 				if (firstEntry.size + toFirstOne.length < SEARCH_INDEX_ROW_LENGTH) {
 					return this._appendIndexEntriesToRow(transaction, metaData, indexOfFirstEntry, toFirstOne)
-					           .then(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
+					           .thenOrApply(() => this._writeEntries(transaction, toNextOnes, metaData, appId, typeId))
 				} else {
 					const [toNewOne, toCurrentOne] = this._splitByTimestamp(toFirstOne, firstEntry.oldestElementTimestamp)
-					return this
-						._createNewRow(transaction, metaData, toNewOne, oldestTimestamp, appId, typeId)
-						.then(() => this._writeEntries(transaction, toCurrentOne.concat(toNextOnes), metaData, appId, typeId))
+					return PromisableWrapper
+						.from(this._createNewRow(transaction, metaData, toNewOne, oldestTimestamp, appId, typeId))
+						.thenOrApply(() => this._writeEntries(transaction, toCurrentOne.concat(toNextOnes), metaData, appId, typeId))
 				}
 			} else {
-				return this
-					._createNewRow(transaction, metaData, entries, oldestTimestamp, appId, typeId)
+				return this._createNewRow(transaction, metaData, entries, oldestTimestamp, appId, typeId)
 			}
 		}
 	}
@@ -495,9 +505,9 @@ export class IndexerCore {
 	 * @private
 	 */
 	_appendIndexEntriesToRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, metaEntryIndex: number,
-	                         entries: Array<EncSearchIndexEntryWithTimestamp>): Promise<void> {
+	                         entries: Array<EncSearchIndexEntryWithTimestamp>): PromisableWrapper<void> {
 		if (entries.length === 0) {
-			return Promise.resolve()
+			return new PromisableWrapper()
 		}
 		const metaEntry = metaData.rows[metaEntryIndex]
 		if (metaEntry.size + entries.length > SEARCH_INDEX_ROW_LENGTH) {
@@ -505,7 +515,7 @@ export class IndexerCore {
 			// decrypt ids
 			// sort by id
 			// split
-			return transaction.get(SearchIndexOS, metaEntry.key).then((binaryBlock: ?SearchIndexDbRow) => {
+			return PromisableWrapper.from(transaction.get(SearchIndexOS, metaEntry.key).then((binaryBlock: ?SearchIndexDbRow) => {
 				if (!binaryBlock) {
 					throw new InvalidDatabaseStateError("non existing index row")
 				}
@@ -552,13 +562,13 @@ export class IndexerCore {
 								                  oldestElementTimestamp: row.oldestElementTimestamp
 							                  })
 						                  })
-					}, {concurrency: 2})
+					}, {concurrency: 2}).value
 				)).then(() => {
 					metaData.rows.sort(compareMetaEntriesOldest)
 				})
-			})
+			}))
 		} else {
-			return transaction
+			return PromisableWrapper.from(transaction
 				.get(SearchIndexOS, metaEntry.key)
 				.then((indexEntriesRow) => {
 					let safeRow = indexEntriesRow || new Uint8Array(0)
@@ -571,7 +581,7 @@ export class IndexerCore {
 						                  // ...except when we're growing the first row, then we should do that
 						                  metaEntry.oldestElementTimestamp = Math.min(entries[0].timestamp, metaEntry.oldestElementTimestamp)
 					                  })
-				})
+				}))
 		}
 	}
 
@@ -605,7 +615,7 @@ export class IndexerCore {
 	}
 
 	_createNewRow(transaction: DbTransaction, metaData: SearchIndexMetaDataRow, encryptedSearchIndexEntries: Array<EncSearchIndexEntryWithTimestamp>,
-	              oldestTimestamp: number, appId: number, typeId: number): Promise<void> {
+	              oldestTimestamp: number, appId: number, typeId: number): PromisableWrapper<void> {
 		const byTimestamp = groupByAndMap(encryptedSearchIndexEntries, (e) => e.timestamp, (e) => e.entry)
 		const distributed = this._distributeEntities(byTimestamp, false)
 		return this
@@ -624,7 +634,7 @@ export class IndexerCore {
 						})
 					})
 			}, {concurrency: 2})
-			.then(() => {
+			.thenOrApply(() => {
 				metaData.rows.sort(compareMetaEntriesOldest)
 			})
 	}

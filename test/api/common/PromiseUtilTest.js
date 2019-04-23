@@ -74,32 +74,6 @@ o.spec("PromiseUtils", function () {
 				o(await promise.then()).equals("tuta")
 			})
 		})
-
-		o.spec("thenable", function () {
-			o("value + value = promise", async function () {
-				const promise = new PromiseableWrapper("tuta").then((v) => v + "nota")
-				o(typeof promise.then).equals("function")
-				o(await promise).equals("tutanota")
-			})
-
-			o("value + promise = promise", async function () {
-				const value = new PromiseableWrapper("tuta").then((v) => Promise.resolve(v + "nota"))
-				o(typeof value.then).equals("function")
-				o(await value).equals("tutanota")
-			})
-
-			o("promise + value = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta")).then((v) => v + "nota")
-				o(typeof value.then).equals("function")
-				o(await value).equals("tutanota")
-			})
-
-			o("proimse + promise = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta")).then((v) => Promise.resolve(v + "nota"))
-				o(typeof value.then).equals("function")
-				o(await value).equals("tutanota")
-			})
-		})
 	})
 
 })

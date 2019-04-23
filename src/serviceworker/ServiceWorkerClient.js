@@ -26,7 +26,7 @@ function showUpdateOverlay(onUpdate: () => void) {
 			])
 		}
 	}
-	notificationOverlay.show(notificationMessage, "postpone_action", [
+	notificationOverlay.show(notificationMessage, {label: "postpone_action"}, [
 		{
 			label: "refresh_action",
 			click: onUpdate,

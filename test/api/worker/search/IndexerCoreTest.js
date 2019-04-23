@@ -39,6 +39,7 @@ import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
+import {PromisableWrapper} from "../../../../src/api/common/utils/PromiseUtils"
 
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
@@ -756,7 +757,7 @@ o.spec("IndexerCore test", () => {
 		const encWordToMetaRow: EncWordToMetaRow = new Map()
 
 		const core = makeCore({transaction}, (mocked) => {
-			mocked._moveIndexedInstance = o.spy(() => Promise.resolve())
+			mocked._moveIndexedInstance = o.spy(() => PromisableWrapper.from())
 			mocked._deleteIndexedInstance = o.spy()
 			mocked._insertNewElementData = o.spy(() => Promise.resolve())
 			mocked._insertNewIndexEntries = o.spy(() => encWordToMetaRow)
