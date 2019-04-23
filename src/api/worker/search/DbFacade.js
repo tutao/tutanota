@@ -66,12 +66,15 @@ export class DbFacade {
 					try {
 
 						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
-						DBOpenRequest.onerror = () => {
+						DBOpenRequest.onerror = (event) => {
 							// Copy all the keys from the error, including inheritent ones so we can get some info
 
 							const requestErrorEntries = extractErrorProperties(DBOpenRequest.error)
-							console.error("db error: ", requestErrorEntries)
-							callback(new DbError(`could not open indexeddb ${this._id}, error: ${JSON.stringify(requestErrorEntries)}`, DBOpenRequest.error))
+							const eventProperties = extractErrorProperties(event)
+							callback(new DbError("DbFacade.open.onerror: " + this._id +
+								"\nrequest.error: " + requestErrorEntries +
+								"\nevent: " + eventProperties +
+								"\nevent.target.error" + (event.target ? event.target.error : "[none]"), DBOpenRequest.error))
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
@@ -201,7 +204,9 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
 				const errorEntries = extractErrorProperties(event)
-				callback(new DbError("IDB transaction error! " + errorEntries + "\n" + (transaction.error ? transaction.error.message : ''), transaction.error))
+				callback(new DbError("IndexedDbTransaction.transaction.onerror, \nevent:" + errorEntries +
+					"\ntransaction.error" + (transaction.error ? transaction.error.message : '') +
+					"\nevent.target.error: " + event.target.error, transaction.error))
 			}
 			transaction.oncomplete = (event) => {
 				callback()
@@ -218,7 +223,8 @@ export class IndexedDbTransaction implements DbTransaction {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to retrieve data from database! " + extractErrorProperties(event), request.error))
+					callback(new DbError("IndexedDbTransaction.getAll().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + request.error && request.error.message, request.error))
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -230,7 +236,7 @@ export class IndexedDbTransaction implements DbTransaction {
 					}
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data os:" + objectStore, e))
+				callback(new DbError("IndexedDbTransaction.getAll().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}
@@ -246,13 +252,14 @@ export class IndexedDbTransaction implements DbTransaction {
 					request = os.get(key)
 				}
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to retrieve data from database! " + extractErrorProperties(event), request.error))
+					callback(new DbError("IndexedDbTransaction.get().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not get data os:" + objectStore + " key:" + key, e))
+				callback(new DbError("IndexedDbTransaction.get().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}
@@ -270,13 +277,18 @@ export class IndexedDbTransaction implements DbTransaction {
 					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
 					const errorProperties = extractErrorProperties(event)
-					callback(new DbError("IDB Unable to write data to database! " + errorProperties, request.error))
+					callback(new DbError("IndexedDbTransaction.put().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]") +
+						"\nkey: " + String(key) +
+						"\nvalue: " + JSON.stringify(value), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not write data", e))
+				callback(new DbError("IndexedDbTransaction.put().catch\nos: " + objectStore + "\nmessage: " + e.message +
+					"\nkey: " + key +
+					"\nvalue: " + value, e))
 			}
 		})
 	}
@@ -287,13 +299,14 @@ export class IndexedDbTransaction implements DbTransaction {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 				request.onerror = (event) => {
-					callback(new DbError("IDB Unable to delete key from database! " + extractErrorProperties(event), request.error))
+					callback(new DbError("IndexedDbTransaction.delete().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
+						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
 				}
 				request.onsuccess = (event) => {
 					callback()
 				}
 			} catch (e) {
-				callback(new DbError("IDB could not delete key", e))
+				callback(new DbError("IndexedDbTransaction.delete().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
 			}
 		})
 	}
