@@ -249,6 +249,8 @@ styles.registerStyle('main', () => {
 
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
+		'.bg-white': {'background-color': 'white'},
+		'.content-black': {'color': 'black'},
 
 		'.content-fg': {color: theme.content_fg},
 		'.content-accent-fg': {color: theme.content_accent},

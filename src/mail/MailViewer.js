@@ -18,7 +18,7 @@ import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -60,7 +60,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
-import {theme} from "../gui/theme"
+import {theme, themeId} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -83,6 +83,7 @@ export class    MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
+	_contrastFixNeeded: boolean;
 	_htmlBody: string; // always sanitized
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
@@ -115,6 +116,7 @@ export class    MailViewer {
 		this._attachments = []
 		this._attachmentButtons = []
 		this._htmlBody = ""
+		this._contrastFixNeeded = false
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
@@ -296,9 +298,23 @@ export class    MailViewer {
 
 		load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitize(body.text, true)
-			this._htmlBody = urlify(sanitizeResult.text)
-			this._contentBlocked = sanitizeResult.externalContent.length > 0;
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+
+			/**
+			 * check if we need to improve contrast for dark theme.
+			 * 1. theme id must be 'dark'
+			 * 2. html body needs to contain any tag with a style attribute that has the color property set
+			 * OR
+			 * there is a font tag with the color attribute set
+			 */
+			this._contrastFixNeeded = themeId() === 'dark'
+				&& (
+					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+				                                .find(s => s.color !== "" && typeof s.color !== 'undefined')
+					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+				)
+			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
+			this._contentBlocked = sanitizeResult.externalContent.length > 0
 			m.redraw()
 		}).catch(NotFoundError, e => {
 			this._errorOccurred = true
@@ -330,7 +346,8 @@ export class    MailViewer {
 		this.view = () => {
 			return [
 				m("#mail-viewer.fill-absolute"
-					+ (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"), {
+					+ (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"),
+					{
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header.plr-l", [
@@ -369,6 +386,7 @@ export class    MailViewer {
 						]),
 
 						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links"
+							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
 								this._domBody = vnode.dom
@@ -377,16 +395,18 @@ export class    MailViewer {
 							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
-						}, (this._mailBody == null
-							&& !this._errorOccurred) ? m(".progress-panel.flex-v-center.items-center", {
-							style: {
-								height: '200px'
-							}
-						}, [
-							progressIcon(),
-							m("small", lang.get("loading_msg"))
-						]) : ((this._errorOccurred || this.mail._errors
-							|| neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+						}, (this._mailBody == null && !this._errorOccurred)
+							? m(".progress-panel.flex-v-center.items-center", {
+								style: {
+									height: '200px'
+								}
+							}, [
+								progressIcon(),
+								m("small", lang.get("loading_msg"))
+							])
+							: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
+								? m(errorMessageBox)
+								: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
 					]
 				)
 			]
