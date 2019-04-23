@@ -25,6 +25,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.ServiceCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -65,6 +67,7 @@ public final class PushNotificationService extends JobService {
     public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
     public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
     public static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
+    private static final String PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent";
     public static final long[] VIBRATION_PATTERN = {100, 200, 100, 200};
     public static final String NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email";
     public static final int SUMMARY_NOTIFICATION_ID = 45;
@@ -136,6 +139,10 @@ public final class PushNotificationService extends JobService {
 
         if (atLeastOreo()) {
             createNotificationChannels();
+            Log.d(TAG, "Starting foreground");
+            startForeground(1, new NotificationCompat
+                    .Builder(this, PERSISTENT_NOTIFICATION_CHANNEL_ID)
+                    .setContentTitle("Notification service").build());
         }
     }
 
@@ -160,6 +167,11 @@ public final class PushNotificationService extends JobService {
         notificationsChannel.setLightColor(Color.RED);
         notificationsChannel.setShowBadge(true);
         getNotificationManager().createNotificationChannel(notificationsChannel);
+
+        NotificationChannel serviceNotificationChannel = new NotificationChannel(
+                PERSISTENT_NOTIFICATION_CHANNEL_ID, "Notification service",
+                NotificationManager.IMPORTANCE_LOW);
+        getNotificationManager().createNotificationChannel(serviceNotificationChannel);
     }
 
     @Override
@@ -271,7 +283,6 @@ public final class PushNotificationService extends JobService {
         }
         NotificationManager notificationManager = getNotificationManager();
 
-        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         try {
             URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
@@ -293,6 +304,9 @@ public final class PushNotificationService extends JobService {
             String event;
             Log.d(TAG, "SSE connection established, listening for events");
             while ((event = reader.readLine()) != null) {
+                Log.d(TAG, "Stopping foreground");
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
+
                 if (!event.startsWith("data: ")) {
                     Log.d(TAG, "heartbeat");
                     continue;
@@ -421,7 +435,7 @@ public final class PushNotificationService extends JobService {
     }
 
     private int notificationId(String address) {
-        return Math.abs(address.hashCode());
+        return Math.abs(1 + address.hashCode());
     }
 
     private void sendSummaryNotification(NotificationManager notificationManager,
