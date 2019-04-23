@@ -197,7 +197,7 @@ export class ElectronUpdater {
 		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
-			icon: DesktopTray.getIcon()
+			icon: DesktopTray.getIcon(this._conf.get('iconName'))
 		}).catch(e => this._logger.error("Notification failed,", e.message))
 	}
 }
