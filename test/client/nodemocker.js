@@ -102,7 +102,20 @@ function classify(template: {prototype: {}, statics: {}}): ()=>void {
 			template.prototype["constructor"].apply(this, arguments)
 		}
 		Object.keys(template.prototype).forEach(p => {
-			this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
+			if ('function' === typeof template.prototype[p]) {
+				this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
+			} else if ('object' === typeof template.prototype[p]) {
+				// duplicate properties
+				const obj = template.prototype[p]
+				this[p] = obj == null
+					? obj
+					: (Object.keys(obj).reduce((newObj, key) => {
+						(newObj: any)[key] = ((obj: any)[key])
+						return newObj
+					}, ({}: any)))
+			} else {
+				this[p] = template.prototype[p]
+			}
 		})
 	}
 

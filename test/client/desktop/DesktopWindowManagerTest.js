@@ -38,7 +38,7 @@ o.spec("Desktop Window Manager Test", () => {
 	const applicationWindow = {
 		ApplicationWindow: n.classify({
 			prototype: {
-				callbacks: [],
+				callbacks: {},
 				constructor: function () {
 					this.id = applicationWindow.ApplicationWindow.lastId
 					applicationWindow.ApplicationWindow.lastId = applicationWindow.ApplicationWindow.lastId + 1
