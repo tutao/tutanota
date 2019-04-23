@@ -259,6 +259,8 @@ export class ApplicationWindow {
 		this._setBoundsTimeout = setTimeout(() => {
 			const newRect = this._browserWindow.getBounds()
 			if (bounds.rect.y !== newRect.y) {
+				// window was moved by the OS, so we move it back twice the distance.
+				// should end up right where we want it.
 				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
 			}
 		}, 200)
