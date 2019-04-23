@@ -115,6 +115,8 @@ o.spec("Desktop Window Manager Test", () => {
 					return "./src/desktop/preload.js"
 				case 'desktophtml':
 					return "./desktop.html"
+				case 'iconName':
+					return 'iconName.name'
 				default:
 					throw new Error(`unexpected get key ${key}`)
 			}
@@ -123,6 +125,13 @@ o.spec("Desktop Window Manager Test", () => {
 
 	const notifier = {
 		resolveGroupedNotification: () => {}
+	}
+
+	const desktopTray = {
+		getIcon: () => "this is an instance icon",
+		DesktopTray: {
+			getIcon: ()=>"this is a static icon"
+		}
 	}
 
 	const ipc = {}
@@ -134,6 +143,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -147,6 +157,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(desktopDownloadManagerMock.DesktopDownloadManager.mockedInstances.length).equals(1)
 		o(desktopDownloadManagerMock.DesktopDownloadManager.args).deepEquals([confMock])
 		o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(0)
+		o(wm.getIcon()).equals('this is a static icon')
 	})
 
 	o("create one window with showWhenReady=false, no lastBounds", () => {
@@ -156,10 +167,11 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon"}).set()
+		const desktopTrayMock = n.mock('__tray', desktopTray).set()
 		const notifierMock = n.mock('__notifier', notifier).set()
 		const ipcMock = n.mock('__ipc', ipc).set()
 
@@ -185,6 +197,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false}
@@ -232,6 +245,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -270,6 +284,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -297,6 +312,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -377,6 +393,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const desktopDownloadManagerMock = n.mock("./DesktopDownloadManager", desktopDownloadManager).set()
+		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()

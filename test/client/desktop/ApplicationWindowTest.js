@@ -86,7 +86,8 @@ o.spec("ApplicationWindow Test", () => {
 		dl: {
 			manageDownloadsForSession: () => {}
 		},
-		newWindow: () => {}
+		newWindow: () => {},
+		getIcon: () => 'this is a wm icon'
 	}
 	const u2f = {
 		EXTENSION_ID: "u2f-extension-id"
@@ -129,7 +130,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.loadURL.callCount).equals(1)
 		o(bwInstance.loadURL.args[0]).equals('desktophtml')
 		o(bwInstance.opts).deepEquals({
-			icon: "this is an icon",
+			icon: "this is a wm icon",
 			show: false,
 			autoHideMenuBar: true,
 			webPreferences: {

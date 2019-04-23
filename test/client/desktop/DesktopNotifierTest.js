@@ -25,8 +25,9 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 	}
 
 	const desktopTray = {
+		getIcon: () => 'this is an instance icon',
 		DesktopTray: {
-			getIcon: () => {return 'this is an icon'}
+			getIcon: () => {return 'this is a static icon'}
 		},
 		update: () => {}
 	}
@@ -91,7 +92,7 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 		const notifier = new DesktopNotifier()
 
 		notifier.showOneShot({title: "Title1", body: "Body1", icon: "Icon1"})
-		        .catch(()=>{}) // this should fail
+		        .catch(() => {}) // this should fail
 		notifier.submitGroupedNotification("Title2", "Message", "gn1", () => {})
 
 		notifier.start(desktopTrayMock, notificationStartDelay)

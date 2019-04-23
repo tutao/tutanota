@@ -4,7 +4,6 @@ import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import u2f from '../misc/u2f-api.js'
-import {DesktopTray} from './DesktopTray.js'
 import {lang} from './DesktopLocalizationProvider.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
@@ -74,7 +73,7 @@ export class ApplicationWindow {
 		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
 		console.log("startFile: ", this._startFile)
 		this._browserWindow = new BrowserWindow({
-			icon: DesktopTray.getIcon(wm._conf.get('iconName')),
+			icon: wm.getIcon(),
 			show: false,
 			autoHideMenuBar: true,
 			webPreferences: {

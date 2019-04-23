@@ -58,6 +58,8 @@ o.spec("DesktopTrayTest", () => {
 		setDesktopConfig: (key: string) => {},
 		get: (key: string) => {
 			switch (key) {
+				case 'iconName':
+					return 'iconName.name'
 				default:
 					throw new Error(`unexpected get key ${key}`)
 			}

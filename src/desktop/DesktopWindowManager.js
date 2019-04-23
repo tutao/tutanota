@@ -1,12 +1,12 @@
 // @flow
 
-import type {Rectangle} from "electron"
+import type {NativeImage, Rectangle} from "electron"
 import {app, screen} from "electron"
 import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import type {DesktopTray} from "./DesktopTray"
+import {DesktopTray} from "./DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
@@ -83,6 +83,10 @@ export class WindowManager {
 		}
 
 		return w
+	}
+
+	getIcon(): NativeImage {
+		return DesktopTray.getIcon(this._conf.get('iconName'))
 	}
 
 	get(id: number): ?ApplicationWindow {
