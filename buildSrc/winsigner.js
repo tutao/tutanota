@@ -10,6 +10,18 @@ function signer(args) {
 	const extension = "." + args.path.split(".").pop()
 	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
 	const command = "/usr/bin/osslsigncode"
+
+	//  Timestamping:
+	//  1. The client application creates a hashed value of the data to the timestamp server.
+	// 	2. the timestamp server combines the hash and other information, including the authoritative time.
+	// 	    The result is digitally signed with the TSA’s private key, creating a timestamp token which is sent back to the client.
+	// 	    The timestamp token contains the information the client application will need to verify the timestamp later.
+	// 	3. The timestamp token is received by the client application and recorded within the document or code signature.
+	//  other timestamping services:
+	//  http://timestamp.globalsign.com/scripts/timstamp.dll
+	//  http://timestamp.comodoca.com/authenticode
+	//  http://www.startssl.com/timestamp
+
 	const commandArguments = [
 		"-in", unsignedFileName,
 		"-out", args.path,
