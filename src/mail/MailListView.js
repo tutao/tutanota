@@ -84,6 +84,7 @@ export class MailListView implements Component {
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
 					if (confirmed === true) {
+						this.list.selectNone()
 						mailModel.deleteMails([listElement])
 					} else {
 						return Promise.resolve()
@@ -93,8 +94,10 @@ export class MailListView implements Component {
 					if (!logins.isInternalUserLoggedIn()) {
 						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
+						this.list.selectNone()
 						return mailModel.moveMails([listElement], getInboxFolder(mailModel.getMailboxFolders(listElement)))
 					} else {
+						this.list.selectNone()
 						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
 					}
 				},
