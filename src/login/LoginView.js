@@ -51,9 +51,11 @@ export class LoginView {
 
 		this.mailAddress = new TextField('mailAddress_label')
 			.setType(Type.Email)
+		this.mailAddress.autocomplete = "username"
 		this.helpText = lang.get('emptyString_msg')
 		this.password = new TextField("password_label")
 			.setType(Type.Password)
+		this.password.autocomplete = "password"
 		this.savePassword = new Checkbox(() => lang.get("storePassword_action"), () => lang.get("onlyPrivateComputer_msg"))
 		if (!client.localStorage()) {
 			this.savePassword.setDisabled("functionNotSupported_msg")

@@ -50,6 +50,7 @@ export class TextField {
 	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
 	_preventAutofill: boolean;
+	autocomplete: string;
 
 	isEmpty: Function;
 
@@ -60,6 +61,7 @@ export class TextField {
 		this.disabled = false
 		this.helpLabel = helpLabel
 		this.value = stream("")
+		this.autocomplete = ""
 		this.value.map(v => {
 			if (this._domInput) {
 				const input = this._domInput
@@ -166,7 +168,7 @@ export class TextField {
 
 			return m('.flex-grow', autofillGuard.concat(
 				m("input.input" + (this._alignRight ? ".right" : ""), {
-					autocomplete: this._preventAutofill ? "off" : "",
+					autocomplete: this._preventAutofill ? "off" : this.autocomplete,
 					type: typeAttr,
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
