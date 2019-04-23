@@ -19,6 +19,7 @@ export class DesktopTray {
 	constructor(config: DesktopConfigHandler, notifier: DesktopNotifier) {
 		this._conf = config
 		this._notifier = notifier
+		this.getIcon()
 	}
 
 	/**
@@ -36,7 +37,7 @@ export class DesktopTray {
 				}
 			} else {
 				if (!this._tray) {
-					this._tray = new Tray(DesktopTray.getIcon())
+					this._tray = new Tray(this.getIcon())
 					this._tray.on('click', ev => {
 						this._wm.getLastFocused(true)
 					})
@@ -46,15 +47,19 @@ export class DesktopTray {
 		})
 	}
 
-	static getIcon(): NativeImage {
+	getIcon(): NativeImage {
+		return DesktopTray.getIcon(this._conf.get('iconName'))
+	}
+
+	static getIcon(iconName: string): NativeImage {
 		if (icon) {
 			return icon
 		} else if (process.platform === 'darwin') {
-			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png.icns'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, `icons/${iconName}.icns`))
 		} else if (process.platform === 'win32') {
-			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, `icons/${iconName}`))
 		} else {
-			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, 'icons/logo-solo-red.png'))
+			icon = nativeImage.createFromPath(path.join((process: any).resourcesPath, `icons/${iconName}`))
 		}
 		return icon
 	}

@@ -70,7 +70,7 @@ export class DesktopNotifier {
 			this._notificationCloseFunctions[id] = this._makeNotification({
 				title: title,
 				body: message,
-				icon: DesktopTray.getIcon(),
+				icon: this._tray.getIcon(),
 			}, onClick)
 			this._tray.update()
 		}
