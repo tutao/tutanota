@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,8 +64,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
     public static final String THEME_PREF = "theme";
-    private static final int SUPPORTED_WEBVIEW_VERSION = 63;
-    private static HashMap<Integer, Deferred> requests = new HashMap<>();
+    private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
     private static int requestId = 0;
     private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
     public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
@@ -78,6 +79,7 @@ public class MainActivity extends Activity {
     @SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //noinspection ConstantConditions
         doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(THEME_PREF, "light"));
 
@@ -233,7 +235,6 @@ public class MainActivity extends Activity {
     public void askBatteryOptinmizationsIfNeeded() {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        //noinspection ConstantConditions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
                 && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
@@ -285,10 +286,15 @@ public class MainActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Deferred deferred = requests.remove(requestCode);
+        if (deferred == null) {
+            Log.w(TAG, "No deferred for the permission request" + requestCode);
+            return;
+        }
         if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            requests.remove(requestCode).resolve(null);
+            deferred.resolve(null);
         } else {
-            requests.remove(requestCode).reject(new SecurityException("Permission missing"));
+            deferred.reject(new SecurityException("Permission missing"));
         }
     }
 
@@ -302,8 +308,13 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Deferred p = requests.remove(requestCode);
-        p.resolve(new ActivityResult(resultCode, data));
+        Deferred deferred = requests.remove(requestCode);
+        if (deferred != null) {
+            deferred.resolve(new ActivityResult(resultCode, data));
+        } else {
+
+            Log.w(TAG, "No deferred for activity request" + requestCode);
+        }
     }
 
     void setupPushNotifications() {
@@ -311,7 +322,6 @@ public class MainActivity extends Activity {
                 new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
 
         JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        //noinspection ConstantConditions
         jobScheduler.schedule(
                 new JobInfo.Builder(1, new ComponentName(this, PushNotificationService.class))
                         .setPeriodic(TimeUnit.MINUTES.toMillis(15))
