@@ -210,6 +210,30 @@ export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => vo
 	}
 }
 
+/**
+ * Returns a debounced function. When invoked for the first time, will just invoke
+ * {@param toThrottle}. On subsequent invocations it will either invoke it right away
+ * (if {@param timeout} has passed) or will schedule it to be run after {@param timeout}.
+ * So the first and the last invocations in a series of invocations always take place
+ * but ones in the middle (which happen too often) are discarded.}
+ */
+export function debounceStart<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+	let timeoutId
+	let lastInvoked = 0
+	return (...args: A) => {
+		if (Date.now() - lastInvoked < timeout) {
+			timeoutId && clearTimeout(timeoutId)
+			timeoutId = setTimeout(() => {
+				timeoutId = null
+				toThrottle.apply(null, args)
+			}, timeout)
+		} else {
+			toThrottle.apply(null, args)
+		}
+		lastInvoked = Date.now()
+	}
+}
+
 export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
