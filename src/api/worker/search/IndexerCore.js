@@ -352,7 +352,7 @@ export class IndexerCore {
 					} else {
 						return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaDataRow))
 					}
-				})
+				}).value
 			})
 	}
 
@@ -562,7 +562,7 @@ export class IndexerCore {
 								                  oldestElementTimestamp: row.oldestElementTimestamp
 							                  })
 						                  })
-					}, {concurrency: 2})
+					}, {concurrency: 2}).value
 				)).then(() => {
 					metaData.rows.sort(compareMetaEntriesOldest)
 				})
