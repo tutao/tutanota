@@ -31,6 +31,9 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import {ButtonType} from "../gui/base/ButtonN"
+import {CheckboxN} from "../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
@@ -46,6 +49,11 @@ let invalidSoftwareVersionActive = false
 let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
+const ignoredMessages = [
+	"webkitExitFullScreen",
+	"googletag",
+	"avast_submit"
+]
 
 export function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
@@ -64,13 +72,9 @@ export function handleUncaughtError(e: Error) {
 					})
 				}
 				img.onerror = function () {
-					// if (tutao.env.isAndroidApp()) {
-					// 	tutao.locator.modalDialogViewModel.showDialog([tutao.lang("upgradeSystemWebView_msg")], ["ok_action"], null, "https://play.google.com/store/apps/details?id=com.google.android.webview", null)
-					// } else {
 					Dialog.error("serverNotReachable_msg").then(() => {
 						notConnectedDialogActive = false
 					})
-					// }
 				}
 				img.src = "https://tutanota.com/images/maintenancecheck.png"
 			}
@@ -139,7 +143,7 @@ export function handleUncaughtError(e: Error) {
 			unknownErrorDialogActive = true
 			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
-				promptForFeedbackAndSend(e, true)
+				promptForFeedbackAndSend(e)
 			} else {
 				console.log("Unknown error", e)
 				Dialog.error("unknownError_msg").then(() => {
@@ -151,16 +155,10 @@ export function handleUncaughtError(e: Error) {
 }
 
 function ignoredError(e: Error): boolean {
-	const ignoredMessages = [
-		"webkitExitFullScreen",
-		"googletag",
-		"avast_submit"
-	]
-
 	return e.message != null && ignoredMessages.some(s => e.message.includes(s))
 }
 
-export function promptForFeedbackAndSend(e: Error, justHappened: boolean): Promise<?FeedbackContent> {
+export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 	return new Promise(resolve => {
 		const preparedContent = prepareFeedbackContent(e)
 		const detailsExpanded = stream(false)
@@ -174,36 +172,73 @@ export function promptForFeedbackAndSend(e: Error, justHappened: boolean): Promi
 			dialog.close()
 		}
 
-		Dialog.showActionDialog({
-			title: justHappened ? lang.get("errorReport_label") : lang.get("sendErrorReport_action"),
-			type: DialogType.EditMedium,
-			child: {
-				view: () => {
-					return [
-						m(textField),
-						m(".flex-end",
-							m(".right",
-								m(ExpanderButtonN, {
-									label: "details_label",
-									expanded: detailsExpanded,
-								})
-							)
-						),
-						m(ExpanderPanelN, {expanded: detailsExpanded},
-							[
-								m("", preparedContent.subject),
-							].concat(preparedContent.message.split("\n")
-							                        .map(l => l.trim() === "" ? m(".pb-m", "") : m("", l)))
-						)
-					]
+		const ignoreChecked = stream()
+		notificationOverlay.show({
+				view: () =>
+					m("", [
+						"An error occurred",
+						m(CheckboxN, {
+							label: () => "Ignore the error for this session",
+							checked: ignoreChecked
+						})
+					])
+			},
+			{
+				label: "close_alt", click: () => {
+					addToIgnored()
+					unknownErrorDialogActive = false
+					resolve()
 				}
 			},
-			okAction: errorOkAction,
-			cancelAction: () => {
-				unknownErrorDialogActive = false
-				resolve(null)
+			[
+				{
+					label: () => "Send report",
+					click: () => {
+						addToIgnored()
+						showReportDialog()
+					},
+					type: ButtonType.Secondary
+				}
+			])
+
+		function addToIgnored() {
+			if (ignoreChecked()) {
+				ignoredMessages.push(e.message)
 			}
-		})
+		}
+
+		function showReportDialog() {
+			Dialog.showActionDialog({
+				title: lang.get("sendErrorReport_action"),
+				type: DialogType.EditMedium,
+				child: {
+					view: () => {
+						return [
+							m(textField),
+							m(".flex-end",
+								m(".right",
+									m(ExpanderButtonN, {
+										label: "details_label",
+										expanded: detailsExpanded,
+									})
+								)
+							),
+							m(ExpanderPanelN, {expanded: detailsExpanded},
+								[
+									m("", preparedContent.subject),
+								].concat(preparedContent.message.split("\n")
+								                        .map(l => l.trim() === "" ? m(".pb-m", "") : m("", l)))
+							)
+						]
+					}
+				},
+				okAction: errorOkAction,
+				cancelAction: () => {
+					unknownErrorDialogActive = false
+					resolve(null)
+				}
+			})
+		}
 	}).then(content => {
 		if (content) {
 			sendFeedbackMail(content)
@@ -332,4 +367,8 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 export function loggingOut() {
 	isLoggingOut = true
 	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
+}
+
+if (typeof window !== "undefined") {
+	window.tutao.testError = () => handleUncaughtError(new Error("test error!"))
 }
