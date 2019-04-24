@@ -47,7 +47,7 @@ pipeline {
 						    node dist -ew '''
 						}
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'win_installer_snapshot'
+							stash includes: 'desktop-snapshot/*', name:'win_installer_snapshot', allowEmpty: true
 							stash includes: 'desktop-test/*,desktop/*', name:'win_installer'
 						}
                 	}
@@ -71,7 +71,7 @@ pipeline {
 							node dist -em '''
 						}
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'mac_installer_snapshot'
+							stash includes: 'desktop-snapshot/*', name:'mac_installer_snapshot', allowEmpty:true
 							stash includes: 'desktop-test/*,desktop/*', name:'mac_installer'
 						}
                     }
@@ -95,7 +95,7 @@ pipeline {
 							node dist -el '''
 						}
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'linux_installer_snapshot'
+							stash includes: 'desktop-snapshot/*', name:'linux_installer_snapshot', allowEmpty:true
 							stash includes: 'desktop-test/*,desktop/*', name:'linux_installer'
 						}
                     }
@@ -106,6 +106,9 @@ pipeline {
 		stage('Copy Snapshot'){
 			agent {
 				label 'master'
+			}
+			when {
+				expression { params.RELEASE }
 			}
 			steps {
 				sh 'rm -f /opt/desktop-snapshot/*'
