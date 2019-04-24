@@ -270,7 +270,8 @@ export class WorkerImpl {
 			},
 			resetSecondFactors: (message: Request) => {
 				return locator.login.resetSecondFactors.apply(locator.login, message.args)
-			}
+			},
+			resetSession: () => locator.login.reset()
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
