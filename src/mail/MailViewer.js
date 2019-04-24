@@ -1,7 +1,9 @@
 // @flow
 import {px, size} from "../gui/size"
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
@@ -73,6 +75,8 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {ButtonN} from "../gui/base/ButtonN"
+import {styles} from "../gui/styles"
 
 assertMainOrNode()
 
@@ -99,6 +103,7 @@ export class    MailViewer {
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
+	_filesExpanded: Stream<boolean>;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if(isDesktop()) {
@@ -106,6 +111,7 @@ export class    MailViewer {
 		}
 		this.mail = mail
 		this._folderText = null
+		this._filesExpanded = stream(false)
 		if (showFolder) {
 			let folder = mailModel.getMailFolder(mail._id[0])
 			if (folder) {
@@ -377,11 +383,7 @@ export class    MailViewer {
 								]),
 								m(actions)
 							]),
-							m(".flex-start.flex-wrap.ml-negative-bubble",
-								(!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [
-									m(".flex-v-center.pl-button", progressIcon()),
-									m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
-								]),
+							this._renderAttachments(),
 							m("hr.hr.mt"),
 						]),
 
@@ -416,6 +418,53 @@ export class    MailViewer {
 
 
 		this._setupShortcuts()
+	}
+
+
+	_renderAttachments(): Children {
+		if (this._loadingAttachments) {
+			return m(".flex", [
+				m(".flex-v-center.pl-button", progressIcon()),
+				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))
+			])
+		} else {
+			const spoilerLimit = this._attachmentsSpoilerLimit()
+			return m(".flex.ml-negative-bubble.flex-wrap",
+				[
+					this._attachmentButtons.length > spoilerLimit
+						? [
+							this._attachmentButtons.slice(0, spoilerLimit).map(m),
+							m(ExpanderButtonN, {
+								label: "showAll_action",
+								expanded: this._filesExpanded,
+								style: {
+									margin: "0 6px",
+									paddingTop: "0"
+								}
+							}),
+							m(ExpanderPanelN, {
+								expanded: this._filesExpanded
+							}, this._attachmentButtons.slice(2).map(m))
+						]
+						: this._attachmentButtons.map(m),
+					this._renderDownloadAllButton()
+				]
+			)
+		}
+	}
+
+	_renderDownloadAllButton(): Children {
+		return !isIOSApp() && this._attachmentButtons.length > 2 ?
+			m(".limit-width", m(ButtonN, {
+				label: "saveAll_action",
+				type: ButtonType.Secondary,
+				click: () => this._downloadAll()
+			}))
+			: null
+	}
+
+	_attachmentsSpoilerLimit(): number {
+		return styles.isDesktopLayout() ? 4 : 2
 	}
 
 	_tutaoBadge(): Vnode<*> | null {
@@ -784,22 +833,16 @@ export class    MailViewer {
 				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 			)
 		}
-
-		if (buttons.length >= 3 && !isIOSApp()) {
-			let downloadStrategy = () => fileController.downloadAll(this._attachments)
-
-			if (client.needsDownloadBatches() && this._attachments.length > 10) {
-				downloadStrategy = () => fileController.downloadBatched(this._attachments, 10, 1000)
-			} else if (!client.canDownloadMultipleFiles()) {
-				downloadStrategy = () => fileController.downloadBatched(this._attachments, 1, 10)
-			}
-
-			buttons.push(new Button(
-				"saveAll_action",
-				() => showProgressDialog("pleaseWait_msg", downloadStrategy()),
-				null)
-				.setType(ButtonType.Secondary))
-		}
 		return buttons
+	}
+
+	_downloadAll() {
+		if (client.needsDownloadBatches() && this._attachments.length > 10) {
+			fileController.downloadBatched(this._attachments, 10, 1000)
+		} else if (!client.canDownloadMultipleFiles()) {
+			fileController.downloadBatched(this._attachments, 1, 10)
+		} else {
+			fileController.downloadAll(this._attachments)
+		}
 	}
 }

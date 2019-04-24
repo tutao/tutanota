@@ -53,7 +53,7 @@ class _ExpanderButton {
 					},
 					oncreate: vnode => {
 						this._domIcon = vnode.dom
-						if (!a.expanded()) vnode.dom.style.transform = 'rotateZ(180deg)'
+						if (a.expanded()) vnode.dom.style.transform = 'rotateZ(180deg)'
 					},
 				}),
 			])),
@@ -62,7 +62,7 @@ class _ExpanderButton {
 
 	toggle(expanded: Stream<boolean>) {
 		if (this._domIcon) {
-			let start = expanded() ? 0 : 180
+			let start = expanded() ? 180 : 0
 			animations.add(neverNull(this._domIcon), transform('rotateZ', start, start + 180))
 		}
 		expanded(!expanded())
@@ -74,7 +74,7 @@ class _ExpanderPanel {
 	_domPanel: HTMLElement;
 
 	view(vnode: Vnode<ExpanderPanelAttrs>) {
-		return m(".expander-panel.overflow-hidden.no-shrink", [
+		return m(".expander-panel.overflow-hidden", [
 			vnode.attrs.expanded() ? m("div", {
 				oncreate: vnode => {
 					this._domPanel = vnode.dom

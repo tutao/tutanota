@@ -942,5 +942,6 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"certificateType_label": "Certificate type",
 		"indexedMails_label": "Indexed emails: {count}"
+		"showAll_action": "Show all",
 	}
 }
