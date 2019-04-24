@@ -87,12 +87,15 @@ export function handleUncaughtError(e: Error) {
 		}
 	} else if (e instanceof NotAuthenticatedError || e instanceof AccessBlockedError || e
 		instanceof AccessDeactivatedError || e instanceof AccessExpiredError) {
-		windowFacade.reload({})
+		if (!loginDialogActive) {
+			windowFacade.reload({})
+		}
 	} else if (e instanceof SessionExpiredError) {
 		if (!loginDialogActive) {
+			worker.resetSession()
 			loginDialogActive = true
 			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
-			Dialog.showRequestPasswordDialog(errorMessage)
+			Dialog.showRequestPasswordDialog(errorMessage, {allowCancel: false})
 			      .map(pw => {
 					      showProgressDialog("pleaseWait_msg",
 						      worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),

@@ -468,6 +468,10 @@ export class WorkerClient {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
 		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
 	}
+
+	resetSession() {
+		return this._queue.postMessage(new Request("resetSession", []))
+	}
 }
 
 export const worker = new WorkerClient()

@@ -575,7 +575,7 @@ export class Dialog {
 	 * @param errorMessage a stream of error messages that will be shown as the password field help text. should not start with "", but with lang.get("emptyString_msg")
 	 * @returns a stream of entered passwords
 	 */
-	static showRequestPasswordDialog(errorMessage: Stream<string>): Stream<string> {
+	static showRequestPasswordDialog(errorMessage: Stream<string>, props: {allowCancel: boolean} = {allowCancel: true}): Stream<string> {
 		const out: Stream<string> = stream()
 		const value: Stream<string> = stream("")
 		const textFieldAttrs: TextFieldAttrs = {
@@ -596,7 +596,7 @@ export class Dialog {
 			title: lang.get("password_label"),
 			child: {view: () => m(TextFieldN, textFieldAttrs)},
 			okAction: () => out(value()),
-			allowCancel: true,
+			allowCancel: props.allowCancel,
 			cancelAction: () => dialog.close()
 		})
 
