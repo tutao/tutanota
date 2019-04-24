@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-04-04T14:09:00Z",
+	"updated_at": "2019-04-24T07:25:26Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
@@ -113,7 +113,8 @@ module.exports = {
 		"certificateStateInvalid_label": "Failed to order certificate",
 		"certificateStateProcessing_label": "Processing",
 		"certificateTypeAutomatic_label": "Automatic (Let's Encrypt)",
-		"certificatTypeManual_label": "Manual",
+		"certificateTypeManual_label": "Manual",
+		"certificateType_label": "Certificate type",
 		"changeAdminPassword_msg": "Sorry, you are not allowed to change other admin's passwords.",
 		"changePasswordCode_msg": "Your verification code: ",
 		"changePassword_label": "Change password",
@@ -378,6 +379,7 @@ module.exports = {
 		"inboxRuleToRecipientEquals_action": "To recipient",
 		"inboxRuleValue_label": "Value",
 		"indexDeleted_msg": "We had to reset search index to make it faster and more reliable. The search index will be created again next time you search.",
+		"indexedMails_label": "Indexed emails: {count}",
 		"indexing_error": "Indexing was aborted because of the error",
 		"insufficientStorageAdmin_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
 		"insufficientStorageUser_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please contact your administrator.",
@@ -795,6 +797,7 @@ module.exports = {
 		"sharedMailboxes_label": "Shared mailboxes",
 		"sharedMailbox_label": "Shared mailbox",
 		"showAddress_alt": "Show this address in Openstreetmap",
+		"showAll_action": "Show all",
 		"showBlockedContent_action": "Show",
 		"showContact_action": "Show contact",
 		"showEmailAliases_action": "Show email aliases",
@@ -939,9 +942,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"certificateType_label": "Certificate type",
-		"indexedMails_label": "Indexed emails: {count}",
-		"showAll_action": "Show all",
+		"yourMessage_label": "Your message"
 	}
 }

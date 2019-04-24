@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-04-04T14:09:14Z",
+	"updated_at": "2019-04-24T07:28:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -117,7 +117,8 @@ module.exports = {
 		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates",
 		"certificateStateProcessing_label": "In Bearbeitung",
 		"certificateTypeAutomatic_label": "Automatisch (Let's Encrypt)",
-		"certificatTypeManual_label": "Manuell",
+		"certificateTypeManual_label": "Manuell",
+		"certificateType_label": "Zertifikatstyp",
 		"changeAdminPassword_msg": "Das Passwort eines Admin-Benutzers kann nicht zurückgesetzt werden.",
 		"changePasswordCode_msg": "Bestätigungscode: ",
 		"changePassword_label": "Passwort ändern",
@@ -382,6 +383,7 @@ module.exports = {
 		"inboxRuleToRecipientEquals_action": "An-Empfänger",
 		"inboxRuleValue_label": "Wert",
 		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt.",
+		"indexedMails_label": "Indizierte E-Mails: {count}",
 		"indexing_error": "Die Indizierung wurde aufgrund eines Fehlers abgebrochen.",
 		"insufficientStorageAdmin_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entferne Inhalte aus deinem Postfach, um Speicherplatz freizugeben, oder buche ein größeres Speicherpaket.",
 		"insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Bitte wende dich an deinen Administrator.",
@@ -733,7 +735,7 @@ module.exports = {
 		"replyAll_action": "Allen antworten",
 		"replyTo_label": "Antwort",
 		"reply_action": "Antworten",
-		"requestApproval_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da dein Account erst freigegeben werden muss, um Missbrauch, wie Spam, zu verhindern. Bitte schreibe uns an approval@tutao.de direkt von deinem Tutanota-Account und beschreibe, wozu du diesen E-Mail-Account verwenden möchtest.",
+		"requestApproval_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da dein Account erst freigegeben werden muss, um Missbrauch wie Spam zu verhindern. Bitte schreibe uns an approval@tutao.de direkt von deinem Tutanota-Account und beschreibe, wozu du diesen E-Mail-Account verwenden möchtest.",
 		"responsiblePersonsInfo_msg": "Schränkt die Benutzer ein, an die die Nachricht von der empfangenden Mailbox weitergeleitet werden können. Wenn die Liste keine Benutzer enthält, gibt es keine Einschränkungen.",
 		"responsiblePersons_label": "Bearbeiter",
 		"restartBefore_action": "Tutanota vorher neu starten",
@@ -799,6 +801,7 @@ module.exports = {
 		"sharedMailboxes_label": "Geteilte Mailboxen",
 		"sharedMailbox_label": "Geteilte Mailbox",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
+		"showAll_action": "Alle anzeigen",
 		"showBlockedContent_action": "Anzeigen",
 		"showContact_action": "Kontakt anzeigen",
 		"showEmailAliases_action": "Aliasse anzeigen",
@@ -943,9 +946,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"certificateType_label": "Zertifikatstyp",
-		"indexedMails_label": "Indizierte E-Mails: {count}",
-		"showAll_action": "Alle anzeigen",
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

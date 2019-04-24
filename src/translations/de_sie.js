@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2019-04-04T14:09:19Z",
+	"updated_at": "2019-04-24T07:28:24Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -120,7 +120,8 @@ module.exports = {
 		"certificateStateInvalid_label": "Fehler beim Erstellen des Zertifikates",
 		"certificateStateProcessing_label": "In Bearbeitung",
 		"certificateTypeAutomatic_label": "Automatisch (Let's Encrypt)",
-		"certificatTypeManual_label": "Manuell",
+		"certificateTypeManual_label": "Manuell",
+		"certificateType_label": "Zertifikatstyp",
 		"changeAdminPassword_msg": "Das Passwort eines Admin-Benutzers kann nicht zurückgesetzt werden.",
 		"changePasswordCode_msg": "Bestätigungscode: ",
 		"changePassword_label": "Passwort ändern",
@@ -385,6 +386,7 @@ module.exports = {
 		"inboxRuleToRecipientEquals_action": "An-Empfänger",
 		"inboxRuleValue_label": "Wert",
 		"indexDeleted_msg": "Wir mussten den Such-Index löschen um die Suche schneller und zuverlässiger zu machen. Der Such-Index wird bei der nächsten Suche neu erstellt.",
+		"indexedMails_label": "Indizierte E-Mails: {count}",
 		"indexing_error": "Die Indizierung wurde aufgrund eines Fehlers abgebrochen.",
 		"insufficientStorageAdmin_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entfernen Sie Inhalte aus Ihrem Postfach, um Speicherplatz freizugeben oder buchen Sie ein größeres Speicherpaket.",
 		"insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Bitte wenden Sie sich an Ihren Administrator.",
@@ -802,6 +804,7 @@ module.exports = {
 		"sharedMailboxes_label": "Geteilte Mailboxen",
 		"sharedMailbox_label": "Geteilte Mailbox",
 		"showAddress_alt": "Diese Adresse in Openstreetmap anzeigen",
+		"showAll_action": "Alle anzeigen",
 		"showBlockedContent_action": "Anzeigen",
 		"showContact_action": "Kontakt anzeigen",
 		"showEmailAliases_action": "Aliasse anzeigen",
@@ -946,9 +949,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht",
-		"certificateType_label": "Zertifikatstyp",
-		"indexedMails_label": "Indizierte E-Mails: {count}",
-		"showAll_action": "Alle anzeigen",
+		"yourMessage_label": "Ihre Nachricht"
 	}
 }

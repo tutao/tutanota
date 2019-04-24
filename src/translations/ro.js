@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2019-03-28T10:08:37Z",
+	"updated_at": "2019-04-18T18:32:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -354,6 +354,7 @@ module.exports = {
 		"group_label": "Grup",
 		"header_label": "Antet",
 		"helpPage_label": "Pagină ajutor",
+		"howtoMailBody_markdown": "Tutanota vă permite să trimiteți email criptat către orice adresă de email din lume - în mod automatic, în cazul în care cel care primește folosește deasemenea Tutanota, sau prin folosirea unei parole comune în cazul în care primitorul folosește alt serviciu. Chiar și e-mailurile care sunt trimise fără a fi criptate, sunt stocate în siguranță, criptate, pe serverele Tutanota din Germaia.\n\nVă rog verificați \"Întrebări Frecvente\", \"Cum se folosește\" și \"Forumul de suport\" de la Tutanota, pentru a invăța totul despre noul mailbox al dumneavoastră, care este foarte sigur.\n\n* [Întrebări Frecvente]({faqLink})* [Cum se folosește]({howtoLink})* [Forumul de suport]({redditLink})\n\n**Căutare în datele criptate**\n\nTutanota vă permite să faceți căutare în mailboxul local pe aparatul dumneavoastră, pentru păstrarea confidențialitații datelor dumneavoastră. Vă rog dați click pe bara de căutare de sus.\nCăutarea standard se face numai în datele curente de maxim o lună. [Pentru deblocarea căutărilor nelimitate si pentru multe alte funcții adiționale din mailboxul dumneavoastră]({blogPremiumProLink}), vă rog dați click pe Premium în meniul de sus.\n\n**Ajutor direct**\n\nNoi de la Tutanota permitem tuturor din lume să trimită emailuri confidențiale. Cu milioane de utilizatori, nu putem să răspundem la toate întrebările prin email. În cazul în care nu găsiți raspunsul la întrebarea dumneavoastră în secțiunea \"Întrebări Frecvente\" sau \"Cum se folosește\", [vă rog întrebați comunitatea de utilizatori aici]({redditLink}). \nAjutorul oferit prin email este limitat la utilizatorii Premium. [Pentru ajutor direct, vă rog să faceți upgrade pentru 1€/luna]({pricingLink}).\n\nRămaneți în siguranță,\n\nechipa Tutanota",
 		"howtoMailSubject_msg": "'Cum să...' pentru căsuța dvs. securizată de e-mail",
 		"htmlSourceCode_label": "Cod sursă HTML",
 		"html_action": "HTML",

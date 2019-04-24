@@ -420,7 +420,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			case CertificateType.LETS_ENCRYPT:
 				return lang.get("certificateTypeAutomatic_label")
 			case CertificateType.MANUAL:
-				return lang.get("certificatTypeManual_label")
+				return lang.get("certificateTypeManual_label")
 			default:
 				return lang.get("emptyString_msg")
 		}

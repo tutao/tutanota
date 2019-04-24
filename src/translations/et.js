@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2019-03-01T12:06:15Z",
+	"updated_at": "2019-04-08T19:50:07Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -445,6 +445,7 @@ module.exports = {
 		"presharedPasswordsUnequal_msg": "Valitud kontaktidel on erinevad kokkulepitud salasõnad. Neid ei saa ühendada!",
 		"presharedPassword_label": "Kokkulepitud salasõna",
 		"preview_label": "Eelvaade",
+		"priceFirstYear_label": "Hind esimeseks aastaks",
 		"price_label": "Hind",
 		"pricing.basePriceExcludesTaxes_msg": "Põhihind. Ei sisalda makse.",
 		"pricing.basePriceIncludesTaxes_msg": "Põhihind. Sisaldab makse.",

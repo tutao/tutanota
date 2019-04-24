@@ -7,5 +7,6 @@ NSRemindersUsageDescription = "Yeni eposta geldiğinde bildirimde bulun.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotoğraflar";
 TutaoNoPermissionTitle = "İzin yok";
+TutaoChangePermissionMsg = "bu cihazda giriş için izinleri güncellemelisiniz";
 TutaoCancelAction = "İptal et";
 TutaoSettingsAction = "Ayarlar";
