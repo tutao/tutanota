@@ -27,6 +27,7 @@ node(() => {
 	require("./desktop/DesktopWindowManagerTest.js")
 	require("./desktop/DesktopTrayTest.js")
 	require("./desktop/ApplicationWindowTest.js")
+	require("./desktop/DesktopSseClientTest.js")
 })()
 
 o.run()
