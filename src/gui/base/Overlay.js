@@ -3,6 +3,7 @@ import m from "mithril"
 import type {DomMutation} from "../animation/Animations"
 import {animations, hexToRgb} from "../animation/Animations"
 import {theme} from "../theme"
+import {requiresStatusBarHack} from "../main-styles"
 
 export type PositionRect = {
 	top?: ?string,
@@ -67,6 +68,7 @@ export const overlay = {
 				height: attrs.position.height,
 				'z-index': 200,
 				'box-shadow': boxShadow,
+				'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X
 			},
 			oncreate: (vnode: Vnode<any>) => {
 				overlayAttrs[1] = vnode.dom

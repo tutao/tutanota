@@ -471,7 +471,6 @@ styles.registerStyle('main', () => {
 			'margin-left': px(size.vpad),
 			'margin-right': px(size.vpad),
 			'padding-top': px(size.vpad),
-			'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X)
 		},
 
 		'.logo-circle': {
