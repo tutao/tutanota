@@ -313,7 +313,7 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAtt
 }
 
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
-	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument
+	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
