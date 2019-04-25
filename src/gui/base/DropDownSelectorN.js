@@ -45,7 +45,7 @@ class _DropDownSelector<T> {
 		})
 	}
 
-	createDropdown(a: DropDownSelectorAttrs<T>): ButtonAttrs {
+	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
 		return createDropdown(() => {
 			return a.items.map(item => {
 				return {
