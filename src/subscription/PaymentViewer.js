@@ -58,7 +58,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this._invoiceAddressField = new HtmlEditor()
-			.setMinHeight(120)
+			.setMinHeight(140)
 			.showBorders()
 			.setMode(Mode.HTML)
 			.setHtmlMonospace(false)
