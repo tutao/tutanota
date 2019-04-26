@@ -407,6 +407,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 
+	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
+		throw new Error("must not be used")
+	}
+
 	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}

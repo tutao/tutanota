@@ -17,13 +17,12 @@ import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
-import {downcast} from "../common/utils/Utils"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
 	login: LoginFacade;
 	indexer: Indexer;
-	cache: EntityRestCache;
+	cache: EntityRestInterface;
 	search: SearchFacade;
 	groupManagement: GroupManagementFacade;
 	userManagement: UserManagementFacade;
@@ -46,7 +45,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const restClient = new EntityRestClient(getAuthHeaders)
 
 	locator._browserData = browserData
-	locator.cache = isAdminClient() ? downcast(restClient) : new EntityRestCache(restClient) // we don't wont to cache within the admin area
+	locator.cache = isAdminClient() ? restClient : new EntityRestCache(restClient) // we don't wont to cache within the admin area
 	locator.indexer = new Indexer(restClient, worker, browserData, locator.cache)
 	locator.login = new LoginFacade(worker)
 	const suggestionFacades = [
