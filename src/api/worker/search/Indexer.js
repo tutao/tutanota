@@ -153,32 +153,36 @@ export class Indexer {
 					console.log("disable mail indexing and init again", e)
 					return this._reCreateIndex()
 				} else {
-					// disable storage if it fails to inititalize
-					this._core.indexingSupported = e instanceof DbError
-					this._worker.sendIndexState({
-						initializing: false,
-						indexingSupported: false,
-						mailIndexEnabled: false,
-						progress: 0,
-						currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-						indexedMailCount: 0,
-						failedIndexingUpTo: this._mail.currentIndexTimestamp
-					})
 					throw e
 				}
 			})
-		}).catch(DbError, e => {
-			console.log("Indexing not supported", e)
+		}).catch(e => {
+			// disable storage if it fails to inititalize
 			this._core.indexingSupported = false
-			this._worker.sendIndexState({
-				initializing: false,
-				indexingSupported: this._core.indexingSupported,
-				mailIndexEnabled: this._mail.mailIndexingEnabled,
-				progress: 0,
-				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-				indexedMailCount: 0,
-				failedIndexingUpTo: this._mail.currentIndexTimestamp
-			})
+			// Also catch the bug in Safari, see: https://bugs.webkit.org/show_bug.cgi?id=197050#c4
+			if (e instanceof DbError || e.name === "UnknownError") {
+				console.log("Indexing not supported", e)
+				this._worker.sendIndexState({
+					initializing: false,
+					indexingSupported: false,
+					mailIndexEnabled: false,
+					progress: 0,
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: this._mail.currentIndexTimestamp
+				})
+			} else {
+				this._worker.sendIndexState({
+					initializing: false,
+					indexingSupported: this._core.indexingSupported,
+					mailIndexEnabled: this._mail.mailIndexingEnabled,
+					progress: 0,
+					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: this._mail.currentIndexTimestamp
+				})
+				throw e
+			}
 		})
 	}
 
