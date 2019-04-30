@@ -119,7 +119,7 @@ pipeline {
 				expression { !params.RELEASE }
 			}
 			steps {
-				sh 'rm -f /opt/desktop-snapshot/*'
+				sh 'rm -rf /opt/desktop-snapshot/*'
 				dir('/opt/desktop-snapshot/') {
 					unstash 'linux_installer_test'
 					unstash 'win_installer_test'
