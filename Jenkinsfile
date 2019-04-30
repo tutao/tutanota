@@ -108,7 +108,7 @@ pipeline {
 				label 'master'
 			}
 			when {
-				expression { params.RELEASE }
+				expression { !params.RELEASE }
 			}
 			steps {
 				sh 'rm -f /opt/desktop-snapshot/*'
