@@ -5,7 +5,6 @@ import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {ConnectionError, handleRestError, NotFoundError} from "../common/error/RestError"
@@ -34,7 +33,7 @@ export class EventBusClient {
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
 
 	_indexer: Indexer;
-	_cache: EntityRestCache;
+	_cache: EntityRestInterface;
 	_worker: WorkerImpl;
 	_mail: MailFacade;
 	_login: LoginFacade;
@@ -47,7 +46,7 @@ export class EventBusClient {
 
 	_websocketWrapperQueue: WebsocketEntityData[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
-	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestCache, mail: MailFacade, login: LoginFacade) {
+	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
 		this._worker = worker
 		this._indexer = indexer
 		this._cache = cache
@@ -295,40 +294,39 @@ export class EventBusClient {
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
 		return this._executeIfNotTerminated(() => {
-			return this
-				._cache.entityEventsReceived(events)
-				.then(filteredEvents => {
-					return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
-					           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
-					           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
-					           .return(filteredEvents)
-				})
-				.then(filteredEvents => {
-					if (!this._lastEntityEventIds[groupId]) {
-						this._lastEntityEventIds[groupId] = []
-					}
-					this._lastEntityEventIds[groupId].push(batchId)
-					// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-					this._lastEntityEventIds[groupId].sort((e1, e2) => {
-						if (e1 === e2) {
-							return 0
-						} else {
-							return firstBiggerThanSecond(e1, e2) ? 1 : -1
-						}
-					})
-					if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-						this._lastEntityEventIds[groupId].shift()
-					}
+			return this._cache.entityEventsReceived(events)
+			           .then(filteredEvents => {
+				           return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
+				                      .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
+				                      .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
+				                      .return(filteredEvents)
+			           })
+			           .then(filteredEvents => {
+				           if (!this._lastEntityEventIds[groupId]) {
+					           this._lastEntityEventIds[groupId] = []
+				           }
+				           this._lastEntityEventIds[groupId].push(batchId)
+				           // make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+				           this._lastEntityEventIds[groupId].sort((e1, e2) => {
+					           if (e1 === e2) {
+						           return 0
+					           } else {
+						           return firstBiggerThanSecond(e1, e2) ? 1 : -1
+					           }
+				           })
+				           if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+					           this._lastEntityEventIds[groupId].shift()
+				           }
 
-					// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
-					// shall not receive the event twice.
-					if (!isTest() && !isAdminClient()) {
-						this._executeIfNotTerminated(() => {
-							this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-							this._indexer.startProcessing()
-						})
-					}
-				})
+				           // Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
+				           // shall not receive the event twice.
+				           if (!isTest() && !isAdminClient()) {
+					           this._executeIfNotTerminated(() => {
+						           this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+						           this._indexer.startProcessing()
+					           })
+				           }
+			           })
 		})
 	}
 

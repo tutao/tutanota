@@ -6,7 +6,7 @@ import {DbTransaction, GroupDataOS, MetaDataOS} from "../../../../src/api/worker
 import {GroupType, NOTHING_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
-import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/EntityFunctions"
+import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/EntityFunctions"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {aes128RandomKey, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"

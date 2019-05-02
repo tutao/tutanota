@@ -66,7 +66,7 @@ o.spec("entity rest cache", function () {
 		clientSpy = o.spy(function () {
 			return clientEntityRequest.apply(this, arguments)
 		})
-		cache = new EntityRestCache({entityRequest: clientSpy})
+		cache = new EntityRestCache({entityRequest: clientSpy, entityEventsReceived: e => Promise.resolve(e)})
 	})
 
 	o.spec("entityEventsReceived", function () {

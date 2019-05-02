@@ -206,7 +206,8 @@ export class IndexedDbTransaction implements DbTransaction {
 				const errorEntries = extractErrorProperties(event)
 				callback(new DbError("IndexedDbTransaction.transaction.onerror, \nevent:" + errorEntries +
 					"\ntransaction.error" + (transaction.error ? transaction.error.message : '') +
-					"\nevent.target.error: " + event.target.error, transaction.error))
+					"\nevent.target.error: " + (event.target.error ? event.target.error.message : '')
+					, transaction.error))
 			}
 			transaction.oncomplete = (event) => {
 				callback()

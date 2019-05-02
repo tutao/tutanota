@@ -144,7 +144,7 @@ class _NavButton {
 			m.route.set(this._getUrl(a.href))
 			try {
 				if (a.click != null) {
-					a.click(event)
+					a.click(event, this._domButton)
 				}
 				// in IE the activeElement might not be defined and blur might not exist
 				if (document.activeElement && typeof document.activeElement.blur === "function") {

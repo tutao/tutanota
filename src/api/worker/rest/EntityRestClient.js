@@ -17,7 +17,6 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 export type AuthHeadersProvider = () => Params
 
 
-
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *
@@ -103,7 +102,10 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	entityEventReceived(data: EntityUpdate): Promise<void> { // for the admin area (no cache available)
-		return Promise.resolve()
+	/**
+	 * for the admin area (no cache available)
+	 */
+	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
+		return Promise.resolve(data)
 	}
 }
