@@ -11,7 +11,7 @@ import {isMailAddress} from "../misc/FormatValidator"
 import {neverNull, randomIntFromInterval} from "../api/common/utils/Utils"
 import type {DesktopNotifier} from './DesktopNotifier.js'
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {NotificationResult} from "./DesktopNotifier"
+import {NotificationResult} from "./DesktopNotifier.js"
 
 export type SseInfo = {|
 	identifier: string,
