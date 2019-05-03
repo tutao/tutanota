@@ -209,12 +209,17 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
 				const errorEntries = extractErrorProperties(event)
-				callback(new DbError("IndexedDbTransaction.transaction.onerror\nOSes: " +
+				const msg = "IndexedDbTransaction.transaction.onerror\nOSes: " +
 					JSON.stringify((this._transaction: any).objectStoreNames) +
 					"\nevent:" + errorEntries +
-					"\ntransaction.error" + (transaction.error ? transaction.error.message : '') +
+					"\ntransaction.error: " + (transaction.error ? transaction.error.message : '') +
 					"\nevent.target.error: " + (event.target.error ? event.target.error.message : '')
-					, transaction.error))
+
+				if (event.target.error && event.target.error.name == "UnknownError") {
+					callback(new IndexingNotSupportedError(msg, transaction.error))
+				} else {
+					callback(new DbError(msg, transaction.error))
+				}
 			}
 			transaction.oncomplete = (event) => {
 				callback()

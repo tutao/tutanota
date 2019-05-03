@@ -107,7 +107,6 @@ export class Indexer {
 		}
 		return this.db.dbFacade.open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(user._id)))).then(() => {
 			let dbInit = (): Promise<void> => {
-				// return Promise.delay(5000).then(() => {
 				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
 						if (!userEncDbKey) {
@@ -116,9 +115,8 @@ export class Indexer {
 						} else {
 							return this._loadIndexTables(t, user, userGroupKey, userEncDbKey)
 						}
-					})
+					}).then(() => t.wait())
 				})
-				// })
 			}
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
@@ -130,7 +128,6 @@ export class Indexer {
 					failedIndexingUpTo: null
 				})
 				this._core.startProcessing()
-				const dbFacade = this.db.dbFacade
 				return this._contact.indexFullContactList(user.userGroup.group)
 				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
 				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
@@ -140,22 +137,6 @@ export class Indexer {
 				           .catch(OutOfSyncError, e => {
 					           console.log("out of sync - delete database and disable mail indexing")
 					           return this.disableMailIndexing()
-				           })
-				           // TODO: remove!
-				           .then(async function () {
-					           try {
-						           while (true) {
-							           console.log("create transaction")
-							           const t = await dbFacade.createTransaction(false, [MetaDataOS])
-							           console.log("put")
-							           for (let i = 0; i < 10; i++) {
-								           await t.put(MetaDataOS, "test", "1").catch(noOp)
-							           }
-							           await t.wait().delay(100)
-						           }
-					           } catch (e) {
-						           throw new IndexingNotSupportedError("Test error", e)
-					           }
 				           })
 			}).catch(e => {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {

@@ -137,9 +137,6 @@ export function handleUncaughtError(e: Error) {
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
-		// TODO: remove!
-		Dialog.error("searchDisabled_msg")
-
 		locator.search.indexingSupported = false
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
