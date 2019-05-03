@@ -81,6 +81,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {DbError} from "../api/common/error/DbError"
 
 assertMainOrNode()
 
@@ -1071,9 +1072,11 @@ class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestio
 		if (isMailAddress(query, false)) {
 			return Promise.resolve([])
 		}
-		let contactsPromise = (locator.search.indexState().indexingSupported) ?
-			searchForContacts("\"" + query + "\"", "recipient", 10) // ensure match word order for email addresses mainly
-			: LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+
+		// ensure match word order for email addresses mainly
+		let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
+			return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+		})
 
 		return contactsPromise
 			.map(contact => {

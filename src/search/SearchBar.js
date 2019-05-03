@@ -38,6 +38,7 @@ import {BrowserType} from "../misc/ClientConstants"
 import {hasMoreResults} from "./SearchModel"
 import {SearchBarOverlay} from "./SearchBarOverlay"
 import {routeChange} from "../misc/RouteChange"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -391,6 +392,8 @@ export class SearchBar implements Component {
 					worker.enableMailIndexing().then(() => {
 						this.search()
 						this.focus()
+					}).catch(IndexingNotSupportedError, () => {
+						Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					})
 				}
 			})
@@ -576,8 +579,8 @@ export class SearchBar implements Component {
 
 
 	focus() {
-		if (!this._state().indexState.indexingSupported) {
-			Dialog.error("searchDisabled_msg")
+		if (!locator.search.indexingSupported) {
+			Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.focused) {
 			this.focused = true
 			this.expanded = true

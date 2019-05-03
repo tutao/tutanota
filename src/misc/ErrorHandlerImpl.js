@@ -35,6 +35,7 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -136,10 +137,10 @@ export function handleUncaughtError(e: Error) {
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
-		// external users do not search anyway
-		if (logins.isInternalUserLoggedIn()) {
-			Dialog.error("searchDisabled_msg")
-		}
+		// TODO: remove!
+		Dialog.error("searchDisabled_msg")
+
+		locator.search.indexingSupported = false
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
 		if (!unknownErrorDialogActive) {

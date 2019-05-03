@@ -946,6 +946,8 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"searchDisabledApp_msg": "Die Suche ist aufgrund eines Systemfehlers deaktiviert. Durch einen Neustart der App kann die Suche wieder aktiviert werden."
+
 	}
 }

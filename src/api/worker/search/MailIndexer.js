@@ -210,7 +210,6 @@ export class MailIndexer {
 		this._core.resetStats()
 		this._worker.sendIndexState({
 			initializing: false,
-			indexingSupported: this._core.indexingSupported,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
@@ -257,7 +256,6 @@ export class MailIndexer {
 				           .then(() =>
 					           this._worker.sendIndexState({
 						           initializing: false,
-						           indexingSupported: this._core.indexingSupported,
 						           mailIndexEnabled: this.mailIndexingEnabled,
 						           progress: 0,
 						           currentMailIndexTimestamp: this.currentIndexTimestamp,
@@ -274,7 +272,6 @@ export class MailIndexer {
 				           .then(() => {
 					           this._worker.sendIndexState({
 						           initializing: false,
-						           indexingSupported: this._core.indexingSupported,
 						           mailIndexEnabled: this.mailIndexingEnabled,
 						           progress: 0,
 						           currentMailIndexTimestamp: this.currentIndexTimestamp,
@@ -295,7 +292,6 @@ export class MailIndexer {
 		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this._worker.sendIndexState({
 				initializing: false,
-				indexingSupported: this._core.indexingSupported,
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,

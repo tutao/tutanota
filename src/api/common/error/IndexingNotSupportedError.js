@@ -1,9 +1,9 @@
 // @flow
-import {TutanotaError} from "./TutanotaError"
+import {DbError} from "./DbError"
 
-export class IndexingNotSupportedError extends TutanotaError {
-	constructor() {
-		super("IndexingNotSupportedError", "indexing not supported")
+export class IndexingNotSupportedError extends DbError {
+	constructor(message: string, error: ?Error) {
+		super(message, error)
+		this.name = "IndexingNotSupportedError"
 	}
-
 }

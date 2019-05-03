@@ -39,6 +39,7 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
+import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -87,9 +88,6 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
-		if (!browserData.indexedDbSupported) {
-			this._core.indexingSupported = false
-		}
 		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
@@ -125,7 +123,6 @@ export class Indexer {
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
 					initializing: false,
-					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
@@ -133,6 +130,7 @@ export class Indexer {
 					failedIndexingUpTo: null
 				})
 				this._core.startProcessing()
+				const dbFacade = this.db.dbFacade
 				return this._contact.indexFullContactList(user.userGroup.group)
 				           .then(() => this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user))
 				           .then(() => this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user))
@@ -142,6 +140,22 @@ export class Indexer {
 				           .catch(OutOfSyncError, e => {
 					           console.log("out of sync - delete database and disable mail indexing")
 					           return this.disableMailIndexing()
+				           })
+				           // TODO: remove!
+				           .then(async function () {
+					           try {
+						           while (true) {
+							           console.log("create transaction")
+							           const t = await dbFacade.createTransaction(false, [MetaDataOS])
+							           console.log("put")
+							           for (let i = 0; i < 10; i++) {
+								           await t.put(MetaDataOS, "test", "1").catch(noOp)
+							           }
+							           await t.wait().delay(100)
+						           }
+					           } catch (e) {
+						           throw new IndexingNotSupportedError("Test error", e)
+					           }
 				           })
 			}).catch(e => {
 				if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
@@ -157,32 +171,15 @@ export class Indexer {
 				}
 			})
 		}).catch(e => {
-			// disable storage if it fails to inititalize
-			this._core.indexingSupported = false
-			// Also catch the bug in Safari, see: https://bugs.webkit.org/show_bug.cgi?id=197050#c4
-			if (e instanceof DbError || e.name === "UnknownError") {
-				console.log("Indexing not supported", e)
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: false,
-					mailIndexEnabled: false,
-					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0,
-					failedIndexingUpTo: this._mail.currentIndexTimestamp
-				})
-			} else {
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: this._core.indexingSupported,
-					mailIndexEnabled: this._mail.mailIndexingEnabled,
-					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0,
-					failedIndexingUpTo: this._mail.currentIndexTimestamp
-				})
-				throw e
-			}
+			this._worker.sendIndexState({
+				initializing: false,
+				mailIndexEnabled: this._mail.mailIndexingEnabled,
+				progress: 0,
+				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+				indexedMailCount: 0,
+				failedIndexingUpTo: this._mail.currentIndexTimestamp
+			})
+			throw e
 		})
 	}
 
@@ -459,7 +456,7 @@ export class Indexer {
 		const {events, groupId, batchId} = batch
 		return this
 			.db.initialized.then(() => {
-				if (!this._core.indexingSupported) {
+				if (!this.db.dbFacade.indexingSupported) {
 					return Promise.resolve()
 				}
 
@@ -470,7 +467,6 @@ export class Indexer {
 					return Promise.resolve()
 				}
 				markStart("processEntityEvents")
-				let indexUpdates = []
 				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
 					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
 						getFromMap(all, MailTypeRef, () => []).push(update)
@@ -518,7 +514,6 @@ export class Indexer {
 							])
 						}
 					})
-
 				})
 			})
 			.catch(CancelledError, noOp)

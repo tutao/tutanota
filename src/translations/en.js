@@ -942,6 +942,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"searchDisabledApp_msg": "Search is disabled because of a system error. The app has to be restarted to enable search again."
 	}
 }

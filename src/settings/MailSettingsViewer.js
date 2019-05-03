@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {isSameId} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
@@ -35,6 +35,7 @@ import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -171,11 +172,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._enableMailIndexing,
 			selectionChangedHandler: mailIndexEnabled => {
 				if (mailIndexEnabled) {
-					if (locator.search.indexState().indexingSupported) {
-						showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
-					} else {
-						Dialog.error("searchDisabled_msg")
-					}
+					showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
+						.catch(IndexingNotSupportedError, () => {
+							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+						})
 				} else {
 					showProgressDialog("pleaseWait_msg", worker.disableMailIndexing())
 				}
