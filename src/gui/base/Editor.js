@@ -5,6 +5,7 @@ import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'
+import {RichTextToolbar} from "./RichTextToolbar"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -62,11 +63,16 @@ export class Editor {
 			'a': [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a]
 		})
 
+		const toolbar = new RichTextToolbar(this)
+
 		this.view = () => {
-			return m("", m(".hide-outline.selectable", {
-				oncreate: vnode => this.initSquire(vnode.dom),
-				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
-			}))
+			return m("", [
+				m(toolbar),
+				m(".hide-outline.selectable", {
+					oncreate: vnode => this.initSquire(vnode.dom),
+					style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
+				})
+			])
 		}
 	}
 
@@ -225,6 +231,7 @@ export class Editor {
 				      } else if (!url.startsWith('http://')
 					      && !url.startsWith('https://')
 					      && !url.startsWith('mailto:')
+					      && !url.startsWith("{")
 				      ) {
 					      url = 'https://' + url
 				      }

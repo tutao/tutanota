@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {update} from "../api/main/Entity"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -55,6 +55,7 @@ export function show(props: TutanotaProperties) {
 	Dialog.showActionDialog({
 		title: lang.get("userEmailSignature_label"),
 		child: form,
+		type: DialogType.EditLarge,
 		okAction: editSignatureOkAction
 	})
 }

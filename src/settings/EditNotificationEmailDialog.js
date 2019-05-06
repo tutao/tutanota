@@ -21,10 +21,10 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor("mailBody_label")
-	editor.setMode(Mode.HTML)
+	const editor = new HtmlEditor(null)
 	editor.setMinHeight(80)
 	editor.showBorders()
+	editor.setModeSwitcher("mailBody_label")
 	editor.setValue(template.body)
 
 
@@ -38,7 +38,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 	const subject = stream(template.subject)
 
 	Dialog.showActionDialog({
-		type: DialogType.EditMedium,
+		type: DialogType.EditLarge,
 		title: "Edit notificaiton email",
 		child: () => {
 			return [

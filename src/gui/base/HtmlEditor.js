@@ -56,6 +56,9 @@ export class HtmlEditor {
 			}
 
 			if (this._showBorders) {
+				if (this._modeSwitcher) {
+					this._borderDomElement.classList.remove("editor-no-top-border")
+				}
 				this._borderDomElement.classList.add("editor-border-active")
 				this._borderDomElement.classList.remove("editor-border")
 			}
@@ -72,6 +75,10 @@ export class HtmlEditor {
 			}
 
 			if (this._showBorders) {
+
+				if (this._modeSwitcher) {
+					this._borderDomElement.classList.add("editor-no-top-border")
+				}
 				this._borderDomElement.classList.remove("editor-border-active")
 				this._borderDomElement.classList.add("editor-border")
 			}
@@ -96,7 +103,7 @@ export class HtmlEditor {
 				(label)
 					? m(".small.mt-form", lang.getMaybeLazy(label))
 					: null,
-				m((this._showBorders ? ".editor-border" : ""), {
+				m((this._showBorders ? ".editor-border" : "") + (this._modeSwitcher ? ".editor-no-top-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
