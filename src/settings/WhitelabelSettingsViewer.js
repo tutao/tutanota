@@ -43,6 +43,12 @@ import {getCurrentCount} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {ButtonType} from "../gui/base/ButtonN"
+import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
+import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
+import {attachDropdown} from "../gui/base/DropdownN"
+import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 
 assertMainOrNode()
 
@@ -65,6 +71,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_props: LazyLoaded<CustomerServerProperties>;
 	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
+	_customerProperties: LazyLoaded<CustomerProperties>;
+	_bookings: Array<Booking>;
 
 	_contactFormsExist: ?boolean;
 
@@ -80,6 +88,10 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._props = new LazyLoaded(() => {
 			return worker.loadCustomerServerProperties()
 		})
+
+		this._customerProperties = new LazyLoaded(() =>
+			this._customer.getAsync().then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
+		this._bookings = []
 
 		this._updateFields()
 
@@ -114,6 +126,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					m(this._whitelabelImprintUrl),
 					m(this._whitelabelPrivacyUrl),
 					this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
+					this.notificationEmailSettings(),
 					(this._isWhitelabelRegistrationVisible()) ? m("", [
 						m(this._whitelabelRegistrationDomains),
 						m(this._whitelabelCodeField),
@@ -191,6 +204,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
+						this._bookings = bookings
 						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length === 1 ? bookings[0] : null)
 						let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 						// customJsonTheme is defined when brandingDomainInfo is defined
@@ -385,6 +399,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						}
 
 						m.redraw()
+						this._customerProperties.getAsync().then(m.redraw)
 					})
 			})
 		})
@@ -461,6 +476,82 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
+	notificationEmailSettings(): Children {
+		const customerProperties = this._customerProperties.getSync()
+		if (!customerProperties) return null
+
+		return [
+			m(".flex-space-between.items-center.mt-l.mb-s", [
+				m(".h4", "Notification emails"),
+			]),
+			m(TableN, {
+				columnHeadingTextIds: ["language_label", "subject_label"],
+				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
+				showActionButtonColumn: true,
+				addButtonAttrs: {
+					label: "add_action",
+					click: () => {
+						const template = createNotificationMailTemplate()
+						template.language = "en"
+						this._showBuyOrSetNotificationEmailDialog(template)
+					},
+					type: ButtonType.Action,
+					icon: () => Icons.Add
+				},
+				lines: customerProperties.notificationMailTemplates.map((template) => {
+					return {
+						cells: [template.language, template.subject],
+						actionButtonAttrs: attachDropdown(
+							{
+								label: "edit_action",
+								type: ButtonType.Action,
+								icon: () => Icons.Edit
+							},
+							() => [
+								{
+									label: "edit_action",
+									click: () => EditNotificationEmailDialog.show(template, this._customerProperties),
+									type: ButtonType.Dropdown,
+								},
+								{
+									label: "remove_action",
+									click: () => this._removeNotificationMailTemplate(template),
+									type: ButtonType.Dropdown,
+								}
+							]
+						)
+					}
+
+				})
+			})
+		]
+	}
+
+	_showBuyOrSetNotificationEmailDialog(existingTemplate: ?NotificationMailTemplate) {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(false)
+		} else {
+			const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, this._bookings.length === 1 ? this._bookings[0] : null)
+			const whitelabelEnabledPromise: Promise<boolean> = brandingCount === 0 ?
+				WhitelabelBuyDialog.show(true) : Promise.resolve(true)
+			whitelabelEnabledPromise.then(enabled => {
+				if (enabled) {
+					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)
+				}
+			})
+		}
+	}
+
+
+	_removeNotificationMailTemplate(template: NotificationMailTemplate) {
+		showProgressDialog("pleaseWait_msg", this._customerProperties.getAsync().then((customerProps) => {
+			const index = customerProps.notificationMailTemplates.findIndex((t) => t.language === template.language)
+			if (index !== -1) {
+				customerProps.notificationMailTemplates.splice(index, 1)
+				update(customerProps)
+			}
+		}))
+	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
 		for (let update of updates) {
@@ -476,6 +567,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			} else if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._props.reset()
 				this._updateWhitelabelRegistrationFields()
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
+				this._customerProperties.reset()
+				this._updateFields()
 			}
 		}
 	}
