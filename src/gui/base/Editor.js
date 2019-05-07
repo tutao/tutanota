@@ -63,16 +63,12 @@ export class Editor {
 			'a': [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a]
 		})
 
-		const toolbar = new RichTextToolbar(this)
 
 		this.view = () => {
-			return m("", [
-				m(toolbar),
-				m(".hide-outline.selectable", {
-					oncreate: vnode => this.initSquire(vnode.dom),
-					style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
-				})
-			])
+			return m(".hide-outline.selectable", {
+				oncreate: vnode => this.initSquire(vnode.dom),
+				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
+			})
 		}
 	}
 

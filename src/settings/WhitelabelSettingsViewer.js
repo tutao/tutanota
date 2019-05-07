@@ -7,10 +7,10 @@ import {load, loadAll, loadRange, update} from "../api/main/Entity"
 import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {BookingItemFeatureType, CertificateState, CertificateType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {CertificateState, CertificateType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -39,16 +39,19 @@ import {createFile} from "../api/entities/tutanota/File"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {getCurrentCount} from "../subscription/PriceUtils"
+import {createNotAvailableForFreeButtonAttrs} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
-import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
+import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
 
@@ -67,12 +70,14 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_defaultGermanLanguageFile: ?DropDownSelector<string>;
 	_whitelabelCodeField: TextField;
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
+	_whitelabelStatusField: TextFieldAttrs;
 
 	_props: LazyLoaded<CustomerServerProperties>;
 	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
 	_customerProperties: LazyLoaded<CustomerProperties>;
-	_bookings: Array<Booking>;
+	_lastBooking: ?Booking;
+	_notificationEmailsExpanded: Stream<boolean>;
 
 	_contactFormsExist: ?boolean;
 
@@ -91,7 +96,14 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 		this._customerProperties = new LazyLoaded(() =>
 			this._customer.getAsync().then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
-		this._bookings = []
+
+		this._whitelabelStatusField = {
+			label: "state_label",
+			value: stream(lang.get("loading_msg")),
+			disabled: true
+		}
+		this._notificationEmailsExpanded = stream(false)
+		this._lastBooking = null
 
 		this._updateFields()
 
@@ -117,8 +129,11 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", (this._brandingDomainField) ? [
 					m(".h4.mt-l", lang.get('whitelabel_label')),
-					m("small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
+					m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
 					m("small.text-break", [m(`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`, lang.getInfoLink("whitelabel_link"))]),
+					m(TextFieldN, this._whitelabelStatusField),
+					this.notificationEmailSettings(),
+					m(".h4.mt-l", lang.get('whitelabelDomain_label')),
 					m(this._brandingDomainField),
 					m(this._customLogoField),
 					m(this._customColorsField),
@@ -126,7 +141,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					m(this._whitelabelImprintUrl),
 					m(this._whitelabelPrivacyUrl),
 					this._defaultGermanLanguageFile ? m(this._defaultGermanLanguageFile) : null,
-					this.notificationEmailSettings(),
 					(this._isWhitelabelRegistrationVisible()) ? m("", [
 						m(this._whitelabelRegistrationDomains),
 						m(this._whitelabelCodeField),
@@ -204,8 +218,16 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(whitelabelConfig => {
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
-						this._bookings = bookings
-						const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, bookings.length === 1 ? bookings[0] : null)
+						this._lastBooking = bookings.length === 1 ? bookings[0] : null
+						const whitelabelActive = isWhitelabelActive(this._lastBooking)
+
+						const enableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit, false)
+						const disableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel, false)
+
+						this._whitelabelStatusField.value(whitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"))
+						this._whitelabelStatusField.injectionsRight = () => whitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)
+
+
 						let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 						// customJsonTheme is defined when brandingDomainInfo is defined
 						this._brandingDomainField = new TextField("whitelabelDomain_label", this._whitelabelInfo(whitelabelConfig))
@@ -226,8 +248,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							if (logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog(false)
 							} else {
-								const whitelabelEnabledPromise: Promise<boolean> = brandingCount === 0 ?
-									WhitelabelBuyDialog.show(true) : Promise.resolve(true)
+								const whitelabelEnabledPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(true) : WhitelabelBuyDialog.show(true)
 								whitelabelEnabledPromise.then(enabled => {
 									if (enabled) {
 										SetCustomDomainCertificateDialog.show(customerInfo, whitelabelConfig)
@@ -482,25 +503,25 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
-				m(".h4", "Notification emails"),
+				m(".h4", lang.get("customNotificationEmails_label")),
+				m(ExpanderButtonN, {label: "show_action", expanded: this._notificationEmailsExpanded})
 			]),
-			m(TableN, {
+			m(ExpanderPanelN, {expanded: this._notificationEmailsExpanded}, m(TableN, {
 				columnHeadingTextIds: ["language_label", "subject_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				showActionButtonColumn: true,
 				addButtonAttrs: {
 					label: "add_action",
 					click: () => {
-						const template = createNotificationMailTemplate()
-						template.language = "en"
-						this._showBuyOrSetNotificationEmailDialog(template)
+						this._showBuyOrSetNotificationEmailDialog()
 					},
 					type: ButtonType.Action,
 					icon: () => Icons.Add
 				},
 				lines: customerProperties.notificationMailTemplates.map((template) => {
+					const langName = lang.get(languageByCode[template.language].textId)
 					return {
-						cells: [template.language, template.subject],
+						cells: [langName, template.subject],
 						actionButtonAttrs: attachDropdown(
 							{
 								label: "edit_action",
@@ -523,7 +544,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					}
 
 				})
-			})
+			})),
+			m(".small", lang.get("customNotificationEmailsHelp_msg")),
 		]
 	}
 
@@ -531,9 +553,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
-			const brandingCount = getCurrentCount(BookingItemFeatureType.Branding, this._bookings.length === 1 ? this._bookings[0] : null)
-			const whitelabelEnabledPromise: Promise<boolean> = brandingCount === 0 ?
-				WhitelabelBuyDialog.show(true) : Promise.resolve(true)
+
+			const whitelabelEnabledPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
+				Promise.resolve(true) : WhitelabelBuyDialog.show(true)
 			whitelabelEnabledPromise.then(enabled => {
 				if (enabled) {
 					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)
@@ -569,6 +591,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				this._updateWhitelabelRegistrationFields()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerProperties.reset()
+				this._updateFields()
+			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
 				this._updateFields()
 			}
 		}

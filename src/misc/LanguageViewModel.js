@@ -51,6 +51,10 @@ export const languages: Language[] = [
 	{code: 'zh', textId: 'languageChineseSimplified_label'},
 	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
 ]
+export const languageByCode = languages.reduce((acc, curr) => {
+	acc[curr.code] = curr
+	return acc
+}, {})
 
 const infoLinks = {
 	"recoverCode_link": {

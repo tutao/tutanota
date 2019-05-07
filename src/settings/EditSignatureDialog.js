@@ -24,6 +24,7 @@ export function show(props: TutanotaProperties) {
 	let editor = new HtmlEditor("preview_label").showBorders()
 	                                            .setMinHeight(200)
 	                                            .setValue(getSignature(previousType, currentCustomSignature))
+	                                            .enableRichToolbar(true)
 
 	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
 	typeField.selectedValue.map(type => {

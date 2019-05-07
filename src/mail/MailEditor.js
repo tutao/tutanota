@@ -4,8 +4,8 @@ import {Dialog} from "../gui/base/Dialog"
 import {TextField} from "../gui/base/TextField"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
+import type {Language, TranslationKey} from "../misc/LanguageViewModel"
+import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
@@ -73,7 +73,6 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {styles} from "../gui/styles"
@@ -81,6 +80,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 
 assertMainOrNode()
 
@@ -140,17 +140,18 @@ export class MailEditor {
 				value: mailAddress
 			})), stream(getDefaultSender(this._mailboxDetails)), 250)
 
-		let sortedLanguages = languages.slice()
-		sortedLanguages.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		let sortedLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._selectedNotificationLanguage = stream(getAvailableLanguageCode(props.notificationMailLanguage || lang.code))
-		const languageDropDownAttrs: DropDownSelectorAttrs<string> = {
-			label: "notificationMailLanguage_label",
-			items: sortedLanguages.map(language => {
-				return {name: lang.get(language.textId), value: language.code}
-			}),
-			selectedValue: this._selectedNotificationLanguage,
-			dropdownWidth: 250
-		}
+
+		this._getTemplateLanguages(sortedLanguages)
+		    .then((filteredLanguages) => {
+			    if (filteredLanguages.length > 0) {
+				    const languageCodes = filteredLanguages.map(l => l.code)
+				    this._selectedNotificationLanguage(
+					    _getSubstitutedLanguageCode(props.notificationMailLanguage || lang.code, languageCodes) || languageCodes[0])
+				    sortedLanguages = filteredLanguages
+			    }
+		    })
 
 		this._confidentialButtonState = !props.defaultUnconfidential
 		this.subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
@@ -272,13 +273,7 @@ export class MailEditor {
 						m(this.bccRecipients),
 						m(".wrapping-row", [
 							m(this._senderField),
-							m("", (this._confidentialButtonState && this._containsExternalRecipients())
-								? m("", {
-									oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
-									onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
-								}, m(DropDownSelectorN, languageDropDownAttrs))
-								: null
-							)
+							this._languageDropDown(sortedLanguages)
 						]),
 					])
 				),
@@ -361,6 +356,15 @@ export class MailEditor {
 			                    help: "send_action"
 		                    }).setCloseHandler(() => closeButtonAttrs.click(null, this._domCloseButton))
 		this._mailChanged = false
+	}
+
+	_getTemplateLanguages(sortedLanguages: Array<Language>): Promise<Array<Language>> {
+		return logins.getUserController().loadCustomer()
+		             .then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		             .then((customerProperties) => {
+			             return sortedLanguages.filter(sL => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
+		             })
+		             .catch(() => [])
 	}
 
 	_focusBodyOnLoad() {
@@ -984,6 +988,24 @@ export class MailEditor {
 		if (bubbles) {
 			remove(bubbles, bubble)
 		}
+	}
+
+	_languageDropDown(langs: Array<Language>): Children {
+		const languageDropDownAttrs = {
+			label: "notificationMailLanguage_label",
+			items: langs.map(language => {
+				return {name: lang.get(language.textId), value: language.code}
+			}),
+			selectedValue: this._selectedNotificationLanguage,
+			dropdownWidth: 250
+		}
+		return m("", (this._confidentialButtonState && this._containsExternalRecipients())
+			? m("", {
+				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
+				onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
+			}, m(DropDownSelectorN, languageDropDownAttrs))
+			: null
+		)
 	}
 
 	static writeSupportMail() {

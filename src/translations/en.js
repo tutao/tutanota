@@ -943,6 +943,10 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"templateMustContain_msg": "Template must contain \"{value}\""
+		"templateMustContain_msg": "Template must contain placeholder {value}",
+		"templateHelp_msg": "In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. Template body must contain a \"{link}\" placeholder which will be replaced with the actual link to the mail. You can also include \"{sender}\" placeholder in the mail body or in the subject which will be replaced with the sender name.",
+		"templateLanguageExists_msg": "Template for the selected language already exists.",
+		"customNotificationEmails_label": "Custom notification emails",
+		"customNotificationEmailsHelp_msg": "Notification emails are sent to recipients of confidential emails whose mailboxes are hosted on other email providers. You can customize this message by adding templates for multiple languages. Once you have added a template the default template will not be used anymore. These templates will be applied to all users of your account."
 	}
 }

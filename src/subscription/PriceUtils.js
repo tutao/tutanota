@@ -9,6 +9,8 @@ import {Button} from "../gui/base/Button"
 import {neverNull} from "../api/common/utils/Utils"
 import type {lazyIcon} from "../gui/base/Icon"
 import {isIOSApp} from "../api/Env"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -93,6 +95,20 @@ export function createNotAvailableForFreeButton(labelId: string, buyAction: clic
 			buyAction()
 		}
 	}, icon)
+}
+
+export function createNotAvailableForFreeButtonAttrs(labelId: TranslationKey, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): ButtonAttrs {
+	return {
+		label: labelId,
+		click: () => {
+			if (logins.getUserController().isFreeAccount() || isIOSApp()) {
+				showNotAvailableForFreeDialog(isInPremiumIncluded)
+			} else {
+				buyAction()
+			}
+		},
+		icon: icon
+	}
 }
 
 

@@ -949,6 +949,11 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"templateMustContain_msg": "Die Nachricht muss den Platzhalter {value} enthalten",
+		"templateHelp_msg": "In diesem Formular kann die Benachrichtigungs-E-Mail angepasst werden, mit der der Link zur verschlüsselten Mailbox versendet wird. Die Nachricht muss den Platzhalter \"{link}\" enthalten, welcher mit dem tatsächlichen Link ersetzt wird. Zusätzlich kann im Betreff und in der Nachricht der Platzhalter \"{sender}\" verwenden werden, welcher durch den Namen des Absenders ersetzt wird.",
+		"templateLanguageExists_msg": "Eine Vorlage for die ausgewählte Sprache existiert bereits.",
+		"customNotificationEmails_label": "Eigene Benachrichtigungs-E-Mails",
+		"customNotificationEmailsHelp_msg": "Benachrichtigungs-E-Mails werden an Empfänger von vertraulichen Nachrichten gesendet, deren Mailbox bei anderen E-Mail-Providern gehosted sind. Die Nachricht kann angepasst werden indem eine Vorlage für eine oder mehrere Sprachen hinzugefügt wird. Sobald eine Vorlage angelegt ist wird die Standard-Nachricht nicht mehr verwendet. Die Vorlagen werden für alle Benutzer dieses Accounts angewendet."
 	}
 }
