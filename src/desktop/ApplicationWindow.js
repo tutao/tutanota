@@ -205,7 +205,7 @@ export class ApplicationWindow {
 	}
 
 	findInPage(args: Array<any>) {
-		if (args[0] !== '') {
+		if (args[0] !== '') { // search term must not be empty
 			this._browserWindow.webContents.findInPage(args[0], args[1])
 		} else {
 			this.stopFindInPage()
