@@ -1,6 +1,7 @@
 //@flow
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
+import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 
 
 export type ObjectStoreName = string
@@ -52,16 +53,18 @@ export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
 	_activeTransactions: number;
+	indexingSupported: boolean;
 
 	constructor(supported: boolean, onupgrade?: () => void) {
 		this._activeTransactions = 0
+		this.indexingSupported = supported
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
 			// ask the main thread if indexedDB is supported.
-			if (!supported) {
-				return Promise.reject(new DbError("indexedDB not supported"))
+			if (!this.indexingSupported) {
+				return Promise.reject(new IndexingNotSupportedError("indexedDB not supported"))
 			} else {
-				return new Promise.fromCallback(callback => {
+				return Promise.fromCallback(callback => {
 					let DBOpenRequest
 					try {
 
@@ -71,7 +74,8 @@ export class DbFacade {
 
 							const requestErrorEntries = extractErrorProperties(DBOpenRequest.error)
 							const eventProperties = extractErrorProperties(event)
-							callback(new DbError("DbFacade.open.onerror: " + this._id +
+							this.indexingSupported = false
+							callback(new IndexingNotSupportedError("DbFacade.open.onerror: " + this._id +
 								"\nrequest.error: " + requestErrorEntries +
 								"\nevent: " + eventProperties +
 								"\nevent.target.error" + (event.target ? event.target.error : "[none]"), DBOpenRequest.error))
@@ -117,7 +121,8 @@ export class DbFacade {
 							callback(null, DBOpenRequest.result)
 						}
 					} catch (e) {
-						callback(new DbError(`exception when accessing indexeddb ${this._id}`, e))
+						this.indexingSupported = false
+						callback(new IndexingNotSupportedError(`exception when accessing indexeddb ${this._id}`, e))
 					}
 				})
 			}
@@ -204,10 +209,17 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
 				const errorEntries = extractErrorProperties(event)
-				callback(new DbError("IndexedDbTransaction.transaction.onerror, \nevent:" + errorEntries +
-					"\ntransaction.error" + (transaction.error ? transaction.error.message : '') +
+				const msg = "IndexedDbTransaction.transaction.onerror\nOSes: " +
+					JSON.stringify((this._transaction: any).objectStoreNames) +
+					"\nevent:" + errorEntries +
+					"\ntransaction.error: " + (transaction.error ? transaction.error.message : '') +
 					"\nevent.target.error: " + (event.target.error ? event.target.error.message : '')
-					, transaction.error))
+
+				if (event.target.error && event.target.error.name == "UnknownError") {
+					callback(new IndexingNotSupportedError(msg, transaction.error))
+				} else {
+					callback(new DbError(msg, transaction.error))
+				}
 			}
 			transaction.oncomplete = (event) => {
 				callback()

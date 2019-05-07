@@ -42,6 +42,7 @@ import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 import {FileNotFoundError} from "./error/FileNotFoundError"
 import {FileOpenError} from "./error/FileOpenError"
 import {SseError} from "./error/SseError"
+import {IndexingNotSupportedError} from "./error/IndexingNotSupportedError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -206,6 +207,7 @@ const ErrorNameToType = {
 	SecondFactorPendingError,
 	ServiceUnavailableError,
 	DbError,
+	IndexingNotSupportedError,
 	CancelledError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,

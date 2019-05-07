@@ -13,13 +13,14 @@ export class SearchModel {
 	result: Stream<?SearchResult>;
 	indexState: Stream<SearchIndexStateInfo>;
 	lastQuery: Stream<?string>;
+	indexingSupported: boolean;
 
 	constructor() {
 		this.result = stream()
 		this.lastQuery = stream("")
+		this.indexingSupported = true
 		this.indexState = stream({
 			initializing: true,
-			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,

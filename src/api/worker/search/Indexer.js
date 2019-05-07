@@ -39,6 +39,7 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
+import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -87,9 +88,6 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
-		if (!browserData.indexedDbSupported) {
-			this._core.indexingSupported = false
-		}
 		this._entity = new EntityWorker(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
@@ -109,7 +107,6 @@ export class Indexer {
 		}
 		return this.db.dbFacade.open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(user._id)))).then(() => {
 			let dbInit = (): Promise<void> => {
-				// return Promise.delay(5000).then(() => {
 				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
 						if (!userEncDbKey) {
@@ -118,14 +115,12 @@ export class Indexer {
 						} else {
 							return this._loadIndexTables(t, user, userGroupKey, userEncDbKey)
 						}
-					})
+					}).then(() => t.wait())
 				})
-				// })
 			}
 			return dbInit().then(() => {
 				this._worker.sendIndexState({
 					initializing: false,
-					indexingSupported: this._core.indexingSupported,
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
@@ -157,32 +152,15 @@ export class Indexer {
 				}
 			})
 		}).catch(e => {
-			// disable storage if it fails to inititalize
-			this._core.indexingSupported = false
-			// Also catch the bug in Safari, see: https://bugs.webkit.org/show_bug.cgi?id=197050#c4
-			if (e instanceof DbError || e.name === "UnknownError") {
-				console.log("Indexing not supported", e)
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: false,
-					mailIndexEnabled: false,
-					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0,
-					failedIndexingUpTo: this._mail.currentIndexTimestamp
-				})
-			} else {
-				this._worker.sendIndexState({
-					initializing: false,
-					indexingSupported: this._core.indexingSupported,
-					mailIndexEnabled: this._mail.mailIndexingEnabled,
-					progress: 0,
-					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
-					indexedMailCount: 0,
-					failedIndexingUpTo: this._mail.currentIndexTimestamp
-				})
-				throw e
-			}
+			this._worker.sendIndexState({
+				initializing: false,
+				mailIndexEnabled: this._mail.mailIndexingEnabled,
+				progress: 0,
+				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+				indexedMailCount: 0,
+				failedIndexingUpTo: this._mail.currentIndexTimestamp
+			})
+			throw e
 		})
 	}
 
@@ -459,7 +437,7 @@ export class Indexer {
 		const {events, groupId, batchId} = batch
 		return this
 			.db.initialized.then(() => {
-				if (!this._core.indexingSupported) {
+				if (!this.db.dbFacade.indexingSupported) {
 					return Promise.resolve()
 				}
 
@@ -470,7 +448,6 @@ export class Indexer {
 					return Promise.resolve()
 				}
 				markStart("processEntityEvents")
-				let indexUpdates = []
 				let groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = events.reduce((all: Map<TypeRef<any>, EntityUpdate[]>, update: EntityUpdate) => {
 					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
 						getFromMap(all, MailTypeRef, () => []).push(update)
@@ -518,7 +495,6 @@ export class Indexer {
 							])
 						}
 					})
-
 				})
 			})
 			.catch(CancelledError, noOp)

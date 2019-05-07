@@ -68,7 +68,6 @@ const SEARCH_INDEX_ROW_LENGTH = 1000
  * too early.
  */
 export class IndexerCore {
-	indexingSupported: boolean;
 	queue: EventQueue;
 	db: Db;
 	_isStopped: boolean;
@@ -90,7 +89,6 @@ export class IndexerCore {
 	}
 
 	constructor(db: Db, queue: EventQueue, browserData: BrowserData) {
-		this.indexingSupported = true
 		this.queue = queue
 		this.db = db
 		this._isStopped = false;
