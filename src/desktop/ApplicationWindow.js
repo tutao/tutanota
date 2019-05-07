@@ -9,265 +9,272 @@ import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 
 export type UserInfo = {|
-	userId: string,
-	mailAddress: string
+    userId: string,
+    mailAddress: string
 |}
 
 export class ApplicationWindow {
-	_ipc: IPC;
-	_rewroteURL: boolean;
-	_startFile: string;
-	_browserWindow: BrowserWindow;
-	_userInfo: ?UserInfo;
-	_setBoundsTimeout: TimeoutID;
-	_preloadjs: string;
-	_desktophtml: string;
-	id: number;
+    _ipc: IPC;
+    _rewroteURL: boolean;
+    _startFile: string;
+    _browserWindow: BrowserWindow;
+    _userInfo: ?UserInfo;
+    _setBoundsTimeout: TimeoutID;
+    _preloadjs: string;
+    _desktophtml: string;
+    id: number;
 
-	constructor(wm: WindowManager, preloadjs: string, desktophtml: string) {
-		this._userInfo = null
-		this._ipc = wm.ipc
-		this._preloadjs = preloadjs
-		this._desktophtml = desktophtml
-		this._createBrowserWindow(wm)
-		this._browserWindow.loadURL(this._startFile)
-		Menu.setApplicationMenu(null)
-	}
+    constructor(wm: WindowManager, preloadjs: string, desktophtml: string) {
+        this._userInfo = null
+        this._ipc = wm.ipc
+        this._preloadjs = preloadjs
+        this._desktophtml = desktophtml
+        this._createBrowserWindow(wm)
+        this._browserWindow.loadURL(this._startFile)
+        Menu.setApplicationMenu(null)
+    }
 
-	//expose browserwindow api
-	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
-	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
-	getTitle = () => this._browserWindow.webContents.getTitle()
-	setZoomFactor = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
-	isFullScreen = () => this._browserWindow.isFullScreen()
-	isMinimized = () => this._browserWindow.isMinimized()
-	minimize = () => this._browserWindow.minimize()
-	hide = () => this._browserWindow.hide()
-	center = () => this._browserWindow.center()
-	showInactive = () => this._browserWindow.showInactive()
-	isFocused = () => this._browserWindow.isFocused()
+    //expose browserwindow api
+    on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
+    once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
+    getTitle = () => this._browserWindow.webContents.getTitle()
+    setZoomFactor = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
+    isFullScreen = () => this._browserWindow.isFullScreen()
+    isMinimized = () => this._browserWindow.isMinimized()
+    minimize = () => this._browserWindow.minimize()
+    hide = () => this._browserWindow.hide()
+    center = () => this._browserWindow.center()
+    showInactive = () => this._browserWindow.showInactive()
+    isFocused = () => this._browserWindow.isFocused()
 
-	show() {
-		if (!this._browserWindow) {
-			return
-		}
-		const contents = this._browserWindow.webContents
-		const devToolsState = contents.isDevToolsOpened()
-		this._browserWindow.show()
-		if (this._browserWindow.isMinimized()) {
-			this._browserWindow.restore()
-			//TODO: there has to be a better way. fix for #691
-			contents.toggleDevTools()
-			if (devToolsState) {
-				contents.openDevTools()
-			} else {
-				contents.closeDevTools()
-			}
-		} else if (!this._browserWindow.isFocused()) {
-			this._browserWindow.focus()
-		}
-	}
+    show() {
+        if (!this._browserWindow) {
+            return
+        }
+        const contents = this._browserWindow.webContents
+        const devToolsState = contents.isDevToolsOpened()
+        this._browserWindow.show()
+        if (this._browserWindow.isMinimized()) {
+            this._browserWindow.restore()
+            //TODO: there has to be a better way. fix for #691
+            contents.toggleDevTools()
+            if (devToolsState) {
+                contents.openDevTools()
+            } else {
+                contents.closeDevTools()
+            }
+        } else if (!this._browserWindow.isFocused()) {
+            this._browserWindow.focus()
+        }
+    }
 
-	_createBrowserWindow(wm: WindowManager) {
-		this._rewroteURL = false
-		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
-		console.log("startFile: ", this._startFile)
-		this._browserWindow = new BrowserWindow({
-			icon: wm.getIcon(),
-			show: false,
-			autoHideMenuBar: true,
-			webPreferences: {
-				nodeIntegration: false,
-				nodeIntegrationInWorker: false,
-				// TODO: not a real os sandbox yet.
-				// https://github.com/electron-userland/electron-builder/issues/2562
-				// https://electronjs.org/docs/api/sandbox-option
-				sandbox: true,
-				// can't use contextIsolation because this will prevent
-				// the preload script changes to the web app
-				contextIsolation: false,
-				webSecurity: true,
-				preload: this._preloadjs
-			}
-		})
-		this._browserWindow.setMenuBarVisibility(false)
-		this.id = this._browserWindow.id
-		this._ipc.addWindow(this.id)
+    _createBrowserWindow(wm: WindowManager) {
+        this._rewroteURL = false
+        this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
+        console.log("startFile: ", this._startFile)
+        this._browserWindow = new BrowserWindow({
+            icon: wm.getIcon(),
+            show: false,
+            autoHideMenuBar: true,
+            webPreferences: {
+                nodeIntegration: false,
+                nodeIntegrationInWorker: false,
+                // TODO: not a real os sandbox yet.
+                // https://github.com/electron-userland/electron-builder/issues/2562
+                // https://electronjs.org/docs/api/sandbox-option
+                sandbox: true,
+                // can't use contextIsolation because this will prevent
+                // the preload script changes to the web app
+                contextIsolation: false,
+                webSecurity: true,
+                preload: this._preloadjs
+            }
+        })
+        this._browserWindow.setMenuBarVisibility(false)
+        this.id = this._browserWindow.id
+        this._ipc.addWindow(this.id)
 
-		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
-		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
+        this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
+        wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
 
-		this._browserWindow
-		    .on('closed', () => {
-			    this.setUserInfo(null)
-			    this._ipc.removeWindow(this.id)
-		    })
-		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
-		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
+        this._browserWindow
+            .on('closed', () => {
+                this.setUserInfo(null)
+                this._ipc.removeWindow(this.id)
+            })
+            .on('focus', () => localShortcut.enableAll(this._browserWindow))
+            .on('blur', ev => localShortcut.disableAll(this._browserWindow))
 
-		this._browserWindow.webContents
-		    .on('new-window', (e, url) => {
-			    // we never open any new windows directly from the renderer
-			    // except for links in mails etc. so open them in the browser
-			    shell.openExternal(url)
-			    e.preventDefault()
-		    })
-		    .on('will-attach-webview', e => e.preventDefault())
-		    .on('did-start-navigation', (e, url, isInPlace) => {
-			    const newURL = this._rewriteURL(url, isInPlace)
-			    if (newURL !== url) {
-				    e.preventDefault()
-				    this._browserWindow.loadURL(newURL)
-			    }
-		    })
-		    .on('context-menu', (e, params) => {
-			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
-		    })
-		    .on('crashed', () => wm.recreateWindow(this))
-		/**
-		 * we need two conditions for the context menu to work on every window
-		 * 1. the preload script must have run already on this window
-		 * 2. the first web app instance must have sent the translations to the node thread
-		 * dom-ready is after preload and after the index.html was loaded into the webContents,
-		 * but may be before any javascript ran
-		 */
-		this._browserWindow.webContents.on('dom-ready', () => {
-			lang.initialized.promise.then(() => this.sendMessageToWebContents('setup-context-menu', []))
-		})
+        this._browserWindow.webContents
+            .on('new-window', (e, url) => {
+                // we never open any new windows directly from the renderer
+                // except for links in mails etc. so open them in the browser
+                shell.openExternal(url)
+                e.preventDefault()
+            })
+            .on('will-attach-webview', e => e.preventDefault())
+            .on('did-start-navigation', (e, url, isInPlace) => {
+                const newURL = this._rewriteURL(url, isInPlace)
+                if (newURL !== url) {
+                    e.preventDefault()
+                    this._browserWindow.loadURL(newURL)
+                }
+            })
+            .on('context-menu', (e, params) => {
+                this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
+            })
+            .on('crashed', () => wm.recreateWindow(this))
+        /**
+         * we need two conditions for the context menu to work on every window
+         * 1. the preload script must have run already on this window
+         * 2. the first web app instance must have sent the translations to the node thread
+         * dom-ready is after preload and after the index.html was loaded into the webContents,
+         * but may be before any javascript ran
+         */
+        this._browserWindow.webContents.on('dom-ready', () => {
+            lang.initialized.promise.then(() => this.sendMessageToWebContents('setup-context-menu', []))
+        })
 
-		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
-		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
-		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
-		localShortcut.register(
-			this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Control+F'
-				: 'F11',
-			() => this._toggleFullScreen()
-		)
-	}
+        localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
+        localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
+        localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
+        localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
+        localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
+        localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
+        localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
+        localShortcut.register(
+            this._browserWindow,
+            process.platform === 'darwin'
+                ? 'Command+Control+F'
+                : 'F11',
+            () => this._toggleFullScreen()
+        )
+    }
 
-	openMailBox(info: UserInfo, path?: ?string): Promise<void> {
-		return this._ipc.initialized(this.id).then(() =>
-			this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
-		).then(() => this.show())
-	}
+    openMailBox(info: UserInfo, path?: ?string): Promise<void> {
+        return this._ipc.initialized(this.id).then(() =>
+            this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
+        ).then(() => this.show())
+    }
 
-	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
-		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			console.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
-			return
-		}
-		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			console.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
-			return
-		}
-		this._browserWindow.webContents.send(message.toString(), args)
-	}
+    sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
+        if (!this._browserWindow || this._browserWindow.isDestroyed()) {
+            console.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
+            return
+        }
+        if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
+            console.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
+            return
+        }
+        this._browserWindow.webContents.send(message.toString(), args)
+    }
 
-	setUserInfo(info: ?UserInfo) {
-		this._userInfo = info
-	}
+    setUserInfo(info: ?UserInfo) {
+        this._userInfo = info
+    }
 
-	getUserInfo(): ?UserInfo {
-		return this._userInfo
-	}
+    getUserInfo(): ?UserInfo {
+        return this._userInfo
+    }
 
-	getUserId(): ?string {
-		return this._userInfo ? this._userInfo.userId : null
-	}
+    getUserId(): ?string {
+        return this._userInfo ? this._userInfo.userId : null
+    }
 
-	getPath(): string {
-		return this._browserWindow.webContents.getURL().substring(this._startFile.length)
-	}
+    getPath(): string {
+        return this._browserWindow.webContents.getURL().substring(this._startFile.length)
+    }
 
-	// filesystem paths work differently than URLs
-	_rewriteURL(url: string, isInPlace: boolean): string {
-		if (
-			!url.startsWith(this._startFile) &&
-			!url.startsWith(`chrome-extension://${u2f.EXTENSION_ID}`)
-		) {
-			return this._startFile
-		}
-		if (url === this._startFile + '/login?noAutoLogin=true' && isInPlace) {
-			if (!this._rewroteURL) {
-				this._rewroteURL = true
-				return this._startFile + '?noAutoLogin=true'
-			} else {
-				this._rewroteURL = false
-			}
-		}
-		return url
-	}
+    // filesystem paths work differently than URLs
+    _rewriteURL(url: string, isInPlace: boolean): string {
+        if (
+            !url.startsWith(this._startFile) &&
+            !url.startsWith(`chrome-extension://${u2f.EXTENSION_ID}`)
+        ) {
+            return this._startFile
+        }
+        if (url === this._startFile + '/login?noAutoLogin=true' && isInPlace) {
+            if (!this._rewroteURL) {
+                this._rewroteURL = true
+                return this._startFile + '?noAutoLogin=true'
+            } else {
+                this._rewroteURL = false
+            }
+        }
+        return url
+    }
 
-	findInPage(args: Array<any>) {
-		if (args[0] !== '') { // search term must not be empty
-			this._browserWindow.webContents.findInPage(args[0], args[1])
-		} else {
-			this.stopFindInPage()
-		}
-	}
+    findInPage(args: Array<any>) :Promise<{numberOfMatches: number, currentMatch: number}>{
+        return new Promise( resolve => {
+            if (args[0] !== '') { // search term must not be empty
+                this._browserWindow.webContents.findInPage(args[0], args[1])
+                this._browserWindow.webContents.once('found-in-page', (e, r) => {
+                    // subtract one for the match in the search bar, which is the first one
+                    resolve({numberOfMatches: r.matches - 1, currentMatch: r.activeMatchOrdinal - 1})
+                })
+            } else {
+                this.stopFindInPage()
+                resolve({numberOfMatches: 0, currentMatch: 0})
+            }
+        })
+    }
 
-	stopFindInPage() {
-		this._browserWindow.webContents.stopFindInPage('keepSelection')
-	}
+    stopFindInPage() {
+        this._browserWindow.webContents.stopFindInPage('keepSelection')
+    }
 
-	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
-		return callback(false)
-	}
+    _permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
+        return callback(false)
+    }
 
-	_toggleDevTools(): void {
-		const wc = this._browserWindow.webContents
-		if (wc.isDevToolsOpened()) {
-			wc.closeDevTools()
-		} else {
-			wc.openDevTools({mode: 'undocked'})
-		}
-	}
+    _toggleDevTools(): void {
+        const wc = this._browserWindow.webContents
+        if (wc.isDevToolsOpened()) {
+            wc.closeDevTools()
+        } else {
+            wc.openDevTools({mode: 'undocked'})
+        }
+    }
 
-	_toggleFullScreen(): void {
-		this._browserWindow.setFullScreen(!this._browserWindow.isFullScreen())
-	}
+    _toggleFullScreen(): void {
+        this._browserWindow.setFullScreen(!this._browserWindow.isFullScreen())
+    }
 
-	_printMail() {
-		this._ipc.sendRequest(this.id, 'print', [])
-	}
+    _printMail() {
+        this._ipc.sendRequest(this.id, 'print', [])
+    }
 
-	_openFindInPage(): void {
-		this._ipc.sendRequest(this.id, 'openFindInPage', [])
-	}
+    _openFindInPage(): void {
+        this._ipc.sendRequest(this.id, 'openFindInPage', [])
+    }
 
-	isVisible(): boolean {
-		return this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
-	}
+    isVisible(): boolean {
+        return this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
+    }
 
-	// browserWindow.hide() was called (or it was created with showWhenReady = false)
-	isHidden(): boolean {
-		return !this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
-	}
+    // browserWindow.hide() was called (or it was created with showWhenReady = false)
+    isHidden(): boolean {
+        return !this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
+    }
 
-	setBounds(bounds: WindowBounds) {
-		this._browserWindow.setFullScreen(bounds.fullscreen)
-		if (bounds.fullscreen) return
-		this._browserWindow.setBounds(bounds.rect)
-		if (process.platform !== 'linux') return
-		clearTimeout(this._setBoundsTimeout)
-		this._setBoundsTimeout = setTimeout(() => {
-			const newRect = this._browserWindow.getBounds()
-			if (bounds.rect.y !== newRect.y) {
-				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
-			}
-		}, 200)
-	}
+    setBounds(bounds: WindowBounds) {
+        this._browserWindow.setFullScreen(bounds.fullscreen)
+        if (bounds.fullscreen) return
+        this._browserWindow.setBounds(bounds.rect)
+        if (process.platform !== 'linux') return
+        clearTimeout(this._setBoundsTimeout)
+        this._setBoundsTimeout = setTimeout(() => {
+            const newRect = this._browserWindow.getBounds()
+            if (bounds.rect.y !== newRect.y) {
+                this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
+            }
+        }, 200)
+    }
 
-	getBounds(): WindowBounds {
-		return {
-			fullscreen: this._browserWindow.isFullScreen(),
-			rect: this._browserWindow.getBounds()
-		}
-	}
+    getBounds(): WindowBounds {
+        return {
+            fullscreen: this._browserWindow.isFullScreen(),
+            rect: this._browserWindow.getBounds()
+        }
+    }
 }

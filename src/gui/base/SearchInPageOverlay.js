@@ -22,6 +22,8 @@ export class SearchInPageOverlay {
     _closeFunction: (() => void) | null;
     _domInput: HTMLInputElement;
     _matchCase = false;
+    _numberOfMatches: number = 0;
+    _currentMatch: number = 0;
 
     constructor() {
         this._closeFunction = null
@@ -87,7 +89,11 @@ export class SearchInPageOverlay {
         return nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {
             forward: forward,
             matchCase: this._matchCase
-        }]))
+        }])).then(r => {
+            this._numberOfMatches = r.numberOfMatches
+            this._currentMatch = r.currentMatch
+            m.redraw()
+        })
     }
 
     _getComponent(): VirtualElement {
@@ -130,7 +136,7 @@ export class SearchInPageOverlay {
             view: (vnode: Object) => {
                 return m(".flex.flex-space-between",
                     [
-                        m(".flex-start",
+                        m(".flex-start.center-vertically",
                             {
                                 onkeydown: e => {
                                     let keyCode = e.which
@@ -145,11 +151,16 @@ export class SearchInPageOverlay {
                                 this._inputField(),
                                 m(ButtonN, backwardButtonAttrs),
                                 m(ButtonN, forwardButtonAttrs),
-                                m(ButtonN, caseButtonAttrs)
+                                m(ButtonN, caseButtonAttrs),
+                                m("div.pl-m", this._numberOfMatches > 0
+                                    ? `${this._currentMatch}/${this._numberOfMatches}`
+                                    : lang.get("searchNoResults_msg")
+                                )
                             ]),
                         m(ButtonN, closeButtonAttrs)
                     ])
             }
+
         }
     }
 }

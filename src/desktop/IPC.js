@@ -51,10 +51,11 @@ export class IPC {
 				this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
 					if (w) {
-						w.findInPage(args)
+						w.findInPage(args).then(r => d.resolve(r))
+					} else {
+						d.resolve({numberOfMatches: 0, currentMatch: 0})
 					}
 				})
-				d.resolve()
 				break
 			case 'stopFindInPage':
 				this.initialized(windowId).then(() => {
