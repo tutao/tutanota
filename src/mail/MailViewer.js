@@ -6,7 +6,15 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	replaceCids,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -65,7 +73,7 @@ import {mailModel} from "./MailModel"
 import {theme, themeId} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
+import {getElementId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
@@ -77,13 +85,19 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
+
+type InlineImages = {
+	[referencedCid: string]: string // map from cid to base64 data url
+}
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class    MailViewer {
+export class MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
@@ -104,9 +118,10 @@ export class    MailViewer {
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
 	_filesExpanded: Stream<boolean>;
+	_inlineImages: Promise<InlineImages>;
 
 	constructor(mail: Mail, showFolder: boolean) {
-		if(isDesktop()) {
+		if (isDesktop()) {
 			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this.mail = mail
@@ -204,6 +219,7 @@ export class    MailViewer {
 						if (confirmed) {
 							this._htmlBody = urlify(htmlSanitizer.sanitize(neverNull(this._mailBody).text, false).text)
 							this._contentBlocked = false
+							this._replaceInlineImages()
 							m.redraw()
 						}
 					})
@@ -302,51 +318,15 @@ export class    MailViewer {
 			}))
 		}
 
-		load(MailBodyTypeRef, mail.body).then(body => {
-			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+		const inlineFileIds = this._loadMailBody(mail)
 
-			/**
-			 * check if we need to improve contrast for dark theme.
-			 * 1. theme id must be 'dark'
-			 * 2. html body needs to contain any tag with a style attribute that has the color property set
-			 * OR
-			 * there is a font tag with the color attribute set
-			 */
-			this._contrastFixNeeded = themeId() === 'dark'
-				&& (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-				                                .find(s => s.color !== "" && typeof s.color !== 'undefined')
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
-			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
-			this._contentBlocked = sanitizeResult.externalContent.length > 0
-			m.redraw()
-		}).catch(NotFoundError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as it has been moved/deleted already", e)
-		}).catch(NotAuthorizedError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as the permission is missing", e)
-		})
 		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 		load(ConversationEntryTypeRef, mail.conversationEntry)
 			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 
-		if (mail.attachments.length === 0) {
-			this._loadingAttachments = false
-		} else {
-			this._loadingAttachments = true
-			Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			       .then(files => {
-				       this._attachments = files
-				       this._attachmentButtons = this._createAttachmentsButtons(files)
-				       this._loadingAttachments = false
-				       m.redraw()
-			       })
-			       .catch(NotFoundError, e =>
-				       console.log("could load attachments as they have been moved/deleted already", e))
-		}
+		this._inlineImages = this._loadAttachments(mail, inlineFileIds)
+
+		this._replaceInlineImages()
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
@@ -415,11 +395,80 @@ export class    MailViewer {
 		}
 
 		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
-
-
 		this._setupShortcuts()
 	}
 
+
+	_replaceInlineImages() {
+		this._inlineImages.then((inlineImages) => {
+			this._htmlBody = replaceCids(this._htmlBody, inlineImages)
+			m.redraw()
+		})
+	}
+
+	/** @return list of inline referenced cid */
+	_loadMailBody(mail: Mail): Promise<Array<string>> {
+		return load(MailBodyTypeRef, mail.body).then(body => {
+			this._mailBody = body
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+
+			/**
+			 * check if we need to improve contrast for dark theme.
+			 * 1. theme id must be 'dark'
+			 * 2. html body needs to contain any tag with a style attribute that has the color property set
+			 * OR
+			 * there is a font tag with the color attribute set
+			 */
+			this._contrastFixNeeded = themeId() === 'dark'
+				&& (
+					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+				)
+			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
+
+			this._contentBlocked = sanitizeResult.externalContent.length > 0
+			m.redraw()
+			return sanitizeResult.inlineImageCids
+		}).catch(NotFoundError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as it has been moved/deleted already", e)
+			return []
+		}).catch(NotAuthorizedError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as the permission is missing", e)
+			return []
+		})
+	}
+
+
+	_loadAttachments(mail: Mail, inlineFileIds: Promise<Array<Id>>): Promise<InlineImages> {
+		if (mail.attachments.length === 0) {
+			this._loadingAttachments = false
+			return Promise.resolve({})
+		} else {
+			this._loadingAttachments = true
+			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
+			              .then(files => {
+				              this._attachments = files
+				              this._attachmentButtons = this._createAttachmentsButtons(files)
+				              this._loadingAttachments = false
+				              m.redraw()
+				              return inlineFileIds.then((inlineFileIds) => {
+					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => isSameId(getElementId(file), inline)))
+					              const inlineImages = {}
+					              return Promise
+						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+								              inlineImages["cid:" + getElementId(file)] = "data:" + dataFile.mimeType + ";base64,"
+									              + uint8ArrayToBase64(dataFile.data)
+							              })
+						              ).return(inlineImages)
+				              })
+			              })
+			              .catch(NotFoundError, e =>
+				              console.log("could load attachments as they have been moved/deleted already", e))
+		}
+	}
 
 	_renderAttachments(): Children {
 		if (this._loadingAttachments) {

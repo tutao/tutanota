@@ -207,6 +207,15 @@ o.spec("HtmlSanitizerTest", browser(function () {
 			|| result.text.includes('<a href="http://localhost/index.html" target="_blank" rel="noopener noreferrer">')).equals(true)
 	})
 
+	o("do no replace inline images", function () {
+		const input = '<html><img src="cid:asbasdf-safd_d"><img src="data:image/svg+xml;utf8,sadfsdasdf"></html>'
+		const result = htmlSanitizer.sanitize(input, true)
+		o(result.externalContent.length).equals(0);
+		o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"]);
+		o(result.text).equals("<img src=\"cid:asbasdf-safd_d\"><img src=\"data:image/svg+xml;utf8,sadfsdasdf\">")
+	})
+
+
 	o("audio tag", function () {
 		let result = htmlSanitizer.sanitize('<audio controls autoplay loop muted preload src="https://www.w3schools.com/tags/horse.mp3" type="audio/mpeg"></audio>', true)
 		o(result.externalContent[0]).equals("https://www.w3schools.com/tags/horse.mp3");

@@ -12,6 +12,7 @@ class HtmlSanitizer {
 
 	_blockExternalContent: boolean
 	_externalContent: string[]
+	_inlineImageCids: Array<string>
 	purifier: IDOMPurify
 
 	constructor() {
@@ -62,7 +63,7 @@ class HtmlSanitizer {
 		const config = this._prepareSanitize(html, blockExternalContent)
 
 		let cleanHtml = this.purifier.sanitize(html, config)
-		return {"text": cleanHtml, "externalContent": this._externalContent}
+		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids}
 	}
 
 	/**
@@ -71,16 +72,17 @@ class HtmlSanitizer {
 	 * @param blockExternalContent
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
-	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>} {
+	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
 			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
-		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent}
+		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
 	}
 
 	_prepareSanitize(html: string, blockExternalContent: boolean): SanitizeConfigBase {
 		// must be set for use in dompurify hook
 		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
+		this._inlineImageCids = []
 
 		return {
 			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
@@ -119,10 +121,14 @@ class HtmlSanitizer {
 		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
-				this._externalContent.push(attribute.value)
-				attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
-				htmlNode.attributes.setNamedItem(attribute)
-				htmlNode.style["max-width"] = "100px"
+				if (attribute.value.startsWith("cid:")) {
+					this._inlineImageCids.push(attribute.value.substring(4))
+				} else if (!attribute.value.startsWith("data:")) {
+					this._externalContent.push(attribute.value)
+					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					htmlNode.attributes.setNamedItem(attribute)
+					htmlNode.style["max-width"] = "100px"
+				}
 			}
 		})
 	}

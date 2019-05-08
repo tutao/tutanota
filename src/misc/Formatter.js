@@ -350,3 +350,7 @@ export function formatNameAndAddress(name: string, address: string, countryCode:
 	}
 	return result
 }
+
+export function replaceCids(text: string, replacements: {[string]:string}): string {
+	return text.replace(/cid:[a-zA-Z0-9\-_]+/g, (match) => replacements[match] || match)
+}

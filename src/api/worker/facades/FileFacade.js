@@ -28,7 +28,7 @@ export class FileFacade {
 		this._login = login
 	}
 
-	downloadFileContent(file: TutanotaFile): Promise<DataFile | FileReference> {
+	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
 		let requestData = createFileDataDataGet()
 		requestData.file = file._id
 		requestData.base64 = false
@@ -38,31 +38,45 @@ export class FileFacade {
 				let headers = this._login.createAuthHeaders()
 				headers['v'] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
-				if (env.mode === Mode.App) {
-					let queryParams = {'_body': encodeURIComponent(body)}
-					let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", queryParams)
+				return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)
+				                 .then(data => {
+					                 return createDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
+				                 })
+			})
+		})
+	}
 
-					return fileApp.download(url, file.name, headers).then(({statusCode, statusMessage, encryptedFileUri}) => {
-						return ((statusCode === 200 && encryptedFileUri != null)
-							? aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
-								return {
-									_type: 'FileReference',
-									name: file.name,
-									mimeType: file.mimeType,
-									location: decryptedFileUrl,
-									size: file.size
-								}
-							})
-							: Promise.reject(handleRestError(statusCode, `${statusMessage} | GET ${url} failed to natively download attachment`)))
-							.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
-							                                                  .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
-					})
-				} else {
-					return restClient.request("/rest/tutanota/filedataservice", HttpMethod.GET, {}, headers, body, MediaType.Binary)
-					                 .then(data => {
-						                 return createDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
-					                 })
-				}
+	downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
+		if (env.mode !== Mode.App) {
+			return Promise.reject("Environment is not app")
+		}
+		let requestData = createFileDataDataGet()
+		requestData.file = file._id
+		requestData.base64 = false
+
+		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
+			return encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
+				let headers = this._login.createAuthHeaders()
+				headers['v'] = FileDataDataGetTypModel.version
+				let body = JSON.stringify(entityToSend)
+				let queryParams = {'_body': encodeURIComponent(body)}
+				let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", queryParams)
+
+				return fileApp.download(url, file.name, headers).then(({statusCode, statusMessage, encryptedFileUri}) => {
+					return ((statusCode === 200 && encryptedFileUri != null)
+						? aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
+							return {
+								_type: 'FileReference',
+								name: file.name,
+								mimeType: file.mimeType,
+								location: decryptedFileUrl,
+								size: file.size
+							}
+						})
+						: Promise.reject(handleRestError(statusCode, `${statusMessage} | GET ${url} failed to natively download attachment`)))
+						.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
+						                                                  .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
+				})
 			})
 		})
 	}

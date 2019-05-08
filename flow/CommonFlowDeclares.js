@@ -171,7 +171,8 @@ declare var navigator: Navigator;
 
 type SanitizeResult = {
 	text: string,
-	externalContent: string[]
+	externalContent: string[],
+	inlineImageCids: Array<string>
 }
 
 type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'
