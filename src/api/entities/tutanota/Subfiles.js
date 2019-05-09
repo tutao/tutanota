@@ -15,7 +15,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"files": {
 			"name": "files",
-			"id": 27,
+			"id": 28,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

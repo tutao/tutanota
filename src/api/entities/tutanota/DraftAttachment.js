@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DraftAttachment",
 	"since": 11,
 	"type": "AGGREGATED_TYPE",
-	"id": 491,
-	"rootId": "CHR1dGFub3RhAAHr",
+	"id": 492,
+	"rootId": "CHR1dGFub3RhAAHs",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 492, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 493, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"ownerEncFileSessionKey": {
 			"name": "ownerEncFileSessionKey",
-			"id": 493,
+			"id": 494,
 			"since": 11,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"newFile": {
 			"name": "newFile",
-			"id": 494,
+			"id": 495,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"existingFile": {
 			"name": "existingFile",
-			"id": 495,
+			"id": 496,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

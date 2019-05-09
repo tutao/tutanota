@@ -9,7 +9,8 @@ import {
 	getCleanedMailAddress,
 	mailAddressToFirstAndLastName,
 	parseBirthday,
-	parseDate, replaceCids,
+	parseDate,
+	replaceCids,
 	stringToNameAndMailAddress
 } from "../../../src/misc/Formatter"
 import {isMailAddress, isRegularExpression} from "../../../src/misc/FormatValidator"
@@ -248,15 +249,12 @@ o.spec("FormatterTest", function () {
 		_checkParseBirthday("1/1/50", 1, 1, 1950)
 	}))
 
-	o("replaceCids", function() {
+	o("replaceCids", function () {
 		o(replaceCids("<img src=\"cid:tutanotaFile-_\" /><img src=\"cid:tutanotaFile-_\" /><img src=\"cid:tutanotaFile-_2\" />",
 			{
 				"cid:tutanotaFile-_": "test",
 				"cid:tutanotaFile-_2": "test2"
 			})).equals("<img src=\"test\" /><img src=\"test\" /><img src=\"test2\" />")
-		o(replaceCids("<img src='cid:tutanotaFile-_' />", {"cid:tutanotaFile-_": "test"})).equals("<img src='test' />")
-		o(replaceCids("<img src=cid:tutanotaFile-_ />", {"cid:tutanotaFile-_": "test"})).equals("<img src=test />")
-		o(replaceCids("<img src='http://test.com' />", {"cid:tutanotaFile-_": "test"})).equals("<img src='http://test.com' />")
 	})
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {

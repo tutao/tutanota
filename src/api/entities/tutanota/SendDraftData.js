@@ -7,27 +7,27 @@ export const _TypeModel: TypeModel = {
 	"name": "SendDraftData",
 	"since": 11,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 547,
-	"rootId": "CHR1dGFub3RhAAIj",
+	"id": 548,
+	"rootId": "CHR1dGFub3RhAAIk",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 548, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {"name": "_format", "id": 549, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"bucketEncMailSessionKey": {
 			"name": "bucketEncMailSessionKey",
-			"id": 551,
+			"id": 552,
 			"since": 11,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"language": {"name": "language", "id": 549, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"mailSessionKey": {"name": "mailSessionKey", "id": 550, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"plaintext": {"name": "plaintext", "id": 675, "since": 18, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
+		"language": {"name": "language", "id": 550, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"mailSessionKey": {"name": "mailSessionKey", "id": 551, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"plaintext": {"name": "plaintext", "id": 676, "since": 18, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
 		"senderNameUnencrypted": {
 			"name": "senderNameUnencrypted",
-			"id": 552,
+			"id": 553,
 			"since": 11,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"attachmentKeyData": {
 			"name": "attachmentKeyData",
-			"id": 555,
+			"id": 556,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -47,7 +47,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"internalRecipientKeyData": {
 			"name": "internalRecipientKeyData",
-			"id": 553,
+			"id": 554,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -56,7 +56,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"secureExternalRecipientKeyData": {
 			"name": "secureExternalRecipientKeyData",
-			"id": 554,
+			"id": 555,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -65,7 +65,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mail": {
 			"name": "mail",
-			"id": 556,
+			"id": 557,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

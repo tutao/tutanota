@@ -7,20 +7,20 @@ export const _TypeModel: TypeModel = {
 	"name": "MailboxGroupRoot",
 	"since": 18,
 	"type": "ELEMENT_TYPE",
-	"id": 693,
-	"rootId": "CHR1dGFub3RhAAK1",
+	"id": 694,
+	"rootId": "CHR1dGFub3RhAAK2",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 697, "since": 18, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 695, "since": 18, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 698, "since": 18, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 696, "since": 18, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {"name": "_format", "id": 698, "since": 18, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 696, "since": 18, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 699, "since": 18, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 697, "since": 18, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"contactFormUserContactForm": {
 			"name": "contactFormUserContactForm",
-			"id": 748,
+			"id": 749,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mailbox": {
 			"name": "mailbox",
-			"id": 699,
+			"id": 700,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participatingContactForms": {
 			"name": "participatingContactForms",
-			"id": 842,
+			"id": 843,
 			"since": 22,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -50,7 +50,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"serverProperties": {
 			"name": "serverProperties",
-			"id": 700,
+			"id": 701,
 			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"targetMailGroupContactForm": {
 			"name": "targetMailGroupContactForm",
-			"id": 749,
+			"id": 750,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"whitelistRequests": {
 			"name": "whitelistRequests",
-			"id": 701,
+			"id": 702,
 			"since": 18,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

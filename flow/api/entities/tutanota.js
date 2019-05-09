@@ -35,6 +35,7 @@ type TutanotaFile = {
 	_owner: Id;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	cid: ?string;
 	mimeType: ?string;
 	name: string;
 	size: NumberString;

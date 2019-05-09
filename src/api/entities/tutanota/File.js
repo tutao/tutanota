@@ -25,8 +25,9 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"_owner": {"name": "_owner", "id": 19, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 580, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 581, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"_permissions": {"name": "_permissions", "id": 16, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"cid": {"name": "cid", "id": 24, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
 		"mimeType": {"name": "mimeType", "id": 23, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
 		"name": {"name": "name", "id": 21, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"size": {"name": "size", "id": 22, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
@@ -34,7 +35,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"subFiles": {
 			"name": "subFiles",
-			"id": 26,
+			"id": 27,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -43,7 +44,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"data": {
 			"name": "data",
-			"id": 24,
+			"id": 25,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -53,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"parent": {
 			"name": "parent",
-			"id": 25,
+			"id": 26,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

@@ -455,11 +455,11 @@ export class MailViewer {
 				              this._loadingAttachments = false
 				              m.redraw()
 				              return inlineFileIds.then((inlineFileIds) => {
-					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => isSameId(getElementId(file), inline)))
+					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
 					              const inlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								              inlineImages["cid:" + getElementId(file)] = "data:" + dataFile.mimeType + ";base64,"
+								              inlineImages["cid:" + neverNull(file.cid)] = "data:" + dataFile.mimeType + ";base64,"
 									              + uint8ArrayToBase64(dataFile.data)
 							              })
 						              ).return(inlineImages)

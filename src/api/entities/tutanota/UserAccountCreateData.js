@@ -7,18 +7,18 @@ export const _TypeModel: TypeModel = {
 	"name": "UserAccountCreateData",
 	"since": 16,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 663,
-	"rootId": "CHR1dGFub3RhAAKX",
+	"id": 664,
+	"rootId": "CHR1dGFub3RhAAKY",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 664, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"date": {"name": "date", "id": 665, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 665, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"date": {"name": "date", "id": 666, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"userData": {
 			"name": "userData",
-			"id": 666,
+			"id": 667,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -27,7 +27,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userGroupData": {
 			"name": "userGroupData",
-			"id": 667,
+			"id": 668,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",

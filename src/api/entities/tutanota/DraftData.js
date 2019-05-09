@@ -7,22 +7,22 @@ export const _TypeModel: TypeModel = {
 	"name": "DraftData",
 	"since": 11,
 	"type": "AGGREGATED_TYPE",
-	"id": 496,
-	"rootId": "CHR1dGFub3RhAAHw",
+	"id": 497,
+	"rootId": "CHR1dGFub3RhAAHx",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 497, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"bodyText": {"name": "bodyText", "id": 499, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"confidential": {"name": "confidential", "id": 502, "since": 11, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": true},
-		"senderMailAddress": {"name": "senderMailAddress", "id": 500, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"senderName": {"name": "senderName", "id": 501, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"subject": {"name": "subject", "id": 498, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
+		"_id": {"name": "_id", "id": 498, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"bodyText": {"name": "bodyText", "id": 500, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"confidential": {"name": "confidential", "id": 503, "since": 11, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": true},
+		"senderMailAddress": {"name": "senderMailAddress", "id": 501, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"senderName": {"name": "senderName", "id": 502, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"subject": {"name": "subject", "id": 499, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {
 		"addedAttachments": {
 			"name": "addedAttachments",
-			"id": 506,
+			"id": 507,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"bccRecipients": {
 			"name": "bccRecipients",
-			"id": 505,
+			"id": 506,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"ccRecipients": {
 			"name": "ccRecipients",
-			"id": 504,
+			"id": 505,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -49,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"replyTos": {
 			"name": "replyTos",
-			"id": 819,
+			"id": 820,
 			"since": 21,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"toRecipients": {
 			"name": "toRecipients",
-			"id": 503,
+			"id": 504,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -67,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"removedAttachments": {
 			"name": "removedAttachments",
-			"id": 507,
+			"id": 508,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",

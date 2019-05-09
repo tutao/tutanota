@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DeleteContactFormConversationIndexEntry",
 	"since": 22,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 832,
-	"rootId": "CHR1dGFub3RhAANA",
+	"id": 833,
+	"rootId": "CHR1dGFub3RhAANB",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 836, "since": 22, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 834, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 837, "since": 22, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 835, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {"name": "_format", "id": 837, "since": 22, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 835, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 838, "since": 22, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 836, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",

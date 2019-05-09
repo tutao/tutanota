@@ -7,17 +7,17 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateMailGroupData",
 	"since": 19,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 707,
-	"rootId": "CHR1dGFub3RhAALD",
+	"id": 708,
+	"rootId": "CHR1dGFub3RhAALE",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 708, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"encryptedName": {"name": "encryptedName", "id": 710, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 709, "since": 19, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {"name": "_format", "id": 709, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"encryptedName": {"name": "encryptedName", "id": 711, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"mailAddress": {"name": "mailAddress", "id": 710, "since": 19, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"mailEncMailboxSessionKey": {
 			"name": "mailEncMailboxSessionKey",
-			"id": 711,
+			"id": 712,
 			"since": 19,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"groupData": {
 			"name": "groupData",
-			"id": 712,
+			"id": 713,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",

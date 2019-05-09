@@ -7,19 +7,19 @@ export const _TypeModel: TypeModel = {
 	"name": "MailAddress",
 	"since": 1,
 	"type": "AGGREGATED_TYPE",
-	"id": 92,
-	"rootId": "CHR1dGFub3RhAFw",
+	"id": 93,
+	"rootId": "CHR1dGFub3RhAF0",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 93, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"address": {"name": "address", "id": 95, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"name": {"name": "name", "id": 94, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
+		"_id": {"name": "_id", "id": 94, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"address": {"name": "address", "id": 96, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"name": {"name": "name", "id": 95, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {
 		"contact": {
 			"name": "contact",
-			"id": 96,
+			"id": 97,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",

@@ -7,18 +7,18 @@ export const _TypeModel: TypeModel = {
 	"name": "EncryptTutanotaPropertiesData",
 	"since": 9,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 473,
-	"rootId": "CHR1dGFub3RhAAHZ",
+	"id": 474,
+	"rootId": "CHR1dGFub3RhAAHa",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 474, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"symEncSessionKey": {"name": "symEncSessionKey", "id": 476, "since": 9, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 475, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"symEncSessionKey": {"name": "symEncSessionKey", "id": 477, "since": 9, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"properties": {
 			"name": "properties",
-			"id": 475,
+			"id": 476,
 			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

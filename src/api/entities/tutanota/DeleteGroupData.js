@@ -7,18 +7,18 @@ export const _TypeModel: TypeModel = {
 	"name": "DeleteGroupData",
 	"since": 19,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 713,
-	"rootId": "CHR1dGFub3RhAALJ",
+	"id": 714,
+	"rootId": "CHR1dGFub3RhAALK",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 714, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"restore": {"name": "restore", "id": 715, "since": 19, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 715, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"restore": {"name": "restore", "id": 716, "since": 19, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"group": {
 			"name": "group",
-			"id": 716,
+			"id": 717,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

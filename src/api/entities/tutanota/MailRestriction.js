@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "MailRestriction",
 	"since": 19,
 	"type": "AGGREGATED_TYPE",
-	"id": 719,
-	"rootId": "CHR1dGFub3RhAALP",
+	"id": 720,
+	"rootId": "CHR1dGFub3RhAALQ",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 720, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 721, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"delegationGroups_removed": {
 			"name": "delegationGroups_removed",
-			"id": 722,
+			"id": 723,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participantGroupInfos": {
 			"name": "participantGroupInfos",
-			"id": 820,
+			"id": 821,
 			"since": 21,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",

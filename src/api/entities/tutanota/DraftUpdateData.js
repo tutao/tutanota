@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DraftUpdateData",
 	"since": 11,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 519,
-	"rootId": "CHR1dGFub3RhAAIH",
+	"id": 520,
+	"rootId": "CHR1dGFub3RhAAII",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 520, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 521, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"draftData": {
 			"name": "draftData",
-			"id": 521,
+			"id": 522,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"draft": {
 			"name": "draft",
-			"id": 522,
+			"id": 523,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

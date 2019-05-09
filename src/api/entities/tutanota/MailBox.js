@@ -7,28 +7,28 @@ export const _TypeModel: TypeModel = {
 	"name": "MailBox",
 	"since": 1,
 	"type": "ELEMENT_TYPE",
-	"id": 125,
-	"rootId": "CHR1dGFub3RhAH0",
+	"id": 126,
+	"rootId": "CHR1dGFub3RhAH4",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 129, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 127, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_format": {"name": "_format", "id": 130, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 128, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 591,
+			"id": 592,
 			"since": 13,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 590, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 128, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"lastInfoDate": {"name": "lastInfoDate", "id": 569, "since": 12, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {"name": "_ownerGroup", "id": 591, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 129, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"lastInfoDate": {"name": "lastInfoDate", "id": 570, "since": 12, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
 		"symEncShareBucketKey": {
 			"name": "symEncShareBucketKey",
-			"id": 131,
+			"id": 132,
 			"since": 1,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
@@ -39,7 +39,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"systemFolders": {
 			"name": "systemFolders",
-			"id": 443,
+			"id": 444,
 			"since": 7,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -48,7 +48,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mails": {
 			"name": "mails",
-			"id": 132,
+			"id": 133,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"receivedAttachments": {
 			"name": "receivedAttachments",
-			"id": 134,
+			"id": 135,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -68,7 +68,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sentAttachments": {
 			"name": "sentAttachments",
-			"id": 133,
+			"id": 134,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

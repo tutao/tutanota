@@ -7,18 +7,18 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateLocalAdminGroupData",
 	"since": 19,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 703,
-	"rootId": "CHR1dGFub3RhAAK_",
+	"id": 704,
+	"rootId": "CHR1dGFub3RhAALA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 704, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"encryptedName": {"name": "encryptedName", "id": 705, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 705, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"encryptedName": {"name": "encryptedName", "id": 706, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"groupData": {
 			"name": "groupData",
-			"id": 706,
+			"id": 707,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",
