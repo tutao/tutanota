@@ -158,7 +158,7 @@ export class RichTextToolbar {
 							: "sticky" // normal browsers
 					}
 				}, [
-					m(".flex-end", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs).map(t => m(ButtonN, t))),
+					m(".flex-end.wrap", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs).map(t => m(ButtonN, t))),
 					m("hr.hr")
 				]
 			)

@@ -385,6 +385,9 @@ styles.registerStyle('main', () => {
 			'padding-left': px(size.hpad - 1),
 			'padding-right': px(size.hpad - 1),
 		},
+		'.editor-no-top-border': {
+			'border-top-color': 'transparent'
+		},
 
 		// icon
 		'.icon': {

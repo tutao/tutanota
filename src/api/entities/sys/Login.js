@@ -20,7 +20,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "44"
+	"version": "45"
 }
 
 export function createLogin(): Login {
