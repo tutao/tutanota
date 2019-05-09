@@ -174,7 +174,6 @@ module.exports = {
 		"createContact_action": "Създай контакт",
 		"createdUsersCount_msg": "Създаден(и) е(са) {1} потребител(я).",
 		"created_label": "Създадено",
-		"createSearchIndex_msg": "Създаване на индекс на {progress}%.",
 		"creditCardCardHolderName_label": "Име на държателя на картата",
 		"creditCardCardHolderName_msg": "Моля, въведете име на картодържател.",
 		"creditCardCVVFormat_label": "Моля, въведете своя 3 или 4 цифрен код.",

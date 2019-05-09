@@ -171,7 +171,6 @@ module.exports = {
 		"createContact_action": "Crear contacto",
 		"createdUsersCount_msg": "{1} usuaria(s) creada(s).",
 		"created_label": "Creada",
-		"createSearchIndex_msg": "Creando o índice da busca {progress}",
 		"creditCardCardHolderName_label": "Nome da persoa titular",
 		"creditCardCardHolderName_msg": "Por favor, introduza o nome do titular.",
 		"creditCardCVVFormat_label": "Por favor introduza o código de seguridade de 3 ou 4 díxitos.",

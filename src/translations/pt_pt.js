@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2019-04-12T21:05:25Z",
+	"updated_at": "2019-04-25T10:22:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -185,7 +185,6 @@ module.exports = {
 		"createContact_action": "Criar contacto",
 		"createdUsersCount_msg": "{1} utilizador(es) criado(s).",
 		"created_label": "Criado",
-		"createSearchIndex_msg": "Criando índice de pesquisa {progress}%.",
 		"creditCardCardHolderName_label": "Titular do cartão",
 		"creditCardCardHolderName_msg": "Indique o nome do titular do cartão",
 		"creditCardCVVFormat_label": "Por favor, introduza os 3 ou 4 dígitos do código de segurança.",
@@ -801,6 +800,7 @@ module.exports = {
 		"sharedMailboxes_label": "Caixa de correio partilhadas",
 		"sharedMailbox_label": "Caixa de correio partilhada:",
 		"showAddress_alt": "Mostrar este endereço no Openstreetmap.",
+		"showAll_action": "Mostrar tudo",
 		"showBlockedContent_action": "Mostrar",
 		"showContact_action": "Mostrar contacto",
 		"showEmailAliases_action": "Mostrar pseudónimos de email",
