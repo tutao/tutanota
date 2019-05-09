@@ -12,40 +12,40 @@ let classCache = []
 let testcount = 0
 
 function enable() {
-	console.log(chalk.green(`--- NODE TEST ${testcount} ---`))
-	testcount = testcount + 1
-	exit = setProperty(process, 'exit', o.spy(code => {
-		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
-	}))
-	setProperty(process, 'resourcesPath', 'app/path/resources')
-	mockery.enable({useCleanCache: true})
-	mockery.registerAllowables(allowedNodeModules)
-	mockery.registerAllowables([
-		'bluebird'
-	])
+    console.log(chalk.green(`--- NODE TEST ${testcount} ---`))
+    testcount = testcount + 1
+    exit = setProperty(process, 'exit', o.spy(code => {
+        console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
+    }))
+    setProperty(process, 'resourcesPath', 'app/path/resources')
+    mockery.enable({useCleanCache: true})
+    mockery.registerAllowables(allowedNodeModules)
+    mockery.registerAllowables([
+        'bluebird'
+    ])
 }
 
 function disable(): void {
-	mockery.disable()
-	setProperty(process, 'exit', neverNull(exit).value)
-	setPlatform(platform)
-	spyCache.forEach(obj => delete obj.spy)
-	spyCache = []
-	classCache.forEach(c => c.mockedInstances = [])
+    mockery.disable()
+    setProperty(process, 'exit', neverNull(exit).value)
+    setPlatform(platform)
+    spyCache.forEach(obj => delete obj.spy)
+    spyCache = []
+    classCache.forEach(c => c.mockedInstances = [])
 }
 
 // register and get a test subject
 function subject(module: string): any {
-	mockery.registerAllowable(module)
-	return require(module)
+    mockery.registerAllowable(module)
+    return require(module)
 }
 
 function allow(module: string | Array<string>) {
-	[...module].forEach(m => mockery.registerAllowable(m))
+    [...module].forEach(m => mockery.registerAllowable(m))
 }
 
 function disallow(module: string | Array<string>): void {
-	[...module].forEach(m => mockery.deregisterAllowable(m))
+    [...module].forEach(m => mockery.deregisterAllowable(m))
 }
 
 /**
@@ -56,37 +56,37 @@ function disallow(module: string | Array<string>): void {
  * @returns {MockBuilder}
  */
 function mock<T>(old: string, replacer: T): MockBuilder<T> {
-	return new MockBuilder(old, replacer)
+    return new MockBuilder(old, replacer)
 }
 
 function spyify<T>(obj: T): T {
-	switch (typeof obj) {
-		case 'function':
-			if (typeof obj.spy !== 'function') {
-				obj.spy = o.spy(obj)
-				spyCache.push(obj)
-			}
+    switch (typeof obj) {
+        case 'function':
+            if (typeof obj.spy !== 'function') {
+                obj.spy = o.spy(obj)
+                spyCache.push(obj)
+            }
 
-			Object.keys(obj) // classes are functions
-			      .filter(k => !['args', 'callCount', 'spy'].includes(k))
-			      .forEach(k => (obj: any).spy[k] = spyify((obj: any)[k]))
+            Object.keys(obj) // classes are functions
+                .filter(k => !['args', 'callCount', 'spy'].includes(k))
+                .forEach(k => (obj: any).spy[k] = spyify((obj: any)[k]))
 
-			return obj.spy
-		case 'object':
-			if (Array.isArray(obj)) {
-				// TODO: use proxy to sync spyified array?
-				return obj
-			} else {
-				return obj == null
-					? obj
-					: (Object.keys(obj).reduce((newObj, key) => {
-						(newObj: any)[key] = spyify((obj: any)[key])
-						return newObj
-					}, ({}: any)): T)
-			}
-		default:
-			return obj
-	}
+            return obj.spy
+        case 'object':
+            if (Array.isArray(obj)) {
+                // TODO: use proxy to sync spyified array?
+                return obj
+            } else {
+                return obj == null
+                    ? obj
+                    : (Object.keys(obj).reduce((newObj, key) => {
+                        (newObj: any)[key] = spyify((obj: any)[key])
+                        return newObj
+                    }, ({}: any)): T)
+            }
+        default:
+            return obj
+    }
 }
 
 /**
@@ -94,48 +94,48 @@ function spyify<T>(obj: T): T {
  * @param template
  * @returns {cls}
  */
-function classify(template: {prototype: {}, statics: {}}): ()=>void {
+function classify(template: { prototype: {}, statics: {} }): (*)=>void {
 
-	const cls = function () {
-		cls.mockedInstances.push(this)
-		if (typeof template.prototype["constructor"] === 'function') {
-			template.prototype["constructor"].apply(this, arguments)
-		}
-		Object.keys(template.prototype).forEach(p => {
-			if ('function' === typeof template.prototype[p]) {
-				this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
-			} else if ('object' === typeof template.prototype[p]) {
-				// duplicate properties
-				const obj = template.prototype[p]
-				this[p] = obj == null
-					? obj
-					: (Object.keys(obj).reduce((newObj, key) => {
-						(newObj: any)[key] = ((obj: any)[key])
-						return newObj
-					}, ({}: any)))
-			} else {
-				this[p] = template.prototype[p]
-			}
-		})
-	}
+    const cls = function () {
+        cls.mockedInstances.push(this)
+        if (typeof template.prototype["constructor"] === 'function') {
+            template.prototype["constructor"].apply(this, arguments)
+        }
+        Object.keys(template.prototype).forEach(p => {
+            if ('function' === typeof template.prototype[p]) {
+                this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
+            } else if ('object' === typeof template.prototype[p]) {
+                // duplicate properties
+                const obj = template.prototype[p]
+                this[p] = obj == null
+                    ? obj
+                    : (Object.keys(obj).reduce((newObj, key) => {
+                        (newObj: any)[key] = ((obj: any)[key])
+                        return newObj
+                    }, ({}: any)))
+            } else {
+                this[p] = template.prototype[p]
+            }
+        })
+    }
 
-	if (template.statics) {
-		Object.keys(template.statics).forEach(s => cls[s] = template.statics[s])
-	}
+    if (template.statics) {
+        Object.keys(template.statics).forEach(s => cls[s] = template.statics[s])
+    }
 
-	classCache.push(cls)
-	cls.mockedInstances = []
-	return cls
+    classCache.push(cls)
+    cls.mockedInstances = []
+    return cls
 }
 
 function setPlatform(newPlatform: string) {
-	setProperty(process, 'platform', newPlatform)
+    setProperty(process, 'platform', newPlatform)
 }
 
 function setProperty(object, property, value) {
-	const originalProperty = Object.getOwnPropertyDescriptor(object, property)
-	Object.defineProperty(object, property, {value})
-	return originalProperty
+    const originalProperty = Object.getOwnPropertyDescriptor(object, property)
+    Object.defineProperty(object, property, {value})
+    return originalProperty
 }
 
 /**
@@ -146,97 +146,97 @@ function setProperty(object, property, value) {
  * @returns {B}
  */
 function deepAssign<T, B>(obj: T, adder: B): T & B {
-	let ret
-	if (typeof adder !== 'object' || typeof obj !== 'object' || adder == null || obj == null) {
-		ret = adder
-	} else {
-		ret = Object.keys(adder).reduce((newObj, key) => {
-			(newObj: any)[key] = deepAssign((newObj: any)[key], (adder: any)[key])
-			return newObj
-		}, Object.assign({}, obj))
-	}
-	return downcast(ret)
+    let ret
+    if (typeof adder !== 'object' || typeof obj !== 'object' || adder == null || obj == null) {
+        ret = adder
+    } else {
+        ret = Object.keys(adder).reduce((newObj, key) => {
+            (newObj: any)[key] = deepAssign((newObj: any)[key], (adder: any)[key])
+            return newObj
+        }, Object.assign({}, obj))
+    }
+    return downcast(ret)
 }
 
 class MockBuilder<T> {
-	_mock: T
-	_old: string
+    _mock: T
+    _old: string
 
-	constructor(old: string, obj: T) {
-		this._mock = obj
-		this._old = old
-	}
+    constructor(old: string, obj: T) {
+        this._mock = obj
+        this._old = old
+    }
 
-	/**
-	 *
-	 * @param obj the object whose properties will replace properties on this mockbuilders output
-	 * @returns {MockBuilder<*>} a new mockbuilder with the combined output
-	 */
-	with<B>(obj: B): MockBuilder<T & B> {
-		return mock(this._old, deepAssign(this._mock, obj))
-	}
+    /**
+     *
+     * @param obj the object whose properties will replace properties on this mockbuilders output
+     * @returns {MockBuilder<*>} a new mockbuilder with the combined output
+     */
+    with<B>(obj: B): MockBuilder<T & B> {
+        return mock(this._old, deepAssign(this._mock, obj))
+    }
 
-	/**
-	 * register & get the actual mock module object
-	 * @returns {T} the mock with recursively o.spy()'d functions
-	 */
-	set(): T {
-		const copy = spyify(this._mock)
-		mockery.deregisterMock(this._old)
-		mockery.registerMock(this._old, copy)
-		return copy
-	}
+    /**
+     * register & get the actual mock module object
+     * @returns {T} the mock with recursively o.spy()'d functions
+     */
+    set(): T {
+        const copy = spyify(this._mock)
+        mockery.deregisterMock(this._old)
+        mockery.registerMock(this._old, copy)
+        return copy
+    }
 }
 
 const n = {
-	enable,
-	disable,
-	subject,
-	allow,
-	disallow,
-	classify,
-	mock,
-	spyify,
-	setPlatform,
+    enable,
+    disable,
+    subject,
+    allow,
+    disallow,
+    classify,
+    mock,
+    spyify,
+    setPlatform,
 }
 
 const allowedNodeModules = [
-	'promise', './promise',
-	'path', './path',
-	'util', './util',
-	'./es5',
-	'./async',
-	'./schedule',
-	'./errors',
-	'./finally',
-	'./context',
-	'./queue',
-	'./thenables',
-	'./promise_array',
-	'./debuggability',
-	'./catch_filter',
-	'./nodeback',
-	'./method',
-	'./bind',
-	'./cancel',
-	'./direct_resolve',
-	'./synchronous_inspection',
-	'./join',
-	'./map.js',
-	'./call_get.js',
-	'./using.js',
-	'./timers.js',
-	'./generators.js',
-	'./nodeify.js',
-	'./promisify.js',
-	'./props.js',
-	'./race.js',
-	'./reduce.js',
-	'./settle.js',
-	'./some.js',
-	'./filter.js',
-	'./each.js',
-	'./any.js'
+    'promise', './promise',
+    'path', './path',
+    'util', './util',
+    './es5',
+    './async',
+    './schedule',
+    './errors',
+    './finally',
+    './context',
+    './queue',
+    './thenables',
+    './promise_array',
+    './debuggability',
+    './catch_filter',
+    './nodeback',
+    './method',
+    './bind',
+    './cancel',
+    './direct_resolve',
+    './synchronous_inspection',
+    './join',
+    './map.js',
+    './call_get.js',
+    './using.js',
+    './timers.js',
+    './generators.js',
+    './nodeify.js',
+    './promisify.js',
+    './props.js',
+    './race.js',
+    './reduce.js',
+    './settle.js',
+    './some.js',
+    './filter.js',
+    './each.js',
+    './any.js'
 ]
 
 export default n
