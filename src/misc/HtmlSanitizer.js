@@ -74,7 +74,7 @@ class HtmlSanitizer {
 	 */
 	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
+			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true, ADD_ATTR: ['cid']}) // allow our own cid attribute
 		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
 	}
 

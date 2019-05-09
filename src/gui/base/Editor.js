@@ -236,8 +236,8 @@ export class Editor {
 		      )
 	}
 
-	insertImage(srcAttr: string, attrs?: {[string]: string}) {
-		this._squire.insertImage(srcAttr, attrs)
+	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement {
+		return this._squire.insertImage(srcAttr, attrs)
 	}
 
 	getDOM(): HTMLElement {

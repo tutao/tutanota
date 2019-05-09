@@ -355,7 +355,7 @@ export function replaceCids(text: string, replacements: {[string]: string}): str
 	return text.replace(/"(cid:[^"]+)"/g, (match, group1) => {
 		const replacement = replacements[group1]
 		return replacement
-			? '"' + replacement + '"'
+			? `"${replacement}" cid="${group1.substring(4)}"`
 			: match
 	})
 }

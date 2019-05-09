@@ -222,12 +222,13 @@ export class MailEditor {
 			this._showFileChooserForAttachments(ev.target.getBoundingClientRect())
 			    .then((files) => {
 				    files && files.forEach((f) => {
-					    const cid = Math.random().toString(30)
-					    f.cid = cid
 					    // Let'S assume it's DataFile for now... Editor bar is unavailable for apps
 					    // but we should take care of the desktop client.
-					    const dataUrl = "data:" + f.mimeType + ";base64," + uint8ArrayToBase64(downcast(f).data)
-					    this._editor.insertImage(dataUrl, {cid})
+					    const dataFile: DataFile = downcast(f)
+					    const cid = Math.random().toString(30)
+					    f.cid = cid
+					    const dataUrl = "data:" + f.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+					    this._editor.insertImage(dataUrl, {cid, style: 'max-width: 100%'})
 				    })
 			    })
 		})
@@ -305,7 +306,7 @@ export class MailEditor {
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
 					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
-					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
+					: this._getAttachmentButtons().map((a) => a && m(ButtonN, a))
 				),
 				this._attachments.length > 0 ? m("hr.hr") : null,
 				this._showToolbar ? m(this._richTextToolbar) : null,
@@ -539,6 +540,20 @@ export class MailEditor {
 			if (this._editor.getHTML() !== body) {
 				this._editor.setHTML(this._tempBody)
 				this._mailChanged = false
+				// Add mutation observer to remove attachments when corresponding DOM element is removed
+				new MutationObserver((mutationList) => {
+					mutationList.forEach((mutation) => {
+						mutation.removedNodes.forEach((removedNode) => {
+							if (removedNode instanceof Image && removedNode.getAttribute("cid") != null) {
+								const cid = removedNode.getAttribute("cid")
+								const index = this._attachments.findIndex((attach) => attach.cid === cid)
+								if (index !== -1) {
+									this._attachments.splice(index, 1)
+								}
+							}
+						})
+					})
+				}).observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
 			}
 			this._tempBody = null
 		})
@@ -613,8 +628,12 @@ export class MailEditor {
 		m.redraw()
 	}
 
-	_getAttachmentButtons(): Array<ButtonAttrs> {
+	_getAttachmentButtons(): Array<ButtonAttrs | null> {
 		return this._attachments.map(file => {
+			// Do not display inline attachments in editor, that's confusing
+			if (file.cid != null) {
+				return null
+			}
 			let lazyButtonAttrs: ButtonAttrs[] = []
 
 			lazyButtonAttrs.push({

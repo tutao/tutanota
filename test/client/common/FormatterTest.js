@@ -254,7 +254,7 @@ o.spec("FormatterTest", function () {
 			{
 				"cid:tutanotaFile-_": "test",
 				"cid:tutanotaFile-_2": "test2"
-			})).equals("<img src=\"test\" /><img src=\"test\" /><img src=\"test2\" />")
+			})).equals(`<img src="test" cid="tutanotaFile-_"/><img src="test" cid="tutanotaFile-_"/><img src="test2" cid="tutanotaFile-_"2/>`)
 	})
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {
