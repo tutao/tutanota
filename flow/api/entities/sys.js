@@ -786,6 +786,7 @@ type CustomerProperties = {
 	lastUpgradeReminder: ?Date;
 
 	bigLogo: ?SysFile;
+	notificationMailTemplates: NotificationMailTemplate[];
 	smallLogo: ?SysFile;
 }
 
@@ -1585,4 +1586,13 @@ type CertificateInfo = {
 	type: NumberString;
 
 	certificate: ?Id;
+}
+
+type NotificationMailTemplate = {
+	_type: TypeRef<NotificationMailTemplate>;
+	_id: Id;
+	body: string;
+	language: string;
+	subject: string;
+
 }

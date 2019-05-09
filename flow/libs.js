@@ -76,8 +76,10 @@ declare interface Stream<+T> {
 // Partially taken from DefinitelyTyped
 type StreamModule = {
 	/** Creates a stream.*/<T>(value?: T): Stream<T>;
-	/** Creates a computed stream that reactively updates if any of its upstreams are updated. */
+	/** Creates a computed stream that reactively updates if any of its upstreams are updated. Combiner accepts streams. */
 	combine<T>(combiner: (...streams: any[]) => T, streams: Array<Stream<any>>): Stream<T>;
+	/** Creates a computed stream that reactively updates if any of its upstreams are updated. Combiner accepts values. */
+	lift<T>(combiner: (...values: any[]) => T, ...streams: Array<Stream<any>>): Stream<T>;
 	/** Creates a stream whose value is the array of values from an array of streams. */
 	merge(streams: Array<Stream<any>>): Stream<any[]>;
 	/** Creates a new stream with the results of calling the function on every incoming stream with and accumulator and the incoming value. */

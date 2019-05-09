@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "44"
+	"version": "45"
 }
 
 export function createCustomerReturn(): CustomerReturn {

@@ -44,10 +44,20 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"refType": "File",
 			"final": false
-		}, "smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
+		},
+		"notificationMailTemplates": {
+			"name": "notificationMailTemplates",
+			"id": 1522,
+			"since": 45,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "NotificationMailTemplate",
+			"final": false
+		},
+		"smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "44"
+	"version": "45"
 }
 
 export function createCustomerProperties(): CustomerProperties {

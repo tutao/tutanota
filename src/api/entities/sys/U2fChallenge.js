@@ -17,7 +17,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {"keys": {"name": "keys", "id": 1186, "since": 23, "type": "AGGREGATION", "cardinality": "Any", "refType": "U2fKey", "final": true}},
 	"app": "sys",
-	"version": "44"
+	"version": "45"
 }
 
 export function createU2fChallenge(): U2fChallenge {

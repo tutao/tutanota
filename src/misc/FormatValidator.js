@@ -18,6 +18,18 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 	if (string.indexOf("-") === 0) {
 		return false
 	}
+	if (string.indexOf(",") !== -1 ||
+		string.indexOf("(") !== -1 ||
+		string.indexOf(")") !== -1 ||
+		string.indexOf(":") !== -1 ||
+		string.indexOf(";") !== -1 ||
+		string.indexOf("<") !== -1 ||
+		string.indexOf(">") !== -1 ||
+		string.indexOf("[") !== -1 ||
+		string.indexOf("]") !== -1 ||
+		string.indexOf("\\") !== -1) {
+		return false;
+	}
 	// check lengths (see https://tools.ietf.org/html/rfc5321#section-4.5.3)
 	if (string.length > 254) { // 256 minus "<" and ">" of the path
 		return false
