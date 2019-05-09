@@ -7,22 +7,22 @@ export const _TypeModel: TypeModel = {
 	"name": "ContactFormLanguage",
 	"since": 24,
 	"type": "AGGREGATED_TYPE",
-	"id": 858,
-	"rootId": "CHR1dGFub3RhAANa",
+	"id": 857,
+	"rootId": "CHR1dGFub3RhAANZ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 859, "since": 24, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"code": {"name": "code", "id": 860, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"footerHtml": {"name": "footerHtml", "id": 863, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"headerHtml": {"name": "headerHtml", "id": 862, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"helpHtml": {"name": "helpHtml", "id": 864, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"pageTitle": {"name": "pageTitle", "id": 861, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"_id": {"name": "_id", "id": 858, "since": 24, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"code": {"name": "code", "id": 859, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"footerHtml": {"name": "footerHtml", "id": 862, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"headerHtml": {"name": "headerHtml", "id": 861, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"helpHtml": {"name": "helpHtml", "id": 863, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"pageTitle": {"name": "pageTitle", "id": 860, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"statisticsFields": {
 			"name": "statisticsFields",
-			"id": 865,
+			"id": 864,
 			"since": 24,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createContactFormLanguage(): ContactFormLanguage {

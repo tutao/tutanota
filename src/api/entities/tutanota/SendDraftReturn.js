@@ -7,19 +7,19 @@ export const _TypeModel: TypeModel = {
 	"name": "SendDraftReturn",
 	"since": 11,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 558,
-	"rootId": "CHR1dGFub3RhAAIu",
+	"id": 557,
+	"rootId": "CHR1dGFub3RhAAIt",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 559, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"messageId": {"name": "messageId", "id": 560, "since": 11, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"sentDate": {"name": "sentDate", "id": 561, "since": 11, "type": "Date", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 558, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"messageId": {"name": "messageId", "id": 559, "since": 11, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"sentDate": {"name": "sentDate", "id": 560, "since": 11, "type": "Date", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"notifications": {
 			"name": "notifications",
-			"id": 562,
+			"id": 561,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sentMail": {
 			"name": "sentMail",
-			"id": 563,
+			"id": 562,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createSendDraftReturn(): SendDraftReturn {

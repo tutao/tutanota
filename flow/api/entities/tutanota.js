@@ -31,8 +31,8 @@ type TutanotaFile = {
 	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
 	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	cid: ?string;
@@ -505,6 +505,7 @@ type DraftRecipient = {
 type NewDraftAttachment = {
 	_type: TypeRef<NewDraftAttachment>;
 	_id: Id;
+	encCid: ?Uint8Array;
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 

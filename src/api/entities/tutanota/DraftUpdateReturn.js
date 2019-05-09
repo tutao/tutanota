@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DraftUpdateReturn",
 	"since": 11,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 524,
-	"rootId": "CHR1dGFub3RhAAIM",
+	"id": 523,
+	"rootId": "CHR1dGFub3RhAAIL",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 525, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 524, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"attachments": {
 			"name": "attachments",
-			"id": 526,
+			"id": 525,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createDraftUpdateReturn(): DraftUpdateReturn {

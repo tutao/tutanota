@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "MailFolderRef",
 	"since": 7,
 	"type": "AGGREGATED_TYPE",
-	"id": 441,
-	"rootId": "CHR1dGFub3RhAAG5",
+	"id": 440,
+	"rootId": "CHR1dGFub3RhAAG4",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 442, "since": 7, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 441, "since": 7, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"folders": {
 			"name": "folders",
-			"id": 443,
+			"id": 442,
 			"since": 7,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createMailFolderRef(): MailFolderRef {

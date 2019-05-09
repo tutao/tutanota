@@ -7,19 +7,19 @@ export const _TypeModel: TypeModel = {
 	"name": "ListUnsubscribeData",
 	"since": 24,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 868,
-	"rootId": "CHR1dGFub3RhAANk",
+	"id": 867,
+	"rootId": "CHR1dGFub3RhAANj",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 869, "since": 24, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"headers": {"name": "headers", "id": 872, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"recipient": {"name": "recipient", "id": 871, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 868, "since": 24, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"headers": {"name": "headers", "id": 871, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"recipient": {"name": "recipient", "id": 870, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"mail": {
 			"name": "mail",
-			"id": 870,
+			"id": 869,
 			"since": 24,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -29,7 +29,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createListUnsubscribeData(): ListUnsubscribeData {

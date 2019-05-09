@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "PhotosRef",
 	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 854,
-	"rootId": "CHR1dGFub3RhAANW",
+	"id": 853,
+	"rootId": "CHR1dGFub3RhAANV",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 855, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 854, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"files": {
 			"name": "files",
-			"id": 856,
+			"id": 855,
 			"since": 23,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createPhotosRef(): PhotosRef {

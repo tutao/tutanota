@@ -7,27 +7,27 @@ export const _TypeModel: TypeModel = {
 	"name": "AttachmentKeyData",
 	"since": 11,
 	"type": "AGGREGATED_TYPE",
-	"id": 543,
-	"rootId": "CHR1dGFub3RhAAIf",
+	"id": 542,
+	"rootId": "CHR1dGFub3RhAAIe",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 544, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 543, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"bucketEncFileSessionKey": {
 			"name": "bucketEncFileSessionKey",
-			"id": 545,
+			"id": 544,
 			"since": 11,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"fileSessionKey": {"name": "fileSessionKey", "id": 546, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
+		"fileSessionKey": {"name": "fileSessionKey", "id": 545, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"file": {
 			"name": "file",
-			"id": 547,
+			"id": 546,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createAttachmentKeyData(): AttachmentKeyData {

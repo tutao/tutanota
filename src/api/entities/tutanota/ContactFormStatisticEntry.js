@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "ContactFormStatisticEntry",
 	"since": 22,
 	"type": "AGGREGATED_TYPE",
-	"id": 826,
-	"rootId": "CHR1dGFub3RhAAM6",
+	"id": 825,
+	"rootId": "CHR1dGFub3RhAAM5",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 827, "since": 22, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 826, "since": 22, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"bucketEncSessionKey": {
 			"name": "bucketEncSessionKey",
-			"id": 828,
+			"id": 827,
 			"since": 22,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerPubEncBucketKey": {
 			"name": "customerPubEncBucketKey",
-			"id": 829,
+			"id": 828,
 			"since": 22,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerPubKeyVersion": {
 			"name": "customerPubKeyVersion",
-			"id": 830,
+			"id": 829,
 			"since": 22,
 			"type": "Number",
 			"cardinality": "One",
@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"statisticFields": {
 			"name": "statisticFields",
-			"id": 831,
+			"id": 830,
 			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createContactFormStatisticEntry(): ContactFormStatisticEntry {

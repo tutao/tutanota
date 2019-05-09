@@ -7,19 +7,19 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateMailFolderData",
 	"since": 7,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 451,
-	"rootId": "CHR1dGFub3RhAAHD",
+	"id": 450,
+	"rootId": "CHR1dGFub3RhAAHC",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 452, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"folderName": {"name": "folderName", "id": 454, "since": 7, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"ownerEncSessionKey": {"name": "ownerEncSessionKey", "id": 455, "since": 7, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {"name": "_format", "id": 451, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"folderName": {"name": "folderName", "id": 453, "since": 7, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"ownerEncSessionKey": {"name": "ownerEncSessionKey", "id": 454, "since": 7, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"parentFolder": {
 			"name": "parentFolder",
-			"id": 453,
+			"id": 452,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -29,7 +29,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createCreateMailFolderData(): CreateMailFolderData {

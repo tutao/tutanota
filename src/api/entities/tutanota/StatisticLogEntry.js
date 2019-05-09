@@ -7,30 +7,30 @@ export const _TypeModel: TypeModel = {
 	"name": "StatisticLogEntry",
 	"since": 19,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 774,
-	"rootId": "CHR1dGFub3RhAAMG",
+	"id": 773,
+	"rootId": "CHR1dGFub3RhAAMF",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 778, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 776, "since": 19, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_format": {"name": "_format", "id": 777, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 775, "since": 19, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 780,
+			"id": 779,
 			"since": 19,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 779, "since": 19, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 777, "since": 19, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"date": {"name": "date", "id": 781, "since": 19, "type": "Date", "cardinality": "One", "final": true, "encrypted": false}
+		"_ownerGroup": {"name": "_ownerGroup", "id": 778, "since": 19, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 776, "since": 19, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"date": {"name": "date", "id": 780, "since": 19, "type": "Date", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"values": {
 			"name": "values",
-			"id": 782,
+			"id": 781,
 			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -39,7 +39,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"contactForm": {
 			"name": "contactForm",
-			"id": 783,
+			"id": 782,
 			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -49,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createStatisticLogEntry(): StatisticLogEntry {

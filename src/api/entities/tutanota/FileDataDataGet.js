@@ -7,18 +7,18 @@ export const _TypeModel: TypeModel = {
 	"name": "FileDataDataGet",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 332,
-	"rootId": "CHR1dGFub3RhAAFM",
+	"id": 331,
+	"rootId": "CHR1dGFub3RhAAFL",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 333, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"base64": {"name": "base64", "id": 334, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {"name": "_format", "id": 332, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"base64": {"name": "base64", "id": 333, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"file": {
 			"name": "file",
-			"id": 335,
+			"id": 334,
 			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createFileDataDataGet(): FileDataDataGet {

@@ -7,17 +7,17 @@ export const _TypeModel: TypeModel = {
 	"name": "FileDataDataReturn",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 340,
-	"rootId": "CHR1dGFub3RhAAFU",
+	"id": 339,
+	"rootId": "CHR1dGFub3RhAAFT",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 341, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"size": {"name": "size", "id": 342, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {"name": "_format", "id": 340, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"size": {"name": "size", "id": 341, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createFileDataDataReturn(): FileDataDataReturn {

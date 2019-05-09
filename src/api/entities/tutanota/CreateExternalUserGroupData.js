@@ -7,25 +7,25 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateExternalUserGroupData",
 	"since": 1,
 	"type": "AGGREGATED_TYPE",
-	"id": 139,
-	"rootId": "CHR1dGFub3RhAACL",
+	"id": 138,
+	"rootId": "CHR1dGFub3RhAACK",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 140, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 139, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"internalUserEncUserGroupKey": {
 			"name": "internalUserEncUserGroupKey",
-			"id": 144,
+			"id": 143,
 			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"mailAddress": {"name": "mailAddress", "id": 142, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"mailAddress": {"name": "mailAddress", "id": 141, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"externalPwEncUserGroupKey": {
 			"name": "externalPwEncUserGroupKey",
-			"id": 143,
+			"id": 142,
 			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createCreateExternalUserGroupData(): CreateExternalUserGroupData {

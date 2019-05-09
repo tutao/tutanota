@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "PasswordChannelReturn",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 328,
-	"rootId": "CHR1dGFub3RhAAFI",
+	"id": 327,
+	"rootId": "CHR1dGFub3RhAAFH",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_format": {"name": "_format", "id": 329, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 328, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"phoneNumberChannels": {
 			"name": "phoneNumberChannels",
-			"id": 330,
+			"id": 329,
 			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createPasswordChannelReturn(): PasswordChannelReturn {

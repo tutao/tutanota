@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateMailFolderReturn",
 	"since": 7,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 456,
-	"rootId": "CHR1dGFub3RhAAHI",
+	"id": 455,
+	"rootId": "CHR1dGFub3RhAAHH",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 457, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 456, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"newFolder": {
 			"name": "newFolder",
-			"id": 458,
+			"id": 457,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createCreateMailFolderReturn(): CreateMailFolderReturn {

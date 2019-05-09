@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DraftAttachment",
 	"since": 11,
 	"type": "AGGREGATED_TYPE",
-	"id": 492,
-	"rootId": "CHR1dGFub3RhAAHs",
+	"id": 491,
+	"rootId": "CHR1dGFub3RhAAHr",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 493, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 492, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"ownerEncFileSessionKey": {
 			"name": "ownerEncFileSessionKey",
-			"id": 494,
+			"id": 493,
 			"since": 11,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"newFile": {
 			"name": "newFile",
-			"id": 495,
+			"id": 494,
 			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"existingFile": {
 			"name": "existingFile",
-			"id": 496,
+			"id": 495,
 			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createDraftAttachment(): DraftAttachment {

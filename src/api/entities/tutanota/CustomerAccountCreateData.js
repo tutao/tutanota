@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "CustomerAccountCreateData",
 	"since": 16,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 649,
-	"rootId": "CHR1dGFub3RhAAKJ",
+	"id": 648,
+	"rootId": "CHR1dGFub3RhAAKI",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 650, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {"name": "_format", "id": 649, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"adminEncAccountingInfoSessionKey": {
 			"name": "adminEncAccountingInfoSessionKey",
-			"id": 660,
+			"id": 659,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -24,20 +24,20 @@ export const _TypeModel: TypeModel = {
 		},
 		"adminEncCustomerServerPropertiesSessionKey": {
 			"name": "adminEncCustomerServerPropertiesSessionKey",
-			"id": 662,
+			"id": 661,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"authToken": {"name": "authToken", "id": 651, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"code": {"name": "code", "id": 874, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"date": {"name": "date", "id": 652, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"lang": {"name": "lang", "id": 653, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"authToken": {"name": "authToken", "id": 650, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"code": {"name": "code", "id": 873, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"date": {"name": "date", "id": 651, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"lang": {"name": "lang", "id": 652, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"systemAdminPubEncAccountingInfoSessionKey": {
 			"name": "systemAdminPubEncAccountingInfoSessionKey",
-			"id": 661,
+			"id": 660,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userEncAccountGroupKey": {
 			"name": "userEncAccountGroupKey",
-			"id": 656,
+			"id": 655,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -55,7 +55,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"userEncAdminGroupKey": {
 			"name": "userEncAdminGroupKey",
-			"id": 655,
+			"id": 654,
 			"since": 16,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -66,7 +66,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"adminGroupData": {
 			"name": "adminGroupData",
-			"id": 658,
+			"id": 657,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -75,17 +75,17 @@ export const _TypeModel: TypeModel = {
 		},
 		"customerGroupData": {
 			"name": "customerGroupData",
-			"id": 659,
+			"id": 658,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"refType": "InternalGroupData",
 			"final": false
 		},
-		"userData": {"name": "userData", "id": 654, "since": 16, "type": "AGGREGATION", "cardinality": "One", "refType": "UserAccountUserData", "final": false},
+		"userData": {"name": "userData", "id": 653, "since": 16, "type": "AGGREGATION", "cardinality": "One", "refType": "UserAccountUserData", "final": false},
 		"userGroupData": {
 			"name": "userGroupData",
-			"id": 657,
+			"id": 656,
 			"since": 16,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -94,7 +94,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createCustomerAccountCreateData(): CustomerAccountCreateData {

@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "DeleteMailFolderData",
 	"since": 7,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 459,
-	"rootId": "CHR1dGFub3RhAAHL",
+	"id": 458,
+	"rootId": "CHR1dGFub3RhAAHK",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 460, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 459, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"folders": {
 			"name": "folders",
-			"id": 461,
+			"id": 460,
 			"since": 7,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createDeleteMailFolderData(): DeleteMailFolderData {

@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "UnencryptedStatisticLogRef",
 	"since": 25,
 	"type": "AGGREGATED_TYPE",
-	"id": 888,
-	"rootId": "CHR1dGFub3RhAAN4",
+	"id": 887,
+	"rootId": "CHR1dGFub3RhAAN3",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 889, "since": 25, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 888, "since": 25, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"items": {
 			"name": "items",
-			"id": 890,
+			"id": 889,
 			"since": 25,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createUnencryptedStatisticLogRef(): UnencryptedStatisticLogRef {

@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "PasswordRetrievalReturn",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 324,
-	"rootId": "CHR1dGFub3RhAAFE",
+	"id": 323,
+	"rootId": "CHR1dGFub3RhAAFD",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 325, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {"name": "_format", "id": 324, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"transmissionKeyEncryptedPassword": {
 			"name": "transmissionKeyEncryptedPassword",
-			"id": 326,
+			"id": 325,
 			"since": 1,
 			"type": "String",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createPasswordRetrievalReturn(): PasswordRetrievalReturn {

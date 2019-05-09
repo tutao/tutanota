@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "FileDataReturnPost",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 343,
-	"rootId": "CHR1dGFub3RhAAFX",
+	"id": 342,
+	"rootId": "CHR1dGFub3RhAAFW",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 344, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 343, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"fileData": {
 			"name": "fileData",
-			"id": 345,
+			"id": 344,
 			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createFileDataReturnPost(): FileDataReturnPost {

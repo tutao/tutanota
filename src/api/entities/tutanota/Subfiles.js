@@ -15,7 +15,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"files": {
 			"name": "files",
-			"id": 28,
+			"id": 27,
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createSubfiles(): Subfiles {

@@ -24,7 +24,7 @@ import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundErr
 import {assertMainOrNode, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {
 	createNewContact,
 	createRecipientInfo,
@@ -81,6 +81,7 @@ import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 
 assertMainOrNode()
@@ -217,7 +218,19 @@ export class MailEditor {
 		}
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
-		this._richTextToolbar = new RichTextToolbar(this._editor)
+		this._richTextToolbar = new RichTextToolbar(this._editor, (ev) => {
+			this._showFileChooserForAttachments(ev.target.getBoundingClientRect())
+			    .then((files) => {
+				    files && files.forEach((f) => {
+					    const cid = Math.random().toString(30)
+					    f.cid = cid
+					    // Let'S assume it's DataFile for now... Editor bar is unavailable for apps
+					    // but we should take care of the desktop client.
+					    const dataUrl = "data:" + f.mimeType + ";base64," + uint8ArrayToBase64(downcast(f).data)
+					    this._editor.insertImage(dataUrl, {cid})
+				    })
+			    })
+		})
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(ExpanderButtonN, {
 				label: "show_action",
@@ -555,13 +568,14 @@ export class MailEditor {
 		this.dialog.close()
 	}
 
-	_showFileChooserForAttachments(boundingRect: ClientRect) {
+	_showFileChooserForAttachments(boundingRect: ClientRect): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 		if (env.mode === Mode.App) {
 			return fileApp
 				.openFileChooser(boundingRect)
 				.then(files => {
 					this.attachFiles((files: any))
 					m.redraw()
+					return files
 				})
 				.catch(PermissionError, () => {
 					Dialog.error("fileAccessDeniedMobile_msg")
@@ -573,6 +587,7 @@ export class MailEditor {
 			return fileController.showFileChooser(true).then(files => {
 				this.attachFiles((files: any))
 				m.redraw()
+				return files
 			})
 		}
 	}
@@ -652,8 +667,16 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
+		const domClone: HTMLElement = this._editor.getDOM().cloneNode(true)
+		const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
+		inlineImages.forEach((inlineImage) => {
+			const cid = inlineImage.getAttribute("cid")
+			inlineImage.setAttribute("src", "cid:" + (cid || ""))
+			inlineImage.removeAttribute("cid")
+		})
+
 		let promise = null
-		const body = this._tempBody ? this._tempBody : this._editor.getHTML()
+		const body = this._tempBody ? this._tempBody : domClone.innerHTML
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)

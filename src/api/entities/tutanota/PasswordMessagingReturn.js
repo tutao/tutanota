@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "PasswordMessagingReturn",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 314,
-	"rootId": "CHR1dGFub3RhAAE6",
+	"id": 313,
+	"rootId": "CHR1dGFub3RhAAE5",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 315, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {"name": "_format", "id": 314, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"autoAuthenticationId": {
 			"name": "autoAuthenticationId",
-			"id": 316,
+			"id": 315,
 			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createPasswordMessagingReturn(): PasswordMessagingReturn {

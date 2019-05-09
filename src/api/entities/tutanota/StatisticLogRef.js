@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "StatisticLogRef",
 	"since": 25,
 	"type": "AGGREGATED_TYPE",
-	"id": 876,
-	"rootId": "CHR1dGFub3RhAANs",
+	"id": 875,
+	"rootId": "CHR1dGFub3RhAANr",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 877, "since": 25, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 876, "since": 25, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"items": {
 			"name": "items",
-			"id": 878,
+			"id": 877,
 			"since": 25,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createStatisticLogRef(): StatisticLogRef {

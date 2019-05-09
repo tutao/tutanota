@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "MailRestriction",
 	"since": 19,
 	"type": "AGGREGATED_TYPE",
-	"id": 720,
-	"rootId": "CHR1dGFub3RhAALQ",
+	"id": 719,
+	"rootId": "CHR1dGFub3RhAALP",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 721, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 720, "since": 19, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"delegationGroups_removed": {
 			"name": "delegationGroups_removed",
-			"id": 723,
+			"id": 722,
 			"since": 19,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"participantGroupInfos": {
 			"name": "participantGroupInfos",
-			"id": 821,
+			"id": 820,
 			"since": 21,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createMailRestriction(): MailRestriction {
