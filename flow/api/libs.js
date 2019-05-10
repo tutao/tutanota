@@ -70,6 +70,7 @@ declare class Promise<+R> {
 
 	isFulfilled(): boolean;
 	isPending(): boolean;
+	value(): R;
 
 	return<T>(returnValue: T): Promise<T>;
 

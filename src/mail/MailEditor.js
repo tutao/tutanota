@@ -83,6 +83,7 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
+import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -436,7 +437,25 @@ export class MailEditor {
 		return Math.min(100, (getPasswordStrength(this.getPasswordField(recipientInfo).value(), reserved) / 0.8 * 1))
 	}
 
-	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
+	initAsResponse({
+		               previousMail, conversationType, senderMailAddress,
+		               toRecipients, ccRecipients, bccRecipients,
+		               attachments, subject, bodyText,
+		               replyTos, addSignature, inlineAttachments
+	               }: {
+		previousMail: Mail,
+		conversationType: ConversationTypeEnum,
+		senderMailAddress: string,
+		toRecipients: MailAddress[],
+		ccRecipients: MailAddress[],
+		bccRecipients: MailAddress[],
+		attachments: TutanotaFile[],
+		subject: string,
+		bodyText: string,
+		replyTos: EncryptedMailAddress[],
+		addSignature: boolean,
+		inlineAttachments?: Promise<InlineImages>
+	}): Promise<void> {
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()

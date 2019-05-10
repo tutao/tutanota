@@ -6,15 +6,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {
-	formatDateTime,
-	formatDateWithWeekday,
-	formatStorageSize,
-	formatTime,
-	getDomainWithoutSubdomains,
-	replaceCids,
-	urlEncodeHtmlTags
-} from "../misc/Formatter"
+import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -30,7 +22,8 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {defer, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -73,7 +66,7 @@ import {mailModel} from "./MailModel"
 import {theme, themeId} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {getElementId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
@@ -90,8 +83,8 @@ import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
-type InlineImages = {
-	[referencedCid: string]: string // map from cid to base64 data url
+export type InlineImages = {
+	[referencedCid: string]: {file: TutanotaFile, base64Data: string} // map from cid to file and its b64 encoded data URI
 }
 
 /**
@@ -107,7 +100,6 @@ export class MailViewer {
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
 	_contentBlocked: boolean;
-	_domBody: HTMLElement;
 	_domMailViewer: ?HTMLElement;
 	_bodyLineHeight: string;
 	_errorOccurred: boolean;
@@ -119,6 +111,7 @@ export class MailViewer {
 	mailHeaderInfo: string;
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
+	_domBodyDeferred: DeferredObject<HTMLElement>;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -127,6 +120,7 @@ export class MailViewer {
 		this.mail = mail
 		this._folderText = null
 		this._filesExpanded = stream(false)
+		this._domBodyDeferred = defer()
 		if (showFolder) {
 			let folder = mailModel.getMailFolder(mail._id[0])
 			if (folder) {
@@ -371,7 +365,7 @@ export class MailViewer {
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
-								this._domBody = vnode.dom
+								this._domBodyDeferred.resolve(vnode.dom)
 								this._updateLineHeight()
 							},
 							onclick: (event: Event) => this._handleAnchorClick(event),
@@ -400,9 +394,18 @@ export class MailViewer {
 
 
 	_replaceInlineImages() {
-		this._inlineImages.then((inlineImages) => {
-			this._htmlBody = replaceCids(this._htmlBody, inlineImages)
-			m.redraw()
+		this._inlineImages.then((loadedInlineImages) => {
+			this._domBodyDeferred.promise.then(domBody => {
+				const imageElements: Array<HTMLElement> = Array.from(domBody.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
+				imageElements.forEach((imageElement) => {
+					const value = imageElement.getAttribute("src")
+					if (value && loadedInlineImages[value]) {
+						imageElement.setAttribute("src", loadedInlineImages[value].base64Data)
+						imageElement.setAttribute("cid", value)
+					}
+				})
+				m.redraw()
+			})
 		})
 	}
 
@@ -459,8 +462,10 @@ export class MailViewer {
 					              const inlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								              inlineImages["cid:" + neverNull(file.cid)] = "data:" + dataFile.mimeType + ";base64,"
-									              + uint8ArrayToBase64(dataFile.data)
+								              inlineImages["cid:" + neverNull(file.cid)] = {
+									              file,
+									              data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+								              }
 							              })
 						              ).return(inlineImages)
 				              })
@@ -561,19 +566,16 @@ export class MailViewer {
 	}
 
 	_updateLineHeight() {
-		requestAnimationFrame(() => {
-			if (this._domBody) {
-				const width = this._domBody.offsetWidth
-				if (width > 900) {
-					this._bodyLineHeight = size.line_height_l
-				} else if (width > 600) {
-					this._bodyLineHeight = size.line_height_m
-
-				} else {
-					this._bodyLineHeight = size.line_height
-				}
-				m.redraw()
+		this._domBodyDeferred.promise.then((domBody) => {
+			const width = domBody.offsetWidth
+			if (width > 900) {
+				this._bodyLineHeight = size.line_height_l
+			} else if (width > 600) {
+				this._bodyLineHeight = size.line_height_m
+			} else {
+				this._bodyLineHeight = size.line_height
 			}
+			m.redraw()
 		})
 	}
 
@@ -683,7 +685,20 @@ export class MailViewer {
 					}
 				}
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initAsResponse(this.mail, ConversationType.REPLY, this._getSenderOfResponseMail(), toRecipients, ccRecipients, bccRecipients, [], subject, body, [], true)
+				return editor.initAsResponse({
+					previousMail: this.mail,
+					conversationType: ConversationType.REPLY,
+					senderMailAddress: this._getSenderOfResponseMail(),
+					toRecipients,
+					ccRecipients,
+					bccRecipients,
+					attachments: [],
+					subject,
+					bodyText: body,
+					replyTos: [],
+					addSignature: true,
+					inlineAttachments: this._inlineImages
+				})
 				             .then(() => {
 					             editor.show()
 				             })
@@ -719,8 +734,20 @@ export class MailViewer {
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
 
 		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-		return editor.initAsResponse(this.mail, ConversationType.FORWARD, this._getSenderOfResponseMail(), recipients, [], [], this._attachments.slice(), "Fwd: "
-			+ this.mail.subject, body, replyTos, addSignature).then(() => {
+		return editor.initAsResponse({
+			previousMail: this.mail,
+			conversationType: ConversationType.FORWARD,
+			senderMailAddress: this._getSenderOfResponseMail(),
+			toRecipients: recipients,
+			ccRecipients: [],
+			bccRecipients: [],
+			attachments: this._attachments.slice(),
+			subject: "FWD: " + this.mail.subject,
+			bodyText: body,
+			replyTos,
+			addSignature,
+			inlineAttachments: this._inlineImages
+		}).then(() => {
 			return editor
 		})
 	}
@@ -841,8 +868,8 @@ export class MailViewer {
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domBody) {
-			const dom = this._domBody
+		if (this._domBodyDeferred.promise.isFulfilled()) {
+			const dom = this._domBodyDeferred.promise.value()
 			if (this._scrollAnimation.isFulfilled()) {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
