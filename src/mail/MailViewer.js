@@ -213,6 +213,7 @@ export class MailViewer {
 						if (confirmed) {
 							this._htmlBody = urlify(htmlSanitizer.sanitize(neverNull(this._mailBody).text, false).text)
 							this._contentBlocked = false
+							this._domBodyDeferred = defer()
 							this._replaceInlineImages()
 							m.redraw()
 						}
@@ -368,6 +369,11 @@ export class MailViewer {
 								this._domBodyDeferred.resolve(vnode.dom)
 								this._updateLineHeight()
 							},
+							onupdate: (vnode) => {
+								if (this._domBodyDeferred.promise.isPending()) {
+									this._domBodyDeferred.resolve(vnode.dom)
+								}
+							},
 							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
@@ -399,9 +405,12 @@ export class MailViewer {
 				const imageElements: Array<HTMLElement> = Array.from(domBody.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
 				imageElements.forEach((imageElement) => {
 					const value = imageElement.getAttribute("src")
-					if (value && loadedInlineImages[value]) {
-						imageElement.setAttribute("src", loadedInlineImages[value].base64Data)
-						imageElement.setAttribute("cid", value)
+					if (value && value.startsWith("cid:")) {
+						const cid = value.substring(4)
+						if (loadedInlineImages[cid]) {
+							imageElement.setAttribute("src", loadedInlineImages[cid].base64Data)
+							imageElement.setAttribute("cid", cid)
+						}
 					}
 				})
 				m.redraw()
@@ -459,12 +468,12 @@ export class MailViewer {
 				              m.redraw()
 				              return inlineFileIds.then((inlineFileIds) => {
 					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
-					              const inlineImages = {}
+					              const inlineImages: InlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								              inlineImages["cid:" + neverNull(file.cid)] = {
+								              inlineImages[neverNull(file.cid)] = {
 									              file,
-									              data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+									              base64Data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
 								              }
 							              })
 						              ).return(inlineImages)

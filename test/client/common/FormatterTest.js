@@ -10,7 +10,6 @@ import {
 	mailAddressToFirstAndLastName,
 	parseBirthday,
 	parseDate,
-	replaceCids,
 	stringToNameAndMailAddress
 } from "../../../src/misc/Formatter"
 import {isMailAddress, isRegularExpression} from "../../../src/misc/FormatValidator"
@@ -248,14 +247,6 @@ o.spec("FormatterTest", function () {
 		// It will fail in 2050. Hello from 2019!
 		_checkParseBirthday("1/1/50", 1, 1, 1950)
 	}))
-
-	o("replaceCids", function () {
-		o(replaceCids("<img src=\"cid:tutanotaFile-_\" /><img src=\"cid:tutanotaFile-_\" /><img src=\"cid:tutanotaFile-_2\" />",
-			{
-				"cid:tutanotaFile-_": "test",
-				"cid:tutanotaFile-_2": "test2"
-			})).equals(`<img src="test" cid="tutanotaFile-_"/><img src="test" cid="tutanotaFile-_"/><img src="test2" cid="tutanotaFile-_"2/>`)
-	})
 
 	function _checkParseBirthday(text: string, expectedDay: number, expectedMonth: number, expectedYear: ?number) {
 		let expected = createBirthday()

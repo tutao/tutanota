@@ -307,7 +307,7 @@ export class MailEditor {
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
 					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
-					: this._getAttachmentButtons().map((a) => a && m(ButtonN, a))
+					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
 				),
 				this._attachments.length > 0 ? m("hr.hr") : null,
 				this._showToolbar ? m(this._richTextToolbar) : null,
@@ -473,6 +473,16 @@ export class MailEditor {
 			console.log("could not load conversation entry", e);
 		}).finally(() => {
 			this._setMailData(previousMail, previousMail.confidential, conversationType, previousMessageId, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
+			    .then(() => inlineAttachments)
+			    .then((loadedInlineAttachments) => {
+				    if (loadedInlineAttachments) {
+					    Object.keys(loadedInlineAttachments).forEach((key) => {
+						    const {file} = loadedInlineAttachments[key]
+						    if (!attachments.includes(file)) this._attachments.push(file)
+					    })
+					    this._replaceInlineImages(loadedInlineAttachments)
+				    }
+			    })
 		})
 	}
 
@@ -537,10 +547,16 @@ export class MailEditor {
 			this.draft = draft
 			// conversation type is just a dummy here
 			this._setMailData(previousMail, draft.confidential, conversationType, previousMessageId, draft.sender.address, draft.toRecipients, draft.ccRecipients, draft.bccRecipients, attachments, draft.subject, bodyText, draft.replyTos)
+
+			this._loadAttachments(draft)
+			    .then((inlineImages) => this._replaceInlineImages(inlineImages))
+			this._loadAttachments(draft,)
 		})
 	}
 
-	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, body: string, replyTos: EncryptedMailAddress[]): void {
+	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string,
+	             toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string,
+	             body: string, replyTos: EncryptedMailAddress[]): Promise<void> {
 		this._previousMail = previousMail
 		this.conversationType = conversationType
 		this.previousMessageId = previousMessageId
@@ -555,7 +571,7 @@ export class MailEditor {
 		this.attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
-		this._editor.initialized.promise.then(() => {
+		const promise = this._editor.initialized.promise.then(() => {
 			if (this._editor.getHTML() !== body) {
 				this._editor.setHTML(this._tempBody)
 				this._mailChanged = false
@@ -587,6 +603,24 @@ export class MailEditor {
 		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, null))
 		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null, true))
 		this._mailChanged = false
+		return promise
+	}
+
+	_replaceInlineImages(loadedInlineImages: InlineImages) {
+		this._editor.initialized.promise.then(() => {
+			const imageElements: Array<HTMLElement> = Array.from(this._editor.getDOM().querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
+			imageElements.forEach((imageElement) => {
+				const value = imageElement.getAttribute("src")
+				if (value && value.startsWith("cid:")) {
+					const cid = value.substring(4)
+					if (loadedInlineImages[cid]) {
+						imageElement.setAttribute("src", loadedInlineImages[cid].base64Data)
+						imageElement.setAttribute("cid", cid)
+					}
+				}
+			})
+			m.redraw()
+		})
 	}
 
 	show() {
@@ -647,12 +681,8 @@ export class MailEditor {
 		m.redraw()
 	}
 
-	_getAttachmentButtons(): Array<ButtonAttrs | null> {
+	_getAttachmentButtons(): Array<ButtonAttrs> {
 		return this._attachments.map(file => {
-			// Do not display inline attachments in editor, that's confusing
-			if (file.cid != null) {
-				return null
-			}
 			let lazyButtonAttrs: ButtonAttrs[] = []
 
 			lazyButtonAttrs.push({
@@ -1049,6 +1079,28 @@ export class MailEditor {
 		].find(b => contains(b, bubble))
 		if (bubbles) {
 			remove(bubbles, bubble)
+		}
+	}
+
+	_loadAttachments(mail: Mail): Promise<InlineImages> {
+		if (mail.attachments.length === 0) {
+			return Promise.resolve({})
+		} else {
+			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
+			              .then(files => {
+				              const filesToLoad = files.filter(file => file.cid)
+				              const inlineImages: InlineImages = {}
+				              return Promise
+					              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+							              inlineImages[neverNull(file.cid)] = {
+								              file,
+								              base64Data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+							              }
+						              })
+					              ).return(inlineImages)
+			              })
+			              .catch(NotFoundError, e =>
+				              console.log("could load attachments as they have been moved/deleted already", e))
 		}
 	}
 
