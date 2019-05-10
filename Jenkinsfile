@@ -60,7 +60,7 @@ pipeline {
                 	}
                 }
 
-                stage('desktop-mac') {
+/*                stage('desktop-mac') {
                     agent {
                         label 'mac'
                     }
@@ -82,6 +82,7 @@ pipeline {
 						}
                     }
                 }
+*/
 
                 stage('desktop-linux'){
                     agent {
@@ -123,7 +124,7 @@ pipeline {
 				dir('/opt/desktop-snapshot/') {
 					unstash 'linux_installer_test'
 					unstash 'win_installer_test'
-					unstash 'mac_installer_test'
+//					unstash 'mac_installer_test'
 				}
 			}
 		}
@@ -146,10 +147,10 @@ pipeline {
 				unstash 'bundles'
 				dir('build'){
 					unstash 'linux_installer'
-					unstash 'mac_installer'
+//					unstash 'mac_installer'
 					unstash 'win_installer'
 					unstash 'linux_installer_test'
-                    unstash 'mac_installer_test'
+//                    unstash 'mac_installer_test'
                     unstash 'win_installer_test'
 				}
 				sh 'node dist -edp release'
