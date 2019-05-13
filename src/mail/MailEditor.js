@@ -228,8 +228,9 @@ export class MailEditor {
 					    const dataFile: DataFile = downcast(f)
 					    const cid = Math.random().toString(30)
 					    f.cid = cid
-					    const dataUrl = "data:" + f.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
-					    this._editor.insertImage(dataUrl, {cid, style: 'max-width: 100%'})
+					    const blob = new Blob([dataFile.data], {type: f.mimeType})
+					    let objectUrl = URL.createObjectURL(blob)
+					    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
 				    })
 			    })
 		})
@@ -614,7 +615,7 @@ export class MailEditor {
 				if (value && value.startsWith("cid:")) {
 					const cid = value.substring(4)
 					if (loadedInlineImages[cid]) {
-						imageElement.setAttribute("src", loadedInlineImages[cid].base64Data)
+						imageElement.setAttribute("src", loadedInlineImages[cid].url)
 						imageElement.setAttribute("cid", cid)
 					}
 				}
@@ -1092,9 +1093,12 @@ export class MailEditor {
 				              const inlineImages: InlineImages = {}
 				              return Promise
 					              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+							              const blob = new Blob([dataFile.data], {
+								              type: dataFile.mimeType
+							              })
 							              inlineImages[neverNull(file.cid)] = {
 								              file,
-								              base64Data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+								              url: URL.createObjectURL(blob)
 							              }
 						              })
 					              ).return(inlineImages)

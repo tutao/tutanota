@@ -78,13 +78,12 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
 export type InlineImages = {
-	[referencedCid: string]: {file: TutanotaFile, base64Data: string} // map from cid to file and its b64 encoded data URI
+	[referencedCid: string]: {file: TutanotaFile, url: string} // map from cid to file and its URL (data or Blob)
 }
 
 /**
@@ -408,7 +407,7 @@ export class MailViewer {
 					if (value && value.startsWith("cid:")) {
 						const cid = value.substring(4)
 						if (loadedInlineImages[cid]) {
-							imageElement.setAttribute("src", loadedInlineImages[cid].base64Data)
+							imageElement.setAttribute("src", loadedInlineImages[cid].url)
 							imageElement.setAttribute("cid", cid)
 						}
 					}
@@ -471,9 +470,12 @@ export class MailViewer {
 					              const inlineImages: InlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+								              const blob = new Blob([dataFile.data], {
+									              type: dataFile.mimeType
+								              })
 								              inlineImages[neverNull(file.cid)] = {
 									              file,
-									              base64Data: "data:" + dataFile.mimeType + ";base64," + uint8ArrayToBase64(dataFile.data)
+									              url: URL.createObjectURL(blob)
 								              }
 							              })
 						              ).return(inlineImages)
