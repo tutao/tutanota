@@ -29,6 +29,7 @@ node(() => {
     require("./desktop/ApplicationWindowTest.js")
     require("./desktop/DesktopSseClientTest.js")
     require("./desktop/DesktopDownloadManagerTest.js")
+    require("./desktop/IPCTest.js")
 })()
 
 o.run()
