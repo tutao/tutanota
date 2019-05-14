@@ -935,3 +935,8 @@ export type TranslationKeyType = "acceptPrivacyPolicyReminder_msg"
 	| "yourFolders_action"
 	| "yourMessage_label"
 	| "emptyString_msg"
+	| "moveUp_action"
+	| "moveDown_action"
+	| "moveToTop_action"
+	| "moveToBottom_action"
+

@@ -951,6 +951,10 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"moveUp_action": "Nach oben",
+		"moveDown_action": "Nach unten",
+		"moveToTop_action": "An den Anfang verschieben",
+		"moveToBottom_action": "An das Ende verschieben"
 	}
 }
