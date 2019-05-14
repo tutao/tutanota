@@ -444,7 +444,7 @@ export class    MailViewer {
 							}),
 							m(ExpanderPanelN, {
 								expanded: this._filesExpanded
-							}, this._attachmentButtons.slice(2).map(m))
+							}, this._attachmentButtons.slice(spoilerLimit).map(m))
 						]
 						: this._attachmentButtons.map(m),
 					this._renderDownloadAllButton()
