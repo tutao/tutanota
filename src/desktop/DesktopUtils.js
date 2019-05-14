@@ -37,7 +37,7 @@ export default class DesktopUtils {
 	 * there are tests for this function.
 	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
-	static nonClobberingFileName(files: Array<string>, fileName: string): string {
+	static nonClobberingFilename(files: Array<string>, fileName: string): string {
 		const clashingFile = files.find(f => f === fileName)
 		if (typeof clashingFile !== "string") { // all is well
 			return fileName

@@ -33,48 +33,48 @@ function setEnv(platform: string) {
 o.spec("nonClobberingFileName Test", function () {
 
 	o("noClash", function () {
-		o(DesktopUtils.nonClobberingFileName(['bye.txt'], "hello.ext")).equals('hello.ext')
+		o(DesktopUtils.nonClobberingFilename(['bye.txt'], "hello.ext")).equals('hello.ext')
 	})
 
 	o("emptyDir", function () {
-		o(DesktopUtils.nonClobberingFileName([], "hello.ext")).equals('hello.ext')
+		o(DesktopUtils.nonClobberingFilename([], "hello.ext")).equals('hello.ext')
 	})
 
 	o("emptyString", function () {
-		o(DesktopUtils.nonClobberingFileName([''], 'hello.ext')).equals('hello.ext')
+		o(DesktopUtils.nonClobberingFilename([''], 'hello.ext')).equals('hello.ext')
 	})
 
 	o('duplicateFileNonClashing', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hallo.txt',
 			'hallo.txt'
 		], 'hello.ext')).equals('hello.ext')
 	})
 
 	o('duplicateFileClashing', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 			'hello.ext'
 		], 'hello.ext')).equals('hello-1.ext')
 	})
 
 	o('clashingFiles', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext'
 		], 'hello.ext')).equals('hello-1.ext')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 			'hello-1.ext'
 		], 'hello.ext')).equals('hello-2.ext')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 			'hello-1.ext',
 			'hello-2.ext'
 		], 'hello.ext')).equals('hello-3.ext')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext', 'hello-1.ext',
 			'hello-2.ext', 'hello-3.ext',
 			'hello-4.ext', 'hello-5.ext',
@@ -87,19 +87,19 @@ o.spec("nonClobberingFileName Test", function () {
 	})
 
 	o('numberedFileNameNonClashing', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext'
 		], 'hello-1.ext')).equals('hello-1.ext')
 	})
 
 	o('numberedFileNameClashing', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello-1.ext'
 		], 'hello-1.ext')).equals('hello-1-1.ext')
 	})
 
 	o('intermediate value', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 			'hello-3.ext',
 			'hello-1.ext',
@@ -107,14 +107,14 @@ o.spec("nonClobberingFileName Test", function () {
 			'hello-Infinity.ext'
 		], 'hello.ext')).equals('hello-2.ext')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello-0.ext',
 			'hello.ext',
 			'hello-3.ext',
 			'hello-1.ext',
 		], 'hello.ext')).equals('hello-2.ext')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello--2.ext',
 			'hello-0.ext',
 			'hello-3.ext',
@@ -123,7 +123,7 @@ o.spec("nonClobberingFileName Test", function () {
 	})
 
 	o('truncated clashes', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello-.ext',
 			'hello.',
 			'hello',
@@ -132,7 +132,7 @@ o.spec("nonClobberingFileName Test", function () {
 	})
 
 	o('almost clashes', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 			'hello-a.ext',
 			'hello-01.ext',
@@ -141,21 +141,21 @@ o.spec("nonClobberingFileName Test", function () {
 	})
 
 	o('dotfiles', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'.ext', // unix dotfile w/o extension
 		], '.ext')).equals('.ext-1')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'.ext.txt', // unix dotfile w/o extension
 		], '.ext.txt')).equals('.ext-1.txt')
 	})
 
 	o('malformedFilename', function () {
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'',
 		], '')).equals('-1')
 
-		o(DesktopUtils.nonClobberingFileName([
+		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 		], '')).equals('')
 	})
