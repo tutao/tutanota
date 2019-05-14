@@ -427,7 +427,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw new DbError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
+						throw new InvalidDatabaseStateError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 					}
 				})
 			}))
