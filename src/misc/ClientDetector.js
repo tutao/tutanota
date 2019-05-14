@@ -374,7 +374,7 @@ class ClientDetector {
 
 	canDownloadMultipleFiles(): boolean {
 		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion < 65
+		return (this.browser !== BrowserType.FIREFOX || this.browserVersion < 65) && this.browser !== BrowserType.SAFARI
 	}
 
 	needsDownloadBatches(): boolean {
