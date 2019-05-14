@@ -708,6 +708,12 @@ export class MailEditor {
 				type: ButtonType.Secondary,
 				click: () => {
 					remove(this._attachments, file)
+					const dom = this._domElement
+					const cid = file.cid
+					if (cid && dom) {
+						const image = dom.querySelector(`img[cid="${cid}"]`)
+						image && image.remove()
+					}
 					this._mailChanged = true
 					m.redraw()
 				}
