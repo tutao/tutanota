@@ -28,15 +28,14 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonN} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {TableN} from "../gui/base/TableN"
+import {createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import {createDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
 
@@ -249,65 +248,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_updateInboxRules(props: TutanotaProperties): void {
 		mailModel.init().then(() => {
 			this._inboxRulesTableLines(props.inboxRules.map((rule, index) => {
-				const dropDownActions: $ReadOnlyArray<ButtonAttrs> = [
-					{
-						label: "moveToTop_action",
-						type: ButtonType.Dropdown,
-						isVisible: () => index > 1,
-						click: () => {
-							props.inboxRules.splice(index, 1)
-							props.inboxRules.unshift(rule)
-							update(props)
-						}
-					},
-					{
-						label: "moveUp_action",
-						type: ButtonType.Dropdown,
-						isVisible: () => index > 0,
-						click: () => {
-							let prev = props.inboxRules[index - 1]
-							props.inboxRules[index - 1] = rule
-							props.inboxRules[index] = prev
-							update(props)
-						}
-					},
-					{
-						label: "moveDown_action",
-						type: ButtonType.Dropdown,
-						isVisible: () => index < props.inboxRules.length - 1,
-						click: () => {
-							let next = props.inboxRules[index + 1]
-							props.inboxRules[index + 1] = rule
-							props.inboxRules[index] = next
-							update(props)
-						}
-					},
-					{
-						label: "moveToBottom_action",
-						type: ButtonType.Dropdown,
-						isVisible: () => index < props.inboxRules.length - 2,
-						click: () => {
-							props.inboxRules.splice(index, 1)
-							props.inboxRules.push(rule)
-							update(props)
-						}
-					},
-					{
-						label: "delete_action",
-						type: ButtonType.Dropdown,
-						click: () => {
-							props.inboxRules.splice(index, 1)
-							update(props)
-						}
-					}
-				]
 				return {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)],
-					actionButtonAttrs: {
-						label: "edit_action",
-						click: createDropdown(() => dropDownActions, 260),
-						icon: () => Icons.Edit
-					}
+					actionButtonAttrs: createRowActions({
+						getArray: () => props.inboxRules,
+						updateInstance: () => update(props)
+					}, rule, index)
 				}
 			}))
 			m.redraw()

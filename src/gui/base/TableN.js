@@ -6,8 +6,10 @@ import {px, size} from "../size"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN} from "./ButtonN"
+import {ButtonN, ButtonType} from "./ButtonN"
 import {neverNull} from "../../api/common/utils/Utils"
+import {createDropdown} from "./DropdownN"
+import {Icons} from "./icons/Icons"
 
 assertMainOrNode()
 
@@ -92,3 +94,72 @@ class _Table {
 }
 
 export const TableN: Class<MComponent<TableAttrs>> = _Table
+
+
+interface UpdateableInstanceWithArray<T> {
+	getArray: () => Array<T>,
+	updateInstance: () => Promise<void>;
+}
+
+export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement:T, indexOfElement: number): ButtonAttrs {
+	const elements = instance.getArray()
+	const dropDownActions: $ReadOnlyArray<ButtonAttrs> = [
+		{
+			label: "moveToTop_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement > 1,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				elements.unshift(currentElement)
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveUp_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement > 0,
+			click: () => {
+				let prev = instance.getArray()[indexOfElement - 1]
+				elements[indexOfElement - 1] = currentElement
+				elements[indexOfElement] = prev
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveDown_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement < instance.getArray().length - 1,
+			click: () => {
+				let next = instance.getArray()[indexOfElement + 1]
+				elements[indexOfElement + 1] = currentElement
+				elements[indexOfElement] = next
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveToBottom_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement < instance.getArray().length - 2,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				elements.push(currentElement)
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "delete_action",
+			type: ButtonType.Dropdown,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				instance.updateInstance()
+			}
+		}
+	]
+
+	return {
+		label: "edit_action",
+		click: createDropdown(() => dropDownActions, 260),
+		icon: () => Icons.Edit
+	}
+}
+
