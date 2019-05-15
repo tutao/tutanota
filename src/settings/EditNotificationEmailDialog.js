@@ -15,6 +15,8 @@ import {SegmentControl} from "../gui/base/SegmentControl"
 import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {insertInlineImageClickHandler} from "../mail/MailUtils"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
@@ -27,8 +29,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor(null)
-		.enableRichToolbar(true)
+	const editor = new HtmlEditor(null, {enabled: true, imageButtonClickHandler: insertInlineImageClickHandler})
 		.setMinHeight(400)
 		.showBorders()
 		.setModeSwitcher("mailBody_label")
@@ -129,7 +130,11 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 				} else {
 					customerProperties.notificationMailTemplates.push(template)
 				}
-				update(customerProperties).then(() => dialog.close())
+				update(customerProperties)
+					.then(() => dialog.close())
+					.catch(PreconditionFailedError, () => {
+						Dialog.error("notificationMailTemplateTooLarge_msg")
+					})
 			}))
 		}
 	})

@@ -8,7 +8,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSignature} from "../mail/MailUtils"
+import {getDefaultSignature, insertInlineImageClickHandler} from "../mail/MailUtils"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 
@@ -21,10 +21,11 @@ export function show(props: TutanotaProperties) {
 	}
 
 	let previousType = logins.getUserController().props.emailSignatureType
-	let editor = new HtmlEditor("preview_label").showBorders()
-	                                            .setMinHeight(200)
-	                                            .setValue(getSignature(previousType, currentCustomSignature))
-	                                            .enableRichToolbar(true)
+
+	const editor = new HtmlEditor("preview_label", {enabled: true, imageButtonClickHandler: insertInlineImageClickHandler})
+		.showBorders()
+		.setMinHeight(200)
+		.setValue(getSignature(previousType, currentCustomSignature))
 
 	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
 	typeField.selectedValue.map(type => {

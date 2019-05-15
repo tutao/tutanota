@@ -6,12 +6,13 @@ import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
+	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
 	EmailSignatureType as TutanotaConstants,
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState
+	MailState, MAX_BASE64_IMAGE_SIZE
 } from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
@@ -34,6 +35,9 @@ import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/
 import {Dialog} from "../gui/base/Dialog"
 import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
+import {fileController} from "../file/FileController"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {Editor} from "../gui/base/Editor"
 
 assertMainOrNode()
 
@@ -436,4 +440,23 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 	} else {
 		return Icons.Folder
 	}
+}
+
+
+export function insertInlineImageClickHandler(ev: Event, editor: Editor) {
+	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+		const tooBig = []
+		for (let file of files) {
+			if (file.size > MAX_BASE64_IMAGE_SIZE) {
+				tooBig.push(file)
+			} else {
+				const b64 = uint8ArrayToBase64(file.data)
+				const dataUrlString = `data:${file.mimeType};base64,${b64}`
+				editor.insertImage(dataUrlString, {style: "max-width: 100%"})
+			}
+		}
+		if (tooBig.length > 0) {
+			Dialog.error(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
+		}
+	})
 }

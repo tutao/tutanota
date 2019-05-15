@@ -210,9 +210,9 @@ export class ContactFormEditor {
 
 		this._pageTitleField = new TextField("pageTitle_label")
 
-		this._headerField = new HtmlEditor().setModeSwitcher("header_label").setMinHeight(200).showBorders().enableRichToolbar(true)
-		this._footerField = new HtmlEditor().setModeSwitcher("footer_label").setMinHeight(200).showBorders().enableRichToolbar(true)
-		this._helpField = new HtmlEditor().setModeSwitcher("helpPage_label").setMinHeight(200).showBorders().enableRichToolbar(true)
+		this._headerField = new HtmlEditor(null, {enabled: true}).setModeSwitcher("header_label").setMinHeight(200).showBorders()
+		this._footerField = new HtmlEditor(null, {enabled: true}).setModeSwitcher("footer_label").setMinHeight(200).showBorders()
+		this._helpField = new HtmlEditor(null, {enabled: true}).setModeSwitcher("helpPage_label").setMinHeight(200).showBorders()
 
 		let addStatisticsFieldButton = new Button("addStatisticsField_action",
 			() => AddStatisticsFieldDialog.show()

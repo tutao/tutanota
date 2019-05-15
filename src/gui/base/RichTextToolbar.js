@@ -17,7 +17,7 @@ export class RichTextToolbar {
 	view: Function;
 	selectedSize: Stream<number>;
 
-	constructor(editor: Editor, attachFileHandler?: clickHandler) {
+	constructor(editor: Editor, attachFileHandler?: ?((ev: Event, editor: Editor) => mixed)) {
 
 		this.selectedSize = stream(size.font_size_base)
 
@@ -92,11 +92,12 @@ export class RichTextToolbar {
 			noBubble: true,
 			isSelected: () => editor.styles.listing === 'ol'
 		})
-		if (attachFileHandler) {
+		const attachHandler = attachFileHandler
+		if (attachHandler) {
 			styleToggleAttrs.unshift({
 				label: "emptyString_msg",
 				title: () => "Insert image",
-				click: attachFileHandler,
+				click: (ev) => attachHandler(ev, editor),
 				type: ButtonType.Toggle,
 				icon: () => Icons.Picture
 			})

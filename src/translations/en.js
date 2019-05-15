@@ -947,6 +947,8 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
+		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large."
 	}
 }

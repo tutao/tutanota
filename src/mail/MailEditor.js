@@ -9,7 +9,7 @@ import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} 
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
-import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {ALLOWED_IMAGE_FORMATS, ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
@@ -21,7 +21,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
-import {assertMainOrNode, Mode} from "../api/Env"
+import {assertMainOrNode, isApp, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {downcast, neverNull} from "../api/common/utils/Utils"
@@ -174,7 +174,7 @@ export class MailEditor {
 			noBubble: true
 		}
 
-		const toolbarButton = () => (styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly)
+		const toolbarButton = () => (!logins.getUserController().props.sendPlaintextOnly)
 			? m(ButtonN, {
 				label: 'showRichTextToolbar_action',
 				icon: () => Icons.FontSize,
@@ -219,21 +219,10 @@ export class MailEditor {
 		}
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
-		this._richTextToolbar = new RichTextToolbar(this._editor, (ev) => {
-			this._showFileChooserForAttachments(ev.target.getBoundingClientRect())
-			    .then((files) => {
-				    files && files.forEach((f) => {
-					    // Let'S assume it's DataFile for now... Editor bar is unavailable for apps
-					    // but we should take care of the desktop client.
-					    const dataFile: DataFile = downcast(f)
-					    const cid = Math.random().toString(30)
-					    f.cid = cid
-					    const blob = new Blob([dataFile.data], {type: f.mimeType})
-					    let objectUrl = URL.createObjectURL(blob)
-					    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
-				    })
-			    })
-		})
+		const attachImageHandler = isApp() ?
+			null
+			: (ev) => this._onAttachImageClicked(ev)
+		this._richTextToolbar = new RichTextToolbar(this._editor, attachImageHandler)
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(ExpanderButtonN, {
 				label: "show_action",
@@ -637,7 +626,7 @@ export class MailEditor {
 		this.dialog.close()
 	}
 
-	_showFileChooserForAttachments(boundingRect: ClientRect): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
+	_showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 		if (env.mode === Mode.App) {
 			return fileApp
 				.openFileChooser(boundingRect)
@@ -653,7 +642,7 @@ export class MailEditor {
 					Dialog.error("couldNotAttachFile_msg")
 				})
 		} else {
-			return fileController.showFileChooser(true).then(files => {
+			return fileController.showFileChooser(true, fileTypes).then(files => {
 				this.attachFiles((files: any))
 				m.redraw()
 				return files
@@ -726,6 +715,21 @@ export class MailEditor {
 				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
 			}, () => lazyButtonAttrs)
 		})
+	}
+
+	_onAttachImageClicked(ev: Event) {
+		this._showFileChooserForAttachments((ev.target: any).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS)
+		    .then((files) => {
+			    files && files.forEach((f) => {
+				    // Let'S assume it's DataFile for now... Editor bar is available for apps but image button is not
+				    const dataFile: DataFile = downcast(f)
+				    const cid = Math.random().toString(30).substring(2)
+				    f.cid = cid
+				    const blob = new Blob([dataFile.data], {type: f.mimeType})
+				    let objectUrl = URL.createObjectURL(blob)
+				    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
+			    })
+		    })
 	}
 
 	/**
