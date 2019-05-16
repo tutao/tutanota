@@ -142,7 +142,9 @@ public final class PushNotificationService extends JobService {
             Log.d(TAG, "Starting foreground");
             startForeground(1, new NotificationCompat
                     .Builder(this, PERSISTENT_NOTIFICATION_CHANNEL_ID)
-                    .setContentTitle("Notification service").build());
+                    .setContentTitle("Notification service")
+                    .setSmallIcon(R.drawable.ic_status)
+                    .build());
         }
     }
 
@@ -366,7 +368,6 @@ public final class PushNotificationService extends JobService {
                             .setAutoCancel(true)
                             .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY);
 
-                    //noinspection ConstantConditions
                     notificationManager.notify(notificationId, notificationBuilder.build());
 
                     sendSummaryNotification(notificationManager, pushMessage.getTitle(),
