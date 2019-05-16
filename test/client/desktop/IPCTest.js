@@ -4,10 +4,22 @@ import o from "ospec/ospec.js"
 import chalk from 'chalk'
 
 o.spec("IPC tests", () => {
-    o.beforeEach(n.enable)
-    o.afterEach(n.disable)
-    n.allow([
+    n.startGroup(__filename, [
         "../Env",
+        '../api/common/utils/Utils.js',
+        '../TutanotaConstants',
+        './utils/Utils',
+        '../EntityFunctions',
+        './utils/Encoding',
+        '../error/CryptoError',
+        './TutanotaError',
+        './StringUtils',
+        './EntityConstants',
+        './utils/Utils',
+        './utils/ArrayUtils',
+        './Utils',
+        './MapUtils',
+        './Utils'
     ])
 
     const electron = {

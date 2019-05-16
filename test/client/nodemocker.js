@@ -6,28 +6,39 @@ import path from 'path'
 import {downcast, neverNull} from "../../src/api/common/utils/Utils"
 
 let exit = {value: undefined}
+let random = {value: undefined}
 const platform = process.platform
 let spyCache = []
 let classCache = []
 let testcount = 0
 
-function enable() {
+
+function startGroup(group: string, allowables: Array<string>, timeout?: number) {
+    o.before(() => announce(group))
+    o.beforeEach(() => enable(allowables))
+    o.afterEach(disable)
+    if (typeof timeout == 'number') o.specTimeout(timeout)
+}
+
+function enable(allowables: Array<string>) {
     console.log(chalk.green(`--- NODE TEST ${testcount} ---`))
     testcount = testcount + 1
     exit = setProperty(process, 'exit', o.spy(code => {
         console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
     }))
+    random = setProperty(Math, 'random', () => 0)
     setProperty(process, 'resourcesPath', 'app/path/resources')
     mockery.enable({useCleanCache: true})
     mockery.registerAllowables(allowedNodeModules)
-    mockery.registerAllowables([
-        'bluebird'
-    ])
+    mockery.registerAllowables(allowables)
+    mockery.registerAllowables(['bluebird'])
 }
 
 function disable(): void {
+    mockery.deregisterAll()
     mockery.disable()
     setProperty(process, 'exit', neverNull(exit).value)
+    setProperty(Math, 'random', neverNull(random).value)
     setPlatform(platform)
     spyCache.forEach(obj => delete obj.spy)
     spyCache = []
@@ -38,14 +49,6 @@ function disable(): void {
 function subject(module: string): any {
     mockery.registerAllowable(module)
     return require(module)
-}
-
-function allow(module: string | Array<string>) {
-    [...module].forEach(m => mockery.registerAllowable(m))
-}
-
-function disallow(module: string | Array<string>): void {
-    [...module].forEach(m => mockery.deregisterAllowable(m))
 }
 
 /**
@@ -128,6 +131,10 @@ function classify(template: { prototype: {}, statics: {} }): (*)=>void {
     return cls
 }
 
+function announce(file: string) {
+    console.log(chalk.bold.blue(`--- ${path.basename(file)} ---`))
+}
+
 function setPlatform(newPlatform: string) {
     setProperty(process, 'platform', newPlatform)
 }
@@ -189,15 +196,12 @@ class MockBuilder<T> {
 }
 
 const n = {
-    enable,
-    disable,
     subject,
-    allow,
-    disallow,
     classify,
     mock,
     spyify,
     setPlatform,
+    startGroup
 }
 
 const allowedNodeModules = [

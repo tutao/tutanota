@@ -4,16 +4,32 @@ import n from "../nodemocker"
 import {numberRange} from '../../../src/api/common/utils/ArrayUtils.js'
 
 o.spec("DesktopSseClient Test", () => {
-    o.beforeEach(n.enable)
-    o.afterEach(n.disable)
-    o.specTimeout(6000)
-    n.allow([
-        '../api/Env',
-        '../misc/FormatValidator',
-        '../api/common/utils/StringUtils',
-        '../api/common/error/SseError',
-        '../api/common/utils/Encoding'
-    ])
+    n.startGroup(
+        __filename, [
+            '../api/Env',
+            '../misc/FormatValidator',
+            '../api/common/utils/StringUtils',
+            '../api/common/error/SseError',
+            '../api/common/utils/Encoding',
+            '../error/CryptoError',
+            './TutanotaError',
+            './StringUtils',
+            '../api/common/error/SseError',
+            './TutanotaError',
+            '../misc/FormatValidator',
+            '../api/common/utils/StringUtils',
+            '../api/common/utils/Utils',
+            '../TutanotaConstants',
+            './utils/Utils',
+            '../EntityFunctions',
+            './utils/Encoding',
+            './EntityConstants',
+            './utils/Utils',
+            './utils/ArrayUtils',
+            './Utils',
+            './MapUtils',
+            './Utils',
+        ], 6000)
 
     const conf = {
         removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
@@ -196,7 +212,7 @@ o.spec("DesktopSseClient Test", () => {
             electronMock.app.callbacks['will-quit']()
             o(httpMock.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
             done()
-        }, 3300)
+        }, 2500)
     })
 
     o("reschedule on heartbeat timeout", done => {

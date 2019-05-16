@@ -4,9 +4,7 @@ import n from "../nodemocker"
 import path from "path"
 
 o.spec('desktop config handler test', function () {
-
-	o.beforeEach(n.enable)
-	o.afterEach(n.disable)
+	n.startGroup(__filename, [])
 
 	const fsExtra = {
 		existsSync: (path: string) => true,

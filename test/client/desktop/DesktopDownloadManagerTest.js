@@ -3,11 +3,22 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
 o.spec("DesktopDownloadManagerTest", () => {
-    o.beforeEach(n.enable)
-    o.afterEach(n.disable)
-    n.allow([
-        "../api/common/utils/Utils.js",
-        "path"
+    n.startGroup(__filename, [
+        "../api/common/utils/Utils.js", './Utils',
+        "../api/common/utils/Utils",
+        "path",
+        './TutanotaConstants',
+        './utils/Utils',
+        './EntityConstants',
+        '../EntityFunctions',
+        './StringUtils',
+        './utils/ArrayUtils',
+        './MapUtils',
+        './Utils',
+        '../TutanotaConstants',
+        './utils/Encoding',
+        '../error/CryptoError',
+        './TutanotaError'
     ])
 
     const conf = {
