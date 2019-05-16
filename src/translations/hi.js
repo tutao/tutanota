@@ -180,7 +180,6 @@ module.exports = {
 		"createContact_action": "संपर्क बनाएं",
 		"createdUsersCount_msg": "{1} उपयोगकर्ता स्थापित। ",
 		"created_label": "बनाया है",
-		"createSearchIndex_msg": "खोज अनुक्रमणिका बनाना {प्रगति}%",
 		"creditCardCardHolderName_label": "कार्डधारक का नाम",
 		"creditCardCardHolderName_msg": "कार्डधारक का नाम दर्ज करें",
 		"creditCardCVVFormat_label": "कृपया 3 या 4 अंक सुरक्षा कोड दर्ज करें",

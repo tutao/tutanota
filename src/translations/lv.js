@@ -125,7 +125,6 @@ module.exports = {
 		"createContact_action": "Izveidot kontaktu",
 		"createdUsersCount_msg": "Izveidots(i) {1} lietotājs(i)",
 		"created_label": "Izveidots",
-		"createSearchIndex_msg": "Veido meklēšanas indeksāciju {progress}%.",
 		"creditCardCardHolderName_label": "Kartes īpašnieka vārds",
 		"creditCardCardHolderName_msg": "Lūdzu, ievadiet kartes īpašnieka vārdu, uzvārdu",
 		"creditCardCVVFormat_label": "Lūdzu ievadiet trīs vai četru ciparu drošības kodu.",

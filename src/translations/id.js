@@ -100,7 +100,6 @@ module.exports = {
 		"createContact_action": "Buat kontak",
 		"createdUsersCount_msg": "{1} akun pengguna telah dibuat.",
 		"created_label": "Dibuat",
-		"createSearchIndex_msg": "Membuat indeks pencarian {progress}%.",
 		"creditCardCardHolderName_label": "Nama pemegang kartu",
 		"creditCardCardHolderName_msg": "Silahkan masukan nama dari pemegang kartu",
 		"creditCardCVVFormat_label": "Silakan masukkan 3 atau 4 digit kode keamanan.",

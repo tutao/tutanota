@@ -15,6 +15,8 @@ export const Mode = Object.freeze({
 })
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
+type RichToolbarOptions = {|enabled: boolean, imageButtonClickHandler?: (ev: Event, editor: Editor) => mixed|}
+
 export class HtmlEditor {
 	_editor: Editor;
 	_mode: Stream<HtmlEditorModeEnum>;
@@ -30,9 +32,9 @@ export class HtmlEditor {
 	_value: Stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
-	_richToolbarEnabled: boolean
+	_richToolbarOptions: RichToolbarOptions;
 
-	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>)) {
+	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false}) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -43,7 +45,7 @@ export class HtmlEditor {
 		this._value = stream("")
 		this._modeSwitcher = null
 		this._htmlMonospace = true
-		this._richToolbarEnabled = false
+		this._richToolbarOptions = richToolbarOptions;
 
 		this._mode.map(v => {
 			this.setValue(this._value())
@@ -101,7 +103,7 @@ export class HtmlEditor {
 		const label = labelIdOrLabelFunction
 
 
-		const toolbar = new RichTextToolbar(this._editor)
+		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions.imageButtonClickHandler)
 
 		this.view = () => {
 			return m(".html-editor", [
@@ -114,7 +116,7 @@ export class HtmlEditor {
 				}, [
 					getPlaceholder(),
 					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						this._richToolbarEnabled ? m(toolbar) : null,
+						this._richToolbarOptions.enabled ? m(toolbar) : null,
 						m(this._editor)
 					]) : null,
 					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {
@@ -222,11 +224,4 @@ export class HtmlEditor {
 		this._htmlMonospace = monospace
 		return this
 	}
-
-	enableRichToolbar(enable: boolean): HtmlEditor {
-		this._richToolbarEnabled = enable
-		m.redraw()
-		return this
-	}
-
 }

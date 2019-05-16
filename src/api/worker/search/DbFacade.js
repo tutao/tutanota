@@ -175,7 +175,11 @@ export class DbFacade {
 	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
 		return this._db.getAsync().then(db => {
 			try {
-				const transaction = new IndexedDbTransaction(db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite"))
+				const idbTransaction = db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite")
+				const transaction = new IndexedDbTransaction(idbTransaction, () => {
+					this.indexingSupported = false
+					this._db.reset()
+				})
 				this._activeTransactions++
 				transaction.wait().finally(() => {
 					this._activeTransactions--
@@ -202,24 +206,17 @@ type DbRequest = {
 export class IndexedDbTransaction implements DbTransaction {
 	_transaction: IDBTransaction;
 	_promise: Promise<void>;
+	_onUnknownError: (e: any) => mixed
 	aborted: boolean;
 
-	constructor(transaction: IDBTransaction) {
+	constructor(transaction: IDBTransaction, onUnknownError: (e: any) => mixed) {
 		this._transaction = transaction
+		this._onUnknownError = onUnknownError
 		this._promise = Promise.fromCallback((callback) => {
 			transaction.onerror = (event) => {
-				const errorEntries = extractErrorProperties(event)
-				const msg = "IndexedDbTransaction.transaction.onerror\nOSes: " +
-					JSON.stringify((this._transaction: any).objectStoreNames) +
-					"\nevent:" + errorEntries +
-					"\ntransaction.error: " + (transaction.error ? transaction.error.message : '') +
-					"\nevent.target.error: " + (event.target.error ? event.target.error.message : '')
-
-				if (event.target.error && event.target.error.name == "UnknownError") {
-					callback(new IndexingNotSupportedError(msg, transaction.error))
-				} else {
-					callback(new DbError(msg, transaction.error))
-				}
+				this._handleDbError(event, this._transaction, "transaction.onerror", (e) => {
+					throw e
+				})
 			}
 			transaction.oncomplete = (event) => {
 				callback()
@@ -236,8 +233,7 @@ export class IndexedDbTransaction implements DbTransaction {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					callback(new DbError("IndexedDbTransaction.getAll().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
-						"\nrequest.error:" + request.error && request.error.message, request.error))
+					this._handleDbError(event,  request,"getAll().onError", callback)
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -249,7 +245,7 @@ export class IndexedDbTransaction implements DbTransaction {
 					}
 				}
 			} catch (e) {
-				callback(new DbError("IndexedDbTransaction.getAll().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
+				this._handleDbError(e, null, "getAll().catch", callback)
 			}
 		})
 	}
@@ -265,21 +261,20 @@ export class IndexedDbTransaction implements DbTransaction {
 					request = os.get(key)
 				}
 				request.onerror = (event) => {
-					callback(new DbError("IndexedDbTransaction.get().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
-						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
+					this._handleDbError(event, request, "get().onerror", callback)
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IndexedDbTransaction.get().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
+				this._handleDbError(e, null, "get().catch", callback)
 			}
 		})
 	}
 
 	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
-		           .then(result => result || [])
+				   .then(result => result || [])
 	}
 
 	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
@@ -289,19 +284,13 @@ export class IndexedDbTransaction implements DbTransaction {
 					? this._transaction.objectStore(objectStore).put(value, key)
 					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
-					const errorProperties = extractErrorProperties(event)
-					callback(new DbError("IndexedDbTransaction.put().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
-						"\nrequest.error:" + (request.error ? request.error.message : "[none]") +
-						"\nkey: " + String(key) +
-						"\nvalue: " + JSON.stringify(value), request.error))
+					this._handleDbError(event, request, "put().onerror", callback)
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				callback(new DbError("IndexedDbTransaction.put().catch\nos: " + objectStore + "\nmessage: " + e.message +
-					"\nkey: " + key +
-					"\nvalue: " + value, e))
+				this._handleDbError(e,  null,"put().catch", callback)
 			}
 		})
 	}
@@ -312,14 +301,13 @@ export class IndexedDbTransaction implements DbTransaction {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 				request.onerror = (event) => {
-					callback(new DbError("IndexedDbTransaction.delete().onerror\nos: " + objectStore + "\nevent: " + extractErrorProperties(event) +
-						"\nrequest.error:" + (request.error ? request.error.message : "[none]"), request.error))
+					this._handleDbError(event, request, "delete().onerror", callback)
 				}
 				request.onsuccess = (event) => {
 					callback()
 				}
 			} catch (e) {
-				callback(new DbError("IndexedDbTransaction.delete().catch\nos: " + objectStore + "\nmessage: " + e.message, e))
+				this._handleDbError(e, null, ".delete().catch", callback)
 			}
 		})
 	}
@@ -331,5 +319,21 @@ export class IndexedDbTransaction implements DbTransaction {
 
 	wait(): Promise<void> {
 		return this._promise
+	}
+
+	_handleDbError(event: any, target: ?any, prefix: string, callback: (e: any) => mixed) {
+		const errorEntries = extractErrorProperties(event)
+		const msg = "IndexedDbTransaction " + prefix
+			+ "\nOSes: " + JSON.stringify((this._transaction: any).objectStoreNames) +
+			"\nevent:" + errorEntries +
+			"\ntransaction.error: " + (this._transaction.error ? this._transaction.error.message : '') +
+			"\nevent.target.error: " + (target && target.error ? target.error.message : '')
+
+		if (target && target.error && target.error.name === "UnknownError") {
+			this._onUnknownError(target.error)
+			callback(new IndexingNotSupportedError(msg, this._transaction.error))
+		} else {
+			callback(new DbError(msg, this._transaction.error))
+		}
 	}
 }

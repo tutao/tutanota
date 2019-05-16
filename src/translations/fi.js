@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2019-04-09T10:20:26Z",
+	"updated_at": "2019-04-29T11:55:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Hyväksy tietosuojamenettely valitsemalla valintaruutu.",
@@ -181,7 +181,6 @@ module.exports = {
 		"createContact_action": "Tee uusi yhteystieto",
 		"createdUsersCount_msg": "{1} käyttäjä(ä) luotu",
 		"created_label": "Luotu",
-		"createSearchIndex_msg": "Luodaan hakuindeksiä {progress}%.",
 		"creditCardCardHolderName_label": "Kortinhaltijan nimi",
 		"creditCardCardHolderName_msg": "Anna kortinhaltijan nimi.",
 		"creditCardCVVFormat_label": "Anna 3-tai 4-numeroinen turvakoodi.",
@@ -379,6 +378,7 @@ module.exports = {
 		"inboxRuleToRecipientEquals_action": "Vastaanottajalle",
 		"inboxRuleValue_label": "Arvo",
 		"indexDeleted_msg": "Hakuindeksi piti nollata, jotta siitä tulisi nopeampi ja luotettavampi. Hakuindeksi luodaan uudelleen seuraavan kerran, kun käynnistät haun.",
+		"indexedMails_label": "Indeksoidut sähköpostit",
 		"indexing_error": "Hakuindeksin luominen keskeytettiin virheen vuoksi",
 		"insufficientStorageAdmin_msg": "Postilaatikkosi on täynnä. Et voi enää vastaanottaa tai lähettää sähköposteja. Vapauta tilaa poistamalla tarpeettomia viestejä tai päivitä tilisi suurempaan.",
 		"insufficientStorageUser_msg": "Tallennustilan enimmäismäärä on ylitetty. Et voi enää vastaanottaa tai lähettää sähköposteja. Ota yhteyttä järjestelmänvalvojaan.",
@@ -796,6 +796,7 @@ module.exports = {
 		"sharedMailboxes_label": "Jaetut postilaatikot",
 		"sharedMailbox_label": "Jaettu postilaatikko",
 		"showAddress_alt": "Näytä tämä osoite OpenStreetMap-kartalla",
+		"showAll_action": "Näytä kaikki",
 		"showBlockedContent_action": "Näytä",
 		"showContact_action": "Näytä yhteystieto",
 		"showEmailAliases_action": "Näytä alias-osoitteet",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2019-04-18T05:42:32Z",
+	"updated_at": "2019-05-03T08:12:00Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -128,7 +128,7 @@ module.exports = {
 		"chooseNumber_msg": "Tutanota parolanızı almak için lütfen aşağıdaki \"SMS Gönder\" tuşlarından birine basınız.",
 		"choosePhotos_action": "Fotoğraflar",
 		"choose_label": "Seçin...",
-		"clearFolder_action": "Dosya oluştur",
+		"clearFolder_action": "Tümünü sil",
 		"clickNumber_msg": "Tutanota parolanızı alabilmek için lütfen aşağıdaki \"SMS Gönder\" tuşuna basınız.",
 		"clickToUpdate_msg": "Şimdi uygulamak istiyorsanız buraya tıklayın, ya da bize çıkmak otomatik yüklemek izin.",
 		"client_label": "İstemci",
@@ -185,7 +185,6 @@ module.exports = {
 		"createContact_action": "Kişi oluştur",
 		"createdUsersCount_msg": "{1} kullanıcı(lar) oluşturuldu.",
 		"created_label": "Oluşturuldu",
-		"createSearchIndex_msg": "Arama dizini oluşturuluyor {progress}%.",
 		"creditCardCardHolderName_label": "Kart sahibinin ismi",
 		"creditCardCardHolderName_msg": "Lütfen kart sahibinin ismini giriniz.",
 		"creditCardCVVFormat_label": "Lütfen 3 veya 4 haneli güvenlik şifrenizi girin.",

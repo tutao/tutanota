@@ -2,7 +2,6 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {ColumnWidth, Table} from "../gui/base/Table"
 import {load, loadRange, update} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
@@ -33,17 +32,22 @@ import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {TableLineAttrs} from "../gui/base/TableN"
+import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
+import {Table} from "../gui/base/Table"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
-	_spamRulesTable: Table;
 	_domainsTable: Table;
 	_auditLogTable: Table;
 	_props: Stream<CustomerServerProperties>;
 	_customer: Stream<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
+	_spamRuleLines: Stream<Array<TableLineAttrs>>;
+	_spamRulesExpandedState: Stream<boolean>;
 
 	constructor() {
 		this._customerInfo = new LazyLoaded(() => {
@@ -51,12 +55,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
-		let addSpamRuleButton = new Button("addSpamRule_action", () => AddSpamRuleDialog.show(), () => Icons.Add)
-		this._spamRulesTable = new Table(["emailSenderRule_label", "emailSender_label"], [
-			ColumnWidth.Small, ColumnWidth.Largest
-		], true, addSpamRuleButton)
-		let spamRulesExpander = new ExpanderButton("show_action", new ExpanderPanel(this._spamRulesTable), false)
-
+		this._spamRuleLines = stream([])
+		this._spamRulesExpandedState = stream(false)
 		this._props = stream()
 		this._customer = stream()
 
@@ -96,13 +96,28 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		let auditLogExpander = new ExpanderButton("show_action", new ExpanderPanel(this._auditLogTable), false)
 
 		this.view = () => {
+			const spamRuleTableAttrs = {
+				columnHeadingTextIds: ["emailSenderRule_label", "emailSender_label"],
+				columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
+				showActionButtonColumn: true,
+				addButtonAttrs: {
+					label: "addSpamRule_action",
+					click: () => AddSpamRuleDialog.show(),
+					icon: () => Icons.Add
+				},
+				lines: this._spamRuleLines()
+			}
+
+
 			return [
+
+
 				m("#global-settings.fill-absolute.scroll.plr-l", [
 					m(".flex-space-between.items-center.mb-s.mt-l", [
 						m(".h4", lang.get('adminSpam_action')),
-						m(spamRulesExpander)
+						m(ExpanderButtonN, {label: "show_action", expanded: this._spamRulesExpandedState})
 					]),
-					m(spamRulesExpander.panel),
+					m(ExpanderPanelN, {expanded: this._spamRulesExpandedState}, m(TableN, spamRuleTableAttrs)),
 					m("small", lang.get("adminSpamRuleInfo_msg")),
 					m("small.text-break", [m(`a[href=${lang.getInfoLink('spamRules_link')}][target=_blank]`, lang.getInfoLink('spamRules_link'))]),
 					m(".flex-space-between.items-center.mb-s.mt-l", [
@@ -142,15 +157,18 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	_updateCustomerServerProperties(): void {
 		worker.loadCustomerServerProperties().then(props => {
 			this._props(props)
-			this._spamRulesTable.updateEntries(props.emailSenderList.map((rule, index) => {
-				let actionButton = new Button("delete_action", () => {
-					props.emailSenderList.splice(index, 1)
-					update(props)
-				}, () => Icons.Cancel)
-				return new TableLine([
-					neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value
-				], actionButton)
+			this._spamRuleLines(props.emailSenderList.map((rule, index) => {
+				return {
+					cells: [
+						neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value
+					],
+					actionButtonAttrs: createRowActions({
+						getArray: () => props.emailSenderList,
+						updateInstance: () => update(props)
+					}, rule, index)
+				}
 			}))
+			m.redraw()
 		})
 	}
 

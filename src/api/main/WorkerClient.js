@@ -218,8 +218,12 @@ export class WorkerClient {
 		return this._postRequest(new Request('sendMailDraft', arguments))
 	}
 
-	downloadFileContent(file: TutanotaFile): Promise<DataFile | FileReference> {
+	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
 		return this._postRequest(new Request('downloadFileContent', arguments))
+	}
+
+	downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
+		return this._postRequest(new Request('downloadFileContentNative', arguments))
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {

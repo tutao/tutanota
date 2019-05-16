@@ -174,7 +174,6 @@ module.exports = {
 		"createContact_action": "Opprett kontakt",
 		"createdUsersCount_msg": "{1} bruker(e) opprettet.",
 		"created_label": "Opprettet",
-		"createSearchIndex_msg": "Opprettet søkeindeks {progress}%.",
 		"creditCardCardHolderName_label": "Navn på kortholder",
 		"creditCardCardHolderName_msg": "Vennligst tast inn navnet på kortholderen.",
 		"creditCardCVVFormat_label": "Vennligst skriv inn den tre- eller firesifrede sikkerhetskoden.",

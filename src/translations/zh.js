@@ -184,7 +184,6 @@ module.exports = {
 		"createContact_action": "创建联系人",
 		"createdUsersCount_msg": "已创建{1}名用户。",
 		"created_label": "已创建",
-		"createSearchIndex_msg": "正在创建搜索目录，已完成{progress}%",
 		"creditCardCardHolderName_label": "持卡人的姓名",
 		"creditCardCardHolderName_msg": "请输入持卡人的姓名。",
 		"creditCardCVVFormat_label": "请输入3或4位安全码",

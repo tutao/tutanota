@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2019-04-18T19:34:25Z",
+	"updated_at": "2019-05-07T11:24:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -185,7 +185,6 @@ module.exports = {
 		"createContact_action": "Δημιουργία επαφής ",
 		"createdUsersCount_msg": "{1}Χρήστης(-ες) δημιουργήθηκε(-καν)",
 		"created_label": "Δημιουργήθηκε",
-		"createSearchIndex_msg": "Δημιουργία ευρετηρίου αναζήτησης {progress}%.",
 		"creditCardCardHolderName_label": "Ονομα κατόχου της πιστωτικής κάρτας",
 		"creditCardCardHolderName_msg": "Παρακαλώ εισάγετε το όνομα του κατόχου.",
 		"creditCardCVVFormat_label": "Παρακαλώ εισάγετε τον τριψήφιο ή τετραψήφιο κωδικό ασφαλείας.",
@@ -800,6 +799,7 @@ module.exports = {
 		"sharedMailboxes_label": "Κοινόχρηστα mailboxes",
 		"sharedMailbox_label": "Κοινόχρηστο γραμματοκιβώτιο",
 		"showAddress_alt": "Εμφάνισε αυτή τη διεύθυνση στο Openstreetmap.",
+		"showAll_action": "Εμφάνιση όλων",
 		"showBlockedContent_action": "Εμφάνιση",
 		"showContact_action": "Προβολή επαφής ",
 		"showEmailAliases_action": "Προβολή ψευδωνύμων ",

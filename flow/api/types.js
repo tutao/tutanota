@@ -125,6 +125,7 @@ type WorkerRequestType = 'setup'
 	| 'resetSecondFactors'
 	| 'extendMailIndex'
 	| 'resetSession'
+	| 'downloadFileContentNative'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -278,7 +279,8 @@ type DataFile = {
 	mimeType: string,
 	data: Uint8Array,
 	size: number,
-	id: ?IdTuple
+	id: ?IdTuple,
+	cid?: ?string
 }
 
 type FileReference = {
@@ -286,7 +288,8 @@ type FileReference = {
 	name: string,
 	mimeType: string,
 	location: string,
-	size: number
+	size: number,
+	cid?: ?string
 }
 
 type KeyListener = {

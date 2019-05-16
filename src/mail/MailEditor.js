@@ -9,7 +9,7 @@ import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} 
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
-import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {ALLOWED_IMAGE_FORMATS, ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
@@ -21,10 +21,10 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
-import {assertMainOrNode, Mode} from "../api/Env"
+import {assertMainOrNode, isApp, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {
 	createNewContact,
 	createRecipientInfo,
@@ -34,7 +34,7 @@ import {
 	getEnabledMailAddresses,
 	getMailboxName,
 	getSenderName,
-	parseMailtoUrl,
+	parseMailtoUrl, replaceInlineImagesInDOM, replaceInlineImagesWithCids,
 	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
@@ -81,7 +81,9 @@ import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
+import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -103,7 +105,6 @@ export class MailEditor {
 	view: Function;
 	_domElement: HTMLElement;
 	_domCloseButton: HTMLElement;
-	_loadingAttachments: boolean;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_mailChanged: boolean;
 	_showToolbar: boolean;
@@ -112,6 +113,7 @@ export class MailEditor {
 	_mailboxDetails: MailboxDetail;
 	_replyTos: RecipientInfo[];
 	_richTextToolbar: RichTextToolbar;
+	_objectURLs: Array<string>;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -127,11 +129,11 @@ export class MailEditor {
 		this._mailAddressToPasswordField = new Map()
 		this._attachments = []
 		this._mailChanged = false
-		this._loadingAttachments = false
 		this._previousMail = null
 		this.draft = null
 		this._mailboxDetails = mailboxDetails
 		this._showToolbar = false
+		this._objectURLs = []
 
 		let props = logins.getUserController().props
 
@@ -172,7 +174,7 @@ export class MailEditor {
 			noBubble: true
 		}
 
-		const toolbarButton = () => (styles.isDesktopLayout() && !logins.getUserController().props.sendPlaintextOnly)
+		const toolbarButton = () => (!logins.getUserController().props.sendPlaintextOnly)
 			? m(ButtonN, {
 				label: 'showRichTextToolbar_action',
 				icon: () => Icons.FontSize,
@@ -217,7 +219,10 @@ export class MailEditor {
 		}
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
-		this._richTextToolbar = new RichTextToolbar(this._editor)
+		const attachImageHandler = isApp() ?
+			null
+			: (ev) => this._onAttachImageClicked(ev)
+		this._richTextToolbar = new RichTextToolbar(this._editor, attachImageHandler)
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(ExpanderButtonN, {
 				label: "show_action",
@@ -242,7 +247,10 @@ export class MailEditor {
 					this._domElement = vnode.dom
 					unsubscribeFunction = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
 				},
-				onremove: vnode => unsubscribeFunction(),
+				onremove: vnode => {
+					unsubscribeFunction()
+					this._objectURLs.forEach((url) => URL.revokeObjectURL(url))
+				},
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this._editor.focus()
@@ -290,10 +298,7 @@ export class MailEditor {
 					       }))))
 					: null,
 				m(".row", m(this.subject)),
-				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
-					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
-					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
-				),
+				m(".flex-start.flex-wrap.ml-negative-bubble", this._getAttachmentButtons().map((a) => m(ButtonN, a))),
 				this._attachments.length > 0 ? m("hr.hr") : null,
 				this._showToolbar ? m(this._richTextToolbar) : null,
 				m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this._editor.focus()}, m(this._editor)),
@@ -422,7 +427,25 @@ export class MailEditor {
 		return Math.min(100, (getPasswordStrength(this.getPasswordField(recipientInfo).value(), reserved) / 0.8 * 1))
 	}
 
-	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
+	initAsResponse({
+		               previousMail, conversationType, senderMailAddress,
+		               toRecipients, ccRecipients, bccRecipients,
+		               attachments, subject, bodyText,
+		               replyTos, addSignature, inlineImages
+	               }: {
+		previousMail: Mail,
+		conversationType: ConversationTypeEnum,
+		senderMailAddress: string,
+		toRecipients: MailAddress[],
+		ccRecipients: MailAddress[],
+		bccRecipients: MailAddress[],
+		attachments: TutanotaFile[],
+		subject: string,
+		bodyText: string,
+		replyTos: EncryptedMailAddress[],
+		addSignature: boolean,
+		inlineImages?: Promise<InlineImages>
+	}): Promise<void> {
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()
@@ -434,13 +457,18 @@ export class MailEditor {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
 		let previousMessageId: ?string = null
-		return load(ConversationEntryTypeRef, previousMail.conversationEntry).then(ce => {
-			previousMessageId = ce.messageId
-		}).catch(NotFoundError, e => {
-			console.log("could not load conversation entry", e);
-		}).finally(() => {
-			this._setMailData(previousMail, previousMail.confidential, conversationType, previousMessageId, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
-		})
+		return load(ConversationEntryTypeRef, previousMail.conversationEntry)
+			.then(ce => {
+				previousMessageId = ce.messageId
+			})
+			.catch(NotFoundError, e => {
+				console.log("could not load conversation entry", e);
+			})
+			.then(() => {
+				// We don't want to wait for the editor to be initialized, otherwise it will never be shown
+				this._setMailData(previousMail, previousMail.confidential, conversationType, previousMessageId, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
+				    .then(() => this._replaceInlineImages(inlineImages))
+			})
 	}
 
 	initWithTemplate(recipientName: ?string, recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
@@ -470,18 +498,19 @@ export class MailEditor {
 		return Promise.resolve()
 	}
 
-	initFromDraft(draft: Mail): Promise<void> {
+	initFromDraft({draftMail, attachments, bodyText, inlineImages}: {
+		draftMail: Mail,
+		attachments: TutanotaFile[],
+		bodyText: string,
+		inlineImages?: Promise<InlineImages>
+	}): Promise<void> {
 		let conversationType: ConversationTypeEnum = ConversationType.NEW
 		let previousMessageId: ?string = null
 		let previousMail: ?Mail = null
-		let bodyText: string = ""
-		let attachments: TutanotaFile[] = []
+		this.draft = draftMail
 
-		let p1 = load(MailBodyTypeRef, draft.body).then(body => {
-			bodyText = body.text
-		})
-		let p2 = load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
-			conversationType = (ce.conversationType: any)
+		return load(ConversationEntryTypeRef, draftMail.conversationEntry).then(ce => {
+			conversationType = downcast(ce.conversationType)
 			if (ce.previous) {
 				return load(ConversationEntryTypeRef, ce.previous).then(previousCe => {
 					previousMessageId = previousCe.messageId
@@ -494,20 +523,17 @@ export class MailEditor {
 					// ignore
 				})
 			}
-		})
-		let p3 = Promise.map(draft.attachments, fileId => {
-			return load(FileTypeRef, fileId)
-		}).then(files => {
-			attachments = files;
-		})
-		return Promise.all([p1, p2, p3]).then(() => {
-			this.draft = draft
-			// conversation type is just a dummy here
-			this._setMailData(previousMail, draft.confidential, conversationType, previousMessageId, draft.sender.address, draft.toRecipients, draft.ccRecipients, draft.bccRecipients, attachments, draft.subject, bodyText, draft.replyTos)
+		}).then(() => {
+			const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draftMail
+			// We don't want to wait for the editor to be initialized, otherwise it will never be shown
+			this._setMailData(previousMail, confidential, conversationType, previousMessageId, sender.address, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
+			    .then(() => this._replaceInlineImages(inlineImages))
 		})
 	}
 
-	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, body: string, replyTos: EncryptedMailAddress[]): void {
+	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string,
+	             toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string,
+	             body: string, replyTos: EncryptedMailAddress[]): Promise<void> {
 		this._previousMail = previousMail
 		this.conversationType = conversationType
 		this.previousMessageId = previousMessageId
@@ -522,10 +548,25 @@ export class MailEditor {
 		this.attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
-		this._editor.initialized.promise.then(() => {
+		const promise = this._editor.initialized.promise.then(() => {
 			if (this._editor.getHTML() !== body) {
 				this._editor.setHTML(this._tempBody)
 				this._mailChanged = false
+				// Add mutation observer to remove attachments when corresponding DOM element is removed
+				new MutationObserver((mutationList) => {
+					mutationList.forEach((mutation) => {
+						mutation.removedNodes.forEach((removedNode) => {
+							if (removedNode instanceof Image && removedNode.getAttribute("cid") != null) {
+								const cid = removedNode.getAttribute("cid")
+								const index = this._attachments.findIndex((attach) => attach.cid === cid)
+								if (index !== -1) {
+									this._attachments.splice(index, 1)
+									m.redraw()
+								}
+							}
+						})
+					})
+				}).observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
 			}
 			this._tempBody = null
 		})
@@ -540,6 +581,22 @@ export class MailEditor {
 		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, null))
 		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null, true))
 		this._mailChanged = false
+		return promise
+	}
+
+	_replaceInlineImages(inlineImages: ?Promise<InlineImages>): void {
+		if (inlineImages) {
+			inlineImages.then((loadedInlineImages) => {
+				Object.keys(loadedInlineImages).forEach((key) => {
+					const {file} = loadedInlineImages[key]
+					if (!this._attachments.includes(file)) this._attachments.push(file)
+					m.redraw()
+				})
+				this._editor.initialized.promise.then(() => {
+					replaceInlineImagesInDOM(this._editor.getDOM(), loadedInlineImages)
+				})
+			})
+		}
 	}
 
 	show() {
@@ -555,13 +612,14 @@ export class MailEditor {
 		this.dialog.close()
 	}
 
-	_showFileChooserForAttachments(boundingRect: ClientRect) {
+	_showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 		if (env.mode === Mode.App) {
 			return fileApp
 				.openFileChooser(boundingRect)
 				.then(files => {
 					this.attachFiles((files: any))
 					m.redraw()
+					return files
 				})
 				.catch(PermissionError, () => {
 					Dialog.error("fileAccessDeniedMobile_msg")
@@ -570,9 +628,10 @@ export class MailEditor {
 					Dialog.error("couldNotAttachFile_msg")
 				})
 		} else {
-			return fileController.showFileChooser(true).then(files => {
+			return fileController.showFileChooser(true, fileTypes).then(files => {
 				this.attachFiles((files: any))
 				m.redraw()
+				return files
 			})
 		}
 	}
@@ -624,6 +683,12 @@ export class MailEditor {
 				type: ButtonType.Secondary,
 				click: () => {
 					remove(this._attachments, file)
+					const dom = this._domElement
+					const cid = file.cid
+					if (cid && dom) {
+						const image = dom.querySelector(`img[cid="${cid}"]`)
+						image && image.remove()
+					}
 					this._mailChanged = true
 					m.redraw()
 				}
@@ -636,6 +701,22 @@ export class MailEditor {
 				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
 			}, () => lazyButtonAttrs)
 		})
+	}
+
+	_onAttachImageClicked(ev: Event) {
+		this._showFileChooserForAttachments((ev.target: any).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS)
+		    .then((files) => {
+			    files && files.forEach((f) => {
+				    // Let'S assume it's DataFile for now... Editor bar is available for apps but image button is not
+				    const dataFile: DataFile = downcast(f)
+				    const cid = Math.random().toString(30).substring(2)
+				    f.cid = cid
+				    const blob = new Blob([dataFile.data], {type: f.mimeType})
+				    let objectUrl = URL.createObjectURL(blob)
+				    this._objectURLs.push(objectUrl)
+				    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
+			    })
+		    })
 	}
 
 	/**
@@ -652,8 +733,10 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
+		const domWithoutCids = replaceInlineImagesWithCids(this._editor.getDOM())
+
 		let promise = null
-		const body = this._tempBody ? this._tempBody : this._editor.getHTML()
+		const body = this._tempBody ? this._tempBody : domWithoutCids.innerHTML
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)

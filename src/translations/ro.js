@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2019-04-18T18:32:29Z",
+	"updated_at": "2019-04-25T15:35:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -181,7 +181,6 @@ module.exports = {
 		"createContact_action": "Crează contact",
 		"createdUsersCount_msg": "{1} utilizator(i) a(au) fost creat(ți).",
 		"created_label": "Creat",
-		"createSearchIndex_msg": "Crearea indexului de căutare {progress}%.",
 		"creditCardCardHolderName_label": "Numele deținătorului cardului.",
 		"creditCardCardHolderName_msg": "Vă rugăm introduceți numele deținătorului cardului.",
 		"creditCardCVVFormat_label": "Va rugăm introduceți codul de securitate (3 sau 4 cifre).",
@@ -793,6 +792,7 @@ module.exports = {
 		"sharedMailboxes_label": "Căsuțe poștale comune",
 		"sharedMailbox_label": "Căsuță de email distribuită",
 		"showAddress_alt": "Arată acestă adresă în OpenStreetMap",
+		"showAll_action": "Arată-le pe toate",
 		"showBlockedContent_action": "Arată",
 		"showContact_action": "Arată contact",
 		"showEmailAliases_action": "Afișați pseudonimele de e-mail",

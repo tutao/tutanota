@@ -180,7 +180,6 @@ module.exports = {
 		"createContact_action": "新增聯絡人",
 		"createdUsersCount_msg": "{1} 名使用者創建完成。",
 		"created_label": "已建立",
-		"createSearchIndex_msg": "搜尋指引 {progress} % 建立中。",
 		"creditCardCardHolderName_label": "持卡人姓名",
 		"creditCardCardHolderName_msg": "請輸入持卡人姓名",
 		"creditCardCVVFormat_label": "請輸入3或4位數的信用卡安全碼。",

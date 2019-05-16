@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2019-04-11T16:44:10Z",
+	"updated_at": "2019-04-28T14:46:53Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -116,7 +116,7 @@ module.exports = {
 		"certificateExpiryDate_label": "Certificado expira em: {date}",
 		"certificateStateInvalid_label": "Falha ao solicitar o certificado ",
 		"certificateStateProcessing_label": "Processando",
-		"certificateTypeAutomatic_label": "Automático (Vamos Criptografar)",
+		"certificateTypeAutomatic_label": "Automático (Let's Encrypt)",
 		"certificateTypeManual_label": "Manual",
 		"certificateType_label": "Tipo de certificado ",
 		"changeAdminPassword_msg": "Oops, você não pode alterar a senha de outro admin.",
@@ -185,7 +185,6 @@ module.exports = {
 		"createContact_action": "Criar contato",
 		"createdUsersCount_msg": "{1} usuário(s) criado(s).",
 		"created_label": "Criado em",
-		"createSearchIndex_msg": "Criando índice de pesquisa: {progress}%",
 		"creditCardCardHolderName_label": "Nome do titular do cartão",
 		"creditCardCardHolderName_msg": "Insira o nome do titular do cartão.",
 		"creditCardCVVFormat_label": "Digite o código de segurança de 3 ou 4 dígitos. ",
@@ -801,6 +800,7 @@ module.exports = {
 		"sharedMailboxes_label": "Caixas compartilhadas",
 		"sharedMailbox_label": "Caixa de email compartilhada",
 		"showAddress_alt": "Mostrar este endereço no Openstreetmap",
+		"showAll_action": "Mostrar tudo",
 		"showBlockedContent_action": "Mostrar",
 		"showContact_action": "Mostrar contato",
 		"showEmailAliases_action": "Mostrar apelidos",

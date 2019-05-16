@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "31"
+	"version": "32"
 }
 
 export function createCustomerContactFormGroupRoot(): CustomerContactFormGroupRoot {

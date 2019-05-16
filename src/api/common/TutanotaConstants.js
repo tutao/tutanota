@@ -241,6 +241,10 @@ export const SecondFactorType = Object.freeze({
 export type SecondFactorTypeEnum = $Values<typeof SecondFactorType>;
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
+export const MAX_LOGO_SIZE = 1024 * 100
+export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
+
+export const ALLOWED_IMAGE_FORMATS = ["png", "jpg", "jpeg", "svg"]
 
 export const FeatureType = Object.freeze({
 	DisableContacts: "0",
@@ -341,6 +345,7 @@ export const CertificateType = Object.freeze({
 	LETS_ENCRYPT: '1',
 })
 export type CertificateTypeEnum = $Values<typeof CertificateType>
+
 export function getCertificateType(certificateInfo: CertificateInfo): CertificateTypeEnum {
 	return downcast(certificateInfo.type)
 }
