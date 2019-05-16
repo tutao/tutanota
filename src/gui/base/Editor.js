@@ -146,6 +146,10 @@ export class Editor implements ImageHandler {
 		}
 	}
 
+	isEnabled(): boolean {
+		return this._enabled
+	}
+
 	setHTML(html: ?string) {
 		this._squire.setHTML(html)
 	}
