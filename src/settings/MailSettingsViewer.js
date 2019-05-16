@@ -30,7 +30,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {TableN} from "../gui/base/TableN"
+import {createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
@@ -250,14 +250,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			this._inboxRulesTableLines(props.inboxRules.map((rule, index) => {
 				return {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)],
-					actionButtonAttrs: {
-						label: "delete_action",
-						click: () => {
-							props.inboxRules.splice(index, 1)
-							update(props)
-						},
-						icon: () => Icons.Cancel,
-					}
+					actionButtonAttrs: createRowActions({
+						getArray: () => props.inboxRules,
+						updateInstance: () => update(props)
+					}, rule, index)
 				}
 			}))
 			m.redraw()

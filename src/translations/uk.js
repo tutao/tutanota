@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2019-04-24T09:31:21Z",
+	"updated_at": "2019-05-09T09:52:19Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Будь ласка, погодьтеся з нашою політикою приватності, відмітивши прапорець.",
@@ -183,7 +183,6 @@ module.exports = {
 		"createContact_action": "Створити контакт",
 		"createdUsersCount_msg": "{1} створено користувачів.\n\n",
 		"created_label": "Створено",
-		"createSearchIndex_msg": "Створення пошукового індексу {progress}%.\n\n\n",
 		"creditCardCardHolderName_label": "Ім'я власника картки",
 		"creditCardCardHolderName_msg": "Введіть ім'я власника картки.",
 		"creditCardCVVFormat_label": "Введіть, будь ласка, 3 або 4 цифри коду безпеки. ",
@@ -212,6 +211,7 @@ module.exports = {
 		"customLogoInfo_msg": "Підтримувані файли: svg, png, jpg. Максимальний розмір — 100 Кб, максимальна ширина — 280 пікселів.",
 		"customLogo_label": "Налаштовуваний логотип",
 		"customMetaTags_label": "Користувацькі метатеги",
+		"customNotificationEmails_label": "Налаштовувані повідомлення електронної пошти",
 		"custom_label": "Додатково",
 		"cut_action": "Вирізати",
 		"dataExpired_msg": "Дані на комп’ютері застаріли і не синхронизуються з серверами. Просимо вийти та увійти до скриньки ще раз, щоб обновити дані.",
@@ -799,6 +799,7 @@ module.exports = {
 		"sharedMailboxes_label": "Спільні поштові скриньки",
 		"sharedMailbox_label": "Спільна поштова скринька",
 		"showAddress_alt": "Показати цю адресу на картах Openstreetmap",
+		"showAll_action": "Показати все",
 		"showBlockedContent_action": "Показати",
 		"showContact_action": "Показати контакт",
 		"showEmailAliases_action": "Показати додаткові поштові адреси",

@@ -185,7 +185,6 @@ module.exports = {
 		"createContact_action": "Maak contact aan",
 		"createdUsersCount_msg": "User(s) toegevoegd.",
 		"created_label": "Gemaakt",
-		"createSearchIndex_msg": "Zoek voortgang {progress}%.",
 		"creditCardCardHolderName_label": "Naam van de kaarthouder",
 		"creditCardCardHolderName_msg": "Voert u alstublieft de naam in van de Credit Card houder.",
 		"creditCardCVVFormat_label": "Graag uw 3 of 4 cijferige veiligheidscode invullen.",

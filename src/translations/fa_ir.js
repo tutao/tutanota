@@ -181,7 +181,6 @@ module.exports = {
 		"createContact_action": "ساخت مخاطب",
 		"createdUsersCount_msg": "{1} کاربر ایجاد شد.",
 		"created_label": "ساخته",
-		"createSearchIndex_msg": "در حال ایجاد ایندکس جستجو {progress}٪.",
 		"creditCardCardHolderName_label": "نام دارندهٔ کارت",
 		"creditCardCardHolderName_msg": "لطفاً نام دارندهٔ کارت را وارد کنید.",
 		"creditCardCVVFormat_label": "لطفا کد امنیتی ۳ یا ۴ رقمی را وارد کنید.",

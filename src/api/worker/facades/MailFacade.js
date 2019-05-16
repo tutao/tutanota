@@ -251,6 +251,7 @@ export class MailFacade {
 		newAttachmentData.encFileName = encryptString(fileSessionKey, providedFile.name)
 		newAttachmentData.encMimeType = encryptString(fileSessionKey, providedFile.mimeType)
 		newAttachmentData.fileData = fileDataId
+		newAttachmentData.encCid = providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid)
 		attachment.newFile = newAttachmentData
 		attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, fileSessionKey)
 		return attachment

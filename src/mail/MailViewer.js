@@ -22,7 +22,8 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {defer, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -42,7 +43,7 @@ import {
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
-	isTutanotaTeamMail,
+	isTutanotaTeamMail, replaceInlineImagesInDOM,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
@@ -77,13 +78,18 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
+
+export type InlineImages = {
+	[referencedCid: string]: {file: TutanotaFile, url: string} // map from cid to file and its URL (data or Blob)
+}
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class    MailViewer {
+export class MailViewer {
 	view: Function;
 	mail: Mail;
 	_mailBody: ?MailBody;
@@ -93,25 +99,28 @@ export class    MailViewer {
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
 	_contentBlocked: boolean;
-	_domBody: HTMLElement;
 	_domMailViewer: ?HTMLElement;
 	_bodyLineHeight: string;
 	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
+	onremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
 	_filesExpanded: Stream<boolean>;
+	_inlineImages: Promise<InlineImages>;
+	_domBodyDeferred: DeferredObject<HTMLElement>;
 
 	constructor(mail: Mail, showFolder: boolean) {
-		if(isDesktop()) {
+		if (isDesktop()) {
 			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this.mail = mail
 		this._folderText = null
 		this._filesExpanded = stream(false)
+		this._domBodyDeferred = defer()
 		if (showFolder) {
 			let folder = mailModel.getMailFolder(mail._id[0])
 			if (folder) {
@@ -204,6 +213,8 @@ export class    MailViewer {
 						if (confirmed) {
 							this._htmlBody = urlify(htmlSanitizer.sanitize(neverNull(this._mailBody).text, false).text)
 							this._contentBlocked = false
+							this._domBodyDeferred = defer()
+							this._replaceInlineImages()
 							m.redraw()
 						}
 					})
@@ -302,51 +313,14 @@ export class    MailViewer {
 			}))
 		}
 
-		load(MailBodyTypeRef, mail.body).then(body => {
-			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+		const inlineFileIds = this._loadMailBody(mail)
 
-			/**
-			 * check if we need to improve contrast for dark theme.
-			 * 1. theme id must be 'dark'
-			 * 2. html body needs to contain any tag with a style attribute that has the color property set
-			 * OR
-			 * there is a font tag with the color attribute set
-			 */
-			this._contrastFixNeeded = themeId() === 'dark'
-				&& (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-				                                .find(s => s.color !== "" && typeof s.color !== 'undefined')
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
-			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
-			this._contentBlocked = sanitizeResult.externalContent.length > 0
-			m.redraw()
-		}).catch(NotFoundError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as it has been moved/deleted already", e)
-		}).catch(NotAuthorizedError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as the permission is missing", e)
-		})
 		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 		load(ConversationEntryTypeRef, mail.conversationEntry)
 			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 
-		if (mail.attachments.length === 0) {
-			this._loadingAttachments = false
-		} else {
-			this._loadingAttachments = true
-			Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			       .then(files => {
-				       this._attachments = files
-				       this._attachmentButtons = this._createAttachmentsButtons(files)
-				       this._loadingAttachments = false
-				       m.redraw()
-			       })
-			       .catch(NotFoundError, e =>
-				       console.log("could load attachments as they have been moved/deleted already", e))
-		}
+		this._inlineImages = this._loadAttachments(mail, inlineFileIds)
+
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
@@ -391,8 +365,13 @@ export class    MailViewer {
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {
-								this._domBody = vnode.dom
+								this._domBodyDeferred.resolve(vnode.dom)
 								this._updateLineHeight()
+							},
+							onupdate: (vnode) => {
+								if (this._domBodyDeferred.promise.isPending()) {
+									this._domBodyDeferred.resolve(vnode.dom)
+								}
 							},
 							onclick: (event: Event) => this._handleAnchorClick(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
@@ -415,11 +394,86 @@ export class    MailViewer {
 		}
 
 		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
-
-
 		this._setupShortcuts()
 	}
 
+
+	_replaceInlineImages() {
+		this._inlineImages.then((loadedInlineImages) => {
+			this._domBodyDeferred.promise.then(domBody => {
+				replaceInlineImagesInDOM(domBody, loadedInlineImages)
+			})
+		})
+	}
+
+	/** @return list of inline referenced cid */
+	_loadMailBody(mail: Mail): Promise<Array<string>> {
+		return load(MailBodyTypeRef, mail.body).then(body => {
+			this._mailBody = body
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+
+			/**
+			 * check if we need to improve contrast for dark theme.
+			 * 1. theme id must be 'dark'
+			 * 2. html body needs to contain any tag with a style attribute that has the color property set
+			 * OR
+			 * there is a font tag with the color attribute set
+			 */
+			this._contrastFixNeeded = themeId() === 'dark'
+				&& (
+					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+				)
+			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
+
+			this._contentBlocked = sanitizeResult.externalContent.length > 0
+			m.redraw()
+			return sanitizeResult.inlineImageCids
+		}).catch(NotFoundError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as it has been moved/deleted already", e)
+			return []
+		}).catch(NotAuthorizedError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as the permission is missing", e)
+			return []
+		})
+	}
+
+
+	_loadAttachments(mail: Mail, inlineFileIds: Promise<Array<Id>>): Promise<InlineImages> {
+		if (mail.attachments.length === 0) {
+			this._loadingAttachments = false
+			return Promise.resolve({})
+		} else {
+			this._loadingAttachments = true
+			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
+			              .then(files => {
+				              this._attachments = files
+				              this._attachmentButtons = this._createAttachmentsButtons(files)
+				              this._loadingAttachments = false
+				              m.redraw()
+				              return inlineFileIds.then((inlineFileIds) => {
+					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
+					              const inlineImages: InlineImages = {}
+					              return Promise
+						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+								              const blob = new Blob([dataFile.data], {
+									              type: dataFile.mimeType
+								              })
+								              inlineImages[neverNull(file.cid)] = {
+									              file,
+									              url: URL.createObjectURL(blob)
+								              }
+							              })
+						              ).return(inlineImages)
+				              })
+			              })
+			              .catch(NotFoundError, e =>
+				              console.log("could load attachments as they have been moved/deleted already", e))
+		}
+	}
 
 	_renderAttachments(): Children {
 		if (this._loadingAttachments) {
@@ -444,7 +498,7 @@ export class    MailViewer {
 							}),
 							m(ExpanderPanelN, {
 								expanded: this._filesExpanded
-							}, this._attachmentButtons.slice(2).map(m))
+							}, this._attachmentButtons.slice(spoilerLimit).map(m))
 						]
 						: this._attachmentButtons.map(m),
 					this._renderDownloadAllButton()
@@ -507,24 +561,37 @@ export class    MailViewer {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			this._replaceInlineImages()
+		}
+		// onremove is called when we or any of our parents are removed from dom
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			this._domBodyDeferred = defer()
+		}
+		// onbeforeremove is only called if we are removed from the parent
+		// e.g. it is not called when switching to contact view
+		this.onbeforeremove = () => {
+			this._inlineImages.then((inlineImages) => {
+				Object.keys(inlineImages).forEach((key) => {
+					URL.revokeObjectURL(inlineImages[key].url)
+				})
+			})
+		}
 	}
 
 	_updateLineHeight() {
-		requestAnimationFrame(() => {
-			if (this._domBody) {
-				const width = this._domBody.offsetWidth
-				if (width > 900) {
-					this._bodyLineHeight = size.line_height_l
-				} else if (width > 600) {
-					this._bodyLineHeight = size.line_height_m
-
-				} else {
-					this._bodyLineHeight = size.line_height
-				}
-				m.redraw()
+		this._domBodyDeferred.promise.then((domBody) => {
+			const width = domBody.offsetWidth
+			if (width > 900) {
+				this._bodyLineHeight = size.line_height_l
+			} else if (width > 600) {
+				this._bodyLineHeight = size.line_height_m
+			} else {
+				this._bodyLineHeight = size.line_height
 			}
+			m.redraw()
 		})
 	}
 
@@ -590,7 +657,12 @@ export class    MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initFromDraft(this.mail).then(() => {
+				return editor.initFromDraft({
+					draftMail: this.mail,
+					attachments: this._attachments,
+					bodyText: this._htmlBody,
+					inlineImages: this._inlineImages
+				}).then(() => {
 					editor.show()
 				})
 			}
@@ -634,10 +706,22 @@ export class    MailViewer {
 					}
 				}
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initAsResponse(this.mail, ConversationType.REPLY, this._getSenderOfResponseMail(), toRecipients, ccRecipients, bccRecipients, [], subject, body, [], true)
-				             .then(() => {
-					             editor.show()
-				             })
+				return editor.initAsResponse({
+					previousMail: this.mail,
+					conversationType: ConversationType.REPLY,
+					senderMailAddress: this._getSenderOfResponseMail(),
+					toRecipients,
+					ccRecipients,
+					bccRecipients,
+					attachments: [],
+					subject,
+					bodyText: body,
+					replyTos: [],
+					addSignature: true,
+					inlineImages: this._inlineImages
+				}).then(() => {
+					editor.show()
+				})
 			}
 		})
 	}
@@ -670,8 +754,20 @@ export class    MailViewer {
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
 
 		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-		return editor.initAsResponse(this.mail, ConversationType.FORWARD, this._getSenderOfResponseMail(), recipients, [], [], this._attachments.slice(), "Fwd: "
-			+ this.mail.subject, body, replyTos, addSignature).then(() => {
+		return editor.initAsResponse({
+			previousMail: this.mail,
+			conversationType: ConversationType.FORWARD,
+			senderMailAddress: this._getSenderOfResponseMail(),
+			toRecipients: recipients,
+			ccRecipients: [],
+			bccRecipients: [],
+			attachments: this._attachments.slice(),
+			subject: "FWD: " + this.mail.subject,
+			bodyText: body,
+			replyTos,
+			addSignature,
+			inlineImages: this._inlineImages
+		}).then(() => {
 			return editor
 		})
 	}
@@ -792,8 +888,8 @@ export class    MailViewer {
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domBody) {
-			const dom = this._domBody
+		if (this._domBodyDeferred.promise.isFulfilled()) {
+			const dom = this._domBodyDeferred.promise.value()
 			if (this._scrollAnimation.isFulfilled()) {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}

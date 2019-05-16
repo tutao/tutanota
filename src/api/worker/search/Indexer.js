@@ -39,7 +39,7 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
-import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
+import type {DeferredObject} from "../../common/utils/Utils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -60,7 +60,7 @@ const operationTypeKeys = Array.from(Object.keys(OperationType)).reduce((acc, k)
 
 export class Indexer {
 	db: Db;
-	_dbInitializedCallback: Function
+	_dbInitializedDeferredObject: DeferredObject<void>
 
 	_worker: WorkerImpl;
 	_initParams: InitParams;
@@ -76,7 +76,7 @@ export class Indexer {
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
 		let deferred = defer()
-		this._dbInitializedCallback = deferred.resolve
+		this._dbInitializedDeferredObject = deferred
 		this.db = {
 			dbFacade: new DbFacade(browserData.indexedDbSupported, () => {
 				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
@@ -160,6 +160,7 @@ export class Indexer {
 				indexedMailCount: 0,
 				failedIndexingUpTo: this._mail.currentIndexTimestamp
 			})
+			this._dbInitializedDeferredObject.reject(e)
 			throw e
 		})
 	}
@@ -229,7 +230,7 @@ export class Indexer {
 		           })
 		           .then(() => this._updateIndexedGroups())
 		           .then(() => {
-			           this._dbInitializedCallback()
+			           this._dbInitializedDeferredObject.resolve()
 		           })
 	}
 
@@ -252,7 +253,7 @@ export class Indexer {
 		]).then(() => {
 			return this._updateIndexedGroups()
 		}).then(() => {
-			this._dbInitializedCallback()
+			this._dbInitializedDeferredObject.resolve()
 		}).then(() => {
 			return Promise.all([
 				this._contact.suggestionFacade.load(),
@@ -426,7 +427,7 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw new DbError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
+						throw new InvalidDatabaseStateError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
 					}
 				})
 			}))

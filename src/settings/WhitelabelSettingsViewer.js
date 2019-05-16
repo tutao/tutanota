@@ -10,7 +10,7 @@ import {logins} from "../api/main/LoginController"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {CertificateState, CertificateType, FeatureType, OperationType} from "../api/common/TutanotaConstants"
+import {ALLOWED_IMAGE_FORMATS, CertificateState, CertificateType, FeatureType, MAX_LOGO_SIZE, OperationType} from "../api/common/TutanotaConstants"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -55,8 +55,6 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
 
-const MAX_LOGO_SIZE = 1024 * 100
-const ALLOWED_FILE_TYPES = ["svg", "png", "jpg", "jpeg"]
 
 export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
@@ -285,7 +283,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								fileController.showFileChooser(false).then(files => {
 									let extension = files[0].name.toLowerCase()
 									                        .substring(files[0].name.lastIndexOf(".") + 1)
-									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_FILE_TYPES, extension)) {
+									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
 										Dialog.error("customLogoInfo_msg")
 									} else {
 										let imageData = null

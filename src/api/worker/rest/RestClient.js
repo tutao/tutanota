@@ -9,13 +9,16 @@ assertWorkerOrNode()
 
 export class RestClient {
 	url: string;
+	id: number;
 
 	constructor() {
 		this.url = getHttpOrigin()
+		this.id = 0
 	}
 
 	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
 		return new Promise((resolve, reject) => {
+			this.id++
 			if (method === HttpMethod.GET && typeof body === "string") {
 				if (!queryParams) {
 					queryParams = {}
@@ -28,7 +31,22 @@ export class RestClient {
 			this._setHeaders(xhr, headers, body, responseType);
 			xhr.responseType = responseType === MediaType.Json ? "text" : 'arraybuffer'
 
-			let timeout = setTimeout(() => xhr.abort(), env.timeout)
+			const abortAfterTimeout = () => {
+				let res = {
+					timeoutId: ((0: any): TimeoutID),
+					abortFunction: () => {
+						console.log("aborting " + String(res.timeoutId))
+						xhr.abort()
+					}
+				}
+				return res
+			}
+			let t = abortAfterTimeout()
+			let timeout = setTimeout(t.abortFunction, env.timeout)
+			t.timeoutId = timeout
+			if (typeof self.debug !== 'undefined') {
+				console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
+			}
 			xhr.onload = () => { // XMLHttpRequestProgressEvent, but not needed
 				clearTimeout(timeout)
 				if (xhr.status === 200 || method === HttpMethod.POST && xhr.status === 201) {
@@ -59,9 +77,17 @@ export class RestClient {
 			}
 
 			try {
-				xhr.upload.onprogress = function (pe: any) {
+				xhr.upload.onprogress = (pe: any) => {
+					if (typeof self.debug !== 'undefined') {
+						console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
+					}
 					clearTimeout(timeout)
-					timeout = setTimeout(() => xhr.abort(), env.timeout)
+					let t = abortAfterTimeout()
+					timeout = setTimeout(t.abortFunction, env.timeout)
+					t.timeoutId = timeout
+					if (typeof self.debug !== 'undefined') {
+						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+					}
 					if (progressListener != null && pe.lengthComputable) { // see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
 						progressListener.upload(1 / pe.total * pe.loaded)
 					}
@@ -70,9 +96,17 @@ export class RestClient {
 				// IE <= 11 throw an error when upload.onprogress is used from workers; see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/107521/
 				clearTimeout(e)
 			}
-			xhr.onprogress = function (pe: any) {
+			xhr.onprogress = (pe: any) => {
+				if (typeof self.debug !== 'undefined') {
+					console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
+				}
 				clearTimeout(timeout)
-				timeout = setTimeout(() => xhr.abort(), env.timeout)
+				let t = abortAfterTimeout()
+				timeout = setTimeout(t.abortFunction, env.timeout)
+				t.timeoutId = timeout
+				if (typeof self.debug !== 'undefined') {
+					console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+				}
 				if (progressListener != null && pe.lengthComputable) { // see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
 					progressListener.download(1 / pe.total * pe.loaded)
 				}

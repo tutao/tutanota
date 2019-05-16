@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2019-03-28T10:08:37Z",
+	"updated_at": "2019-04-25T15:33:14Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -175,7 +175,6 @@ module.exports = {
 		"createContact_action": "Névjegy létrehozása",
 		"createdUsersCount_msg": "{1} felhasználó létrehozásra került.",
 		"created_label": "Létrehozva",
-		"createSearchIndex_msg": "Keresési index létrehozása {progress}%.",
 		"creditCardCardHolderName_label": "Kártyatulajdonos neve",
 		"creditCardCardHolderName_msg": "Adja meg a kártya tulajdonosának nevét",
 		"creditCardCVVFormat_label": "Kérem adja meg a 3 vagy 4 számjegyből álló biztonsági kódját.",
@@ -782,6 +781,7 @@ module.exports = {
 		"sharedMailboxes_label": "Megosztott postaládák",
 		"sharedMailbox_label": "Megosztott postafiók",
 		"showAddress_alt": "Mutassa ezt a címet Openstreetmap-en",
+		"showAll_action": "Mutasd mindeniket",
 		"showBlockedContent_action": "Megjelenítés",
 		"showContact_action": "Névjegy megjelenítése",
 		"showEmailAliases_action": "E-mail álnevek megjelenítése",

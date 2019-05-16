@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2019-04-24T09:01:13Z",
+	"updated_at": "2019-04-26T18:27:22Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Acceptera sekretesspolicyn genom att markera kryssrutan.",
@@ -181,7 +181,6 @@ module.exports = {
 		"createContact_action": "Skapa kontakt",
 		"createdUsersCount_msg": "{1} användare skapad(e).",
 		"created_label": "Skapad",
-		"createSearchIndex_msg": "Skapar sökindex {progress} %.",
 		"creditCardCardHolderName_label": "Kortinnehavarens namn",
 		"creditCardCardHolderName_msg": "Ange kortinnehavarens namn.",
 		"creditCardCVVFormat_label": "Ange en 3- eller 4-siffrig säkerhetskod.",
@@ -797,7 +796,7 @@ module.exports = {
 		"sharedMailboxes_label": "Delad brevlådor",
 		"sharedMailbox_label": "Delad brevlåda",
 		"showAddress_alt": "Visa adressen i Openstreetmap",
-		"showAll_action": "Visa mer",
+		"showAll_action": "Visa alla",
 		"showBlockedContent_action": "Visa",
 		"showContact_action": "Visa kontakt",
 		"showEmailAliases_action": "Visa e-postalias",

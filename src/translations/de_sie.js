@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2019-04-24T07:28:24Z",
+	"updated_at": "2019-05-09T09:52:12Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -188,7 +188,6 @@ module.exports = {
 		"createContact_action": "Kontakt erstellen",
 		"createdUsersCount_msg": "{1} Benutzer angelegt.",
 		"created_label": "Erstellt",
-		"createSearchIndex_msg": "Anlegen des Such-Index {progress}%.",
 		"creditCardCardHolderName_label": "Name des Kreditkarteninhabers",
 		"creditCardCardHolderName_msg": "Bitte geben Sie den Namen des Kreditkarteninhabers ein.",
 		"creditCardCVVFormat_label": "Bitte geben Sie hier den drei- oder vierstelligen Sicherheitscode ein.",
@@ -217,6 +216,8 @@ module.exports = {
 		"customLogoInfo_msg": "Erlaubte Dateitypen: svg, png, jpg. Max. Dateigröße: 100 KB. Angezeigte Höhe: 38 px, max. Breite: 280 px.",
 		"customLogo_label": "Eigenes Logo",
 		"customMetaTags_label": "Eigene Meta-Tags",
+		"customNotificationEmailsHelp_msg": "Benachrichtigungs-E-Mails werden an Empfänger von vertraulichen Nachrichten gesendet, deren Mailbox bei anderen E-Mail-Providern gehosted sind. Die Nachricht kann angepasst werden indem eine Vorlage für eine oder mehrere Sprachen hinzugefügt wird. Sobald eine Vorlage angelegt ist wird die Standard-Nachricht nicht mehr verwendet. Die Vorlagen werden für alle Benutzer dieses Accounts angewendet.",
+		"customNotificationEmails_label": "Eigene Benachrichtigungs-E-Mails",
 		"custom_label": "Eigenes",
 		"cut_action": "Ausschneiden",
 		"dataExpired_msg": "Ihre geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte loggen Sie sich aus und wieder ein, um Ihre Daten zu aktualisieren.",
@@ -759,6 +760,7 @@ module.exports = {
 		"scrollToTop_action": "Zum Anfang scrollen",
 		"scrollUp_action": "Nach oben scrollen",
 		"searchContacts_placeholder": "Suche nach Kontakten",
+		"searchDisabledApp_msg": "Die Suche ist aufgrund eines Systemfehlers deaktiviert. Durch einen Neustart der App kann die Suche wieder aktiviert werden.",
 		"searchDisabled_msg": "Ihr Browser unterstützt nicht das Speichern von Daten. Darum haben wir die Suche deaktiviert.",
 		"searchedUntil_msg": "Gesucht bis",
 		"searchEmails_placeholder": "Suche nach E-Mails",
@@ -857,6 +859,9 @@ module.exports = {
 		"takeoverAccountInvalid_msg": "Die E-Mail-Adresse für die Übernahme gehört nicht einem Premium-Admin.",
 		"takeoverMailAddressInfo_msg": "Optional: Geben Sie hier die E-Mail-Adresse des Premium-Account-Admins an, der Ihre E-Mail-Adressen übernehmen darf.",
 		"takeoverMailAddress_label": "E-Mail-Adresse für Übernahme",
+		"templateHelp_msg": "In diesem Formular kann die Benachrichtigungs-E-Mail angepasst werden, mit der der Link zur verschlüsselten Mailbox versendet wird. Die Nachricht muss den Platzhalter \"{link}\" enthalten, welcher mit dem tatsächlichen Link ersetzt wird. Zusätzlich kann im Betreff und in der Nachricht der Platzhalter \"{sender}\" verwenden werden, welcher durch den Namen des Absenders ersetzt wird.",
+		"templateLanguageExists_msg": "Eine Vorlage for die ausgewählte Sprache existiert bereits.",
+		"templateMustContain_msg": "Die Nachricht muss den Platzhalter {value} enthalten",
 		"termsAcceptedNeutral_msg": "Bitte akzeptieren Sie die AGB.",
 		"termsAndConditionsLink_label": "Allgemeine Geschäftsbedingungen",
 		"termsAndConditions_label": "Ich habe die folgenden Dokumente gelesen und erkenne diese an:",
@@ -949,13 +954,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht",
-		"searchDisabledApp_msg": "Die Suche ist aufgrund eines Systemfehlers deaktiviert. Durch einen Neustart der App kann die Suche wieder aktiviert werden.",
-		"yourMessage_label": "Ihre Nachricht",
-		"templateMustContain_msg": "Die Nachricht muss den Platzhalter {value} enthalten",
-		"templateHelp_msg": "In diesem Formular kann die Benachrichtigungs-E-Mail angepasst werden, mit der der Link zur verschlüsselten Mailbox versendet wird. Die Nachricht muss den Platzhalter \"{link}\" enthalten, welcher mit dem tatsächlichen Link ersetzt wird. Zusätzlich kann im Betreff und in der Nachricht der Platzhalter \"{sender}\" verwenden werden, welcher durch den Namen des Absenders ersetzt wird.",
-		"templateLanguageExists_msg": "Eine Vorlage for die ausgewählte Sprache existiert bereits.",
-		"customNotificationEmails_label": "Eigene Benachrichtigungs-E-Mails",
-		"customNotificationEmailsHelp_msg": "Benachrichtigungs-E-Mails werden an Empfänger von vertraulichen Nachrichten gesendet, deren Mailbox bei anderen E-Mail-Providern gehosted sind. Die Nachricht kann angepasst werden indem eine Vorlage für eine oder mehrere Sprachen hinzugefügt wird. Sobald eine Vorlage angelegt ist wird die Standard-Nachricht nicht mehr verwendet. Die Vorlagen werden für alle Benutzer dieses Accounts angewendet."
+		"yourMessage_label": "Ihre Nachricht"
 	}
 }

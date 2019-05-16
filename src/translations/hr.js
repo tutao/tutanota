@@ -139,7 +139,6 @@ module.exports = {
 		"createContact_action": "Napravi kontakt",
 		"createdUsersCount_msg": "Stvoren(o) {1} korisnik(a).",
 		"created_label": "Stvoreno",
-		"createSearchIndex_msg": "Izrada indeksa pretraživanja {progress}%.",
 		"creditCardCardHolderName_label": "Ime vlasnika kartice",
 		"creditCardCardHolderName_msg": "Molimo upišite ime vlasnika kartice.",
 		"creditCardCVVFormat_label": "Unesite sigurnosni kod od 3 ili 4 znamenke.",

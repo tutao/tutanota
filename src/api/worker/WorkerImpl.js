@@ -119,6 +119,9 @@ export class WorkerImpl {
 			downloadFileContent: (message: Request) => {
 				return locator.file.downloadFileContent.apply(locator.file, message.args)
 			},
+			downloadFileContentNative: (message: Request) => {
+				return locator.file.downloadFileContentNative.apply(locator.file, message.args)
+			},
 			addMailAlias: (message: Request) => {
 				return locator.mailAddress.addMailAlias.apply(locator.mailAddress, message.args)
 			},

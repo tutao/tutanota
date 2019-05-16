@@ -178,7 +178,6 @@ module.exports = {
 		"createContact_action": "Opret kontakt",
 		"createdUsersCount_msg": "{1} bruger(e) tilføjet",
 		"created_label": "Oprettet",
-		"createSearchIndex_msg": "Opretter søgeindex {progress}%.",
 		"creditCardCardHolderName_label": "Kortholders navn",
 		"creditCardCardHolderName_msg": "Indtast venligst navnet på kortets ejer.",
 		"creditCardCVVFormat_label": "Indtast venligst din 3 eller 4 cifret sikkerhedskode.",
