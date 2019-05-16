@@ -12,7 +12,8 @@ import {
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState, MAX_BASE64_IMAGE_SIZE
+	MailState,
+	MAX_BASE64_IMAGE_SIZE
 } from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
@@ -38,6 +39,7 @@ import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {Editor} from "../gui/base/Editor"
+import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -443,7 +445,7 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 }
 
 
-export function insertInlineImageClickHandler(ev: Event, editor: Editor) {
+export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
 	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig = []
 		for (let file of files) {
@@ -459,4 +461,29 @@ export function insertInlineImageClickHandler(ev: Event, editor: Editor) {
 			Dialog.error(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
 		}
 	})
+}
+
+export function replaceInlineImagesInDOM(dom: HTMLElement, inlineImages: InlineImages) {
+	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
+	imageElements.forEach((imageElement) => {
+		const value = imageElement.getAttribute("src")
+		if (value && value.startsWith("cid:")) {
+			const cid = value.substring(4)
+			if (inlineImages[cid]) {
+				imageElement.setAttribute("src", inlineImages[cid].url)
+				imageElement.setAttribute("cid", cid)
+			}
+		}
+	})
+}
+
+export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
+	const domClone: HTMLElement = dom.cloneNode(true)
+	const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
+	inlineImages.forEach((inlineImage) => {
+		const cid = inlineImage.getAttribute("cid")
+		inlineImage.setAttribute("src", "cid:" + (cid || ""))
+		inlineImage.removeAttribute("cid")
+	})
+	return domClone
 }

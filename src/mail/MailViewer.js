@@ -43,7 +43,7 @@ import {
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
-	isTutanotaTeamMail,
+	isTutanotaTeamMail, replaceInlineImagesInDOM,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
@@ -104,6 +104,7 @@ export class MailViewer {
 	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
+	onremove: Function;
 	_scrollAnimation: Promise<void>;
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
@@ -320,7 +321,6 @@ export class MailViewer {
 
 		this._inlineImages = this._loadAttachments(mail, inlineFileIds)
 
-		this._replaceInlineImages()
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
@@ -401,18 +401,7 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				const imageElements: Array<HTMLElement> = Array.from(domBody.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
-				imageElements.forEach((imageElement) => {
-					const value = imageElement.getAttribute("src")
-					if (value && value.startsWith("cid:")) {
-						const cid = value.substring(4)
-						if (loadedInlineImages[cid]) {
-							imageElement.setAttribute("src", loadedInlineImages[cid].url)
-							imageElement.setAttribute("cid", cid)
-						}
-					}
-				})
-				m.redraw()
+				replaceInlineImagesInDOM(domBody, loadedInlineImages)
 			})
 		})
 	}
@@ -572,8 +561,24 @@ export class MailViewer {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			this._replaceInlineImages()
+		}
+		// onremove is called when we or any of our parents are removed from dom
+		this.onremove = () => {
+			keyManager.unregisterShortcuts(shortcuts)
+			this._domBodyDeferred = defer()
+		}
+		// onbeforeremove is only called if we are removed from the parent
+		// e.g. it is not called when switching to contact view
+		this.onbeforeremove = () => {
+			this._inlineImages.then((inlineImages) => {
+				Object.keys(inlineImages).forEach((key) => {
+					URL.revokeObjectURL(inlineImages[key].url)
+				})
+			})
+		}
 	}
 
 	_updateLineHeight() {
@@ -652,7 +657,12 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initFromDraft(this.mail).then(() => {
+				return editor.initFromDraft({
+					draftMail: this.mail,
+					attachments: this._attachments,
+					bodyText: this._htmlBody,
+					inlineImages: this._inlineImages
+				}).then(() => {
 					editor.show()
 				})
 			}
@@ -708,11 +718,10 @@ export class MailViewer {
 					bodyText: body,
 					replyTos: [],
 					addSignature: true,
-					inlineAttachments: this._inlineImages
+					inlineImages: this._inlineImages
+				}).then(() => {
+					editor.show()
 				})
-				             .then(() => {
-					             editor.show()
-				             })
 			}
 		})
 	}
@@ -757,7 +766,7 @@ export class MailViewer {
 			bodyText: body,
 			replyTos,
 			addSignature,
-			inlineAttachments: this._inlineImages
+			inlineImages: this._inlineImages
 		}).then(() => {
 			return editor
 		})

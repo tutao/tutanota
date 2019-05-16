@@ -50,18 +50,18 @@ export class FileController {
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return Promise
 			.map(tutanotaFiles, (tutanotaFile) => {
-				return (isApp() ? worker.downloadFileContent(tutanotaFile) : worker.downloadFileContent(tutanotaFile))
-				             // We're returning dialogs here so they don't overlap each other
-				             // We're returning null to say that this file is not present.
-				             // (it's void by default and doesn't satisfy type checker)
-				             .catch(CryptoError, e => {
-					             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-					                          .return(null)
-				             })
-				             .catch(ConnectionError, e => {
-					             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
-					                          .return(null)
-				             })
+				return (isApp() ? worker.downloadFileContentNative(tutanotaFile) : worker.downloadFileContent(tutanotaFile))
+				// We're returning dialogs here so they don't overlap each other
+				// We're returning null to say that this file is not present.
+				// (it's void by default and doesn't satisfy type checker)
+					.catch(CryptoError, e => {
+						return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+						             .return(null)
+					})
+					.catch(ConnectionError, e => {
+						return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+						             .return(null)
+					})
 			}, {concurrency: (isAndroidApp() ? 1 : 5)})
 			.then((files) => files.filter(Boolean)) // filter out failed files
 			.then((files) => {

@@ -15,7 +15,7 @@ import {SegmentControl} from "../gui/base/SegmentControl"
 import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {insertInlineImageClickHandler} from "../mail/MailUtils"
+import {insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
@@ -29,7 +29,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor(null, {enabled: true, imageButtonClickHandler: insertInlineImageClickHandler})
+	const editor = new HtmlEditor(null, {enabled: true, imageButtonClickHandler: insertInlineImageB64ClickHandler})
 		.setMinHeight(400)
 		.showBorders()
 		.setModeSwitcher("mailBody_label")

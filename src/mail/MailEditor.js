@@ -34,7 +34,7 @@ import {
 	getEnabledMailAddresses,
 	getMailboxName,
 	getSenderName,
-	parseMailtoUrl,
+	parseMailtoUrl, replaceInlineImagesInDOM, replaceInlineImagesWithCids,
 	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
@@ -105,7 +105,6 @@ export class MailEditor {
 	view: Function;
 	_domElement: HTMLElement;
 	_domCloseButton: HTMLElement;
-	_loadingAttachments: boolean;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_mailChanged: boolean;
 	_showToolbar: boolean;
@@ -114,6 +113,7 @@ export class MailEditor {
 	_mailboxDetails: MailboxDetail;
 	_replyTos: RecipientInfo[];
 	_richTextToolbar: RichTextToolbar;
+	_objectURLs: Array<string>;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -129,11 +129,11 @@ export class MailEditor {
 		this._mailAddressToPasswordField = new Map()
 		this._attachments = []
 		this._mailChanged = false
-		this._loadingAttachments = false
 		this._previousMail = null
 		this.draft = null
 		this._mailboxDetails = mailboxDetails
 		this._showToolbar = false
+		this._objectURLs = []
 
 		let props = logins.getUserController().props
 
@@ -247,7 +247,10 @@ export class MailEditor {
 					this._domElement = vnode.dom
 					unsubscribeFunction = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
 				},
-				onremove: vnode => unsubscribeFunction(),
+				onremove: vnode => {
+					unsubscribeFunction()
+					this._objectURLs.forEach((url) => URL.revokeObjectURL(url))
+				},
 				onclick: (e) => {
 					if (e.target === this._domElement) {
 						this._editor.focus()
@@ -295,10 +298,7 @@ export class MailEditor {
 					       }))))
 					: null,
 				m(".row", m(this.subject)),
-				m(".flex-start.flex-wrap.ml-negative-bubble", this._loadingAttachments
-					? [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]
-					: this._getAttachmentButtons().map((a) => m(ButtonN, a))
-				),
+				m(".flex-start.flex-wrap.ml-negative-bubble", this._getAttachmentButtons().map((a) => m(ButtonN, a))),
 				this._attachments.length > 0 ? m("hr.hr") : null,
 				this._showToolbar ? m(this._richTextToolbar) : null,
 				m(".pt-s.text.scroll-x.break-word-links", {onclick: () => this._editor.focus()}, m(this._editor)),
@@ -431,7 +431,7 @@ export class MailEditor {
 		               previousMail, conversationType, senderMailAddress,
 		               toRecipients, ccRecipients, bccRecipients,
 		               attachments, subject, bodyText,
-		               replyTos, addSignature, inlineAttachments
+		               replyTos, addSignature, inlineImages
 	               }: {
 		previousMail: Mail,
 		conversationType: ConversationTypeEnum,
@@ -444,7 +444,7 @@ export class MailEditor {
 		bodyText: string,
 		replyTos: EncryptedMailAddress[],
 		addSignature: boolean,
-		inlineAttachments?: Promise<InlineImages>
+		inlineImages?: Promise<InlineImages>
 	}): Promise<void> {
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
@@ -457,23 +457,18 @@ export class MailEditor {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
 		let previousMessageId: ?string = null
-		return load(ConversationEntryTypeRef, previousMail.conversationEntry).then(ce => {
-			previousMessageId = ce.messageId
-		}).catch(NotFoundError, e => {
-			console.log("could not load conversation entry", e);
-		}).finally(() => {
-			this._setMailData(previousMail, previousMail.confidential, conversationType, previousMessageId, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
-			    .then(() => inlineAttachments)
-			    .then((loadedInlineAttachments) => {
-				    if (loadedInlineAttachments) {
-					    Object.keys(loadedInlineAttachments).forEach((key) => {
-						    const {file} = loadedInlineAttachments[key]
-						    if (!attachments.includes(file)) this._attachments.push(file)
-					    })
-					    this._replaceInlineImages(loadedInlineAttachments)
-				    }
-			    })
-		})
+		return load(ConversationEntryTypeRef, previousMail.conversationEntry)
+			.then(ce => {
+				previousMessageId = ce.messageId
+			})
+			.catch(NotFoundError, e => {
+				console.log("could not load conversation entry", e);
+			})
+			.then(() => {
+				// We don't want to wait for the editor to be initialized, otherwise it will never be shown
+				this._setMailData(previousMail, previousMail.confidential, conversationType, previousMessageId, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
+				    .then(() => this._replaceInlineImages(inlineImages))
+			})
 	}
 
 	initWithTemplate(recipientName: ?string, recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
@@ -503,18 +498,19 @@ export class MailEditor {
 		return Promise.resolve()
 	}
 
-	initFromDraft(draft: Mail): Promise<void> {
+	initFromDraft({draftMail, attachments, bodyText, inlineImages}: {
+		draftMail: Mail,
+		attachments: TutanotaFile[],
+		bodyText: string,
+		inlineImages?: Promise<InlineImages>
+	}): Promise<void> {
 		let conversationType: ConversationTypeEnum = ConversationType.NEW
 		let previousMessageId: ?string = null
 		let previousMail: ?Mail = null
-		let bodyText: string = ""
-		let attachments: TutanotaFile[] = []
+		this.draft = draftMail
 
-		let p1 = load(MailBodyTypeRef, draft.body).then(body => {
-			bodyText = body.text
-		})
-		let p2 = load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
-			conversationType = (ce.conversationType: any)
+		return load(ConversationEntryTypeRef, draftMail.conversationEntry).then(ce => {
+			conversationType = downcast(ce.conversationType)
 			if (ce.previous) {
 				return load(ConversationEntryTypeRef, ce.previous).then(previousCe => {
 					previousMessageId = previousCe.messageId
@@ -527,20 +523,11 @@ export class MailEditor {
 					// ignore
 				})
 			}
-		})
-		let p3 = Promise.map(draft.attachments, fileId => {
-			return load(FileTypeRef, fileId)
-		}).then(files => {
-			attachments = files;
-		})
-		return Promise.all([p1, p2, p3]).then(() => {
-			this.draft = draft
-			// conversation type is just a dummy here
-			this._setMailData(previousMail, draft.confidential, conversationType, previousMessageId, draft.sender.address, draft.toRecipients, draft.ccRecipients, draft.bccRecipients, attachments, draft.subject, bodyText, draft.replyTos)
-
-			this._loadAttachments(draft)
-			    .then((inlineImages) => this._replaceInlineImages(inlineImages))
-			this._loadAttachments(draft,)
+		}).then(() => {
+			const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draftMail
+			// We don't want to wait for the editor to be initialized, otherwise it will never be shown
+			this._setMailData(previousMail, confidential, conversationType, previousMessageId, sender.address, toRecipients, ccRecipients, bccRecipients, attachments, subject, bodyText, replyTos)
+			    .then(() => this._replaceInlineImages(inlineImages))
 		})
 	}
 
@@ -574,6 +561,7 @@ export class MailEditor {
 								const index = this._attachments.findIndex((attach) => attach.cid === cid)
 								if (index !== -1) {
 									this._attachments.splice(index, 1)
+									m.redraw()
 								}
 							}
 						})
@@ -596,21 +584,19 @@ export class MailEditor {
 		return promise
 	}
 
-	_replaceInlineImages(loadedInlineImages: InlineImages) {
-		this._editor.initialized.promise.then(() => {
-			const imageElements: Array<HTMLElement> = Array.from(this._editor.getDOM().querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
-			imageElements.forEach((imageElement) => {
-				const value = imageElement.getAttribute("src")
-				if (value && value.startsWith("cid:")) {
-					const cid = value.substring(4)
-					if (loadedInlineImages[cid]) {
-						imageElement.setAttribute("src", loadedInlineImages[cid].url)
-						imageElement.setAttribute("cid", cid)
-					}
-				}
+	_replaceInlineImages(inlineImages: ?Promise<InlineImages>): void {
+		if (inlineImages) {
+			inlineImages.then((loadedInlineImages) => {
+				Object.keys(loadedInlineImages).forEach((key) => {
+					const {file} = loadedInlineImages[key]
+					if (!this._attachments.includes(file)) this._attachments.push(file)
+					m.redraw()
+				})
+				this._editor.initialized.promise.then(() => {
+					replaceInlineImagesInDOM(this._editor.getDOM(), loadedInlineImages)
+				})
 			})
-			m.redraw()
-		})
+		}
 	}
 
 	show() {
@@ -727,6 +713,7 @@ export class MailEditor {
 				    f.cid = cid
 				    const blob = new Blob([dataFile.data], {type: f.mimeType})
 				    let objectUrl = URL.createObjectURL(blob)
+				    this._objectURLs.push(objectUrl)
 				    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
 			    })
 		    })
@@ -746,16 +733,10 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
-		const domClone: HTMLElement = this._editor.getDOM().cloneNode(true)
-		const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
-		inlineImages.forEach((inlineImage) => {
-			const cid = inlineImage.getAttribute("cid")
-			inlineImage.setAttribute("src", "cid:" + (cid || ""))
-			inlineImage.removeAttribute("cid")
-		})
+		const domWithoutCids = replaceInlineImagesWithCids(this._editor.getDOM())
 
 		let promise = null
-		const body = this._tempBody ? this._tempBody : domClone.innerHTML
+		const body = this._tempBody ? this._tempBody : domWithoutCids.innerHTML
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)
@@ -1090,31 +1071,6 @@ export class MailEditor {
 		].find(b => contains(b, bubble))
 		if (bubbles) {
 			remove(bubbles, bubble)
-		}
-	}
-
-	_loadAttachments(mail: Mail): Promise<InlineImages> {
-		if (mail.attachments.length === 0) {
-			return Promise.resolve({})
-		} else {
-			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			              .then(files => {
-				              const filesToLoad = files.filter(file => file.cid)
-				              const inlineImages: InlineImages = {}
-				              return Promise
-					              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-							              const blob = new Blob([dataFile.data], {
-								              type: dataFile.mimeType
-							              })
-							              inlineImages[neverNull(file.cid)] = {
-								              file,
-								              url: URL.createObjectURL(blob)
-							              }
-						              })
-					              ).return(inlineImages)
-			              })
-			              .catch(NotFoundError, e =>
-				              console.log("could load attachments as they have been moved/deleted already", e))
 		}
 	}
 

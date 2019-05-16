@@ -96,7 +96,7 @@ export class RichTextToolbar {
 		if (attachHandler) {
 			styleToggleAttrs.unshift({
 				label: "emptyString_msg",
-				title: () => "Insert image",
+				title: "addImage_action",
 				click: (ev) => attachHandler(ev, editor),
 				type: ButtonType.Toggle,
 				icon: () => Icons.Picture

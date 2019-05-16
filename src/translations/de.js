@@ -953,6 +953,7 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"tooBigInlineImages_msg": "Es sind nur Bilder bis zu einer Größe von {size} KB erlaubt.",
-		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß."
+		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß.",
+		"addImage_action": "Bild hinzufügen"
 	}
 }

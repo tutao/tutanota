@@ -949,6 +949,7 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
-		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large."
+		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large.",
+		"addImage_action": "Insert image"
 	}
 }
