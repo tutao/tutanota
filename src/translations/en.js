@@ -950,6 +950,10 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
 		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large.",
-		"addImage_action": "Insert image"
+		"addImage_action": "Insert image",
+		"moveUp_action": "Move up",
+		"moveDown_action": "Move down",
+		"moveToTop_action": "Move to the top",
+		"moveToBottom_action": "Move to the bottom"
 	}
 }

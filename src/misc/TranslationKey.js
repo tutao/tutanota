@@ -938,3 +938,8 @@ export type TranslationKeyType = "acceptPrivacyPolicyReminder_msg"
 	| "tooBigInlineImages_msg"
 	| "notificationMailTemplateTooLarge_msg"
 	| "addImage_action"
+	| "moveUp_action"
+	| "moveDown_action"
+	| "moveToTop_action"
+	| "moveToBottom_action"
+

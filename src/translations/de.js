@@ -954,6 +954,10 @@ module.exports = {
 		"yourMessage_label": "Deine Nachricht",
 		"tooBigInlineImages_msg": "Es sind nur Bilder bis zu einer Größe von {size} KB erlaubt.",
 		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß.",
-		"addImage_action": "Bild hinzufügen"
+		"addImage_action": "Bild hinzufügen",
+		"moveUp_action": "Nach oben",
+		"moveDown_action": "Nach unten",
+		"moveToTop_action": "An den Anfang verschieben",
+		"moveToBottom_action": "An das Ende verschieben"
 	}
 }
