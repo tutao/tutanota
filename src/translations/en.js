@@ -950,7 +950,7 @@ module.exports = {
 		"yourMessage_label": "Your message",
 		"moveUp_action": "Move up",
 		"moveDown_action": "Move down",
-		"moveToTop_action": "Move to top",
-		"moveToBottom_action": "Move to bottom"
+		"moveToTop_action": "Move to the top",
+		"moveToBottom_action": "Move to the bottom"
 	}
 }

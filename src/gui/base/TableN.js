@@ -119,7 +119,7 @@ export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, cu
 			type: ButtonType.Dropdown,
 			isVisible: () => indexOfElement > 0,
 			click: () => {
-				let prev = instance.getArray()[indexOfElement - 1]
+				let prev = elements[indexOfElement - 1]
 				elements[indexOfElement - 1] = currentElement
 				elements[indexOfElement] = prev
 				instance.updateInstance()
@@ -130,7 +130,7 @@ export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, cu
 			type: ButtonType.Dropdown,
 			isVisible: () => indexOfElement < instance.getArray().length - 1,
 			click: () => {
-				let next = instance.getArray()[indexOfElement + 1]
+				let next = elements[indexOfElement + 1]
 				elements[indexOfElement + 1] = currentElement
 				elements[indexOfElement] = next
 				instance.updateInstance()
