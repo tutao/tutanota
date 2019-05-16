@@ -5,7 +5,7 @@ import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'
-import {RichTextToolbar} from "./RichTextToolbar"
+import type {ImageHandler} from '../../mail/MailUtils'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -18,7 +18,7 @@ type Styles = {
 	listing: ?Listing
 }
 
-export class Editor {
+export class Editor implements ImageHandler {
 	_squire: Squire;
 	view: Function;
 	onbeforeupdate: Function;
