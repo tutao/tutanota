@@ -38,7 +38,6 @@ import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {Editor} from "../gui/base/Editor"
 import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
@@ -445,7 +444,11 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 }
 
 
-export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
+export interface ImageHandler {
+	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement
+}
+
+export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig = []
 		for (let file of files) {
@@ -454,7 +457,7 @@ export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
 			} else {
 				const b64 = uint8ArrayToBase64(file.data)
 				const dataUrlString = `data:${file.mimeType};base64,${b64}`
-				editor.insertImage(dataUrlString, {style: "max-width: 100%"})
+				handler.insertImage(dataUrlString, {style: "max-width: 100%"})
 			}
 		}
 		if (tooBig.length > 0) {

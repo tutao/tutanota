@@ -1,5 +1,5 @@
 // @flow
-import {assertWorkerOrNode, getHttpOrigin} from "../../Env"
+import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../Env"
 import {ConnectionError, handleRestError} from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
@@ -44,7 +44,7 @@ export class RestClient {
 			let t = abortAfterTimeout()
 			let timeout = setTimeout(t.abortFunction, env.timeout)
 			t.timeoutId = timeout
-			if (typeof self.debug !== 'undefined') {
+			if (isWorker() && self.debug) {
 				console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 			}
 			xhr.onload = () => { // XMLHttpRequestProgressEvent, but not needed
@@ -78,14 +78,14 @@ export class RestClient {
 
 			try {
 				xhr.upload.onprogress = (pe: any) => {
-					if (typeof self.debug !== 'undefined') {
+					if (isWorker() && self.debug) {
 						console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
 					clearTimeout(timeout)
 					let t = abortAfterTimeout()
 					timeout = setTimeout(t.abortFunction, env.timeout)
 					t.timeoutId = timeout
-					if (typeof self.debug !== 'undefined') {
+					if (isWorker() && self.debug) {
 						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
 					if (progressListener != null && pe.lengthComputable) { // see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
@@ -97,14 +97,14 @@ export class RestClient {
 				clearTimeout(e)
 			}
 			xhr.onprogress = (pe: any) => {
-				if (typeof self.debug !== 'undefined') {
+				if (isWorker() && self.debug) {
 					console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
 				}
 				clearTimeout(timeout)
 				let t = abortAfterTimeout()
 				timeout = setTimeout(t.abortFunction, env.timeout)
 				t.timeoutId = timeout
-				if (typeof self.debug !== 'undefined') {
+				if (isWorker() && self.debug) {
 					console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 				}
 				if (progressListener != null && pe.lengthComputable) { // see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
