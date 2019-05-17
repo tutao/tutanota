@@ -17,7 +17,6 @@ import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
@@ -34,7 +33,9 @@ import {
 	getEnabledMailAddresses,
 	getMailboxName,
 	getSenderName,
-	parseMailtoUrl, replaceInlineImagesInDOM, replaceInlineImagesWithCids,
+	parseMailtoUrl,
+	replaceInlineImagesInDOM,
+	replaceInlineImagesWithCids,
 	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
@@ -52,7 +53,6 @@ import {findRecipients} from "../native/ContactApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {logins} from "../api/main/LoginController"
-import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {px, size} from "../gui/size"
@@ -75,13 +75,11 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 
@@ -444,7 +442,7 @@ export class MailEditor {
 		bodyText: string,
 		replyTos: EncryptedMailAddress[],
 		addSignature: boolean,
-		inlineImages?: Promise<InlineImages>
+		inlineImages?: ?Promise<InlineImages>
 	}): Promise<void> {
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
@@ -564,7 +562,7 @@ export class MailEditor {
 									m.redraw()
 								}
 							}
-						})
+						}
 					})
 				}).observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
 			}
@@ -733,10 +731,11 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
-		const domWithoutCids = replaceInlineImagesWithCids(this._editor.getDOM())
-
+		// _tempBody is only set until the editor is initialized. It might not be the case when
+		// assigning a mail to another user because editor is not shown and we cannot
+		// wait for the editor to be initialized.
+		const body = this._tempBody || replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML
 		let promise = null
-		const body = this._tempBody ? this._tempBody : domWithoutCids.innerHTML
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
 			attachments, this._isConfidential(), this._replyTos)

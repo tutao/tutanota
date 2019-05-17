@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import SquireEditor from "squire-rte"
+import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
@@ -23,7 +24,7 @@ export class Editor implements ImageHandler {
 	view: Function;
 	onbeforeupdate: Function;
 	onremove: Function;
-	initialized: Object;
+	initialized: DeferredObject<void>;
 	_domElement: HTMLElement;
 	_enabled: boolean;
 	_active: boolean;

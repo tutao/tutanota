@@ -43,7 +43,8 @@ import {
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
-	isTutanotaTeamMail, replaceInlineImagesInDOM,
+	isTutanotaTeamMail,
+	replaceInlineImagesInDOM,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
@@ -729,14 +730,14 @@ export class MailViewer {
 	_forward() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return this._createForwardingMailEditor([], [], true).then(editor => {
+				return this._createForwardingMailEditor([], [], true, true).then(editor => {
 					editor.show()
 				})
 			}
 		})
 	}
 
-	_createForwardingMailEditor(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<MailEditor> {
+	_createForwardingMailEditor(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean, replaceInlineImages: boolean): Promise<MailEditor> {
 		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.sentDate) + "<br>"
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 		if (this.mail.toRecipients.length > 0) {
@@ -766,7 +767,7 @@ export class MailViewer {
 			bodyText: body,
 			replyTos,
 			addSignature,
-			inlineImages: this._inlineImages
+			inlineImages: replaceInlineImages ? this._inlineImages : null
 		}).then(() => {
 			return editor
 		})
@@ -799,7 +800,7 @@ export class MailViewer {
 			newReplyTos[0].name = this.mail.sender.name
 		}
 
-		this._createForwardingMailEditor([recipient], newReplyTos, false).then(editor => {
+		this._createForwardingMailEditor([recipient], newReplyTos, false, false).then(editor => {
 			return editor.send()
 		}).then(() => {
 			mailModel.moveMails([this.mail], getArchiveFolder(mailModel.getMailboxFolders(this.mail)))
