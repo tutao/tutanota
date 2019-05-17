@@ -553,7 +553,8 @@ export class MailEditor {
 				// Add mutation observer to remove attachments when corresponding DOM element is removed
 				new MutationObserver((mutationList) => {
 					mutationList.forEach((mutation) => {
-						mutation.removedNodes.forEach((removedNode) => {
+						for (let i = 0; i < mutation.removedNodes.length; i++) {// use for loop here because forEach is not defined on NodeList in IE11
+							const removedNode = mutation.removedNodes[i]
 							if (removedNode instanceof Image && removedNode.getAttribute("cid") != null) {
 								const cid = removedNode.getAttribute("cid")
 								const index = this._attachments.findIndex((attach) => attach.cid === cid)
