@@ -71,7 +71,7 @@ class HtmlSanitizer {
 	 */
 	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true, ADD_ATTR: ['cid']}) // allow our own cid attribute
+			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
 		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
 	}
 
@@ -82,7 +82,7 @@ class HtmlSanitizer {
 		this._inlineImageCids = []
 
 		return {
-			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
+			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 			ADD_URI_SAFE_ATTR: ['poster'], // for video element
 			FORBID_TAGS: ['style'] // prevent loading of external fonts
 		}
@@ -119,6 +119,7 @@ class HtmlSanitizer {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
 				if (attribute.value.startsWith("cid:")) {
+					// replace embedded image with local image until the embedded image is loaded and ready to be shown.
 					const cid = attribute.value.substring(4)
 					this._inlineImageCids.push(cid)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
@@ -144,7 +145,7 @@ class HtmlSanitizer {
 
 	_replaceStyleImage(htmlNode, styleAttributeName: string, limitWidth: boolean) {
 		let value = htmlNode.style[styleAttributeName]
-		if (value.match(/^url\(/)) {
+		if (value.match(/^url\(/) && !value.match(/^url\(["']?data:/)) {
 			// remove surrounding url definition. url(<link>)
 			value = value.replace(/^url\("*/, "");
 			value = value.replace(/"*\)$/, "");

@@ -43,7 +43,8 @@ import {
 	getSortedCustomFolders,
 	getSortedSystemFolders,
 	isExcludedMailAddress,
-	isTutanotaTeamMail, replaceInlineImagesInDOM,
+	isTutanotaTeamMail,
+	replaceCidsWithInlineImages,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
@@ -204,31 +205,14 @@ export class MailViewer {
 		}), differentSenderBubble != null, {'padding-top': px(26)})
 
 		let actions = new ActionBar()
+		actions.add(this._createLoadExternalContentButton(mail))
 		if (mail.state === MailState.DRAFT) {
 			actions.add(new Button('edit_action', () => this._editDraft(), () => Icons.Edit))
 		} else {
-			let loadExternalContentButton = new Button('contentBlocked_msg', () => {
-				if (this._mailBody) {
-					Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
-						if (confirmed) {
-							this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(neverNull(this._mailBody).text, false).html))
-							this._contentBlocked = false
-							this._domBodyDeferred = defer()
-							this._replaceInlineImages()
-							m.redraw()
-						}
-					})
-
-				}
-			}, () => Icons.Picture)
-			loadExternalContentButton.setIsVisibleHandler(() => this._contentBlocked)
-
-			let restrictedParticipants = mail.restrictions && mail.restrictions.participantGroupInfos.length > 0
-
-			actions.add(loadExternalContentButton)
 			if (!this._isAnnouncement()) {
 				actions.add(new Button('reply_action', () => this._reply(false), () => Icons.Reply))
 				let userController = logins.getUserController()
+				let restrictedParticipants = mail.restrictions && mail.restrictions.participantGroupInfos.length > 0
 				if (userController.isInternalUser()
 					&& (mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1)
 					&& !restrictedParticipants) {
@@ -239,19 +223,7 @@ export class MailViewer {
 				} else if (userController.isInternalUser()
 					&& restrictedParticipants
 					&& userController.getUserMailGroupMembership().group !== this.mail._ownerGroup) { // do not allow re-assigning from personal mailbox
-					// remove the current mailbox/owner from the recipients list.
-					const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
-						if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
-							return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
-								&& userOrMailGroupInfo.group !== mail._ownerGroup
-						} else {
-							return userOrMailGroupInfo.group !== mail._ownerGroup
-						}
-					}).map(userOrMailGroupInfo => {
-						return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
-							.setType(ButtonType.Dropdown)
-					})
-					actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
+					actions.add(this._createAssignActionButton(mail))
 				}
 			}
 			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
@@ -397,11 +369,47 @@ export class MailViewer {
 		this._setupShortcuts()
 	}
 
+	_createAssignActionButton(mail: Mail): Button {
+		// remove the current mailbox/owner from the recipients list.
+		const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
+			if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
+				return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group
+					&& userOrMailGroupInfo.group !== mail._ownerGroup
+			} else {
+				return userOrMailGroupInfo.group !== mail._ownerGroup
+			}
+		}).map(userOrMailGroupInfo => {
+			return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
+				.setType(ButtonType.Dropdown)
+		})
+		return createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250)
+	}
+
+	_createLoadExternalContentButton(mail: Mail): Button {
+		let loadExternalContentButton = new Button('contentBlocked_msg', () => {
+			if (this._mailBody) {
+				Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
+					if (confirmed) {
+						this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(neverNull(this._mailBody).text, false).html))
+						this._contentBlocked = false
+						this._domBodyDeferred = defer()
+						this._replaceInlineImages()
+						m.redraw()
+					}
+				})
+
+			}
+		}, () => Icons.Picture)
+		loadExternalContentButton.setIsVisibleHandler(() => this._contentBlocked)
+
+		return loadExternalContentButton
+
+	}
 
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceInlineImagesInDOM(domBody, loadedInlineImages)
+				replaceCidsWithInlineImages(domBody, loadedInlineImages)
 			})
 		})
 	}
@@ -661,6 +669,7 @@ export class MailViewer {
 					draftMail: this.mail,
 					attachments: this._attachments,
 					bodyText: this._getMailBody(),
+					blockExternalContent: this._contentBlocked,
 					inlineImages: this._inlineImages
 				}).then(() => {
 					editor.show()

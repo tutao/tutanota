@@ -17,7 +17,6 @@ import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
@@ -34,7 +33,9 @@ import {
 	getEnabledMailAddresses,
 	getMailboxName,
 	getSenderName,
-	parseMailtoUrl, replaceInlineImagesInDOM, replaceInlineImagesWithCids,
+	parseMailtoUrl,
+	replaceCidsWithInlineImages,
+	replaceInlineImagesWithCids,
 	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
@@ -52,7 +53,6 @@ import {findRecipients} from "../native/ContactApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {logins} from "../api/main/LoginController"
-import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {px, size} from "../gui/size"
@@ -75,13 +75,11 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {styles} from "../gui/styles"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 
@@ -450,9 +448,9 @@ export class MailEditor {
 		replyTos: EncryptedMailAddress[],
 		addSignature: boolean,
 		inlineImages?: Promise<InlineImages>,
-		blockExternalContent?: boolean
+		blockExternalContent: boolean
 	}): Promise<void> {
-		this._blockExternalContent = blockExternalContent == null || blockExternalContent
+		this._blockExternalContent = blockExternalContent
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()
@@ -505,16 +503,18 @@ export class MailEditor {
 		return Promise.resolve()
 	}
 
-	initFromDraft({draftMail, attachments, bodyText, inlineImages}: {
+	initFromDraft({draftMail, attachments, bodyText, inlineImages, blockExternalContent}: {
 		draftMail: Mail,
 		attachments: TutanotaFile[],
 		bodyText: string,
+		blockExternalContent: boolean,
 		inlineImages?: Promise<InlineImages>
 	}): Promise<void> {
 		let conversationType: ConversationTypeEnum = ConversationType.NEW
 		let previousMessageId: ?string = null
 		let previousMail: ?Mail = null
 		this.draft = draftMail
+		this._blockExternalContent = blockExternalContent
 
 		return load(ConversationEntryTypeRef, draftMail.conversationEntry).then(ce => {
 			conversationType = downcast(ce.conversationType)
@@ -600,7 +600,7 @@ export class MailEditor {
 					m.redraw()
 				})
 				this._editor.initialized.promise.then(() => {
-					replaceInlineImagesInDOM(this._editor.getDOM(), loadedInlineImages)
+					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages)
 				})
 			})
 		}

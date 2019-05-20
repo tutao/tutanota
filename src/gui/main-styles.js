@@ -594,8 +594,8 @@ styles.registerStyle('main', () => {
 		},
 
 		'.tutanota-placeholder': {
-			'max-width': "200px !important",
-			'max-height': "200px !important"
+			'max-width': "100px !important",
+			'max-height': "100px !important"
 		},
 
 		'.MsoNormal': {margin: 0},
