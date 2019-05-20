@@ -211,7 +211,7 @@ export class MailViewer {
 				if (this._mailBody) {
 					Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
 						if (confirmed) {
-							this._htmlBody = urlify(htmlSanitizer.sanitize(neverNull(this._mailBody).text, false).text)
+							this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(neverNull(this._mailBody).text, false).html))
 							this._contentBlocked = false
 							this._domBodyDeferred = defer()
 							this._replaceInlineImages()
@@ -660,7 +660,7 @@ export class MailViewer {
 				return editor.initFromDraft({
 					draftMail: this.mail,
 					attachments: this._attachments,
-					bodyText: this._htmlBody,
+					bodyText: this._getMailBody(),
 					inlineImages: this._inlineImages
 				}).then(() => {
 					editor.show()
@@ -679,7 +679,7 @@ export class MailViewer {
 				let subject = (startsWith(this.mail.subject, prefix)) ? this.mail.subject : prefix + this.mail.subject
 				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 					+ this.mail.sender.address + ":";
-				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
+				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
 				let toRecipients = []
 				let ccRecipients = []
@@ -718,12 +718,17 @@ export class MailViewer {
 					bodyText: body,
 					replyTos: [],
 					addSignature: true,
-					inlineImages: this._inlineImages
+					inlineImages: this._inlineImages,
+					blockExternalContent: this._contentBlocked
 				}).then(() => {
 					editor.show()
 				})
 			}
 		})
+	}
+
+	_getMailBody() {
+		return this._mailBody && this._mailBody.text || ""
 	}
 
 	_forward() {
@@ -751,7 +756,7 @@ export class MailViewer {
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
 
-		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._htmlBody + "</blockquote>";
+		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
 		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 		return editor.initAsResponse({
@@ -766,7 +771,8 @@ export class MailViewer {
 			bodyText: body,
 			replyTos,
 			addSignature,
-			inlineImages: this._inlineImages
+			inlineImages: this._inlineImages,
+			blockExternalContent: this._contentBlocked
 		}).then(() => {
 			return editor
 		})

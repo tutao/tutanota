@@ -593,6 +593,11 @@ styles.registerStyle('main', () => {
 			'margin-right': px(0)
 		},
 
+		'.tutanota-placeholder': {
+			'max-width': "200px !important",
+			'max-height': "200px !important"
+		},
+
 		'.MsoNormal': {margin: 0},
 
 		// list

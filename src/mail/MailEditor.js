@@ -114,6 +114,7 @@ export class MailEditor {
 	_replyTos: RecipientInfo[];
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
+	_blockExternalContent: boolean;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -134,6 +135,7 @@ export class MailEditor {
 		this._mailboxDetails = mailboxDetails
 		this._showToolbar = false
 		this._objectURLs = []
+		this._blockExternalContent = true
 
 		let props = logins.getUserController().props
 
@@ -218,7 +220,9 @@ export class MailEditor {
 			middle: () => lang.get(this._conversationTypeToTitleTextId())
 		}
 		let detailsExpanded = stream(false)
-		this._editor = new Editor(200, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
+		this._editor = new Editor(200, (html, isPaste) => {
+			return htmlSanitizer.sanitizeFragment(html, !isPaste && this._blockExternalContent).html
+		})
 		const attachImageHandler = isApp() ?
 			null
 			: (ev) => this._onAttachImageClicked(ev)
@@ -431,7 +435,8 @@ export class MailEditor {
 		               previousMail, conversationType, senderMailAddress,
 		               toRecipients, ccRecipients, bccRecipients,
 		               attachments, subject, bodyText,
-		               replyTos, addSignature, inlineImages
+		               replyTos, addSignature, inlineImages,
+		               blockExternalContent
 	               }: {
 		previousMail: Mail,
 		conversationType: ConversationTypeEnum,
@@ -444,8 +449,10 @@ export class MailEditor {
 		bodyText: string,
 		replyTos: EncryptedMailAddress[],
 		addSignature: boolean,
-		inlineImages?: Promise<InlineImages>
+		inlineImages?: Promise<InlineImages>,
+		blockExternalContent?: boolean
 	}): Promise<void> {
+		this._blockExternalContent = blockExternalContent == null || blockExternalContent
 		if (addSignature) {
 			bodyText = "<br/><br/><br/>" + bodyText
 			let signature = getEmailSignature()

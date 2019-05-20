@@ -23,12 +23,6 @@ class HtmlSanitizer {
 			return
 		}
 		this.purifier.addHook('afterSanitizeElements', (currentNode, data, config) => {
-				// Do something with the current node and return it
-				//console.log("afterSanitizeElements", currentNode.constructor, currentNode, data, config, "prevent: ", this._blockExternalContent, "style", currentNode.style)
-				if (this._blockExternalContent) {
-					this._preventExternalImageLoading(currentNode)
-				}
-
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
 				let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
@@ -40,6 +34,9 @@ class HtmlSanitizer {
 						}
 					}
 				}
+
+				this._replaceAttributes(currentNode)
+
 				// set target="_blank" for all links
 				if (currentNode.tagName && (
 					currentNode.tagName.toLowerCase() === "a"
@@ -91,11 +88,11 @@ class HtmlSanitizer {
 		}
 	}
 
-	_preventExternalImageLoading(htmlNode) {
+	_replaceAttributes(htmlNode) {
 		if (htmlNode.attributes) {
 			this._replaceAttributeValue(htmlNode);
 		}
-		if (htmlNode.style) {
+		if (htmlNode.style && this._blockExternalContent) {
 			if (htmlNode.style.backgroundImage) {
 				//console.log(htmlNode.style.backgroundImage)
 				this._replaceStyleImage(htmlNode, "backgroundImage", false)
@@ -122,8 +119,12 @@ class HtmlSanitizer {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
 				if (attribute.value.startsWith("cid:")) {
-					this._inlineImageCids.push(attribute.value.substring(4))
-				} else if (!attribute.value.startsWith("data:")) {
+					const cid = attribute.value.substring(4)
+					this._inlineImageCids.push(cid)
+					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					htmlNode.setAttribute("cid", cid)
+					htmlNode.classList.add("tutanota-placeholder")
+				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
 					this._externalContent.push(attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
