@@ -113,6 +113,30 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(result.text.includes("data:image/svg+xml;utf8,")).equals(false);
 	})
 
+	o("detect background inline images", function () {
+		const backgroundUrl = "data:image/svg+xml;utf8,inline"
+
+		let result = htmlSanitizer.sanitize(`<p style="background-image: url(${backgroundUrl})"> </p>`, true)
+		o(result.externalContent.length).equals(0)
+		o(result.text.includes(backgroundUrl)).equals(true);
+
+		result = htmlSanitizer.sanitize(`<p style="background-image: url('${backgroundUrl}')"> </p>`, true)
+		o(result.externalContent.length).equals(0)
+		o(result.text.includes(backgroundUrl)).equals(true);
+
+		result = htmlSanitizer.sanitize(`<p style='background-image: url("${backgroundUrl}")'> </p>`, true)
+		o(result.externalContent.length).equals(0)
+		o(result.text.includes(backgroundUrl)).equals(true);
+
+		result = htmlSanitizer.sanitize(`<p style="background-image: url(&quot;${backgroundUrl}&quot;)"> </p>`, true)
+		o(result.externalContent.length).equals(0)
+		o(result.text.includes(backgroundUrl)).equals(true);
+
+		result = htmlSanitizer.sanitize(`<p style="background-image: url(&#39;${backgroundUrl}&#39;)"> </p>`, true)
+		o(result.externalContent.length).equals(0)
+		o(result.text.includes(backgroundUrl)).equals(true);
+	})
+
 	o("background attribute", function () {
 		const plainHtml = "<table><tr><td background=\"https://tutanota.com/image.jpg\"> ....</td></tr></table>"
 		const cleanHtml = htmlSanitizer.sanitize(plainHtml, true)
@@ -207,12 +231,13 @@ o.spec("HtmlSanitizerTest", browser(function () {
 			|| result.text.includes('<a href="http://localhost/index.html" target="_blank" rel="noopener noreferrer">')).equals(true)
 	})
 
-	o("do no replace inline images", function () {
+	o("do not replace inline images", function () {
 		const input = '<html><img src="cid:asbasdf-safd_d"><img src="data:image/svg+xml;utf8,sadfsdasdf"></html>'
 		const result = htmlSanitizer.sanitize(input, true)
 		o(result.externalContent.length).equals(0);
 		o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"]);
-		o(result.text).equals("<img src=\"cid:asbasdf-safd_d\"><img src=\"data:image/svg+xml;utf8,sadfsdasdf\">")
+		o(result.text)
+			.equals(`<img class="tutanota-placeholder" cid="asbasdf-safd_d" src="${replaceHtmlEntities(PREVENT_EXTERNAL_IMAGE_LOADING_ICON)}"><img src="data:image/svg+xml;utf8,sadfsdasdf">`)
 	})
 
 
@@ -234,3 +259,9 @@ o.spec("HtmlSanitizerTest", browser(function () {
 
 
 }))
+
+
+function replaceHtmlEntities(src: string): string {
+	return src.replace(/</g, "&lt;")
+	          .replace(/>/g, "&gt;")
+}

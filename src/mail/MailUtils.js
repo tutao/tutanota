@@ -466,15 +466,16 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 	})
 }
 
-export function replaceInlineImagesInDOM(dom: HTMLElement, inlineImages: InlineImages) {
-	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
+
+export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages) {
+	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
+	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	imageElements.forEach((imageElement) => {
-		const value = imageElement.getAttribute("src")
-		if (value && value.startsWith("cid:")) {
-			const cid = value.substring(4)
+		const cid = imageElement.getAttribute("cid")
+		if (cid) {
 			if (inlineImages[cid]) {
 				imageElement.setAttribute("src", inlineImages[cid].url)
-				imageElement.setAttribute("cid", cid)
+				imageElement.classList.remove("tutanota-placeholder")
 			}
 		}
 	})
