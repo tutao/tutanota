@@ -38,7 +38,6 @@ import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {Editor} from "../gui/base/Editor"
 import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
@@ -445,7 +444,11 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 }
 
 
-export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
+export interface ImageHandler {
+	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement
+}
+
+export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig = []
 		for (let file of files) {
@@ -454,7 +457,7 @@ export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
 			} else {
 				const b64 = uint8ArrayToBase64(file.data)
 				const dataUrlString = `data:${file.mimeType};base64,${b64}`
-				editor.insertImage(dataUrlString, {style: "max-width: 100%"})
+				handler.insertImage(dataUrlString, {style: "max-width: 100%"})
 			}
 		}
 		if (tooBig.length > 0) {
@@ -463,15 +466,16 @@ export function insertInlineImageB64ClickHandler(ev: Event, editor: Editor) {
 	})
 }
 
-export function replaceInlineImagesInDOM(dom: HTMLElement, inlineImages: InlineImages) {
-	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[src^=cid]")) // all image tags whose src attributes starts with cid:
+
+export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages) {
+	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
+	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	imageElements.forEach((imageElement) => {
-		const value = imageElement.getAttribute("src")
-		if (value && value.startsWith("cid:")) {
-			const cid = value.substring(4)
+		const cid = imageElement.getAttribute("cid")
+		if (cid) {
 			if (inlineImages[cid]) {
 				imageElement.setAttribute("src", inlineImages[cid].url)
-				imageElement.setAttribute("cid", cid)
+				imageElement.classList.remove("tutanota-placeholder")
 			}
 		}
 	})

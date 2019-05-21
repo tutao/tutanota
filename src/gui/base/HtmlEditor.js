@@ -116,7 +116,7 @@ export class HtmlEditor {
 				}, [
 					getPlaceholder(),
 					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						this._richToolbarOptions.enabled ? m(toolbar) : null,
+						(this._editor.isEnabled() && this._richToolbarOptions.enabled) ? m(toolbar) : null,
 						m(this._editor)
 					]) : null,
 					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {

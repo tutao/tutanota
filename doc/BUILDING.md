@@ -11,11 +11,12 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
-3. Do `npm install`
-4. Build the web part: `node dist prod`
-5. Switch into the build directory: `cd build/dist`
-6. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
-7. Open the `` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
+4. Do `npm install`
+5. Build the web part: `node dist prod`
+6. Switch into the build directory: `cd build/dist`
+7. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
+8. Open the `` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
 ## Building and running your own Tutanota Android app
 
@@ -31,7 +32,8 @@ If you prefer the auto-update feature, use the Google Play Store or F-Droid in t
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the Tutanota directory: `cd tutanota`
-3. Install dependencies: `npm install`
-4. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
-5. run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
-6. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
+3. Checkout the latest android release tag: `git checkout tutanota-android-release-xxx`
+4. Install dependencies: `npm install`
+5. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
+6. run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
+7. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)

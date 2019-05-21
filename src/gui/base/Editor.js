@@ -1,11 +1,12 @@
 // @flow
 import m from "mithril"
 import SquireEditor from "squire-rte"
+import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer} from "../../api/common/utils/Utils"
 import {px, size} from "../size"
 import {Dialog} from "./Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'
-import {RichTextToolbar} from "./RichTextToolbar"
+import type {ImageHandler} from '../../mail/MailUtils'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -18,12 +19,12 @@ type Styles = {
 	listing: ?Listing
 }
 
-export class Editor {
+export class Editor implements ImageHandler {
 	_squire: Squire;
 	view: Function;
 	onbeforeupdate: Function;
 	onremove: Function;
-	initialized: Object;
+	initialized: DeferredObject<void>;
 	_domElement: HTMLElement;
 	_enabled: boolean;
 	_active: boolean;
@@ -144,6 +145,10 @@ export class Editor {
 		if (this._domElement) {
 			this._domElement.setAttribute("contenteditable", String(enabled))
 		}
+	}
+
+	isEnabled(): boolean {
+		return this._enabled
 	}
 
 	setHTML(html: ?string) {
