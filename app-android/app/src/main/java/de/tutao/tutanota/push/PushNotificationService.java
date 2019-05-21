@@ -239,6 +239,7 @@ public final class PushNotificationService extends JobService {
             // 1. SSE info is null in the intent (e.g. PeriodicJobRestartService)
             // 2. SSE info is null in the SharedPrefs (it is not synchronized between processes yet)
             Log.d(TAG, "Could not get sse info, using the old one");
+            stopForeground(true);
         } else {
             this.connectedSseInfo = sseInfo;
         }
