@@ -63,3 +63,82 @@ export function getDiffInDays(a: Date, b: Date): number {
 	const MS_PER_DAY = 1000 * 60 * 60 * 24;
 	return Math.floor((utc2 - utc1) / MS_PER_DAY)
 }
+
+
+export type CalendarDay = {
+	date: ?Date,
+	year: number,
+	month: number,
+	day: number
+}
+
+export type CalendarMonth = {
+	weekdays: Array<string>,
+	weeks: Array<Array<CalendarDay>>
+}
+
+
+export function getCalendarMonth(date: Date): CalendarMonth {
+	const weeks = [[]]
+	const calculationDate = new Date(date)
+	calculationDate.setDate(1)
+	let currentYear = calculationDate.getFullYear()
+	let month = calculationDate.getMonth()
+	// add "padding" days
+	// getDay returns the day of the week (from 0 to 6) for the specified date
+	let firstDay = calculationDate.getDay()
+	let dayCount
+
+	calculationDate.setDate(calculationDate.getDate() - firstDay)
+	for (dayCount = 0; dayCount < firstDay; dayCount++) {
+		weeks[0].push({
+			date: null,
+			day: calculationDate.getDate(),
+			month: calculationDate.getMonth(),
+			year: calculationDate.getFullYear(),
+		})
+		calculationDate.setDate(calculationDate.getDate() + 1)
+	}
+
+	// add actual days
+	while (calculationDate.getMonth() === month) {
+		if (weeks[0].length && dayCount % 7 === 0) {
+			// start new week
+			weeks.push([])
+		}
+		const dayInfo = {
+			date: new Date(currentYear, month, calculationDate.getDate()),
+			year: currentYear,
+			month: month,
+			day: calculationDate.getDate(),
+		}
+		weeks[weeks.length - 1].push(dayInfo)
+		calculationDate.setDate(calculationDate.getDate() + 1)
+		dayCount++
+	}
+	// add remaining "padding" days
+	while (dayCount < 42) {
+		if (dayCount % 7 === 0) {
+			weeks.push([])
+		}
+		weeks[weeks.length - 1].push({
+			day: calculationDate.getDate(),
+			year: calculationDate.getFullYear(),
+			month: calculationDate.getMonth(),
+			date: null
+		})
+		calculationDate.setDate(calculationDate.getDate() + 1)
+		dayCount++
+	}
+	const weekdays = []
+	const weekdaysDate = new Date()
+	weekdaysDate.setDate(weekdaysDate.getDate() - weekdaysDate.getDay())
+	for (let i = 0; i < 7; i++) {
+		weekdays.push(weekdaysDate.toLocaleDateString([], {weekday: "narrow"}))
+		weekdaysDate.setDate(weekdaysDate.getDate() + 1)
+	}
+	return {
+		weekdays,
+		weeks
+	}
+}

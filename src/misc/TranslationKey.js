@@ -942,4 +942,7 @@ export type TranslationKeyType = "acceptPrivacyPolicyReminder_msg"
 	| "moveDown_action"
 	| "moveToTop_action"
 	| "moveToBottom_action"
-
+	| "calendar_label"
+	| "newEvent_action"
+	| "yourCalendars_label"
+	| "privateCalendar_label"

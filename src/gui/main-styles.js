@@ -904,6 +904,15 @@ styles.registerStyle('main', () => {
 			"bottom": "-20px"
 		},
 
+		// calendar
+		'.calendar-checkbox': {
+			height: px(18),
+			width: px(18),
+			'border-width': "1.5px",
+			'border-style': "solid",
+			'border-radius': "2px"
+		},
+
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
 		"@media (max-width: 400px)": { // currently used for the reminder dialog

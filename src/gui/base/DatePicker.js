@@ -32,7 +32,7 @@ export class DatePicker {
 	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg") {
 		this.date = stream(null)
 
-		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => Icons.Calendar)
+		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
 
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
@@ -111,11 +111,11 @@ export class DatePicker {
 
 type VisualDatePickerAttrs = $Attrs<{
 	selectedDate: ?Date,
-	onDateSelected?: (date: Date) => void;
+	onDateSelected?: (date: Date) => mixed;
 	wide: boolean
 }>
 
-class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
+export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	_displayingDate: Date;
 	_lastSelectedDate: ?Date;
 
@@ -237,7 +237,8 @@ class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		return attrs.wide ? 40 : 24
 	}
 
-	_weekVdom(week, attrs: VisualDatePickerAttrs): VirtualElement {
+	_weekVdom(week: Array<{date: ?Date, year?: number, month?: number, day: ?number}>,
+	          attrs: VisualDatePickerAttrs): VirtualElement {
 		return m(".flex.flex-space-between", week.map(d => this._dayVdom(d, attrs)))
 	}
 

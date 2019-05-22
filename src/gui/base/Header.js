@@ -72,6 +72,8 @@ class Header {
 			.addButton(this.mailNavButton, 0, false)
 			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
+			.addButton(new NavButton("calendar_label", () => BootIcons.Calendar, "/calendar", "/calendar")
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
 			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
 				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount())
 				.setClickHandler(() => this._showUpgradeDialog()), 0, false)

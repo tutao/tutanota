@@ -954,6 +954,10 @@ module.exports = {
 		"moveUp_action": "Move up",
 		"moveDown_action": "Move down",
 		"moveToTop_action": "Move to the top",
-		"moveToBottom_action": "Move to the bottom"
+		"moveToBottom_action": "Move to the bottom",
+		"calendar_label": "Calendar",
+		"newEvent_action": "New event",
+		"yourCalendars_label": "Your calendars",
+		"privateCalendar_label": "Private"
 	}
 }
