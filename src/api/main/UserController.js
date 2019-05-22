@@ -86,6 +86,10 @@ export class UserController implements IUserController {
 		return this.user.memberships.filter(membership => membership.groupType === GroupType.Mail)
 	}
 
+	getCalendarMemberships(): GroupMembership[] {
+		return this.user.memberships.filter(membership => membership.groupType === GroupType.Calendar)
+	}
+
 	getUserMailGroupMembership(): GroupMembership {
 		return this.getMailGroupMemberships()[0]
 	}

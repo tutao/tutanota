@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import {load, loadAll} from "../api/main/Entity"
 import stream from "mithril/stream/stream.js"
 import type {CurrentView} from "../gui/base/Header"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
@@ -9,27 +10,26 @@ import {Button, ButtonType} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
 import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import type {CalendarDay} from "../api/common/utils/DateUtils"
 import {getCalendarMonth} from "../api/common/utils/DateUtils"
+import {Dialog} from "../gui/base/Dialog"
+import {TextFieldN} from "../gui/base/TextFieldN"
+import {CalendarEventTypeRef, createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
+import {logins} from "../api/main/LoginController"
 
 export class CalendarView implements CurrentView {
 
-	sidebarColumn: ViewColumn;
-	contentColumn: ViewColumn;
-	viewSlider: ViewSlider;
-	newAction: Button;
-	selectedDate: Stream<Date>;
+	sidebarColumn: ViewColumn
+	contentColumn: ViewColumn
+	viewSlider: ViewSlider
+	newAction: Button
+	selectedDate: Stream<Date>
+	_calendarGroupRoot: Promise<CalendarGroupRoot>
+	_events: Array<CalendarEvent>
 
 	constructor() {
-
-
-		const privateCalendarButton: NavButtonAttrs = {
-			label: lang.get("privateCalendar_label"),
-			icon: () => BootIcons.Calendar,
-			href: () => m.route.get()
-		}
-
+		this._events = []
 
 		this.selectedDate = stream(new Date())
 		this.sidebarColumn = new ViewColumn({
@@ -65,6 +65,8 @@ export class CalendarView implements CurrentView {
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 		this.newAction = new Button('newEvent_action', () => this._newEvent(), () => Icons.Add)
 			.setType(ButtonType.Floating)
+
+		this._load()
 	}
 
 
@@ -75,11 +77,23 @@ export class CalendarView implements CurrentView {
 		])
 	}
 
-	_renderMonth() {
+	_renderMonth(): Children {
 		const {weekdays, weeks} = getCalendarMonth(this.selectedDate())
-		return m(".fill-absolute.flex.col", weeks.map((week) => {
-			return m(".flex.flex-grow", week.map(d => m(".flex-grow", String(d.day))))
-		}))
+		return m(".fill-absolute.flex.col",
+			[
+				m(".flex.pt-s.pb-s", {
+					style: {'border-bottom': '1px solid lightgrey'}
+				}, weekdays.map((wd) => m(".flex-grow", m(".b.small.pl-s", wd))))
+			].concat(weeks.map((week) => {
+				return m(".flex.flex-grow", week.map(d => this._renderDay(d)))
+			})))
+	}
+
+	_renderDay(d: CalendarDay): Children {
+		return m(".flex-grow.calendar-day", [
+			String(d.day),
+			this._events.map((e) => m("", e.summary))
+		])
 	}
 
 	updateUrl() {
@@ -87,7 +101,35 @@ export class CalendarView implements CurrentView {
 	}
 
 	_newEvent() {
+		const summary = stream("")
+		const dialog = Dialog.showActionDialog({
+			title: () => "NEWWWWW EVVVVEEENT",
+			child: () => m(TextFieldN, {
+				label: () => "EVENT SUMMARY",
+				value: summary
+			}),
+			okAction: () => {
+				const calendarEvent = createCalendarEvent()
+				calendarEvent.startTime = new Date()
+				calendarEvent.description = ""
+				calendarEvent.summary = summary()
+				calendarEvent.duration = String(60 * 1000 * 1000)
 
+				dialog.close()
+			}
+		})
+	}
+
+	_load() {
+		const calendarMemberships = logins.getUserController().getCalendarMemberships()
+		calendarMemberships.map(({group}) => {
+			this._calendarGroupRoot = load(CalendarGroupRootTypeRef, group)
+			this._calendarGroupRoot
+			    .then((root) => loadAll(CalendarEventTypeRef, root.shortEvents, null))
+			    .then((shortEvents) => {
+				    this._events = shortEvents
+			    })
+		})
 	}
 }
 

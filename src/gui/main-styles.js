@@ -913,6 +913,17 @@ styles.registerStyle('main', () => {
 			'border-radius': "2px"
 		},
 
+		'.calendar-day': {
+			padding: px(size.hpad_small),
+			'border-right': '1px solid lightgrey',
+			'border-bottom': '1px solid lightgrey',
+			'transition': 'background 0.4s'
+		},
+
+		'.calendar-day:hover': {
+			'background': '#eee'
+		},
+
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
 		"@media (max-width: 400px)": { // currently used for the reminder dialog

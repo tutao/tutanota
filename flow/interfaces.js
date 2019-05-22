@@ -35,6 +35,8 @@ interface IUserController {
 
 	getMailGroupMemberships(): GroupMembership[];
 
+	getCalendarMemberships(): GroupMembership[];
+
 	getUserMailGroupMembership(): GroupMembership;
 
 	getLocalAdminGroupMemberships(): GroupMembership[];
