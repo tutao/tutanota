@@ -66,7 +66,7 @@ export function getDiffInDays(a: Date, b: Date): number {
 
 
 export type CalendarDay = {
-	date: ?Date,
+	date: Date,
 	year: number,
 	month: number,
 	day: number
@@ -80,7 +80,7 @@ export type CalendarMonth = {
 
 export function getCalendarMonth(date: Date): CalendarMonth {
 	const weeks = [[]]
-	const calculationDate = new Date(date)
+	const calculationDate = getStartOfDay(date)
 	calculationDate.setDate(1)
 	let currentYear = calculationDate.getFullYear()
 	let month = calculationDate.getMonth()
@@ -89,15 +89,15 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 	let firstDay = calculationDate.getDay()
 	let dayCount
 
-	calculationDate.setDate(calculationDate.getDate() - firstDay)
+	incrementDate(calculationDate, -firstDay)
 	for (dayCount = 0; dayCount < firstDay; dayCount++) {
 		weeks[0].push({
-			date: null,
+			date: new Date(calculationDate),
 			day: calculationDate.getDate(),
 			month: calculationDate.getMonth(),
 			year: calculationDate.getFullYear(),
 		})
-		calculationDate.setDate(calculationDate.getDate() + 1)
+		incrementDate(calculationDate, 1)
 	}
 
 	// add actual days
@@ -113,7 +113,7 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 			day: calculationDate.getDate(),
 		}
 		weeks[weeks.length - 1].push(dayInfo)
-		calculationDate.setDate(calculationDate.getDate() + 1)
+		incrementDate(calculationDate, 1)
 		dayCount++
 	}
 	// add remaining "padding" days
@@ -125,20 +125,26 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 			day: calculationDate.getDate(),
 			year: calculationDate.getFullYear(),
 			month: calculationDate.getMonth(),
-			date: null
+			date: new Date(calculationDate)
 		})
-		calculationDate.setDate(calculationDate.getDate() + 1)
+		incrementDate(calculationDate, 1)
 		dayCount++
 	}
 	const weekdays = []
 	const weekdaysDate = new Date()
-	weekdaysDate.setDate(weekdaysDate.getDate() - weekdaysDate.getDay())
+	incrementDate(weekdaysDate, -weekdaysDate.getDay())
 	for (let i = 0; i < 7; i++) {
 		weekdays.push(weekdaysDate.toLocaleDateString([], {weekday: "narrow"}))
-		weekdaysDate.setDate(weekdaysDate.getDate() + 1)
+		incrementDate(weekdaysDate, 1)
 	}
 	return {
 		weekdays,
 		weeks
 	}
+}
+
+
+export function incrementDate(date: Date, byValue: number): Date {
+	date.setDate(date.getDate() + byValue)
+	return date
 }

@@ -28,9 +28,11 @@ export class DatePicker {
 	view: Function;
 	invalidDate: boolean;
 	date: Stream<?Date>;
+	_forceCompact: boolean
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg") {
+	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false) {
 		this.date = stream(null)
+		this._forceCompact = forceCompact
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
 
@@ -44,7 +46,7 @@ export class DatePicker {
 				return lang.get(nullSelectionTextId)
 			}
 		})
-		this.input._injectionsRight = () => client.isMobileDevice() ? [m(pickerButton)] : null
+		this.input._injectionsRight = () => forceCompact || client.isMobileDevice() ? [m(pickerButton)] : null
 		this.input.onUpdate(value => {
 			try {
 				if (value.trim().length > 0) {
@@ -70,7 +72,7 @@ export class DatePicker {
 	view = () => {
 		return [
 			m(this.input),
-			(client.isMobileDevice()
+			(this._forceCompact || client.isMobileDevice()
 				? null
 				: m(VisualDatePicker, {
 					selectedDate: this.date(),
