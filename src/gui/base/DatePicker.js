@@ -68,7 +68,7 @@ export class DatePicker {
 	}
 
 	view = () => {
-		return [
+		return m("", [
 			m(this.input),
 			(client.isMobileDevice()
 				? null
@@ -77,7 +77,7 @@ export class DatePicker {
 					onDateSelected: (newDate) => this.setDate(newDate),
 					wide: false
 				}))
-		]
+		])
 	}
 
 	_showPickerDialog = () => {
