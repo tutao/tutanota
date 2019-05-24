@@ -959,9 +959,12 @@ module.exports = {
 		"moveDown_action": "Nach unten",
 		"moveToTop_action": "An den Anfang verschieben",
 		"moveToBottom_action": "An das Ende verschieben",
-		"calendar_label": "Kalendar",
+		"calendar_label": "Kalender",
 		"newEvent_action": "Neues Ereignis",
 		"yourCalendars_label": "Deine Kalender",
-		"privateCalendar_label": "Privat"
+		"privateCalendar_label": "Privat",
+		"allDay_label": "Ganztags",
+		"createEvent_title": "Ereignis",
+		"timeFormatInvalid_msg": "Ungültiges Zeitformat"
 	}
 }

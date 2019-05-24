@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {load, loadAll, setup} from "../api/main/Entity"
+import {load, loadAll} from "../api/main/Entity"
 import stream from "mithril/stream/stream.js"
 import type {CurrentView} from "../gui/base/Header"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
@@ -8,39 +8,36 @@ import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Button, ButtonType} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
-import {DatePicker, VisualDatePicker} from "../gui/base/DatePicker"
+import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
 import type {CalendarDay} from "../api/common/utils/DateUtils"
-import {getCalendarMonth, getEndOfDay, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
-import {Dialog} from "../gui/base/Dialog"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import {CalendarEventTypeRef, createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import {getCalendarMonth, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {getListId, isSameId, uint8arrayToCustomId} from "../api/common/EntityFunctions"
+import {getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {concat, findAndRemove} from "../api/common/utils/ArrayUtils"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {px, size} from "../gui/size"
 import {modal} from "../gui/base/Modal"
-import {displayOverlay} from "../gui/base/Overlay"
 import {animations, opacity, transform} from "../gui/animation/Animations"
 import {ease} from "../gui/animation/Easing"
+import {eventEndsAfterDay, eventStartsBefore, isAlllDayEvent, timeString} from "./CalendarUtils"
+import {showCalendarEventDialog} from "./CalendarEventDialog"
 
-type CalendarInfo = {
+export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
 	shortEvents: Array<CalendarEvent>,
 	longEvents: Array<CalendarEvent>,
 }
 
 const weekDaysHeight = 30
-const eventHeight = 22
+const defaultCalendarColor = "2196f3"
 
 export class CalendarView implements CurrentView {
 
@@ -49,7 +46,7 @@ export class CalendarView implements CurrentView {
 	viewSlider: ViewSlider
 	newAction: Button
 	selectedDate: Stream<Date>
-	_calendarEvents: Promise<Map<Id, CalendarInfo>>
+	_calendarInfos: Promise<Map<Id, CalendarInfo>>
 	_eventsForDays: Map<number, Array<CalendarEvent>>
 	_monthDom: ?HTMLElement
 
@@ -72,7 +69,7 @@ export class CalendarView implements CurrentView {
 					m(".folder-row.flex-start",
 						m(".flex.flex-grow..center-vertically.button-height", [
 							m(".calendar-checkbox", {
-								style: {"border-color": "blue"}
+								style: {"border-color": "#" + defaultCalendarColor}
 							}),
 							m(".pl-m", lang.get("privateCalendar_label"))
 						])))
@@ -90,7 +87,8 @@ export class CalendarView implements CurrentView {
 		this.newAction = new Button('newEvent_action', () => this._newEvent(), () => Icons.Add)
 			.setType(ButtonType.Floating)
 
-		this._load()
+		this._calendarInfos = this._load()
+		this._calendarInfos.then(() => m.redraw())
 
 
 		locator.eventController.addEntityListener((updates) => {
@@ -98,6 +96,10 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+
+	_newEvent(date?: Date) {
+		this._calendarInfos.then(calendars => showCalendarEventDialog(date || new Date(), calendars))
+	}
 
 	view() {
 		return m(".main-view", [
@@ -128,23 +130,25 @@ export class CalendarView implements CurrentView {
 	_renderDay(d: CalendarDay): Children {
 		const eventsForDay = getFromMap(this._eventsForDays, d.date.getTime(), () => [])
 		const weekHeight = this._getHeightForWeek()
-		const canDisplay = weekHeight / eventHeight
+		const canDisplay = weekHeight / size.calendar_line_height
 		const sortedEvents = eventsForDay.slice().sort((l, r) => l.startTime.getTime() - r.startTime.getTime())
 		const eventsToDisplay = sortedEvents.slice(0, canDisplay - 1)
 		const notShown = eventsForDay.length - eventsToDisplay.length
-		return m(".flex-grow.calendar-day", {
+		return m(".calendar-day-wrapper.flex-grow.rel", {
 			onclick: () => this._newEvent(d.date),
 		}, [
-			m(".pl-s.pr-s.pt-s", String(d.day)),
-			eventsToDisplay.map((e) => this._renderEvent(e, d.date)),
-			notShown > 0
-				? m("", {
-					onclick: (e) => {
-						this._showFullDayEvents(e, d, eventsForDay)
-						e.stopPropagation()
-					}
-				}, "+" + notShown)
-				: null
+			m(".day-with-border.calendar-day.fill-absolute", m(".pl-s.pr-s.pt-s", String(d.day))),
+			m(".day-with-events.events.pt-l.rel", [
+				eventsToDisplay.map((e) => this._renderEvent(e, d.date)),
+				notShown > 0
+					? m("", {
+						onclick: (e) => {
+							this._showFullDayEvents(e, d, eventsForDay)
+							e.stopPropagation()
+						}
+					}, "+" + notShown)
+					: null
+			])
 		])
 	}
 
@@ -179,23 +183,29 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderEvent(event: CalendarEvent, date: Date): Children {
-		let color = "F0F8FF"
-		if (this._calendarEvents.isFulfilled()) {
-			const calInfo = this._calendarEvents.value().get(neverNull(event._ownerGroup))
-			color = neverNull(calInfo).groupRoot.color
-		}
-		return m("", {
+		let color = defaultCalendarColor
+		return m(".calendar-event.small"
+			+ (eventStartsBefore(date, event) ? ".event-continues-left" : "")
+			+ (eventEndsAfterDay(date, event) ? ".event-continues-right" : ""), {
 			style: {
 				background: "#" + color,
 				color: colourIsLight(color) ? "black" : "white",
-				'border-radius': "2px",
-				marginTop: "4px",
-				margin: "2px 0",
-				height: px(eventHeight),
-				marginLeft: event.startTime < date.getTime() ? "" : px(size.hpad_small),
-				marginRight: event.startTime + Number(event.duration) > getEndOfDay(date).getTime() ? "" : px(size.hpad_small),
+			},
+			onclick: (e) => {
+				e.stopPropagation()
+				this._calendarInfos.then((calendarInfos) => {
+					showCalendarEventDialog(event.startTime, calendarInfos, event)
+				})
 			}
-		}, event.summary)
+		}, (date.getDay() === 0 || !eventStartsBefore(date, event)) ? this._getEventText(event) : "")
+	}
+
+	_getEventText(event: CalendarEvent): string {
+		if (isAlllDayEvent(event)) {
+			return event.summary
+		} else {
+			return timeString(event.startTime) + " " + event.summary
+		}
 	}
 
 	_getHeightForWeek(): number {
@@ -211,58 +221,11 @@ export class CalendarView implements CurrentView {
 
 	}
 
-	_newEvent(date: Date = getStartOfDay(new Date())) {
-		const summary = stream("")
-		this._calendarEvents.then(calendarEvents => {
-			const calendars = Array.from(calendarEvents.values())
-			const selectedCalendar = stream(calendars[0])
-			const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
-			startDatePicker.date(date)
-			const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-			endDatePicker.date(getEndOfDay(date))
-			const dialog = Dialog.showActionDialog({
-				title: () => "NEWWWWW EVVVVEEENT",
-				child: () => [
-					m(TextFieldN, {
-						label: () => "EVENT SUMMARY",
-						value: summary
-					}),
-					m(startDatePicker),
-					m(endDatePicker),
-					m(DropDownSelectorN, {
-						label: "calendar_label",
-						items: calendars.map((calendarInfo) => {
-							return {name: calendarInfo.groupRoot.name || lang.get("privateCalendar_label"), value: calendarInfo}
-						}),
-						selectedValue: selectedCalendar,
-						icon: Icons.Edit,
-					})
-				],
-				okAction: () => {
-					const calendarEvent = createCalendarEvent()
-					calendarEvent.startTime = startDatePicker.date() || new Date()
-					const endDate = getEndOfDay(endDatePicker.date() || getStartOfNextDay(calendarEvent.startTime))
-					calendarEvent.description = ""
-					calendarEvent.summary = summary()
-					calendarEvent.duration = String(endDate.getTime() - calendarEvent.startTime.getTime())
-					const groupRoot = selectedCalendar().groupRoot
-					calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
-					calendarEvent._id = [groupRoot.shortEvents, makeEventElementId(calendarEvent.startTime.getTime())]
 
-					setup(groupRoot.shortEvents, calendarEvent)
-
-					dialog.close()
-				}
-			})
-
-		})
-
-	}
-
-	_load() {
-		const calendarEvents = new Map()
+	_load(): Promise<Map<Id, CalendarInfo>> {
+		const calendarInfos = new Map()
 		const calendarMemberships = logins.getUserController().getCalendarMemberships()
-		this._calendarEvents = Promise.map(calendarMemberships, (membership) => {
+		return Promise.map(calendarMemberships, (membership) => {
 			return load(CalendarGroupRootTypeRef, membership.group)
 				.then((root) => Promise.all([
 					loadAll(CalendarEventTypeRef, root.shortEvents, null),
@@ -270,19 +233,19 @@ export class CalendarView implements CurrentView {
 					root
 				])).then(([shortEvents, longEvents, groupRoot]) => {
 					shortEvents.forEach((e) => this._addDaysForEvent(e))
-					calendarEvents.set(membership.group, {
+					calendarInfos.set(membership.group, {
 							groupRoot,
 							shortEvents,
 							longEvents
 						}
 					)
 				})
-		}).return(calendarEvents)
+		}).return(calendarInfos)
 	}
 
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		this._calendarEvents.then((calendarEvents) => {
+		this._calendarInfos.then((calendarEvents) => {
 			updates.forEach(update => {
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
@@ -336,13 +299,6 @@ function colourIsLight(c: string) {
 	// human eye favors green color...
 	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 	return (a < 0.5);
-}
-
-function makeEventElementId(timestampt: number): string {
-	const randomBytes = new Uint8Array(8)
-	crypto.getRandomValues(randomBytes)
-	const idBytes = concat(stringToUtf8Uint8Array(String(timestampt)), randomBytes)
-	return uint8arrayToCustomId(idBytes)
 }
 
 

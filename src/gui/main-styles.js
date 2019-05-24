@@ -905,6 +905,13 @@ styles.registerStyle('main', () => {
 		},
 
 		// calendar
+
+		'.flex-end-on-child .button-content': {
+			'align-items': 'flex-end !important'
+		},
+
+		'.float-right': {'float': 'right'},
+
 		'.calendar-checkbox': {
 			height: px(18),
 			width: px(18),
@@ -913,14 +920,38 @@ styles.registerStyle('main', () => {
 			'border-radius': "2px"
 		},
 
-		'.calendar-day': {
-			'border-right': '1px solid lightgrey',
-			'border-bottom': '1px solid lightgrey',
+		'.calendar-day-wrapper': {
 			'transition': 'background 0.4s'
 		},
 
-		'.calendar-day:hover': {
+		'.calendar-day-wrapper:hover': {
 			'background': '#eee'
+		},
+
+		'.calendar-day': {
+			'border-right': '1px solid lightgrey',
+			'border-bottom': '1px solid lightgrey',
+
+		},
+
+		'.calendar-event': {
+			'margin-right': px(size.vpad),
+			'border-radius': px(3),
+			'margin-top': px(2),
+			'margin-bottom': px(2),
+			'padding-left': px(size.hpad_small),
+			'font-weight': 'bold',
+			'height': px(size.calendar_line_height),
+			'line-height': px(size.calendar_line_height),
+		},
+		'.event-continues-left': {
+			'border-top-left-radius': 0,
+			'border-bottom-left-radius': 0
+		},
+		'.event-continues-right': {
+			'margin-right': 0,
+			'border-top-right-radius': 0,
+			'border-bottom-right-radius': 0
 		},
 
 		// media query for small devices where elements should be arranged in one column

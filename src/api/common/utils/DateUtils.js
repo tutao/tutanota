@@ -30,6 +30,10 @@ export function getStartOfDay(date: Date): Date {
 	return d
 }
 
+export function isStartOfDay(date: Date): boolean {
+	return date.getHours() === 0 && date.getMinutes() === 0
+}
+
 /**
  * Returns true if the given date is today in local time.
  */

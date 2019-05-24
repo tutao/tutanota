@@ -198,7 +198,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 			m(".flex.flex-column.flex-space-around", {
 				style: {
 					fontSize: px(14),
-					lineHeight: px((this._elWidth(vnode.attrs)) + 2)
+					lineHeight: px((this._elWidth(vnode.attrs)))
 				}
 			}, weeks.map(w => this._weekVdom(w, vnode.attrs)))
 		])

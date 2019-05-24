@@ -958,6 +958,9 @@ module.exports = {
 		"calendar_label": "Calendar",
 		"newEvent_action": "New event",
 		"yourCalendars_label": "Your calendars",
-		"privateCalendar_label": "Private"
+		"privateCalendar_label": "Private",
+		"allDay_label": "All Day",
+		"createEvent_title": "Event",
+		"timeFormatInvalid_msg": "Invalid time format"
 	}
 }

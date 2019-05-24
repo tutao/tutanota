@@ -59,6 +59,10 @@ export const size = {
 	line_height: 1.428571429, // 20/14,
 	line_height_m: 1.6,
 	line_height_l: 1.8,
+
+	get calendar_line_height() {
+		return this.font_size_small + 6
+	}
 }
 
 export const inputLineHeight = size.font_size_base + 8
