@@ -5,13 +5,16 @@ import {uint8arrayToCustomId} from "../api/common/EntityFunctions"
 import {getStartOfNextDay, isStartOfDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 
-export function makeEventElementId(timestampt: number): string {
-	const randomBytes = new Uint8Array(8)
-	crypto.getRandomValues(randomBytes)
+export function makeEventElementId(timestampt: number, randomBytes: Uint8Array = getRandomBytes(8)): string {
 	const idBytes = concat(stringToUtf8Uint8Array(String(timestampt)), randomBytes)
 	return uint8arrayToCustomId(idBytes)
 }
 
+function getRandomBytes(bytes): Uint8Array {
+	const randomBytes = new Uint8Array(bytes)
+	crypto.getRandomValues(randomBytes)
+	return randomBytes
+}
 
 export function eventStartsBefore(currentDate: Date, event: CalendarEvent): boolean {
 	// currentDate is alread start of day
@@ -56,3 +59,12 @@ export const RepeatPeriod = Object.freeze({
 	ANNUALLY: "4",
 })
 export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>
+
+export function getMonth(date: Date): {start: Date, end: Date} {
+	const start = new Date(date)
+	start.setDate(1)
+	start.setHours(0, 0, 0, 0)
+	const end = new Date(start)
+	end.setMonth(start.getMonth() + 1)
+	return {start, end}
+}

@@ -15,7 +15,7 @@ import {getCalendarMonth, getStartOfDay, incrementDate} from "../api/common/util
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {getListId, isSameId} from "../api/common/EntityFunctions"
+import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {OperationType} from "../api/common/TutanotaConstants"
@@ -27,9 +27,10 @@ import {px, size} from "../gui/size"
 import {modal} from "../gui/base/Modal"
 import {animations, opacity, transform} from "../gui/animation/Animations"
 import {ease} from "../gui/animation/Easing"
-import {eventEndsAfterDay, eventStartsBefore, isAlllDayEvent, RepeatPeriod, timeString} from "./CalendarUtils"
-import {showCalendarEventDialog} from "./CalendarEventDialog"
 import type {RepeatPeriodEnum} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getMonth, isAlllDayEvent, makeEventElementId, RepeatPeriod, timeString} from "./CalendarUtils"
+import {showCalendarEventDialog} from "./CalendarEventDialog"
+import {worker} from "../api/main/WorkerClient"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -50,8 +51,10 @@ export class CalendarView implements CurrentView {
 	_calendarInfos: Promise<Map<Id, CalendarInfo>>
 	_eventsForDays: Map<number, Array<CalendarEvent>>
 	_monthDom: ?HTMLElement
+	_loadedMonths: Set<number> // first ms of the month
 
 	constructor() {
+		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
 		this.selectedDate = stream(new Date())
 		this.sidebarColumn = new ViewColumn({
@@ -88,8 +91,20 @@ export class CalendarView implements CurrentView {
 		this.newAction = new Button('newEvent_action', () => this._newEvent(), () => Icons.Add)
 			.setType(ButtonType.Floating)
 
-		this._calendarInfos = this._load()
-		this._calendarInfos.then(() => m.redraw())
+
+		this._calendarInfos = this._loadGroupRoots()
+		                          .tap(() => m.redraw())
+
+		this.selectedDate.map((d) => {
+			const {start, end} = getMonth(d)
+			if (!this._loadedMonths.has(start.getTime())) {
+				this._loadedMonths.add(start.getTime())
+				this._load(start, end).catch((e) => {
+					this._loadedMonths.delete(start.getTime())
+					throw e
+				})
+			}
+		})
 
 
 		locator.eventController.addEntityListener((updates) => {
@@ -223,28 +238,41 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_load(): Promise<Map<Id, CalendarInfo>> {
-		const calendarInfos = new Map()
-		const calendarMemberships = logins.getUserController().getCalendarMemberships()
-		return Promise.map(calendarMemberships, (membership) => {
-			return load(CalendarGroupRootTypeRef, membership.group)
-				.then((root) => Promise.all([
-					loadAll(CalendarEventTypeRef, root.shortEvents, null),
-					loadAll(CalendarEventTypeRef, root.longEvents, null),
-					root
-				])).then(([shortEvents, longEvents, groupRoot]) => {
-					shortEvents.forEach((e) => this._addDaysForEvent(e))
+	_load(start: Date, end: Date): Promise<*> {
+		return this._calendarInfos.then((calendarInfos) => {
+			const startId = makeEventElementId(start, new Uint8Array(8))
+			const endId = makeEventElementId(end, new Uint8Array(8))
+			return Promise.map(calendarInfos.values(), ({groupRoot, longEvents}) => {
+				return Promise.all([
+					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, startId, endId, worker, 200),
+					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : [],
+				]).then(([shortEventsResult, longEvents]) => {
+					shortEventsResult.elements.forEach((e) => this._addDaysForEvent(e))
 					longEvents.forEach((e) => e.repeatRule && this._addDaysForRecurringEvent(e))
-					calendarInfos.set(membership.group, {
+					calendarInfos.set(groupRoot._id, {
 							groupRoot,
-							shortEvents,
+							shortEvents: shortEventsResult.elements,
 							longEvents
 						}
 					)
 				})
-		}).return(calendarInfos)
+			})
+		})
 	}
 
+	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
+		const calendarMemberships = logins.getUserController().getCalendarMemberships()
+
+		return Promise
+			.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+			.then((groupRoots) => {
+				const calendarInfos: Map<Id, CalendarInfo> = new Map()
+				groupRoots.forEach((groupRoot) => {
+					calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+				})
+				return calendarInfos
+			})
+	}
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
 		this._calendarInfos.then((calendarEvents) => {
