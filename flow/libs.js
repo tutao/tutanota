@@ -32,6 +32,8 @@ declare module 'mithril' {
 
 		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
+		<Attrs>(closure: (Vnode<Attrs>) => MComponent<Attrs>): Vnode<Attrs>;
+
 		route: {
 			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
 			set(path: string, data?: ?{[string]: mixed}, options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;

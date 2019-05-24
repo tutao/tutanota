@@ -914,7 +914,6 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-day': {
-			padding: px(size.hpad_small),
 			'border-right': '1px solid lightgrey',
 			'border-bottom': '1px solid lightgrey',
 			'transition': 'background 0.4s'

@@ -2,7 +2,7 @@ import type {EntityUpdateData} from "../src/api/main/EventController"
 import type {TranslationKey} from "../src/misc/LanguageViewModel"
 
 // FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
-declare function finder(any): boolean
+declare type finder<T> = (T) => boolean
 
 declare function stringValidator(string): ?string;
 

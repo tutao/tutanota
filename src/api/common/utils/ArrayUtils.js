@@ -64,10 +64,11 @@ export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	}
 }
 
-export function findAndRemove(theArray: Array<any>, finder: finder): boolean {
-	let e = theArray.find(finder)
-	if (e) {
-		return remove(theArray, e)
+export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	const index = theArray.findIndex(finder)
+	if (index !== -1) {
+		theArray.splice(index, 1)
+		return true
 	} else {
 		return false
 	}

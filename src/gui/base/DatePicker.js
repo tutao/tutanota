@@ -13,6 +13,7 @@ import {theme} from "../theme"
 import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
+import {getStartOfDay} from "../../api/common/utils/DateUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -122,7 +123,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	_lastSelectedDate: ?Date;
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
-		this._displayingDate = vnode.attrs.selectedDate || new Date()
+		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
 	}
 
 	view(vnode: Vnode<VisualDatePickerAttrs>) {
