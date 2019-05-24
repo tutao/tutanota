@@ -953,6 +953,9 @@ styles.registerStyle('main', () => {
 			'border-top-right-radius': 0,
 			'border-bottom-right-radius': 0
 		},
+		'.time-field': {
+			'max-width': '44px'
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

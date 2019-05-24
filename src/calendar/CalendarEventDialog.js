@@ -36,8 +36,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		endDatePicker.setDate(date)
 	}
-	const startTime = stream(timeString(date))
-	const endTimeDate = new Date(date)
+	const startTime = stream(timeString(event && event.startTime || new Date()))
+	const endTimeDate = new Date(event && event.startTime || new Date())
 	endTimeDate.setHours(endTimeDate.getHours() + 1)
 
 	const endTime = stream(timeString(endTimeDate))
@@ -51,24 +51,28 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				label: "title_placeholder",
 				value: summary
 			}),
-			m(startDatePicker),
-			m(endDatePicker),
+			m(".flex", [
+				m(".flex-grow.mr-s", m(startDatePicker)),
+				!allDay()
+					? m(".time-field", m(TextFieldN, {
+						label: "emptyString_msg",
+						value: startTime
+					}))
+					: null
+			]),
+			m(".flex", [
+				m(".flex-grow.mr-s", m(endDatePicker)),
+				!allDay()
+					? m(".time-field", m(TextFieldN, {
+						label: "emptyString_msg",
+						value: endTime
+					}))
+					: null
+			]),
 			m(CheckboxN, {
 				checked: allDay,
 				label: () => lang.get("allDay_label"),
 			}),
-			allDay()
-				? null
-				: [
-					m(TextFieldN, {
-						label: "emptyString_msg",
-						value: startTime
-					}),
-					m(TextFieldN, {
-						label: "emptyString_msg",
-						value: endTime
-					})
-				],
 			m(DropDownSelectorN, repeatPickerAttrs),
 			m(DropDownSelectorN, {
 				label: "calendar_label",
