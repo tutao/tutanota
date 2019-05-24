@@ -47,3 +47,12 @@ export function getEventEnd(event: CalendarEvent): Date {
 export function isAlllDayEvent(event: CalendarEvent): boolean {
 	return isStartOfDay(event.startTime) && isStartOfDay(getEventEnd(event))
 }
+
+export const RepeatPeriod = Object.freeze({
+	NEVER: "0",
+	DAILY: "1",
+	WEEKLY: "2",
+	MONTHLY: "3",
+	ANNUALLY: "4",
+})
+export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>

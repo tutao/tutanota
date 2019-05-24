@@ -20,15 +20,16 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
-import {neverNull} from "../api/common/utils/Utils"
+import {clone, downcast, neverNull} from "../api/common/utils/Utils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {px, size} from "../gui/size"
 import {modal} from "../gui/base/Modal"
 import {animations, opacity, transform} from "../gui/animation/Animations"
 import {ease} from "../gui/animation/Easing"
-import {eventEndsAfterDay, eventStartsBefore, isAlllDayEvent, timeString} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, isAlllDayEvent, RepeatPeriod, timeString} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
+import type {RepeatPeriodEnum} from "./CalendarUtils"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -233,6 +234,7 @@ export class CalendarView implements CurrentView {
 					root
 				])).then(([shortEvents, longEvents, groupRoot]) => {
 					shortEvents.forEach((e) => this._addDaysForEvent(e))
+					longEvents.forEach((e) => e.repeatRule && this._addDaysForRecurringEvent(e))
 					calendarInfos.set(membership.group, {
 							groupRoot,
 							shortEvents,
@@ -270,6 +272,11 @@ export class CalendarView implements CurrentView {
 				this._addDaysForEvent(event)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
 				calendarInfo.longEvents.push(event)
+				if (event.repeatRule) {
+					this._addDaysForRecurringEvent(event)
+				} else {
+					this._addDaysForEvent(event)
+				}
 			}
 		}
 	}
@@ -280,6 +287,22 @@ export class CalendarView implements CurrentView {
 		while (calculationDate.getTime() < endDate.getTime()) {
 			getFromMap(this._eventsForDays, calculationDate.getTime(), () => []).push(event)
 			incrementDate(calculationDate, 1)
+		}
+	}
+
+	_addDaysForRecurringEvent(event: CalendarEvent) {
+		if (event.repeatRule == null) {
+			throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+		}
+		const frequency: RepeatPeriodEnum = downcast(event.repeatRule.frequency)
+		const endTime = new Date(this.selectedDate())
+		endTime.setMonth(endTime.getMonth() + 1)
+		let startTime = event.startTime
+		while (startTime.getTime() < endTime.getTime()) {
+			const eventClone = clone(event)
+			eventClone.startTime = new Date(startTime)
+			incrementByRepeatPeriod(startTime, frequency)
+			this._addDaysForEvent(eventClone)
 		}
 	}
 
@@ -301,5 +324,22 @@ function colourIsLight(c: string) {
 	return (a < 0.5);
 }
 
-
+function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum) {
+	switch (repeatPeriod) {
+		case RepeatPeriod.NEVER:
+			return
+		case RepeatPeriod.DAILY:
+			date.setDate(date.getDate() + 1)
+			break
+		case RepeatPeriod.WEEKLY:
+			date.setDate(date.getDate() + 7)
+			break
+		case RepeatPeriod.MONTHLY:
+			date.setMonth(date.getMonth() + 1)
+			break
+		case RepeatPeriod.ANNUALLY:
+			date.setFullYear(date.getFullYear() + 1)
+			break
+	}
+}
 

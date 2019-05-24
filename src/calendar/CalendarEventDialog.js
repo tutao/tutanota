@@ -8,13 +8,16 @@ import m from "mithril"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {lang} from "../misc/LanguageViewModel"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, setup} from "../api/main/Entity"
-import {getEventEnd, isAlllDayEvent, makeEventElementId, parseTimeTo, timeString} from "./CalendarUtils"
+import {getEventEnd, isAlllDayEvent, makeEventElementId, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
+import type {RepeatPeriodEnum} from "./CalendarUtils"
 
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, event?: CalendarEvent) {
 	const summary = stream(event && event.summary || "")
@@ -39,6 +42,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const endTime = stream(timeString(endTimeDate))
 	const allDay = stream(eventIsAllDay)
+
+	const repeatPickerAttrs = repeatingDatePicker()
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_title"),
 		child: () => [
@@ -64,6 +69,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						value: endTime
 					})
 				],
+			m(DropDownSelectorN, repeatPickerAttrs),
 			m(DropDownSelectorN, {
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -111,14 +117,41 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			calendarEvent.duration = String(endDate.getTime() - calendarEvent.startTime.getTime())
 			const groupRoot = selectedCalendar().groupRoot
 			calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
-			calendarEvent._id = [groupRoot.shortEvents, makeEventElementId(calendarEvent.startTime.getTime())]
-
+			if (repeatPickerAttrs.selectedValue() === RepeatPeriod.NEVER) {
+				calendarEvent.repeatRule = null
+			} else {
+				const repeatRule = createRepeatRule()
+				repeatRule.frequency = repeatPickerAttrs.selectedValue() || RepeatPeriod.NEVER
+				repeatRule.interval = "1" // Always just one unit for now
+				calendarEvent.repeatRule = repeatRule
+			}
 			let p = event ? erase(event) : Promise.resolve()
-			p.then(() => setup(groupRoot.shortEvents, calendarEvent))
+
+
+			const listId = calendarEvent.repeatRule ? groupRoot.longEvents : groupRoot.shortEvents
+			calendarEvent._id = [listId, makeEventElementId(calendarEvent.startTime.getTime())]
+			p.then(() => setup(listId, calendarEvent))
 
 			dialog.close()
 		}
 	})
+}
+
+const repeatValues = [
+	{name: "Do not repeat", value: RepeatPeriod.NEVER},
+	{name: "Repeat daily", value: RepeatPeriod.DAILY},
+	{name: "Weekly", value: RepeatPeriod.WEEKLY},
+	{name: "Monthly", value: RepeatPeriod.MONTHLY},
+	{name: "Annually", value: RepeatPeriod.ANNUALLY}
+]
+
+function repeatingDatePicker(): DropDownSelectorAttrs<RepeatPeriodEnum> {
+	return {
+		label: () => "Repeating",
+		items: repeatValues,
+		selectedValue: stream(repeatValues[0].value),
+		icon: Icons.Edit,
+	}
 }
 
 
