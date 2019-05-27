@@ -5,9 +5,30 @@ import {uint8arrayToCustomId} from "../api/common/EntityFunctions"
 import {getStartOfNextDay, isStartOfDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 
-export function makeEventElementId(timestampt: number, randomBytes: Uint8Array = getRandomBytes(8)): string {
-	const idBytes = concat(stringToUtf8Uint8Array(String(timestampt)), randomBytes)
+
+export const CALENDARID_RANDOM_PART_MIN_ID = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])
+export const CALENDARID_RANDOM_PART_MAX_ID = Uint8Array.from([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+export const CALENDARID_RANDOM_PART_LENGTH = 8
+const CALENDARID_DAYS_SHIFTED = 30
+
+export function generateEventElementId(timestamp: number): string {
+	return createEventElementId(timestamp, Math.floor(Math.random() * 60 - CALENDARID_DAYS_SHIFTED), getRandomBytes(CALENDARID_RANDOM_PART_LENGTH))
+}
+
+function createEventElementId(timestamp: number, shiftDays: number, randomPart: Uint8Array): string {
+	const d = new Date(timestamp)
+	d.setDate(d.getDate() + shiftDays)
+	const idTimestampPart = "" + d.getFullYear() + pad(d.getMonth(), 2) + pad(d.getDate(), 2)
+	const idBytes = concat(stringToUtf8Uint8Array(idTimestampPart), randomPart)
 	return uint8arrayToCustomId(idBytes)
+}
+
+export function geEventElementMaxId(timestamp: number): string {
+	return createEventElementId(timestamp, CALENDARID_DAYS_SHIFTED, CALENDARID_RANDOM_PART_MAX_ID)
+}
+
+export function getEventElementMinId(timestamp: number): string {
+	return createEventElementId(timestamp, -CALENDARID_DAYS_SHIFTED, CALENDARID_RANDOM_PART_MIN_ID)
 }
 
 function getRandomBytes(bytes): Uint8Array {
@@ -22,7 +43,7 @@ export function eventStartsBefore(currentDate: Date, event: CalendarEvent): bool
 }
 
 export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): boolean {
-	return (event.startTime.getTime() + Number(event.duration)) > getStartOfNextDay(currentDate).getTime()
+	return getEventEnd(event).getTime() > getStartOfNextDay(currentDate).getTime()
 }
 
 export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
@@ -44,7 +65,7 @@ export function timeString(date: Date): string {
 }
 
 export function getEventEnd(event: CalendarEvent): Date {
-	return new Date(event.startTime.getTime() + Number(event.duration))
+	return event.endTime
 }
 
 export function isAlllDayEvent(event: CalendarEvent): boolean {

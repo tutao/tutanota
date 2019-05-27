@@ -921,11 +921,16 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-day-wrapper': {
-			'transition': 'background 0.4s'
+			'transition': 'background 0.4s',
+			'background': theme.list_alternate_bg
+		},
+
+		'.calendar-alternate-background': {
+			'background': theme.list_bg
 		},
 
 		'.calendar-day-wrapper:hover': {
-			'background': '#eee'
+			'background': theme.list_bg
 		},
 
 		'.calendar-day': {

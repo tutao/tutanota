@@ -73,7 +73,8 @@ export type CalendarDay = {
 	date: Date,
 	year: number,
 	month: number,
-	day: number
+	day: number,
+	paddingDay: boolean
 }
 
 export type CalendarMonth = {
@@ -100,6 +101,7 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 			day: calculationDate.getDate(),
 			month: calculationDate.getMonth(),
 			year: calculationDate.getFullYear(),
+			paddingDay: true
 		})
 		incrementDate(calculationDate, 1)
 	}
@@ -115,6 +117,7 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 			year: currentYear,
 			month: month,
 			day: calculationDate.getDate(),
+			paddingDay: false
 		}
 		weeks[weeks.length - 1].push(dayInfo)
 		incrementDate(calculationDate, 1)
@@ -129,7 +132,8 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 			day: calculationDate.getDate(),
 			year: calculationDate.getFullYear(),
 			month: calculationDate.getMonth(),
-			date: new Date(calculationDate)
+			date: new Date(calculationDate),
+			paddingDay: true
 		})
 		incrementDate(calculationDate, 1)
 		dayCount++

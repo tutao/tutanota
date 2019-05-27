@@ -1005,6 +1005,7 @@ type RepeatRule = {
 	endValue: ?NumberString;
 	frequency: NumberString;
 	interval: NumberString;
+	timeZone: string;
 
 	exceptionDates: EncDateWrapper[];
 }
@@ -1018,7 +1019,7 @@ type CalendarEvent = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	description: string;
-	duration: NumberString;
+	endTime: Date;
 	location: string;
 	startTime: Date;
 	summary: string;

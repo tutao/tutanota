@@ -186,13 +186,13 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
-				this._calIcon(false, vnode.attrs),
+				this._switchMonthArrowIcon(false, vnode.attrs),
 				m(".b", {
 					style: {
 						fontSize: px(14)
 					}
 				}, monthData.date.toLocaleString([], {month: "long", year: "numeric"})),
-				this._calIcon(true, vnode.attrs)
+				this._switchMonthArrowIcon(true, vnode.attrs)
 			]),
 			m(".flex.flex-space-between", this._weekdaysVdom(vnode.attrs.wide, weekdays)),
 			m(".flex.flex-column.flex-space-around", {
@@ -204,10 +204,10 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		])
 	}
 
-	_calIcon(forward: boolean, attrs: VisualDatePickerAttrs) {
+	_switchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs) {
 		const size = px(this._elWidth(attrs))
 		return m(".icon.flex.justify-center.items-center.click", {
-			onclick: forward ? this._onNextMonthSelected : this._onPrevMonthSelected,
+			onclick: forward ? () => this._onNextMonthSelected(attrs) : () => this._onPrevMonthSelected(attrs),
 			style: {
 				fill: theme.content_fg,
 				width: size,
@@ -216,12 +216,14 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		}, m(Icon, {icon: forward ? Icons.ArrowForward : BootIcons.Back, style: {fill: theme.content_fg}}))
 	}
 
-	_onPrevMonthSelected = () => {
+	_onPrevMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
+		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate)
 	}
 
-	_onNextMonthSelected = () => {
+	_onNextMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
+		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate)
 	}
 
 	_dayVdom({date, day}: {date: ?Date, day: ?number}, attrs: VisualDatePickerAttrs): VirtualElement {
@@ -232,7 +234,9 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 				height: size,
 				width: size
 			},
-			onclick: date && (() => attrs.onDateSelected && attrs.onDateSelected(date))
+			onclick: date && (() => {
+				attrs.onDateSelected && attrs.onDateSelected(date)
+			})
 		}, day)
 	}
 

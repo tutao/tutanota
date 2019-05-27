@@ -2,9 +2,26 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const NotificationMailTemplateTypeRef:TypeRef<NotificationMailTemplate> = new TypeRef("sys", "NotificationMailTemplate")
-export const _TypeModel:TypeModel= {"name":"NotificationMailTemplate","since":45,"type":"AGGREGATED_TYPE","id":1517,"rootId":"A3N5cwAF7Q","versioned":false,"encrypted":false,"values":{"_id":{"name":"_id","id":1518,"since":45,"type":"CustomId","cardinality":"One","final":true,"encrypted":false},"body":{"name":"body","id":1520,"since":45,"type":"String","cardinality":"One","final":false,"encrypted":false},"language":{"name":"language","id":1519,"since":45,"type":"String","cardinality":"One","final":false,"encrypted":false},"subject":{"name":"subject","id":1521,"since":45,"type":"String","cardinality":"One","final":false,"encrypted":false}},"associations":{},"app":"sys","version":"45"}
+export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", "NotificationMailTemplate")
+export const _TypeModel: TypeModel = {
+	"name": "NotificationMailTemplate",
+	"since": 45,
+	"type": "AGGREGATED_TYPE",
+	"id": 1517,
+	"rootId": "A3N5cwAF7Q",
+	"versioned": false,
+	"encrypted": false,
+	"values": {
+		"_id": {"name": "_id", "id": 1518, "since": 45, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"body": {"name": "body", "id": 1520, "since": 45, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"language": {"name": "language", "id": 1519, "since": 45, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"subject": {"name": "subject", "id": 1521, "since": 45, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+	},
+	"associations": {},
+	"app": "sys",
+	"version": "46"
+}
 
-export function createNotificationMailTemplate():NotificationMailTemplate {
-    return create(_TypeModel, NotificationMailTemplateTypeRef)
+export function createNotificationMailTemplate(): NotificationMailTemplate {
+	return create(_TypeModel, NotificationMailTemplateTypeRef)
 }

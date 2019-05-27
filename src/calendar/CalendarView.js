@@ -6,7 +6,6 @@ import type {CurrentView} from "../gui/base/Header"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
-import {Button, ButtonType} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
 import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
@@ -28,9 +27,20 @@ import {modal} from "../gui/base/Modal"
 import {animations, opacity, transform} from "../gui/animation/Animations"
 import {ease} from "../gui/animation/Easing"
 import type {RepeatPeriodEnum} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getMonth, isAlllDayEvent, makeEventElementId, RepeatPeriod, timeString} from "./CalendarUtils"
+import {
+	eventEndsAfterDay,
+	eventStartsBefore,
+	geEventElementMaxId,
+	getEventElementMinId,
+	getEventEnd,
+	getMonth,
+	isAlllDayEvent,
+	RepeatPeriod,
+	timeString
+} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -46,7 +56,6 @@ export class CalendarView implements CurrentView {
 	sidebarColumn: ViewColumn
 	contentColumn: ViewColumn
 	viewSlider: ViewSlider
-	newAction: Button
 	selectedDate: Stream<Date>
 	_calendarInfos: Promise<Map<Id, CalendarInfo>>
 	_eventsForDays: Map<number, Array<CalendarEvent>>
@@ -59,6 +68,17 @@ export class CalendarView implements CurrentView {
 		this.selectedDate = stream(new Date())
 		this.sidebarColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
+
+				m(".folder-row.", [
+					m(".ml-negative-s", m(ButtonN, {
+						label: "today_label",
+						click: () => {
+							this.selectedDate(new Date())
+						},
+						colors: ButtonColors.Nav,
+						type: ButtonType.Primary,
+					}))
+				]),
 				m(VisualDatePicker, {
 					onDateSelected: this.selectedDate,
 					selectedDate: this.selectedDate(),
@@ -88,9 +108,6 @@ export class CalendarView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
-		this.newAction = new Button('newEvent_action', () => this._newEvent(), () => Icons.Add)
-			.setType(ButtonType.Floating)
-
 
 		this._calendarInfos = this._loadGroupRoots()
 		                          .tap(() => m.redraw())
@@ -102,7 +119,7 @@ export class CalendarView implements CurrentView {
 				this._load(start, end).catch((e) => {
 					this._loadedMonths.delete(start.getTime())
 					throw e
-				})
+				}).tap(() => m.redraw())
 			}
 		})
 
@@ -120,7 +137,12 @@ export class CalendarView implements CurrentView {
 	view() {
 		return m(".main-view", [
 			m(this.viewSlider),
-			m(this.newAction)
+			m(ButtonN, {
+				label: 'newEvent_action',
+				click: () => this._newEvent(),
+				icon: () => Icons.Add,
+				type: ButtonType.Floating
+			})
 		])
 	}
 
@@ -150,7 +172,7 @@ export class CalendarView implements CurrentView {
 		const sortedEvents = eventsForDay.slice().sort((l, r) => l.startTime.getTime() - r.startTime.getTime())
 		const eventsToDisplay = sortedEvents.slice(0, canDisplay - 1)
 		const notShown = eventsForDay.length - eventsToDisplay.length
-		return m(".calendar-day-wrapper.flex-grow.rel", {
+		return m(".calendar-day-wrapper.flex-grow.rel" + (d.paddingDay ? ".calendar-alternate-background" : ""), {
 			onclick: () => this._newEvent(d.date),
 		}, [
 			m(".day-with-border.calendar-day.fill-absolute", m(".pl-s.pr-s.pt-s", String(d.day))),
@@ -240,12 +262,12 @@ export class CalendarView implements CurrentView {
 
 	_load(start: Date, end: Date): Promise<*> {
 		return this._calendarInfos.then((calendarInfos) => {
-			const startId = makeEventElementId(start, new Uint8Array(8))
-			const endId = makeEventElementId(end, new Uint8Array(8))
+			const startId = getEventElementMinId(start.getTime())
+			const endId = geEventElementMaxId(end.getTime())
 			return Promise.map(calendarInfos.values(), ({groupRoot, longEvents}) => {
 				return Promise.all([
-					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, startId, endId, worker, 200),
-					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : [],
+					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
+					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements.forEach((e) => this._addDaysForEvent(e))
 					longEvents.forEach((e) => e.repeatRule && this._addDaysForRecurringEvent(e))
@@ -311,7 +333,7 @@ export class CalendarView implements CurrentView {
 
 	_addDaysForEvent(event: CalendarEvent) {
 		const calculationDate = getStartOfDay(event.startTime)
-		const endDate = new Date(event.startTime.getTime() + Number(event.duration));
+		const endDate = getEventEnd(event);
 		while (calculationDate.getTime() < endDate.getTime()) {
 			getFromMap(this._eventsForDays, calculationDate.getTime(), () => []).push(event)
 			incrementDate(calculationDate, 1)
@@ -325,11 +347,14 @@ export class CalendarView implements CurrentView {
 		const frequency: RepeatPeriodEnum = downcast(event.repeatRule.frequency)
 		const endTime = new Date(this.selectedDate())
 		endTime.setMonth(endTime.getMonth() + 1)
-		let startTime = event.startTime
-		while (startTime.getTime() < endTime.getTime()) {
+		let eventStartTime = event.startTime
+		let eventEndTime = getEventEnd(event)
+		while (eventStartTime.getTime() < endTime.getTime()) {
 			const eventClone = clone(event)
-			eventClone.startTime = new Date(startTime)
-			incrementByRepeatPeriod(startTime, frequency)
+			eventClone.startTime = new Date(eventStartTime)
+			eventClone.endTime = new Date(eventEndTime)
+			incrementByRepeatPeriod(eventStartTime, frequency)
+			incrementByRepeatPeriod(eventEndTime, frequency)
 			this._addDaysForEvent(eventClone)
 		}
 	}

@@ -234,6 +234,8 @@ type Permission = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	bucketEncSessionKey: ?Uint8Array;
+	listElementApplication: ?string;
+	listElementTypeId: ?NumberString;
 	ops: ?string;
 	symEncSessionKey: ?Uint8Array;
 	type: NumberString;

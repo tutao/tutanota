@@ -13,11 +13,11 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, setup} from "../api/main/Entity"
-import {getEventEnd, isAlllDayEvent, makeEventElementId, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
+import type {RepeatPeriodEnum} from "./CalendarUtils"
+import {getEventEnd, isAlllDayEvent, generateEventElementId, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
-import type {RepeatPeriodEnum} from "./CalendarUtils"
 
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, event?: CalendarEvent) {
 	const summary = stream(event && event.summary || "")
@@ -118,7 +118,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 			calendarEvent.description = ""
 			calendarEvent.summary = summary()
-			calendarEvent.duration = String(endDate.getTime() - calendarEvent.startTime.getTime())
+			calendarEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
 			calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
 			if (repeatPickerAttrs.selectedValue() === RepeatPeriod.NEVER) {
@@ -133,7 +133,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 
 			const listId = calendarEvent.repeatRule ? groupRoot.longEvents : groupRoot.shortEvents
-			calendarEvent._id = [listId, makeEventElementId(calendarEvent.startTime.getTime())]
+			calendarEvent._id = [listId, generateEventElementId(calendarEvent.startTime.getTime())]
 			p.then(() => setup(listId, calendarEvent))
 
 			dialog.close()
