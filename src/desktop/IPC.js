@@ -52,7 +52,7 @@ export class IPC {
 					const w = this._wm.get(windowId)
 					if (w) {
 						w.findInPage(args)
-						d.resolve(r)
+						d.resolve()
 					} else {
 						d.resolve({numberOfMatches: 0, currentMatch: 0})
 					}
