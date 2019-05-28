@@ -51,12 +51,14 @@ export class DropdownN {
 				if (typeof child === 'string') {
 					return child
 				}
-				child = ((child: any): ButtonAttrs)
-				return Object.assign(child, {
-					click: this.wrapClick(child.click),
-					isVisible: this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible,
-					noBubble: false
-				})
+				child = ((child: any): ButtonAttrs | NavButtonAttrs)
+				child.click = this.wrapClick(child.click ? child.click : () => null)
+				child.isVisible = this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible
+				if (typeof child.noBubble !== 'undefined') {
+					let buttonChild = ((child: any): ButtonAttrs)
+					buttonChild.noBubble = false
+				}
+				return child
 			})
 		}
 
