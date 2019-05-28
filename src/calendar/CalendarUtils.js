@@ -1,45 +1,36 @@
 //@flow
-import {concat} from "../api/common/utils/ArrayUtils"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
-import {uint8arrayToCustomId} from "../api/common/EntityFunctions"
-import {getStartOfNextDay, isStartOfDay} from "../api/common/utils/DateUtils"
+import {stringToCustomId} from "../api/common/EntityFunctions"
+import {getStartOfNextDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 
+const DAY_MS = 24 * 60 * 60 * 1000
+const DAYS_SHIFTED_MS = 15 * DAY_MS
 
-export const CALENDARID_RANDOM_PART_MIN_ID = Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])
-export const CALENDARID_RANDOM_PART_MAX_ID = Uint8Array.from([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-export const CALENDARID_RANDOM_PART_LENGTH = 8
-const CALENDARID_DAYS_SHIFTED = 30
-
-export function generateEventElementId(timestamp: number): string {
-	return createEventElementId(timestamp, Math.floor(Math.random() * 60 - CALENDARID_DAYS_SHIFTED), getRandomBytes(CALENDARID_RANDOM_PART_LENGTH))
+export type CalendarMonthTimeRange = {
+	start: Date,
+	end: Date
 }
 
-function createEventElementId(timestamp: number, shiftDays: number, randomPart: Uint8Array): string {
-	const d = new Date(timestamp)
-	d.setDate(d.getDate() + shiftDays)
-	const idTimestampPart = "" + d.getFullYear() + pad(d.getMonth(), 2) + pad(d.getDate(), 2)
-	const idBytes = concat(stringToUtf8Uint8Array(idTimestampPart), randomPart)
-	return uint8arrayToCustomId(idBytes)
+
+export function generateEventElementId(timestamp: number): string {
+	const randomDay = Math.floor((Math.random() * DAYS_SHIFTED_MS)) * 2
+	return createEventElementId(timestamp, randomDay - DAYS_SHIFTED_MS)
+}
+
+function createEventElementId(timestamp: number, shiftDays: number): string {
+	return stringToCustomId(String(timestamp + shiftDays))
 }
 
 export function geEventElementMaxId(timestamp: number): string {
-	return createEventElementId(timestamp, CALENDARID_DAYS_SHIFTED, CALENDARID_RANDOM_PART_MAX_ID)
+	return createEventElementId(timestamp, DAYS_SHIFTED_MS)
 }
 
 export function getEventElementMinId(timestamp: number): string {
-	return createEventElementId(timestamp, -CALENDARID_DAYS_SHIFTED, CALENDARID_RANDOM_PART_MIN_ID)
-}
-
-function getRandomBytes(bytes): Uint8Array {
-	const randomBytes = new Uint8Array(bytes)
-	crypto.getRandomValues(randomBytes)
-	return randomBytes
+	return createEventElementId(timestamp, -DAYS_SHIFTED_MS)
 }
 
 export function eventStartsBefore(currentDate: Date, event: CalendarEvent): boolean {
-	// currentDate is alread start of day
-	return event.startTime.getTime() < currentDate.getTime()
+	return getEventStart(event).getTime() < currentDate.getTime()
 }
 
 export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): boolean {
@@ -47,7 +38,7 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 }
 
 export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
-	if (!timeString.match(/^[0-2][0-9]:[0-5][05]$/)) {
+	if (!timeString.match(/^[0-2][0-9]:[0-5][0-9]$/)) {
 		return null
 	}
 	const [hours, minutes] = timeString.split(":").map(Number)
@@ -65,11 +56,35 @@ export function timeString(date: Date): string {
 }
 
 export function getEventEnd(event: CalendarEvent): Date {
-	return event.endTime
+	if (isAllDayEvent(event)) {
+		return getAllDayDateLocal(event.endTime)
+	} else {
+		return event.endTime
+	}
 }
 
-export function isAlllDayEvent(event: CalendarEvent): boolean {
-	return isStartOfDay(event.startTime) && isStartOfDay(getEventEnd(event))
+export function getEventStart(event: CalendarEvent): Date {
+	if (isAllDayEvent(event)) {
+		return getAllDayDateLocal(event.startTime)
+	} else {
+		return event.startTime
+	}
+}
+
+
+export function getAllDayDateUTC(localDate: Date): Date {
+	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
+}
+
+export function getAllDayDateLocal(utcDate: Date): Date {
+	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 0, 0, 0, 0)
+}
+
+
+export function isAllDayEvent(event: CalendarEvent): boolean {
+	const {startTime, endTime} = event
+	return startTime.getUTCHours() === 0 && startTime.getUTCMinutes() === 0 && startTime.getUTCSeconds() === 0
+		&& endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0
 }
 
 export const RepeatPeriod = Object.freeze({
@@ -81,7 +96,8 @@ export const RepeatPeriod = Object.freeze({
 })
 export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>
 
-export function getMonth(date: Date): {start: Date, end: Date} {
+
+export function getMonth(date: Date): CalendarMonthTimeRange {
 	const start = new Date(date)
 	start.setDate(1)
 	start.setHours(0, 0, 0, 0)

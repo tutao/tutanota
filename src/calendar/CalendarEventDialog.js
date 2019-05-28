@@ -14,11 +14,18 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, setup} from "../api/main/Entity"
 import type {RepeatPeriodEnum} from "./CalendarUtils"
-import {getEventEnd, isAlllDayEvent, generateEventElementId, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {generateEventElementId, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 
+// allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
+// 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
+// allDay event just points us to the correct date.
+// e.g. there's an allDay event in Europe/Berlin at 2nd of may. We encode it as:
+// {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
+// We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
+// interpret it as full day in Europe/Berlin, not in the UTC.
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, event?: CalendarEvent) {
 	const summary = stream(event && event.summary || "")
 	const calendarArray = Array.from(calendars.values())
@@ -26,24 +33,29 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(getStartOfDay(date))
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const eventIsAllDay = event && isAlllDayEvent(event)
+	const eventIsAllDay = event && isAllDayEvent(event)
+	let endTimeDate
 	if (event) {
 		if (eventIsAllDay) {
 			endDatePicker.setDate(incrementDate(getEventEnd(event), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(event)))
 		}
+		endTimeDate = getEventEnd(event)
 	} else {
+		endTimeDate = new Date()
+		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
 	}
-	const startTime = stream(timeString(event && event.startTime || new Date()))
-	const endTimeDate = new Date(event && event.startTime || new Date())
-	endTimeDate.setHours(endTimeDate.getHours() + 1)
 
+	const startTime = stream(timeString(event && getEventStart(event) || new Date()))
 	const endTime = stream(timeString(endTimeDate))
 	const allDay = stream(eventIsAllDay)
 
 	const repeatPickerAttrs = repeatingDatePicker()
+	if (event && event.repeatRule) {
+		repeatPickerAttrs.selectedValue(downcast(event.repeatRule.frequency))
+	}
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_title"),
 		child: () => [
@@ -93,29 +105,29 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		],
 		okAction: () => {
 			const calendarEvent = createCalendarEvent()
-			const startDate = neverNull(startDatePicker.date())
+			let startDate = neverNull(startDatePicker.date())
 			const parsedStartTime = parseTimeTo(startTime())
 			const parsedEndTime = parseTimeTo(endTime())
-			if (!allDay() && (!parsedStartTime || !parsedEndTime)) {
-				Dialog.error("timeFormatInvalid_msg")
-				return
-			}
-			if (!allDay() && parsedStartTime) {
+			let endDate = neverNull(endDatePicker.date())
+
+			if (allDay()) {
+				startDate = getAllDayDateUTC(startDate)
+				endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
+			} else {
+				if (!parsedStartTime || !parsedEndTime) {
+					Dialog.error("timeFormatInvalid_msg")
+					return
+				}
 				startDate.setHours(parsedStartTime.hours)
 				startDate.setMinutes(parsedStartTime.minutes)
-			}
-			let endDate = endDatePicker.date() || calendarEvent.startTime
-			// End date is never actually included in the event. For the whole day event the next day
-			// is the boundary. For the timed one the end time is the boundary.
-			if (!allDay() && parsedEndTime) {
+
+				// End date is never actually included in the event. For the whole day event the next day
+				// is the boundary. For the timed one the end time is the boundary.
 				endDate.setHours(parsedEndTime.hours)
 				endDate.setMinutes(parsedEndTime.minutes)
-			} else {
-				endDate = getStartOfNextDay(endDate)
 			}
 
 			calendarEvent.startTime = startDate
-
 			calendarEvent.description = ""
 			calendarEvent.summary = summary()
 			calendarEvent.endTime = endDate
@@ -140,6 +152,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	})
 }
+
 
 const repeatValues = [
 	{name: "Do not repeat", value: RepeatPeriod.NEVER},

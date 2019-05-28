@@ -171,7 +171,7 @@ let initialized = lang.init(en).then(() => {
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
 		.then(module => module.contactFormView), false)
 	const calendarViewResolver = createViewResolver(() => _asyncImport("src/calendar/CalendarView.js")
-		.then(module => new module.CalendarView()), true)
+		.then(module => new module.CalendarView(logins)), true)
 
 	let start = "/"
 	if (!state.prefix) {

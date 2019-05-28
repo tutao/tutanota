@@ -13,7 +13,7 @@ import type {CalendarDay} from "../api/common/utils/DateUtils"
 import {getCalendarMonth, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
-import {logins} from "../api/main/LoginController"
+import {LoginController} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -26,15 +26,17 @@ import {px, size} from "../gui/size"
 import {modal} from "../gui/base/Modal"
 import {animations, opacity, transform} from "../gui/animation/Animations"
 import {ease} from "../gui/animation/Easing"
-import type {RepeatPeriodEnum} from "./CalendarUtils"
+import type {CalendarMonthTimeRange, RepeatPeriodEnum} from "./CalendarUtils"
 import {
 	eventEndsAfterDay,
 	eventStartsBefore,
 	geEventElementMaxId,
+	getAllDayDateUTC,
 	getEventElementMinId,
 	getEventEnd,
+	getEventStart,
 	getMonth,
-	isAlllDayEvent,
+	isAllDayEvent,
 	RepeatPeriod,
 	timeString
 } from "./CalendarUtils"
@@ -62,7 +64,7 @@ export class CalendarView implements CurrentView {
 	_monthDom: ?HTMLElement
 	_loadedMonths: Set<number> // first ms of the month
 
-	constructor() {
+	constructor(loginController: LoginController) {
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
 		this.selectedDate = stream(new Date())
@@ -109,24 +111,37 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
-		this._calendarInfos = this._loadGroupRoots()
+		this._calendarInfos = this._loadGroupRoots(loginController)
 		                          .tap(() => m.redraw())
 
 		this.selectedDate.map((d) => {
-			const {start, end} = getMonth(d)
-			if (!this._loadedMonths.has(start.getTime())) {
-				this._loadedMonths.add(start.getTime())
-				this._load(start, end).catch((e) => {
-					this._loadedMonths.delete(start.getTime())
-					throw e
-				}).tap(() => m.redraw())
-			}
+			const previousMonthDate = new Date(d)
+			previousMonthDate.setMonth(d.getMonth() - 1)
+
+			const nextMonthDate = new Date(d)
+			nextMonthDate.setMonth(d.getMonth() + 1)
+
+			this._loadMonthIfNeeded(d)
+			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
+			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
 
 		locator.eventController.addEntityListener((updates) => {
 			this.entityEventReceived(updates)
 		})
+	}
+
+	_loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
+		const month = getMonth(dayInMonth)
+		if (!this._loadedMonths.has(month.start.getTime())) {
+			this._loadedMonths.add(month.start.getTime())
+			return this._loadEvents(month).catch((e) => {
+				this._loadedMonths.delete(month.start.getTime())
+				throw e
+			}).tap(() => m.redraw())
+		}
+		return Promise.resolve()
 	}
 
 
@@ -232,14 +247,14 @@ export class CalendarView implements CurrentView {
 			onclick: (e) => {
 				e.stopPropagation()
 				this._calendarInfos.then((calendarInfos) => {
-					showCalendarEventDialog(event.startTime, calendarInfos, event)
+					showCalendarEventDialog(getEventStart(event), calendarInfos, event)
 				})
 			}
 		}, (date.getDay() === 0 || !eventStartsBefore(date, event)) ? this._getEventText(event) : "")
 	}
 
 	_getEventText(event: CalendarEvent): string {
-		if (isAlllDayEvent(event)) {
+		if (isAllDayEvent(event)) {
 			return event.summary
 		} else {
 			return timeString(event.startTime) + " " + event.summary
@@ -260,17 +275,19 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_load(start: Date, end: Date): Promise<*> {
+	_loadEvents(month: CalendarMonthTimeRange): Promise<*> {
 		return this._calendarInfos.then((calendarInfos) => {
-			const startId = getEventElementMinId(start.getTime())
-			const endId = geEventElementMaxId(end.getTime())
+			const startId = getEventElementMinId(month.start.getTime())
+			const endId = geEventElementMaxId(month.end.getTime())
 			return Promise.map(calendarInfos.values(), ({groupRoot, longEvents}) => {
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
-					shortEventsResult.elements.forEach((e) => this._addDaysForEvent(e))
-					longEvents.forEach((e) => e.repeatRule && this._addDaysForRecurringEvent(e))
+					shortEventsResult.elements
+					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+					                 .forEach((e) => this._addDaysForEvent(e, month))
+					longEvents.forEach((e) => e.repeatRule && this._addDaysForRecurringEvent(e, month))
 					calendarInfos.set(groupRoot._id, {
 							groupRoot,
 							shortEvents: shortEventsResult.elements,
@@ -282,8 +299,9 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
-		const calendarMemberships = logins.getUserController().getCalendarMemberships()
+
+	_loadGroupRoots(loginController: LoginController): Promise<Map<Id, CalendarInfo>> {
+		const calendarMemberships = loginController.getUserController().getCalendarMemberships()
 
 		return Promise
 			.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
@@ -302,7 +320,10 @@ export class CalendarView implements CurrentView {
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
 						load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
-							.then((event) => this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event))
+							.then((event) => {
+								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
+
+							})
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId])
 					} else if (update.operation === OperationType.UPDATE) {
@@ -317,45 +338,62 @@ export class CalendarView implements CurrentView {
 	addOrUpdateEvent(calendarInfo: ?CalendarInfo, event: CalendarEvent) {
 		if (calendarInfo) {
 			const eventListId = getListId(event);
+			const eventMonth = getMonth(getEventStart(event))
 			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
 				calendarInfo.shortEvents.push(event)
-				this._addDaysForEvent(event)
+				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
 				calendarInfo.longEvents.push(event)
-				if (event.repeatRule) {
-					this._addDaysForRecurringEvent(event)
-				} else {
-					this._addDaysForEvent(event)
-				}
+				this._loadedMonths.forEach(firstDayTimestamp => {
+					if (event.repeatRule) {
+						this._addDaysForRecurringEvent(event, getMonth(new Date(firstDayTimestamp)))
+					} else {
+						this._addDaysForEvent(event, eventMonth)
+					}
+				})
 			}
 		}
 	}
 
-	_addDaysForEvent(event: CalendarEvent) {
-		const calculationDate = getStartOfDay(event.startTime)
-		const endDate = getEventEnd(event);
-		while (calculationDate.getTime() < endDate.getTime()) {
-			getFromMap(this._eventsForDays, calculationDate.getTime(), () => []).push(event)
+	_addDaysForEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+		const calculationDate = getStartOfDay(getEventStart(event))
+		const eventEndDate = getEventEnd(event);
+
+		// only add events when the start time is inside this month
+		if (getEventStart(event).getTime() < month.start.getTime() || getEventStart(event).getTime() >= month.end.getTime()) {
+			return
+		}
+
+		// if start time is in current month then also add events for subsequent months until event ends
+		while (calculationDate.getTime() < eventEndDate.getTime()) {
+			if (eventEndDate.getTime() >= month.start.getTime()) {
+				getFromMap(this._eventsForDays, calculationDate.getTime(), () => []).push(event)
+			}
 			incrementDate(calculationDate, 1)
 		}
 	}
 
-	_addDaysForRecurringEvent(event: CalendarEvent) {
+	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
 		if (event.repeatRule == null) {
 			throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 		}
 		const frequency: RepeatPeriodEnum = downcast(event.repeatRule.frequency)
-		const endTime = new Date(this.selectedDate())
-		endTime.setMonth(endTime.getMonth() + 1)
-		let eventStartTime = event.startTime
+		let eventStartTime = getEventStart(event)
 		let eventEndTime = getEventEnd(event)
-		while (eventStartTime.getTime() < endTime.getTime()) {
-			const eventClone = clone(event)
-			eventClone.startTime = new Date(eventStartTime)
-			eventClone.endTime = new Date(eventEndTime)
+		while (eventStartTime.getTime() < month.end.getTime()) {
+			if (eventEndTime.getTime() >= month.start.getTime()) {
+				const eventClone = clone(event)
+				if (isAllDayEvent(event)) {
+					eventClone.startTime = getAllDayDateUTC(eventStartTime)
+					eventClone.endTime = getAllDayDateUTC(eventEndTime)
+				} else {
+					eventClone.startTime = new Date(eventStartTime)
+					eventClone.endTime = new Date(eventEndTime)
+				}
+				this._addDaysForEvent(eventClone, month)
+			}
 			incrementByRepeatPeriod(eventStartTime, frequency)
 			incrementByRepeatPeriod(eventEndTime, frequency)
-			this._addDaysForEvent(eventClone)
 		}
 	}
 
