@@ -206,7 +206,7 @@ o.spec("Desktop Window Manager Test", () => {
         o(win.center.callCount).equals(1)
         o(win.setBounds.callCount).equals(0)
         o(win.show.callCount).equals(0)
-        o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html"])
+        o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html", undefined])
         o(wm.get(0)).equals(win)
     })
 
@@ -247,7 +247,7 @@ o.spec("Desktop Window Manager Test", () => {
         wm.newWindow(true)
 
         o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(1)
-        o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html"])
+        o(applicationWindowMock.ApplicationWindow.args).deepEquals([wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html", undefined])
         const win = applicationWindowMock.ApplicationWindow.mockedInstances[0]
         win.callbacks["ready-to-show"]()
         o(win.center.callCount).equals(0)

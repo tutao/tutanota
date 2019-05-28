@@ -65,9 +65,11 @@ o.spec("ApplicationWindow Test", () => {
                         setZoomFactor: () => {
                         },
                         session: {
-							setPermissionRequestHandler: () => {}
+                            setPermissionRequestHandler: () => {
+                            }
                         },
-						findInPage: () => {},
+                        findInPage: () => {
+                        },
                         stopFindInPage: () => {
                         },
                         getURL: () => 'desktophtml/meh/more'
@@ -239,6 +241,13 @@ o.spec("ApplicationWindow Test", () => {
             'crashed',
             'dom-ready'
         ])
+
+        // noAutoLogin=true
+        const w2 = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml', true)
+        const bwInstance2 = electronMock.BrowserWindow.mockedInstances[1]
+        o(bwInstance2.loadURL.callCount).equals(1)
+        o(bwInstance2.loadURL.args[0]).equals('desktophtml?noAutoLogin=true')
+        o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
     })
 
     o("shortcut creation, linux", () => {
@@ -364,16 +373,14 @@ o.spec("ApplicationWindow Test", () => {
         o(e.preventDefault.callCount).equals(1)
         o(bwInstance.loadURL.callCount).equals(2) // nothing happened
 
-        bwInstance.webContents.callbacks['did-start-navigation'](e, "desktophtml/login?noAutoLogin=true", true)
+        bwInstance.webContents.callbacks['did-start-navigation'](e, "desktophtml?r=%2Flogin%3FnoAutoLogin%3Dtrue", true)
         o(e.preventDefault.callCount).equals(2)
         o(bwInstance.loadURL.callCount).equals(3)
         o(bwInstance.loadURL.args[0]).equals("desktophtml?noAutoLogin=true")
-        o(w._rewroteURL).equals(true)
 
         bwInstance.webContents.callbacks['did-start-navigation'](e, "desktophtml/login?noAutoLogin=true", true)
         o(e.preventDefault.callCount).equals(2)
         o(bwInstance.loadURL.callCount).equals(3)
-        o(w._rewroteURL).equals(false)
 
         bwInstance.webContents.callbacks['did-start-navigation'](e, "desktophtml/login?noAutoLogin=true", false)
         o(e.preventDefault.callCount).equals(2)

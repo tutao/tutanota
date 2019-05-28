@@ -6,6 +6,7 @@ import {lang} from './DesktopLocalizationProvider.js'
 import type {DesktopConfigHandler} from './DesktopConfigHandler.js'
 import type {WindowManager} from "./DesktopWindowManager.js"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
+import {neverNull} from "../api/common/utils/Utils";
 
 let icon: NativeImage
 
@@ -14,7 +15,7 @@ export class DesktopTray {
     _wm: WindowManager;
     _notifier: DesktopNotifier;
 
-    _tray: Tray;
+    _tray: ?Tray;
 
     constructor(config: DesktopConfigHandler, notifier: DesktopNotifier) {
         this._conf = config
@@ -48,7 +49,8 @@ export class DesktopTray {
                         this._wm.getLastFocused(true)
                     })
                 }
-                this._tray.setContextMenu(this._getMenu())
+                // OK, we just created one if it wasn't there
+                neverNull(this._tray).setContextMenu(this._getMenu())
             }
         })
     }

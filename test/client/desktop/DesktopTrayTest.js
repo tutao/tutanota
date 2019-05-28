@@ -4,7 +4,19 @@ import n from "../nodemocker"
 
 o.spec("DesktopTrayTest", () => {
     n.startGroup(__filename, [
-        'path'
+        'path',
+        './TutanotaError',
+        './StringUtils',
+        './EntityConstants',
+        '../TutanotaConstants',
+        './Utils',
+        './MapUtils',
+        './utils/Utils',
+        '../EntityFunctions',
+        './utils/ArrayUtils',
+        '../error/CryptoError',
+        '../api/common/utils/Utils',
+        './utils/Encoding'
     ])
 
 
@@ -13,6 +25,11 @@ o.spec("DesktopTrayTest", () => {
             createFromPath: path => 'this is an icon'
         },
         app: {
+            callbacks: {},
+            on: function (ev: string, cb: ()=>void) {
+                this.callbacks[ev] = cb
+                return n.spyify(electron.app)
+            },
             dock: {
                 show: () => {
                 },
@@ -29,6 +46,8 @@ o.spec("DesktopTrayTest", () => {
                     return this
                 },
                 setContextMenu: function () {
+                },
+                destroy: function () {
                 }
             },
             statics: {}
@@ -190,6 +209,42 @@ o.spec("DesktopTrayTest", () => {
         setTimeout(() => {
             o(electronMock.Menu.mockedInstances.length).equals(1)
             o(electronMock.Menu.mockedInstances[0].append.callCount).equals(7)
+            done()
+        }, 10)
+    })
+
+    o("destroy tray before quit", done => {
+        n.setPlatform("win32")
+        //node modules
+        const electronMock = n.mock("electron", electron).set()
+
+        //our modules
+        n.mock('./DesktopLocalizationProvider.js', lang).set()
+
+        // instances
+        const confMock = n.mock('__conf', conf)
+            .with({
+                getDesktopConfig: (key: string) => {
+                    switch (key) {
+                        case 'runAsTrayApp':
+                            return true
+                        default:
+                            throw new Error(`unexpected getDesktopConfig key ${key}`)
+                    }
+                }
+            })
+            .set()
+        const notifierMock = n.mock('__notifier', notifier).set()
+        const wmMock = n.mock('__wm', wm).set()
+
+        const {DesktopTray} = n.subject('../../src/desktop/DesktopTray.js')
+        const tray = new DesktopTray(confMock, notifierMock)
+        tray.setWindowManager(wmMock)
+
+        tray.update()
+        setTimeout(() => {
+            electronMock.app.callbacks['will-quit']()
+            o(electronMock.Tray.mockedInstances[0].destroy.callCount).equals(1)
             done()
         }, 10)
     })
