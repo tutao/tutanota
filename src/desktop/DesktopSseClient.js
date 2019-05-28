@@ -96,8 +96,8 @@ export class DesktopSseClient {
     }
 
     connect() {
-        this._reschedule(10)
         if (!this._connectedSseInfo) {
+            this._reschedule(10)
             console.log("sse info not available, skip reconnect")
             return
         }
@@ -141,9 +141,9 @@ export class DesktopSseClient {
                     })
                     .on('error', e => console.error('sse response error:', e))
             })
-            .on('information', e => console.log('sse information:', e))
-            .on('connect', e => console.log('sse connect:', e))
-            .on('error', e => console.error('sse error:', e))
+            .on('information', e => console.log('sse information:', e.message))
+            .on('connect', e => console.log('sse connect:', e.message))
+            .on('error', e => console.error('sse error:', e.message))
             .end()
     }
 
