@@ -23,13 +23,19 @@ export class ApplicationWindow {
     _desktophtml: string;
     id: number;
 
-    constructor(wm: WindowManager, preloadjs: string, desktophtml: string) {
+    constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
         this._userInfo = null
         this._ipc = wm.ipc
         this._preloadjs = preloadjs
         this._desktophtml = desktophtml
+        this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
+        console.log("startFile: ", this._startFile)
         this._createBrowserWindow(wm)
-        this._browserWindow.loadURL(this._startFile)
+        this._browserWindow.loadURL(
+            noAutoLogin
+                ? this._startFile + "?noAutoLogin=true"
+                : this._startFile
+        )
         Menu.setApplicationMenu(null)
     }
 
@@ -68,8 +74,6 @@ export class ApplicationWindow {
     }
 
     _createBrowserWindow(wm: WindowManager) {
-        this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
-        console.log("startFile: ", this._startFile)
         this._browserWindow = new BrowserWindow({
             icon: wm.getIcon(),
             show: false,
