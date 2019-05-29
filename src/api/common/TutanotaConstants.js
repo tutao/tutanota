@@ -350,3 +350,12 @@ export type CertificateTypeEnum = $Values<typeof CertificateType>
 export function getCertificateType(certificateInfo: CertificateInfo): CertificateTypeEnum {
 	return downcast(certificateInfo.type)
 }
+
+
+export const RepeatPeriod = Object.freeze({
+	DAILY: "0",
+	WEEKLY: "1",
+	MONTHLY: "2",
+	ANNUALLY: "3",
+})
+export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>

@@ -74,6 +74,17 @@ export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean
 	}
 }
 
+export function findAllAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	var removedElement = false
+	for (var i = theArray.length - 1; i >= 0; i--) {
+		if (finder(theArray[i])) {
+			theArray.splice(i, 1)
+			removedElement = true
+		}
+	}
+	return removedElement
+}
+
 export function replace(theArray: Array<any>, oldElement: any, newElement: any): boolean {
 	let i = theArray.indexOf(oldElement)
 	if (i !== -1) {

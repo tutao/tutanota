@@ -961,6 +961,14 @@ styles.registerStyle('main', () => {
 		'.time-field': {
 			'max-width': '44px'
 		},
+		'.calendar-day-number': {
+			display: "inline-block",
+			width: "24px",
+			height: "24px",
+			"line-height": "24px",
+			"text-align": "center",
+			"font-size": "14px"
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

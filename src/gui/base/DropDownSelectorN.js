@@ -4,7 +4,6 @@ import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonType} from "./Button"
 import {TextFieldN} from "./TextFieldN"
-import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
 import {Icons} from "./icons/Icons"
@@ -66,15 +65,13 @@ class _DropDownSelector<T> {
 	}
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: ?T): ?string {
-		if (value != null) {
-			let selectedItem = a.items.find(item => item.value === a.selectedValue())
-			if (selectedItem) {
-				return selectedItem.name
-			} else {
-				console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
-			}
+		let selectedItem = a.items.find(item => item.value === a.selectedValue())
+		if (selectedItem) {
+			return selectedItem.name
+		} else {
+			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
+			return null
 		}
-		return null
 	}
 
 }

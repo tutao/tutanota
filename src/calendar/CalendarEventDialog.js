@@ -13,11 +13,12 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, setup} from "../api/main/Entity"
-import type {RepeatPeriodEnum} from "./CalendarUtils"
-import {generateEventElementId, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, parseTimeTo, RepeatPeriod, timeString} from "./CalendarUtils"
+import {generateEventElementId, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent, parseTimeTo, timeString} from "./CalendarUtils"
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
+import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {RepeatPeriod} from "../api/common/TutanotaConstants"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -55,6 +56,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const repeatPickerAttrs = repeatingDatePicker()
 	if (event && event.repeatRule) {
 		repeatPickerAttrs.selectedValue(downcast(event.repeatRule.frequency))
+	} else {
+		repeatPickerAttrs.selectedValue(null)
 	}
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_title"),
@@ -133,18 +136,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			calendarEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
 			calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
-			if (repeatPickerAttrs.selectedValue() === RepeatPeriod.NEVER) {
+			const repeatFrequency = repeatPickerAttrs.selectedValue()
+			if (repeatFrequency == null) {
 				calendarEvent.repeatRule = null
 			} else {
 				const repeatRule = createRepeatRule()
-				repeatRule.frequency = repeatPickerAttrs.selectedValue() || RepeatPeriod.NEVER
+				repeatRule.frequency = repeatFrequency
 				repeatRule.interval = "1" // Always just one unit for now
 				calendarEvent.repeatRule = repeatRule
 			}
 			let p = event ? erase(event) : Promise.resolve()
 
 
-			const listId = calendarEvent.repeatRule ? groupRoot.longEvents : groupRoot.shortEvents
+			const listId = calendarEvent.repeatRule || isLongEvent(calendarEvent) ? groupRoot.longEvents : groupRoot.shortEvents
 			calendarEvent._id = [listId, generateEventElementId(calendarEvent.startTime.getTime())]
 			p.then(() => setup(listId, calendarEvent))
 
@@ -155,14 +159,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 
 const repeatValues = [
-	{name: "Do not repeat", value: RepeatPeriod.NEVER},
+	{name: "Do not repeat", value: null},
 	{name: "Repeat daily", value: RepeatPeriod.DAILY},
 	{name: "Weekly", value: RepeatPeriod.WEEKLY},
 	{name: "Monthly", value: RepeatPeriod.MONTHLY},
 	{name: "Annually", value: RepeatPeriod.ANNUALLY}
 ]
 
-function repeatingDatePicker(): DropDownSelectorAttrs<RepeatPeriodEnum> {
+function repeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 	return {
 		label: () => "Repeating",
 		items: repeatValues,

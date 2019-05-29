@@ -1,10 +1,9 @@
 //@flow
 import {stringToCustomId} from "../api/common/EntityFunctions"
-import {getStartOfNextDay} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getStartOfNextDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 
-const DAY_MS = 24 * 60 * 60 * 1000
-const DAYS_SHIFTED_MS = 15 * DAY_MS
+const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -87,15 +86,9 @@ export function isAllDayEvent(event: CalendarEvent): boolean {
 		&& endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0
 }
 
-export const RepeatPeriod = Object.freeze({
-	NEVER: "0",
-	DAILY: "1",
-	WEEKLY: "2",
-	MONTHLY: "3",
-	ANNUALLY: "4",
-})
-export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>
-
+export function isLongEvent(event: CalendarEvent): boolean {
+	return getEventEnd(event).getTime() - getEventStart(event).getTime() > DAYS_SHIFTED_MS
+}
 
 export function getMonth(date: Date): CalendarMonthTimeRange {
 	const start = new Date(date)
