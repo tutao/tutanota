@@ -19,6 +19,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {RepeatPeriod} from "../api/common/TutanotaConstants"
+import {numberRange} from "../api/common/utils/ArrayUtils"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -59,6 +60,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		repeatPickerAttrs.selectedValue(null)
 	}
+
+	const repeatIntervalPickerAttrs = intervalPicker()
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_title"),
 		child: () => [
@@ -89,6 +93,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				label: () => lang.get("allDay_label"),
 			}),
 			m(DropDownSelectorN, repeatPickerAttrs),
+			repeatPickerAttrs.selectedValue() ? m(DropDownSelectorN, repeatIntervalPickerAttrs) : null,
 			m(DropDownSelectorN, {
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -130,6 +135,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				endDate.setMinutes(parsedEndTime.minutes)
 			}
 
+
 			calendarEvent.startTime = startDate
 			calendarEvent.description = ""
 			calendarEvent.summary = summary()
@@ -140,9 +146,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			if (repeatFrequency == null) {
 				calendarEvent.repeatRule = null
 			} else {
+				const interval = repeatIntervalPickerAttrs.selectedValue()
 				const repeatRule = createRepeatRule()
 				repeatRule.frequency = repeatFrequency
-				repeatRule.interval = "1" // Always just one unit for now
+				repeatRule.interval = String(interval)
 				calendarEvent.repeatRule = repeatRule
 			}
 			let p = event ? erase(event) : Promise.resolve()
@@ -171,6 +178,20 @@ function repeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 		label: () => "Repeating",
 		items: repeatValues,
 		selectedValue: stream(repeatValues[0].value),
+		icon: Icons.Edit,
+	}
+}
+
+const intervalValues = numberRange(1, 256).map(n => {
+	return {name: String(n), value: n}
+})
+
+
+function intervalPicker(): DropDownSelectorAttrs<number> {
+	return {
+		label: "interval_title",
+		items: intervalValues,
+		selectedValue: stream(intervalValues[0].value),
 		icon: Icons.Edit,
 	}
 }

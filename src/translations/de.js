@@ -965,6 +965,8 @@ module.exports = {
 		"privateCalendar_label": "Privat",
 		"allDay_label": "Ganztags",
 		"createEvent_title": "Ereignis",
-		"timeFormatInvalid_msg": "Ungültiges Zeitformat"
+		"timeFormatInvalid_msg": "Ungültiges Zeitformat",
+		"invalidInterval_msg": "Ungültiges Intervall",
+		"interval_title": "Intervall"
 	}
 }

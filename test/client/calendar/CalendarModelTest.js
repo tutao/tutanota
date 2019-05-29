@@ -148,6 +148,58 @@ o.spec("CalendarView test", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
 
+		o("recuring event - short with time & day interval", function () {
+			const event = createEvent(new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12))
+			event.repeatRule = createRepeatRule()
+			event.repeatRule.frequency = RepeatPeriod.DAILY
+			event.repeatRule.interval = "4"
+			// TODO: set timezone on repeatRule
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+
+			const expectedForJune = {
+				[new Date(2019, 5, 3).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 3, 10), new Date(2019, 5, 3, 12))],
+				[new Date(2019, 5, 7).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 7, 12))],
+				[new Date(2019, 5, 11).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 11, 10), new Date(2019, 5, 11, 12))],
+				[new Date(2019, 5, 15).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 15, 10), new Date(2019, 5, 15, 12))],
+				[new Date(2019, 5, 19).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 19, 10), new Date(2019, 5, 19, 12))],
+				[new Date(2019, 5, 23).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 23, 10), new Date(2019, 5, 23, 12))],
+				[new Date(2019, 5, 27).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 27, 10), new Date(2019, 5, 27, 12))],
+			}
+			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
+		})
+
+		o.only("recuring event - short with time & monthly interval", function () {
+			const event = createEvent(new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12))
+			event.repeatRule = createRepeatRule()
+			event.repeatRule.frequency = RepeatPeriod.MONTHLY
+			event.repeatRule.interval = "2"
+			// TODO: set timezone on repeatRule
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			o(mapToObject(eventsForDays)).deepEquals({})
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
+			const expectedForJuly = {
+				[new Date(2019, 6, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12))]
+			}
+			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 7)))
+			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
+
+			const expectedForSeptember = Object.assign({}, expectedForJuly, {
+				[new Date(2019, 8, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 8, 31, 10), new Date(2019, 8, 31, 12))]
+			})
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 8)))
+			// o(mapToObject(eventsForDays)).deepEquals(expectedForSeptember)
+			const expectedForNovember = Object.assign({}, expectedForSeptember, {
+				[new Date(2019, 10, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 10, 31, 10), new Date(2019, 10, 31, 12))]
+			})
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 10)))
+			o(eventsForDays).deepEquals(expectedForNovember)
+		})
+
 		o("recuring event - short multiple days ", function () {
 			const event = createEvent(new Date(2019, 4, 3, 10), new Date(2019, 4, 5, 12))
 			event.repeatRule = createRepeatRule()

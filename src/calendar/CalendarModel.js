@@ -26,10 +26,12 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 }
 
 export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
-	if (event.repeatRule == null) {
+	const repeatRule = event.repeatRule
+	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
-	const frequency: RepeatPeriodEnum = downcast(event.repeatRule.frequency)
+	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
+	const interval = Number(repeatRule.interval)
 	const isLong = isLongEvent(event)
 	let eventStartTime = new Date(getEventStart(event))
 	let eventEndTime = new Date(getEventEnd(event))
@@ -50,8 +52,8 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 				addDaysForEvent(events, eventClone, month)
 			}
 		}
-		incrementByRepeatPeriod(eventStartTime, frequency)
-		incrementByRepeatPeriod(eventEndTime, frequency)
+		incrementByRepeatPeriod(eventStartTime, frequency, interval)
+		incrementByRepeatPeriod(eventEndTime, frequency, interval)
 	}
 }
 
@@ -90,19 +92,19 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 }
 
 
-function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum) {
+function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number) {
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
-			date.setDate(date.getDate() + 1)
+			date.setDate(date.getDate() + interval)
 			break
 		case RepeatPeriod.WEEKLY:
-			date.setDate(date.getDate() + 7)
+			date.setDate(date.getDate() + 7 * interval)
 			break
 		case RepeatPeriod.MONTHLY:
-			date.setMonth(date.getMonth() + 1)
+			date.setMonth(date.getMonth() + interval)
 			break
 		case RepeatPeriod.ANNUALLY:
-			date.setFullYear(date.getFullYear() + 1)
+			date.setFullYear(date.getFullYear() + interval)
 			break
 	}
 }
