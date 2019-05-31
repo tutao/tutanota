@@ -1,11 +1,12 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
+import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {RepeatPeriod} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {endCountPicker} from "./CalendarEventDialog"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -36,6 +37,13 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	let eventStartTime = new Date(getEventStart(event))
 	let eventEndTime = new Date(getEventEnd(event))
 	// Loop by the frequency step
+	let endTime = NaN
+	let endOccurrences = NaN
+	if (repeatRule.endType === EndType.Count) {
+		endOccurrences = Number(repeatRule.endValue)
+	} else if (repeatRule.endType === EndType.UntilDate) {
+		endTime = getAllDayDateLocal(new Date(Number(repeatRule.endType)))
+	}
 	while (eventStartTime.getTime() < month.end.getTime()) {
 		if (eventEndTime.getTime() >= month.start.getTime()) {
 			const eventClone = clone(event)

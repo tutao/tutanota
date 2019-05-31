@@ -17,8 +17,8 @@ import {generateEventElementId, getAllDayDateUTC, getEventEnd, getEventStart, is
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
-import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {RepeatPeriod} from "../api/common/TutanotaConstants"
+import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
@@ -62,6 +62,22 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	}
 
 	const repeatIntervalPickerAttrs = intervalPicker()
+	const stopConditionPickerAttrs = stopConditionPicker()
+
+	const endOnDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
+	const endCountPickerAttrs = endCountPicker()
+
+	function renderStopConditiionValue(): Children {
+		if (repeatPickerAttrs.selectedValue() == null || stopConditionPickerAttrs.selectedValue() === EndType.Never) {
+			return null
+		} else if (stopConditionPickerAttrs.selectedValue() === EndType.Count) {
+			return m(DropDownSelectorN, endCountPickerAttrs)
+		} else if (stopConditionPickerAttrs.selectedValue() === EndType.UntilDate) {
+			return m(endOnDatePicker)
+		} else {
+			return null
+		}
+	}
 
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_title"),
@@ -92,8 +108,17 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				checked: allDay,
 				label: () => lang.get("allDay_label"),
 			}),
-			m(DropDownSelectorN, repeatPickerAttrs),
-			repeatPickerAttrs.selectedValue() ? m(DropDownSelectorN, repeatIntervalPickerAttrs) : null,
+			m(".flex", [
+				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
+				m(".flex-grow.ml-s" + (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
+			]),
+
+			repeatPickerAttrs.selectedValue()
+				? m(".flex", [
+					m(".flex-grow", m(DropDownSelectorN, stopConditionPickerAttrs)),
+					m(".flex-grow.ml-s", renderStopConditiionValue()),
+				])
+				: null,
 			m(DropDownSelectorN, {
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -151,6 +176,26 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				repeatRule.frequency = repeatFrequency
 				repeatRule.interval = String(interval)
 				calendarEvent.repeatRule = repeatRule
+
+				const stopType = neverNull(stopConditionPickerAttrs.selectedValue())
+				repeatRule.endType = stopType
+				if (stopType === EndType.Count) {
+					let count = stopConditionPickerAttrs.selectedValue()
+					if (isNaN(count) || Number(count) < 1) {
+						repeatRule.endType = EndType.Never
+					} else {
+						repeatRule.endValue = count
+					}
+				} else if (stopType === EndType.UntilDate) {
+					const repeatEndDate = endDatePicker.date()
+					if (repeatEndDate == null) {
+						repeatRule.endType = EndType.Never
+					} else {
+						// Encode it as UTC date, like for full day events
+						repeatRule.endValue = String(getAllDayDateUTC(repeatEndDate).getTime())
+					}
+
+				}
 			}
 			let p = event ? erase(event) : Promise.resolve()
 
@@ -196,7 +241,26 @@ function intervalPicker(): DropDownSelectorAttrs<number> {
 	}
 }
 
+const stopConditionValues = [
+	{name: "Never", value: EndType.Never},
+	{name: "After occurences", value: EndType.Count},
+	{name: "On", value: EndType.UntilDate}
+]
 
+function stopConditionPicker(): DropDownSelectorAttrs<EndTypeEnum> {
+	return {
+		label: () => "Ends",
+		items: stopConditionValues,
+		selectedValue: stream(stopConditionValues[0].value),
+		icon: Icons.Edit
+	}
+}
 
-
-
+export function endCountPicker(): DropDownSelectorAttrs<number> {
+	return {
+		label: "emptyString_msg",
+		items: intervalValues,
+		selectedValue: stream(intervalValues[0].value),
+		icon: Icons.Edit,
+	}
+}
