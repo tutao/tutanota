@@ -2,6 +2,9 @@
 import {stringToCustomId} from "../api/common/EntityFunctions"
 import {DAY_IN_MILLIS, getStartOfNextDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
+import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
+import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {DateTime} from "luxon"
 
 const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
@@ -70,12 +73,11 @@ export function getEventStart(event: CalendarEvent): Date {
 	}
 }
 
-
 export function getAllDayDateUTC(localDate: Date): Date {
 	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
 }
 
-export function getAllDayDateLocal(utcDate: Date): Date {
+export function getAllDayDateLocal(utcDate: Date, timezone?: string): Date {
 	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 0, 0, 0, 0)
 }
 
@@ -97,4 +99,13 @@ export function getMonth(date: Date): CalendarMonthTimeRange {
 	const end = new Date(start)
 	end.setMonth(start.getMonth() + 1)
 	return {start, end}
+}
+
+
+export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): RepeatRule {
+	const rule = createRepeatRule()
+	rule.timeZone = DateTime.local().zoneName
+	rule.frequency = frequency
+	rule.interval = String(interval)
+	return rule
 }

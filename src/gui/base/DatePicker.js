@@ -102,7 +102,7 @@ export class DatePicker {
 		})
 	}
 
-	setDate(date: Date) {
+	setDate(date: ?Date) {
 		this.invalidDate = false
 		this.date(date)
 		if (this.input.isEmpty() && this.input._domInput) {

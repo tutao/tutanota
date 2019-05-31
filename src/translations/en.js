@@ -963,6 +963,6 @@ module.exports = {
 		"createEvent_title": "Event",
 		"timeFormatInvalid_msg": "Invalid time format",
 		"invalidInterval_msg": "Invalid interval",
-		"interval_title": "Interval"
+		"interval_title": "Interval",
 	}
 }

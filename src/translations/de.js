@@ -967,6 +967,6 @@ module.exports = {
 		"createEvent_title": "Ereignis",
 		"timeFormatInvalid_msg": "Ungültiges Zeitformat",
 		"invalidInterval_msg": "Ungültiges Intervall",
-		"interval_title": "Intervall"
+		"interval_title": "Intervall",
 	}
 }

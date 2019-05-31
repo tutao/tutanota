@@ -1,12 +1,12 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
+import {getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {endCountPicker} from "./CalendarEventDialog"
+import {DateTime} from "luxon"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -37,22 +37,27 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	let eventStartTime = new Date(getEventStart(event))
 	let eventEndTime = new Date(getEventEnd(event))
 	// Loop by the frequency step
-	let endTime = NaN
-	let endOccurrences = NaN
+	let endTime = null
+	let endOccurrences = null
 	if (repeatRule.endType === EndType.Count) {
 		endOccurrences = Number(repeatRule.endValue)
 	} else if (repeatRule.endType === EndType.UntilDate) {
-		endTime = getAllDayDateLocal(new Date(Number(repeatRule.endType)))
+		endTime = new Date(Number(repeatRule.endValue))
 	}
-	while (eventStartTime.getTime() < month.end.getTime()) {
-		if (eventEndTime.getTime() >= month.start.getTime()) {
+	let calcStartTime = eventStartTime
+	let calcEndTime = eventEndTime
+	let iteration = 1
+	while ((endOccurrences == null || iteration <= endOccurrences)
+	&& (endTime == null || calcStartTime.getTime() < endTime)
+	&& calcStartTime.getTime() < month.end.getTime()) {
+		if (calcEndTime.getTime() >= month.start.getTime()) {
 			const eventClone = clone(event)
 			if (isAllDayEvent(event)) {
-				eventClone.startTime = getAllDayDateUTC(eventStartTime)
-				eventClone.endTime = getAllDayDateUTC(eventEndTime)
+				eventClone.startTime = getAllDayDateUTC(calcStartTime)
+				eventClone.endTime = getAllDayDateUTC(calcEndTime)
 			} else {
-				eventClone.startTime = new Date(eventStartTime)
-				eventClone.endTime = new Date(eventEndTime)
+				eventClone.startTime = new Date(calcStartTime)
+				eventClone.endTime = new Date(calcEndTime)
 			}
 			if (isLong) {
 				addDaysForLongEvent(events, eventClone, month)
@@ -60,8 +65,9 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 				addDaysForEvent(events, eventClone, month)
 			}
 		}
-		incrementByRepeatPeriod(eventStartTime, frequency, interval)
-		incrementByRepeatPeriod(eventEndTime, frequency, interval)
+		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatRule.timeZone)
+		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatRule.timeZone)
+		iteration++
 	}
 }
 
@@ -100,19 +106,20 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 }
 
 
-function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number) {
+export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
+	const calculationDate = new Date(date)
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
-			date.setDate(date.getDate() + interval)
-			break
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
 		case RepeatPeriod.WEEKLY:
-			date.setDate(date.getDate() + 7 * interval)
-			break
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({weeks: interval}).toJSDate()
 		case RepeatPeriod.MONTHLY:
-			date.setMonth(date.getMonth() + interval)
-			break
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
 		case RepeatPeriod.ANNUALLY:
-			date.setFullYear(date.getFullYear() + interval)
-			break
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
 	}
+	return calculationDate
 }
+
+
+

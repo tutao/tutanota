@@ -13,13 +13,24 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, setup} from "../api/main/Entity"
-import {generateEventElementId, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent, parseTimeTo, timeString} from "./CalendarUtils"
+import {
+	createRepeatRuleWithValues,
+	generateEventElementId,
+	getAllDayDateUTC,
+	getEventEnd,
+	getEventStart,
+	isAllDayEvent,
+	isLongEvent,
+	parseTimeTo,
+	timeString
+} from "./CalendarUtils"
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
+import {incrementByRepeatPeriod} from "./CalendarModel"
+import {DateTime} from "luxon"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -29,51 +40,68 @@ import {numberRange} from "../api/common/utils/ArrayUtils"
 // We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
 // interpret it as full day in Europe/Berlin, not in the UTC.
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, event?: CalendarEvent) {
-	const summary = stream(event && event.summary || "")
+	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
-	const selectedCalendar = stream(event && calendars.get(neverNull(event._ownerGroup)) || calendarArray[0])
+	const selectedCalendar = stream(calendarArray[0])
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(getStartOfDay(date))
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const eventIsAllDay = event && isAllDayEvent(event)
-	let endTimeDate
+	const startTime = stream(timeString(new Date()))
+	const endTime = stream()
+	const allDay = stream(false)
+
+	const repeatPickerAttrs = createRepeatingDatePicker()
+	const repeatIntervalPickerAttrs = createIntervalPicker()
+	const endTypePickerAttrs = createEndTypePicker()
+	const repeatEndDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
+	const endCountPickerAttrs = createEndCountPicker()
+
 	if (event) {
-		if (eventIsAllDay) {
+		summary(event.summary)
+		const calendarForGroup = calendars.get(neverNull(event._ownerGroup))
+		if (calendarForGroup) {
+			selectedCalendar(calendarForGroup)
+		}
+		startTime(timeString(getEventStart(event)))
+		allDay(event && isAllDayEvent(event))
+		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(event), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(event)))
 		}
-		endTimeDate = getEventEnd(event)
+		endTime(timeString(getEventEnd(event)))
+		if (event.repeatRule) {
+			const existingRule = event.repeatRule
+			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
+			repeatIntervalPickerAttrs.selectedValue(Number(existingRule.interval))
+			endTypePickerAttrs.selectedValue(downcast(existingRule.endType))
+			endCountPickerAttrs.selectedValue(existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1)
+			repeatEndDatePicker.setDate(existingRule.endType === EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
+		} else {
+			repeatPickerAttrs.selectedValue(null)
+		}
 	} else {
-		endTimeDate = new Date()
+		const endTimeDate = new Date()
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
+		endTime(timeString(endTimeDate))
 	}
 
-	const startTime = stream(timeString(event && getEventStart(event) || new Date()))
-	const endTime = stream(timeString(endTimeDate))
-	const allDay = stream(eventIsAllDay)
+	endTypePickerAttrs.selectedValue.map((endType) => {
+		if (endType === EndType.UntilDate && !repeatEndDatePicker.date()) {
+			const newRepeatEnd = incrementByRepeatPeriod(neverNull(startDatePicker.date()), neverNull(repeatPickerAttrs.selectedValue()),
+				neverNull(repeatIntervalPickerAttrs.selectedValue()), DateTime.local().zoneName)
+			repeatEndDatePicker.setDate(newRepeatEnd)
+		}
+	})
 
-	const repeatPickerAttrs = repeatingDatePicker()
-	if (event && event.repeatRule) {
-		repeatPickerAttrs.selectedValue(downcast(event.repeatRule.frequency))
-	} else {
-		repeatPickerAttrs.selectedValue(null)
-	}
-
-	const repeatIntervalPickerAttrs = intervalPicker()
-	const stopConditionPickerAttrs = stopConditionPicker()
-
-	const endOnDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
-	const endCountPickerAttrs = endCountPicker()
-
-	function renderStopConditiionValue(): Children {
-		if (repeatPickerAttrs.selectedValue() == null || stopConditionPickerAttrs.selectedValue() === EndType.Never) {
+	function renderStopConditionValue(): Children {
+		if (repeatPickerAttrs.selectedValue() == null || endTypePickerAttrs.selectedValue() === EndType.Never) {
 			return null
-		} else if (stopConditionPickerAttrs.selectedValue() === EndType.Count) {
+		} else if (endTypePickerAttrs.selectedValue() === EndType.Count) {
 			return m(DropDownSelectorN, endCountPickerAttrs)
-		} else if (stopConditionPickerAttrs.selectedValue() === EndType.UntilDate) {
-			return m(endOnDatePicker)
+		} else if (endTypePickerAttrs.selectedValue() === EndType.UntilDate) {
+			return m(repeatEndDatePicker)
 		} else {
 			return null
 		}
@@ -115,8 +143,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 			repeatPickerAttrs.selectedValue()
 				? m(".flex", [
-					m(".flex-grow", m(DropDownSelectorN, stopConditionPickerAttrs)),
-					m(".flex-grow.ml-s", renderStopConditiionValue()),
+					m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
+					m(".flex-grow.ml-s", renderStopConditionValue()),
 				])
 				: null,
 			m(DropDownSelectorN, {
@@ -160,7 +188,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				endDate.setMinutes(parsedEndTime.minutes)
 			}
 
-
 			calendarEvent.startTime = startDate
 			calendarEvent.description = ""
 			calendarEvent.summary = summary()
@@ -171,30 +198,27 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			if (repeatFrequency == null) {
 				calendarEvent.repeatRule = null
 			} else {
-				const interval = repeatIntervalPickerAttrs.selectedValue()
-				const repeatRule = createRepeatRule()
-				repeatRule.frequency = repeatFrequency
-				repeatRule.interval = String(interval)
+				const interval = repeatIntervalPickerAttrs.selectedValue() || 1
+				const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
 				calendarEvent.repeatRule = repeatRule
 
-				const stopType = neverNull(stopConditionPickerAttrs.selectedValue())
+				const stopType = neverNull(endTypePickerAttrs.selectedValue())
 				repeatRule.endType = stopType
 				if (stopType === EndType.Count) {
-					let count = stopConditionPickerAttrs.selectedValue()
+					let count = endTypePickerAttrs.selectedValue()
 					if (isNaN(count) || Number(count) < 1) {
 						repeatRule.endType = EndType.Never
 					} else {
 						repeatRule.endValue = count
 					}
 				} else if (stopType === EndType.UntilDate) {
-					const repeatEndDate = endDatePicker.date()
-					if (repeatEndDate == null) {
-						repeatRule.endType = EndType.Never
+					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
+					if (repeatEndDate.getTime() < getEventStart(calendarEvent)) {
+						Dialog.error("startAfterEnd_label")
+						return
 					} else {
-						// Encode it as UTC date, like for full day events
-						repeatRule.endValue = String(getAllDayDateUTC(repeatEndDate).getTime())
+						repeatRule.endValue = String(repeatEndDate.getTime())
 					}
-
 				}
 			}
 			let p = event ? erase(event) : Promise.resolve()
@@ -218,7 +242,7 @@ const repeatValues = [
 	{name: "Annually", value: RepeatPeriod.ANNUALLY}
 ]
 
-function repeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
+function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 	return {
 		label: () => "Repeating",
 		items: repeatValues,
@@ -232,7 +256,7 @@ const intervalValues = numberRange(1, 256).map(n => {
 })
 
 
-function intervalPicker(): DropDownSelectorAttrs<number> {
+function createIntervalPicker(): DropDownSelectorAttrs<number> {
 	return {
 		label: "interval_title",
 		items: intervalValues,
@@ -247,7 +271,7 @@ const stopConditionValues = [
 	{name: "On", value: EndType.UntilDate}
 ]
 
-function stopConditionPicker(): DropDownSelectorAttrs<EndTypeEnum> {
+function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
 	return {
 		label: () => "Ends",
 		items: stopConditionValues,
@@ -256,7 +280,7 @@ function stopConditionPicker(): DropDownSelectorAttrs<EndTypeEnum> {
 	}
 }
 
-export function endCountPicker(): DropDownSelectorAttrs<number> {
+export function createEndCountPicker(): DropDownSelectorAttrs<number> {
 	return {
 		label: "emptyString_msg",
 		items: intervalValues,
