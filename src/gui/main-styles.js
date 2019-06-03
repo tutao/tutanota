@@ -948,6 +948,7 @@ styles.registerStyle('main', () => {
 			'font-weight': 'bold',
 			'height': px(size.calendar_line_height),
 			'line-height': px(size.calendar_line_height),
+			'animation-duration': '0.3s',
 		},
 		'.event-continues-left': {
 			'border-top-left-radius': 0,

@@ -245,7 +245,10 @@ export class CalendarView implements CurrentView {
 			style: {
 				background: "#" + color,
 				color: colourIsLight(color) ? "black" : "white",
+				opacity: '0'
 			},
+			oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
+			onbeforeremove: (vnode) => animations.add(vnode.dom, opacity(1, 0, true)),
 			onclick: (e) => {
 				e.stopPropagation()
 				this._calendarInfos.then((calendarInfos) => {

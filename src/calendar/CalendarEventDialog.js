@@ -31,6 +31,7 @@ import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
+import {Type} from "../gui/base/TextFieldN"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -49,6 +50,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startTime = stream(timeString(new Date()))
 	const endTime = stream()
 	const allDay = stream(false)
+	const locationValue = stream("")
+	const notesValue = stream("")
 
 	const repeatPickerAttrs = createRepeatingDatePicker()
 	const repeatIntervalPickerAttrs = createIntervalPicker()
@@ -80,6 +83,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		} else {
 			repeatPickerAttrs.selectedValue(null)
 		}
+		locationValue(event.location)
+		notesValue(event.description)
 	} else {
 		const endTimeDate = new Date()
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
@@ -140,7 +145,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
 				m(".flex-grow.ml-s" + (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
 			]),
-
 			repeatPickerAttrs.selectedValue()
 				? m(".flex", [
 					m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
@@ -155,6 +159,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				selectedValue: selectedCalendar,
 				icon: Icons.Edit,
 			}),
+			m(TextFieldN, {
+				label: () => "Location",
+				value: locationValue
+			}),
+			m(TextFieldN, {
+				label: () => "Notes",
+				value: notesValue,
+				type: Type.Area
+			}),
 			event ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
 				label: "delete_action",
 				type: ButtonType.Primary,
@@ -162,7 +175,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					erase(event)
 					dialog.close()
 				}
-			})) : null
+			})) : null,
 		],
 		okAction: () => {
 			const calendarEvent = createCalendarEvent()
@@ -189,8 +202,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}
 
 			calendarEvent.startTime = startDate
-			calendarEvent.description = ""
+			calendarEvent.description = notesValue()
 			calendarEvent.summary = summary()
+			calendarEvent.location = locationValue()
 			calendarEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
 			calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
