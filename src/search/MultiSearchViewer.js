@@ -26,7 +26,6 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
 import {lazyMemoized, noOp} from "../api/common/utils/Utils"
-import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 
 assertMainOrNode()
 
@@ -194,9 +193,7 @@ export class MultiSearchViewer {
 
 	_exportAll(mails: Mail[]): Promise<void> {
 		return Promise.map(mails, mail => load(MailBodyTypeRef, mail.body).then(body => {
-			return Promise
-				.resolve(mail.headers ? load(MailHeadersTypeRef, mail.headers) : null)
-				.then((headers) => exportAsEml(mail, htmlSanitizer.sanitize(body.text, false).text, headers))
+			return exportAsEml(mail, htmlSanitizer.sanitize(body.text, false).text)
 		}), {concurrency: 5}).return()
 	}
 

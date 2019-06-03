@@ -251,10 +251,9 @@ export class MailViewer {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(true), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
 				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
-					moreButtons.push(new Button("export_action", () => {
-						Promise.resolve(this.mail.headers ? load(MailHeadersTypeRef, this.mail.headers) : null)
-						       .then((headers) => exportAsEml(this.mail, this._htmlBody, headers))
-					}, () => Icons.Download).setType(ButtonType.Dropdown))
+					moreButtons.push(new Button("export_action",
+						() => exportAsEml(this.mail, this._mailBody ? htmlSanitizer.sanitize(this._mailBody.text, false).text : ""),
+						() => Icons.Download).setType(ButtonType.Dropdown))
 				}
 				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
 					moreButtons.push(new Button("print_action", () => window.print(), () => Icons.Print).setType(ButtonType.Dropdown))
