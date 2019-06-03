@@ -2,7 +2,7 @@
 
 
 import m from "mithril"
-import {eventEndsAfterDay, eventStartsBefore, isAllDayEvent, timeString} from "./CalendarUtils"
+import {colorForBg, eventEndsAfterDay, eventStartsBefore, isAllDayEvent, isColorLight, timeString} from "./CalendarUtils"
 import {animations, opacity} from "../gui/animation/Animations"
 import type {CalendarDay} from "../api/common/utils/DateUtils"
 import {getCalendarMonth, getStartOfDay} from "../api/common/utils/DateUtils"
@@ -79,7 +79,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			+ (eventEndsAfterDay(date, event) ? ".event-continues-right" : ""), {
 			style: {
 				background: "#" + color,
-				color: colourIsLight(color) ? "black" : "white",
+				color: colorForBg(color),
 				opacity: '0'
 			},
 			oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
@@ -107,17 +107,4 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const weeksHeight = monthDomHeight - weekDaysHeight
 		return weeksHeight / 6
 	}
-}
-
-
-function colourIsLight(c: string) {
-	const rgb = parseInt(c, 16);   // convert rrggbb to decimal
-	const r = (rgb >> 16) & 0xff;  // extract red
-	const g = (rgb >> 8) & 0xff;  // extract green
-	const b = (rgb >> 0) & 0xff;  // extract blue
-
-	// Counting the perceptive luminance
-	// human eye favors green color...
-	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-	return (a < 0.5);
 }

@@ -9,7 +9,7 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
 import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
-import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {LoginController} from "../api/main/LoginController"
@@ -62,7 +62,7 @@ export class CalendarView implements CurrentView {
 
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
-		this.selectedDate = stream(new Date())
+		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
@@ -241,7 +241,11 @@ export class CalendarView implements CurrentView {
 
 
 	updateUrl(args: Object) {
-		this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
+		if (!args.view) {
+			m.route.set("/calendar/month", args, {replace: true})
+		} else {
+			this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
+		}
 	}
 
 	_loadEvents(month: CalendarMonthTimeRange): Promise<*> {
