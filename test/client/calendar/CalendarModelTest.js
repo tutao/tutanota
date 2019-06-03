@@ -77,12 +77,15 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("all day event", function () {
-			const event = createEvent(getAllDayDateUTC(new Date(2019, 4, 1)), getAllDayDateUTC(new Date(2019, 4, 2)))
-			const month = getMonth(event.startTime)
+			const startDateLocal = new Date(2019, 4, 1)
+			const endDateLocal = new Date(2019, 4, 2)
+
+			const event = createEvent(getAllDayDateUTC(startDateLocal), getAllDayDateUTC(endDateLocal))
+			const month = getMonth(startDateLocal)
 
 			addDaysForEvent(eventsForDays, event, month)
-			const eventsForDay = neverNull(eventsForDays.get(getStartOfDay(event.startTime).getTime()))
-			const eventsForNextDay = neverNull(eventsForDays.get(getStartOfDay(event.endTime).getTime()))
+			const eventsForDay = neverNull(eventsForDays.get(startDateLocal.getTime()))
+			const eventsForNextDay = neverNull(eventsForDays.get(endDateLocal.getTime()))
 			o(eventsForDay).deepEquals([event])
 			o(eventsForNextDay).deepEquals(undefined)
 		})
@@ -315,10 +318,14 @@ o.spec("CalendarModel", function () {
 		})
 
 		o("end on date - all day", function () {
-			const event = createEvent(getAllDayDateUTC(new Date(2019, 5, 2)), getAllDayDateUTC(new Date(2019, 5, 3)))
+
+			const event = createEvent(
+				getAllDayDateUTC(new Date(2019, 5, 2)),
+				getAllDayDateUTC(new Date(2019, 5, 3))
+			)
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 1)
 			repeatRule.endType = EndType.UntilDate
-			repeatRule.endValue = String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 6, day: 4, zone: "Asia/Anadyr"}).toJSDate()).getTime())
+			repeatRule.endValue = String(getAllDayDateUTC(new Date(2019, 5, 4)).getTime())
 			event.repeatRule = repeatRule
 			event.repeatRule.timeZone = "Asia/Anadyr" // +12
 
