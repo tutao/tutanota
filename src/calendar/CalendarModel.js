@@ -1,6 +1,6 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
+import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
@@ -37,22 +37,28 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	let eventStartTime = new Date(getEventStart(event))
 	let eventEndTime = new Date(getEventEnd(event))
 	// Loop by the frequency step
-	let endTime = null
+	let repeatEndTime = null
 	let endOccurrences = null
+	const allDay = isAllDayEvent(event)
 	if (repeatRule.endType === EndType.Count) {
 		endOccurrences = Number(repeatRule.endValue)
 	} else if (repeatRule.endType === EndType.UntilDate) {
-		endTime = new Date(Number(repeatRule.endValue))
+		// See CalendarEventDialog for an explanation why it's needed
+		if (allDay) {
+			repeatEndTime = getAllDayDateLocal(new Date(Number(repeatRule.endValue)))
+		} else {
+			repeatEndTime = new Date(Number(repeatRule.endValue))
+		}
 	}
 	let calcStartTime = eventStartTime
 	let calcEndTime = eventEndTime
 	let iteration = 1
 	while ((endOccurrences == null || iteration <= endOccurrences)
-	&& (endTime == null || calcStartTime.getTime() < endTime)
+	&& (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime)
 	&& calcStartTime.getTime() < month.end.getTime()) {
 		if (calcEndTime.getTime() >= month.start.getTime()) {
 			const eventClone = clone(event)
-			if (isAllDayEvent(event)) {
+			if (allDay) {
 				eventClone.startTime = getAllDayDateUTC(calcStartTime)
 				eventClone.endTime = getAllDayDateUTC(calcEndTime)
 			} else {

@@ -9,7 +9,7 @@ import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent, incremen
 import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 
-o.spec("CalendarView test", function () {
+o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
 		let eventsForDays: Map<number, Array<CalendarEvent>>
 		o.beforeEach(function () {
@@ -318,7 +318,7 @@ o.spec("CalendarView test", function () {
 			const event = createEvent(getAllDayDateUTC(new Date(2019, 5, 2)), getAllDayDateUTC(new Date(2019, 5, 3)))
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 1)
 			repeatRule.endType = EndType.UntilDate
-			repeatRule.endValue = String(DateTime.fromObject({year: 2019, month: 6, day: 4, zone: "Asia/Anadyr"}).toMillis())
+			repeatRule.endValue = String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 6, day: 4, zone: "Asia/Anadyr"}).toJSDate()).getTime())
 			event.repeatRule = repeatRule
 			event.repeatRule.timeZone = "Asia/Anadyr" // +12
 
@@ -329,9 +329,6 @@ o.spec("CalendarView test", function () {
 				[new Date(2019, 5, 3).getTime()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2019, 5, 3)), getAllDayDateUTC(new Date(2019, 5, 4)))],
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
-			//
-			// addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
-			// o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 		})
 
 	})
@@ -452,24 +449,26 @@ o.spec("CalendarView test", function () {
 		})
 
 		o("monthly", function () {
-			const endOfMay = new Date(2019, 4, 31)
-			const endOfJune = new Date(2019, 5, 30)
+			const endOfMay = DateTime.fromObject({year: 2019, month: 5, day: 31, zone: timeZone}).toJSDate()
+			const endOfJune = DateTime.fromObject({year: 2019, month: 6, day: 30, zone: timeZone}).toJSDate()
 			const calculatedEndOfJune = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 1, timeZone)
 			o(calculatedEndOfJune.toISOString()).equals(endOfJune.toISOString())
 
-			const endOfJuly = new Date(2019, 6, 31)
-			o(incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()).equals(endOfJuly.toISOString())
+			const endOfJuly = DateTime.fromObject({year: 2019, month: 7, day: 31, zone: timeZone}).toJSDate()
+			const endOfJulyString = endOfJuly.toISOString()
+			const incrementedDateString = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()
+			o(incrementedDateString).equals(endOfJulyString)
 		})
 
 		o("annually", function () {
-			const leapYear = new Date(2020, 1, 29)
-			const yearAfter = new Date(2021, 1, 28)
+			const leapYear = DateTime.fromObject({year: 2020, month: 2, day: 29, zone: timeZone}).toJSDate()
+			const yearAfter = DateTime.fromObject({year: 2021, month: 2, day: 28, zone: timeZone}).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(yearAfter.toISOString())
 
-			const twoYearsAfter = new Date(2022, 1, 28)
+			const twoYearsAfter = DateTime.fromObject({year: 2022, month: 2, day: 28, zone: timeZone}).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(twoYearsAfter.toISOString())
 
-			const fourYearsAfter = new Date(2024, 1, 29)
+			const fourYearsAfter = DateTime.fromObject({year: 2024, month: 2, day: 29, zone: timeZone}).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
 		})
 	})

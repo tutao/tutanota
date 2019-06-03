@@ -5,7 +5,7 @@ import {DatePicker} from "../gui/base/DatePicker"
 import {Dialog} from "../gui/base/Dialog"
 import type {CalendarInfo} from "./CalendarView"
 import m from "mithril"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {lang} from "../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
@@ -31,7 +31,6 @@ import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
-import {Type} from "../gui/base/TextFieldN"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -231,7 +230,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						Dialog.error("startAfterEnd_label")
 						return
 					} else {
-						repeatRule.endValue = String(repeatEndDate.getTime())
+						// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
+						// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
+						// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
+						// regular events it is just a timestamp.
+						repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
 					}
 				}
 			}
