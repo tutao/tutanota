@@ -10,6 +10,10 @@ import {isMailAddress} from "./FormatValidator"
 assertMainOrNode()
 
 
+export function formatMonthWithYear(date: Date): string {
+	return lang.formats.monthWithYear.format(date)
+}
+
 export function formatDate(date: Date): string {
 	return lang.formats.simpleDate.format(date)
 }

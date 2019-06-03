@@ -366,3 +366,4 @@ export const EndType = Object.freeze({
 })
 export type EndTypeEnum = $Values<typeof EndType>
 
+export const defaultCalendarColor = "2196f3"

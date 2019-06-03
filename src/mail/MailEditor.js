@@ -73,6 +73,7 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -1084,7 +1085,7 @@ export class MailEditor {
 	}
 
 	_languageDropDown(langs: Array<Language>): Children {
-		const languageDropDownAttrs = {
+		const languageDropDownAttrs: DropDownSelectorAttrs<string> = {
 			label: "notificationMailLanguage_label",
 			items: langs.map(language => {
 				return {name: lang.get(language.textId), value: language.code}

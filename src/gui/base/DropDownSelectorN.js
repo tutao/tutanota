@@ -27,7 +27,7 @@ export type DropDownSelectorAttrs<T> = {
 	icon?: AllIconsEnum,
 }
 
-class _DropDownSelector<T> {
+export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
 
 	view(vnode: Vnode<DropDownSelectorAttrs<T>>) {
 		const a = vnode.attrs
@@ -76,4 +76,3 @@ class _DropDownSelector<T> {
 
 }
 
-export const DropDownSelectorN: Class<MComponent<DropDownSelectorAttrs<any>>> = _DropDownSelector

@@ -964,5 +964,8 @@ module.exports = {
 		"timeFormatInvalid_msg": "Invalid time format",
 		"invalidInterval_msg": "Invalid interval",
 		"interval_title": "Interval",
+		"calendarViewDay_title": "Day",
+		"calendarViewMonth_title": "Month",
+
 	}
 }

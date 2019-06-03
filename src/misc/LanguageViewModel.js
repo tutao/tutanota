@@ -111,7 +111,8 @@ class LanguageViewModel {
 		priceWithCurrency: Intl.NumberFormat,
 		priceWithCurrencyWithoutFractionDigits: Intl.NumberFormat,
 		priceWithoutCurrency: Intl.NumberFormat,
-		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat
+		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat,
+		monthWithYear: Intl.DateTimeFormat
 	};
 
 	constructor() {
@@ -207,6 +208,10 @@ class LanguageViewModel {
 					style: 'decimal',
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
+				}),
+				monthWithYear: new Intl.DateTimeFormat(tag, {
+					month: 'long',
+					year: '2-digit'
 				})
 			}
 		}

@@ -218,6 +218,7 @@ let initialized = lang.init(en).then(() => {
 		"/settings/:folder": settingsViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
 		"/calendar": calendarViewResolver,
+		"/calendar/:view": calendarViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
 				console.log("Not found", args, requestedPath)
