@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
-import type {CalendarMonth} from "../../../src/api/common/utils/DateUtils"
-import {getCalendarMonth} from "../../../src/api/common/utils/DateUtils"
+import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
+import {getCalendarMonth} from "../../../src/calendar/CalendarUtils"
 
 o.spec("calendar month tests", function () {
 

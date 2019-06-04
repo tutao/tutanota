@@ -1,10 +1,11 @@
 //@flow
 import {stringToCustomId} from "../api/common/EntityFunctions"
-import {DAY_IN_MILLIS, getStartOfNextDay} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
+import {formatWeekdayShort} from "../misc/Formatter"
 
 const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
@@ -124,4 +125,87 @@ export function isColorLight(c: string) {
 
 export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
+}
+
+
+export type CalendarDay = {
+	date: Date,
+	year: number,
+	month: number,
+	day: number,
+	paddingDay: boolean
+}
+
+export type CalendarMonth = {
+	weekdays: Array<string>,
+	weeks: Array<Array<CalendarDay>>
+}
+
+
+export function getCalendarMonth(date: Date): CalendarMonth {
+	const weeks = [[]]
+	const calculationDate = getStartOfDay(date)
+	calculationDate.setDate(1)
+	let currentYear = calculationDate.getFullYear()
+	let month = calculationDate.getMonth()
+	// add "padding" days
+	// getDay returns the day of the week (from 0 to 6) for the specified date
+	let firstDay = calculationDate.getDay()
+	let dayCount
+
+	incrementDate(calculationDate, -firstDay)
+	for (dayCount = 0; dayCount < firstDay; dayCount++) {
+		weeks[0].push({
+			date: new Date(calculationDate),
+			day: calculationDate.getDate(),
+			month: calculationDate.getMonth(),
+			year: calculationDate.getFullYear(),
+			paddingDay: true
+		})
+		incrementDate(calculationDate, 1)
+	}
+
+	// add actual days
+	while (calculationDate.getMonth() === month) {
+		if (weeks[0].length && dayCount % 7 === 0) {
+			// start new week
+			weeks.push([])
+		}
+		const dayInfo = {
+			date: new Date(currentYear, month, calculationDate.getDate()),
+			year: currentYear,
+			month: month,
+			day: calculationDate.getDate(),
+			paddingDay: false
+		}
+		weeks[weeks.length - 1].push(dayInfo)
+		incrementDate(calculationDate, 1)
+		dayCount++
+	}
+	// add remaining "padding" days
+	while (dayCount < 42) {
+		if (dayCount % 7 === 0) {
+			weeks.push([])
+		}
+		weeks[weeks.length - 1].push({
+			day: calculationDate.getDate(),
+			year: calculationDate.getFullYear(),
+			month: calculationDate.getMonth(),
+			date: new Date(calculationDate),
+			paddingDay: true
+		})
+		incrementDate(calculationDate, 1)
+		dayCount++
+	}
+	const weekdays = []
+	const weekdaysDate = new Date()
+	incrementDate(weekdaysDate, -weekdaysDate.getDay())
+	for (let i = 0; i < 7; i++) {
+		weekdays.push(formatWeekdayShort(weekdaysDate))
+		incrementDate(weekdaysDate, 1)
+	}
+	return {
+		weekdays,
+		weeks
+	}
 }

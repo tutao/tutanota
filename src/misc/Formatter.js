@@ -65,6 +65,10 @@ export function formatDateWithTimeIfNotEven(date: Date): string {
 	}
 }
 
+export function formatWeekdayShort(date: Date): string {
+	return lang.formats.weekdayShort.format(date)
+}
+
 /**
  * Formats as yyyy-mm-dd
  */

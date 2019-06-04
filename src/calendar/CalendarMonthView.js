@@ -2,13 +2,13 @@
 
 
 import m from "mithril"
-import {colorForBg, eventEndsAfterDay, eventStartsBefore, isAllDayEvent, isColorLight, timeString} from "./CalendarUtils"
-import {animations, opacity} from "../gui/animation/Animations"
-import type {CalendarDay} from "../api/common/utils/DateUtils"
-import {getCalendarMonth, getStartOfDay} from "../api/common/utils/DateUtils"
 import {px, size} from "../gui/size"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
+import {CalendarEventBubble} from "./CalendarEventBubble"
+import type {CalendarDay} from "./CalendarUtils"
+import {getCalendarMonth} from "./CalendarUtils"
+import {getStartOfDay} from "../api/common/utils/DateUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Stream<Date>,
@@ -74,30 +74,18 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
 	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, date: Date): Children {
 		let color = defaultCalendarColor
-		return m(".calendar-event.small.overflow-hidden"
-			+ (eventStartsBefore(date, event) ? ".event-continues-left" : "")
-			+ (eventEndsAfterDay(date, event) ? ".event-continues-right" : ""), {
-			style: {
-				background: "#" + color,
-				color: colorForBg(color),
-				opacity: '0'
-			},
-			oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
-			onbeforeremove: (vnode) => animations.add(vnode.dom, opacity(1, 0, true)),
-			onclick: (e) => {
-				e.stopPropagation()
+
+
+		return m(CalendarEventBubble, {
+			event,
+			date,
+			color,
+			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			}
-		}, (date.getDay() === 0 || !eventStartsBefore(date, event)) ? this._getEventText(event) : "")
+		})
 	}
 
-	_getEventText(event: CalendarEvent): string {
-		if (isAllDayEvent(event)) {
-			return event.summary
-		} else {
-			return timeString(event.startTime) + " " + event.summary
-		}
-	}
 
 	_getHeightForWeek(): number {
 		if (!this._monthDom) {

@@ -105,6 +105,7 @@ class LanguageViewModel {
 		simpleDateWithoutYear: Intl.DateTimeFormat,
 		dateWithWeekday: Intl.DateTimeFormat,
 		dateWithWeekdayAndYear: Intl.DateTimeFormat,
+		weekdayShort: Intl.DateTimeFormat,
 		time: Intl.DateTimeFormat,
 		dateTime: Intl.DateTimeFormat,
 		dateTimeShort: Intl.DateTimeFormat,
@@ -188,6 +189,9 @@ class LanguageViewModel {
 					month: 'numeric',
 					year: 'numeric',
 					hour: 'numeric',
+				}),
+				weekdayShort: new Intl.DateTimeFormat(tag, {
+					weekday: 'short'
 				}),
 				priceWithCurrency: new Intl.NumberFormat(tag, {
 					style: 'currency',

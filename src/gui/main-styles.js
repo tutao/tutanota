@@ -943,25 +943,37 @@ styles.registerStyle('main', () => {
 
 		},
 
+		'.calendarDayContent': {
+			'margin-left': px(size.calendar_hour_width)
+		},
+
 		'.calendar-event': {
-			'margin-right': px(size.vpad),
-			'border-radius': px(3),
-			'margin-top': px(2),
-			'margin-bottom': px(2),
+			'border-radius': px(4),
+			'border': `1px solid ${theme.content_bg}`,
 			'padding-left': px(size.hpad_small),
 			'font-weight': 'bold',
-			'height': px(size.calendar_line_height),
-			'line-height': px(size.calendar_line_height),
 			'animation-duration': '0.3s',
+			'box-sizing': 'content-box'
 		},
 		'.event-continues-left': {
 			'border-top-left-radius': 0,
-			'border-bottom-left-radius': 0
+			'border-bottom-left-radius': 0,
+			'border-left': 'none'
 		},
 		'.event-continues-right': {
 			'margin-right': 0,
+			'border-right': 'none',
 			'border-top-right-radius': 0,
 			'border-bottom-right-radius': 0
+		},
+		'.event-continues-right-arrow': {
+			"width": 0,
+			"height": 0,
+			"border-top": "9px solid transparent",
+			"border-bottom": "9px solid transparent",
+			"border-left": "6px solid green",
+			"margin-top": px(1),
+			"margin-bottom": px(1),
 		},
 		'.time-field': {
 			'max-width': '44px'

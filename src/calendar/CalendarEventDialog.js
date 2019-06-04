@@ -218,11 +218,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				const stopType = neverNull(endTypePickerAttrs.selectedValue())
 				repeatRule.endType = stopType
 				if (stopType === EndType.Count) {
-					let count = endTypePickerAttrs.selectedValue()
+					let count = endCountPickerAttrs.selectedValue()
 					if (isNaN(count) || Number(count) < 1) {
 						repeatRule.endType = EndType.Never
 					} else {
-						repeatRule.endValue = count
+						repeatRule.endValue = String(count)
 					}
 				} else if (stopType === EndType.UntilDate) {
 					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))

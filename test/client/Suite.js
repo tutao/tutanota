@@ -1,4 +1,5 @@
 import "./calendar/CalendarModelTest"
+import "./calendar/CalendarUtilsTest"
 
 import o from "ospec/ospec.js"
 

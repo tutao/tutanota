@@ -26,7 +26,7 @@ import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove} from "../api/common/utils/ArrayUtils"
-import {formatMonthWithYear} from "../misc/Formatter"
+import {formatDateWithWeekday, formatMonthWithYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
@@ -115,7 +115,7 @@ export class CalendarView implements CurrentView {
 							m(".pl-m", lang.get("privateCalendar_label"))
 						])))
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
+		}, ColumnType.Foreground, 200, 300, () => lang.get("calendar_label"))
 
 
 		this.contentColumn = new ViewColumn({
@@ -149,7 +149,13 @@ export class CalendarView implements CurrentView {
 					selectedDate: this.selectedDate,
 				})
 		}, ColumnType.Background, 700, 2000, () => {
-			return formatMonthWithYear(this.selectedDate())
+			if (this._currentViewType === CalendarViewType.MONTH) {
+				return formatMonthWithYear(this.selectedDate())
+			} else if (this._currentViewType === CalendarViewType.DAY) {
+				return formatDateWithWeekday(this.selectedDate())
+			} else {
+				return ""
+			}
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
