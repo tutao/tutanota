@@ -3,12 +3,12 @@
 
 import m from "mithril"
 import {px, size} from "../gui/size"
-import {getFromMap} from "../api/common/utils/MapUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {getCalendarMonth} from "./CalendarUtils"
-import {getStartOfDay} from "../api/common/utils/DateUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getEventEnd, getEventStart, isAllDayEvent, layOutEvents} from "./CalendarUtils"
+import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Stream<Date>,
@@ -18,6 +18,7 @@ type CalendarMonthAttrs = {
 }
 
 const weekDaysHeight = 30
+const calendarDayHeight = 32
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
@@ -39,17 +40,14 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					}
 				}, weekdays.map((wd) => m(".flex-grow", m(".b.small.pl-s", wd))))
 			].concat(weeks.map((week) => {
-				return m(".flex.flex-grow", week.map(d => this._renderDay(vnode.attrs, d, today)))
+				return m(".flex.flex-grow.rel", [
+					week.map(d => this._renderDay(vnode.attrs, d, today)),
+					this._renderWeekEvents(vnode.attrs, week),
+				])
 			})))
 	}
 
 	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
-		const eventsForDay = getFromMap(attrs.eventsForDays, d.date.getTime(), () => [])
-		const weekHeight = this._getHeightForWeek()
-		const canDisplay = weekHeight / size.calendar_line_height
-		const sortedEvents = eventsForDay.slice().sort((l, r) => l.startTime.getTime() - r.startTime.getTime())
-		const eventsToDisplay = sortedEvents.slice(0, canDisplay - 1)
-		const notShown = eventsForDay.length - eventsToDisplay.length
 		return m(".calendar-day-wrapper.flex-grow.rel.overflow-hidden" + (d.paddingDay ? ".calendar-alternate-background" : ""), {
 			onclick: () => attrs.onNewEvent(d.date),
 		}, [
@@ -57,28 +55,52 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 				m(".pl-s.pr-s.pt-s",
 					m(".calendar-day-number" + (today.getTime() === d.date.getTime() ? ".date-selected.b" : ""),
 						String(d.day)))),
-			m(".day-with-events.events.pt-l.rel", [
-				eventsToDisplay.map((e) => this._renderEvent(attrs, e, d.date)),
-				notShown > 0
-					? m("", {
-						onclick: (e) => {
-							// this._showFullDayEvents(e, d, eventsForDay)
-							e.stopPropagation()
-						}
-					}, "+" + notShown)
-					: null
-			])
 		])
 	}
 
+	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>): Children {
+		const events = new Set()
+		week.forEach((day) => {
+			const dayEvents = attrs.eventsForDays.get(day.date.getTime())
+			dayEvents && dayEvents.forEach(e => events.add(e))
+		})
 
-	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, date: Date): Children {
+
+		const firstDayOfWeek = week[0]
+		const lastDayOfWeek = lastThrow(week)
+		const dayWidth = this._getWidthForDay()
+		const weekHeight = this._getHeightForWeek()
+		const maxEventsPerDay = (weekHeight - calendarDayHeight) / size.calendar_line_height
+		const eventsPerDay = Math.floor(maxEventsPerDay)
+		return layOutEvents(Array.from(events), (columns) => {
+			return columns.map((events, columnIndex) => {
+				return events.map(event => {
+					if (columnIndex < eventsPerDay) {
+						const top = size.calendar_line_height * columnIndex + calendarDayHeight
+						const left = eventStartsBefore(firstDayOfWeek.date, event) ? 0 : (getEventStart(event).getDay()) * dayWidth
+						const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
+						const right = eventEndsAfterDay(lastDayOfWeek.date, event) ? 0 : (6 - eventEnd.getDay()) * dayWidth
+						return m(".abs", {
+							style: {
+								top: px(top),
+								height: px(size.calendar_line_height),
+								left: px(left),
+								right: px(right)
+							}
+						}, this._renderEvent(attrs, event))
+					} else {
+						return null
+					}
+				})
+			})
+		}, true)
+	}
+
+
+	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent): Children {
 		let color = defaultCalendarColor
-
-
 		return m(CalendarEventBubble, {
 			event,
-			date,
 			color,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
@@ -94,5 +116,13 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const monthDomHeight = this._monthDom.scrollHeight
 		const weeksHeight = monthDomHeight - weekDaysHeight
 		return weeksHeight / 6
+	}
+
+	_getWidthForDay(): number {
+		if (!this._monthDom) {
+			return 1
+		}
+		const monthDomWidth = this._monthDom.scrollWidth
+		return monthDomWidth / 7
 	}
 }

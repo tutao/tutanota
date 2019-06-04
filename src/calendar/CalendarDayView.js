@@ -6,7 +6,7 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {eventEndsAfterDay, eventStartsBefore, isAllDayEvent} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, isAllDayEvent, layOutEvents} from "./CalendarUtils"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
@@ -90,53 +90,6 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			])
 	}
 
-
-	_renderEvents(attrs: CalendarDayViewAttrs, events: Array<CalendarEvent>): ChildArray {
-		// Iterate over the sorted array
-		let lastEventEnding = null
-		let columns: Array<Array<CalendarEvent>> = []
-		const children = []
-		events.forEach((e) => {
-			if (isAllDayEvent(e)) {
-				return
-			}
-			// Check if a new event group needs to be started
-			if (lastEventEnding !== null && e.startTime.getTime() >= lastEventEnding) {
-				// The latest event is later than any of the event in the
-				// current group. There is no overlap. Output the current
-				// event group and start a new event group.
-				children.push(...this._renderColumns(attrs, columns))
-				columns = [];  // This starts new event group.
-				lastEventEnding = null;
-			}
-
-			// Try to place the event inside the existing columns
-			let placed = false
-			for (let i = 0; i < columns.length; i++) {
-				var col = columns[i]
-				if (!this._collidesWith(col[col.length - 1], e)) {
-					col.push(e)
-					placed = true
-					break
-				}
-			}
-
-			// It was not possible to place the event. Add a new column
-			// for the current event group.
-			if (!placed) {
-				columns.push([e])
-			}
-
-			// Remember the latest event end time of the current group.
-			// This is later used to determine if a new groups starts.
-			if (lastEventEnding === null || e.endTime.getTime() > lastEventEnding) {
-				lastEventEnding = e.endTime.getTime()
-			}
-		})
-		children.push(...this._renderColumns(attrs, columns))
-		return children
-	}
-
 	_renderColumns(attrs: CalendarDayViewAttrs, columns: Array<Array<CalendarEvent>>): ChildArray {
 		return columns.map((column, index) => {
 			return column.map(event => {
@@ -145,10 +98,10 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		})
 	}
 
-
-	_collidesWith(a: CalendarEvent, b: CalendarEvent) {
-		return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
+	_renderEvents(attrs: CalendarDayViewAttrs, events: Array<CalendarEvent>): Children {
+		return layOutEvents(events, (columns) => this._renderColumns(attrs, columns), false)
 	}
+
 
 	_renderEvent(attrs: CalendarDayViewAttrs, ev: CalendarEvent, columnIndex: number): Children {
 		if (isAllDayEvent(ev)) {

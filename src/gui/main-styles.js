@@ -943,7 +943,7 @@ styles.registerStyle('main', () => {
 
 		},
 
-		'.calendarDayContent': {
+		'.calendar-day-content': {
 			'margin-left': px(size.calendar_hour_width)
 		},
 

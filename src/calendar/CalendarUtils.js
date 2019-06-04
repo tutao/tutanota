@@ -6,6 +6,7 @@ import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {formatWeekdayShort} from "../misc/Formatter"
+import {clone} from "../api/common/utils/Utils"
 
 const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
@@ -208,4 +209,72 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 		weekdays,
 		weeks
 	}
+}
+
+export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
+	// Iterate over the sorted array
+	let lastEventEnding = null
+	let columns: Array<Array<CalendarEvent>> = []
+	const children = []
+	events.forEach((e) => {
+		const calcEvent = getCalculatioEvent(e, handleAsAllDay)
+
+		// Check if a new event group needs to be started
+		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
+			// The latest event is later than any of the event in the
+			// current group. There is no overlap. Output the current
+			// event group and start a new event group.
+			children.push(...renderer(columns))
+			columns = [];  // This starts new event group.
+			lastEventEnding = null;
+		}
+
+		// Try to place the event inside the existing columns
+		let placed = false
+		for (let i = 0; i < columns.length; i++) {
+			var col = columns[i]
+			const lastEvent = getCalculatioEvent(col[col.length - 1], handleAsAllDay)
+			if (!collidesWith(lastEvent, calcEvent)) {
+				col.push(e) // push real event here not calc event
+				placed = true
+				break
+			}
+		}
+
+		// It was not possible to place the event. Add a new column
+		// for the current event group.
+		if (!placed) {
+			columns.push([e])
+		}
+
+		// Remember the latest event end time of the current group.
+		// This is later used to determine if a new groups starts.
+		if (lastEventEnding === null || calcEvent.endTime.getTime() > lastEventEnding) {
+			lastEventEnding = calcEvent.endTime.getTime()
+		}
+	})
+	children.push(...renderer(columns))
+	return children
+}
+
+function getCalculatioEvent(event: CalendarEvent, handleAsAllDay: boolean): CalendarEvent {
+	if (handleAsAllDay) {
+		const calcDate = clone(event)
+		if (isAllDayEvent(event)) {
+			calcDate.startTime = getAllDayDateLocal(event.startTime)
+			calcDate.endTime = getAllDayDateLocal(event.endTime)
+		} else {
+			calcDate.startTime = getStartOfDay(event.startTime)
+			calcDate.endTime = getStartOfNextDay(event.endTime)
+		}
+		return calcDate
+	} else {
+		return event
+	}
+
+}
+
+
+function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
+	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }

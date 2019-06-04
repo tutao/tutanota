@@ -6,7 +6,7 @@ import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import type {CalendarEventBubbleAttrs} from "./CalendarEventBubble"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
-type ContinuingCalendarEventBubbleAttrs = CalendarEventBubbleAttrs
+type ContinuingCalendarEventBubbleAttrs = CalendarEventBubbleAttrs & {date: Date}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
