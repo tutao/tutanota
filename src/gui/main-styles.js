@@ -933,6 +933,10 @@ styles.registerStyle('main', () => {
 			'background': theme.list_bg
 		},
 
+		'.calendar-hour:hover': {
+			'background': theme.list_bg
+		},
+
 		'.calendar-day': {
 			'border-right': '1px solid lightgrey',
 			'border-bottom': '1px solid lightgrey',

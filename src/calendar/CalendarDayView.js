@@ -21,7 +21,7 @@ const hourHeight = 60
 const hours = numberRange(0, 23).map((n) => {
 	const d = new Date()
 	d.setHours(n, 0, 0, 0)
-	return formatTime(d)
+	return d
 })
 const allHoursHeight = hourHeight * hours.length
 
@@ -43,39 +43,45 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				]),
 				m(".scroll.col.rel",
 					[
-						hours.map(n => m("", {
+						hours.map(n => m(".calendar-hour", {
 							style: {
 								'border-bottom': `1px solid ${theme.content_border}`,
 								height: px(hourHeight)
-							}
+							},
+							onclick: (e) => {
+								e.stopPropagation()
+								vnode.attrs.onNewEvent(n)
+							},
 						}, m(".pt.pl-s.pr-s", {
 							style: {
 								width: "60px",
 								height: '100%',
 								'border-right': `2px solid ${theme.content_border}`,
 							},
-						}, n))),
-						events.map(ev => {
-							if (isAllDayEvent(ev)) {
-								return null
-							} else {
-								const startTime = (ev.startTime.getHours() * 60 + ev.startTime.getMinutes()) * 60 * 1000
-								const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * hourHeight
-								return m(".abs", {
-									style: {
-										left: 0,
-										right: 0,
-										top: px(startTime / DAY_IN_MILLIS * allHoursHeight),
-										height: px(height),
-										background: "#" + defaultCalendarColor,
-										marginLeft: "60px",
-										color: colorForBg(defaultCalendarColor),
-									},
-									onclick: () => vnode.attrs.onEventClicked(ev)
-								}, ev.summary)
-							}
-						})
+						}, formatTime(n)))),
+						events.map((ev) => this._renderEvent(vnode.attrs, ev))
 					])
 			])
+	}
+
+	_renderEvent(attrs: CalendarDayViewAttrs, ev: CalendarEvent): Children {
+		if (isAllDayEvent(ev)) {
+			return null
+		} else {
+			const startTime = (ev.startTime.getHours() * 60 + ev.startTime.getMinutes()) * 60 * 1000
+			const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * hourHeight
+			return m(".abs", {
+				style: {
+					left: 0,
+					right: 0,
+					top: px(startTime / DAY_IN_MILLIS * allHoursHeight),
+					height: px(height),
+					background: "#" + defaultCalendarColor,
+					marginLeft: "60px",
+					color: colorForBg(defaultCalendarColor),
+				},
+				onclick: () => attrs.onEventClicked(ev)
+			}, ev.summary)
+		}
 	}
 }
