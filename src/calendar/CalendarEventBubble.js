@@ -10,7 +10,9 @@ export type CalendarEventBubbleAttrs = {
 	color: string,
 	onEventClicked: clickHandler,
 	height?: number,
-	marginRight?: number
+	marginRight?: number,
+	noBorderRight?: boolean,
+	noBorderLeft?: boolean
 }
 
 
@@ -21,8 +23,8 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 	view(vnode: Vnode<CalendarEventBubbleAttrs>): Children {
 		const attrs = vnode.attrs
 		return m(".calendar-event.small.overflow-hidden"
-			// + (eventStartsBefore(attrs.date, attrs.event) ? ".event-continues-left" : "")
-			// + (eventEndsAfterDay(attrs.date, attrs.event) ? ".event-continues-right" : "")
+			+ (attrs.noBorderLeft ? ".event-continues-left" : "")
+			+ (attrs.noBorderRight ? ".event-continues-right" : "")
 			, {
 				style: {
 					background: "#" + attrs.color,

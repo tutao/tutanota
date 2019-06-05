@@ -291,3 +291,18 @@ export function getEventText(event: CalendarEvent): string {
 		return timeString(event.startTime) + " " + event.summary
 	}
 }
+
+export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {
+	let colSpan = 1;
+	for (let i = columnIndex + 1; i < columns.length; i++) {
+		let col = columns[i];
+		for (let j = 0; j < col.length; j++) {
+			let ev1 = col[j];
+			if (collidesWith(ev, ev1)) {
+				return colSpan;
+			}
+		}
+		colSpan++;
+	}
+	return colSpan;
+}

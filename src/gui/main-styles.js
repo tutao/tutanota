@@ -920,16 +920,12 @@ styles.registerStyle('main', () => {
 			'border-radius': "2px"
 		},
 
-		'.calendar-day-wrapper': {
-			'transition': 'background 0.4s',
-			'background': theme.list_alternate_bg
-		},
 
 		'.calendar-alternate-background': {
-			'background': theme.list_bg
+			'background': `${theme.list_bg} !important`
 		},
 
-		'.calendar-day-wrapper:hover': {
+		'.calendar-day:hover': {
 			'background': theme.list_bg
 		},
 
@@ -938,10 +934,24 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-day': {
-			'border-right': '1px solid lightgrey',
-			'border-bottom': '1px solid lightgrey',
-
+			'border-right': `1px solid ${theme.content_border}`,
+			'border-top': `1px solid ${theme.content_border}`,
+			'transition': 'background 0.4s',
+			'background': theme.list_alternate_bg
 		},
+		'.calendar-day:nth-child(7)': {
+			'border-right': "none",
+		},
+
+		'.calendar-day-number': {
+			width: "24px",
+			height: "24px",
+			"line-height": "24px",
+			"text-align": "center",
+			"font-size": "14px",
+			margin: "4px auto"
+		},
+
 
 		'.calendar-day-content': {
 			'margin-left': px(size.calendar_hour_width)
@@ -978,14 +988,7 @@ styles.registerStyle('main', () => {
 		'.time-field': {
 			'max-width': '44px'
 		},
-		'.calendar-day-number': {
-			display: "inline-block",
-			width: "24px",
-			height: "24px",
-			"line-height": "24px",
-			"text-align": "center",
-			"font-size": "14px"
-		},
+
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
