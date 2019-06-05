@@ -6,7 +6,7 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {eventEndsAfterDay, eventStartsBefore, isAllDayEvent, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getEventText, isAllDayEvent, layOutEvents} from "./CalendarUtils"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
@@ -51,7 +51,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate())) : null,
 					m(".calendar-day-content", allDayEvents.map(e => {
 						return m(CalendarEventBubble, {
-							event: e,
+							text: getEventText(e),
 							date: vnode.attrs.selectedDate(),
 							color: defaultCalendarColor,
 							onEventClicked: () => vnode.attrs.onEventClicked(e),
@@ -117,7 +117,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					height: px(height)
 				},
 			}, m(CalendarEventBubble, {
-				event: ev,
+				text: getEventText(ev),
 				date: attrs.selectedDate(),
 				color: defaultCalendarColor,
 				onEventClicked: () => attrs.onEventClicked(ev),

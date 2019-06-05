@@ -1,12 +1,12 @@
 //@flow
 
 import m from "mithril"
-import {colorForBg, isAllDayEvent, timeString} from "./CalendarUtils"
+import {colorForBg} from "./CalendarUtils"
 import {animations, opacity} from "../gui/animation/Animations"
 import {px, size} from "../gui/size"
 
 export type CalendarEventBubbleAttrs = {
-	event: CalendarEvent,
+	text: string,
 	color: string,
 	onEventClicked: clickHandler,
 	height?: number,
@@ -38,15 +38,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					e.stopPropagation()
 					attrs.onEventClicked(e)
 				}
-			}, this._getEventText(attrs.event))
-	}
-
-	_getEventText(event: CalendarEvent): string {
-		if (isAllDayEvent(event)) {
-			return event.summary
-		} else {
-			return timeString(event.startTime) + " " + event.summary
-		}
+			}, attrs.text)
 	}
 
 }

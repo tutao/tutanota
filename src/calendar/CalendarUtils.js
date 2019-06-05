@@ -212,7 +212,13 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 }
 
 export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
-	// Iterate over the sorted array
+	events.sort((e1, e2) => {
+		if (getEventStart(e1) < getEventStart(e2)) return -1;
+		if (getEventStart(e1) > getEventStart(e2)) return 1;
+		if (getEventEnd(e1) < getEventEnd(e2)) return -1;
+		if (getEventEnd(e1) > getEventEnd(e2)) return 1;
+		return 0;
+	})
 	let lastEventEnding = null
 	let columns: Array<Array<CalendarEvent>> = []
 	const children = []
@@ -271,10 +277,17 @@ function getCalculatioEvent(event: CalendarEvent, handleAsAllDay: boolean): Cale
 	} else {
 		return event
 	}
-
 }
 
 
 function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
+}
+
+export function getEventText(event: CalendarEvent): string {
+	if (isAllDayEvent(event)) {
+		return event.summary
+	} else {
+		return timeString(event.startTime) + " " + event.summary
+	}
 }

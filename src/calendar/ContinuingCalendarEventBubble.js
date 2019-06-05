@@ -1,12 +1,17 @@
 //@flow
 
 import m from "mithril"
-import {eventEndsAfterDay, eventStartsBefore} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getEventText} from "./CalendarUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
-import type {CalendarEventBubbleAttrs} from "./CalendarEventBubble"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
-type ContinuingCalendarEventBubbleAttrs = CalendarEventBubbleAttrs & {date: Date}
+type ContinuingCalendarEventBubbleAttrs = {
+	date: Date, event: CalendarEvent,
+	color: string,
+	onEventClicked: clickHandler,
+	height?: number,
+	marginRight?: number
+}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
@@ -22,7 +27,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 				: null,
 			m(".flex-grow",
 				m(CalendarEventBubble, {
-					event: attrs.event,
+					text: getEventText(attrs.event),
 					date: attrs.date,
 					color: defaultCalendarColor,
 					onEventClicked: () => attrs.onEventClicked(attrs.event),

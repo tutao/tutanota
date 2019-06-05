@@ -6,9 +6,10 @@ import {px, size} from "../gui/size"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getEventEnd, getEventStart, isAllDayEvent, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getEventEnd, getEventStart, getEventText, isAllDayEvent, layOutEvents} from "./CalendarUtils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
+import {theme} from "../gui/theme"
 
 type CalendarMonthAttrs = {
 	selectedDate: Stream<Date>,
@@ -18,7 +19,7 @@ type CalendarMonthAttrs = {
 }
 
 const weekDaysHeight = 30
-const calendarDayHeight = 32
+const dayHeight = 32
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
@@ -30,6 +31,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		return m(".fill-absolute.flex.col", {
 				oncreate: (vnode) => {
 					this._monthDom = vnode.dom
+					m.redraw() // render week events needs height and width of days, schedule a redraw when dom is available.
 				}
 			},
 			[
@@ -42,7 +44,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			].concat(weeks.map((week) => {
 				return m(".flex.flex-grow.rel", [
 					week.map(d => this._renderDay(vnode.attrs, d, today)),
-					this._renderWeekEvents(vnode.attrs, week),
+					this._monthDom ? this._renderWeekEvents(vnode.attrs, week) : null,
 				])
 			})))
 	}
@@ -70,37 +72,75 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const lastDayOfWeek = lastThrow(week)
 		const dayWidth = this._getWidthForDay()
 		const weekHeight = this._getHeightForWeek()
-		const maxEventsPerDay = (weekHeight - calendarDayHeight) / size.calendar_line_height
-		const eventsPerDay = Math.floor(maxEventsPerDay)
+		const maxEventsPerDay = (weekHeight - dayHeight) / (size.calendar_line_height + 2)
+		const eventsPerDay = Math.floor(maxEventsPerDay) - 1
+		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		return layOutEvents(Array.from(events), (columns) => {
 			return columns.map((events, columnIndex) => {
 				return events.map(event => {
 					if (columnIndex < eventsPerDay) {
-						const top = size.calendar_line_height * columnIndex + calendarDayHeight
-						const left = eventStartsBefore(firstDayOfWeek.date, event) ? 0 : (getEventStart(event).getDay()) * dayWidth
-						const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
-						const right = eventEndsAfterDay(lastDayOfWeek.date, event) ? 0 : (6 - eventEnd.getDay()) * dayWidth
+						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight, columnIndex)
 						return m(".abs", {
 							style: {
-								top: px(top),
+								top: px(position.top),
 								height: px(size.calendar_line_height),
-								left: px(left),
-								right: px(right)
+								left: px(position.left),
+								right: px(position.right)
 							}
 						}, this._renderEvent(attrs, event))
+
 					} else {
+						week.forEach(dayInWeek => {
+							const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
+							if (eventsForDay && eventsForDay.indexOf(event) !== -1) {
+								moreEventsForDay[dayInWeek.date.getDay()]++
+							}
+						})
 						return null
 					}
 				})
-			})
+			}).concat(moreEventsForDay.map((moreEventsCount, weekday) => {
+				if (moreEventsCount > 0) {
+					return m(".abs", {
+						style: {
+							bottom: px(3),
+							height: px(size.calendar_line_height),
+							left: px(weekday * dayWidth),
+							width: px(dayWidth)
+						}
+					}, m(CalendarEventBubble, {
+						text: "+" + moreEventsCount,
+						color: theme.content_bg.substring(1),
+						onEventClicked: () => {
+							m.route.set("/calendar/day")
+							attrs.selectedDate(week[weekday].date)
+						}
+					}))
+				} else {
+					return null
+				}
+
+			}))
 		}, true)
+	}
+
+	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
+		const top = (size.calendar_line_height + 2) * columnIndex + calendarDayHeight
+		const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : (getEventStart(event).getDay()) * calendarDayWidth
+		const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
+		const right = eventEndsAfterDay(lastDayOfWeek, event) ? 0 : (6 - eventEnd.getDay()) * calendarDayWidth
+		return {
+			top,
+			left,
+			right
+		}
 	}
 
 
 	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent): Children {
 		let color = defaultCalendarColor
 		return m(CalendarEventBubble, {
-			event,
+			text: getEventText(event),
 			color,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
