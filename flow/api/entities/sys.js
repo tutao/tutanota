@@ -1598,3 +1598,20 @@ type NotificationMailTemplate = {
 	subject: string;
 
 }
+
+type AlarmInfo = {
+	_type: TypeRef<AlarmInfo>;
+	_id: Id;
+	identifier: NumberString;
+	operation: NumberString;
+	trigger: Date;
+
+}
+
+type AlarmServicePost = {
+	_type: TypeRef<AlarmServicePost>;
+	_format: NumberString;
+
+	alarmInfos: AlarmInfo[];
+	group: Id;
+}

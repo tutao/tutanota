@@ -20,7 +20,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "46"
+	"version": "47"
 }
 
 export function createSwitchAccountTypeData(): SwitchAccountTypeData {

@@ -1,6 +1,7 @@
 package de.tutao.tutanota.push;
 
 import android.annotation.TargetApi;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -26,7 +27,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.ServiceCompat;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -45,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -59,6 +60,8 @@ import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
+
+import static de.tutao.tutanota.Utils.atLeastOreo;
 
 public final class PushNotificationService extends JobService {
 
@@ -148,10 +151,6 @@ public final class PushNotificationService extends JobService {
         }
     }
 
-    private boolean atLeastOreo() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    }
-
     @TargetApi(Build.VERSION_CODES.O)
     private void createNotificationChannels() {
         NotificationChannel notificationsChannel = new NotificationChannel(
@@ -174,6 +173,8 @@ public final class PushNotificationService extends JobService {
                 PERSISTENT_NOTIFICATION_CHANNEL_ID, "Notification service",
                 NotificationManager.IMPORTANCE_LOW);
         getNotificationManager().createNotificationChannel(serviceNotificationChannel);
+
+
     }
 
     @Override
@@ -374,11 +375,23 @@ public final class PushNotificationService extends JobService {
                     sendSummaryNotification(notificationManager, pushMessage.getTitle(),
                             notificationInfo);
 
-                    Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
-                    confirmationThreadPool.execute(
-                            () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 }
+                for (PushMessage.AlarmInfo alarmInfo : pushMessage.getAlarmInfos()) {
 
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    Intent intent = new Intent("de.tutao.tutanota.ALARM", Uri.fromParts("alarm", alarmInfo.getIdentifier(), ""));
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, 0);
+                    if (alarmInfo.getOperation() == OperationType.CREATE) {
+                        Log.d(TAG, "Scheduling alarm at: " + alarmInfo.getTrigger() + " " + intent.getData());
+                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmInfo.getTrigger().getTime(), pendingIntent);
+                    } else if (alarmInfo.getOperation() == OperationType.DELETE) {
+                        Log.d(TAG, "Cancel alarm" + alarmInfo.getTrigger() + " " + intent.getData());
+                        alarmManager.cancel(pendingIntent);
+                    }
+                }
+                Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
+                confirmationThreadPool.execute(
+                        () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 Log.d(TAG, "Executing jobFinished after receiving notifications");
                 finishJobIfNeeded();
             }
@@ -607,10 +620,12 @@ final class PushMessage {
     private static final String USER_ID_KEY = "userId";
     private static final String NOTIFICATIONS_KEY = "notificationInfos";
     private static final String CONFIRMATION_ID_KEY = "confirmationId";
+    private static final String ALARM_INFOS_KEY = "alarmInfos";
 
     private final String title;
     private final String confirmationId;
     private final List<NotificationInfo> notificationInfos;
+    private final List<AlarmInfo> alarmInfos;
 
     public static PushMessage fromJson(String json) throws JSONException {
         JSONObject jsonObject = new JSONObject(json);
@@ -625,14 +640,25 @@ final class PushMessage {
             String userId = itemObject.getString(USER_ID_KEY);
             notificationInfos.add(new NotificationInfo(address, counter, userId));
         }
-        return new PushMessage(title, confirmationId, notificationInfos);
+        JSONArray alarmInfosJsonArray = jsonObject.getJSONArray(ALARM_INFOS_KEY);
+        List<AlarmInfo> alarmInfos = new ArrayList<>();
+        for (int i = 0; i < alarmInfosJsonArray.length(); i++) {
+            JSONObject itemObject = alarmInfosJsonArray.getJSONObject(i);
+            String trigger = itemObject.getString("trigger");
+            String identifier = itemObject.getString("identifier");
+            String operation = itemObject.getString("operation");
+            alarmInfos.add(new AlarmInfo(trigger, identifier, operation));
+        }
+        return new PushMessage(title, confirmationId, notificationInfos, alarmInfos);
     }
 
     private PushMessage(String title, String confirmationId,
-                        List<NotificationInfo> notificationInfos) {
+                        List<NotificationInfo> notificationInfos,
+                        List<AlarmInfo> alarmInfos) {
         this.title = title;
         this.confirmationId = confirmationId;
         this.notificationInfos = notificationInfos;
+        this.alarmInfos = alarmInfos;
     }
 
     public String getTitle() {
@@ -645,6 +671,10 @@ final class PushMessage {
 
     public String getConfirmationId() {
         return confirmationId;
+    }
+
+    public List<AlarmInfo> getAlarmInfos() {
+        return alarmInfos;
     }
 
     final static class NotificationInfo {
@@ -670,6 +700,30 @@ final class PushMessage {
             return userId;
         }
     }
+
+    final static class AlarmInfo {
+        private final Date trigger;
+        private final String identifier;
+        private final OperationType operation;
+
+        AlarmInfo(String trigger, String identifier, String operation) {
+            this.trigger = new Date(Long.valueOf(trigger));
+            this.identifier = identifier;
+            this.operation = OperationType.values()[Integer.valueOf(operation)];
+        }
+
+        public Date getTrigger() {
+            return trigger;
+        }
+
+        public String getIdentifier() {
+            return identifier;
+        }
+
+        public OperationType getOperation() {
+            return operation;
+        }
+    }
 }
 
 final class LocalNotificationInfo {
@@ -686,4 +740,8 @@ final class LocalNotificationInfo {
     LocalNotificationInfo incremented(int by) {
         return new LocalNotificationInfo(message, counter + by, notificationInfo);
     }
+}
+
+enum OperationType {
+    CREATE, UPDATE, DELETE
 }

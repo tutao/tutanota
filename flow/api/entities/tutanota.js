@@ -421,6 +421,14 @@ type CreateFileData = {
 	parentFolder: ?IdTuple;
 }
 
+type CreateFileReturn = {
+	_type: TypeRef<CreateFileReturn>;
+	_errors: Object;
+	_format: NumberString;
+
+	file: IdTuple;
+}
+
 type DeleteMailData = {
 	_type: TypeRef<DeleteMailData>;
 	_format: NumberString;
@@ -1010,6 +1018,14 @@ type RepeatRule = {
 	exceptionDates: EncDateWrapper[];
 }
 
+type CalendarAlarmInfo = {
+	_type: TypeRef<CalendarAlarmInfo>;
+	_id: Id;
+	identifier: string;
+	trigger: string;
+
+}
+
 type CalendarEvent = {
 	_type: TypeRef<CalendarEvent>;
 	_errors: Object;
@@ -1024,6 +1040,7 @@ type CalendarEvent = {
 	startTime: Date;
 	summary: string;
 
+	alarmInfo: ?CalendarAlarmInfo;
 	repeatRule: ?RepeatRule;
 }
 

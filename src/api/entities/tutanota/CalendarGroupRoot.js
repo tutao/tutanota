@@ -7,31 +7,31 @@ export const _TypeModel: TypeModel = {
 	"name": "CalendarGroupRoot",
 	"since": 33,
 	"type": "ELEMENT_TYPE",
-	"id": 950,
-	"rootId": "CHR1dGFub3RhAAO2",
+	"id": 955,
+	"rootId": "CHR1dGFub3RhAAO7",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 954, "since": 33, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 952, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_format": {"name": "_format", "id": 959, "since": 33, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 957, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 956,
+			"id": 961,
 			"since": 33,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 955, "since": 33, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 953, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"color": {"name": "color", "id": 958, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"name": {"name": "name", "id": 957, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
+		"_ownerGroup": {"name": "_ownerGroup", "id": 960, "since": 33, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_permissions": {"name": "_permissions", "id": 958, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"color": {"name": "color", "id": 963, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"name": {"name": "name", "id": 962, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"longEvents": {
 			"name": "longEvents",
-			"id": 960,
+			"id": 965,
 			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -41,7 +41,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"shortEvents": {
 			"name": "shortEvents",
-			"id": 959,
+			"id": 964,
 			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

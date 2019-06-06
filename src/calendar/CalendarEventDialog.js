@@ -12,7 +12,7 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import {erase, setup} from "../api/main/Entity"
+import {erase, serviceRequestVoid, setup} from "../api/main/Entity"
 import {
 	createRepeatRuleWithValues,
 	generateEventElementId,
@@ -26,11 +26,17 @@ import {
 } from "./CalendarUtils"
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import type {EndTypeEnum, OperationTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {EndType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
+import {TutanotaService} from "../api/entities/tutanota/Services"
+import {SysService} from "../api/entities/sys/Services"
+import {createAlarmServicePost} from "../api/entities/sys/AlarmServicePost"
+import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
+import {HttpMethod} from "../api/common/EntityFunctions"
+import {createCalendarAlarmInfo} from "../api/entities/tutanota/CalendarAlarmInfo"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -57,6 +63,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const endTypePickerAttrs = createEndTypePicker()
 	const repeatEndDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
 	const endCountPickerAttrs = createEndCountPicker()
+	const alarmPickerAttrs = createAlarmrPicker()
 
 	if (event) {
 		summary(event.summary)
@@ -84,6 +91,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 		locationValue(event.location)
 		notesValue(event.description)
+
+		if (event.alarmInfo) {
+			alarmPickerAttrs.selectedValue(downcast(event.alarmInfo.trigger))
+		}
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
@@ -150,6 +161,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					m(".flex-grow.ml-s", renderStopConditionValue()),
 				])
 				: null,
+			m(DropDownSelectorN, alarmPickerAttrs),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -238,16 +250,51 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}
 				}
 			}
-			let p = event ? erase(event) : Promise.resolve()
+			const alarmInterval = alarmPickerAttrs.selectedValue()
 
+			const alarmInfos = []
+			if (alarmInterval) {
+				calendarEvent.alarmInfo = createCalendarAlarm(generateEventElementId(Date.now()), alarmInterval)
+				alarmInfos.push(toAlarm(calendarEvent.alarmInfo, calendarEvent, OperationType.CREATE))
+			}
+
+			let p = Promise.resolve()
+			if (event) {
+				p = erase(event)
+				if (event.alarmInfo) {
+					alarmInfos.push(toAlarm(event.alarmInfo, event, OperationType.DELETE))
+				}
+			}
 
 			const listId = calendarEvent.repeatRule || isLongEvent(calendarEvent) ? groupRoot.longEvents : groupRoot.shortEvents
 			calendarEvent._id = [listId, generateEventElementId(calendarEvent.startTime.getTime())]
 			p.then(() => setup(listId, calendarEvent))
-
+			 .then(() => {
+				 if (alarmInfos.length > 0) {
+					 const requestEntity = createAlarmServicePost()
+					 requestEntity.alarmInfos = alarmInfos
+					 requestEntity.group = selectedCalendar().groupRoot._id
+					 serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity)
+				 }
+			 })
 			dialog.close()
 		}
 	})
+}
+
+function createCalendarAlarm(identifier: string, trigger: string): CalendarAlarmInfo {
+	const calendarAlarmInfo = createCalendarAlarmInfo()
+	calendarAlarmInfo.identifier = identifier
+	calendarAlarmInfo.trigger = trigger
+	return calendarAlarmInfo
+}
+
+function toAlarm(calendarAlarmInfo: CalendarAlarmInfo, calendarEvent: CalendarEvent, operation: OperationTypeEnum): AlarmInfo {
+	const alarmInfo = createAlarmInfo()
+	alarmInfo.identifier = calendarAlarmInfo.identifier
+	alarmInfo.operation = operation
+	alarmInfo.trigger = decrementByAlarmInterval(getEventStart(calendarEvent), downcast(calendarAlarmInfo.trigger))
+	return alarmInfo
 }
 
 
@@ -304,4 +351,70 @@ export function createEndCountPicker(): DropDownSelectorAttrs<number> {
 		selectedValue: stream(intervalValues[0].value),
 		icon: Icons.Edit,
 	}
+}
+
+const AlarmInterval = Object.freeze({
+	FIVE_MINUTES: "5M",
+	TEN_MINUTES: "10M",
+	THIRTY_MINUTES: "30M",
+	ONE_HOUR: "1H",
+	ONE_DAY: "1D",
+	TWO_DAYS: "2D",
+	THREE_DAYS: "3D",
+	ONE_WEEK: "1W",
+})
+type AlarmIntervalEnum = $Values<typeof AlarmInterval>
+
+const alarmIntervalItems = [
+	{name: "None", value: null},
+	{name: "5 minutes", value: AlarmInterval.FIVE_MINUTES},
+	{name: "10 minutes", value: AlarmInterval.TEN_MINUTES},
+	{name: "30 minutes", value: AlarmInterval.THIRTY_MINUTES},
+	{name: "1 hour", value: AlarmInterval.ONE_HOUR},
+	{name: "1 day", value: AlarmInterval.ONE_DAY},
+	{name: "2 days", value: AlarmInterval.TWO_DAYS},
+	{name: "3 days", value: AlarmInterval.THREE_DAYS},
+	{name: "1 week", value: AlarmInterval.ONE_WEEK}
+]
+
+function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
+	return {
+		label: () => "Reminder",
+		items: alarmIntervalItems,
+		selectedValue: stream(null),
+		icon: Icons.Edit
+	}
+}
+
+function decrementByAlarmInterval(date: Date, interval: AlarmIntervalEnum): Date {
+	let diff
+	switch (interval) {
+		case AlarmInterval.FIVE_MINUTES:
+			diff = {minutes: 5}
+			break
+		case AlarmInterval.TEN_MINUTES:
+			diff = {minutes: 10}
+			break
+		case AlarmInterval.THIRTY_MINUTES:
+			diff = {minutes: 30}
+			break
+		case AlarmInterval.ONE_HOUR:
+			diff = {hours: 1}
+			break
+		case AlarmInterval.ONE_DAY:
+			diff = {days: 1}
+			break
+		case AlarmInterval.TWO_DAYS:
+			diff = {days: 1}
+			break
+		case AlarmInterval.THREE_DAYS:
+			diff = {days: 3}
+			break
+		case AlarmInterval.ONE_WEEK:
+			diff = {weeks: 1}
+			break
+		default:
+			diff = {}
+	}
+	return DateTime.fromJSDate(date).minus(diff).toJSDate()
 }
