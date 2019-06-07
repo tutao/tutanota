@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */; };
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
 		3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -96,6 +97,7 @@
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3DD6D08922AAAE9800C0E312 /* AlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* AlarmManager.m */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -110,6 +112,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3D3697D522AA8CE9007F0A83 /* TUTSseStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSseStorage.h; sourceTree = "<group>"; };
+		3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseStorage.m; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D652B5720F8DC1500DF9962 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; name = build; path = ../../build; sourceTree = "<group>"; };
@@ -219,6 +223,8 @@
 		3DD4A09520F8C6260086EB36 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DD6D08722AAAE9800C0E312 /* AlarmManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlarmManager.h; sourceTree = "<group>"; };
+		3DD6D08822AAAE9800C0E312 /* AlarmManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlarmManager.m; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
@@ -256,6 +262,8 @@
 				3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */,
 				3DD4A08920F8C6240086EB36 /* TUTViewController.h */,
 				3DD4A08A20F8C6240086EB36 /* TUTViewController.m */,
+				3DD6D08722AAAE9800C0E312 /* AlarmManager.h */,
+				3DD6D08822AAAE9800C0E312 /* AlarmManager.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -304,6 +312,8 @@
 				3D891F022105B12E0031E528 /* TUTEncodingConverter.m */,
 				3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */,
 				3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */,
+				3D3697D522AA8CE9007F0A83 /* TUTSseStorage.h */,
+				3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1224,11 +1234,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
+				3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */,
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
+				3DD6D08922AAAE9800C0E312 /* AlarmManager.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,

@@ -17,6 +17,8 @@
 #import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
 #import "TUTEncodingConverter.h"
+#import "TUTSseStorage.h"
+#import "AlarmManager.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -28,7 +30,7 @@
 
 typedef void(^VoidCallback)(void);
 
-@interface TUTViewController () <WKNavigationDelegate, WKScriptMessageHandler>
+@interface TUTViewController () <WKNavigationDelegate, WKScriptMessageHandler, NSURLSessionDataDelegate>
 @property WKWebView *webView;
 @property double keyboardSize;
 @property (readonly, nonnull) TUTCrypto *crypto;
@@ -40,6 +42,9 @@ typedef void(^VoidCallback)(void);
 @property (nullable) NSString *pushTokenRequestId;
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
+@property (readonly, nonnull) TUTSseStorage *sseStorage;
+@property NSURLSession *urlSession;
+@property NSURLSessionTask *urlTask;
 @end
 
 @implementation TUTViewController
@@ -55,6 +60,7 @@ typedef void(^VoidCallback)(void);
 		_keyboardSize = 0;
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
+        _sseStorage = [TUTSseStorage new];
 	}
 	return self;
 }
@@ -101,6 +107,82 @@ typedef void(^VoidCallback)(void);
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
 	[self loadMainPageWithParams:nil];
+    [self loadMissedNotifications];
+}
+
+- (void) loadMissedNotifications {
+    let sseInfo = self.sseStorage.getSseInfo;
+    if (!sseInfo) {
+        return;
+    }
+    NSMutableDictionary<NSString *, id> *additionalHeaders = [NSMutableDictionary new];
+    
+    [additionalHeaders setValue:@"text/event-stream" forKey:@"Accept"];
+    [additionalHeaders setValue:@"no-cache" forKey:@"Cache-Control"];
+    [additionalHeaders setValue:@"Keep-Alive" forKey:@"Connection"];
+    [additionalHeaders setValue:@"header" forKey:@"Keep-Alive"];
+    [additionalHeaders setValue:@"application/json" forKey:@"Content-Type"];
+
+    
+    let configuration = NSURLSessionConfiguration.defaultSessionConfiguration;
+    configuration.timeoutIntervalForRequest = INT_MAX;
+    configuration.timeoutIntervalForResource = INT_MAX;
+    configuration.HTTPAdditionalHeaders = additionalHeaders;
+    
+    let urlSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:NSOperationQueue.new];
+    
+    let urlComponents = [NSURLComponents componentsWithString:[NSString stringWithFormat:@"%@%@", sseInfo[@"sseOrigin"], @"/sse"]];
+    NSMutableArray<NSDictionary *> *userIdObjects = NSMutableArray.new;
+    foreach(userId, (NSArray *) sseInfo[@"userIds"]) {
+        let dict = @{
+                   @"_id": [self generateId],
+                   @"value": userId
+                   };
+        [userIdObjects addObject:dict];
+    }
+    let jsonData = [NSJSONSerialization
+                    dataWithJSONObject:@{
+                                         @"_format": @"0",
+                                         @"identifier": sseInfo[@"pushIdentifier"],
+                                         @"userIds": userIdObjects
+                                         }
+                    options:0
+                    error:nil];
+    urlComponents.queryItems = @[[NSURLQueryItem queryItemWithName:@"_body" value:[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]]];
+    self.urlSession = urlSession;
+    self.urlTask = [urlSession dataTaskWithURL:urlComponents.URL];
+    [self.urlTask resume];
+}
+
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
+    [data enumerateByteRangesUsingBlock:^(const void * _Nonnull bytes, NSRange byteRange, BOOL * _Nonnull stop) {
+        let nsData = [[NSData alloc]initWithBytes:bytes length:byteRange.length];
+        let line = [TUTEncodingConverter bytesToString:nsData];
+        NSLog(@"SSE did receive data %@", line);
+        if ([line hasPrefix:@"data: "]) {
+            let content = [line substringFromIndex:6];
+            let contentData = [TUTEncodingConverter stringToBytes:content];
+            NSError *error;
+            NSDictionary<NSString *, id> *dict = [NSJSONSerialization JSONObjectWithData:contentData options:0 error:&error];
+            if (error) {
+                NSLog(@"SSE: could not parse");
+                return;
+            }
+            NSLog(@"SSE did receive dict %@", dict);
+            [AlarmManager scheduleAlarmsFromAlarmInfos:dict[@"alarmInfos"] completionsHandler:^{
+                *stop = YES;
+            }];
+        }
+    }];
+    
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    NSLog(@"SSE completed with error: %@", error);
+}
+
+- (NSString *) generateId {
+    return @"AQAAAA";
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -182,7 +264,10 @@ typedef void(^VoidCallback)(void);
 			}
 		}];
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
-		[((TUTAppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotificationsWithCallback:sendResponseBlock];
+        [((TUTAppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotificationsWithCallback:sendResponseBlock];
+    } else if ([@"storePushIdentifierLocally" isEqualToString:type]) {
+        // identifier, userid, origin
+        [self.sseStorage storeSseInfoWithPushIdentifier:arguments[0] userId:arguments[1] sseOrign:arguments[2]];
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];

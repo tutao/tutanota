@@ -54,8 +54,10 @@ class PushServiceApp {
 								pushIdentifier.language = lang.code
 								update(pushIdentifier)
 							}
+							return this._storePushIdentifierLocally(pushIdentifier.identifier)
 						} else {
-							this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+							return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+								.then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
 						}
 					})
 				} else {

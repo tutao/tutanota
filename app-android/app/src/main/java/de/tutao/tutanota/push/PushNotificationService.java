@@ -288,7 +288,7 @@ public final class PushNotificationService extends JobService {
         NotificationManager notificationManager = getNotificationManager();
 
         try {
-            URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
+            URL  = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
             this.httpsURLConnectionRef.set(httpsURLConnection);
             httpsURLConnection.setRequestProperty("Content-Type", "application/json");
