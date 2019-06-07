@@ -26,9 +26,14 @@ NSString *const SSE_INFO_KEY = @"sseInfo";
                     @"sseOrigin":sseOrigin
                     };
     } else {
+        NSMutableDictionary<NSString *, id> *mutableInfo = sseInfo.mutableCopy;
+        mutableInfo[@"pushIdentifier"] = pushIdentifier;
+        mutableInfo[@"sseOrigin"] = sseOrigin;
         NSMutableArray<NSString *> *userIds = [NSMutableArray new];
         [userIds addObjectsFromArray: sseInfo[@"userIds"]];
         [userIds addObject:userId];
+        mutableInfo[@"userIds"] = userIds;
+        sseInfo = mutableInfo;
     }
     [NSUserDefaults.standardUserDefaults setObject:sseInfo forKey:SSE_INFO_KEY];
 }

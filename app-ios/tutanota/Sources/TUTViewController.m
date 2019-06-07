@@ -132,7 +132,8 @@ typedef void(^VoidCallback)(void);
     let urlSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:NSOperationQueue.new];
     
     let urlComponents = [NSURLComponents componentsWithString:[NSString stringWithFormat:@"%@%@", sseInfo[@"sseOrigin"], @"/sse"]];
-    NSMutableArray<NSDictionary *> *userIdObjects = NSMutableArray.new;
+    const NSMutableArray<NSDictionary *> *userIdObjects = NSMutableArray.new;
+    NSString *pushIdentifier = sseInfo[@"pushIdentifier"];
     foreach(userId, (NSArray *) sseInfo[@"userIds"]) {
         let dict = @{
                    @"_id": [self generateId],
@@ -143,35 +144,44 @@ typedef void(^VoidCallback)(void);
     let jsonData = [NSJSONSerialization
                     dataWithJSONObject:@{
                                          @"_format": @"0",
-                                         @"identifier": sseInfo[@"pushIdentifier"],
+                                         @"identifier": pushIdentifier,
                                          @"userIds": userIdObjects
                                          }
                     options:0
                     error:nil];
     urlComponents.queryItems = @[[NSURLQueryItem queryItemWithName:@"_body" value:[[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]]];
-    self.urlSession = urlSession;
-    self.urlTask = [urlSession dataTaskWithURL:urlComponents.URL];
-    [self.urlTask resume];
+    //self.urlSession = urlSession;
+    
+    let urlTask = [urlSession dataTaskWithURL:urlComponents.URL];
+    [urlTask resume];
+    
 }
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
     [data enumerateByteRangesUsingBlock:^(const void * _Nonnull bytes, NSRange byteRange, BOOL * _Nonnull stop) {
         let nsData = [[NSData alloc]initWithBytes:bytes length:byteRange.length];
-        let line = [TUTEncodingConverter bytesToString:nsData];
-        NSLog(@"SSE did receive data %@", line);
-        if ([line hasPrefix:@"data: "]) {
-            let content = [line substringFromIndex:6];
-            let contentData = [TUTEncodingConverter stringToBytes:content];
-            NSError *error;
-            NSDictionary<NSString *, id> *dict = [NSJSONSerialization JSONObjectWithData:contentData options:0 error:&error];
-            if (error) {
-                NSLog(@"SSE: could not parse");
-                return;
+        let stringData = [TUTEncodingConverter bytesToString:nsData];
+
+        NSLog(@"SSE did receive data %@", stringData);
+        let lines = [stringData componentsSeparatedByString:@"\n"];
+        foreach(line, lines) {
+            if ([line hasPrefix:@"data: "]) {
+                let content = [line substringFromIndex:6];
+                let contentData = [TUTEncodingConverter stringToBytes:content];
+                NSError *error;
+                NSDictionary<NSString *, id> *dict = [NSJSONSerialization JSONObjectWithData:contentData options:0 error:&error];
+                if (error) {
+                    NSLog(@"SSE: could not parse line: %@", line);
+                    continue;
+                }
+                NSLog(@"SSE did receive dict %@", dict);
+                [AlarmManager scheduleAlarmsFromAlarmInfos:dict[@"alarmInfos"] completionsHandler:^{
+                    let sseInfo = self.sseStorage.getSseInfo;
+                    NSString *urlString = sseInfo[@"sseOrigin"];
+                    [self sendConfirmationForPushIdentifier:sseInfo[@"pushIdentifier"] withConfirmationId:dict[@"confirmationId"] URL:[NSURL URLWithString:urlString]];
+                    *stop = YES;
+                }];
             }
-            NSLog(@"SSE did receive dict %@", dict);
-            [AlarmManager scheduleAlarmsFromAlarmInfos:dict[@"alarmInfos"] completionsHandler:^{
-                *stop = YES;
-            }];
         }
     }];
     
@@ -183,6 +193,29 @@ typedef void(^VoidCallback)(void);
 
 - (NSString *) generateId {
     return @"AQAAAA";
+}
+
+- (void) sendConfirmationForPushIdentifier:(NSString *)identifier withConfirmationId:(NSString *)confirmationId URL:(NSURL *)url {
+    let sseInfo = [self.sseStorage getSseInfo];
+    if (!sseInfo) {
+        return;
+    }
+    let session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
+    let urlComponents = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
+    urlComponents.queryItems = @[
+                                 [NSURLQueryItem queryItemWithName:@"confirmationId" value:confirmationId],
+                                 [NSURLQueryItem queryItemWithName:@"pushIdentifier" value:identifier]
+                                 ];
+    let request = [NSMutableURLRequest requestWithURL:urlComponents.URL];
+    request.HTTPMethod = @"DELETE";
+
+    [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"Notification confirmation failed: %@", error);
+            return;
+        }
+        NSLog(@"sent confirmation with status code %zd", ((NSHTTPURLResponse *) response).statusCode);
+    }] resume];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
