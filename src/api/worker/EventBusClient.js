@@ -46,6 +46,9 @@ export class EventBusClient {
 
 	_websocketWrapperQueue: WebsocketEntityData[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
+	_reconnectTimer: ?TimeoutID; 
+	_connectTimer: ?TimeoutID;
+
 	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
 		this._worker = worker
 		this._indexer = indexer
@@ -54,6 +57,8 @@ export class EventBusClient {
 		this._login = login
 		this._socket = null
 		this._state = EventBusState.Automatic
+		this._reconnectTimer = null
+		this._connectTimer = null
 		this._reset()
 
 		// we store the last 1000 event ids per group, so we know if an event was already processed.
@@ -83,6 +88,7 @@ export class EventBusClient {
 		this._websocketWrapperQueue = []
 		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
+		this._connectTimer = null
 
 		const authHeaders = this._login.createAuthHeaders()
 		// Native query building is not supported in old browser, mithril is not available in the worker
@@ -202,16 +208,31 @@ export class EventBusClient {
 			if (this._immediateReconnect) {
 				this._immediateReconnect = false
 				this.tryReconnect(false, false);
+			} else {
+				this.tryReconnect(false, false, 1000 * randomIntFromInterval(30, 120))
 			}
-			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(30, 120));
+		}
+	}
+
+	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null) {
+		if (this._reconnectTimer) {
+			// prevent reconnect race-condition
+			clearTimeout(this._reconnectTimer)
+			this._reconnectTimer = null
+		}
+
+		if (!delay) {
+			this._reconnect(closeIfOpen, enableAutomaticState)
+		} else {
+			this._reconnectTimer = setTimeout(() => this._reconnect(false, false), delay);
 		}
 	}
 
 	/**
 	 * Tries to reconnect the websocket if it is not connected.
 	 */
-	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
-		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
+	_reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
+		console.log("ws _reconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
 			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
 			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
@@ -227,7 +248,10 @@ export class EventBusClient {
 			&& this._login.isLoggedIn()) {
 			// Don't try to connect right away because connection may not be actually there
 			// see #1165
-			setTimeout(() => this.connect(true), 100)
+			if (this._connectTimer) {
+				clearTimeout(this._connectTimer)
+			}
+			this._connectTimer = setTimeout(() => this.connect(true), 100)
 		}
 	}
 
