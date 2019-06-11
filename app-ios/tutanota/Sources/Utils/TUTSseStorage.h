@@ -8,11 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+#import "TUTSseInfo.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface TUTSseStorage : NSObject
-- (NSDictionary *) getSseInfo;
-- (void) storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin;
+- (TUTSseInfo *)getSseInfo;
+- (void)storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin;
 @end
 
 NS_ASSUME_NONNULL_END

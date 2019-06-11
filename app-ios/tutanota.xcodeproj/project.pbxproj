@@ -11,6 +11,7 @@
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
 		3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
@@ -97,7 +98,7 @@
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3DD6D08922AAAE9800C0E312 /* AlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* AlarmManager.m */; };
+		3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -120,6 +121,8 @@
 		3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTFontIconFactory.h; sourceTree = "<group>"; };
 		3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTFontIconFactory.m; sourceTree = "<group>"; };
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
+		3D6C6D0222AF9BD100289576 /* TUTSseInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSseInfo.h; sourceTree = "<group>"; };
+		3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseInfo.m; sourceTree = "<group>"; };
 		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
@@ -223,8 +226,8 @@
 		3DD4A09520F8C6260086EB36 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3DD6D08722AAAE9800C0E312 /* AlarmManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlarmManager.h; sourceTree = "<group>"; };
-		3DD6D08822AAAE9800C0E312 /* AlarmManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlarmManager.m; sourceTree = "<group>"; };
+		3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmManager.h; sourceTree = "<group>"; };
+		3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmManager.m; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
@@ -262,8 +265,8 @@
 				3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */,
 				3DD4A08920F8C6240086EB36 /* TUTViewController.h */,
 				3DD4A08A20F8C6240086EB36 /* TUTViewController.m */,
-				3DD6D08722AAAE9800C0E312 /* AlarmManager.h */,
-				3DD6D08822AAAE9800C0E312 /* AlarmManager.m */,
+				3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */,
+				3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -314,6 +317,8 @@
 				3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */,
 				3D3697D522AA8CE9007F0A83 /* TUTSseStorage.h */,
 				3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */,
+				3D6C6D0222AF9BD100289576 /* TUTSseInfo.h */,
+				3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -886,6 +891,7 @@
 		3DD4A08520F8C6240086EB36 /* tutanota */ = {
 			isa = PBXGroup;
 			children = (
+				3D74536121089D2200B16F2E /* Sources */,
 				3D9A1E7722031B86002C2455 /* af.lproj */,
 				3D9A1EE622031B93002C2455 /* ar.lproj */,
 				3D9A1F0422031B99002C2455 /* Base.lproj */,
@@ -953,7 +959,6 @@
 				3D9A1EBC22031B8D002C2455 /* zh_tw.lproj */,
 				3D9A1EC222031B8E002C2455 /* zh.lproj */,
 				3D87ECDE212D921600FD7315 /* ionicons.ttf */,
-				3D74536121089D2200B16F2E /* Sources */,
 				3D891F2A2106132B0031E528 /* tutanota.entitlements */,
 				3D652B5720F8DC1500DF9962 /* build */,
 				3DD4A08F20F8C6260086EB36 /* Assets.xcassets */,
@@ -1234,13 +1239,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
+				3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */,
 				3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */,
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
-				3DD6D08922AAAE9800C0E312 /* AlarmManager.m in Sources */,
+				3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,

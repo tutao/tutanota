@@ -7,35 +7,38 @@
 //
 
 #import "TUTSseStorage.h"
+
 #import "Swiftier.h"
 
 NSString *const SSE_INFO_KEY = @"sseInfo";
 
 @implementation TUTSseStorage
 
-- (NSDictionary *)getSseInfo {
-    return [NSUserDefaults.standardUserDefaults dictionaryForKey:SSE_INFO_KEY];
+- (TUTSseInfo *)getSseInfo {
+    var dict = [NSUserDefaults.standardUserDefaults dictionaryForKey:SSE_INFO_KEY];
+    if (!dict) {
+        return nil;
+    }
+    return [[TUTSseInfo alloc] initWithDict:dict];
 }
 
 - (void) storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin {
     var sseInfo = self.getSseInfo;
     if (!sseInfo) {
-        sseInfo = @{
-                    @"pushIdentifier":pushIdentifier,
-                    @"userIds":@[userId],
-                    @"sseOrigin":sseOrigin
-                    };
+        sseInfo = [TUTSseInfo new];
+        sseInfo.pushIdentifier = pushIdentifier;
+        sseInfo.userIds = @[userId];
+        sseInfo.sseOrigin = sseOrigin;
     } else {
-        NSMutableDictionary<NSString *, id> *mutableInfo = sseInfo.mutableCopy;
-        mutableInfo[@"pushIdentifier"] = pushIdentifier;
-        mutableInfo[@"sseOrigin"] = sseOrigin;
-        NSMutableArray<NSString *> *userIds = [NSMutableArray new];
-        [userIds addObjectsFromArray: sseInfo[@"userIds"]];
-        [userIds addObject:userId];
-        mutableInfo[@"userIds"] = userIds;
-        sseInfo = mutableInfo;
+        sseInfo.pushIdentifier = pushIdentifier;
+        sseInfo.sseOrigin = sseOrigin;
+        NSMutableArray *userIds = sseInfo.userIds.mutableCopy;
+        if (![userIds containsObject:userId]) {
+            [userIds addObject:userId];
+        }
+        sseInfo.userIds = userIds;
     }
-    [NSUserDefaults.standardUserDefaults setObject:sseInfo forKey:SSE_INFO_KEY];
+    [NSUserDefaults.standardUserDefaults setObject:sseInfo.toDict forKey:SSE_INFO_KEY];
 }
 
 @end

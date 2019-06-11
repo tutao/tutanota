@@ -11,7 +11,8 @@
 
 #import "TUTAppDelegate.h"
 #import "TUTViewController.h"
-#import "AlarmManager.h"
+#import "TUTAlarmManager.h"
+#import "Utils/TUTSseStorage.h"
 
 @interface TUTAppDelegate ()
 @property TUTViewController *viewController;
@@ -28,6 +29,8 @@
     _viewController = [TUTViewController new];
     _window.rootViewController = _viewController;
     [_window makeKeyAndVisible];
+    _alarmManager = [TUTAlarmManager new];
+    _sseStorage = [TUTSseStorage new];
     UNUserNotificationCenter.currentNotificationCenter.delegate = self;
     
     return YES;
@@ -91,8 +94,19 @@
     let apsDict = (NSDictionary *) userInfo[@"aps"];
     NSLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
-    [AlarmManager scheduleAlarmsFromAlarmInfos:apsDict[@"alarmInfos"] completionsHandler:^{
-        completionHandler(UIBackgroundFetchResultNewData);
+    
+    let sseInfo = [_sseStorage getSseInfo];
+    if (!sseInfo) {
+        NSLog(@"No stored SSE info");
+        return;
+    }
+    [_alarmManager scheduleAlarmsFromAlarmInfos:apsDict[@"alarmInfos"] completionsHandler:^{
+        [self->_alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
+                                      confirmationId:apsDict[@"confirmationId"]
+                                              origin:sseInfo.sseOrigin
+                                   completionHandler:^{
+                                       completionHandler(UIBackgroundFetchResultNewData);
+                                   }];
     }];
 }
 
