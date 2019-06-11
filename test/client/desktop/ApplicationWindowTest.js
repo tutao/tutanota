@@ -58,6 +58,10 @@ o.spec("ApplicationWindow Test", () => {
                         closeDevTools: function () {
                             this.devToolsOpened = false
                         },
+                        goBack: function () {
+                        },
+                        goForward: function () {
+                        },
                         toggleDevTools: function () {
                             this.devToolsOpened = !this.devToolsOpened
                         },
@@ -265,6 +269,8 @@ o.spec("ApplicationWindow Test", () => {
             'CommandOrControl+W',
             'CommandOrControl+H',
             'CommandOrControl+N',
+            'Alt+Left',
+            'Alt+Right',
             'F11'
         ])
     })
@@ -284,6 +290,8 @@ o.spec("ApplicationWindow Test", () => {
             'CommandOrControl+W',
             'CommandOrControl+H',
             'CommandOrControl+N',
+            'Alt+Left',
+            'Alt+Right',
             'F11'
         ])
     })
@@ -303,6 +311,8 @@ o.spec("ApplicationWindow Test", () => {
             'CommandOrControl+W',
             'CommandOrControl+H',
             'CommandOrControl+N',
+            'Alt+Left',
+            'Alt+Right',
             'Command+Control+F'
         ])
     })
@@ -354,6 +364,12 @@ o.spec("ApplicationWindow Test", () => {
         o(bwInstance.setFullScreen.callCount).equals(1)
         o(bwInstance.isFullScreen.callCount).equals(1)
         o(bwInstance.setFullScreen.args[0]).equals(true)
+
+        electronLocalshortcutMock.callbacks["Alt+Left"]()
+        o(bwInstance.webContents.goBack.callCount).equals(1)
+
+        electronLocalshortcutMock.callbacks["Alt+Right"]()
+        o(bwInstance.webContents.goForward.callCount).equals(1)
     })
 
     o("url rewriting", () => {
