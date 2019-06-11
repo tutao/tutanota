@@ -35,7 +35,7 @@ export class RestClient {
 				let res = {
 					timeoutId: ((0: any): TimeoutID),
 					abortFunction: () => {
-						console.log("aborting " + String(res.timeoutId))
+						console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
 						xhr.abort()
 					}
 				}
@@ -48,6 +48,9 @@ export class RestClient {
 				console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 			}
 			xhr.onload = () => { // XMLHttpRequestProgressEvent, but not needed
+				if (isWorker() && self.debug) {
+					console.log(`${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
+				}
 				clearTimeout(timeout)
 				if (xhr.status === 200 || method === HttpMethod.POST && xhr.status === 201) {
 					if (responseType === MediaType.Json) {
