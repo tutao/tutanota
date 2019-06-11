@@ -144,6 +144,8 @@ export class ApplicationWindow {
         localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
         localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
         localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
+        localShortcut.register(this._browserWindow, 'Alt+Left', () => this._browserWindow.webContents.goBack())
+        localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
         localShortcut.register(
             this._browserWindow,
             process.platform === 'darwin'
