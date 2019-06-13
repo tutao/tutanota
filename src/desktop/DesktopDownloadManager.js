@@ -39,7 +39,7 @@ export class DesktopDownloadManager {
                         this._fileManagersOpen = this._fileManagersOpen + 1
                         fileManagerLock = () => {
                             shell.openItem(path.dirname(savePath))
-                            setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, 30000)
+                            setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.get("fileManagerTimeout"))
                         }
                     }
 

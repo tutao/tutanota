@@ -36,6 +36,8 @@ o.spec("DesktopDownloadManagerTest", () => {
         },
         get: (key: string) => {
             switch (key) {
+                case "fileManagerTimeout":
+                    return 30
                 default:
                     throw new Error(`unexpected get key ${key}`)
             }
@@ -146,6 +148,39 @@ o.spec("DesktopDownloadManagerTest", () => {
 
         // make sure nothing failed
         o(electronMock.dialog.showMessageBox.callCount).equals(0)
+    })
+
+    o("two downloads, open two filemanagers", done => {
+        const {electronMock, desktopUtilsMock, confMock} = standardMocks()
+        const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
+        const dl = new DesktopDownloadManager(confMock)
+        const sessionMock = n.mock("__session", session).set()
+        const itemMock = n.mock("__item", item).set()
+        dl.manageDownloadsForSession(sessionMock)
+
+        sessionMock.callbacks["will-download"]({}, itemMock)
+        o(desktopUtilsMock.nonClobberingFilename.callCount).equals(1)
+        o(itemMock.setSavePath.callCount).equals(1)
+        o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+
+        itemMock.callbacks["done"]({}, 'completed')
+        o(electronMock.shell.openItem.callCount).equals(1)
+        o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+
+        setTimeout(() => {
+            sessionMock.callbacks["will-download"]({}, itemMock)
+            o(desktopUtilsMock.nonClobberingFilename.callCount).equals(2)
+            o(itemMock.setSavePath.callCount).equals(2)
+            o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+
+            itemMock.callbacks["done"]({}, 'completed')
+            o(electronMock.shell.openItem.callCount).equals(2)
+            o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+
+            // make sure nothing failed
+            o(electronMock.dialog.showMessageBox.callCount).equals(0)
+            done()
+        }, 60)
     })
 
     o("only open one file manager for successive downloads", () => {
