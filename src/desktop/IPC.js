@@ -154,9 +154,12 @@ export class IPC {
                 d.resolve()
                 break
             case 'closePushNotifications':
-                // TODO
+                // only gets called in the app
+                // the desktop client closes notifications on window focus
+                d.resolve()
                 break
             case 'sendSocketMessage':
+                // for admin client integration
                 this._sock.sendSocketMessage(args[0])
                 d.resolve()
                 break
