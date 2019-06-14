@@ -1,12 +1,8 @@
 package de.tutao.tutanota;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
-import android.os.ParcelFileDescriptor;
-import android.provider.OpenableColumns;
 import android.support.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
@@ -53,12 +49,14 @@ public final class Crypto {
     public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
     public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
     private static final String PROVIDER = "BC";
+    public static final byte[] FIXED_IV = new byte[16];
 
     private final static int RSA_KEY_LENGTH_IN_BITS = 2048;
     private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private final static int RSA_PUBLIC_EXPONENT = 65537;
 
-    public static final String AES_MODE_PADDING = "AES/CBC/PKCS5Padding";
+    private static final String AES_MODE_PADDING = "AES/CBC/PKCS5Padding";
+    private static final String AES_MODE_NO_PADDING = "AES/CBC/NoPadding";
     public static final int AES_KEY_LENGTH = 128;
     public static final int AES_KEY_LENGTH_BYTES = AES_KEY_LENGTH / 8;
 
@@ -72,6 +70,9 @@ public final class Crypto {
     static {
         // see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
         PRNGFixes.apply();
+        for (int i = 0; i < FIXED_IV.length; i++) {
+            FIXED_IV[i] = (byte) 0x88;
+        }
     }
 
     public static final String HMAC_256 = "HmacSHA256";
@@ -147,23 +148,33 @@ public final class Crypto {
     String rsaEncrypt(JSONObject publicKeyJson, byte[] data, byte[] random) throws CryptoError {
         try {
             PublicKey publicKey = jsonToPublicKey(publicKeyJson);
-            this.randomizer.setSeed(random);
-            byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
-            return Utils.bytesToBase64(encrypted);
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            // These types of errors are normal crypto errors and will be handled by the web part.
-            throw new CryptoError(e);
-        } catch (JSONException | NoSuchAlgorithmException |
-                NoSuchProviderException | NoSuchPaddingException e) {
+            return this.rsaEncrypt(publicKey, data, random);
+        } catch (JSONException e) {
             // These types of errors are unexpected and fatal.
             throw new RuntimeException(e);
         }
     }
 
-    private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = Cipher.getInstance(RSA_ALGORITHM, PROVIDER);
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey, randomizer);
-        return cipher.doFinal(data);
+    /**
+     * Encrypts an aes key with RSA to a byte array.
+     */
+    String rsaEncrypt(PublicKey publicKey, byte[] data, byte[] random) throws CryptoError {
+        this.randomizer.setSeed(random);
+        byte[] encrypted = rsaEncrypt(data, publicKey, this.randomizer);
+        return Utils.bytesToBase64(encrypted);
+    }
+
+
+    private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws CryptoError {
+        try {
+            Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, randomizer);
+            return cipher.doFinal(data);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            throw new RuntimeException(e);
+        } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException e) {
+            throw new CryptoError(e);
+        }
     }
 
     /**
@@ -171,27 +182,35 @@ public final class Crypto {
      */
     String rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey) throws CryptoError {
         try {
-            byte[] decrypted = rsaDecrypt(jsonPrivateKey, encryptedKey, this.randomizer);
+            PrivateKey privateKey = jsonToPrivateKey(jsonPrivateKey);
+            byte[] decrypted = rsaDecrypt(privateKey, encryptedKey);
             return Utils.bytesToBase64(decrypted);
-        } catch (InvalidKeySpecException | BadPaddingException | InvalidKeyException
-                | IllegalBlockSizeException e) {
+        } catch (InvalidKeySpecException e) {
             // These types of errors can happen and that's okay, they should be handled gracefully.
             throw new CryptoError(e);
-        } catch (JSONException | NoSuchAlgorithmException | NoSuchProviderException |
-                NoSuchPaddingException e) {
-            // These errors are not expected, fatal for the whole application and should be 
+        } catch (JSONException | NoSuchAlgorithmException e) {
+            // These errors are not expected, fatal for the whole application and should be
             // reported.
             throw new RuntimeException("rsaDecrypt error", e);
         }
     }
 
-    private byte[] rsaDecrypt(JSONObject jsonPrivateKey, byte[] encryptedKey, SecureRandom randomizer) throws JSONException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher;
-        PrivateKey privateKey = jsonToPrivateKey(jsonPrivateKey);
-        cipher = Cipher.getInstance(RSA_ALGORITHM, PROVIDER);
-        cipher.init(Cipher.DECRYPT_MODE, privateKey, randomizer);
-        return cipher.doFinal(encryptedKey);
+    public byte[] rsaDecrypt(PrivateKey privateKey, byte[] encryptedKey) throws CryptoError {
+        try {
+            Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, privateKey, this.randomizer);
+            return cipher.doFinal(encryptedKey);
+        } catch (BadPaddingException | InvalidKeyException
+                | IllegalBlockSizeException e) {
+            throw new CryptoError(e);
+        } catch (NoSuchAlgorithmException |
+                NoSuchPaddingException e) {
+            // These errors are not expected, fatal for the whole application and should be
+            // reported.
+            throw new RuntimeException("rsaDecrypt error", e);
+        }
     }
+
 
     /**
      * Converts the given byte array to a key.
@@ -201,7 +220,7 @@ public final class Crypto {
      */
     public static SecretKeySpec bytesToKey(byte[] key) {
         if (key.length != AES_KEY_LENGTH_BYTES) {
-            throw new RuntimeException("invalid key length");
+            throw new RuntimeException("invalid key length: " + key.length);
         }
         return new SecretKeySpec(key, "AES");
     }
@@ -261,6 +280,35 @@ public final class Crypto {
         aesDecrypt(key, in, out, file.size);
         return Uri.fromFile(outputFile).toString();
     }
+
+    public byte[] aesDecrypt(final byte[] key, String base64EncData) throws CryptoError {
+        byte[] encData = Utils.base64ToBytes(base64EncData);
+        return this.aesDecrypt(key, encData);
+    }
+
+    public byte[] decryptKey(final byte[] encryptionKey, final byte[] encryptedKeyWithoutIV) throws CryptoError {
+        try {
+            Cipher cipher = Cipher.getInstance(AES_MODE_NO_PADDING);
+            IvParameterSpec params = new IvParameterSpec(FIXED_IV);
+            cipher.init(Cipher.DECRYPT_MODE, bytesToKey(encryptionKey), params);
+            return cipher.doFinal(encryptedKeyWithoutIV);
+        } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException e) {
+            throw new CryptoError(e);
+        } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] aesDecrypt(final byte[] key, byte[] encData) throws CryptoError {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            this.aesDecrypt(key, new ByteArrayInputStream(encData), out, encData.length);
+        } catch (IOException e) {
+            throw new CryptoError(e);
+        }
+        return out.toByteArray();
+    }
+
 
     public void aesDecrypt(final byte[] key, InputStream in, OutputStream out, long inputSize) throws IOException, CryptoError {
         InputStream decrypted = null;

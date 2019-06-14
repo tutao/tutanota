@@ -999,30 +999,14 @@ type UnencryptedStatisticLogRef = {
 	items: Id;
 }
 
-type EncDateWrapper = {
-	_type: TypeRef<EncDateWrapper>;
-	_id: Id;
-	value: Date;
-
-}
-
-type RepeatRule = {
-	_type: TypeRef<RepeatRule>;
+type CalendarRepeatRule = {
+	_type: TypeRef<CalendarRepeatRule>;
 	_id: Id;
 	endType: NumberString;
 	endValue: ?NumberString;
 	frequency: NumberString;
 	interval: NumberString;
 	timeZone: string;
-
-	exceptionDates: EncDateWrapper[];
-}
-
-type CalendarAlarmInfo = {
-	_type: TypeRef<CalendarAlarmInfo>;
-	_id: Id;
-	identifier: string;
-	trigger: string;
 
 }
 
@@ -1040,8 +1024,8 @@ type CalendarEvent = {
 	startTime: Date;
 	summary: string;
 
-	alarmInfo: ?CalendarAlarmInfo;
-	repeatRule: ?RepeatRule;
+	repeatRule: ?CalendarRepeatRule;
+	alarmInfos: IdTuple[];
 }
 
 type CalendarGroupRoot = {
@@ -1052,7 +1036,6 @@ type CalendarGroupRoot = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	color: string;
 	name: string;
 
 	longEvents: Id;
@@ -1064,7 +1047,6 @@ type CalendarGroupData = {
 	_id: Id;
 	adminEncGroupKey: Uint8Array;
 	calendarEncCalendarGroupRootSessionKey: Uint8Array;
-	encColor: Uint8Array;
 	encName: Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
 	userEncGroupKey: ?Uint8Array;

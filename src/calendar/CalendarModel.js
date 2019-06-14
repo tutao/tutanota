@@ -1,12 +1,13 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
+import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {getAllDayDateUTC} from "./CalendarUtils"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))

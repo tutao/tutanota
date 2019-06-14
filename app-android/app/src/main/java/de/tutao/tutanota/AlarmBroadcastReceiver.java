@@ -14,12 +14,27 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.util.Date;
+
 import static de.tutao.tutanota.Utils.atLeastOreo;
 import static de.tutao.tutanota.push.PushNotificationService.VIBRATION_PATTERN;
 
 public class AlarmBroadcastReceiver extends BroadcastReceiver {
     private static final String ALARM_NOTIFICATION_CHANNEL_ID = "alarms";
     private static final String TAG = "AlarmBroadcastReceiver";
+
+    private static final String SUMMARY_EXTRA = "summary";
+    public static final String EVENT_DATE_EXTRA = "eventDate";
+
+    public static Intent makeAlarmIntent(int occurrence, String identifier, String summary, Date eventDate) {
+        String occurrenceIdentifier = identifier + "#" + occurrence;
+        Intent intent = new Intent("de.tutao.tutanota.ALARM", Uri.fromParts("alarm", occurrenceIdentifier, ""));
+
+        // TODO: maybe encrypt them?
+        intent.putExtra(SUMMARY_EXTRA, summary);
+        intent.putExtra(EVENT_DATE_EXTRA, eventDate.getTime());
+        return intent;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -34,7 +49,8 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
                         .setSmallIcon(R.drawable.ic_status)
                         .setContentTitle("Reminder")
                         .setColor(context.getResources().getColor(R.color.colorPrimary))
-                        .setContentText("Tutanota calendar notification" + intent.getData())
+                        .setContentText(intent.getStringExtra(SUMMARY_EXTRA))
+                        .setWhen(intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis()))
                         .setDefaults(NotificationCompat.DEFAULT_SOUND)
                         .build());
     }

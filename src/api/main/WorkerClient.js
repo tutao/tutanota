@@ -407,6 +407,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('cancelCreateSession', []))
 	}
 
+	resolveSessionKey(typeModel: TypeModel, instance: Object): Promise<?string> {
+		return this._postRequest(new Request('resolveSessionKey', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
@@ -479,6 +483,10 @@ export class WorkerClient {
 
 	resetSession() {
 		return this._queue.postMessage(new Request("resetSession", []))
+	}
+
+	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent, oldUserAlarmInfo: ?UserAlarmInfo) {
+		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent, oldUserAlarmInfo]))
 	}
 }
 

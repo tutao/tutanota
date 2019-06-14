@@ -1,7 +1,6 @@
 package de.tutao.tutanota.push;
 
 import android.annotation.TargetApi;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -45,7 +44,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -56,6 +54,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.tutao.tutanota.AlarmNotification;
+import de.tutao.tutanota.AlarmNotificationsManager;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
@@ -268,6 +268,8 @@ public final class PushNotificationService extends JobService {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
         jobParameters = params;
+        // TODO: handle rescheduling
+//        new AlarmNotificationsManager(this).reScheduleAlarms();
         return true;
     }
 
@@ -288,7 +290,7 @@ public final class PushNotificationService extends JobService {
         NotificationManager notificationManager = getNotificationManager();
 
         try {
-            URL  = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
+            URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
             HttpURLConnection httpsURLConnection = (HttpURLConnection) url.openConnection();
             this.httpsURLConnectionRef.set(httpsURLConnection);
             httpsURLConnection.setRequestProperty("Content-Type", "application/json");
@@ -316,7 +318,8 @@ public final class PushNotificationService extends JobService {
                     continue;
                 }
                 event = event.substring(6);
-                if (event.matches("^[0-9]{1,}$"))
+                Log.d(TAG, "Event: " + event);
+                if (event.matches("^[0-9]+$"))
                     continue;
 
                 if (event.startsWith("heartbeatTimeout:")) {
@@ -336,66 +339,17 @@ public final class PushNotificationService extends JobService {
                 }
 
                 List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
-                for (int i = 0; i < notificationInfos.size(); i++) {
-                    PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
 
-                    LocalNotificationInfo counterPerAlias =
-                            aliasNotification.get(notificationInfo.getAddress());
-                    if (counterPerAlias == null) {
-                        counterPerAlias = new LocalNotificationInfo(
-                                pushMessage.getTitle(),
-                                notificationInfo.getCounter(), notificationInfo);
-                    } else {
-                        counterPerAlias = counterPerAlias.incremented(notificationInfo.getCounter());
-                    }
-                    aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
+                handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
+                handleAlarmNotifications(pushMessage.getAlarmInfos());
 
-                    Log.d(TAG, "Event: " + event);
-                    int notificationId = notificationId(notificationInfo.getAddress());
-
-
-                    NotificationCompat.Builder notificationBuilder =
-                            new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
-                                    .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
-                    ArrayList<String> addresses = new ArrayList<>();
-                    addresses.add(notificationInfo.getAddress());
-                    notificationBuilder.setContentTitle(pushMessage.getTitle())
-                            .setColor(getResources().getColor(R.color.colorPrimary))
-                            .setContentText(notificationContent(notificationInfo.getAddress()))
-                            .setNumber(counterPerAlias.counter)
-                            .setSmallIcon(R.drawable.ic_status)
-                            .setDeleteIntent(this.intentForDelete(addresses))
-                            .setContentIntent(intentOpenMailbox(notificationInfo, false))
-                            .setGroup(NOTIFICATION_EMAIL_GROUP)
-                            .setAutoCancel(true)
-                            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY);
-
-                    notificationManager.notify(notificationId, notificationBuilder.build());
-
-                    sendSummaryNotification(notificationManager, pushMessage.getTitle(),
-                            notificationInfo);
-
-                }
-                for (PushMessage.AlarmInfo alarmInfo : pushMessage.getAlarmInfos()) {
-
-                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    Intent intent = new Intent("de.tutao.tutanota.ALARM", Uri.fromParts("alarm", alarmInfo.getIdentifier(), ""));
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, 0);
-                    if (alarmInfo.getOperation() == OperationType.CREATE) {
-                        Log.d(TAG, "Scheduling alarm at: " + alarmInfo.getTrigger() + " " + intent.getData());
-                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmInfo.getTrigger().getTime(), pendingIntent);
-                    } else if (alarmInfo.getOperation() == OperationType.DELETE) {
-                        Log.d(TAG, "Cancel alarm" + alarmInfo.getTrigger() + " " + intent.getData());
-                        alarmManager.cancel(pendingIntent);
-                    }
-                }
                 Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
                 confirmationThreadPool.execute(
                         () -> sendConfirmation(connectedSseInfo.getPushIdentifier(), pushMessage));
                 Log.d(TAG, "Executing jobFinished after receiving notifications");
                 finishJobIfNeeded();
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
             HttpURLConnection httpURLConnection = httpsURLConnectionRef.get();
             try {
                 // we get not authorized for the stored identifier and user ids, so remove them
@@ -411,12 +365,11 @@ public final class PushNotificationService extends JobService {
             int delay = (random.nextInt(timeoutInSeconds) + delayBoundary) / 2;
 
             if (this.hasNetworkConnection()) {
-                Log.e(TAG, "error opening sse, rescheduling after " + delay, ignored);
+                Log.e(TAG, "error opening sse, rescheduling after " + delay, exception);
                 reschedule(delay);
             } else {
-                Log.e(TAG, "network is not connected, do not reschedule ", ignored);
+                Log.e(TAG, "network is not connected, do not reschedule ", exception);
             }
-
         } finally {
             if (reader != null) {
                 try {
@@ -425,6 +378,53 @@ public final class PushNotificationService extends JobService {
                 }
             }
             httpsURLConnectionRef.set(null);
+        }
+    }
+
+    private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
+        new AlarmNotificationsManager(this, this.sseStorage)
+                .scheduleNewAlarms(alarmNotifications);
+    }
+
+    private void handleNotificationInfos(NotificationManager notificationManager, PushMessage pushMessage, List<PushMessage.NotificationInfo> notificationInfos) {
+        for (int i = 0; i < notificationInfos.size(); i++) {
+            PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
+
+            LocalNotificationInfo counterPerAlias =
+                    aliasNotification.get(notificationInfo.getAddress());
+            if (counterPerAlias == null) {
+                counterPerAlias = new LocalNotificationInfo(
+                        pushMessage.getTitle(),
+                        notificationInfo.getCounter(), notificationInfo);
+            } else {
+                counterPerAlias = counterPerAlias.incremented(notificationInfo.getCounter());
+            }
+            aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
+
+            int notificationId = notificationId(notificationInfo.getAddress());
+
+
+            NotificationCompat.Builder notificationBuilder =
+                    new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
+                            .setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
+            ArrayList<String> addresses = new ArrayList<>();
+            addresses.add(notificationInfo.getAddress());
+            notificationBuilder.setContentTitle(pushMessage.getTitle())
+                    .setColor(getResources().getColor(R.color.colorPrimary))
+                    .setContentText(notificationContent(notificationInfo.getAddress()))
+                    .setNumber(counterPerAlias.counter)
+                    .setSmallIcon(R.drawable.ic_status)
+                    .setDeleteIntent(this.intentForDelete(addresses))
+                    .setContentIntent(intentOpenMailbox(notificationInfo, false))
+                    .setGroup(NOTIFICATION_EMAIL_GROUP)
+                    .setAutoCancel(true)
+                    .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY);
+
+            notificationManager.notify(notificationId, notificationBuilder.build());
+
+            sendSummaryNotification(notificationManager, pushMessage.getTitle(),
+                    notificationInfo);
+
         }
     }
 
@@ -612,120 +612,6 @@ final class LooperThread extends Thread {
     }
 }
 
-final class PushMessage {
-
-    private static final String TITLE_KEY = "title";
-    private static final String ADDRESS_KEY = "address";
-    private static final String COUNTER_KEY = "counter";
-    private static final String USER_ID_KEY = "userId";
-    private static final String NOTIFICATIONS_KEY = "notificationInfos";
-    private static final String CONFIRMATION_ID_KEY = "confirmationId";
-    private static final String ALARM_INFOS_KEY = "alarmInfos";
-
-    private final String title;
-    private final String confirmationId;
-    private final List<NotificationInfo> notificationInfos;
-    private final List<AlarmInfo> alarmInfos;
-
-    public static PushMessage fromJson(String json) throws JSONException {
-        JSONObject jsonObject = new JSONObject(json);
-        String title = jsonObject.getString(TITLE_KEY);
-        String confirmationId = jsonObject.getString(CONFIRMATION_ID_KEY);
-        JSONArray recipientInfosJsonArray = jsonObject.getJSONArray(NOTIFICATIONS_KEY);
-        List<NotificationInfo> notificationInfos = new ArrayList<>(recipientInfosJsonArray.length());
-        for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
-            JSONObject itemObject = recipientInfosJsonArray.getJSONObject(i);
-            String address = itemObject.getString(ADDRESS_KEY);
-            int counter = itemObject.getInt(COUNTER_KEY);
-            String userId = itemObject.getString(USER_ID_KEY);
-            notificationInfos.add(new NotificationInfo(address, counter, userId));
-        }
-        JSONArray alarmInfosJsonArray = jsonObject.getJSONArray(ALARM_INFOS_KEY);
-        List<AlarmInfo> alarmInfos = new ArrayList<>();
-        for (int i = 0; i < alarmInfosJsonArray.length(); i++) {
-            JSONObject itemObject = alarmInfosJsonArray.getJSONObject(i);
-            String trigger = itemObject.getString("trigger");
-            String identifier = itemObject.getString("identifier");
-            String operation = itemObject.getString("operation");
-            alarmInfos.add(new AlarmInfo(trigger, identifier, operation));
-        }
-        return new PushMessage(title, confirmationId, notificationInfos, alarmInfos);
-    }
-
-    private PushMessage(String title, String confirmationId,
-                        List<NotificationInfo> notificationInfos,
-                        List<AlarmInfo> alarmInfos) {
-        this.title = title;
-        this.confirmationId = confirmationId;
-        this.notificationInfos = notificationInfos;
-        this.alarmInfos = alarmInfos;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public List<NotificationInfo> getNotificationInfos() {
-        return notificationInfos;
-    }
-
-    public String getConfirmationId() {
-        return confirmationId;
-    }
-
-    public List<AlarmInfo> getAlarmInfos() {
-        return alarmInfos;
-    }
-
-    final static class NotificationInfo {
-        private final String address;
-        private final int counter;
-        private String userId;
-
-        NotificationInfo(String address, int counter, String userId) {
-            this.address = address;
-            this.counter = counter;
-            this.userId = userId;
-        }
-
-        public String getAddress() {
-            return address;
-        }
-
-        public int getCounter() {
-            return counter;
-        }
-
-        public String getUserId() {
-            return userId;
-        }
-    }
-
-    final static class AlarmInfo {
-        private final Date trigger;
-        private final String identifier;
-        private final OperationType operation;
-
-        AlarmInfo(String trigger, String identifier, String operation) {
-            this.trigger = new Date(Long.valueOf(trigger));
-            this.identifier = identifier;
-            this.operation = OperationType.values()[Integer.valueOf(operation)];
-        }
-
-        public Date getTrigger() {
-            return trigger;
-        }
-
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        public OperationType getOperation() {
-            return operation;
-        }
-    }
-}
-
 final class LocalNotificationInfo {
     final String message;
     final int counter;
@@ -742,6 +628,3 @@ final class LocalNotificationInfo {
     }
 }
 
-enum OperationType {
-    CREATE, UPDATE, DELETE
-}

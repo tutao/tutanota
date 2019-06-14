@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONException;
@@ -18,16 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -75,7 +66,7 @@ public class CompatibilityTest {
     }
 
     @Test
-    public void rsa() throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, JSONException, BadPaddingException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
+    public void rsa() throws CryptoError {
 
         for (EncryptionTestData testData : CompatibilityTest.testData.getRsaEncryptionTests()) {
             Crypto crypto = new Crypto(null, stubRandom(testData.seed));

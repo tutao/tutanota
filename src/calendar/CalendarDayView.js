@@ -6,12 +6,13 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, isAllDayEvent, layOutEvents} from "./CalendarUtils"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {styles} from "../gui/styles"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
+import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents} from "./CalendarUtils"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Stream<Date>,

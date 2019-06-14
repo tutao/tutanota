@@ -12,31 +12,22 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import {erase, serviceRequestVoid, setup} from "../api/main/Entity"
-import {
-	createRepeatRuleWithValues,
-	generateEventElementId,
-	getAllDayDateUTC,
-	getEventEnd,
-	getEventStart,
-	isAllDayEvent,
-	isLongEvent,
-	parseTimeTo,
-	timeString
-} from "./CalendarUtils"
+import {erase, load} from "../api/main/Entity"
+
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {EndTypeEnum, OperationTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
-import {TutanotaService} from "../api/entities/tutanota/Services"
-import {SysService} from "../api/entities/sys/Services"
-import {createAlarmServicePost} from "../api/entities/sys/AlarmServicePost"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {createCalendarAlarmInfo} from "../api/entities/tutanota/CalendarAlarmInfo"
+import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {logins} from "../api/main/LoginController"
+import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString} from "./CalendarUtils"
+import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {worker} from "../api/main/WorkerClient"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -45,7 +36,7 @@ import {createCalendarAlarmInfo} from "../api/entities/tutanota/CalendarAlarmInf
 // {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
 // We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
 // interpret it as full day in Europe/Berlin, not in the UTC.
-export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, event?: CalendarEvent) {
+export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent?: CalendarEvent) {
 	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
@@ -65,22 +56,25 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const endCountPickerAttrs = createEndCountPicker()
 	const alarmPickerAttrs = createAlarmrPicker()
 
-	if (event) {
-		summary(event.summary)
-		const calendarForGroup = calendars.get(neverNull(event._ownerGroup))
+	let loadedUserAlarmInfo: ?UserAlarmInfo = null
+	const user = logins.getUserController().user
+
+	if (existingEvent) {
+		summary(existingEvent.summary)
+		const calendarForGroup = calendars.get(neverNull(existingEvent._ownerGroup))
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(event)))
-		allDay(event && isAllDayEvent(event))
+		startTime(timeString(getEventStart(existingEvent)))
+		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
-			endDatePicker.setDate(incrementDate(getEventEnd(event), -1))
+			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
-			endDatePicker.setDate(getStartOfDay(getEventEnd(event)))
+			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
 		}
-		endTime(timeString(getEventEnd(event)))
-		if (event.repeatRule) {
-			const existingRule = event.repeatRule
+		endTime(timeString(getEventEnd(existingEvent)))
+		if (existingEvent.repeatRule) {
+			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
 			repeatIntervalPickerAttrs.selectedValue(Number(existingRule.interval))
 			endTypePickerAttrs.selectedValue(downcast(existingRule.endType))
@@ -89,12 +83,20 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		} else {
 			repeatPickerAttrs.selectedValue(null)
 		}
-		locationValue(event.location)
-		notesValue(event.description)
+		locationValue(existingEvent.location)
+		notesValue(existingEvent.description)
 
-		if (event.alarmInfo) {
-			alarmPickerAttrs.selectedValue(downcast(event.alarmInfo.trigger))
+		for (let alarmInfoId of existingEvent.alarmInfos) {
+			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
+				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
+					loadedUserAlarmInfo = userAlarmInfo
+					alarmPickerAttrs.selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
+					m.redraw()
+				})
+				break
+			}
 		}
+
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
@@ -179,17 +181,17 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				value: notesValue,
 				type: Type.Area
 			}),
-			event ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
+			existingEvent ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
 				label: "delete_action",
 				type: ButtonType.Primary,
 				click: () => {
-					erase(event)
+					erase(existingEvent)
 					dialog.close()
 				}
 			})) : null,
 		],
 		okAction: () => {
-			const calendarEvent = createCalendarEvent()
+			const newEvent = createCalendarEvent()
 			let startDate = neverNull(startDatePicker.date())
 			const parsedStartTime = parseTimeTo(startTime())
 			const parsedEndTime = parseTimeTo(endTime())
@@ -212,20 +214,20 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				endDate.setMinutes(parsedEndTime.minutes)
 			}
 
-			calendarEvent.startTime = startDate
-			calendarEvent.description = notesValue()
-			calendarEvent.summary = summary()
-			calendarEvent.location = locationValue()
-			calendarEvent.endTime = endDate
+			newEvent.startTime = startDate
+			newEvent.description = notesValue()
+			newEvent.summary = summary()
+			newEvent.location = locationValue()
+			newEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
-			calendarEvent._ownerGroup = selectedCalendar().groupRoot._id
+			newEvent._ownerGroup = selectedCalendar().groupRoot._id
 			const repeatFrequency = repeatPickerAttrs.selectedValue()
 			if (repeatFrequency == null) {
-				calendarEvent.repeatRule = null
+				newEvent.repeatRule = null
 			} else {
 				const interval = repeatIntervalPickerAttrs.selectedValue() || 1
 				const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
-				calendarEvent.repeatRule = repeatRule
+				newEvent.repeatRule = repeatRule
 
 				const stopType = neverNull(endTypePickerAttrs.selectedValue())
 				repeatRule.endType = stopType
@@ -238,7 +240,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}
 				} else if (stopType === EndType.UntilDate) {
 					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
-					if (repeatEndDate.getTime() < getEventStart(calendarEvent)) {
+					if (repeatEndDate.getTime() < getEventStart(newEvent)) {
 						Dialog.error("startAfterEnd_label")
 						return
 					} else {
@@ -250,53 +252,22 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}
 				}
 			}
-			const alarmInterval = alarmPickerAttrs.selectedValue()
+			const alarmValue = alarmPickerAttrs.selectedValue()
+			const newAlarm = alarmValue
+				&& createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+			worker.createCalendarEvent(groupRoot, newEvent, newAlarm, existingEvent, loadedUserAlarmInfo)
 
-			const alarmInfos = []
-			if (alarmInterval) {
-				calendarEvent.alarmInfo = createCalendarAlarm(generateEventElementId(Date.now()), alarmInterval)
-				alarmInfos.push(toAlarm(calendarEvent.alarmInfo, calendarEvent, OperationType.CREATE))
-			}
-
-			let p = Promise.resolve()
-			if (event) {
-				p = erase(event)
-				if (event.alarmInfo) {
-					alarmInfos.push(toAlarm(event.alarmInfo, event, OperationType.DELETE))
-				}
-			}
-
-			const listId = calendarEvent.repeatRule || isLongEvent(calendarEvent) ? groupRoot.longEvents : groupRoot.shortEvents
-			calendarEvent._id = [listId, generateEventElementId(calendarEvent.startTime.getTime())]
-			p.then(() => setup(listId, calendarEvent))
-			 .then(() => {
-				 if (alarmInfos.length > 0) {
-					 const requestEntity = createAlarmServicePost()
-					 requestEntity.alarmInfos = alarmInfos
-					 requestEntity.group = selectedCalendar().groupRoot._id
-					 serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity)
-				 }
-			 })
 			dialog.close()
 		}
 	})
 }
 
-function createCalendarAlarm(identifier: string, trigger: string): CalendarAlarmInfo {
-	const calendarAlarmInfo = createCalendarAlarmInfo()
+function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
+	const calendarAlarmInfo = createAlarmInfo()
 	calendarAlarmInfo.identifier = identifier
 	calendarAlarmInfo.trigger = trigger
 	return calendarAlarmInfo
 }
-
-function toAlarm(calendarAlarmInfo: CalendarAlarmInfo, calendarEvent: CalendarEvent, operation: OperationTypeEnum): AlarmInfo {
-	const alarmInfo = createAlarmInfo()
-	alarmInfo.identifier = calendarAlarmInfo.identifier
-	alarmInfo.operation = operation
-	alarmInfo.trigger = decrementByAlarmInterval(getEventStart(calendarEvent), downcast(calendarAlarmInfo.trigger))
-	return alarmInfo
-}
-
 
 const repeatValues = [
 	{name: "Do not repeat", value: null},

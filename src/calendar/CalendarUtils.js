@@ -2,36 +2,19 @@
 import {stringToCustomId} from "../api/common/EntityFunctions"
 import {DAY_IN_MILLIS, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import {createRepeatRule} from "../api/entities/tutanota/RepeatRule"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {formatWeekdayShort} from "../misc/Formatter"
 import {clone} from "../api/common/utils/Utils"
+import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
+import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
-const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
 export type CalendarMonthTimeRange = {
 	start: Date,
 	end: Date
 }
 
-
-export function generateEventElementId(timestamp: number): string {
-	const randomDay = Math.floor((Math.random() * DAYS_SHIFTED_MS)) * 2
-	return createEventElementId(timestamp, randomDay - DAYS_SHIFTED_MS)
-}
-
-function createEventElementId(timestamp: number, shiftDays: number): string {
-	return stringToCustomId(String(timestamp + shiftDays))
-}
-
-export function geEventElementMaxId(timestamp: number): string {
-	return createEventElementId(timestamp, DAYS_SHIFTED_MS)
-}
-
-export function getEventElementMinId(timestamp: number): string {
-	return createEventElementId(timestamp, -DAYS_SHIFTED_MS)
-}
 
 export function eventStartsBefore(currentDate: Date, event: CalendarEvent): boolean {
 	return getEventStart(event).getTime() < currentDate.getTime()
@@ -59,40 +42,11 @@ export function timeString(date: Date): string {
 	return hours + ":" + minutes
 }
 
-export function getEventEnd(event: CalendarEvent): Date {
-	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.endTime)
-	} else {
-		return event.endTime
-	}
-}
-
-export function getEventStart(event: CalendarEvent): Date {
-	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.startTime)
-	} else {
-		return event.startTime
-	}
-}
 
 export function getAllDayDateUTC(localDate: Date): Date {
 	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
 }
 
-export function getAllDayDateLocal(utcDate: Date, timezone?: string): Date {
-	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 0, 0, 0, 0)
-}
-
-
-export function isAllDayEvent(event: CalendarEvent): boolean {
-	const {startTime, endTime} = event
-	return startTime.getUTCHours() === 0 && startTime.getUTCMinutes() === 0 && startTime.getUTCSeconds() === 0
-		&& endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0
-}
-
-export function isLongEvent(event: CalendarEvent): boolean {
-	return getEventEnd(event).getTime() - getEventStart(event).getTime() > DAYS_SHIFTED_MS
-}
 
 export function getMonth(date: Date): CalendarMonthTimeRange {
 	const start = new Date(date)
@@ -104,8 +58,8 @@ export function getMonth(date: Date): CalendarMonthTimeRange {
 }
 
 
-export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): RepeatRule {
-	const rule = createRepeatRule()
+export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): CalendarRepeatRule {
+	const rule = createCalendarRepeatRule()
 	rule.timeZone = DateTime.local().zoneName
 	rule.frequency = frequency
 	rule.interval = String(interval)

@@ -6,13 +6,14 @@ import {px, size} from "../gui/size"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getEventEnd, getEventStart, isAllDayEvent, layOutEvents} from "./CalendarUtils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithYear} from "../misc/Formatter"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, layOutEvents} from "./CalendarUtils"
+import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Stream<Date>,

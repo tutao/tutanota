@@ -17,6 +17,7 @@ import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
+import {resolveSessionKey} from "./crypto/CryptoFacade"
 
 assertWorkerOrNode()
 
@@ -274,7 +275,14 @@ export class WorkerImpl {
 			resetSecondFactors: (message: Request) => {
 				return locator.login.resetSecondFactors.apply(locator.login, message.args)
 			},
-			resetSession: () => locator.login.reset()
+			resetSession: () => locator.login.reset(),
+			createCalendarEvent: (message: Request) => {
+				return locator.calendar.createCalendarEvent.apply(locator.calendar, message.args)
+			},
+			resolveSessionKey: (message: Request) => {
+				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
+			}
+
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

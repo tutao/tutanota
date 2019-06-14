@@ -20,7 +20,6 @@ import {defaultCalendarColor, OperationType} from "../api/common/TutanotaConstan
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {geEventElementMaxId, getEventElementMinId, getEventStart, getMonth} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -30,6 +29,8 @@ import {formatDateWithWeekday, formatMonthWithYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
+import {geEventElementMaxId, getEventElementMinId, getEventStart} from "../api/common/utils/CommonCalendarUtils"
+import {getMonth} from "./CalendarUtils"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,

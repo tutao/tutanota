@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +36,8 @@ public final class Native {
     private static final String JS_NAME = "nativeApp";
     private final static String TAG = "Native";
 
-    static int requestId = 0;
+    private static int requestId = 0;
+    private final AndroidKeyStoreFacade keyStoreFacade;
     private Crypto crypto;
     private FileUtil files;
     private Contact contact;
@@ -53,6 +53,7 @@ public final class Native {
         contact = new Contact(activity);
         files = new FileUtil(activity);
         sseStorage = new SseStorage(activity);
+        keyStoreFacade = new AndroidKeyStoreFacade(activity);
     }
 
     public void setup() {
@@ -219,8 +220,10 @@ public final class Native {
                     promise.resolve(sseStorage.getPushIdentifier());
                     break;
                 case "storePushIdentifierLocally":
+                    String pushIdentifierSessionKeyB64 = args.getString(4);
+                    String deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
                     sseStorage.storePushIdentifier(args.getString(0), args.getString(1),
-                            args.getString(2));
+                            args.getString(2), args.getString(3), deviceEncSessionKey);
                     promise.resolve(true);
                     break;
                 case "closePushNotifications":
