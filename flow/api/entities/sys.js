@@ -1603,7 +1603,7 @@ type NotificationMailTemplate = {
 type AlarmInfo = {
 	_type: TypeRef<AlarmInfo>;
 	_id: Id;
-	identifier: string;
+	alarmIdentifier: string;
 	trigger: string;
 
 }
@@ -1654,7 +1654,7 @@ type AlarmNotification = {
 	summary: string;
 
 	alarmInfo: AlarmInfo;
-	deviceSessionKeys: NotificationSessionKey[];
+	notificationSessionKeys: NotificationSessionKey[];
 	repeatRule: ?RepeatRule;
 }
 

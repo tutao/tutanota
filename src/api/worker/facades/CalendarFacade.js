@@ -5,11 +5,11 @@ import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull} from "../../common/utils/Utils"
-import {findAllAndRemove, removeAll} from "../../common/utils/ArrayUtils"
-import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
-import {generateEventElementId, getEventStart, isLongEvent} from "../../common/utils/CommonCalendarUtils"
+import {findAllAndRemove} from "../../common/utils/ArrayUtils"
+import {HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
+import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
 import {loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
-import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
+import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
@@ -17,8 +17,6 @@ import {aes128RandomKey} from "../crypto/Aes"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
 import {OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import {_TypeModel as PushIdentifierTypeModel} from "../../entities/sys/PushIdentifier"
-import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
 
 assertWorkerOrNode()
 
@@ -44,7 +42,7 @@ export class CalendarFacade {
 					const alarmNotification = Object.assign(createAlarmNotification(), {
 						alarmInfo: oldUserAlarmInfo.alarmInfo,
 						repeatRule: null,
-						deviceSessionKeys: [],
+						notificationSessionKeys: [],
 						operation: OperationType.DELETE
 					})
 
@@ -63,7 +61,7 @@ export class CalendarFacade {
 					const alarmNotification = Object.assign(createAlarmNotification(), {
 						alarmInfo,
 						repeatRule: event.repeatRule,
-						deviceSessionKeys: [],
+						notificationSessionKeys: [],
 						operation: OperationType.CREATE,
 						summary: event.summary,
 						eventStart: event.startTime
@@ -103,7 +101,7 @@ export class CalendarFacade {
 					.then(maybeEncSessionKeys => {
 						const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
 						for (let notification of alarmNotifications) {
-							notification.deviceSessionKeys = encSessionKeys.map(esk => {
+							notification.notificationSessionKeys = encSessionKeys.map(esk => {
 								return Object.assign(createNotificationSessionKey(), {
 									pushIdentifier: esk.identifierId,
 									pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey

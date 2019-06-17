@@ -8,7 +8,6 @@ export const TutanotaService = {
 	PasswordRetrievalService: "passwordretrievalservice",
 	PasswordChannelResource: "passwordchannelresource",
 	FileDataService: "filedataservice",
-	CreateFileService: "createfileservice",
 	MoveMailService: "movemailservice",
 	MailFolderService: "mailfolderservice",
 	EncryptTutanotaPropertiesService: "encrypttutanotapropertiesservice",

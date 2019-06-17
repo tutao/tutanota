@@ -22,7 +22,7 @@ import {numberRange} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
-import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString} from "./CalendarUtils"
@@ -264,7 +264,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 	const calendarAlarmInfo = createAlarmInfo()
-	calendarAlarmInfo.identifier = identifier
+	calendarAlarmInfo.alarmIdentifier = identifier
 	calendarAlarmInfo.trigger = trigger
 	return calendarAlarmInfo
 }

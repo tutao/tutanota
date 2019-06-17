@@ -6,7 +6,6 @@ type TutanotaServiceEnum =
 	| "passwordretrievalservice"
 	| "passwordchannelresource"
 	| "filedataservice"
-	| "createfileservice"
 	| "movemailservice"
 	| "mailfolderservice"
 	| "encrypttutanotapropertiesservice"

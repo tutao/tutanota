@@ -27,8 +27,8 @@ export const _TypeModel: TypeModel = {
 			"refType": "AlarmInfo",
 			"final": true
 		},
-		"deviceSessionKeys": {
-			"name": "deviceSessionKeys",
+		"notificationSessionKeys": {
+			"name": "notificationSessionKeys",
 			"id": 1559,
 			"since": 47,
 			"type": "AGGREGATION",

@@ -421,14 +421,6 @@ type CreateFileData = {
 	parentFolder: ?IdTuple;
 }
 
-type CreateFileReturn = {
-	_type: TypeRef<CreateFileReturn>;
-	_errors: Object;
-	_format: NumberString;
-
-	file: IdTuple;
-}
-
 type DeleteMailData = {
 	_type: TypeRef<DeleteMailData>;
 	_format: NumberString;
@@ -1051,4 +1043,23 @@ type CalendarGroupData = {
 	ownerEncGroupInfoSessionKey: Uint8Array;
 	userEncGroupKey: ?Uint8Array;
 
+}
+
+type GroupColor = {
+	_type: TypeRef<GroupColor>;
+	_id: Id;
+	color: string;
+
+}
+
+type UserSettingsGroupRoot = {
+	_type: TypeRef<UserSettingsGroupRoot>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	calendarColors: GroupColor[];
 }
