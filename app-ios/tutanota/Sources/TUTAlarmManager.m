@@ -9,29 +9,48 @@
 #import "TUTAlarmManager.h"
 #import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTErrorFactory.h"
+#import "Keychain/TUTKeychainManager.h"
 
 #import "Swiftier.h"
 #import "PSPDFFastEnumeration.h"
 
 #import <UserNotifications/UserNotifications.h>
 
+#import  "Alarms/TUTMissedNotification.h"
+#import "Crypto/TUTAes128Facade.h"
+#import "Keychain/TUTKeychainManager.h"
+
+@interface TUTAlarmManager ()
+@property (nonnull, readonly) TUTKeychainManager *keychainManager;
+@end
+
 @implementation TUTAlarmManager
-- (void)scheduleAlarmsFromAlarmInfos:(NSArray<NSDictionary *> *)alarmInfos completionsHandler:(void(^)(void))completionHandler {
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _keychainManager = [TUTKeychainManager new];
+    }
+    return self;
+}
+
+
+- (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler {
     dispatch_group_t group = dispatch_group_create();
     
-    foreach(alarmInfo, (NSArray<NSDictionary *> *) alarmInfos) {
-        dispatch_group_enter(group);
-        [TUTAlarmManager scheduleLocalAlarm:alarmInfo handler: ^(NSError * _Nullable error) {
-            if (error) {
-                NSLog(@"schedule error %@", error);
-                completionHandler();
-            } else {
-                NSLog(@"schedule success");
-                
-            }
-            dispatch_group_leave(group);
-        }];
-        
+    foreach(alarmNotification, notificaiton.alarmNotifications) {
+            dispatch_group_enter(group);
+            [self scheduleLocalAlarm:alarmNotification handler: ^(NSError * _Nullable error) {
+                if (error) {
+                    NSLog(@"schedule error %@", error);
+                    completionHandler();
+                } else {
+                    NSLog(@"schedule success");
+                    
+                }
+                dispatch_group_leave(group);
+            }];
     }
     
     dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),^{
@@ -110,18 +129,36 @@
     return [NSString stringWithFormat:@"%@/rest/sys/missednotification/A/%@", origin, base64urlId];
 }
 
-+ (void) scheduleLocalAlarm:(NSDictionary*)alarmInfo handler:(nullable void(^)(NSError *__nullable error))completionHandler {
-    NSLog(@"Alarm info: %@", alarmInfo);
-    NSString *identifier = alarmInfo[@"identifier"];
+- (void) scheduleLocalAlarm:(TUTAlarmNotification*)alarmNotification handler:(nullable void(^)(NSError *__nullable error))completionHandler {
+    NSLog(@"Alarm notification: %@", alarmNotification);
     let notificationCenter = UNUserNotificationCenter.currentNotificationCenter;
     
-    if ([@"0" isEqualToString:alarmInfo[@"operation"]] ) { // create
-        let trigger = ((NSString *) alarmInfo[@"trigger"]).longLongValue;
-        let date = [NSDate dateWithTimeIntervalSince1970:trigger / 1000];
+    var sessionKey = [self resolveSessionKey:alarmNotification];
+    if (!sessionKey){
+        completionHandler([TUTErrorFactory createError:@"cannot resolve session key"]);
+        return;
+    }
+    
+    NSError *error;
+    let identifier = [alarmNotification.alarmInfo getAlarmIdentifierDec:sessionKey error:&error];
+    if (error) {
+        completionHandler(error);
+        return;
+    }
+    
+    if ([@"0" isEqualToString:alarmNotification.operation] ) { // create
+        let trigger = [alarmNotification.alarmInfo getTriggerDec:sessionKey error:&error];
+        let eventTime = [alarmNotification getEventStartDec:sessionKey error:&error];
+        if (error) {
+            completionHandler(error);
+            return;
+        }
+        let alarmTime = [self getAlarmTimeWithTrigger:trigger eventTime:eventTime];
+        
         unsigned unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute;
         
         let cal = [NSCalendar currentCalendar];
-        let dateComponents = [cal components:unitFlags fromDate:date];
+        let dateComponents = [cal components:unitFlags fromDate:alarmTime];
         let notificationTrigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:dateComponents repeats:NO];
         
         let content = [UNMutableNotificationContent new];
@@ -131,15 +168,56 @@
         
         // Create the request
         let request = [UNNotificationRequest requestWithIdentifier:identifier content:content trigger:notificationTrigger];
-        
         // Schedule the request with the system.
         NSLog(@"Scheduling a notification %@ at: %@", identifier, dateComponents);
         [notificationCenter addNotificationRequest:request withCompletionHandler:completionHandler];
-    } else if( [@"2" isEqualToString:alarmInfo[@"operation"]] ) { // delete
+    } else if( [@"2" isEqualToString:alarmNotification.operation] ) { // delete
         NSLog(@"Cancelling a notification %@", identifier);
         [notificationCenter removePendingNotificationRequestsWithIdentifiers:@[identifier]];
         completionHandler(nil);
     }
+}
+
+- (NSDate *)getAlarmTimeWithTrigger:(NSString*)alarmTrigger eventTime:(NSDate *)eventTime {
+    let cal = [NSCalendar currentCalendar];
+    if( [@"5M" isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitMinute value:5 toDate:eventTime options:0];
+    } else if( [@"10M" isEqualToString:alarmTrigger] ){
+        return [cal dateByAddingUnit:NSCalendarUnitMinute value:10 toDate:eventTime options:0];
+    } else if([@"30M"isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitMinute value:30 toDate:eventTime options:0];
+    } else if([@"1H" isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitHour value:1 toDate:eventTime options:0];
+    } else if([@"1D" isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitDay value:1 toDate:eventTime options:0];
+    } else if([@"2D"isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitDay value:2 toDate:eventTime options:0];
+    } else if([@"3D"isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitDay value:3 toDate:eventTime options:0];
+    } else if([@"1W"isEqualToString:alarmTrigger]){
+        return [cal dateByAddingUnit:NSCalendarUnitWeekOfYear value:1 toDate:eventTime options:0];
+    } else {
+        return eventTime;
+    }
+}
+
+-(NSData *_Nullable)resolveSessionKey:(TUTAlarmNotification *)alarmNotification {
+    foreach(notificationSessionKey, alarmNotification.notificationSessionKeys) {
+        NSError *error;
+        let pushIdentifierSessionSessionKey = [_keychainManager getKeyWithError:notificationSessionKey.pushIdentifier.elementId error:&error];
+        if (error) {
+            NSLog(@"Failed to retrieve key %@ %@", notificationSessionKey.pushIdentifier.elementId, error);
+        } else if (pushIdentifierSessionSessionKey) {
+            var encSessionKey = [TUTEncodingConverter base64ToBytes:notificationSessionKey.pushIdentifierSessionEncSessionKey];
+            var sessionKey = [TUTAes128Facade decryptKey:encSessionKey
+                                      withEncryptionKey:pushIdentifierSessionSessionKey error:&error];
+            if (error){
+                NSLog(@"Failed to decrypt key %@ %@", notificationSessionKey.pushIdentifier.elementId, error);
+            }
+            return sessionKey;
+        }
+    }
+    return nil;
 }
                          
 @end

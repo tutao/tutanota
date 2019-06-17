@@ -9,13 +9,22 @@
 #import <Foundation/Foundation.h>
 
 #import "Utils/TUTSseInfo.h"
+#import "Alarms/TUTMissedNotification.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void (^NotificationLoadingCompletionHandler)(NSDictionary<NSString *, id> *_Nullable dict, NSError *_Nullable err);
 
+typedef NS_ENUM(NSUInteger, ShapeType) {
+
+    kCircle,
+    kRectangle,
+    kOblateSpheroid
+};
+
+
 @interface TUTAlarmManager : NSObject
-- (void)scheduleAlarmsFromAlarmInfos:(NSArray<NSDictionary *> *)alarmInfos completionsHandler:(void(^)(void))completionHandler;
+- (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler;
 - (void)sendConfirmationForIdentifier:(NSString *)identifier
                        confirmationId:(NSString *)confirmationId
                                origin:(NSString *)origin

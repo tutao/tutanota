@@ -100,14 +100,18 @@
         NSLog(@"No stored SSE info");
         return;
     }
-    [_alarmManager scheduleAlarmsFromAlarmInfos:apsDict[@"alarmInfos"] completionsHandler:^{
-        [self->_alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
-                                      confirmationId:apsDict[@"confirmationId"]
-                                              origin:sseInfo.sseOrigin
-                                   completionHandler:^{
-                                       completionHandler(UIBackgroundFetchResultNewData);
-                                   }];
-    }];
+    let missedNotifiction = [TUTMissedNotification fromJSON:apsDict];
+    if (missedNotifiction) {
+        [ _alarmManager scheduleAlarms:missedNotifiction completionsHandler:^{
+            [self->_alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
+                                                confirmationId:apsDict[@"confirmationId"]
+                                                        origin:sseInfo.sseOrigin
+                                             completionHandler:^{
+                                                 completionHandler(UIBackgroundFetchResultNewData);
+                                             }];
+        }];
+    }
+    
 }
 
 

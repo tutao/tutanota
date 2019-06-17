@@ -19,6 +19,7 @@
 #import "TUTEncodingConverter.h"
 #import "TUTSseStorage.h"
 #import "TUTAlarmManager.h"
+#import "Keychain/TUTKeychainManager.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -27,6 +28,8 @@
 
 // Runtime magic
 #import <objc/message.h>
+
+#import "Alarms/TUTMissedNotification.h"
 
 typedef void(^VoidCallback)(void);
 
@@ -42,6 +45,7 @@ typedef void(^VoidCallback)(void);
 @property (nullable) NSString *pushTokenRequestId;
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
+@property (readonly, nonnull) TUTKeychainManager *keychainManager;
 @end
 
 @implementation TUTViewController
@@ -57,6 +61,7 @@ typedef void(^VoidCallback)(void);
 		_keyboardSize = 0;
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
+        _keychainManager = [TUTKeychainManager new];
 	}
 	return self;
 }
@@ -118,10 +123,11 @@ typedef void(^VoidCallback)(void);
             NSLog(@"Error while fetching missed notifications: %@", err);
         } else if (dict) {
             NSLog(@"Loaded missed notifications: %@", dict);
-            [alarmManager scheduleAlarmsFromAlarmInfos:dict[@"alarmInfos"] completionsHandler:^{
+            var notification = [TUTMissedNotification fromJSON: dict];
+            [alarmManager scheduleAlarms:notification completionsHandler:^{
                 [alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
-                                             confirmationId:dict[@"confirmationId"]
-                                                        origin:sseInfo.sseOrigin
+                                             confirmationId:notification.confirmationId
+                                                     origin:sseInfo.sseOrigin
                                           completionHandler:^{}];
             }];
         } else {
@@ -210,8 +216,16 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
         [self.appDelegate registerForPushNotificationsWithCallback:sendResponseBlock];
     } else if ([@"storePushIdentifierLocally" isEqualToString:type]) {
-        // identifier, userid, origin
+        // identifier, userid, origin, pushIdentifierElementId, pushIdentifierSessionKeyB64
         [self.appDelegate.sseStorage storeSseInfoWithPushIdentifier:arguments[0] userId:arguments[1] sseOrign:arguments[2]];
+        let keyData = [TUTEncodingConverter base64ToBytes:arguments[4]];
+        NSError *error;
+        [self.keychainManager storeKey:keyData withId:arguments[3] error:&error];
+        if (error) {
+            [self sendErrorResponseWithId:requestId value:error];
+        } else {
+            [self sendResponseWithId:requestId value:NSNull.null];
+        }
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];

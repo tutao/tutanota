@@ -11,8 +11,10 @@ extern NSInteger const TUTAO_IV_BYTE_SIZE;
 
 @interface TUTAes128Facade : NSObject
 
-- (NSData*)encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error;
-- (NSData*)decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error;
++ (NSData *)encrypt:(NSData*)plainText withKey:(NSData*)key withIv:(NSData*)iv withMac:(BOOL)useMac error:(NSError**)error;
++ (NSData *)decrypt:(NSData*)encryptedData withKey:(NSData*)key error:(NSError**)error;
++ (NSData *)decryptKey:(NSData *)encryptedKey withEncryptionKey:(NSData *)encryptionKey error:(NSError**)error;
++ (NSString *)decryptBase64String:(NSString *)string encryptionKey:(NSData *)encryptionKey error:(NSError **)error;
 @end
 
 

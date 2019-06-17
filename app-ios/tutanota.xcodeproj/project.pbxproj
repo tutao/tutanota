@@ -8,10 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */; };
+		3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
+		3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
+		3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */; };
+		3D57BEBF22B7979D00205B1B /* TUTIdTuple.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */; };
+		3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */; };
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
 		3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */; };
+		3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
@@ -117,12 +123,24 @@
 		3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseStorage.m; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
+		3D57BEB422B796CD00205B1B /* TUTMissedNotification.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTMissedNotification.h; sourceTree = "<group>"; };
+		3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTMissedNotification.m; sourceTree = "<group>"; };
+		3D57BEB722B796DD00205B1B /* TUTAlarmInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmInfo.h; sourceTree = "<group>"; };
+		3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmInfo.m; sourceTree = "<group>"; };
+		3D57BEBA22B7976200205B1B /* TUTNotificationSessionKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTNotificationSessionKey.h; sourceTree = "<group>"; };
+		3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTNotificationSessionKey.m; sourceTree = "<group>"; };
+		3D57BEBD22B7979D00205B1B /* TUTIdTuple.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTIdTuple.h; sourceTree = "<group>"; };
+		3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTIdTuple.m; sourceTree = "<group>"; };
+		3D57BEC022B79C4D00205B1B /* TUTAlarmNotification.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmNotification.h; sourceTree = "<group>"; };
+		3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmNotification.m; sourceTree = "<group>"; };
 		3D652B5720F8DC1500DF9962 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; name = build; path = ../../build; sourceTree = "<group>"; };
 		3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTFontIconFactory.h; sourceTree = "<group>"; };
 		3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTFontIconFactory.m; sourceTree = "<group>"; };
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D6C6D0222AF9BD100289576 /* TUTSseInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSseInfo.h; sourceTree = "<group>"; };
 		3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseInfo.m; sourceTree = "<group>"; };
+		3D6C6D0622B7709A00289576 /* TUTKeychainManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTKeychainManager.h; sourceTree = "<group>"; };
+		3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTKeychainManager.m; sourceTree = "<group>"; };
 		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
@@ -253,9 +271,37 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D57BEB322B796AC00205B1B /* Alarms */ = {
+			isa = PBXGroup;
+			children = (
+				3D57BEB422B796CD00205B1B /* TUTMissedNotification.h */,
+				3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */,
+				3D57BEB722B796DD00205B1B /* TUTAlarmInfo.h */,
+				3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */,
+				3D57BEBA22B7976200205B1B /* TUTNotificationSessionKey.h */,
+				3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */,
+				3D57BEBD22B7979D00205B1B /* TUTIdTuple.h */,
+				3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */,
+				3D57BEC022B79C4D00205B1B /* TUTAlarmNotification.h */,
+				3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */,
+			);
+			path = Alarms;
+			sourceTree = "<group>";
+		};
+		3D6C6D0522B7707B00289576 /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				3D6C6D0622B7709A00289576 /* TUTKeychainManager.h */,
+				3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */,
+			);
+			path = Keychain;
+			sourceTree = "<group>";
+		};
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D57BEB322B796AC00205B1B /* Alarms */,
+				3D6C6D0522B7707B00289576 /* Keychain */,
 				3D7453682108A0CE00B16F2E /* Contacts */,
 				3D74536421089DA300B16F2E /* Utils */,
 				3D74536321089D8100B16F2E /* Files */,
@@ -1238,13 +1284,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */,
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
 				3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */,
 				3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */,
+				3D57BEBF22B7979D00205B1B /* TUTIdTuple.m in Sources */,
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
+				3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
+				3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
@@ -1253,8 +1303,10 @@
 				3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */,
+				3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */,
+				3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
 				3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */,
 			);
