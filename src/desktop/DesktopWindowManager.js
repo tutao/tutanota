@@ -86,6 +86,14 @@ export class WindowManager {
 		return w
 	}
 
+	hide() {
+		if (process.platform === 'darwin') {
+			app.hide() // hide all windows & give active app status to previous app
+		} else {
+			windows.forEach(w => w.hide())
+		}
+	}
+
 	getIcon(): NativeImage {
 		return DesktopTray.getIcon(this._conf.get('iconName'))
 	}

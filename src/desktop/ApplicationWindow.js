@@ -145,7 +145,7 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => wm.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
 		localShortcut.register(this._browserWindow, 'Alt+Left', () => this._browserWindow.webContents.goBack())
 		localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
@@ -272,8 +272,8 @@ export class ApplicationWindow {
 		this._setBoundsTimeout = setTimeout(() => {
 			const newRect = this._browserWindow.getBounds()
 			if (bounds.rect.y !== newRect.y) {
-				// window was moved by the OS, so we move it back twice the distance.
-				// should end up right where we want it.
+				// window was moved by some bug/OS interaction, so we move it back twice the distance.
+				// should end up right where we want it. https://github.com/electron/electron/issues/10388
 				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
 			}
 		}, 200)
