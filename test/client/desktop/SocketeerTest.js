@@ -2,7 +2,7 @@
 import n from "../nodemocker"
 import o from "ospec/ospec.js"
 
-o.spec("Desktop Notifier Test", (done, timeout) => {
+o.spec("Socketeer Test", (done, timeout) => {
 	n.startGroup(__filename, [
 		'../api/common/utils/Utils',
 		'../TutanotaConstants',
