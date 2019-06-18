@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D20B36322B8D61600472D12 /* TUTRepeatRule.m */; };
 		3D3697D722AA8CE9007F0A83 /* TUTSseStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */; };
 		3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
 		3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
@@ -119,6 +120,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3D20B36222B8D61600472D12 /* TUTRepeatRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTRepeatRule.h; sourceTree = "<group>"; };
+		3D20B36322B8D61600472D12 /* TUTRepeatRule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTRepeatRule.m; sourceTree = "<group>"; };
 		3D3697D522AA8CE9007F0A83 /* TUTSseStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSseStorage.h; sourceTree = "<group>"; };
 		3D3697D622AA8CE9007F0A83 /* TUTSseStorage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseStorage.m; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
@@ -284,6 +287,8 @@
 				3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */,
 				3D57BEC022B79C4D00205B1B /* TUTAlarmNotification.h */,
 				3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */,
+				3D20B36222B8D61600472D12 /* TUTRepeatRule.h */,
+				3D20B36322B8D61600472D12 /* TUTRepeatRule.m */,
 			);
 			path = Alarms;
 			sourceTree = "<group>";
@@ -1292,6 +1297,7 @@
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
 				3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
+				3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
 				3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */,

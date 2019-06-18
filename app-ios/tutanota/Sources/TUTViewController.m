@@ -118,22 +118,7 @@ typedef void(^VoidCallback)(void);
         return;
     }
     let alarmManager = self.appDelegate.alarmManager;
-    [alarmManager fetchMissedNotificationsForSSEInfo:sseInfo completionHandler:^(NSDictionary<NSString *,id> * _Nullable dict, NSError * _Nullable err) {
-        if (err) {
-            NSLog(@"Error while fetching missed notifications: %@", err);
-        } else if (dict) {
-            NSLog(@"Loaded missed notifications: %@", dict);
-            var notification = [TUTMissedNotification fromJSON: dict];
-            [alarmManager scheduleAlarms:notification completionsHandler:^{
-                [alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
-                                             confirmationId:notification.confirmationId
-                                                     origin:sseInfo.sseOrigin
-                                          completionHandler:^{}];
-            }];
-        } else {
-            NSLog(@"No missed notifications");
-        }
-    }];
+    [alarmManager fetchMissedNotificationsForSSEInfo:sseInfo completionHandler:^{}];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {

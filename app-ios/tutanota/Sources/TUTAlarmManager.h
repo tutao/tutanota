@@ -13,8 +13,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^NotificationLoadingCompletionHandler)(NSDictionary<NSString *, id> *_Nullable dict, NSError *_Nullable err);
-
 typedef NS_ENUM(NSUInteger, ShapeType) {
 
     kCircle,
@@ -30,7 +28,7 @@ typedef NS_ENUM(NSUInteger, ShapeType) {
                                origin:(NSString *)origin
                     completionHandler:(void (^)(void))completionHandler;
 - (void)fetchMissedNotificationsForSSEInfo:(TUTSseInfo *)sseInfo
-                         completionHandler:(NotificationLoadingCompletionHandler)completionHandler;
+                         completionHandler:(void(^)(void))completionHandler;
 
 @end
 

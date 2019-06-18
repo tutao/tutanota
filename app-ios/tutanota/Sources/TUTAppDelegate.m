@@ -17,10 +17,10 @@
 @interface TUTAppDelegate ()
 @property TUTViewController *viewController;
 @property void (^ _Nonnull pushTokenCallback)(NSString *token, NSError *error);
+@property NSURLSession *urlSession;
 @end
 
 @implementation TUTAppDelegate
-
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     NSLog(@"start tutanota %@", launchOptions);
@@ -28,11 +28,11 @@
     _window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     _viewController = [TUTViewController new];
     _window.rootViewController = _viewController;
-    [_window makeKeyAndVisible];
     _alarmManager = [TUTAlarmManager new];
     _sseStorage = [TUTSseStorage new];
     UNUserNotificationCenter.currentNotificationCenter.delegate = self;
     
+    [_window makeKeyAndVisible];
     return YES;
 }
 
@@ -100,18 +100,12 @@
         NSLog(@"No stored SSE info");
         return;
     }
-    let missedNotifiction = [TUTMissedNotification fromJSON:apsDict];
-    if (missedNotifiction) {
-        [ _alarmManager scheduleAlarms:missedNotifiction completionsHandler:^{
-            [self->_alarmManager sendConfirmationForIdentifier:sseInfo.pushIdentifier
-                                                confirmationId:apsDict[@"confirmationId"]
-                                                        origin:sseInfo.sseOrigin
-                                             completionHandler:^{
-                                                 completionHandler(UIBackgroundFetchResultNewData);
-                                             }];
-        }];
-    }
     
+    // TODO: check if we receive normal notifications here as well when we are in foreground
+    
+    [_alarmManager fetchMissedNotificationsForSSEInfo:sseInfo completionHandler:^{
+        completionHandler(UIBackgroundFetchResultNewData);
+    }];
 }
 
 

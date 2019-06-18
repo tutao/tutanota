@@ -17,29 +17,38 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
 @implementation TUTKeychainManager
 
 - (void)storeKey:(NSData *)key withId:(NSString *)keyId error:(NSError **)error {
-    let keyTag = [NSString stringWithFormat:@"%@%@", tag, keyId];
-    let tagData = [keyTag dataUsingEncoding:NSUTF8StringEncoding];
-    NSLog(@"Adding key with tag: %@, %@", keyTag, tagData);
+    let keyTag = [self keyTagFromKeyId:keyId];
     NSDictionary* addquery = @{
                                (id)kSecValueData:key,
                                (id)kSecClass:(id)kSecClassKey,
-                               (id)kSecAttrApplicationTag:tagData,
+                               (id)kSecAttrApplicationTag:keyTag,
                                };
     
-    OSStatus status = SecItemAdd((__bridge CFDictionaryRef)addquery, NULL);
+    NSError *getKeyError;
+    let existingKey = [self getKeyWithError:keyId error:&getKeyError];
+    
+    OSStatus status;
+    if (existingKey) {
+        let updateFields = @{
+                               (id)kSecValueData:key
+                               };
+        status = SecItemUpdate((__bridge CFDictionaryRef)addquery, (__bridge CFDictionaryRef) updateFields);
+    } else {
+        status = SecItemAdd((__bridge CFDictionaryRef)addquery, NULL);
+    }
+    
+    
     if (status != errSecSuccess) {
-        let errorString = [NSString stringWithFormat:@"Could not store the key, status: %zd", status];
+        let errorString = [NSString stringWithFormat:@"Could not store the key, status: %jd", (intmax_t) status];
         *error = [TUTErrorFactory createError:errorString];
         return;
     }
 }
 
-- (NSData * _Nullable)getKeyWithError:(NSString *)keyId error:(NSError **)error {;
-    let keyTag = [NSString stringWithFormat:@"%@%@", tag, keyId];
-    let tagData = [keyTag dataUsingEncoding:NSUTF8StringEncoding];
-    NSLog(@"Getting key with tag: %@, %@", keyTag, tagData);
+- (NSData * _Nullable)getKeyWithError:(NSString *)keyId error:(NSError **)error {
+    let keyTag = [self keyTagFromKeyId:keyId];
     let getquery = @{ (id)kSecClass:(id)kSecClassKey,
-                      (id)kSecAttrApplicationTag:tagData,
+                      (id)kSecAttrApplicationTag:keyTag,
                       (id)kSecReturnData:[NSNumber numberWithBool:YES]
                       };
     
@@ -48,11 +57,18 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
                                           (CFTypeRef *)&key);
     
     if (status != errSecSuccess) {
-        return NULL;
+        *error = [TUTErrorFactory createError:[NSString stringWithFormat:@"Failed to get key %@, status: %jd", keyId, (intmax_t) status]];
+        return nil;
     } else if (key) {
         return (__bridge NSData *)key;
     } else {
-        return NULL;
+        return nil;
     }
 }
+
+-(NSData *)keyTagFromKeyId:(NSString *)keyId {
+    let keyTag = [NSString stringWithFormat:@"%@%@", tag, keyId];
+    return [keyTag dataUsingEncoding:NSUTF8StringEncoding];
+}
+
 @end

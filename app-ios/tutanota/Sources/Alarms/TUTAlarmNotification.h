@@ -10,6 +10,7 @@
 
 #import "TUTAlarmInfo.h"
 #import "TUTNotificationSessionKey.h"
+#import "TUTRepeatRule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -19,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly, nonnull) NSString *eventStart;
 @property (readonly, nonnull) TUTAlarmInfo *alarmInfo;
 @property (readonly, nonnull) NSArray<TUTNotificationSessionKey *> *notificationSessionKeys;
+@property (readonly, nullable) TUTRepeatRule *repeatRule;
 
 -(NSDate * _Nullable)getEventStartDec:(NSData *)sessionKey error:(NSError**) error;
 -(NSString * _Nullable)getSummaryDec:(NSData *)sessionKey error:(NSError**) error;

@@ -21,6 +21,7 @@
                        eventStart:(NSString *)eventStart
                         alarmInfo:(TUTAlarmInfo *)alarmInfo
           notificationSessionKeys:(NSArray<TUTNotificationSessionKey *> *) notificationSessionKeys
+                       repeatRule:(TUTRepeatRule *)repeatRule
 {
     self = [super init];
     _operation = operation;
@@ -28,12 +29,13 @@
     _eventStart = eventStart;
     _alarmInfo = alarmInfo;
     _notificationSessionKeys = notificationSessionKeys;
+    _repeatRule = repeatRule;
     return self;
 }
 
 -(NSDate * _Nullable)getEventStartDec:(NSData *)sessionKey error:(NSError**) error{
     let stringData = [TUTAes128Facade decryptBase64String:_eventStart encryptionKey:sessionKey error:error];
-    return [NSDate dateWithTimeIntervalSince1970:stringData.integerValue];
+    return [NSDate dateWithTimeIntervalSince1970:stringData.integerValue / 1000];
 }
 
 -(NSString * _Nullable)getSummaryDec:(NSData *)sessionKey error:(NSError**) error{
@@ -48,10 +50,16 @@
         [notificationSessionKeys addObject:[TUTNotificationSessionKey fromJSON:sessionKeyJson]];
     }
     
+    TUTRepeatRule *repeatRule;
+    if (![jsonDict[@"repeatRule"] isKindOfClass:NSNull.class]) {
+        repeatRule = [TUTRepeatRule fromJSON:jsonDict[@"repeatRule"]];
+    }
+    
     return [[TUTAlarmNotification alloc] initWithOperation:jsonDict[@"operation"]
                                                    summary:jsonDict[@"summary"]
                                                 eventStart:jsonDict[@"eventStart"]
                                                  alarmInfo:[TUTAlarmInfo fromJSON:jsonDict[@"alarmInfo"]]
-                                   notificationSessionKeys:notificationSessionKeys];
+                                   notificationSessionKeys:notificationSessionKeys
+                                                repeatRule:repeatRule];
 }
 @end
