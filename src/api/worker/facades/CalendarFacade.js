@@ -17,6 +17,7 @@ import {aes128RandomKey} from "../crypto/Aes"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
 import {OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
+import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
 
 assertWorkerOrNode()
 
@@ -38,9 +39,13 @@ export class CalendarFacade {
 			p = erase(oldEvent).then(() => {
 				// delete old alarm
 				if (oldUserAlarmInfo) {
+					// do not use alarmInfo from oldUserAlarmInfo as it might have a cached encrypted value, encrypted with a different session key.
+					const deleteAlarmInfo = createAlarmInfo()
+					deleteAlarmInfo.trigger = oldUserAlarmInfo.alarmInfo.trigger
+					deleteAlarmInfo.alarmIdentifier = oldUserAlarmInfo.alarmInfo.alarmIdentifier
 
 					const alarmNotification = Object.assign(createAlarmNotification(), {
-						alarmInfo: oldUserAlarmInfo.alarmInfo,
+						alarmInfo: deleteAlarmInfo,
 						repeatRule: null,
 						notificationSessionKeys: [],
 						operation: OperationType.DELETE
