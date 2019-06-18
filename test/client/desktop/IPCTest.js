@@ -19,7 +19,6 @@ o.spec("IPC tests", () => {
         './utils/ArrayUtils',
         './Utils',
         './MapUtils',
-        './Utils'
     ])
 
     const electron = {

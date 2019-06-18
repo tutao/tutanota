@@ -30,6 +30,7 @@ node(() => {
     require("./desktop/DesktopSseClientTest.js")
     require("./desktop/DesktopDownloadManagerTest.js")
     require("./desktop/IPCTest.js")
+    require("./desktop/SocketeerTest.js")
 })()
 
 o.run()

@@ -4,7 +4,7 @@ import net from 'net'
 import {app} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
 
-const socketPath = '/tmp/tutadb.sock'
+const SOCKET_PATH = '/tmp/tutadb.sock'
 
 /**
  * this is used to control our administration tool
@@ -46,14 +46,14 @@ export class Socketeer {
 				console.log('Socket in use, retrying...')
 				setTimeout(() => {
 					neverNull(this._server).close()
-					neverNull(this._server).listen(socketPath)
+					neverNull(this._server).listen(SOCKET_PATH)
 				}, 1000)
 			}
 		}).on('close', () => {
 			this._server = null
 		})
 
-		this._server.listen(socketPath)
+		this._server.listen(SOCKET_PATH)
 	}
 
 	sendSocketMessage(msg: any) {
@@ -67,26 +67,31 @@ export class Socketeer {
 			return
 		}
 		this._connection = net
-			.createConnection(socketPath)
+			.createConnection(SOCKET_PATH)
 			.on('connect', () => {
 				console.log('socket connected')
-			}).on('close', hadError => {
-				if (hadError) { // try reconnecting
-					setTimeout(() => {
-						this._connection = null
-						this.startClient(ondata)
-					}, 1000)
+			})
+			.on('close', hadError => {
+				if (hadError) {
+					this._tryReconnect(ondata)
 				}
-			}).on('end', () => {
+			})
+			.on('end', () => {
 				console.log("socket disconnected")
-				this._connection = null
-				setTimeout(() => {
-					this.startClient(ondata)
-				}, 1000)
-			}).on('error', e => {
+				this._tryReconnect(ondata)
+			})
+			.on('error', e => {
 				if (e.code !== 'ENOENT') {
 					console.error("Unexpected Socket Error:", e)
 				}
-			}).on('data', ondata)
+			})
+			.on('data', ondata)
+	}
+
+	_tryReconnect(ondata: (string)=>void): void {
+		this._connection = null
+		setTimeout(() => {
+			this.startClient(ondata)
+		}, 1000)
 	}
 }
