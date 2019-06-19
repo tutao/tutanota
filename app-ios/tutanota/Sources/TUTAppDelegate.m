@@ -12,7 +12,7 @@
 #import "TUTAppDelegate.h"
 #import "TUTViewController.h"
 #import "TUTAlarmManager.h"
-#import "Utils/TUTSseStorage.h"
+#import "Utils/TUTUserPreferenceFacade.h"
 
 @interface TUTAppDelegate ()
 @property TUTViewController *viewController;
@@ -28,8 +28,8 @@
     _window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     _viewController = [TUTViewController new];
     _window.rootViewController = _viewController;
-    _alarmManager = [TUTAlarmManager new];
-    _sseStorage = [TUTSseStorage new];
+    _userPreferences = [TUTUserPreferenceFacade new];
+    _alarmManager = [[TUTAlarmManager alloc] initWithUserPreferences:_userPreferences];
     UNUserNotificationCenter.currentNotificationCenter.delegate = self;
     
     [_window makeKeyAndVisible];
@@ -94,16 +94,9 @@
     let apsDict = (NSDictionary *) userInfo[@"aps"];
     NSLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
-    
-    let sseInfo = [_sseStorage getSseInfo];
-    if (!sseInfo) {
-        NSLog(@"No stored SSE info");
-        return;
-    }
-    
     // TODO: check if we receive normal notifications here as well when we are in foreground
     
-    [_alarmManager fetchMissedNotificationsForSSEInfo:sseInfo completionHandler:^{
+    [_alarmManager fetchMissedNotifications:^{
         completionHandler(UIBackgroundFetchResultNewData);
     }];
 }

@@ -968,5 +968,6 @@ module.exports = {
 		"timeFormatInvalid_msg": "Ungültiges Zeitformat",
 		"invalidInterval_msg": "Ungültiges Intervall",
 		"interval_title": "Intervall",
+		"calendarAlarm_title" : "Kalender Erinnerung"
 	}
 }

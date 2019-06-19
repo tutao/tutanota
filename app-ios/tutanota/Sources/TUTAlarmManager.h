@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "Utils/TUTSseInfo.h"
+#import "Utils/TUTUserPreferenceFacade.h"
 #import "Alarms/TUTMissedNotification.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -22,13 +23,14 @@ typedef NS_ENUM(NSUInteger, ShapeType) {
 
 
 @interface TUTAlarmManager : NSObject
+- (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *) userPref;
 - (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler;
 - (void)sendConfirmationForIdentifier:(NSString *)identifier
                        confirmationId:(NSString *)confirmationId
                                origin:(NSString *)origin
                     completionHandler:(void (^)(void))completionHandler;
-- (void)fetchMissedNotificationsForSSEInfo:(TUTSseInfo *)sseInfo
-                         completionHandler:(void(^)(void))completionHandler;
+- (void)fetchMissedNotifications:(void(^)(void))completionHandler;
+-(void)rescheduleEvents;
 
 @end
 

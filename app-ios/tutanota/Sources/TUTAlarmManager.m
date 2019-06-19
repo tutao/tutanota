@@ -10,9 +10,10 @@
 #import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTErrorFactory.h"
 #import "Keychain/TUTKeychainManager.h"
-#import  "Alarms/TUTMissedNotification.h"
+#import "Alarms/TUTMissedNotification.h"
 #import "Crypto/TUTAes128Facade.h"
 #import "Keychain/TUTKeychainManager.h"
+#import "Utils/TUTUtils.h"
 
 
 #import "Swiftier.h"
@@ -41,15 +42,17 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 
 @interface TUTAlarmManager ()
 @property (nonnull, readonly) TUTKeychainManager *keychainManager;
+@property (nonnull, readonly) TUTUserPreferenceFacade *userPreference;
 @end
 
 @implementation TUTAlarmManager
 
-- (instancetype)init
-{
+- (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *) userPref{
+    
     self = [super init];
     if (self) {
         _keychainManager = [TUTKeychainManager new];
+        _userPreference = userPref;
     }
     return self;
 }
@@ -102,8 +105,13 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     }] resume];
 }
 
-- (void)fetchMissedNotificationsForSSEInfo:(TUTSseInfo *)sseInfo
-                         completionHandler:(void(^)(void))completionHandler {
+- (void)fetchMissedNotifications:(void(^)(void))completionHandler {
+    let sseInfo = self.userPreference.getSseInfo;
+    if (!sseInfo){
+        NSLog(@"No stored SSE info");
+        completionHandler();
+        return;
+    }
     let additionalHeaders = @{
                               @"userIds": [sseInfo.userIds componentsJoinedByString:@","]
                               };
@@ -150,20 +158,14 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 }
 
 - (void) scheduleLocalAlarm:(TUTAlarmNotification*)alarmNotification handler:(nullable void(^)(NSError *__nullable error))completionHandler {
-    var sessionKey = [self resolveSessionKey:alarmNotification];
-    if (!sessionKey){
-        completionHandler([TUTErrorFactory createError:@"cannot resolve session key"]);
-        return;
-    }
-    
-    NSError *error;
-    let alarmIdentifier = [alarmNotification.alarmInfo getAlarmIdentifierDec:sessionKey error:&error];
-    if (error) {
-        completionHandler(error);
-        return;
-    }
-    
+    let alarmIdentifier = alarmNotification.alarmInfo.alarmIdentifier;
     if ([TUTOperationCreate isEqualToString:alarmNotification.operation] ) {
+        var sessionKey = [self resolveSessionKey:alarmNotification];
+        if (!sessionKey){
+            completionHandler([TUTErrorFactory createError:@"cannot resolve session key"]);
+            return;
+        }
+        
         NSError *error;
         let startDate = [alarmNotification getEventStartDec:sessionKey error:&error];
         let trigger = [alarmNotification.alarmInfo getTriggerDec:sessionKey error:&error];
@@ -177,6 +179,10 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                       alarmIdentifier:alarmIdentifier
                                            repeatRule:repeatRule
                                            sessionKey:sessionKey];
+            let savedNotifications = [_userPreference getRepeatingAlarmNotifications];
+            [savedNotifications addObject:alarmNotification];
+            [_userPreference storeRepeatingAlarmNotifications:savedNotifications];
+            
         } else {
             [self scheduleAlarmOccurrenceEventWithTime:startDate
                                                trigger:trigger
@@ -187,13 +193,43 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         completionHandler(nil);
     } else if ([TUTOperationDelete isEqualToString:alarmNotification.operation]) {
         let notificationCenter = UNUserNotificationCenter.currentNotificationCenter;
-        NSMutableArray<NSString *> *identifiers = [[NSMutableArray alloc] initWithCapacity:EVENTS_SCHEDULED_AHEAD];
-        for (int i = 0; i < EVENTS_SCHEDULED_AHEAD; i++) {
-            let identifier = [self occurrenceIdentifier:alarmIdentifier occurrence:i];
-            [identifiers addObject: identifier];
+        //NSMutableArray<NSString *> *identifiers = [[NSMutableArray alloc] initWithCapacity:EVENTS_SCHEDULED_AHEAD];
+        let savedNotifications = [_userPreference getRepeatingAlarmNotifications];
+        let index = [savedNotifications indexOfObject:alarmNotification];
+
+        if (index != NSNotFound) {
+            let savedNotification = savedNotifications[index];
+            NSError *error;
+            var sessionKey = [self resolveSessionKey:savedNotification];
+            if (!sessionKey){
+                completionHandler([TUTErrorFactory createError:@"cannot resolve session key"]);
+                return;
+            }
+            
+            let startDate = [savedNotification getEventStartDec:sessionKey error:&error];
+            let trigger = [savedNotification.alarmInfo getTriggerDec:sessionKey error:&error];
+            let repeatRule = savedNotification.repeatRule;
+            NSMutableArray *occurrences = [NSMutableArray new];
+            [self iterateRepeatingAlarmtWithTime:startDate
+                                         trigger:trigger
+                                      repeatRule:repeatRule
+                                      sessionKey:sessionKey
+                                           block:^(NSDate *time, int occurrence) {
+                                               let occurrenceIdentifier = [self occurrenceIdentifier:alarmIdentifier occurrence:occurrence];
+                                               [occurrences addObject:occurrenceIdentifier];
+                                           }];
+            [notificationCenter removePendingNotificationRequestsWithIdentifiers:occurrences];
+            NSLog(@"Cancelling a repeat notification %@", alarmIdentifier);
+        } else {
+            let occurrenceIdentifier = [self occurrenceIdentifier:alarmIdentifier occurrence:0];
+            NSMutableArray *occurrences = [NSMutableArray new];
+            [occurrences addObject:occurrenceIdentifier];
+            [notificationCenter removePendingNotificationRequestsWithIdentifiers:occurrences];
+            NSLog(@"Cancelling a single notification %@", alarmIdentifier);
         }
-        NSLog(@"Cancelling a notification %@", alarmIdentifier);
-        [notificationCenter removePendingNotificationRequestsWithIdentifiers:identifiers];
+        
+        [savedNotifications removeObject:alarmNotification];
+        [_userPreference storeRepeatingAlarmNotifications:savedNotifications];
         completionHandler(nil);
     }
 }
@@ -246,6 +282,20 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                            alarmIdentifier:(NSString *)alarmIdentifier
                                 repeatRule:(TUTRepeatRule *)repeatRule
                                 sessionKey:(NSData *)sessionKey {
+    [self iterateRepeatingAlarmtWithTime:eventTime
+                                 trigger:trigger
+                              repeatRule:repeatRule
+                              sessionKey:sessionKey
+                                   block:^(NSDate *time, int occurrence) {
+                                       [self scheduleAlarmOccurrenceEventWithTime:time trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
+                                   }];
+}
+
+-(void)iterateRepeatingAlarmtWithTime:(NSDate *)eventTime
+                              trigger:(NSString *)trigger
+                           repeatRule:(TUTRepeatRule *)repeatRule
+                           sessionKey:(NSData *)sessionKey
+                                block:(void(^)(NSDate *time, int occurrence))block {
     NSError *error;
     
     let cal = NSCalendar.currentCalendar;
@@ -257,16 +307,23 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     let calendarUnit = [self calendarUnitForRepeatPeriod:frequency];
     let endType = [repeatRule getEndTypeDec:sessionKey error:&error];
     let endValue = [repeatRule getEndValueDec:sessionKey error:&error];
+    
+    if (error) {
+        NSLog(@"Could not decrypt repeating alarm %@", error);
+    }
+    
     var occurrences = 0;
+    var occurrencesAfterNow = 0;
     let now = [NSDate new];
     
-    while (occurrences < EVENTS_SCHEDULED_AHEAD &&
-           (endType != TUTRepeatEndTypeCount || endValue < occurrences)) {
+    while (occurrencesAfterNow < EVENTS_SCHEDULED_AHEAD &&
+           (endType != TUTRepeatEndTypeCount || occurrences < endValue)) {
         let occurrenceDate = [cal dateByAddingUnit:calendarUnit value:interval * occurrences toDate:eventTime options:0];
         if (endType == TUTRepeatEndTypeUntilDate && occurrenceDate.timeIntervalSince1970 > endValue / 1000) {
             break;
         } else if ([now compare:occurrenceDate] == NSOrderedAscending) { // Only schedule alarms in the future
-            [self scheduleAlarmOccurrenceEventWithTime:occurrenceDate trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrences];
+            block(occurrenceDate, occurrences);
+            occurrencesAfterNow++;
         }
         occurrences++;
     }
@@ -284,8 +341,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     let alarmTime = [self getAlarmTimeWithTrigger:trigger eventTime:eventTime];
     
     let formattedTime = [NSDateFormatter localizedStringFromDate:eventTime dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle];
-    let notificationText = [NSString stringWithFormat:@"%@: %@ %@ %@", formattedTime, summary, alarmIdentifier, alarmTime];
-    
+    let notificationText = [NSString stringWithFormat:@"%@: %@", formattedTime, summary];
     
     unsigned unitFlags = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute;
     
@@ -296,7 +352,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     
     let content = [UNMutableNotificationContent new];
     // TODO: localize
-    content.title = @"Calendar reminder";
+    content.title =  [TUTUtils translate:@"TutaoCalendarAlarmTitle" default:@"Calendar reminder"];
     content.body = notificationText;
     content.sound = [UNNotificationSound defaultSound];
     
@@ -315,22 +371,53 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 -(NSCalendarUnit)calendarUnitForRepeatPeriod:(TUTRepeatPeriod)repeatPeriod {
     switch (repeatPeriod) {
         case TUTRepeatPeriodDaily:
-            return NSCalendarUnitDay;
+        return NSCalendarUnitDay;
         case TUTRepeatPeriodWeekly:
-            return NSCalendarUnitWeekOfYear;
+        return NSCalendarUnitWeekOfYear;
         case TUTRepeatPeriodMonthly:
-            return NSCalendarUnitMonth;
+        return NSCalendarUnitMonth;
         case TUTRepeatPeriodAnnually:
-            return NSCalendarUnitYear;
+        return NSCalendarUnitYear;
         default:
-            NSLog(@"Did not find repeat period: %zd", repeatPeriod);
-            return NSCalendarUnitDay;
-            break;
+        NSLog(@"Did not find repeat period: %zd", repeatPeriod);
+        return NSCalendarUnitDay;
+        break;
     }
 }
 
 -(NSString *)occurrenceIdentifier:(NSString *)alarmIdentifier occurrence:(int)occurrence {
     return [NSString stringWithFormat:@"%@#%d", alarmIdentifier, occurrence];
+}
+
+-(void)rescheduleEvents {
+    NSLog(@"Re-scheduling alarms");
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        let savedNotifications = [self->_userPreference getRepeatingAlarmNotifications];
+        foreach(notification, savedNotifications) {
+            NSError *error;
+            let sessionKey = [self resolveSessionKey:notification];
+            let alarmIdentifier = notification.alarmInfo.alarmIdentifier;
+            if (!sessionKey) {
+                NSLog(@"Failed to rsolve session key for notification %@", alarmIdentifier);
+                continue;
+            }
+            
+            let startDate = [notification getEventStartDec:sessionKey error:&error];
+            let trigger = [notification.alarmInfo getTriggerDec:sessionKey error:&error];
+            let repeatRule = notification.repeatRule;
+            let summary = [notification getSummaryDec:sessionKey error:&error];
+            if (error) {
+                NSLog(@"Failed to decrypt notification %@ %@", alarmIdentifier, error);
+                continue;
+            }
+            [self scheduleRepeatingAlarmEventWithTime:startDate
+                                              trigger:trigger
+                                              summary:summary
+                                      alarmIdentifier:alarmIdentifier
+                                           repeatRule:repeatRule
+                                           sessionKey:sessionKey];
+        }
+    });
 }
 
 @end

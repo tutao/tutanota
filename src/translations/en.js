@@ -966,6 +966,6 @@ module.exports = {
 		"interval_title": "Interval",
 		"calendarViewDay_title": "Day",
 		"calendarViewMonth_title": "Month",
-
+		"calendarAlarm_title" : "Calendar reminder"
 	}
 }

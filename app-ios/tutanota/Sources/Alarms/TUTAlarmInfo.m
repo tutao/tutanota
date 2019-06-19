@@ -24,12 +24,8 @@
     return [TUTAes128Facade decryptBase64String:_trigger encryptionKey:sessionkey error:error];
 }
 
-
-- (NSString *)getAlarmIdentifierDec:(NSData *)sessionkey error:(NSError * _Nullable __autoreleasing *)error {
-    return [TUTAes128Facade decryptBase64String:_alarmIdentifier encryptionKey:sessionkey error:error];
-}
-
 + (TUTAlarmInfo *)fromJSON:(NSDictionary *)jsonDict {
     return [[TUTAlarmInfo alloc] initWithAlarmIdentifier:jsonDict[@"alarmIdentifier"] trigger:jsonDict[@"trigger"]];
 }
+
 @end

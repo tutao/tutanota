@@ -15,7 +15,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonnull, readonly) NSString *trigger;
 
 -(NSString *)getTriggerDec:(NSData *)sessionkey error:(NSError **)error;
--(NSString *)getAlarmIdentifierDec:(NSData *)sessionkey error:(NSError **)error;
 
 +(TUTAlarmInfo *)fromJSON:(NSDictionary *)jsonDict;
 

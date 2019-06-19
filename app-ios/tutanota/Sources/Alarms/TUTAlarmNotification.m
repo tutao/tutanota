@@ -22,6 +22,7 @@
                         alarmInfo:(TUTAlarmInfo *)alarmInfo
           notificationSessionKeys:(NSArray<TUTNotificationSessionKey *> *) notificationSessionKeys
                        repeatRule:(TUTRepeatRule *)repeatRule
+                          jsonDict:(NSDictionary *)jsonDict
 {
     self = [super init];
     _operation = operation;
@@ -30,6 +31,7 @@
     _alarmInfo = alarmInfo;
     _notificationSessionKeys = notificationSessionKeys;
     _repeatRule = repeatRule;
+    _jsonDict = jsonDict;
     return self;
 }
 
@@ -60,6 +62,16 @@
                                                 eventStart:jsonDict[@"eventStart"]
                                                  alarmInfo:[TUTAlarmInfo fromJSON:jsonDict[@"alarmInfo"]]
                                    notificationSessionKeys:notificationSessionKeys
-                                                repeatRule:repeatRule];
+                                                repeatRule:repeatRule
+                                                  jsonDict:jsonDict];
 }
+
+- (BOOL)isEqual:(id)object {
+    if ([object isKindOfClass:TUTAlarmNotification.class]) {
+        let otherNotification = (TUTAlarmNotification *) object;
+        return [self.alarmInfo.alarmIdentifier isEqualToString:otherNotification.alarmInfo.alarmIdentifier];
+    }
+    return false;
+}
+
 @end

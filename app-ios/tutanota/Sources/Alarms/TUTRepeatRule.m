@@ -57,8 +57,12 @@
 }
 
 -(long long) getEndValueDec:(NSData *)sessionKey error:(NSError**) error {
-    var decValue = [TUTAes128Facade decryptBase64String:_endValue encryptionKey:sessionKey error:error];
-    return decValue.longLongValue;
+    if(![_endValue isEqual:NSNull.null]){
+        var decValue = [TUTAes128Facade decryptBase64String:_endValue encryptionKey:sessionKey error:error];
+        return decValue.longLongValue;
+    } else {
+        return 0;
+    }
 }
 
 

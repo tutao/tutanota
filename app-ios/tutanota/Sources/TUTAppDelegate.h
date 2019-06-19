@@ -10,15 +10,15 @@
 #import <UserNotifications/UserNotifications.h>
 
 #import "TUTAlarmManager.h"
-#import "Utils/TUTSseStorage.h"
+#import "Utils/TUTUserPreferenceFacade.h"
 
 @interface TUTAppDelegate : UIResponder <UIApplicationDelegate, UNUserNotificationCenterDelegate>
 
 @property (strong, nonatomic) UIWindow *_Nonnull window;
 @property (nonnull, readonly) TUTAlarmManager *alarmManager;
-@property (nonnull, readonly) TUTSseStorage *sseStorage;
+@property (nonnull, readonly) TUTUserPreferenceFacade *userPreferences;
 
-- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString *token, NSError *error))callback;
+- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString * _Nullable token , NSError * _Nullable error))callback;
 
 @end
 

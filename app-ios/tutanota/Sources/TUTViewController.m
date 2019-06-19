@@ -17,7 +17,7 @@
 #import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
 #import "TUTEncodingConverter.h"
-#import "TUTSseStorage.h"
+#import "TUTUserPreferenceFacade.h"
 #import "TUTAlarmManager.h"
 #import "Keychain/TUTKeychainManager.h"
 
@@ -108,17 +108,8 @@ typedef void(^VoidCallback)(void);
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
 	[self loadMainPageWithParams:nil];
-    [self loadMissedNotifications];
-}
-
-- (void) loadMissedNotifications {
-    let sseInfo = self.appDelegate.sseStorage.getSseInfo;
-    if (!sseInfo) {
-        NSLog(@"No stored SSE info: skip fetching missed notifications");
-        return;
-    }
-    let alarmManager = self.appDelegate.alarmManager;
-    [alarmManager fetchMissedNotificationsForSSEInfo:sseInfo completionHandler:^{}];
+    [self.appDelegate.alarmManager fetchMissedNotifications:^{}];
+    [self.appDelegate.alarmManager rescheduleEvents];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -202,7 +193,7 @@ typedef void(^VoidCallback)(void);
         [self.appDelegate registerForPushNotificationsWithCallback:sendResponseBlock];
     } else if ([@"storePushIdentifierLocally" isEqualToString:type]) {
         // identifier, userid, origin, pushIdentifierElementId, pushIdentifierSessionKeyB64
-        [self.appDelegate.sseStorage storeSseInfoWithPushIdentifier:arguments[0] userId:arguments[1] sseOrign:arguments[2]];
+        [self.appDelegate.userPreferences storeSseInfoWithPushIdentifier:arguments[0] userId:arguments[1] sseOrign:arguments[2]];
         let keyData = [TUTEncodingConverter base64ToBytes:arguments[4]];
         NSError *error;
         [self.keychainManager storeKey:keyData withId:arguments[3] error:&error];
