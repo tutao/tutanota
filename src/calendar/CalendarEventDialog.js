@@ -255,7 +255,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			const alarmValue = alarmPickerAttrs.selectedValue()
 			const newAlarm = alarmValue
 				&& createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-			worker.createCalendarEvent(groupRoot, newEvent, newAlarm, existingEvent, loadedUserAlarmInfo)
+			worker.createCalendarEvent(groupRoot, newEvent, newAlarm, existingEvent)
 
 			dialog.close()
 		}

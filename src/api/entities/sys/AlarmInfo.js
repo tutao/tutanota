@@ -13,7 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1526, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"alarmIdentifier": {"name": "alarmIdentifier", "id": 1528, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"alarmIdentifier": {"name": "alarmIdentifier", "id": 1528, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
 		"trigger": {"name": "trigger", "id": 1527, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {},

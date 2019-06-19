@@ -17,7 +17,6 @@ import {aes128RandomKey} from "../crypto/Aes"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
 import {OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
 
 assertWorkerOrNode()
 
@@ -29,34 +28,15 @@ export class CalendarFacade {
 		this._loginFacade = loginFacade
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent, oldUserAlarmInfo: ?UserAlarmInfo): Promise<void> {
+	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		let p = Promise.resolve()
 		const alarmNotifications: Array<AlarmNotification> = []
 		// delete old calendar event
 		if (oldEvent) {
-			p = erase(oldEvent).then(() => {
-				// delete old alarm
-				if (oldUserAlarmInfo) {
-					// do not use alarmInfo from oldUserAlarmInfo as it might have a cached encrypted value, encrypted with a different session key.
-					const deleteAlarmInfo = createAlarmInfo()
-					deleteAlarmInfo.trigger = oldUserAlarmInfo.alarmInfo.trigger
-					deleteAlarmInfo.alarmIdentifier = oldUserAlarmInfo.alarmInfo.alarmIdentifier
-
-					const alarmNotification = Object.assign(createAlarmNotification(), {
-						alarmInfo: deleteAlarmInfo,
-						repeatRule: null,
-						notificationSessionKeys: [],
-						operation: OperationType.DELETE
-					})
-
-					alarmNotifications.push(alarmNotification)
-					return erase(oldUserAlarmInfo)
-				}
-			})
+			p = erase(oldEvent)
 		}
-
 		return p
 			.then(() => {
 				if (alarmInfo) {
@@ -72,7 +52,6 @@ export class CalendarFacade {
 						eventStart: event.startTime
 					})
 					alarmNotifications.push(alarmNotification)
-
 					return setup(userAlarmInfoListId, newAlarm)
 				}
 			})
