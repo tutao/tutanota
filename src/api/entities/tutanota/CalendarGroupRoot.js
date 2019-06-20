@@ -24,13 +24,12 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 952, "since": 33, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 950, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"name": {"name": "name", "id": 954, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
+		"_permissions": {"name": "_permissions", "id": 950, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"longEvents": {
 			"name": "longEvents",
-			"id": 956,
+			"id": 955,
 			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
@@ -40,7 +39,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"shortEvents": {
 			"name": "shortEvents",
-			"id": 955,
+			"id": 954,
 			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",

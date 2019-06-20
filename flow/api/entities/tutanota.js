@@ -692,7 +692,6 @@ type UserAccountUserData = {
 	userEncTutanotaPropertiesSessionKey: Uint8Array;
 	verifier: Uint8Array;
 
-	calendarGroupData: ?CalendarGroupData;
 }
 
 type InternalGroupData = {
@@ -1028,7 +1027,6 @@ type CalendarGroupRoot = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	name: string;
 
 	longEvents: Id;
 	shortEvents: Id;
@@ -1037,12 +1035,13 @@ type CalendarGroupRoot = {
 type CalendarGroupData = {
 	_type: TypeRef<CalendarGroupData>;
 	_id: Id;
-	adminEncGroupKey: Uint8Array;
+	adminEncGroupKey: ?Uint8Array;
 	calendarEncCalendarGroupRootSessionKey: Uint8Array;
-	encName: Uint8Array;
+	groupInfoEncName: Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
 	userEncGroupKey: ?Uint8Array;
 
+	adminGroup: ?Id;
 }
 
 type GroupColor = {
@@ -1062,4 +1061,11 @@ type UserSettingsGroupRoot = {
 	_permissions: Id;
 
 	calendarColors: GroupColor[];
+}
+
+type CalendarPostData = {
+	_type: TypeRef<CalendarPostData>;
+	_format: NumberString;
+
+	calendarData: CalendarGroupData;
 }

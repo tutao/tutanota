@@ -52,3 +52,22 @@ export function getEventStart(event: CalendarEvent): Date {
 export function isLongEvent(event: CalendarEvent): boolean {
 	return getEventEnd(event).getTime() - getEventStart(event).getTime() > DAYS_SHIFTED_MS
 }
+
+export function eventsAtTheSameTime(firstEvent: CalendarEvent, secondEvent: CalendarEvent): boolean {
+	if (firstEvent.startTime !== secondEvent.startTime) {
+		return false
+	}
+	const firstRule = firstEvent.repeatRule
+	const secondRule = secondEvent.repeatRule
+	if (firstRule && secondRule) {
+		return firstRule.frequency === secondRule.frequency
+			&& firstRule.interval === secondRule.interval
+			&& firstRule.endType === secondRule.endType
+			&& firstRule.endValue === secondRule.endValue
+			&& firstRule.timeZone === secondRule.timeZone
+	} else if (!firstRule && !secondRule) {
+		return true
+	} else {
+		return false
+	}
+}

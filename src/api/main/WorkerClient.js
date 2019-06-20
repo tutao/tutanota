@@ -48,7 +48,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.eventController.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -487,6 +487,10 @@ export class WorkerClient {
 
 	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent) {
 		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent]))
+	}
+
+	addCalendar(): Promise<void> {
+		return this._queue.postMessage(new Request("addCalendar", []))
 	}
 }
 

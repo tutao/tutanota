@@ -139,17 +139,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"verifier": {"name": "verifier", "id": 627, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
-	"associations": {
-		"calendarGroupData": {
-			"name": "calendarGroupData",
-			"id": 964,
-			"since": 33,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "CalendarGroupData",
-			"final": false
-		}
-	},
+	"associations": {},
 	"app": "tutanota",
 	"version": "33"
 }

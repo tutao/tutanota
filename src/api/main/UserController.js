@@ -98,11 +98,11 @@ export class UserController implements IUserController {
 		return this.user.memberships.filter(membership => membership.groupType === GroupType.LocalAdmin)
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		return Promise.each(updates, (update) => {
 			const {instanceListId, instanceId, operation} = update
 			if (operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update)
-				&& isSameId(this.user._id, instanceId)) {
+				&& isSameId(this.user.userGroup.group, eventOwnerGroupId)) {
 				return load(UserTypeRef, this.user._id).then(updatedUser => {
 					this.user = updatedUser
 				})

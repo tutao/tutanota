@@ -7,13 +7,13 @@ export const _TypeModel: TypeModel = {
 	"name": "GroupColor",
 	"since": 33,
 	"type": "AGGREGATED_TYPE",
-	"id": 965,
-	"rootId": "CHR1dGFub3RhAAPF",
+	"id": 964,
+	"rootId": "CHR1dGFub3RhAAPE",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 966, "since": 33, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"color": {"name": "color", "id": 967, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
+		"_id": {"name": "_id", "id": 965, "since": 33, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"color": {"name": "color", "id": 966, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},
 	"app": "tutanota",

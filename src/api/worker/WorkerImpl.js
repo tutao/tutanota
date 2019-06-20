@@ -281,7 +281,11 @@ export class WorkerImpl {
 			},
 			resolveSessionKey: (message: Request) => {
 				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
+			},
+			addCalendar: (message: Request) => {
+				return locator.calendar.addCalendar.apply(locator.calendar, message.args)
 			}
+
 
 		})
 
@@ -311,8 +315,8 @@ export class WorkerImpl {
 		}
 	}
 
-	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		return this._queue.postMessage(new Request("entityEvent", [data]))
+	entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
+		return this._queue.postMessage(new Request("entityEvent", [data, eventOwnerGroupId]))
 	}
 
 	sendError(e: Error): Promise<void> {

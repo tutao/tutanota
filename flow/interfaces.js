@@ -41,7 +41,7 @@ interface IUserController {
 
 	getLocalAdminGroupMemberships(): GroupMembership[];
 
-	entityEventsReceived($ReadOnlyArray<EntityUpdateData>): Promise<void>;
+	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
 	deleteSession(sync: boolean): Promise<void>;
 }

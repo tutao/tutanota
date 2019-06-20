@@ -12,14 +12,15 @@ import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
-import {LoginController} from "../api/main/LoginController"
+import {LoginController, logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, OperationType} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
+import {getMonth} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -30,7 +31,8 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
 import {geEventElementMaxId, getEventElementMinId, getEventStart} from "../api/common/utils/CommonCalendarUtils"
-import {getMonth} from "./CalendarUtils"
+import {px, size as sizes} from "../gui/size"
+import {UserTypeRef} from "../api/entities/sys/User"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -98,15 +100,17 @@ export class CalendarView implements CurrentView {
 					})),
 				]),
 				m(".folders",
-					m(".folder-row.flex-space-between", [
+					m(".folder-row.flex-space-between", {
+						style: {height: px(sizes.button_height)}
+					}, [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
 							lang.get("yourCalendars_label").toLocaleUpperCase()),
-						m(ButtonN, {
-							label: () => "add calendar",
-							click: () => {},
-							icon: () => Icons.Add
-						})
+						// m(ButtonN, {
+						// 	label: () => "add calendar",
+						// 	click: () => {},
+						// 	icon: () => Icons.Add
+						// })
 					]),
 					m(".folder-row.flex-start",
 						m(".flex.flex-grow..center-vertically.button-height", [
@@ -161,8 +165,7 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
-		this._calendarInfos = this._loadGroupRoots(loginController)
-		                          .tap(() => m.redraw())
+		this._loadGroupRoots()
 
 		this.selectedDate.map((d) => {
 			const previousMonthDate = new Date(d)
@@ -176,8 +179,8 @@ export class CalendarView implements CurrentView {
 			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
-		locator.eventController.addEntityListener((updates) => {
-			this.entityEventReceived(updates)
+		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
+			this.entityEventReceived(updates, eventOwnerGroupId)
 		})
 	}
 
@@ -288,22 +291,28 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	_loadGroupRoots() {
+		this._calendarInfos = load(UserTypeRef, logins.getUserController().user._id).then(user => {
+			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+			if (calendarMemberships.length === 0) {
+				worker.addCalendar()
+				return new Map()
+			} else {
+				return Promise
+					.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+					.then((groupRoots) => {
+						const calendarInfos: Map<Id, CalendarInfo> = new Map()
+						groupRoots.forEach((groupRoot) => {
+							calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+						})
+						return calendarInfos
+					})
+			}
+		}).tap(() => m.redraw())
 
-	_loadGroupRoots(loginController: LoginController): Promise<Map<Id, CalendarInfo>> {
-		const calendarMemberships = loginController.getUserController().getCalendarMemberships()
-
-		return Promise
-			.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
-			.then((groupRoots) => {
-				const calendarInfos: Map<Id, CalendarInfo> = new Map()
-				groupRoots.forEach((groupRoot) => {
-					calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
-				})
-				return calendarInfos
-			})
 	}
 
-	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
+	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
 		this._calendarInfos.then((calendarEvents) => {
 			updates.forEach(update => {
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
@@ -315,7 +324,18 @@ export class CalendarView implements CurrentView {
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId])
 					} else if (update.operation === OperationType.UPDATE) {
+					}
 
+				} else if (isUpdateForTypeRef(UserTypeRef, update) 	// only process update event received for the user group - to not process user update from admin membership.
+					&& isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)) {
+					if (update.operation === OperationType.UPDATE) {
+						const calendarMemberships = logins.getUserController().getCalendarMemberships()
+						this._calendarInfos.then(calendarInfos => {
+							if (calendarMemberships.length != calendarInfos.size) {
+								console.log("detected update of calendar memberships")
+								this._loadGroupRoots()
+							}
+						})
 					}
 				}
 			})

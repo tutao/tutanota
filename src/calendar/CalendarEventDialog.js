@@ -167,7 +167,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
-					return {name: calendarInfo.groupRoot.name || lang.get("privateCalendar_label"), value: calendarInfo}
+					return {name: lang.get("privateCalendar_label"), value: calendarInfo}
 				}),
 				selectedValue: selectedCalendar,
 				icon: Icons.Edit,

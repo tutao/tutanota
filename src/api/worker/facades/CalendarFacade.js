@@ -8,24 +8,30 @@ import {neverNull} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
 import {HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
 import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
-import {loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
+import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
 import {aes128RandomKey} from "../crypto/Aes"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
-import {OperationType} from "../../common/TutanotaConstants"
+import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
+import {createCalendarPostData} from "../../entities/tutanota/CalendarPostData"
+import {UserManagementFacade} from "./UserManagementFacade"
+import {TutanotaService} from "../../entities/tutanota/Services"
+import {GroupTypeRef} from "../../entities/sys/Group"
 
 assertWorkerOrNode()
 
 export class CalendarFacade {
 
 	_loginFacade: LoginFacade;
+	_userManagementFacade: UserManagementFacade;
 
-	constructor(loginFacade: LoginFacade) {
+	constructor(loginFacade: LoginFacade, userManagementFacade: UserManagementFacade) {
 		this._loginFacade = loginFacade
+		this._userManagementFacade = userManagementFacade
 	}
 
 	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent): Promise<void> {
@@ -98,6 +104,22 @@ export class CalendarFacade {
 						return serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity, null, notificationSessionKey)
 					})
 			})
+	}
+
+
+	addCalendar(): Promise<void> {
+		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
+			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
+			let adminGroupKey = null
+			if (this._loginFacade.getAllGroupIds().indexOf(adminGroupId) != -1) { // getGroupKey throws an if user is not member of that group - so check first
+				adminGroupKey = this._loginFacade.getGroupKey(adminGroupId)
+			}
+			const customerGroupKey = this._loginFacade.getGroupKey(this._loginFacade.getGroupId(GroupType.Customer))
+			const userGroupKey = this._loginFacade.getUserGroupKey()
+			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey)
+			const postData = Object.assign(createCalendarPostData(), {calendarData})
+			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData)
+		})
 	}
 }
 
