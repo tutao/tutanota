@@ -56,7 +56,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.tutao.tutanota.AlarmNotificationsManager;
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;

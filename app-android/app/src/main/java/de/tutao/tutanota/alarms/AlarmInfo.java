@@ -1,10 +1,13 @@
-package de.tutao.tutanota;
+package de.tutao.tutanota.alarms;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
 
 public final class AlarmInfo {
     private final String trigger;

@@ -1,4 +1,4 @@
-package de.tutao.tutanota;
+package de.tutao.tutanota.alarms;
 
 import android.support.annotation.Nullable;
 
@@ -6,6 +6,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.TimeZone;
+
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.EncryptionUtils;
 
 final class RepeatRule {
     private final String frequency;

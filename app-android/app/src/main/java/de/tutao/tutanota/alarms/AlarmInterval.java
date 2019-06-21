@@ -1,4 +1,4 @@
-package de.tutao.tutanota;
+package de.tutao.tutanota.alarms;
 
 public enum AlarmInterval {
     FIVE_MINUTES("5M"),

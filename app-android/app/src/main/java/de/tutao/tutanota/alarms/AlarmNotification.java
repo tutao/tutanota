@@ -1,4 +1,4 @@
-package de.tutao.tutanota;
+package de.tutao.tutanota.alarms;
 
 import android.support.annotation.Nullable;
 
@@ -10,6 +10,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.EncryptionUtils;
+import de.tutao.tutanota.IdTuple;
+import de.tutao.tutanota.OperationType;
 
 public class AlarmNotification {
 

@@ -1,4 +1,4 @@
-package de.tutao.tutanota;
+package de.tutao.tutanota.alarms;
 
 import android.annotation.TargetApi;
 import android.app.NotificationChannel;
@@ -15,6 +15,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import java.util.Date;
+
+import de.tutao.tutanota.R;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
 import static de.tutao.tutanota.push.PushNotificationService.VIBRATION_PATTERN;

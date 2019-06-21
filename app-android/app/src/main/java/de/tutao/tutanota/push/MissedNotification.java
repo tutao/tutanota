@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.tutao.tutanota.AlarmNotification;
+import de.tutao.tutanota.alarms.AlarmNotification;
 
 public final class MissedNotification {
     private final List<AlarmNotification> alarmNotifications;

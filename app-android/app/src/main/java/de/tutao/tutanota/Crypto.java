@@ -57,6 +57,13 @@ public final class Crypto {
     private final static int RSA_KEY_LENGTH_IN_BITS = 2048;
     private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private final static int RSA_PUBLIC_EXPONENT = 65537;
+    /**
+     * Android picks not the same implementation for encryption and decryption so we have to be
+     * a little bit more explicit.
+     * <p>
+     * See https://issuetracker.google.com/issues/36708951#comment15
+     * See https://issuetracker.google.com/issues/37075898#comment7
+     */
     private final static OAEPParameterSpec OAEP_PARAMETER_SPEC = new OAEPParameterSpec(
             "SHA-256",
             "MGF1",

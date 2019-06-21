@@ -81,7 +81,7 @@
         </receiver>
 
         <receiver
-                android:name=".AlarmBroadcastReceiver"
+                android:name=".alarms.AlarmBroadcastReceiver"
                 android:exported="false">
             <intent-filter>
                 <action android:name="de.tutao.tutanota.ALARM"/>
