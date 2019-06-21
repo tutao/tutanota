@@ -32,6 +32,7 @@ import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
@@ -43,6 +44,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 import javax.crypto.spec.SecretKeySpec;
 
 public final class Crypto {
@@ -54,6 +57,11 @@ public final class Crypto {
     private final static int RSA_KEY_LENGTH_IN_BITS = 2048;
     private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private final static int RSA_PUBLIC_EXPONENT = 65537;
+    private final static OAEPParameterSpec OAEP_PARAMETER_SPEC = new OAEPParameterSpec(
+            "SHA-256",
+            "MGF1",
+            MGF1ParameterSpec.SHA1,
+            PSource.PSpecified.DEFAULT);
 
     private static final String AES_MODE_PADDING = "AES/CBC/PKCS5Padding";
     private static final String AES_MODE_NO_PADDING = "AES/CBC/NoPadding";
@@ -168,9 +176,9 @@ public final class Crypto {
     private byte[] rsaEncrypt(byte[] data, PublicKey publicKey, SecureRandom randomizer) throws CryptoError {
         try {
             Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey, randomizer);
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, OAEP_PARAMETER_SPEC, randomizer);
             return cipher.doFinal(data);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
             throw new RuntimeException(e);
         } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException e) {
             throw new CryptoError(e);
@@ -198,13 +206,13 @@ public final class Crypto {
     public byte[] rsaDecrypt(PrivateKey privateKey, byte[] encryptedKey) throws CryptoError {
         try {
             Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-            cipher.init(Cipher.DECRYPT_MODE, privateKey, this.randomizer);
+
+            cipher.init(Cipher.DECRYPT_MODE, privateKey, OAEP_PARAMETER_SPEC, this.randomizer);
             return cipher.doFinal(encryptedKey);
         } catch (BadPaddingException | InvalidKeyException
                 | IllegalBlockSizeException e) {
             throw new CryptoError(e);
-        } catch (NoSuchAlgorithmException |
-                NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
             // These errors are not expected, fatal for the whole application and should be
             // reported.
             throw new RuntimeException("rsaDecrypt error", e);

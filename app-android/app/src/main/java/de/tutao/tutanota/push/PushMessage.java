@@ -7,8 +7,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.tutao.tutanota.AlarmNotification;
-
 final class PushMessage {
     private static final String TITLE_KEY = "title";
     private static final String ADDRESS_KEY = "address";
@@ -16,13 +14,12 @@ final class PushMessage {
     private static final String USER_ID_KEY = "userId";
     private static final String NOTIFICATIONS_KEY = "notificationInfos";
     private static final String CONFIRMATION_ID_KEY = "confirmationId";
-    private static final String ALARM_INFOS_KEY = "alarmInfos";
-    private static final String ALARM_NOTIFICATIONS_KEY = "alarmNotifications";
+    private static final String HAS_ALARM_NOTIFICATIONS_KEY = "hasAlarmNotifications";
 
     private final String title;
     private final String confirmationId;
     private final List<NotificationInfo> notificationInfos;
-    private final List<AlarmNotification> alarmInfos;
+    private final boolean hasAlarmNotifications;
 
     public static PushMessage fromJson(String json) throws JSONException {
         JSONObject jsonObject = new JSONObject(json);
@@ -37,22 +34,17 @@ final class PushMessage {
             String userId = itemObject.getString(USER_ID_KEY);
             notificationInfos.add(new NotificationInfo(address, counter, userId));
         }
-        JSONArray alarmInfosJsonArray = jsonObject.getJSONArray(ALARM_NOTIFICATIONS_KEY);
-        List<AlarmNotification> alarmNotifications = new ArrayList<>();
-        for (int i = 0; i < alarmInfosJsonArray.length(); i++) {
-            JSONObject itemObject = alarmInfosJsonArray.getJSONObject(i);
-            alarmNotifications.add(AlarmNotification.fromJson(itemObject));
-        }
-        return new PushMessage(title, confirmationId, notificationInfos, alarmNotifications);
+        boolean hasAlarmNotifications = jsonObject.getBoolean(HAS_ALARM_NOTIFICATIONS_KEY);
+        return new PushMessage(title, confirmationId, notificationInfos, hasAlarmNotifications);
     }
 
     private PushMessage(String title, String confirmationId,
                         List<NotificationInfo> notificationInfos,
-                        List<AlarmNotification> alarmInfos) {
+                        boolean hasAlarmNotifications) {
         this.title = title;
         this.confirmationId = confirmationId;
         this.notificationInfos = notificationInfos;
-        this.alarmInfos = alarmInfos;
+        this.hasAlarmNotifications = hasAlarmNotifications;
     }
 
     public String getTitle() {
@@ -67,8 +59,8 @@ final class PushMessage {
         return confirmationId;
     }
 
-    public List<AlarmNotification> getAlarmInfos() {
-        return alarmInfos;
+    public boolean hasAlarmNotifications() {
+        return hasAlarmNotifications;
     }
 
     final static class NotificationInfo {

@@ -12,6 +12,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
@@ -47,6 +49,7 @@ public class AndroidKeyStoreFacade {
                         .setSerialNumber(BigInteger.TEN)
                         .setStartDate(start.getTime())
                         .setEndDate(end.getTime())
+                        .setKeySize(4096)
                         .build();
                 KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", AndroidKeyStore);
                 kpg.initialize(spec);
@@ -62,27 +65,22 @@ public class AndroidKeyStoreFacade {
         if (keyStore == null) {
             throw new KeyStoreException("Keystore was not initialized");
         }
-        KeyStore.PrivateKeyEntry privateKeyEntry;
-        try {
-            privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(KEY_ALIAS, null);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        PublicKey publicKey = keyStore.getCertificate(KEY_ALIAS).getPublicKey();
 
-        return this.crypto.rsaEncrypt(privateKeyEntry.getCertificate().getPublicKey(), sessionKey, new byte[0]);
+        return this.crypto.rsaEncrypt(publicKey, sessionKey, new byte[0]);
     }
 
     public byte[] decryptKey(String encSessionKey) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
         if (keyStore == null) {
             throw new KeyStoreException("Keystore was not initialized");
         }
-        KeyStore.PrivateKeyEntry privateKeyEntry;
+        PrivateKey privateKey;
         try {
-            privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(KEY_ALIAS, null);
+            privateKey = (PrivateKey) keyStore.getKey(KEY_ALIAS, null);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         byte[] encSessionKeyRaw = Utils.base64ToBytes(encSessionKey);
-        return this.crypto.rsaDecrypt(privateKeyEntry.getPrivateKey(), encSessionKeyRaw);
+        return this.crypto.rsaDecrypt(privateKey, encSessionKeyRaw);
     }
 }

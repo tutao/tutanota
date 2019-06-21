@@ -220,10 +220,17 @@ public final class Native {
                     promise.resolve(sseStorage.getPushIdentifier());
                     break;
                 case "storePushIdentifierLocally":
-                    String pushIdentifierSessionKeyB64 = args.getString(4);
-                    String deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
                     sseStorage.storePushIdentifier(args.getString(0), args.getString(1),
-                            args.getString(2), args.getString(3), deviceEncSessionKey);
+                            args.getString(2));
+                    String pushIdentifierId = args.getString(3);
+                    String pushIdentifierSessionKeyB64 = args.getString(4);
+
+                    Map<String, String> keys = sseStorage.getPushIdentifierKeys();
+                    if (!keys.containsKey(pushIdentifierId)) {
+                        String deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
+                        keys.put(pushIdentifierId, deviceEncSessionKey);
+                        sseStorage.storePushEncSessionKeys(keys);
+                    }
                     promise.resolve(true);
                     break;
                 case "closePushNotifications":

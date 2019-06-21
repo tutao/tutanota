@@ -6,22 +6,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import de.tutao.tutanota.push.SseInfo;
 import de.tutao.tutanota.push.SseStorage;
 
 public class AlarmNotificationsManager {
@@ -40,47 +43,60 @@ public class AlarmNotificationsManager {
     }
 
     public void reScheduleAlarms() {
-        List<AlarmNotification> alarmInfos = this.readSavedAlarmNotifications();
-        for (AlarmNotification alarmNotification : alarmInfos) {
-            byte[] sessionKey = this.resolveSessionKey(alarmNotification);
-            if (sessionKey != null) {
-                this.schedule(alarmNotification, sessionKey);
+        try {
+            PushKeyResolver pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
+            List<AlarmNotification> alarmInfos = this.readSavedAlarmNotifications();
+            for (AlarmNotification alarmNotification : alarmInfos) {
+                byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
+                if (sessionKey != null) {
+                    this.schedule(alarmNotification, sessionKey);
+                }
             }
+        } catch (IOException e) {
+            Log.w(TAG, "Could not read pushIdentifierKeys", e);
         }
+
     }
 
-    public byte[] resolveSessionKey(AlarmNotification notification) {
+    public byte[] resolveSessionKey(AlarmNotification notification, PushKeyResolver pushKeyResolver) {
         for (AlarmNotification.NotificationSessionKey notificationSessionKey : notification.getNotificationSessionKeys()) {
-            SseInfo sseInfo = this.sseStorage.getSseInfo();
-            String deviceEncPushIdentifierSessionKey = sseInfo.getPushIdentifierToSessionKey().get(notificationSessionKey.getPushIdentifier().getElementId());
-            if (deviceEncPushIdentifierSessionKey != null) {
-                try {
-                    byte[] pushIdentifierSessionKey = this.keyStoreFacade.decryptKey(deviceEncPushIdentifierSessionKey);
+            try {
+                byte[] pushIdentifierSessionKey = pushKeyResolver.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
+                if (pushIdentifierSessionKey != null) {
+
                     byte[] encNotificationSessionKeyKey = Utils.base64ToBytes(notificationSessionKey.getPushIdentifierSessionEncSessionKey());
                     return this.crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey);
-                } catch (UnrecoverableEntryException | KeyStoreException | CryptoError e) {
-                    Log.d(TAG, "could not decrypt session key", e);
-                    return null;
                 }
+            } catch (UnrecoverableEntryException | KeyStoreException | CryptoError e) {
+                Log.w(TAG, "could not decrypt session key", e);
+                return null;
             }
         }
         return null;
     }
 
     public void scheduleNewAlarms(List<AlarmNotification> alarmNotifications) {
-        byte[] sessionKey = this.resolveSessionKey(alarmNotifications.get(0));
-        if (sessionKey == null) {
+        PushKeyResolver pushKeyResolver;
+        try {
+            pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
+        } catch (IOException e) {
+            Log.w(TAG, "Failed to read pushIdentifierKeys", e);
             return;
         }
         List<AlarmNotification> savedInfos = this.readSavedAlarmNotifications();
         for (AlarmNotification alarmNotification : alarmNotifications) {
             if (alarmNotification.getOperation() == OperationType.CREATE) {
+                byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
+                if (sessionKey == null) {
+                    Log.d(TAG, "Failed to resolve session key for " + alarmNotification);
+                    return;
+                }
                 this.schedule(alarmNotification, sessionKey);
                 if (alarmNotification.getRepeatRule() != null) {
                     savedInfos.add(alarmNotification);
                 }
             } else {
-                this.cancelScheduledAlarm(alarmNotification);
+                this.cancelScheduledAlarm(alarmNotification, pushKeyResolver);
                 savedInfos.remove(alarmNotification);
             }
         }
@@ -115,56 +131,58 @@ public class AlarmNotificationsManager {
     }
 
     private void schedule(AlarmNotification alarmInfAlarmNotification, byte[] sessionKey) {
-        String trigger;
-        AlarmInterval alarmInterval;
-        String summary;
-        Date eventStart;
-        String identifier = alarmInfAlarmNotification.getAlarmInfo().identifier;
         try {
-            trigger = alarmInfAlarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey);
-            alarmInterval = AlarmInterval.byValue(trigger);
-            summary = alarmInfAlarmNotification.getSummary(crypto, sessionKey);
-            eventStart = alarmInfAlarmNotification.getEventStart(crypto, sessionKey);
+            String trigger = alarmInfAlarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey);
+            AlarmInterval alarmInterval = AlarmInterval.byValue(trigger);
+            String summary = alarmInfAlarmNotification.getSummary(crypto, sessionKey);
+            String identifier = alarmInfAlarmNotification.getAlarmInfo().getIdentifier();
+            Date eventStart = alarmInfAlarmNotification.getEventStart(crypto, sessionKey);
+
+            if (alarmInfAlarmNotification.getRepeatRule() == null) {
+                Date alarmTime = calculateAlarmTime(eventStart, null, alarmInterval);
+                if (alarmTime.after(new Date())) {
+                    scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart);
+                }
+            } else {
+                this.iterateAlarmOccurrences(alarmInfAlarmNotification, crypto, sessionKey, (time, occurrence) -> {
+                    this.scheduleAlarmOccurrenceWithSystem(time, occurrence, identifier, summary, time);
+                });
+            }
         } catch (CryptoError cryptoError) {
             Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
-            return;
-        }
-
-        if (alarmInfAlarmNotification.getRepeatRule() == null) {
-            // TODO: check for all-day event
-            Date alarmTime = calculateAlarmTime(eventStart, null, alarmInterval);
-            scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart);
-        } else {
-            this.iterateAlarmOccurrences(alarmInfAlarmNotification, (time, occurrence) -> {
-                // TODO: fix times here
-                this.scheduleAlarmOccurrenceWithSystem(time, occurrence, identifier, summary, time);
-            });
         }
     }
 
-    private void iterateAlarmOccurrences(AlarmNotification alarmNotification, AlarmIterationCallback callback) {
-        Objects.requireNonNull(alarmNotification.getRepeatRule());
-        // TODO: Timezone should be local for all-day events?
-        Calendar calendar = Calendar.getInstance(alarmNotification.getRepeatRule().timeZone);
+    private void iterateAlarmOccurrences(AlarmNotification alarmNotification, Crypto crypto, byte[] sessionKey, AlarmIterationCallback callback) throws CryptoError {
+        RepeatRule repeatRule = Objects.requireNonNull(alarmNotification.getRepeatRule());
+        TimeZone timeZone = repeatRule.getTimeZone(crypto, sessionKey);
+        Calendar calendar = Calendar.getInstance(timeZone);
         long now = System.currentTimeMillis();
         int occurrences = 0;
         int futureOccurrences = 0;
-        while (futureOccurrences < 10
-                && (alarmNotification.getRepeatRule().endType != EndType.COUNT
-                || occurrences < alarmNotification.getRepeatRule().endValue)) {
-            // TODO: increment time
-            //calendar.setTime(alarmNotification.getAlarmInfo().trigger); // reset time to the initial
-            incrementByRepeatPeriod(calendar, alarmNotification.getRepeatRule().frequency,
-                    alarmNotification.getRepeatRule().interval * occurrences);
 
-            // TODO: All-day events
-            if (alarmNotification.getRepeatRule().endType == EndType.UNTIL
-                    && calendar.getTimeInMillis() > alarmNotification.getRepeatRule().endValue) {
+        Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
+        RepeatPeriod frequency = repeatRule.getFrequency(crypto, sessionKey);
+        int interval = repeatRule.getInterval(crypto, sessionKey);
+        EndType endType = repeatRule.getEndType(crypto, sessionKey);
+        int endValue = repeatRule.getEndValue(crypto, sessionKey);
+        AlarmInterval alarmInterval = AlarmInterval.byValue(
+                alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
+
+        while (futureOccurrences < 10
+                && (endType != EndType.COUNT
+                || occurrences < endValue)) {
+
+            calendar.setTime(eventStart);
+            incrementByRepeatPeriod(calendar, frequency, interval * occurrences);
+
+            if (endType == EndType.UNTIL && calendar.getTimeInMillis() > endValue) {
                 break;
             }
+            Date alarmTime = calculateAlarmTime(calendar.getTime(), timeZone, alarmInterval);
 
             if (calendar.getTimeInMillis() >= now) {
-                callback.call(calendar.getTime(), occurrences);
+                callback.call(alarmTime, occurrences);
                 futureOccurrences++;
             }
             occurrences++;
@@ -172,9 +190,8 @@ public class AlarmNotificationsManager {
     }
 
     private void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence, String identifier, String summary, Date eventDate) {
-        Log.d(TAG, "Scheduled notificaiton at" + alarmTime);
+        Log.d(TAG, "Scheduled notification at: " + alarmTime);
         AlarmManager alarmManager = getAlarmManager();
-        // TODO: check how to identify occurrence uniquely
         PendingIntent pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -188,14 +205,29 @@ public class AlarmNotificationsManager {
         return (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
     }
 
-    private void cancelScheduledAlarm(AlarmNotification alarmInfo) {
-        if (alarmInfo.getRepeatRule() == null) {
-            PendingIntent pendingIntent = makeAlarmPendingIntent(0, alarmInfo.getAlarmInfo().identifier, "", new Date());
+    private void cancelScheduledAlarm(AlarmNotification alarmNotification, PushKeyResolver pushKeyResolver) {
+        // Read saved alarm because the sent one doesn't have a session key
+        List<AlarmNotification> alarmNotifications = this.readSavedAlarmNotifications();
+        int indexOfExistingAlarm = alarmNotifications.indexOf(alarmNotification);
+
+        if (indexOfExistingAlarm == -1) {
+            PendingIntent pendingIntent = makeAlarmPendingIntent(0, alarmNotification.getAlarmInfo().getIdentifier(), "", new Date());
             getAlarmManager().cancel(pendingIntent);
         } else {
-            this.iterateAlarmOccurrences(alarmInfo, (time, occurrence) -> {
-                getAlarmManager().cancel(makeAlarmPendingIntent(0, alarmInfo.getAlarmInfo().identifier, "", new Date()));
-            });
+            AlarmNotification savedAlarmNotification = alarmNotifications.get(indexOfExistingAlarm);
+            byte[] sessionKey = resolveSessionKey(alarmNotification, pushKeyResolver);
+            if (sessionKey != null) {
+                try {
+                    this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (time, occurrence) -> {
+                        getAlarmManager().cancel(makeAlarmPendingIntent(0, alarmNotification.getAlarmInfo().getIdentifier(), "", new Date()));
+                    });
+                } catch (CryptoError cryptoError) {
+                    Log.w(TAG, "Failed to decrypt notification to cancel alarm " + savedAlarmNotification, cryptoError);
+                }
+            } else {
+                Log.w(TAG, "Failed to resolve session key to cancel alarm " + savedAlarmNotification);
+            }
+
         }
     }
 
@@ -266,5 +298,32 @@ public class AlarmNotificationsManager {
 
     private interface AlarmIterationCallback {
         void call(Date time, int occurrence);
+    }
+
+    private static class PushKeyResolver {
+        private AndroidKeyStoreFacade keyStoreFacade;
+        private final Map<String, String> pushIdentifierToEncSessionKey;
+        private final Map<String, byte[]> pushIdentifierToResolvedSessionKey = new HashMap<>();
+
+        private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, Map<String, String> pushIdentifierToEncSessionKey) {
+            this.keyStoreFacade = keyStoreFacade;
+            this.pushIdentifierToEncSessionKey = pushIdentifierToEncSessionKey;
+        }
+
+        @Nullable
+        public byte[] resolvePushSessionKey(String pushIdentifierId) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+            byte[] resolved = pushIdentifierToResolvedSessionKey.get(pushIdentifierId);
+            if (resolved != null) {
+                return resolved;
+            } else {
+                String encryptedSessionKey = pushIdentifierToEncSessionKey.get(pushIdentifierId);
+                if (encryptedSessionKey == null) {
+                    return null;
+                }
+                byte[] decryptedSessionKey = keyStoreFacade.decryptKey(encryptedSessionKey);
+                pushIdentifierToResolvedSessionKey.put(pushIdentifierId, decryptedSessionKey);
+                return decryptedSessionKey;
+            }
+        }
     }
 }

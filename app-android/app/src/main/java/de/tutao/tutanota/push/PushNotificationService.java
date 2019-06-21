@@ -29,6 +29,7 @@ import android.support.v4.app.ServiceCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +44,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.tutao.tutanota.AlarmNotification;
 import de.tutao.tutanota.AlarmNotificationsManager;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
@@ -80,6 +81,7 @@ public final class PushNotificationService extends JobService {
     private final AtomicReference<HttpURLConnection> httpsURLConnectionRef =
             new AtomicReference<>(null);
     private final Crypto crypto = new Crypto(this);
+    private AlarmNotificationsManager alarmNotificationsManager;
     private volatile SseInfo connectedSseInfo;
     private volatile int timeoutInSeconds;
     private ConnectivityManager connectivityManager;
@@ -122,6 +124,7 @@ public final class PushNotificationService extends JobService {
         super.onCreate();
         connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         this.connectedSseInfo = sseStorage.getSseInfo();
+        alarmNotificationsManager = new AlarmNotificationsManager(this, sseStorage);
         looperThread.start();
 
         registerReceiver(new BroadcastReceiver() {
@@ -268,8 +271,7 @@ public final class PushNotificationService extends JobService {
         Log.d(TAG, "onStartJob");
         restartConnectionIfNeeded(null);
         jobParameters = params;
-        // TODO: handle rescheduling
-//        new AlarmNotificationsManager(this).reScheduleAlarms();
+        alarmNotificationsManager.reScheduleAlarms();
         return true;
     }
 
@@ -341,7 +343,7 @@ public final class PushNotificationService extends JobService {
                 List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
 
                 handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
-                handleAlarmNotifications(pushMessage.getAlarmInfos());
+                handleAlarmNotifications(pushMessage.hasAlarmNotifications());
 
                 Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
                 confirmationThreadPool.execute(
@@ -381,9 +383,36 @@ public final class PushNotificationService extends JobService {
         }
     }
 
-    private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
-        new AlarmNotificationsManager(this, this.sseStorage)
-                .scheduleNewAlarms(alarmNotifications);
+    private void handleAlarmNotifications(boolean hasAlarmNotifications) {
+        if (!hasAlarmNotifications) {
+            return;
+        }
+        try {
+            String base64UrlId = Utils.base64ToBase64Url(connectedSseInfo.getPushIdentifier());
+
+            URL url = new URL(connectedSseInfo.getSseOrigin() +
+                    "/rest/sys/missednotification/A/" + base64UrlId);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+            urlConnection.setConnectTimeout(30);
+            urlConnection.setReadTimeout(20);
+
+            urlConnection.setRequestProperty("userIds", TextUtils.join(",", connectedSseInfo.getUserIds()));
+            InputStream inputStream = urlConnection.getInputStream();
+            String responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            Log.d(TAG, "Missed notifications response:\n" + responseString);
+            MissedNotification missedNotification = MissedNotification.fromJson(new JSONObject(responseString));
+
+
+            this.alarmNotificationsManager
+                    .scheduleNewAlarms(missedNotification.getAlarmNotifications());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleNotificationInfos(NotificationManager notificationManager, PushMessage pushMessage, List<PushMessage.NotificationInfo> notificationInfos) {

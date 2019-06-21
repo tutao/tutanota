@@ -9,20 +9,21 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class AlarmNotification {
 
     private OperationType operation;
     private String summary;
-    private String eventStartEnc;
+    private String eventStart;
     private AlarmInfo alarmInfo;
     private RepeatRule repeatRule;
     private List<NotificationSessionKey> notificationSessionKeys;
 
-    public AlarmNotification(OperationType operation, String summaryEnc, String eventStartEnc, AlarmInfo alarmInfo, RepeatRule repeatRule, List<NotificationSessionKey> notificationSessionKeys) {
+    public AlarmNotification(OperationType operation, String summaryEnc, String eventStart, AlarmInfo alarmInfo, RepeatRule repeatRule, List<NotificationSessionKey> notificationSessionKeys) {
         this.operation = operation;
         this.summary = summaryEnc;
-        this.eventStartEnc = eventStartEnc;
+        this.eventStart = eventStart;
         this.alarmInfo = alarmInfo;
         this.repeatRule = repeatRule;
         this.notificationSessionKeys = notificationSessionKeys;
@@ -39,10 +40,10 @@ public class AlarmNotification {
             repeatRule = RepeatRule.fromJson(jsonObject.getJSONObject("repeatRule"));
         }
         AlarmInfo alarmInfo = AlarmInfo.fromJson(jsonObject.getJSONObject("alarmInfo"));
-        JSONArray deviceSessionKeysJson = jsonObject.getJSONArray("deviceSessionKeys");
+        JSONArray notificationSessionKeysJSON = jsonObject.getJSONArray("notificationSessionKeys");
         List<NotificationSessionKey> notificationSessionKeys = new ArrayList<>();
-        for (int i = 0; i < deviceSessionKeysJson.length(); i++) {
-            notificationSessionKeys.add(NotificationSessionKey.fromJson(deviceSessionKeysJson.getJSONObject(i)));
+        for (int i = 0; i < notificationSessionKeysJSON.length(); i++) {
+            notificationSessionKeys.add(NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(i)));
         }
         return new AlarmNotification(operationType, summaryEnc, eventStartEnc, alarmInfo, repeatRule, notificationSessionKeys);
     }
@@ -63,13 +64,13 @@ public class AlarmNotification {
         return operation;
     }
 
-    public String getEventStartEnc() {
-        return eventStartEnc;
+    public String getEventStart() {
+        return eventStart;
     }
 
     @Nullable
     public Date getEventStart(Crypto crypto, byte[] sessionKey) throws CryptoError {
-        return EncryptionUtils.decryptDate(this.eventStartEnc, crypto, sessionKey);
+        return EncryptionUtils.decryptDate(this.eventStart, crypto, sessionKey);
 
     }
 
@@ -87,6 +88,19 @@ public class AlarmNotification {
 
     public List<NotificationSessionKey> getNotificationSessionKeys() {
         return notificationSessionKeys;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AlarmNotification that = (AlarmNotification) o;
+        return Objects.equals(alarmInfo.getIdentifier(), that.alarmInfo.getIdentifier());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(alarmInfo.getIdentifier());
     }
 
     public static class NotificationSessionKey {

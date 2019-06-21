@@ -7,22 +7,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public final class AlarmInfo {
-    public final String trigger;
-    public final String identifier;
+    private final String trigger;
+    private final String identifier;
+
+    private final JSONObject originalJson;
 
     public static AlarmInfo fromJson(JSONObject jsonObject) throws JSONException {
         String trigger = jsonObject.getString("trigger");
-        String identifier = jsonObject.getString("identifier");
-        return new AlarmInfo(trigger, identifier);
+        String alarmIdentifier = jsonObject.getString("alarmIdentifier");
+        return new AlarmInfo(trigger, alarmIdentifier, jsonObject);
     }
 
-    public AlarmInfo(String trigger, String identifier) {
+    public AlarmInfo(String trigger, String identifier, JSONObject originalJson) {
         this.trigger = trigger;
         this.identifier = Objects.requireNonNull(identifier);
-    }
-
-    public String getTriggerEnc() {
-        return trigger;
+        this.originalJson = originalJson;
     }
 
     public String getTrigger(Crypto crypto, byte[] sessionKey) throws CryptoError {
