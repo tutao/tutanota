@@ -73,8 +73,12 @@ export class CalendarFacade {
 
 				return setup(listId, event)
 			})
-			.then(() => loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list))
-			.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+			.then(() => {
+				if (alarmNotifications.length > 0) {
+					return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+						.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+				}
+			})
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
