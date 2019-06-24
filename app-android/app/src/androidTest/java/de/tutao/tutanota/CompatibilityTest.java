@@ -74,11 +74,15 @@ public class CompatibilityTest {
 
             String base64Result = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.getInput()), hexToBytes(testData.seed));
             byte[] encryptedResultBytes = Utils.base64ToBytes(base64Result);
-            String hexResult = bytesToHex(encryptedResultBytes);
-            assertEquals(testData.getResult(), hexResult);
+            //String hexResult = bytesToHex(encryptedResultBytes);
+            //assertEquals(testData.getResult(), hexResult);
+            //cannot compare encrypted test data because default android implementation ignores randomizer
 
             String base64PlainText = crypto.rsaDecrypt(hexToPrivateKey(testData.getPrivateKey()), encryptedResultBytes);
             assertEquals(testData.input, bytesToHex(Utils.base64ToBytes(base64PlainText)));
+
+            String base64PlainTextFromTestData = crypto.rsaDecrypt(hexToPrivateKey(testData.getPrivateKey()), hexToBytes(testData.getResult()));
+            assertEquals(testData.input, bytesToHex(Utils.base64ToBytes(base64PlainTextFromTestData)));
         }
     }
 
@@ -86,6 +90,7 @@ public class CompatibilityTest {
     private static JSONObject hexToPrivateKey(@NonNull String hex) {
         return arrayToPrivateKey(hexToKeyArray(hex));
     }
+
     @NonNull
     private static JSONObject hexToPublicKey(@NonNull String hex) {
         return arrayToPublicKey(hexToKeyArray(hex));
@@ -136,24 +141,25 @@ public class CompatibilityTest {
 
     private static byte[] hexToBytes(String s) {
         int len = s.length();
-        byte[] data = new byte[len/2];
+        byte[] data = new byte[len / 2];
 
-        for(int i = 0; i < len; i+=2){
-            data[i/2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
         }
 
         return data;
     }
 
-    final private static char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    final private static char[] hexArray = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
     private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length*2];
+        char[] hexChars = new char[bytes.length * 2];
         int v;
 
-        for(int j=0; j < bytes.length; j++) {
+        for (int j = 0; j < bytes.length; j++) {
             v = bytes[j] & 0xFF;
-            hexChars[j*2] = hexArray[v>>>4];
-            hexChars[j*2 + 1] = hexArray[v & 0x0F];
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
 
         return new String(hexChars);

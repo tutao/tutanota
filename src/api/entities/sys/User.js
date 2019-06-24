@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 	}, "associations": {
 		"alarmInfoList": {
 			"name": "alarmInfoList",
-			"id": 1540,
+			"id": 1545,
 			"since": 47,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",

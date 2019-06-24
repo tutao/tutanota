@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "NotificationSessionKey",
 	"since": 47,
 	"type": "AGGREGATED_TYPE",
-	"id": 1541,
-	"rootId": "A3N5cwAGBQ",
+	"id": 1546,
+	"rootId": "A3N5cwAGCg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 1542, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 1547, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"pushIdentifierSessionEncSessionKey": {
 			"name": "pushIdentifierSessionEncSessionKey",
-			"id": 1544,
+			"id": 1549,
 			"since": 47,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -26,7 +26,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"pushIdentifier": {
 			"name": "pushIdentifier",
-			"id": 1543,
+			"id": 1548,
 			"since": 47,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

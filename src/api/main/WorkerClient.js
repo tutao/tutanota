@@ -492,6 +492,10 @@ export class WorkerClient {
 	addCalendar(): Promise<void> {
 		return this._queue.postMessage(new Request("addCalendar", []))
 	}
+
+	bootstrapCalendarAlarms(pushIdentifier: PushIdentifier): Promise<void> {
+		return this._queue.postMessage(new Request("bootstrapCalendarAlarms", [pushIdentifier]))
+	}
 }
 
 export const worker = new WorkerClient()

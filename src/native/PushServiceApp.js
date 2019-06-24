@@ -1,5 +1,5 @@
 //@flow
-import {loadAll, load, setup, update} from "../api/main/Entity"
+import {load, loadAll, setup, update} from "../api/main/Entity"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
@@ -11,7 +11,7 @@ import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector.js"
-import {elementIdPart, getElementId, listIdPart} from "../api/common/EntityFunctions"
+import {getElementId} from "../api/common/EntityFunctions"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -31,7 +31,10 @@ class PushServiceApp {
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
 						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier))
+							           .then(pushIdentifier => {
+								           return this._storePushIdentifierLocally(pushIdentifier)
+								                      .then(() => this._bootstrapAlarms(pushIdentifier))
+							           })
 						} else {
 							return Promise.resolve()
 						}
@@ -42,6 +45,7 @@ class PushServiceApp {
 					             .then(pushIdentifier => {
 						             this._currentIdentifier = pushIdentifier.identifier
 						             return this._storePushIdentifierLocally(pushIdentifier)
+						                        .then(() => this._bootstrapAlarms(pushIdentifier))
 					             })
 				}
 			}).then(this._initPushNotifications)
@@ -58,7 +62,8 @@ class PushServiceApp {
 							return this._storePushIdentifierLocally(pushIdentifier)
 						} else {
 							return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
-							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier))
+							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier)
+							                                       .then(() => this._bootstrapAlarms(pushIdentifier)))
 						}
 					})
 				} else {
@@ -126,6 +131,10 @@ class PushServiceApp {
 
 	_initPushNotifications(): Promise<void> {
 		return nativeApp.invokeNative(new Request("initPushNotifications", []))
+	}
+
+	_bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
+		return worker.bootstrapCalendarAlarms(pushIdentifier)
 	}
 }
 

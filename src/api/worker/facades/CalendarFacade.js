@@ -2,11 +2,11 @@
 
 import {erase, setup} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
-import {createUserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
+import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
-import {HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
+import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
 import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
 import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
@@ -15,12 +15,16 @@ import {createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
 import {aes128RandomKey} from "../crypto/Aes"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
+import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
+import {createRepeatRule} from "../../entities/sys/RepeatRule"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
 import {createCalendarPostData} from "../../entities/tutanota/CalendarPostData"
 import {UserManagementFacade} from "./UserManagementFacade"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {GroupTypeRef} from "../../entities/sys/Group"
+import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
+import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 
 assertWorkerOrNode()
 
@@ -43,20 +47,20 @@ export class CalendarFacade {
 		if (oldEvent) {
 			p = erase(oldEvent)
 		}
+		const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
+		event._id = [listId, generateEventElementId(event.startTime.getTime())]
+
 		return p
 			.then(() => {
 				if (alarmInfo) {
 					const newAlarm = createUserAlarmInfo()
 					newAlarm._ownerGroup = user.userGroup.group
 					newAlarm.alarmInfo = alarmInfo
-					const alarmNotification = Object.assign(createAlarmNotification(), {
-						alarmInfo,
-						repeatRule: event.repeatRule,
-						notificationSessionKeys: [],
-						operation: OperationType.CREATE,
-						summary: event.summary,
-						eventStart: event.startTime
+					newAlarm.alarmInfo.calendarRef = Object.assign(createCalendarEventRef(), {
+						listId,
+						elementId: elementIdPart(event._id)
 					})
+					const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
 					alarmNotifications.push(alarmNotification)
 					return setup(userAlarmInfoListId, newAlarm)
 				}
@@ -66,43 +70,40 @@ export class CalendarFacade {
 				if (newUserAlarmElementId) {
 					event.alarmInfos.push([userAlarmInfoListId, newUserAlarmElementId])
 				}
-				const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
-				event._id = [listId, generateEventElementId(event.startTime.getTime())]
+
 				return setup(listId, event)
 			})
-			.then(() => this._sendAlarmNotifications(alarmNotifications))
+			.then(() => loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list))
+			.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
 	}
 
-	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>): Promise<void> {
-		return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-			.then((pushIdentifierList) => {
-				const notificationSessionKey = aes128RandomKey()
-				return Promise
-					.map(pushIdentifierList, identifier => {
-						return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
-							if (pushIdentifierSk) {
-								const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
-								return {identifierId: identifier._id, pushIdentifierSessionEncSessionKey}
-							} else {
-								return null
-							}
+	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
+		const notificationSessionKey = aes128RandomKey()
+		return Promise
+			.map(pushIdentifierList, identifier => {
+				return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
+					if (pushIdentifierSk) {
+						const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
+						return {identifierId: identifier._id, pushIdentifierSessionEncSessionKey}
+					} else {
+						return null
+					}
+				})
+			})
+			.then(maybeEncSessionKeys => {
+				const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
+				for (let notification of alarmNotifications) {
+					notification.notificationSessionKeys = encSessionKeys.map(esk => {
+						return Object.assign(createNotificationSessionKey(), {
+							pushIdentifier: esk.identifierId,
+							pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey
 						})
 					})
-					.then(maybeEncSessionKeys => {
-						const encSessionKeys = maybeEncSessionKeys.filter(Boolean)
-						for (let notification of alarmNotifications) {
-							notification.notificationSessionKeys = encSessionKeys.map(esk => {
-								return Object.assign(createNotificationSessionKey(), {
-									pushIdentifier: esk.identifierId,
-									pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey
-								})
-							})
-						}
+				}
 
-						const requestEntity = createAlarmServicePost()
-						requestEntity.alarmNotifications = alarmNotifications
-						return serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity, null, notificationSessionKey)
-					})
+				const requestEntity = createAlarmServicePost()
+				requestEntity.alarmNotifications = alarmNotifications
+				return serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity, null, notificationSessionKey)
 			})
 	}
 
@@ -111,7 +112,7 @@ export class CalendarFacade {
 		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
-			if (this._loginFacade.getAllGroupIds().indexOf(adminGroupId) != -1) { // getGroupKey throws an if user is not member of that group - so check first
+			if (this._loginFacade.getAllGroupIds().indexOf(adminGroupId) !== -1) { // getGroupKey throws an if user is not member of that group - so check first
 				adminGroupKey = this._loginFacade.getGroupKey(adminGroupId)
 			}
 			const customerGroupKey = this._loginFacade.getGroupKey(this._loginFacade.getGroupId(GroupType.Customer))
@@ -121,5 +122,55 @@ export class CalendarFacade {
 			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData)
 		})
 	}
+
+	bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
+		const user = this._loginFacade.getLoggedInUser()
+		const alarmInfoList = user.alarmInfoList
+		if (alarmInfoList) {
+			return loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
+				.then((userAlarmInfos) =>
+					Promise.map(userAlarmInfos, (userAlarmInfo) =>
+						load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
+							.then((event) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))))
+				.then((alarmNotifications) => this._sendAlarmNotifications(alarmNotifications, [pushIdentifier]))
+		} else {
+			console.warn("No alarmInfo list on user")
+			return Promise.resolve()
+		}
+	}
 }
 
+function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {
+	return Object.assign(createAlarmNotification(), {
+		alarmInfo: createAlarmInfoForAlarmInfo(alarmInfo),
+		repeatRule: event.repeatRule && createRepeatRuleForCalendarRepeatRule(event.repeatRule),
+		notificationSessionKeys: [],
+		operation: OperationType.CREATE,
+		summary: event.summary,
+		eventStart: event.startTime,
+		user: userId
+	})
+}
+
+function createAlarmInfoForAlarmInfo(alarmInfo: AlarmInfo): AlarmInfo {
+	const calendarRef = Object.assign(createCalendarEventRef(), {
+		elementId: alarmInfo.calendarRef.elementId,
+		listId: alarmInfo.calendarRef.listId
+	})
+
+	return Object.assign(createAlarmInfo(), {
+		alarmIdentifier: alarmInfo.alarmIdentifier,
+		trigger: alarmInfo.trigger,
+		calendarRef,
+	})
+}
+
+function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepeatRule): RepeatRule {
+	return Object.assign(createRepeatRule(), {
+		endType: calendarRepeatRule.endType,
+		endValue: calendarRepeatRule.endValue,
+		frequency: calendarRepeatRule.frequency,
+		interval: calendarRepeatRule.interval,
+		timeZone: calendarRepeatRule.timeZone
+	})
+}

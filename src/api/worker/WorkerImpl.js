@@ -284,9 +284,10 @@ export class WorkerImpl {
 			},
 			addCalendar: (message: Request) => {
 				return locator.calendar.addCalendar.apply(locator.calendar, message.args)
+			},
+			bootstrapCalendarAlarms: (message: Request) => {
+				return locator.calendar.bootstrapAlarms(...message.args)
 			}
-
-
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

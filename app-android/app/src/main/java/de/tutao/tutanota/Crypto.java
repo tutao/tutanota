@@ -55,7 +55,7 @@ public final class Crypto {
     public static final byte[] FIXED_IV = new byte[16];
 
     private final static int RSA_KEY_LENGTH_IN_BITS = 2048;
-    private static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    public static final String RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
     private final static int RSA_PUBLIC_EXPONENT = 65537;
     /**
      * Android picks not the same implementation for encryption and decryption so we have to be
@@ -67,7 +67,7 @@ public final class Crypto {
     private final static OAEPParameterSpec OAEP_PARAMETER_SPEC = new OAEPParameterSpec(
             "SHA-256",
             "MGF1",
-            MGF1ParameterSpec.SHA1,
+            MGF1ParameterSpec.SHA256,
             PSource.PSpecified.DEFAULT);
 
     private static final String AES_MODE_PADDING = "AES/CBC/PKCS5Padding";
@@ -213,11 +213,9 @@ public final class Crypto {
     public byte[] rsaDecrypt(PrivateKey privateKey, byte[] encryptedKey) throws CryptoError {
         try {
             Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-
             cipher.init(Cipher.DECRYPT_MODE, privateKey, OAEP_PARAMETER_SPEC, this.randomizer);
             return cipher.doFinal(encryptedKey);
-        } catch (BadPaddingException | InvalidKeyException
-                | IllegalBlockSizeException e) {
+        } catch (BadPaddingException | InvalidKeyException | IllegalBlockSizeException e) {
             throw new CryptoError(e);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
             // These errors are not expected, fatal for the whole application and should be

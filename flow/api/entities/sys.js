@@ -1600,12 +1600,21 @@ type NotificationMailTemplate = {
 
 }
 
+type CalendarEventRef = {
+	_type: TypeRef<CalendarEventRef>;
+	_id: Id;
+	elementId: Id;
+	listId: Id;
+
+}
+
 type AlarmInfo = {
 	_type: TypeRef<AlarmInfo>;
 	_id: Id;
 	alarmIdentifier: string;
 	trigger: string;
 
+	calendarRef: CalendarEventRef;
 }
 
 type UserAlarmInfo = {
@@ -1656,6 +1665,7 @@ type AlarmNotification = {
 	alarmInfo: AlarmInfo;
 	notificationSessionKeys: NotificationSessionKey[];
 	repeatRule: ?RepeatRule;
+	user: Id;
 }
 
 type AlarmServicePost = {

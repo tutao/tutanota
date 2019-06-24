@@ -7,6 +7,8 @@ import android.util.Log;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -16,9 +18,18 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.security.spec.MGF1ParameterSpec;
 import java.util.Calendar;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 import javax.security.auth.x500.X500Principal;
+
+import static de.tutao.tutanota.Crypto.RSA_ALGORITHM;
 
 public class AndroidKeyStoreFacade {
     public static final String TAG = "AndroidKeyStoreFacade";
@@ -28,6 +39,12 @@ public class AndroidKeyStoreFacade {
     private final Crypto crypto;
     private KeyStore keyStore;
     private Context context;
+
+    private final static OAEPParameterSpec OAEP_PARAMETER_SPEC_MGF1_SHA1 = new OAEPParameterSpec(
+            "SHA-256",
+            "MGF1",
+            MGF1ParameterSpec.SHA1,
+            PSource.PSpecified.DEFAULT);
 
 
     public AndroidKeyStoreFacade(Context context) {
@@ -61,14 +78,32 @@ public class AndroidKeyStoreFacade {
         }
     }
 
-    public String encryptKey(byte[] sessionKey) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+    public String encryptKey(byte[] sessionKey) throws KeyStoreException, CryptoError {
         if (keyStore == null) {
             throw new KeyStoreException("Keystore was not initialized");
         }
         PublicKey publicKey = keyStore.getCertificate(KEY_ALIAS).getPublicKey();
-
-        return this.crypto.rsaEncrypt(publicKey, sessionKey, new byte[0]);
+        try {
+            return Utils.bytesToBase64(this.createRSACipher(publicKey, Cipher.ENCRYPT_MODE).doFinal(sessionKey));
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new CryptoError(e);
+        }
     }
+
+    private Cipher createRSACipher(Key key, int mode) throws CryptoError {
+        // We use separate RSA implementation than Crypto.java and all other encryption because
+        // AndroidKeyStore provider is incompatible with OAEP MGF1_SHA256
+        try {
+            Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
+            cipher.init(mode, key, OAEP_PARAMETER_SPEC_MGF1_SHA1);
+            return cipher;
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
+            throw new CryptoError(e);
+        }
+    }
+
 
     public byte[] decryptKey(String encSessionKey) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
         if (keyStore == null) {
@@ -81,6 +116,10 @@ public class AndroidKeyStoreFacade {
             throw new RuntimeException(e);
         }
         byte[] encSessionKeyRaw = Utils.base64ToBytes(encSessionKey);
-        return this.crypto.rsaDecrypt(privateKey, encSessionKeyRaw);
+        try {
+            return this.createRSACipher(privateKey, Cipher.DECRYPT_MODE).doFinal(encSessionKeyRaw);
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new CryptoError(e);
+        }
     }
 }
