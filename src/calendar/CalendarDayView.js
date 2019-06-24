@@ -3,16 +3,18 @@
 import m from "mithril"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
-import {px, size} from "../gui/size"
+import {px, size as sizes, size} from "../gui/size"
 import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {styles} from "../gui/styles"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents} from "./CalendarUtils"
+import type {GestureInfo} from "../gui/base/ViewSlider"
+import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Stream<Date>,
@@ -31,6 +33,8 @@ const allHoursHeight = size.calendar_hour_height * hours.length
 export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 	dayDom: HTMLElement;
+	_lastGestureInfo: ?GestureInfo;
+	_oldGestureInfo: ?GestureInfo
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
 		const date = vnode.attrs.selectedDate()
@@ -48,12 +52,37 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			}
 		})
 
-
 		return m(".fill-absolute.flex.col", {
 			oncreate: (vnode) => {
 				this.dayDom = vnode.dom
 				m.redraw()
-			}
+			},
+			ontouchstart: (event) => {
+				this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
+			},
+			ontouchmove: (event) => {
+				this._oldGestureInfo = this._lastGestureInfo
+				this._lastGestureInfo = gestureInfoFromTouch(event.touches[0])
+			},
+			ontouchend: () => {
+				const lastGestureInfo = this._lastGestureInfo
+				const oldGestureInfo = this._oldGestureInfo
+				if (lastGestureInfo && oldGestureInfo) {
+					const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
+					const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
+					const absVerticalVelocity = Math.abs(verticalVelocity)
+					console.log("velocity", velocity, "vertical", verticalVelocity)
+					if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
+						// Do nothing, vertical scroll
+					} else if (velocity > 0.6) {
+						const nextDate = incrementDate(vnode.attrs.selectedDate(), -1)
+						vnode.attrs.selectedDate(nextDate)
+					} else if (velocity < -0.6) {
+						const nextDate = getStartOfNextDay(vnode.attrs.selectedDate())
+						vnode.attrs.selectedDate(nextDate)
+					}
+				}
+			},
 		}, [
 			m(".mt-s.pr-l", [
 				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate())) : null,
@@ -74,26 +103,26 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				}))),
 				m("hr.hr.mt-s")
 			]),
-			m(".scroll.col.rel",
-				[
-					hours.map(n => m(".calendar-hour.flex", {
-						style: {
-							'border-bottom': `1px solid ${theme.content_border}`,
-							height: px(size.calendar_hour_height)
-						},
-						onclick: (e) => {
-							e.stopPropagation()
-							vnode.attrs.onNewEvent(n)
-						},
-					}, m(".pt.pl-s.pr-s.center", {
-						style: {
-							width: px(size.calendar_hour_width),
-							height: px(size.calendar_hour_height),
-							'border-right': `2px solid ${theme.content_border}`,
-						},
-					}, formatTime(n)))),
-					this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null
-				])
+			m(".scroll.col.rel", [
+				hours.map(n => m(".calendar-hour.flex", {
+					style: {
+						'border-bottom': `1px solid ${theme.content_border}`,
+						height: px(size.calendar_hour_height)
+					},
+					onclick: (e) => {
+						e.stopPropagation()
+						vnode.attrs.onNewEvent(n)
+					},
+				}, m(".pt.pl-s.pr-s.center", {
+					style: {
+						width: px(size.calendar_hour_width),
+						height: px(size.calendar_hour_height),
+						'border-right': `2px solid ${theme.content_border}`,
+					},
+				}, formatTime(n)))),
+				this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null,
+				this._renderTimeIndicator(vnode.attrs),
+			])
 		])
 	}
 
@@ -130,5 +159,40 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2
 		}))
+	}
+
+	_renderTimeIndicator(attrs: CalendarDayViewAttrs): Children {
+		const now = new Date()
+		if (!isSameDay(attrs.selectedDate(), now)) {
+			return null
+		}
+
+		const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
+		const top = passedMillisInDay / DAY_IN_MILLIS * allHoursHeight
+		return [
+			m(".abs", {
+				"aria-hidden": "true",
+				style: {
+					top: px(top),
+					left: px(sizes.calendar_hour_width),
+					right: 0,
+					height: "2px",
+					background: theme.content_accent
+				}
+			}),
+			m(".abs", {
+				"aria-hidden": "true",
+				style: {
+					top: px(top),
+					left: px(sizes.calendar_hour_width),
+					height: "12px",
+					width: "12px",
+					"border-radius": "50%",
+					background: theme.content_accent,
+					"margin-top": "-6px",
+					"margin-left": "-6px",
+				}
+			})
+		]
 	}
 }

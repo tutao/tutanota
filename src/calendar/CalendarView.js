@@ -95,7 +95,9 @@ export class CalendarView implements CurrentView {
 							label: viewType.name,
 							icon: () => viewType.icon,
 							href: viewType.href,
-							isSelectedPrefix: viewType.href
+							isSelectedPrefix: viewType.href,
+							// Close side menu
+							click: () => this.viewSlider.focus(this.contentColumn)
 						})
 					})),
 				]),

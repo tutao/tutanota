@@ -60,13 +60,18 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute.day-with-border"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				onclick: () => {
-					const newDate = new Date(d.date)
-					let hour = new Date().getHours()
-					if (hour < 23) {
-						hour++
+					if (styles.isDesktopLayout()) {
+						const newDate = new Date(d.date)
+						let hour = new Date().getHours()
+						if (hour < 23) {
+							hour++
+						}
+						newDate.setHours(hour, 0)
+						attrs.onNewEvent(newDate)
+					} else {
+						attrs.selectedDate(new Date(d.date))
+						m.route.set("/calendar/day")
 					}
-					newDate.setHours(hour, 0)
-					attrs.onNewEvent(newDate)
 				},
 			},
 			m(".calendar-day-number" + (today.getTime() === d.date.getTime() ? ".date-selected.b" : ""), String(d.day)),
