@@ -35,7 +35,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 	dayDom: HTMLElement;
 	_lastGestureInfo: ?GestureInfo;
-	_oldGestureInfo: ?GestureInfo
+	_oldGestureInfo: ?GestureInfo;
+	_redrawIntervalId: ?IntervalID
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
 		const date = vnode.attrs.selectedDate
@@ -56,7 +57,14 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		return m(".fill-absolute.flex.col", {
 			oncreate: (vnode) => {
 				this.dayDom = vnode.dom
+				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 				m.redraw()
+			},
+			onremove: () => {
+				if (this._redrawIntervalId != null) {
+					clearInterval(this._redrawIntervalId)
+					this._redrawIntervalId = null
+				}
 			},
 			ontouchstart: (event) => {
 				this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
