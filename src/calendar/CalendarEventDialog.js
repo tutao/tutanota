@@ -173,11 +173,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				icon: Icons.Edit,
 			}: DropDownSelectorAttrs<CalendarInfo>)),
 			m(TextFieldN, {
-				label: () => "Location",
+				label: "calendarEventLocation_label",
 				value: locationValue
 			}),
 			m(TextFieldN, {
-				label: () => "Notes",
+				label: "calendarEventDescription_label",
 				value: notesValue,
 				type: Type.Area
 			}),
@@ -185,8 +185,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				label: "delete_action",
 				type: ButtonType.Primary,
 				click: () => {
-					erase(existingEvent)
-					dialog.close()
+					let p = neverNull(existingEvent).repeatRule
+						? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
+						: Promise.resolve(true)
+					p.then((answer) => {
+						if (answer) {
+							erase(existingEvent)
+							dialog.close()
+						}
+					})
 				}
 			})) : null,
 		],
@@ -214,6 +221,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				endDate.setMinutes(parsedEndTime.minutes)
 			}
 
+			if (endDate.getTime() < startDate.getTime()) {
+				Dialog.error('startAfterEnd_label')
+				return
+			}
 			newEvent.startTime = startDate
 			newEvent.description = notesValue()
 			newEvent.summary = summary()
@@ -301,14 +312,14 @@ function createIntervalPicker(): DropDownSelectorAttrs<number> {
 }
 
 const stopConditionValues = [
-	{name: "Never", value: EndType.Never},
-	{name: "After occurences", value: EndType.Count},
-	{name: "On", value: EndType.UntilDate}
+	{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
+	{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
+	{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
 ]
 
 function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
 	return {
-		label: () => "Ends",
+		label: () => lang.get("calendarRepeatStopCondition_label"),
 		items: stopConditionValues,
 		selectedValue: stream(stopConditionValues[0].value),
 		icon: Icons.Edit
@@ -337,20 +348,20 @@ const AlarmInterval = Object.freeze({
 type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 
 const alarmIntervalItems = [
-	{name: "None", value: null},
-	{name: "5 minutes", value: AlarmInterval.FIVE_MINUTES},
-	{name: "10 minutes", value: AlarmInterval.TEN_MINUTES},
-	{name: "30 minutes", value: AlarmInterval.THIRTY_MINUTES},
-	{name: "1 hour", value: AlarmInterval.ONE_HOUR},
-	{name: "1 day", value: AlarmInterval.ONE_DAY},
-	{name: "2 days", value: AlarmInterval.TWO_DAYS},
-	{name: "3 days", value: AlarmInterval.THREE_DAYS},
-	{name: "1 week", value: AlarmInterval.ONE_WEEK}
+	{name: lang.get("comboBoxSelectionNone_msg"), value: null},
+	{name: lang.get("calendarReminderIntervalFiveMinutes_label"), value: AlarmInterval.FIVE_MINUTES},
+	{name: lang.get("calendarReminderIntervalTenMinutes_label"), value: AlarmInterval.TEN_MINUTES},
+	{name: lang.get("calendarReminderIntervalThirtyMinutes_label"), value: AlarmInterval.THIRTY_MINUTES},
+	{name: lang.get("calendarReminderIntervalOneHour_label"), value: AlarmInterval.ONE_HOUR},
+	{name: lang.get("calendarReminderIntervalOneDay_label"), value: AlarmInterval.ONE_DAY},
+	{name: lang.get("calendarReminderIntervalTwoDays_label"), value: AlarmInterval.TWO_DAYS},
+	{name: lang.get("calendarReminderIntervalThreeDays_label"), value: AlarmInterval.THREE_DAYS},
+	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
 ]
 
 function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
 	return {
-		label: () => "Reminder",
+		label: () => lang.get("calendarReminder_label"),
 		items: alarmIntervalItems,
 		selectedValue: stream(null),
 		icon: Icons.Edit

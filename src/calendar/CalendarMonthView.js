@@ -6,13 +6,13 @@ import {px, size} from "../gui/size"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {getDateIndicator, getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithYear} from "../misc/Formatter"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
 type CalendarMonthAttrs = {
@@ -31,7 +31,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
 
 	view(vnode: Vnode<CalendarMonthAttrs>): Children {
-		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate)
+		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate, 1, false)
 		const today = getStartOfDay(new Date())
 		return m(".fill-absolute.flex.col",
 			[
@@ -71,11 +71,10 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						attrs.onNewEvent(newDate)
 					} else {
 						attrs.onDateSelected(new Date(d.date))
-						m.route.set("/calendar/day")
 					}
 				},
 			},
-			m(".calendar-day-number" + (today.getTime() === d.date.getTime() ? ".date-selected.b" : ""), String(d.day)),
+			m(".calendar-day-number" + getDateIndicator(d.date, attrs.selectedDate, today), String(d.day)),
 		)
 	}
 
@@ -110,10 +109,10 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						}, this._renderEvent(attrs, event, firstDayOfWeek.date, lastDayOfWeek.date))
 
 					} else {
-						week.forEach(dayInWeek => {
+						week.forEach((dayInWeek, index) => {
 							const eventsForDay = attrs.eventsForDays.get(dayInWeek.date.getTime())
 							if (eventsForDay && eventsForDay.indexOf(event) !== -1) {
-								moreEventsForDay[dayInWeek.date.getDay()]++
+								moreEventsForDay[index]++
 							}
 						})
 						return null
@@ -132,7 +131,6 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						text: "+" + moreEventsCount,
 						color: theme.content_bg.substring(1),
 						onEventClicked: () => {
-							m.route.set("/calendar/day")
 							attrs.onDateSelected(week[weekday].date)
 						}
 					}))
@@ -146,10 +144,16 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
 	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
 		const top = (size.calendar_line_height + 2) * columnIndex + calendarDayHeight
-		const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : (getEventStart(event).getDay()) * calendarDayWidth
 
+
+		const eventStart = getEventStart(event)
 		const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
-		const right = eventEndsAfterDay(lastDayOfWeek, event) ? 0 : ((6 - eventEnd.getDay()) * calendarDayWidth) + 10
+
+		let dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
+		let dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
+
+		const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth
+		const right = eventEndsAfterDay(lastDayOfWeek, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth) + 10
 		return {
 			top,
 			left: left === 0 ? 20 : left,

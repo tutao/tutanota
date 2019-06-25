@@ -65,6 +65,7 @@ export class CalendarView implements CurrentView {
 			{name: lang.get("calendarViewMonth_title"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 		]
 
+		this._currentViewType = CalendarViewType.MONTH
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
 		this.selectedDate = stream(getStartOfDay(new Date()))
@@ -73,9 +74,8 @@ export class CalendarView implements CurrentView {
 			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
 				m(".folders.pt", [
 					m(VisualDatePicker, {
-						onDateSelected: (newDate) => {
-							const view = m.route.param("view")
-							this._setUrl(view, newDate)
+						onDateSelected: (newDate, dayClicked) => {
+							this._setUrl(dayClicked ? CalendarViewType.DAY : this._currentViewType, newDate)
 						},
 						selectedDate: this.selectedDate(),
 						wide: false
@@ -125,7 +125,7 @@ export class CalendarView implements CurrentView {
 					m(".folder-row.flex-start",
 						m(".flex.flex-grow..center-vertically.button-height", [
 							m(".calendar-checkbox", {
-								style: {"border-color": "#" + defaultCalendarColor}
+								style: {"border-color": "#" + defaultCalendarColor, "background": "#" + defaultCalendarColor}
 							}),
 							m(".pl-m", lang.get("privateCalendar_label"))
 						])))
@@ -139,7 +139,12 @@ export class CalendarView implements CurrentView {
 					eventsForDays: this._eventsForDays,
 					onEventClicked: (event) => {
 						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(getEventStart(event), calendarInfos, event)
+							let p = Promise.resolve(event)
+							if (event.repeatRule) {
+								// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
+								p = load(CalendarEventTypeRef, event._id)
+							}
+							p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
 						})
 					},
 					onNewEvent: (date) => {
@@ -219,7 +224,7 @@ export class CalendarView implements CurrentView {
 
 
 	_newEvent(date?: Date) {
-		this._calendarInfos.then(calendars => showCalendarEventDialog(date || new Date(), calendars))
+		this._calendarInfos.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
 	}
 
 	view() {
@@ -268,7 +273,7 @@ export class CalendarView implements CurrentView {
 
 	updateUrl(args: Object) {
 		if (!args.view) {
-			m.route.set("/calendar/month", args, {replace: true})
+			this._setUrl(this._currentViewType, this.selectedDate(), true)
 		} else {
 			this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
 			const urlDateParam = args.date
@@ -410,13 +415,9 @@ export class CalendarView implements CurrentView {
 		return this.viewSlider
 	}
 
-	_setUrl(view: string, date: Date) {
+	_setUrl(view: string, date: Date, replace: boolean = false) {
 		const dateString = DateTime.fromJSDate(date).toISODate()
-		m.route.set("/calendar/:view/:date", {view, date: dateString})
-	}
-
-	_makeUrl(view: string, date: Date) {
-		const dateString = DateTime.fromJSDate(date).toISODate()
+		m.route.set("/calendar/:view/:date", {view, date: dateString}, {replace})
 	}
 }
 

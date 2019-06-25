@@ -69,6 +69,10 @@ export function formatWeekdayShort(date: Date): string {
 	return lang.formats.weekdayShort.format(date)
 }
 
+export function formatWeekdayNarrow(date: Date): string {
+	return lang.formats.weekdayNarrow.format(date)
+}
+
 /**
  * Formats as yyyy-mm-dd
  */

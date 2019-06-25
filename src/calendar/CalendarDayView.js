@@ -120,7 +120,9 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					},
 					onclick: (e) => {
 						e.stopPropagation()
-						vnode.attrs.onNewEvent(n)
+						const eventDate = new Date(vnode.attrs.selectedDate)
+						eventDate.setHours(n.getHours(), n.getMinutes())
+						vnode.attrs.onNewEvent(eventDate)
 					},
 				}, m(".pt.pl-s.pr-s.center", {
 					style: {

@@ -966,6 +966,23 @@ module.exports = {
 		"interval_title": "Interval",
 		"calendarViewDay_title": "Day",
 		"calendarViewMonth_title": "Month",
-		"calendarAlarm_title" : "Calendar reminder"
+		"calendarAlarm_title": "Calendar reminder",
+		"deleteRepeatingEventConfirmation_msg": "Are you sure that you want to delete repeating event?",
+		"calendarEventDescription_label": "Description",
+		"calendarEventLocation_label": "Location",
+		"calendarRepeatStopConditionNever_label": "Never",
+		"calendarRepeatStopConditionOccurrences_label": "After occurrences",
+		"calendarRepeatStopConditionDate_label": "On date",
+		"calendarRepeatStopCondition_label": "Ends",
+		"calendarReminderIntervalFiveMinutes_label": "5 minutes",
+		"calendarReminderIntervalTenMinutes_label": "10 minutes",
+		"calendarReminderIntervalThirtyMinutes_label": "30 minutes",
+		"calendarReminderIntervalOneHour_label": "1 hour",
+		"calendarReminderIntervalOneDay_label": "1 day",
+		"calendarReminderIntervalTwoDays_label": "2 days",
+		"calendarReminderIntervalThreeDays_label": "3 days",
+		"calendarReminderIntervalOneWeek_label": "1 week",
+		"calendarReminder_label": "Reminder"
+
 	}
 }

@@ -56,18 +56,26 @@ export function getDayShifted(date: Date, days: number): Date {
 	return new Date(date.getTime() + days * DAY_IN_MILLIS)
 }
 
-/**
- * Result is positive or 0 if b > a, result is negative or 0 otherwise
- */
-export function getDiffInDays(a: Date, b: Date): number {
-	// discard the time and time-zone information
-	const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())
-	const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
-
-	return Math.floor((utc2 - utc1) / DAY_IN_MILLIS)
-}
-
 export function incrementDate(date: Date, byValue: number): Date {
 	date.setDate(date.getDate() + byValue)
 	return date
+}
+
+
+export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Date): string {
+	if (isSameDayOfDate(day, selectedDate)) {
+		return ".date-selected"
+	} else if (isSameDayOfDate(day, currentDate)) {
+		return ".date-current"
+	} else {
+		return ""
+	}
+}
+
+export function isSameDayOfDate(date1: ?Date, date2: ?Date): boolean {
+	return !date1 && !date2
+		|| date1 != null && date2 != null
+		&& date1.getFullYear() === date2.getFullYear()
+		&& date1.getMonth() === date2.getMonth()
+		&& date1.getDate() === date2.getDate()
 }

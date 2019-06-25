@@ -1,13 +1,13 @@
 //@flow
-import {stringToCustomId} from "../api/common/EntityFunctions"
-import {DAY_IN_MILLIS, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {formatWeekdayShort} from "../misc/Formatter"
+import {formatWeekdayNarrow, formatWeekdayShort} from "../misc/Formatter"
 import {clone} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {lang} from "../misc/LanguageViewModel"
 
 
 export type CalendarMonthTimeRange = {
@@ -97,15 +97,27 @@ export type CalendarMonth = {
 }
 
 
-export function getCalendarMonth(date: Date): CalendarMonth {
+/**
+ * @param date
+ * @param firstDayOfWeekFromSundayOffset
+ * @return {{weeks: Array[], weekdays: Array}}
+ */
+export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
 	const weeks = [[]]
 	const calculationDate = getStartOfDay(date)
 	calculationDate.setDate(1)
 	let currentYear = calculationDate.getFullYear()
 	let month = calculationDate.getMonth()
 	// add "padding" days
-	// getDay returns the day of the week (from 0 to 6) for the specified date
-	let firstDay = calculationDate.getDay()
+	// getDay returns the day of the week (from 0 to 6) for the specified date (with first one being Sunday)
+
+	let firstDay
+	if (firstDayOfWeekFromSundayOffset > calculationDate.getDay()) {
+		firstDay = (calculationDate.getDay() + 7) - firstDayOfWeekFromSundayOffset
+	} else {
+		firstDay = calculationDate.getDay() - firstDayOfWeekFromSundayOffset
+	}
+
 	let dayCount
 
 	incrementDate(calculationDate, -firstDay)
@@ -154,9 +166,9 @@ export function getCalendarMonth(date: Date): CalendarMonth {
 	}
 	const weekdays = []
 	const weekdaysDate = new Date()
-	incrementDate(weekdaysDate, -weekdaysDate.getDay())
+	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromSundayOffset)// get first day of week
 	for (let i = 0; i < 7; i++) {
-		weekdays.push(formatWeekdayShort(weekdaysDate))
+		weekdays.push(weekdayNarrowFormat ? lang.formats.weekdayNarrow.format(weekdaysDate) : lang.formats.weekdayShort.format(weekdaysDate))
 		incrementDate(weekdaysDate, 1)
 	}
 	return {
@@ -259,4 +271,13 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 		colSpan++;
 	}
 	return colSpan;
+}
+
+
+/**
+ * Result is positive or 0 if b > a, result is negative or 0 otherwise
+ */
+export function getDiffInDays(a: Date, b: Date): number {
+	// discard the time and time-zone information
+	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
 }

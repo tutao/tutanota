@@ -5,7 +5,7 @@ import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
-import {formatDate, formatDateWithMonth, parseDate} from "../../misc/Formatter"
+import {formatDate, formatDateWithMonth, formatMonthWithYear, parseDate} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {Dialog} from "./Dialog"
@@ -13,7 +13,9 @@ import {theme} from "../theme"
 import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
-import {getStartOfDay} from "../../api/common/utils/DateUtils"
+import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
+import {getCalendarMonth} from "../../calendar/CalendarUtils"
+import type {CalendarDay} from "../../calendar/CalendarUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -114,13 +116,14 @@ export class DatePicker {
 
 type VisualDatePickerAttrs = $Attrs<{
 	selectedDate: ?Date,
-	onDateSelected?: (date: Date) => mixed;
+	onDateSelected?: (date: Date, dayClick: boolean) => mixed;
 	wide: boolean
 }>
 
 export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	_displayingDate: Date;
 	_lastSelectedDate: ?Date;
+	_currentDate: Date;
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
 		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
@@ -128,61 +131,16 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	view(vnode: Vnode<VisualDatePickerAttrs>) {
 		const selectedDate = vnode.attrs.selectedDate
-		if (selectedDate && !this._sameDate(this._lastSelectedDate, selectedDate)) {
+		this._currentDate = getStartOfDay(new Date())
+		if (selectedDate && !isSameDayOfDate(this._lastSelectedDate, selectedDate)) {
 			this._lastSelectedDate = selectedDate
 			this._displayingDate = new Date(selectedDate)
 			this._displayingDate.setDate(1)
 		}
 
-		const weeks = [[]];
-		let day = 1;
 		let date = new Date(this._displayingDate)
-		let currentYear = date.getFullYear();
 
-		let month = date.getMonth();
-		let monthData = {
-			year: date.getFullYear(),
-			month: date.getMonth(),
-			date: new Date(date)
-		};
-		// add "padding" days
-		let firstDay = date.getDay();
-		let d;
-		for (d = 0; d < firstDay; d++) {
-			weeks[0].push({day: null, date: null});
-		}
-		// add actual days
-		while (date.getMonth() === month) {
-			if (weeks[0].length && d % 7 === 0) {
-				// start new week
-				weeks.push([]);
-			}
-			const dayInfo = {
-				date: new Date(date.getFullYear(), month, day),
-				year: currentYear,
-				month: month,
-				day: day,
-			};
-			weeks[weeks.length - 1].push(dayInfo);
-			date.setDate(++day);
-			d++;
-		}
-		// add remaining "padding" days
-		while (d < 42) {
-			if (d % 7 === 0) {
-				weeks.push([]);
-			}
-			weeks[weeks.length - 1].push({day: null, date: null});
-			d += 1;
-		}
-
-		const weekdays = []
-		const weekdaysDate = new Date()
-		weekdaysDate.setDate(weekdaysDate.getDate() - weekdaysDate.getDay())
-		for (let i = 0; i < 7; i++) {
-			weekdays.push(weekdaysDate.toLocaleDateString([], {weekday: "narrow"}))
-			weekdaysDate.setDate(weekdaysDate.getDate() + 1)
-		}
+		const {weeks, weekdays} = getCalendarMonth(this._displayingDate, 1, true)
 
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
@@ -191,7 +149,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 					style: {
 						fontSize: px(14)
 					}
-				}, monthData.date.toLocaleString([], {month: "long", year: "numeric"})),
+				}, formatMonthWithYear(date)),
 				this._switchMonthArrowIcon(true, vnode.attrs)
 			]),
 			m(".flex.flex-space-between", this._weekdaysVdom(vnode.attrs.wide, weekdays)),
@@ -218,33 +176,32 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_onPrevMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
-		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate)
+		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate, false)
 	}
 
 	_onNextMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
-		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate)
+		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate, false)
 	}
 
-	_dayVdom({date, day}: {date: ?Date, day: ?number}, attrs: VisualDatePickerAttrs): VirtualElement {
+	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): VirtualElement {
 		const size = px(this._elWidth(attrs))
-		return m(".center.click" +
-			(date && this._sameDate(date, attrs.selectedDate) ? ".date-selected" : ""), {
+		return m(".center.click" + getDateIndicator(date, attrs.selectedDate, this._currentDate), {
 			style: {
 				height: size,
-				width: size
+				width: size,
 			},
-			onclick: date && (() => {
-				attrs.onDateSelected && attrs.onDateSelected(date)
+			onclick: !paddingDay && (() => {
+				attrs.onDateSelected && attrs.onDateSelected(date, true)
 			})
-		}, day)
+		}, paddingDay ? null : day)
 	}
 
 	_elWidth(attrs: VisualDatePickerAttrs) {
 		return attrs.wide ? 40 : 24
 	}
 
-	_weekVdom(week: Array<{date: ?Date, year?: number, month?: number, day: ?number}>,
+	_weekVdom(week: Array<CalendarDay>,
 	          attrs: VisualDatePickerAttrs): VirtualElement {
 		return m(".flex.flex-space-between", week.map(d => this._dayVdom(d, attrs)))
 	}
@@ -258,17 +215,13 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 					height: size,
 					width: size,
 					lineHeight: size,
-					color: theme.content_border
+					color: theme.content_border,
 				}
 			}, wd)
 		)
 	}
 
-	_sameDate(date1: ?Date, date2: ?Date) {
-		return !date1 && !date2
-			|| date1 && date2
-			&& date1.getFullYear() === date2.getFullYear()
-			&& date1.getMonth() === date2.getMonth()
-			&& date1.getDate() === date2.getDate()
-	}
+
 }
+
+

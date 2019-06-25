@@ -966,7 +966,7 @@ styles.registerStyle('main', () => {
 			'box-sizing': 'content-box'
 		},
 		'.calendar-event:hover': {
-			'filter': 'brightness(95%)',
+			'filter': 'brightness(110%)',
 		},
 		'.event-continues-left': {
 			'border-top-left-radius': 0,
@@ -1035,6 +1035,11 @@ styles.registerStyle('main', () => {
 			'border-radius': '50%',
 			background: theme.content_accent,
 			color: theme.content_button_icon,
+		},
+		'.date-current': {
+			'border-radius': '50%',
+			background: theme.navigation_button,
+			color: theme.navigation_button_icon,
 		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
