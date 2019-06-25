@@ -965,6 +965,9 @@ styles.registerStyle('main', () => {
 			'animation-duration': '0.3s',
 			'box-sizing': 'content-box'
 		},
+		'.calendar-event:hover': {
+			'filter': 'brightness(95%)',
+		},
 		'.event-continues-left': {
 			'border-top-left-radius': 0,
 			'border-bottom-left-radius': 0,

@@ -33,6 +33,7 @@ import {CalendarDayView} from "./CalendarDayView"
 import {geEventElementMaxId, getEventElementMinId, getEventStart} from "../api/common/utils/CommonCalendarUtils"
 import {px, size as sizes} from "../gui/size"
 import {UserTypeRef} from "../api/entities/sys/User"
+import {DateTime} from "luxon"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -51,13 +52,14 @@ export class CalendarView implements CurrentView {
 	sidebarColumn: ViewColumn
 	contentColumn: ViewColumn
 	viewSlider: ViewSlider
+	// Should not be changed directly but only through the URL
 	selectedDate: Stream<Date>
 	_calendarInfos: Promise<Map<Id, CalendarInfo>>
 	_eventsForDays: Map<number, Array<CalendarEvent>>
 	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
 
-	constructor(loginController: LoginController) {
+	constructor() {
 		const calendarViewValues = [
 			{name: lang.get("calendarViewDay_title"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
 			{name: lang.get("calendarViewMonth_title"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
@@ -71,7 +73,10 @@ export class CalendarView implements CurrentView {
 			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
 				m(".folders.pt", [
 					m(VisualDatePicker, {
-						onDateSelected: this.selectedDate,
+						onDateSelected: (newDate) => {
+							const view = m.route.param("view")
+							this._setUrl(view, newDate)
+						},
 						selectedDate: this.selectedDate(),
 						wide: false
 					})
@@ -84,7 +89,7 @@ export class CalendarView implements CurrentView {
 						m(ButtonN, {
 							label: "today_label",
 							click: () => {
-								this.selectedDate(new Date())
+								this._setUrl(m.route.param("view"), new Date())
 							},
 							colors: ButtonColors.Nav,
 							type: ButtonType.Primary,
@@ -94,10 +99,13 @@ export class CalendarView implements CurrentView {
 						return m(NavButtonN, {
 							label: viewType.name,
 							icon: () => viewType.icon,
-							href: viewType.href,
+							href: m.route.get(),
 							isSelectedPrefix: viewType.href,
 							// Close side menu
-							click: () => this.viewSlider.focus(this.contentColumn)
+							click: () => {
+								this._setUrl(viewType.value, this.selectedDate())
+								this.viewSlider.focus(this.contentColumn)
+							}
 						})
 					})),
 				]),
@@ -139,7 +147,10 @@ export class CalendarView implements CurrentView {
 							showCalendarEventDialog(date || new Date(), calendarInfos)
 						})
 					},
-					selectedDate: this.selectedDate,
+					selectedDate: this.selectedDate(),
+					onDateSelected: (date) => {
+						this._setUrl(CalendarViewType.DAY, date)
+					}
 				})
 				: m(CalendarDayView, {
 					eventsForDays: this._eventsForDays,
@@ -153,7 +164,10 @@ export class CalendarView implements CurrentView {
 							showCalendarEventDialog(date || new Date(), calendarInfos)
 						})
 					},
-					selectedDate: this.selectedDate,
+					selectedDate: this.selectedDate(),
+					onDateSelected: (date) => {
+						this._setUrl(CalendarViewType.DAY, date)
+					}
 				})
 		}, ColumnType.Background, 700, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
@@ -257,6 +271,15 @@ export class CalendarView implements CurrentView {
 			m.route.set("/calendar/month", args, {replace: true})
 		} else {
 			this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
+			const urlDateParam = args.date
+			if (urlDateParam) {
+				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
+				const date = DateTime.fromISO(urlDateParam).toJSDate()
+				if (this.selectedDate().getTime() !== date.getTime()) {
+					this.selectedDate(date)
+					m.redraw()
+				}
+			}
 		}
 	}
 
@@ -333,7 +356,7 @@ export class CalendarView implements CurrentView {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
 						this._calendarInfos.then(calendarInfos => {
-							if (calendarMemberships.length != calendarInfos.size) {
+							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
 								this._loadGroupRoots()
 							}
@@ -385,6 +408,15 @@ export class CalendarView implements CurrentView {
 
 	getViewSlider() {
 		return this.viewSlider
+	}
+
+	_setUrl(view: string, date: Date) {
+		const dateString = DateTime.fromJSDate(date).toISODate()
+		m.route.set("/calendar/:view/:date", {view, date: dateString})
+	}
+
+	_makeUrl(view: string, date: Date) {
+		const dateString = DateTime.fromJSDate(date).toISODate()
 	}
 }
 

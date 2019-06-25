@@ -171,7 +171,7 @@ let initialized = lang.init(en).then(() => {
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
 		.then(module => module.contactFormView), false)
 	const calendarViewResolver = createViewResolver(() => _asyncImport("src/calendar/CalendarView.js")
-		.then(module => new module.CalendarView(logins)), true)
+		.then(module => new module.CalendarView()), true)
 
 	let start = "/"
 	if (!state.prefix) {
@@ -219,6 +219,7 @@ let initialized = lang.init(en).then(() => {
 		"/contactform/:formId": contactFormViewResolver,
 		"/calendar": calendarViewResolver,
 		"/calendar/:view": calendarViewResolver,
+		"/calendar/:view/:date": calendarViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
 				console.log("Not found", args, requestedPath)

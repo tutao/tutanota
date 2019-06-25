@@ -16,7 +16,8 @@ import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, layOutEvents} fr
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
 type CalendarMonthAttrs = {
-	selectedDate: Stream<Date>,
+	selectedDate: Date,
+	onDateSelected: (date: Date) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed
@@ -30,12 +31,12 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
 
 	view(vnode: Vnode<CalendarMonthAttrs>): Children {
-		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate())
+		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate)
 		const today = getStartOfDay(new Date())
 		return m(".fill-absolute.flex.col",
 			[
 				m(".mt-s.pr-l", [
-					styles.isDesktopLayout() ? m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate())) : null,
+					styles.isDesktopLayout() ? m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate)) : null,
 				]),
 				m(".flex.pt-s.pb-s", {
 					style: {
@@ -69,7 +70,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						newDate.setHours(hour, 0)
 						attrs.onNewEvent(newDate)
 					} else {
-						attrs.selectedDate(new Date(d.date))
+						attrs.onDateSelected(new Date(d.date))
 						m.route.set("/calendar/day")
 					}
 				},
@@ -93,7 +94,6 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const eventHeight = (size.calendar_line_height + 2) // height + border
 		const maxEventsPerDay = (weekHeight - dayHeight) / eventHeight
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
-		console.log(weekHeight, dayHeight, eventHeight, maxEventsPerDay)
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		return layOutEvents(Array.from(events), (columns) => {
 			return columns.map((events, columnIndex) => {
@@ -133,7 +133,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						color: theme.content_bg.substring(1),
 						onEventClicked: () => {
 							m.route.set("/calendar/day")
-							attrs.selectedDate(week[weekday].date)
+							attrs.onDateSelected(week[weekday].date)
 						}
 					}))
 				} else {

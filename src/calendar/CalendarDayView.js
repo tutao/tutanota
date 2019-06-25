@@ -17,7 +17,8 @@ import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 
 export type CalendarDayViewAttrs = {
-	selectedDate: Stream<Date>,
+	selectedDate: Date,
+	onDateSelected: (date: Date) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed
@@ -37,7 +38,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 	_oldGestureInfo: ?GestureInfo
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
-		const date = vnode.attrs.selectedDate()
+		const date = vnode.attrs.selectedDate
 		const events = getFromMap(vnode.attrs.eventsForDays, date.getTime(), () => [])
 		const shortEvents = []
 		const longEvents = []
@@ -75,17 +76,17 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
 						// Do nothing, vertical scroll
 					} else if (velocity > 0.6) {
-						const nextDate = incrementDate(vnode.attrs.selectedDate(), -1)
-						vnode.attrs.selectedDate(nextDate)
+						const nextDate = incrementDate(vnode.attrs.selectedDate, -1)
+						vnode.attrs.onDateSelected(nextDate)
 					} else if (velocity < -0.6) {
-						const nextDate = getStartOfNextDay(vnode.attrs.selectedDate())
-						vnode.attrs.selectedDate(nextDate)
+						const nextDate = getStartOfNextDay(vnode.attrs.selectedDate)
+						vnode.attrs.onDateSelected(nextDate)
 					}
 				}
 			},
 		}, [
 			m(".mt-s.pr-l", [
-				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate())) : null,
+				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
 				m(".calendar-day-content", allDayEvents.map(e => {
 					return m(CalendarEventBubble, {
 						text: getEventText(e),
@@ -95,8 +96,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				})),
 				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
 					event: e,
-					startDate: vnode.attrs.selectedDate(),
-					endDate: vnode.attrs.selectedDate(),
+					startDate: vnode.attrs.selectedDate,
+					endDate: vnode.attrs.selectedDate,
 					color: defaultCalendarColor,
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showText: true
@@ -154,7 +155,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			},
 		}, m(CalendarEventBubble, {
 			text: getEventText(ev),
-			date: attrs.selectedDate(),
+			date: attrs.selectedDate,
 			color: defaultCalendarColor,
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2
@@ -163,7 +164,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 	_renderTimeIndicator(attrs: CalendarDayViewAttrs): Children {
 		const now = new Date()
-		if (!isSameDay(attrs.selectedDate(), now)) {
+		if (!isSameDay(attrs.selectedDate, now)) {
 			return null
 		}
 
