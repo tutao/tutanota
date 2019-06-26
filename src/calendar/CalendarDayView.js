@@ -99,7 +99,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					return m(CalendarEventBubble, {
 						text: getEventText(e),
 						color: defaultCalendarColor,
-						onEventClicked: () => vnode.attrs.onEventClicked(e)
+						onEventClicked: () => vnode.attrs.onEventClicked(e),
+						hasAlarm: e.alarmInfos.length > 0
 					})
 				})),
 				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
@@ -168,7 +169,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			date: attrs.selectedDate,
 			color: defaultCalendarColor,
 			onEventClicked: () => attrs.onEventClicked(ev),
-			height: height - 2
+			height: height - 2,
+			hasAlarm: ev.alarmInfos.length > 0
 		}))
 	}
 

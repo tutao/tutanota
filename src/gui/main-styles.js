@@ -406,6 +406,14 @@ styles.registerStyle('main', () => {
 			height: px(20),
 			width: px(20),
 		},
+		'.icon-small': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
+		},
+		'.icon-small > svg': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
+		},
 		'.icon-large': {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large)

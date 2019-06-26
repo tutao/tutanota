@@ -36,7 +36,8 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 					color: defaultCalendarColor,
 					onEventClicked: () => attrs.onEventClicked(attrs.event),
 					noBorderLeft: startsBefore,
-					noBorderRight: endsAfter
+					noBorderRight: endsAfter,
+					hasAlarm: attrs.event.alarmInfos.length > 0
 				}),
 			),
 			endsAfter

@@ -132,7 +132,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						color: theme.content_bg.substring(1),
 						onEventClicked: () => {
 							attrs.onDateSelected(week[weekday].date)
-						}
+						},
+						hasAlarm: false
 					}))
 				} else {
 					return null
