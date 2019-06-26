@@ -15,6 +15,7 @@ import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
+import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
 
 assertMainOrNode()
 
@@ -493,8 +494,12 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("addCalendar", []))
 	}
 
-	bootstrapCalendarAlarms(pushIdentifier: PushIdentifier): Promise<void> {
-		return this._queue.postMessage(new Request("bootstrapCalendarAlarms", [pushIdentifier]))
+	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
+		return this._queue.postMessage(new Request("scheduleAlarmsForNewDevice", [pushIdentifier]))
+	}
+
+	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
+		return this._queue.postMessage(new Request("loadAlarmEvents", []))
 	}
 }
 

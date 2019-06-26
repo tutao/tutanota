@@ -368,35 +368,4 @@ function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
 	}
 }
 
-function decrementByAlarmInterval(date: Date, interval: AlarmIntervalEnum): Date {
-	let diff
-	switch (interval) {
-		case AlarmInterval.FIVE_MINUTES:
-			diff = {minutes: 5}
-			break
-		case AlarmInterval.TEN_MINUTES:
-			diff = {minutes: 10}
-			break
-		case AlarmInterval.THIRTY_MINUTES:
-			diff = {minutes: 30}
-			break
-		case AlarmInterval.ONE_HOUR:
-			diff = {hours: 1}
-			break
-		case AlarmInterval.ONE_DAY:
-			diff = {days: 1}
-			break
-		case AlarmInterval.TWO_DAYS:
-			diff = {days: 1}
-			break
-		case AlarmInterval.THREE_DAYS:
-			diff = {days: 3}
-			break
-		case AlarmInterval.ONE_WEEK:
-			diff = {weeks: 1}
-			break
-		default:
-			diff = {}
-	}
-	return DateTime.fromJSDate(date).minus(diff).toJSDate()
-}
+

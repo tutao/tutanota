@@ -285,8 +285,11 @@ export class WorkerImpl {
 			addCalendar: (message: Request) => {
 				return locator.calendar.addCalendar.apply(locator.calendar, message.args)
 			},
-			bootstrapCalendarAlarms: (message: Request) => {
-				return locator.calendar.bootstrapAlarms(...message.args)
+			scheduleAlarmsForNewDevice: (message: Request) => {
+				return locator.calendar.scheduleAlarmsForNewDevice(...message.args)
+			},
+			loadAlarmEvents: (message: Request) => {
+				return locator.calendar.loadAlarmEvents(...message.args)
 			}
 		})
 

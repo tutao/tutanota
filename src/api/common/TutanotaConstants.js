@@ -367,3 +367,16 @@ export const EndType = Object.freeze({
 export type EndTypeEnum = $Values<typeof EndType>
 
 export const defaultCalendarColor = "2196f3"
+
+
+export const AlarmInterval = Object.freeze({
+	FIVE_MINUTES: "5M",
+	TEN_MINUTES: "10M",
+	THIRTY_MINUTES: "30M",
+	ONE_HOUR: "1H",
+	ONE_DAY: "1D",
+	TWO_DAYS: "2D",
+	THREE_DAYS: "3D",
+	ONE_WEEK: "1W",
+})
+export type AlarmIntervalEnum = $Values<typeof AlarmInterval>

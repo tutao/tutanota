@@ -127,7 +127,16 @@ export class CalendarFacade {
 		})
 	}
 
-	bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
+	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
+		const user = this._loginFacade.getLoggedInUser()
+		return this.loadAlarmEvents()
+		           .then((eventsWithAlarmInfo) => {
+			           const alarmNotifications = eventsWithAlarmInfo.map(({event, userAlarmInfo}) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))
+			           return this._sendAlarmNotifications(alarmNotifications, [pushIdentifier])
+		           })
+	}
+
+	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
 		const user = this._loginFacade.getLoggedInUser()
 		const alarmInfoList = user.alarmInfoList
 		if (alarmInfoList) {
@@ -135,13 +144,19 @@ export class CalendarFacade {
 				.then((userAlarmInfos) =>
 					Promise.map(userAlarmInfos, (userAlarmInfo) =>
 						load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
-							.then((event) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id))))
-				.then((alarmNotifications) => this._sendAlarmNotifications(alarmNotifications, [pushIdentifier]))
+							.then((event) => {
+								return {event, userAlarmInfo}
+							})))
 		} else {
 			console.warn("No alarmInfo list on user")
-			return Promise.resolve()
+			return Promise.resolve([])
 		}
 	}
+}
+
+export type EventWithAlarmInfo = {
+	event: CalendarEvent,
+	userAlarmInfo: UserAlarmInfo
 }
 
 function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {

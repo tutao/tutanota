@@ -134,7 +134,7 @@ class PushServiceApp {
 	}
 
 	_bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
-		return worker.bootstrapCalendarAlarms(pushIdentifier)
+		return worker.scheduleAlarmsForNewDevice(pushIdentifier)
 	}
 }
 
