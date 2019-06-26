@@ -5,7 +5,7 @@ import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
@@ -20,6 +20,7 @@ import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {formatTime} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
+import {logins} from "../api/main/LoginController"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -214,7 +215,7 @@ class CalendarModel {
 	constructor(notifications: Notifications, eventController: EventController) {
 		this._notifications = notifications
 		this._scheduledNotifications = new Map()
-		if (!isApp()) {
+		if (this._localAlarmsEnabled()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				this._entityEventsReceived(updates)
 			})
@@ -222,7 +223,7 @@ class CalendarModel {
 	}
 
 	scheduleAlarmsLocally(): Promise<void> {
-		if (!isApp()) {
+		if (this._localAlarmsEnabled()) {
 			return worker.loadAlarmEvents()
 			             .then((eventsWithInfos) => {
 				             eventsWithInfos.forEach(({event, userAlarmInfo}) => {
@@ -285,6 +286,9 @@ class CalendarModel {
 		}
 	}
 
+	_localAlarmsEnabled(): boolean {
+		return !isApp() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
+	}
 }
 
 export const calendarModel = new CalendarModel(new Notifications(), locator.eventController)

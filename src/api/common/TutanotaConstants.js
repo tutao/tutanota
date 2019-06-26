@@ -255,7 +255,8 @@ export const FeatureType = Object.freeze({
 	WhitelabelParent: "4",
 	WhitelabelChild: "5",
 	ReplyOnly: "6",
-	DisableDefaultSignature: "7"
+	DisableDefaultSignature: "7",
+	DisableCalendar: "8"
 })
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const ValueToFeatureType = reverse(FeatureType)
