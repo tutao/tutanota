@@ -20,31 +20,25 @@ final class RepeatRule {
     @Nullable
     private String endValue;
 
-    private final JSONObject originalJSON;
-
     static RepeatRule fromJson(JSONObject jsonObject) throws JSONException {
         return new RepeatRule(
                 jsonObject.getString("frequency"),
                 jsonObject.getString("interval"),
                 jsonObject.getString("timeZone"),
                 jsonObject.getString("endType"),
-                jsonObject.getString("endValue"),
-                jsonObject
+                jsonObject.getString("endValue")
         );
     }
 
-    RepeatRule(String frequency, String interval, String timeZone, @Nullable String endType, @Nullable String endValue, JSONObject originalJSON) {
+    RepeatRule(String frequency, String interval, String timeZone, @Nullable String endType,
+                       @Nullable String endValue) {
         this.frequency = frequency;
         this.interval = interval;
         this.timeZone = timeZone;
         this.endType = endType;
         this.endValue = endValue;
-        this.originalJSON = originalJSON;
     }
 
-    JSONObject toJson() {
-        return originalJSON;
-    }
 
     public RepeatPeriod getFrequency(Crypto crypto, byte[] sessionKey) throws CryptoError {
         int frequencyNumber = EncryptionUtils.decryptNumber(frequency, crypto, sessionKey);
@@ -77,10 +71,5 @@ final class RepeatRule {
     }
 }
 
-enum RepeatPeriod {
-    DAILY, WEEKLY, MONTHLY, ANNUALLY;
-}
 
-enum EndType {
-    NEVER, COUNT, UNTIL;
-}
+

@@ -13,18 +13,15 @@ public final class AlarmInfo {
     private final String trigger;
     private final String identifier;
 
-    private final JSONObject originalJson;
-
     public static AlarmInfo fromJson(JSONObject jsonObject) throws JSONException {
         String trigger = jsonObject.getString("trigger");
         String alarmIdentifier = jsonObject.getString("alarmIdentifier");
-        return new AlarmInfo(trigger, alarmIdentifier, jsonObject);
+        return new AlarmInfo(trigger, alarmIdentifier);
     }
 
-    public AlarmInfo(String trigger, String identifier, JSONObject originalJson) {
+    public AlarmInfo(String trigger, String identifier) {
         this.trigger = trigger;
         this.identifier = Objects.requireNonNull(identifier);
-        this.originalJson = originalJson;
     }
 
     public String getTrigger(Crypto crypto, byte[] sessionKey) throws CryptoError {
@@ -33,17 +30,6 @@ public final class AlarmInfo {
 
     public String getIdentifier() {
         return identifier;
-    }
-
-    public JSONObject toJSON() {
-        try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("trigger", trigger);
-            jsonObject.put("identifier", identifier);
-            return jsonObject;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override

@@ -139,13 +139,13 @@ public class AlarmNotificationsManager {
     private void schedule(AlarmNotification alarmNotification, byte[] sessionKey) {
         try {
             String trigger = alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey);
-            AlarmInterval alarmInterval = AlarmInterval.byValue(trigger);
+            AlarmTrigger alarmTrigger = AlarmTrigger.byValue(trigger);
             String summary = alarmNotification.getSummary(crypto, sessionKey);
             String identifier = alarmNotification.getAlarmInfo().getIdentifier();
             Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
 
             if (alarmNotification.getRepeatRule() == null) {
-                Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmInterval);
+                Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
                 if (alarmTime.after(new Date())) {
                     scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart);
                 }
@@ -223,11 +223,12 @@ public class AlarmNotificationsManager {
         int interval = repeatRule.getInterval(crypto, sessionKey);
         EndType endType = repeatRule.getEndType(crypto, sessionKey);
         int endValue = repeatRule.getEndValue(crypto, sessionKey);
-        AlarmInterval alarmInterval = AlarmInterval.byValue(
+        AlarmTrigger alarmTrigger = AlarmTrigger.byValue(
                 alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
 
-        AlarmModel.iterateAlarmOccurrences(timeZone, eventStart, frequency, interval, endType,
-                endValue, alarmInterval, callback);
+        AlarmModel.iterateAlarmOccurrences(System.currentTimeMillis(),
+                timeZone, eventStart, frequency, interval, endType,
+                endValue, alarmTrigger, callback);
     }
 
     private static class PushKeyResolver {

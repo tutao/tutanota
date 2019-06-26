@@ -58,6 +58,25 @@ android {
     }
 }
 
+task copyResourcesToClasses(type: Copy) {
+    from "${projectDir}/src/main/assets/tutanota/test/AlarmCompatibilityTest.json"
+    into "${buildDir}/intermediates/classes/test/debug/resources"
+}
+
+preBuild.dependsOn copyResourcesToClasses
+
+//task unitTest(dependsOn: [copyResourcesToClasses, 'testDebugUnitTest']) {
+//
+//}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {

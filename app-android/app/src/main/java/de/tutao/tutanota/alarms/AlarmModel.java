@@ -5,20 +5,23 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class AlarmModel {
-    public static void iterateAlarmOccurrences(TimeZone timeZone,
+
+    public static final int OCCURRENCES_SCHEDULED_AHEAD = 10;
+
+    public static void iterateAlarmOccurrences(long now,
+                                               TimeZone timeZone,
                                                Date eventStart,
                                                RepeatPeriod frequency,
                                                int interval,
                                                EndType endType,
                                                int endValue,
-                                               AlarmInterval alarmInterval,
+                                               AlarmTrigger alarmTrigger,
                                                AlarmIterationCallback callback) {
         Calendar calendar = Calendar.getInstance(timeZone);
-        long now = System.currentTimeMillis();
         int occurrences = 0;
         int futureOccurrences = 0;
 
-        while (futureOccurrences < 10
+        while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD
                 && (endType != EndType.COUNT
                 || occurrences < endValue)) {
 
@@ -28,7 +31,7 @@ public class AlarmModel {
             if (endType == EndType.UNTIL && calendar.getTimeInMillis() > endValue) {
                 break;
             }
-            Date alarmTime = calculateAlarmTime(calendar.getTime(), timeZone, alarmInterval);
+            Date alarmTime = calculateAlarmTime(calendar.getTime(), timeZone, alarmTrigger);
 
             if (calendar.getTimeInMillis() >= now) {
                 callback.call(alarmTime, occurrences);
@@ -65,7 +68,7 @@ public class AlarmModel {
     }
 
     public static Date calculateAlarmTime(Date eventStart, TimeZone timeZone,
-                                          AlarmInterval alarmInterval) {
+                                          AlarmTrigger alarmTrigger) {
         Calendar calendar;
         if (timeZone != null) {
             calendar = Calendar.getInstance(timeZone);
@@ -73,7 +76,7 @@ public class AlarmModel {
             calendar = Calendar.getInstance();
         }
         calendar.setTime(eventStart);
-        switch (alarmInterval) {
+        switch (alarmTrigger) {
             case FIVE_MINUTES:
                 calendar.add(Calendar.MINUTE, -5);
                 break;

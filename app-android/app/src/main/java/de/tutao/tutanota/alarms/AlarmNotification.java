@@ -26,13 +26,20 @@ public class AlarmNotification {
     private RepeatRule repeatRule;
     private List<NotificationSessionKey> notificationSessionKeys;
 
-    public AlarmNotification(OperationType operation, String summaryEnc, String eventStart, AlarmInfo alarmInfo, RepeatRule repeatRule, List<NotificationSessionKey> notificationSessionKeys) {
+    private JSONObject originalJson;
+
+    public AlarmNotification(OperationType operation, String summaryEnc, String eventStart,
+                             AlarmInfo alarmInfo,
+                             RepeatRule repeatRule,
+                             List<NotificationSessionKey> notificationSessionKeys,
+                             JSONObject originalJson) {
         this.operation = operation;
         this.summary = summaryEnc;
         this.eventStart = eventStart;
         this.alarmInfo = alarmInfo;
         this.repeatRule = repeatRule;
         this.notificationSessionKeys = notificationSessionKeys;
+        this.originalJson = originalJson;
     }
 
     public static AlarmNotification fromJson(JSONObject jsonObject) throws JSONException {
@@ -51,27 +58,16 @@ public class AlarmNotification {
         for (int i = 0; i < notificationSessionKeysJSON.length(); i++) {
             notificationSessionKeys.add(NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(i)));
         }
-        return new AlarmNotification(operationType, summaryEnc, eventStartEnc, alarmInfo, repeatRule, notificationSessionKeys);
+        return new AlarmNotification(operationType, summaryEnc, eventStartEnc, alarmInfo,
+                repeatRule, notificationSessionKeys, jsonObject);
     }
 
     public JSONObject toJSON() {
-        try {
-            JSONObject jsonObject = new JSONObject();
-            if (this.repeatRule != null) {
-                jsonObject.put("repeatRule", this.repeatRule.toJson());
-            }
-            return jsonObject;
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        return originalJson;
     }
 
     public OperationType getOperation() {
         return operation;
-    }
-
-    public String getEventStart() {
-        return eventStart;
     }
 
     @Nullable
@@ -113,24 +109,27 @@ public class AlarmNotification {
         private final IdTuple pushIdentifier;
         private final String pushIdentifierSessionEncSessionKey;
 
+        private final JSONObject originalJson;
+
         public static NotificationSessionKey fromJson(JSONObject jsonObject) throws JSONException {
             JSONArray id = jsonObject.getJSONArray("pushIdentifier");
             return new NotificationSessionKey(
                     new IdTuple(id.getString(0), id.getString(1)),
-                    jsonObject.getString("pushIdentifierSessionEncSessionKey")
+                    jsonObject.getString("pushIdentifierSessionEncSessionKey"),
+                    jsonObject
             );
         }
 
-        public NotificationSessionKey(IdTuple pushIdentifier, String pushIdentifierSessionEncSessionKey) {
+        public NotificationSessionKey(IdTuple pushIdentifier,
+                                      String pushIdentifierSessionEncSessionKey,
+                                      JSONObject originalJson) {
             this.pushIdentifier = pushIdentifier;
             this.pushIdentifierSessionEncSessionKey = pushIdentifierSessionEncSessionKey;
+            this.originalJson = originalJson;
         }
 
-        public JSONObject toJson() throws JSONException {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("pushIdentifier", pushIdentifier);
-            jsonObject.put("pushIdentifierSessionEncSessionKey", pushIdentifierSessionEncSessionKey);
-            return jsonObject;
+        public JSONObject toJson() {
+            return originalJson;
         }
 
         public IdTuple getPushIdentifier() {
