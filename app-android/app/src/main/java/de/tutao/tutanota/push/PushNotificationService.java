@@ -28,6 +28,7 @@ import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
+import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -48,6 +49,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
+import static de.tutao.tutanota.alarms.AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID;
 
 public final class PushNotificationService extends JobService {
 
@@ -386,12 +388,20 @@ public final class PushNotificationService extends JobService {
 			MissedNotification missedNotification = MissedNotification.fromJson(new JSONObject(responseString));
 			this.alarmNotificationsManager
 					.scheduleNewAlarms(missedNotification.getAlarmNotifications());
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | JSONException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (JSONException e) {
-			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			Log.w(TAG, e);
+			AlarmBroadcastReceiver.createNotificationChannel(getNotificationManager(), this);
+			Notification notification = new NotificationCompat.Builder(this, ALARM_NOTIFICATION_CHANNEL_ID)
+					.setSmallIcon(R.drawable.ic_status)
+					.setContentTitle("Could not schedule the alarm")
+					.setContentText("Please update the application")
+					.setDefaults(NotificationCompat.DEFAULT_ALL)
+					.build();
+			getNotificationManager().notify(1000, notification);
 		}
 	}
 

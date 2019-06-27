@@ -16,7 +16,7 @@ public enum AlarmTrigger {
         this.value = value;
     }
 
-    static AlarmTrigger byValue(String value) {
+    static AlarmTrigger get(String value) {
         for (AlarmTrigger alarmTrigger : AlarmTrigger.values()) {
             if (alarmTrigger.value.equals(value)) {
                 return alarmTrigger;

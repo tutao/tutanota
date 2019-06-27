@@ -127,7 +127,7 @@ public class AlarmNotificationsManager {
 	private void schedule(AlarmNotification alarmNotification, byte[] sessionKey) {
 		try {
 			String trigger = alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey);
-			AlarmTrigger alarmTrigger = AlarmTrigger.byValue(trigger);
+			AlarmTrigger alarmTrigger = AlarmTrigger.get(trigger);
 			String summary = alarmNotification.getSummary(crypto, sessionKey);
 			String identifier = alarmNotification.getAlarmInfo().getIdentifier();
 			Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
@@ -211,7 +211,7 @@ public class AlarmNotificationsManager {
 		int interval = repeatRule.getInterval(crypto, sessionKey);
 		EndType endType = repeatRule.getEndType(crypto, sessionKey);
 		int endValue = repeatRule.getEndValue(crypto, sessionKey);
-		AlarmTrigger alarmTrigger = AlarmTrigger.byValue(
+		AlarmTrigger alarmTrigger = AlarmTrigger.get(
 				alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
 
 		AlarmModel.iterateAlarmOccurrences(System.currentTimeMillis(),
