@@ -5,8 +5,14 @@ import {createRepeatRuleWithValues, getAllDayDateUTC, getMonth} from "../../../s
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, neverNull} from "../../../src/api/common/utils/Utils"
 import {mapToObject} from "../../api/TestUtils"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent, incrementByRepeatPeriod} from "../../../src/calendar/CalendarModel"
-import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
+import {
+	addDaysForEvent,
+	addDaysForLongEvent,
+	addDaysForRecurringEvent,
+	incrementByRepeatPeriod,
+	iterateEventOccurrences
+} from "../../../src/calendar/CalendarModel"
+import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 
 o.spec("CalendarModel", function () {
@@ -477,6 +483,25 @@ o.spec("CalendarModel", function () {
 
 			const fourYearsAfter = DateTime.fromObject({year: 2024, month: 2, day: 29, zone: timeZone}).toJSDate()
 			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
+		})
+	})
+
+	o.spec("iterateEventOccurrences", function () {
+		const timeZone = 'Europe/Berlin'
+		o("iterates", function () {
+			const now = DateTime.fromObject({year: 2019, month: 5, day: 2, zone: timeZone}).toJSDate()
+			const eventStart = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 12, zone: timeZone}).toJSDate()
+			const occurrences = []
+			iterateEventOccurrences(now, timeZone, eventStart, RepeatPeriod.WEEKLY, 1, EndType.Never, 0, AlarmInterval.ONE_HOUR, (time) => {
+				occurrences.push(time)
+			})
+
+			o(occurrences.slice(0, 4)).deepEquals([
+				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 9, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 16, hour: 11, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 23, hour: 11, zone: timeZone}).toJSDate()
+			])
 		})
 	})
 })

@@ -328,7 +328,7 @@ public final class PushNotificationService extends JobService {
 				List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
 
 				handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
-				handleAlarmNotifications(pushMessage.hasAlarmNotifications());
+				handleAlarmNotifications(pushMessage);
 
 				Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
 				confirmationThreadPool.execute(
@@ -368,8 +368,8 @@ public final class PushNotificationService extends JobService {
 		}
 	}
 
-	private void handleAlarmNotifications(boolean hasAlarmNotifications) {
-		if (!hasAlarmNotifications) {
+	private void handleAlarmNotifications(PushMessage pushMessage) {
+		if (!pushMessage.hasAlarmNotifications()) {
 			return;
 		}
 		try {
@@ -384,8 +384,6 @@ public final class PushNotificationService extends JobService {
 			String responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 			Log.d(TAG, "Missed notifications response:\n" + responseString);
 			MissedNotification missedNotification = MissedNotification.fromJson(new JSONObject(responseString));
-
-
 			this.alarmNotificationsManager
 					.scheduleNewAlarms(missedNotification.getAlarmNotifications());
 		} catch (MalformedURLException e) {

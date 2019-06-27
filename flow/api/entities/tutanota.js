@@ -1039,28 +1039,9 @@ type CalendarGroupData = {
 	calendarEncCalendarGroupRootSessionKey: Uint8Array;
 	groupInfoEncName: Uint8Array;
 	ownerEncGroupInfoSessionKey: Uint8Array;
-	userEncGroupKey: ?Uint8Array;
+	userEncGroupKey: Uint8Array;
 
 	adminGroup: ?Id;
-}
-
-type GroupColor = {
-	_type: TypeRef<GroupColor>;
-	_id: Id;
-	color: string;
-
-}
-
-type UserSettingsGroupRoot = {
-	_type: TypeRef<UserSettingsGroupRoot>;
-	_errors: Object;
-	_format: NumberString;
-	_id: Id;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-
-	calendarColors: GroupColor[];
 }
 
 type CalendarPostData = {

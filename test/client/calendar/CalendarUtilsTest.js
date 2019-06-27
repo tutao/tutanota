@@ -5,8 +5,12 @@ import {getCalendarMonth} from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("calendar month tests", function () {
-	o.only("getCalendarMonth starting on sunday - first day saturday", function () {
+	o.before(function () {
 		lang.init({})
+		lang.setLanguage({code: "en", languageTag: "en"})
+	})
+
+	o("getCalendarMonth starting on sunday - first day saturday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 5, 10), 0, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -19,8 +23,7 @@ o.spec("calendar month tests", function () {
 			+ "30,1,2,3,4,5,6")
 	})
 
-	o.only("getCalendarMonth starting on monday - first day saturday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on monday - first day saturday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 5, 10), 1, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -33,8 +36,7 @@ o.spec("calendar month tests", function () {
 			+ "1,2,3,4,5,6,7")
 	})
 
-	o.only("getCalendarMonth starting on saturday - first day saturday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on saturday - first day saturday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 5, 10), 6, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -47,8 +49,7 @@ o.spec("calendar month tests", function () {
 			+ "6,7,8,9,10,11,12")
 	})
 
-	o.only("getCalendarMonth starting on sunday - first day sunday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on sunday - first day sunday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 8, 10), 0, false)) // september
 		//console.log(result)
 		o(result).deepEquals(
@@ -61,8 +62,7 @@ o.spec("calendar month tests", function () {
 			+ "6,7,8,9,10,11,12")
 	})
 
-	o.only("getCalendarMonth starting on monday - first day sunday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on monday - first day sunday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 8, 10), 1, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -75,8 +75,7 @@ o.spec("calendar month tests", function () {
 			+ "30,1,2,3,4,5,6")
 	})
 
-	o.only("getCalendarMonth starting on saturday - first day sunday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on saturday - first day sunday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 8, 10), 6, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -90,8 +89,7 @@ o.spec("calendar month tests", function () {
 	})
 
 
-	o.only("getCalendarMonth starting on sunday - first day monday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on sunday - first day monday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 6, 10), 0, false)) // july
 		//console.log(result)
 		o(result).deepEquals(
@@ -104,8 +102,7 @@ o.spec("calendar month tests", function () {
 			+ "4,5,6,7,8,9,10")
 	})
 
-	o.only("getCalendarMonth starting on monday - first day monday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on monday - first day monday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 6, 10), 1, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -118,8 +115,7 @@ o.spec("calendar month tests", function () {
 			+ "5,6,7,8,9,10,11")
 	})
 
-	o.only("getCalendarMonth starting on saturday - first day monday", function () {
-		lang.init({})
+	o("getCalendarMonth starting on saturday - first day monday", function () {
 		const result = toCalendarString(getCalendarMonth(new Date(2019, 6, 10), 6, false))
 		//console.log(result)
 		o(result).deepEquals(
@@ -131,8 +127,6 @@ o.spec("calendar month tests", function () {
 			+ "27,28,29,30,31,1,2\n"
 			+ "3,4,5,6,7,8,9")
 	})
-
-
 })
 
 

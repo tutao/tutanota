@@ -14,14 +14,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSUInteger, ShapeType) {
-
-    kCircle,
-    kRectangle,
-    kOblateSpheroid
-};
-
-
 @interface TUTAlarmManager : NSObject
 - (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *) userPref;
 - (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler;

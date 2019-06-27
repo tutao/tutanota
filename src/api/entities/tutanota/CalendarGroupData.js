@@ -41,7 +41,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncGroupKey": {"name": "userEncGroupKey", "id": 961, "since": 33, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"userEncGroupKey": {"name": "userEncGroupKey", "id": 961, "since": 33, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"adminGroup": {
