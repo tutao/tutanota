@@ -95,7 +95,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "sys", "version": "45"
+	}, "app": "sys", "version": "47"
 }
 
 export function createUser(): User {

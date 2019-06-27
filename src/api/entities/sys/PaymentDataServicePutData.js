@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "45"
+	"version": "47"
 }
 
 export function createPaymentDataServicePutData(): PaymentDataServicePutData {
