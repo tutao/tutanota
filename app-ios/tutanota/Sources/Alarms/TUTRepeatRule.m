@@ -10,6 +10,7 @@
 
 #import "../Utils/PSPDFFastEnumeration.h"
 #import "../Utils/Swiftier.h"
+#import "../Utils/TUTErrorFactory.h"
 #import "../Crypto/TUTAes128Facade.h"
 
 @implementation TUTRepeatRule
@@ -37,9 +38,14 @@
                                             endValue:jsonDict[@"endValue"]];
 }
 
--(NSInteger) getFrequencyDec:(NSData *)sessionKey error:(NSError**) error {
+-(TUTRepeatPeriod) getFrequencyDec:(NSData *)sessionKey error:(NSError**) error {
     var decValue = [TUTAes128Facade decryptBase64String:_frequency encryptionKey:sessionKey error:error];
-    return decValue.integerValue;
+    let intValue = decValue.integerValue;
+    if (intValue < TUTRepeatPeriodDaily || intValue > TUTRepeatPeriodAnnually) {
+        *error = [TUTErrorFactory createError:
+                  [NSString stringWithFormat:@"Unknown repeat period: %@", decValue]];
+    }
+    return intValue;
 }
 
 -(NSInteger) getIntervalDec:(NSData *)sessionKey error:(NSError**) error {
@@ -47,12 +53,17 @@
     return decValue.integerValue;
 }
 
--(NSString *) getTimezonDec:(NSData *)sessionKey error:(NSError**) error {
+-(NSString *) getTimezoneDec:(NSData *)sessionKey error:(NSError**) error {
     return  [TUTAes128Facade decryptBase64String:_timeZone encryptionKey:sessionKey error:error];
 }
 
--(NSInteger) getEndTypeDec:(NSData *)sessionKey error:(NSError**) error {
+-(TUTRepeatEndType) getEndTypeDec:(NSData *)sessionKey error:(NSError**) error {
     var decValue = [TUTAes128Facade decryptBase64String:_endtype encryptionKey:sessionKey error:error];
+    let intValue = decValue.integerValue;
+    if (intValue < TUTRepeatEndTypeNever || intValue > TUTRepeatEndTypeUntilDate) {
+        *error = [TUTErrorFactory createError:
+                  [NSString stringWithFormat:@"Unknown repeat end type: %@", decValue]];
+    }
     return decValue.integerValue;
 }
 

@@ -94,11 +94,11 @@
     let apsDict = (NSDictionary *) userInfo[@"aps"];
     NSLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
-    // TODO: check if we receive normal notifications here as well when we are in foreground
-    
-    [_alarmManager fetchMissedNotifications:^{
-        completionHandler(UIBackgroundFetchResultNewData);
-    }];
+    if ([apsDict objectForKey:@"content-available"]) {
+        [_alarmManager fetchMissedNotifications:^{
+            completionHandler(UIBackgroundFetchResultNewData);
+        }];
+    }
 }
 
 

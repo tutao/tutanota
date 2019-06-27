@@ -25,19 +25,6 @@ NSString *const TUTOperationCreate = @"0";
 NSString *const TUTOperationUpdate = @"1";
 NSString *const TUTOperationDelete = @"2";
 
-typedef NS_ENUM(NSInteger, TUTRepeatPeriod) {
-    TUTRepeatPeriodDaily,
-    TUTRepeatPeriodWeekly,
-    TUTRepeatPeriodMonthly,
-    TUTRepeatPeriodAnnually
-};
-
-typedef NS_ENUM(NSInteger, TUTRepeatEndType) {
-    TUTRepeatEndTypeNever,
-    TUTRepeatEndTypeCount,
-    TUTRepeatEndTypeUntilDate
-};
-
 static const int EVENTS_SCHEDULED_AHEAD = 100;
 
 @interface TUTAlarmManager ()
@@ -178,11 +165,22 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                               summary:summary
                                       alarmIdentifier:alarmIdentifier
                                            repeatRule:repeatRule
-                                           sessionKey:sessionKey];
+                                           sessionKey:sessionKey
+                                                error:&error];
             let savedNotifications = [_userPreference getRepeatingAlarmNotifications];
             [savedNotifications addObject:alarmNotification];
-            [_userPreference storeRepeatingAlarmNotifications:savedNotifications];
-            
+            if (!error) {
+                [_userPreference storeRepeatingAlarmNotifications:savedNotifications];
+            } else {
+                let notificationCenter = UNUserNotificationCenter.currentNotificationCenter;
+                let content = [UNMutableNotificationContent new];
+                content.title =  [TUTUtils translate:@"TutaoCalendarAlarmTitle" default:@""];
+                content.body = @"Could not set up an alarm. Please update the application.";
+                content.sound = [UNNotificationSound defaultSound];
+                
+                let notificationRequest = [UNNotificationRequest requestWithIdentifier:@"parseEerror" content:content trigger:nil];
+                [notificationCenter addNotificationRequest:notificationRequest withCompletionHandler:nil];
+            }
         } else {
             [self scheduleAlarmOccurrenceEventWithTime:startDate
                                                trigger:trigger
@@ -214,6 +212,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                          trigger:trigger
                                       repeatRule:repeatRule
                                       sessionKey:sessionKey
+                                           error:&error
                                            block:^(NSDate *time, int occurrence) {
                                                let occurrenceIdentifier = [self occurrenceIdentifier:alarmIdentifier occurrence:occurrence];
                                                [occurrences addObject:occurrenceIdentifier];
@@ -281,11 +280,13 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                    summary:(NSString *)summary
                            alarmIdentifier:(NSString *)alarmIdentifier
                                 repeatRule:(TUTRepeatRule *)repeatRule
-                                sessionKey:(NSData *)sessionKey {
+                                sessionKey:(NSData *)sessionKey
+                                     error:(NSError **)error {
     [self iterateRepeatingAlarmtWithTime:eventTime
                                  trigger:trigger
                               repeatRule:repeatRule
                               sessionKey:sessionKey
+                                   error:error
                                    block:^(NSDate *time, int occurrence) {
                                        [self scheduleAlarmOccurrenceEventWithTime:time trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
                                    }];
@@ -295,21 +296,22 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                               trigger:(NSString *)trigger
                            repeatRule:(TUTRepeatRule *)repeatRule
                            sessionKey:(NSData *)sessionKey
+                                error:(NSError **)error
                                 block:(void(^)(NSDate *time, int occurrence))block {
-    NSError *error;
     
     let cal = NSCalendar.currentCalendar;
-    let timeZoneName = [repeatRule getTimezonDec:sessionKey error:&error];
+    let timeZoneName = [repeatRule getTimezoneDec:sessionKey error:error];
     cal.timeZone = [NSTimeZone timeZoneWithName:timeZoneName];
     
-    let frequency = [repeatRule getFrequencyDec:sessionKey error:&error];
-    let interval = [repeatRule getIntervalDec:sessionKey error:&error];
+    let frequency = [repeatRule getFrequencyDec:sessionKey error:error];
+    let interval = [repeatRule getIntervalDec:sessionKey error:error];
     let calendarUnit = [self calendarUnitForRepeatPeriod:frequency];
-    let endType = [repeatRule getEndTypeDec:sessionKey error:&error];
-    let endValue = [repeatRule getEndValueDec:sessionKey error:&error];
+    let endType = [repeatRule getEndTypeDec:sessionKey error:error];
+    let endValue = [repeatRule getEndValueDec:sessionKey error:error];
     
-    if (error) {
-        NSLog(@"Could not decrypt repeating alarm %@", error);
+    if (*error) {
+        NSLog(@"Could not decrypt repeating alarm %@", *error);
+        return;
     }
     
     var occurrences = 0;
@@ -351,7 +353,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     let notificationTrigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:dateComponents repeats:NO];
     
     let content = [UNMutableNotificationContent new];
-    // TODO: localize
     content.title =  [TUTUtils translate:@"TutaoCalendarAlarmTitle" default:@"Calendar reminder"];
     content.body = notificationText;
     content.sound = [UNNotificationSound defaultSound];
@@ -415,7 +416,8 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                               summary:summary
                                       alarmIdentifier:alarmIdentifier
                                            repeatRule:repeatRule
-                                           sessionKey:sessionKey];
+                                           sessionKey:sessionKey
+                                                error:&error];
         }
     });
 }

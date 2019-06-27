@@ -10,6 +10,19 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSInteger, TUTRepeatPeriod) {
+    TUTRepeatPeriodDaily,
+    TUTRepeatPeriodWeekly,
+    TUTRepeatPeriodMonthly,
+    TUTRepeatPeriodAnnually
+};
+
+typedef NS_ENUM(NSInteger, TUTRepeatEndType) {
+    TUTRepeatEndTypeNever,
+    TUTRepeatEndTypeCount,
+    TUTRepeatEndTypeUntilDate
+};
+
 @interface TUTRepeatRule : NSObject
 @property (readonly, nonnull) NSString *frequency;
 @property (readonly, nonnull) NSString *interval;
@@ -19,10 +32,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 +(instancetype)fromJSON:(NSDictionary<NSString *, id> *)jsonDict;
 
--(NSInteger) getFrequencyDec:(NSData *)sessionKey error:(NSError**) error;
+-(TUTRepeatPeriod) getFrequencyDec:(NSData *)sessionKey error:(NSError**) error;
 -(NSInteger) getIntervalDec:(NSData *)sessionKey error:(NSError**) error;
--(NSString *) getTimezonDec:(NSData *)sessionKey error:(NSError**) error;
--(NSInteger) getEndTypeDec:(NSData *)sessionKey error:(NSError**) error;
+-(NSString *) getTimezoneDec:(NSData *)sessionKey error:(NSError**) error;
+-(TUTRepeatEndType) getEndTypeDec:(NSData *)sessionKey error:(NSError**) error;
 -(long long) getEndValueDec:(NSData *)sessionKey error:(NSError**) error;
 
 @end
