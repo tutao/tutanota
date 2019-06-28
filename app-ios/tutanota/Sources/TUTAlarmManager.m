@@ -9,12 +9,11 @@
 #import "TUTAlarmManager.h"
 #import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTErrorFactory.h"
+#import "Utils/TUTUtils.h"
 #import "Keychain/TUTKeychainManager.h"
 #import "Alarms/TUTMissedNotification.h"
+#import "Alarms/TUTAlarmModel.h"
 #import "Crypto/TUTAes128Facade.h"
-#import "Keychain/TUTKeychainManager.h"
-#import "Utils/TUTUtils.h"
-
 
 #import "Swiftier.h"
 #import "PSPDFFastEnumeration.h"
@@ -155,12 +154,14 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         
         NSError *error;
         let startDate = [alarmNotification getEventStartDec:sessionKey error:&error];
+        let endDate = [alarmNotification getEventEndDec:sessionKey error:&error];
         let trigger = [alarmNotification.alarmInfo getTriggerDec:sessionKey error:&error];
         let repeatRule = alarmNotification.repeatRule;
         let summary = [alarmNotification getSummaryDec:sessionKey error:&error];
         
         if (repeatRule) {
             [self scheduleRepeatingAlarmEventWithTime:startDate
+                                             eventEnd:endDate
                                               trigger:trigger
                                               summary:summary
                                       alarmIdentifier:alarmIdentifier
@@ -205,15 +206,17 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             }
             
             let startDate = [savedNotification getEventStartDec:sessionKey error:&error];
+            let endDate = [savedNotification getEventEndDec:sessionKey error:&error];
             let trigger = [savedNotification.alarmInfo getTriggerDec:sessionKey error:&error];
             let repeatRule = savedNotification.repeatRule;
             NSMutableArray *occurrences = [NSMutableArray new];
             [self iterateRepeatingAlarmtWithTime:startDate
+                                        eventEnd:endDate
                                          trigger:trigger
                                       repeatRule:repeatRule
                                       sessionKey:sessionKey
                                            error:&error
-                                           block:^(NSDate *time, int occurrence) {
+                                           block:^(NSDate *time, int occurrence, NSDate *occurrenceDate) {
                                                let occurrenceIdentifier = [self occurrenceIdentifier:alarmIdentifier occurrence:occurrence];
                                                [occurrences addObject:occurrenceIdentifier];
                                            }];
@@ -230,29 +233,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         [savedNotifications removeObject:alarmNotification];
         [_userPreference storeRepeatingAlarmNotifications:savedNotifications];
         completionHandler(nil);
-    }
-}
-
-- (NSDate *)getAlarmTimeWithTrigger:(NSString*)alarmTrigger eventTime:(NSDate *)eventTime {
-    let cal = [NSCalendar currentCalendar];
-    if( [@"5M" isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitMinute value:-5 toDate:eventTime options:0];
-    } else if( [@"10M" isEqualToString:alarmTrigger] ){
-        return [cal dateByAddingUnit:NSCalendarUnitMinute value:-10 toDate:eventTime options:0];
-    } else if([@"30M"isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitMinute value:-30 toDate:eventTime options:0];
-    } else if([@"1H" isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitHour value:-1 toDate:eventTime options:0];
-    } else if([@"1D" isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitDay value:-1 toDate:eventTime options:0];
-    } else if([@"2D"isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitDay value:-2 toDate:eventTime options:0];
-    } else if([@"3D"isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitDay value:-3 toDate:eventTime options:0];
-    } else if([@"1W"isEqualToString:alarmTrigger]){
-        return [cal dateByAddingUnit:NSCalendarUnitWeekOfYear value:-1 toDate:eventTime options:0];
-    } else {
-        return eventTime;
     }
 }
 
@@ -276,6 +256,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 }
 
 -(void)scheduleRepeatingAlarmEventWithTime:(NSDate *)eventTime
+                                  eventEnd:(NSDate *)eventEnd
                                    trigger:(NSString *)trigger
                                    summary:(NSString *)summary
                            alarmIdentifier:(NSString *)alarmIdentifier
@@ -283,21 +264,23 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                 sessionKey:(NSData *)sessionKey
                                      error:(NSError **)error {
     [self iterateRepeatingAlarmtWithTime:eventTime
+                                eventEnd:eventEnd
                                  trigger:trigger
                               repeatRule:repeatRule
                               sessionKey:sessionKey
                                    error:error
-                                   block:^(NSDate *time, int occurrence) {
-                                       [self scheduleAlarmOccurrenceEventWithTime:time trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
+                                   block:^(NSDate *time, int occurrence, NSDate *occurrenceDate) {
+                                       [self scheduleAlarmOccurrenceEventWithTime:occurrenceDate trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
                                    }];
 }
 
 -(void)iterateRepeatingAlarmtWithTime:(NSDate *)eventTime
+                             eventEnd:(NSDate *)eventEnd
                               trigger:(NSString *)trigger
                            repeatRule:(TUTRepeatRule *)repeatRule
                            sessionKey:(NSData *)sessionKey
                                 error:(NSError **)error
-                                block:(void(^)(NSDate *time, int occurrence))block {
+                                block:(void(^)(NSDate *time, int occurrence, NSDate *occurrenceDate))block {
     
     let cal = NSCalendar.currentCalendar;
     let timeZoneName = [repeatRule getTimezoneDec:sessionKey error:error];
@@ -305,7 +288,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     
     let frequency = [repeatRule getFrequencyDec:sessionKey error:error];
     let interval = [repeatRule getIntervalDec:sessionKey error:error];
-    let calendarUnit = [self calendarUnitForRepeatPeriod:frequency];
     let endType = [repeatRule getEndTypeDec:sessionKey error:error];
     let endValue = [repeatRule getEndValueDec:sessionKey error:error];
     
@@ -314,21 +296,20 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         return;
     }
     
-    var occurrences = 0;
-    var occurrencesAfterNow = 0;
     let now = [NSDate new];
     
-    while (occurrencesAfterNow < EVENTS_SCHEDULED_AHEAD &&
-           (endType != TUTRepeatEndTypeCount || occurrences < endValue)) {
-        let occurrenceDate = [cal dateByAddingUnit:calendarUnit value:interval * occurrences toDate:eventTime options:0];
-        if (endType == TUTRepeatEndTypeUntilDate && occurrenceDate.timeIntervalSince1970 > endValue / 1000) {
-            break;
-        } else if ([now compare:occurrenceDate] == NSOrderedAscending) { // Only schedule alarms in the future
-            block(occurrenceDate, occurrences);
-            occurrencesAfterNow++;
-        }
-        occurrences++;
-    }
+    [TUTAlarmModel iterateRepeatingAlarmWithNow:now
+                                        timeZone:timeZoneName
+                                      eventStart:eventTime
+                                       eventEnd:eventEnd
+                                   repeatPerioud:frequency
+                                        interval:interval
+                                         endType:endType
+                                        endValue:endValue
+                                         trigger:trigger
+                                  localTimeZone:NSTimeZone.localTimeZone
+                                   scheduleAhead:EVENTS_SCHEDULED_AHEAD
+                                           block:block];
 }
 
 -(void)scheduleAlarmOccurrenceEventWithTime:(NSDate *)eventTime
@@ -340,7 +321,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     if (!summary) {
         summary = @"Calendar event";
     }
-    let alarmTime = [self getAlarmTimeWithTrigger:trigger eventTime:eventTime];
+    let alarmTime = [TUTAlarmModel alarmTimeWithTrigger:trigger eventTime:eventTime];
     
     let formattedTime = [NSDateFormatter localizedStringFromDate:eventTime dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle];
     let notificationText = [NSString stringWithFormat:@"%@: %@", formattedTime, summary];
@@ -369,22 +350,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     }];
 }
 
--(NSCalendarUnit)calendarUnitForRepeatPeriod:(TUTRepeatPeriod)repeatPeriod {
-    switch (repeatPeriod) {
-        case TUTRepeatPeriodDaily:
-        return NSCalendarUnitDay;
-        case TUTRepeatPeriodWeekly:
-        return NSCalendarUnitWeekOfYear;
-        case TUTRepeatPeriodMonthly:
-        return NSCalendarUnitMonth;
-        case TUTRepeatPeriodAnnually:
-        return NSCalendarUnitYear;
-        default:
-        NSLog(@"Did not find repeat period: %zd", repeatPeriod);
-        return NSCalendarUnitDay;
-        break;
-    }
-}
+
 
 -(NSString *)occurrenceIdentifier:(NSString *)alarmIdentifier occurrence:(int)occurrence {
     return [NSString stringWithFormat:@"%@#%d", alarmIdentifier, occurrence];
@@ -404,6 +370,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             }
             
             let startDate = [notification getEventStartDec:sessionKey error:&error];
+            let endDate = [notification getEventEndDec:sessionKey error:&error];
             let trigger = [notification.alarmInfo getTriggerDec:sessionKey error:&error];
             let repeatRule = notification.repeatRule;
             let summary = [notification getSummaryDec:sessionKey error:&error];
@@ -412,6 +379,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                 continue;
             }
             [self scheduleRepeatingAlarmEventWithTime:startDate
+                                             eventEnd:endDate
                                               trigger:trigger
                                               summary:summary
                                       alarmIdentifier:alarmIdentifier

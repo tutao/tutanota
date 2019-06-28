@@ -107,6 +107,8 @@
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
+		3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */; };
+		3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -252,6 +254,9 @@
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmManager.h; sourceTree = "<group>"; };
 		3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmManager.m; sourceTree = "<group>"; };
+		3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModelTest.m; sourceTree = "<group>"; };
+		3DD7A23622C604F000876B85 /* TUTAlarmModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmModel.h; sourceTree = "<group>"; };
+		3DD7A23722C604F000876B85 /* TUTAlarmModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModel.m; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
@@ -292,6 +297,8 @@
 				3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */,
 				3D20B36222B8D61600472D12 /* TUTRepeatRule.h */,
 				3D20B36322B8D61600472D12 /* TUTRepeatRule.m */,
+				3DD7A23622C604F000876B85 /* TUTAlarmModel.h */,
+				3DD7A23722C604F000876B85 /* TUTAlarmModel.m */,
 			);
 			path = Alarms;
 			sourceTree = "<group>";
@@ -1030,6 +1037,7 @@
 				3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */,
 				3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */,
 				3DD4A0A120F8C6260086EB36 /* Info.plist */,
+				3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1319,6 +1327,7 @@
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */,
 				3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */,
+				3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
 				3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */,
 			);
@@ -1329,6 +1338,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
+				3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2004,6 +2014,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
@@ -2035,6 +2046,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
