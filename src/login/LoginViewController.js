@@ -39,6 +39,7 @@ import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfo
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import {calendarModel} from "../calendar/CalendarModel"
 
 assertMainOrNode()
 
@@ -228,7 +229,7 @@ export class LoginViewController implements ILoginViewController {
 				let receiveInfoData = createReceiveInfoServiceData()
 				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
 			}
-		})
+		}).then(() => calendarModel.scheduleAlarmsLocally())
 	}
 
 	_showUpgradeReminder(): Promise<void> {

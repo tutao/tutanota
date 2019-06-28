@@ -24,6 +24,15 @@ export const _TypeModel: TypeModel = {
 		"userEncClientKey": {"name": "userEncClientKey", "id": 89, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
 		"verifier": {"name": "verifier", "id": 91, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	}, "associations": {
+		"alarmInfoList": {
+			"name": "alarmInfoList",
+			"id": 1545,
+			"since": 47,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "UserAlarmInfoListType",
+			"final": false
+		},
 		"auth": {"name": "auth", "id": 1210, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "UserAuthentication", "final": true},
 		"authenticatedDevices": {
 			"name": "authenticatedDevices",

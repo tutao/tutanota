@@ -17,7 +17,7 @@ import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {debounce, debounceStart, lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
+import {debounceStart, lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {MailEditor} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -372,7 +372,7 @@ export class MailView implements CurrentView {
 					                                   .concat(logins.isInternalUserLoggedIn()
 						                                   ? [
 							                                   m(".folder-row.flex-space-between.plr-l", [
-								                                   m("small.b.pt-s.align-self-center.ml-negative-xs",
+								                                   m("small.b.align-self-center.ml-negative-xs",
 									                                   {style: {color: theme.navigation_button}},
 									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
 								                                   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))

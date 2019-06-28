@@ -989,3 +989,64 @@ type UnencryptedStatisticLogRef = {
 
 	items: Id;
 }
+
+type CalendarRepeatRule = {
+	_type: TypeRef<CalendarRepeatRule>;
+	_id: Id;
+	endType: NumberString;
+	endValue: ?NumberString;
+	frequency: NumberString;
+	interval: NumberString;
+	timeZone: string;
+
+}
+
+type CalendarEvent = {
+	_type: TypeRef<CalendarEvent>;
+	_errors: Object;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	description: string;
+	endTime: Date;
+	location: string;
+	startTime: Date;
+	summary: string;
+
+	repeatRule: ?CalendarRepeatRule;
+	alarmInfos: IdTuple[];
+}
+
+type CalendarGroupRoot = {
+	_type: TypeRef<CalendarGroupRoot>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	longEvents: Id;
+	shortEvents: Id;
+}
+
+type CalendarGroupData = {
+	_type: TypeRef<CalendarGroupData>;
+	_id: Id;
+	adminEncGroupKey: ?Uint8Array;
+	calendarEncCalendarGroupRootSessionKey: Uint8Array;
+	groupInfoEncName: Uint8Array;
+	ownerEncGroupInfoSessionKey: Uint8Array;
+	userEncGroupKey: Uint8Array;
+
+	adminGroup: ?Id;
+}
+
+type CalendarPostData = {
+	_type: TypeRef<CalendarPostData>;
+	_format: NumberString;
+
+	calendarData: CalendarGroupData;
+}

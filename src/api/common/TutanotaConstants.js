@@ -11,7 +11,8 @@ export const GroupType = Object.freeze({
 	Mail: "5",
 	Contact: "6",
 	File: "7",
-	LocalAdmin: "8"
+	LocalAdmin: "8",
+	Calendar: "9"
 })
 export type GroupTypeEnum = $Values<typeof GroupType>;
 export const getMembershipGroupType = (membership: GroupMembership) => downcast(membership.groupType)
@@ -256,6 +257,7 @@ export const FeatureType = Object.freeze({
 	ReplyOnly: "6",
 	DisableDefaultSignature: "7",
 	HideBuyDialogs: "8",
+	DisableCalendar: "9",
 })
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
 export const ValueToFeatureType = reverse(FeatureType)
@@ -350,3 +352,33 @@ export type CertificateTypeEnum = $Values<typeof CertificateType>
 export function getCertificateType(certificateInfo: CertificateInfo): CertificateTypeEnum {
 	return downcast(certificateInfo.type)
 }
+
+export const RepeatPeriod = Object.freeze({
+	DAILY: "0",
+	WEEKLY: "1",
+	MONTHLY: "2",
+	ANNUALLY: "3",
+})
+export type RepeatPeriodEnum = $Values<typeof RepeatPeriod>
+
+export const EndType = Object.freeze({
+	Never: "0",
+	Count: "1",
+	UntilDate: "2"
+})
+export type EndTypeEnum = $Values<typeof EndType>
+
+export const defaultCalendarColor = "2196f3"
+
+
+export const AlarmInterval = Object.freeze({
+	FIVE_MINUTES: "5M",
+	TEN_MINUTES: "10M",
+	THIRTY_MINUTES: "30M",
+	ONE_HOUR: "1H",
+	ONE_DAY: "1D",
+	TWO_DAYS: "2D",
+	THREE_DAYS: "3D",
+	ONE_WEEK: "1W",
+})
+export type AlarmIntervalEnum = $Values<typeof AlarmInterval>

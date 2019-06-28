@@ -168,6 +168,7 @@ type User = {
 	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
+	alarmInfoList: ?UserAlarmInfoListType;
 	auth: ?UserAuthentication;
 	authenticatedDevices: AuthenticatedDevice[];
 	externalAuthInfo: ?UserExternalAuthInfo;
@@ -1597,4 +1598,81 @@ type NotificationMailTemplate = {
 	language: string;
 	subject: string;
 
+}
+
+type CalendarEventRef = {
+	_type: TypeRef<CalendarEventRef>;
+	_id: Id;
+	elementId: Id;
+	listId: Id;
+
+}
+
+type AlarmInfo = {
+	_type: TypeRef<AlarmInfo>;
+	_id: Id;
+	alarmIdentifier: string;
+	trigger: string;
+
+	calendarRef: CalendarEventRef;
+}
+
+type UserAlarmInfo = {
+	_type: TypeRef<UserAlarmInfo>;
+	_errors: Object;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	alarmInfo: AlarmInfo;
+}
+
+type UserAlarmInfoListType = {
+	_type: TypeRef<UserAlarmInfoListType>;
+	_id: Id;
+
+	alarms: Id;
+}
+
+type NotificationSessionKey = {
+	_type: TypeRef<NotificationSessionKey>;
+	_id: Id;
+	pushIdentifierSessionEncSessionKey: Uint8Array;
+
+	pushIdentifier: IdTuple;
+}
+
+type RepeatRule = {
+	_type: TypeRef<RepeatRule>;
+	_id: Id;
+	endType: NumberString;
+	endValue: ?NumberString;
+	frequency: NumberString;
+	interval: NumberString;
+	timeZone: string;
+
+}
+
+type AlarmNotification = {
+	_type: TypeRef<AlarmNotification>;
+	_id: Id;
+	eventEnd: Date;
+	eventStart: Date;
+	operation: NumberString;
+	summary: string;
+
+	alarmInfo: AlarmInfo;
+	notificationSessionKeys: NotificationSessionKey[];
+	repeatRule: ?RepeatRule;
+	user: Id;
+}
+
+type AlarmServicePost = {
+	_type: TypeRef<AlarmServicePost>;
+	_errors: Object;
+	_format: NumberString;
+
+	alarmNotifications: AlarmNotification[];
 }

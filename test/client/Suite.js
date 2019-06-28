@@ -16,6 +16,9 @@ import "./mail/MailModelTest"
 import "./misc/U2fClientTest"
 import "./contact/ContactUtilsTest"
 import "./contact/ContactMergeUtilsTest"
+import "./calendar/CalendarModelTest"
+import "./mail/MailModelTest"
+import "./calendar/CalendarUtilsTest"
 
 import o from "ospec/ospec.js"
 

@@ -408,6 +408,14 @@ styles.registerStyle('main', () => {
             height: px(20),
             width: px(20),
         },
+		'.icon-small': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
+		},
+		'.icon-small > svg': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
+		},
         '.icon-large': {
             height: px(size.icon_size_large),
             width: px(size.icon_size_large)
@@ -906,6 +914,95 @@ styles.registerStyle('main', () => {
             "bottom": "-20px"
         },
 
+		// calendar
+
+		'.flex-end-on-child .button-content': {
+			'align-items': 'flex-end !important'
+		},
+
+		'.float-right': {'float': 'right'},
+
+		'.calendar-checkbox': {
+			height: px(18),
+			width: px(18),
+			'border-width': "1.5px",
+			'border-style': "solid",
+			'border-radius': "2px"
+		},
+
+
+		'.calendar-alternate-background': {
+			'background': `${theme.list_bg} !important`
+		},
+
+		'.calendar-day:hover': {
+			'background': theme.list_bg
+		},
+
+		'.calendar-hour:hover': {
+			'background': theme.list_bg
+		},
+
+		'.calendar-day': {
+			'border-right': `1px solid ${theme.content_border}`,
+			'border-top': `1px solid ${theme.content_border}`,
+			'transition': 'background 0.4s',
+			'background': theme.list_alternate_bg
+		},
+		'.calendar-day:nth-child(7)': {
+			'border-right': "none",
+		},
+
+		'.calendar-day-number': {
+			width: "24px",
+			height: "24px",
+			"line-height": "24px",
+			"text-align": "center",
+			"font-size": "14px",
+			margin: "4px auto"
+		},
+
+
+		'.calendar-day-content': {
+			'margin-left': px(size.calendar_hour_width)
+		},
+
+		'.calendar-event': {
+			'border-radius': px(4),
+			'border': `1px solid ${theme.content_bg}`,
+			'padding-left': px(size.hpad_small),
+			'font-weight': 'bold',
+			'animation-duration': '0.3s',
+			'box-sizing': 'content-box'
+		},
+		'.calendar-event:hover': {
+			'filter': 'brightness(110%)',
+		},
+		'.event-continues-left': {
+			'border-top-left-radius': 0,
+			'border-bottom-left-radius': 0,
+			'border-left': 'none'
+		},
+		'.event-continues-right': {
+			'margin-right': 0,
+			'border-right': 'none',
+			'border-top-right-radius': 0,
+			'border-bottom-right-radius': 0
+		},
+		'.event-continues-right-arrow': {
+			"width": 0,
+			"height": 0,
+			"border-top": "9px solid transparent",
+			"border-bottom": "9px solid transparent",
+			"border-left": "6px solid green",
+			"margin-top": px(1),
+			"margin-bottom": px(1),
+		},
+		'.time-field': {
+			'max-width': '44px'
+		},
+
+
         // media query for small devices where elements should be arranged in one column
         // also adaptions for table column widths
         "@media (max-width: 400px)": { // currently used for the reminder dialog
@@ -949,6 +1046,11 @@ styles.registerStyle('main', () => {
             background: theme.content_accent,
             color: theme.content_button_icon,
         },
+		'.date-current': {
+			'border-radius': '50%',
+			background: theme.navigation_button,
+			color: theme.navigation_button_icon,
+		},
 
         // media query for mobile devices, should be one pixel less than style.isDesktopLayout
         [`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {

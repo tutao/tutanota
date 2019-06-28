@@ -40,13 +40,13 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 	const selectedTab = stream(editSegment)
 	const segmentControl = new SegmentControl([editSegment, previewSegment], selectedTab)
 
-	const sortedLanguages = languages.slice()
-	                                 .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-	                                 .map(language => {
-		                                 return {name: lang.get(language.textId), value: language.code}
-	                                 })
+	const sortedLanguages: {name: string, value: string}[] = languages.slice()
+	                                                                  .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+	                                                                  .map(language => {
+		                                                                  return {name: lang.get(language.textId), value: language.code}
+	                                                                  })
 	const selectedLanguage = sortedLanguages.find(({value}) => value === template.language)
-	const selectedLanguageStream = stream(selectedLanguage && selectedLanguage.value)
+	const selectedLanguageStream: Stream<string> = stream(selectedLanguage && selectedLanguage.value)
 	const subject = stream(template.subject)
 
 	// Editor resets its value on re-attach so we keep it ourselves

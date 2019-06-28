@@ -10,6 +10,10 @@ import {isMailAddress} from "./FormatValidator"
 assertMainOrNode()
 
 
+export function formatMonthWithYear(date: Date): string {
+	return lang.formats.monthWithYear.format(date)
+}
+
 export function formatDate(date: Date): string {
 	return lang.formats.simpleDate.format(date)
 }
@@ -59,6 +63,14 @@ export function formatDateWithTimeIfNotEven(date: Date): string {
 	} else {
 		return formatDateTimeShort(date)
 	}
+}
+
+export function formatWeekdayShort(date: Date): string {
+	return lang.formats.weekdayShort.format(date)
+}
+
+export function formatWeekdayNarrow(date: Date): string {
+	return lang.formats.weekdayNarrow.format(date)
 }
 
 /**

@@ -15,6 +15,7 @@ import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
+import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
 
 assertMainOrNode()
 
@@ -48,7 +49,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.eventController.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -407,6 +408,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('cancelCreateSession', []))
 	}
 
+	resolveSessionKey(typeModel: TypeModel, instance: Object): Promise<?string> {
+		return this._postRequest(new Request('resolveSessionKey', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
@@ -479,6 +484,22 @@ export class WorkerClient {
 
 	resetSession() {
 		return this._queue.postMessage(new Request("resetSession", []))
+	}
+
+	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent]))
+	}
+
+	addCalendar(): Promise<void> {
+		return this._queue.postMessage(new Request("addCalendar", []))
+	}
+
+	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
+		return this._queue.postMessage(new Request("scheduleAlarmsForNewDevice", [pushIdentifier]))
+	}
+
+	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
+		return this._queue.postMessage(new Request("loadAlarmEvents", []))
 	}
 }
 

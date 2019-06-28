@@ -6,7 +6,7 @@ import {downcast} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
-declare function EasingFunction(percent: number): number;
+declare type EasingFunction = (percent: number) => number;
 
 export type DomMutation = {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
@@ -16,7 +16,7 @@ type DomTransform = {
 	chain(type: TransformEnum, begin: number, end: number): DomTransform;
 }
 type AlphaEnum = 'backgroundColor' | 'color'
-type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ'
+type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ' | 'scale'
 type TransformValues = {
 	[key: TransformEnum]: {begin: number, end: number}
 }
@@ -66,7 +66,7 @@ class Animations {
 	 */
 	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): AnimationPromise {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
-		let targetArrayOrCollection =target['length'] != null
+		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
 			return Promise.reject(new Error('tried to animate a non existing element'))
 		}
@@ -166,6 +166,7 @@ transform.type = {
 	translateY: 'translateY', // movement along Y-Axis
 	rotateY: 'rotateY', // rotates an element
 	rotateZ: 'rotateZ', // rotates an element
+	scale: 'scale'
 }
 
 export function scroll(begin: number, end: number): DomMutation {
@@ -181,6 +182,7 @@ const TransformUnits = {
 	[transform.type.translateY]: 'px',
 	[transform.type.rotateY]: 'deg',
 	[transform.type.rotateZ]: 'deg',
+	[transform.type.scale]: ''
 }
 
 function buildTransformString(values: TransformValues, percent: number, easing: EasingFunction) {

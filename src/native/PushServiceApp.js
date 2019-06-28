@@ -1,6 +1,6 @@
 //@flow
-import {loadAll, setup, update} from "../api/main/Entity"
-import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
+import {load, loadAll, setup, update} from "../api/main/Entity"
+import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
@@ -11,6 +11,7 @@ import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector.js"
+import {getElementId} from "../api/common/EntityFunctions"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -30,7 +31,10 @@ class PushServiceApp {
 					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
 						if (!pushIdentifier) { // push identifier is  not associated with current user
 							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier.identifier))
+							           .then(pushIdentifier => {
+								           return this._storePushIdentifierLocally(pushIdentifier)
+								                      .then(() => this._bootstrapAlarms(pushIdentifier))
+							           })
 						} else {
 							return Promise.resolve()
 						}
@@ -40,7 +44,8 @@ class PushServiceApp {
 					             .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
 					             .then(pushIdentifier => {
 						             this._currentIdentifier = pushIdentifier.identifier
-						             return this._storePushIdentifierLocally(pushIdentifier.identifier)
+						             return this._storePushIdentifierLocally(pushIdentifier)
+						                        .then(() => this._bootstrapAlarms(pushIdentifier))
 					             })
 				}
 			}).then(this._initPushNotifications)
@@ -54,8 +59,11 @@ class PushServiceApp {
 								pushIdentifier.language = lang.code
 								update(pushIdentifier)
 							}
+							return this._storePushIdentifierLocally(pushIdentifier)
 						} else {
-							this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+							return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier)
+							                                       .then(() => this._bootstrapAlarms(pushIdentifier)))
 						}
 					})
 				} else {
@@ -68,9 +76,14 @@ class PushServiceApp {
 
 	}
 
-	_storePushIdentifierLocally(identifier: string): Promise<void> {
+	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = logins.getUserController().user._id
-		return nativeApp.invokeNative(new Request("storePushIdentifierLocally", [identifier, userId, getHttpOrigin()]))
+		return worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
+			return nativeApp.invokeNative(new Request("storePushIdentifierLocally", [
+				pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64
+			]))
+		})
+
 	}
 
 
@@ -92,9 +105,8 @@ class PushServiceApp {
 		pushIdentifier.identifier = identifier
 		pushIdentifier.language = lang.code
 		return setup(neverNull(list).list, pushIdentifier).then(id => {
-			pushIdentifier._id = [neverNull(list).list, id]
-			return pushIdentifier
-		})
+			return [neverNull(list).list, id]
+		}).then(id => load(PushIdentifierTypeRef, id))
 	}
 
 
@@ -119,6 +131,10 @@ class PushServiceApp {
 
 	_initPushNotifications(): Promise<void> {
 		return nativeApp.invokeNative(new Request("initPushNotifications", []))
+	}
+
+	_bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
+		return worker.scheduleAlarmsForNewDevice(pushIdentifier)
 	}
 }
 

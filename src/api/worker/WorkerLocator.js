@@ -17,6 +17,7 @@ import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
+import {CalendarFacade} from "./facades/CalendarFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -29,6 +30,7 @@ type WorkerLocatorType = {
 	customer: CustomerFacade;
 	file: FileFacade;
 	mail: MailFacade;
+	calendar: CalendarFacade;
 	mailAddress: MailAddressFacade;
 	counters: CounterFacade;
 	eventBusClient: EventBusClient;
@@ -60,6 +62,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
+	locator.calendar = new CalendarFacade(locator.login, locator.userManagement)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)

@@ -97,7 +97,7 @@ export class SearchListView {
 	}
 
 	_loadInitial(list: List<*, *>) {
-		let selectedId = m.route.param()["id"]
+		let selectedId = m.route.param("id")
 		list.loadInitial(selectedId)
 	}
 
@@ -108,7 +108,7 @@ export class SearchListView {
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
-		this._lastType = m.route.param()['category'] === 'mail' ? MailTypeRef : ContactTypeRef
+		this._lastType = m.route.param("category") === 'mail' ? MailTypeRef : ContactTypeRef
 		return new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -153,10 +153,10 @@ export class SearchListView {
 			elementSelected: (entities: SearchResultListEntry[], elementClicked, selectionChanged, multiSelectionActive) => {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] === 'mail' ?
+			createVirtualRow: () => new SearchResultListRow(m.route.param('category') === 'mail' ?
 				new MailRow(true) : new ContactRow()),
 			showStatus: false,
-			className: m.route.param()['category'] === 'mail' ? "mail-list" : "contact-list",
+			className: m.route.param('category') === 'mail' ? "mail-list" : "contact-list",
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],

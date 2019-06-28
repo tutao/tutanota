@@ -55,7 +55,7 @@ export type UpgradeSubscriptionData = {
 
 
 function getCampaign(): ?string {
-	const tokenFromUrl = m.route.param()['token']
+	const tokenFromUrl = m.route.param("token")
 	if (tokenFromUrl) {
 		if (client.localStorage()) {
 			localStorage.setItem(CAMPAIGN_KEY, tokenFromUrl)

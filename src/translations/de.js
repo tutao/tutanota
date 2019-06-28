@@ -958,6 +958,16 @@ module.exports = {
 		"moveUp_action": "Nach oben",
 		"moveDown_action": "Nach unten",
 		"moveToTop_action": "An den Anfang verschieben",
-		"moveToBottom_action": "An das Ende verschieben"
+		"moveToBottom_action": "An das Ende verschieben",
+		"calendar_label": "Kalender",
+		"newEvent_action": "Neues Ereignis",
+		"yourCalendars_label": "Deine Kalender",
+		"privateCalendar_label": "Privat",
+		"allDay_label": "Ganztags",
+		"createEvent_title": "Ereignis",
+		"timeFormatInvalid_msg": "Ungültiges Zeitformat",
+		"invalidInterval_msg": "Ungültiges Intervall",
+		"interval_title": "Intervall",
+		"calendarAlarm_title" : "Kalender Erinnerung"
 	}
 }

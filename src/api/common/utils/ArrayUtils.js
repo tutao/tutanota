@@ -64,13 +64,25 @@ export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	}
 }
 
-export function findAndRemove(theArray: Array<any>, finder: finder): boolean {
-	let e = theArray.find(finder)
-	if (e) {
-		return remove(theArray, e)
+export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	const index = theArray.findIndex(finder)
+	if (index !== -1) {
+		theArray.splice(index, 1)
+		return true
 	} else {
 		return false
 	}
+}
+
+export function findAllAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	var removedElement = false
+	for (var i = theArray.length - 1; i >= 0; i--) {
+		if (finder(theArray[i])) {
+			theArray.splice(i, 1)
+			removedElement = true
+		}
+	}
+	return removedElement
 }
 
 export function replace(theArray: Array<any>, oldElement: any, newElement: any): boolean {

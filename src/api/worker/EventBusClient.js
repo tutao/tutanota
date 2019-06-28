@@ -322,7 +322,7 @@ export class EventBusClient {
 			           .then(filteredEvents => {
 				           return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
 				                      .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
-				                      .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
+				                      .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents, groupId)))
 				                      .return(filteredEvents)
 			           })
 			           .then(filteredEvents => {

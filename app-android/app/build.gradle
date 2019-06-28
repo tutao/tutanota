@@ -20,7 +20,7 @@ android {
         debugDist {
             initWith debug
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
             applicationIdSuffix ".debugdist"
         }
         releaseTest {
@@ -55,6 +55,25 @@ android {
     packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/ASL2.0'
+    }
+}
+
+task copyResourcesToClasses(type: Copy) {
+    from "${projectDir}/src/main/assets/tutanota/test/AlarmCompatibilityTest.json"
+    into "${buildDir}/intermediates/classes/test/debug/resources"
+}
+
+preBuild.dependsOn copyResourcesToClasses
+
+//task unitTest(dependsOn: [copyResourcesToClasses, 'testDebugUnitTest']) {
+//
+//}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
     }
 }
 

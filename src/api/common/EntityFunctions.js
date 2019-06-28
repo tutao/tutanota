@@ -379,7 +379,11 @@ export function elementIdPart(id: IdTuple): Id {
  * Converts a string to a custom id. Attention: the custom id must be intended to be derived from a string.
  */
 export function stringToCustomId(string: string) {
-	return base64ToBase64Url(uint8ArrayToBase64(stringToUtf8Uint8Array(string)))
+	return uint8arrayToCustomId(stringToUtf8Uint8Array(string))
+}
+
+export function uint8arrayToCustomId(array: Uint8Array): string {
+	return base64ToBase64Url(uint8ArrayToBase64(array))
 }
 
 /**

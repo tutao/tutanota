@@ -77,7 +77,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "32"
+	"version": "33"
 }
 
 export function createDraftData(): DraftData {

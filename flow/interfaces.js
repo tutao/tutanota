@@ -35,11 +35,13 @@ interface IUserController {
 
 	getMailGroupMemberships(): GroupMembership[];
 
+	getCalendarMemberships(): GroupMembership[];
+
 	getUserMailGroupMembership(): GroupMembership;
 
 	getLocalAdminGroupMemberships(): GroupMembership[];
 
-	entityEventsReceived($ReadOnlyArray<EntityUpdateData>): Promise<void>;
+	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
 	deleteSession(sync: boolean): Promise<void>;
 }

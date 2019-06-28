@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
@@ -8,7 +9,6 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -30,6 +30,7 @@ export const ButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
+
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
@@ -41,6 +42,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 				button_selected: theme.navigation_button_selected,
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
+				border: theme.navigation_bg
 			}
 		case ButtonColors.Content:
 		default:
@@ -49,6 +51,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 				button_selected: theme.content_button_selected,
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
+				border: theme.content_bg
 			}
 	}
 }
@@ -101,6 +104,9 @@ class _Button {
 				onbeforeremove: (vnode) => removeFlash(vnode.dom)
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 				class: this.getWrapperClasses(a).join(' '),
+				style: {
+					borderColor: getColors(a.colors).border
+				}
 			}, [
 				this.getIcon(a),
 				this._getLabelElement(a),

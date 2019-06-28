@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Keine Berechtigung";
 TutaoChangePermissionMsg = "Um die Berechtigung zu erteilen, müssen die Einstellungen für dieses Gerät geändert werden.";
 TutaoCancelAction = "Abbrechen";
 TutaoSettingsAction = "Einstellungen";
+TutaoCalendarAlarmTitle = "Kalender Erinerrung";
