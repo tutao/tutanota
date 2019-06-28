@@ -11,27 +11,40 @@ public class AlarmModel {
 	public static void iterateAlarmOccurrences(long now,
 											   TimeZone timeZone,
 											   Date eventStart,
+											   Date eventEnd,
 											   RepeatPeriod frequency,
 											   int interval,
 											   EndType endType,
-											   int endValue,
+											   long endValue,
 											   AlarmTrigger alarmTrigger,
+											   TimeZone locaTimeZone,
 											   AlarmIterationCallback callback) {
-		Calendar calendar = Calendar.getInstance(timeZone);
+
+
+		boolean isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd);
+		Date calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart, locaTimeZone) : eventStart;
+		Date endDate = endType == EndType.UNTIL
+				? isAllDayEvent
+				? getAllDayDateLocal(new Date(endValue), locaTimeZone)
+				: new Date(endValue)
+				: null;
+
+		Calendar calendar = Calendar.getInstance(isAllDayEvent ? locaTimeZone : timeZone);
 		int occurrences = 0;
 		int futureOccurrences = 0;
+
 
 		while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD
 				&& (endType != EndType.COUNT
 				|| occurrences < endValue)) {
 
-			calendar.setTime(eventStart);
+			calendar.setTime(calcEventStart);
 			incrementByRepeatPeriod(calendar, frequency, interval * occurrences);
 
-			if (endType == EndType.UNTIL && calendar.getTimeInMillis() > endValue) {
+			if (endType == EndType.UNTIL && calendar.getTimeInMillis() >= endDate.getTime()) {
 				break;
 			}
-			Date alarmTime = calculateAlarmTime(calendar.getTime(), timeZone, alarmTrigger);
+			Date alarmTime = calculateAlarmTime(calendar.getTime(), locaTimeZone, alarmTrigger);
 
 			if (calendar.getTimeInMillis() >= now) {
 				callback.call(alarmTime, occurrences, calendar.getTime());
@@ -105,4 +118,30 @@ public class AlarmModel {
 		return calendar.getTime();
 	}
 
+	public static Date getAllDayDateUTC(Date localDate, TimeZone localTimeZone) {
+		Calendar calendar = Calendar.getInstance(localTimeZone);
+		calendar.setTime(localDate);
+		Calendar utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+		utcCalendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+		utcCalendar.set(Calendar.MILLISECOND, 0);
+		return utcCalendar.getTime();
+	}
+
+	public static Date getAllDayDateLocal(Date utcDate, TimeZone localTimeZone) {
+		Calendar utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+		utcCalendar.setTime(utcDate);
+		Calendar calendar = Calendar.getInstance(localTimeZone);
+		calendar.set(utcCalendar.get(Calendar.YEAR), utcCalendar.get(Calendar.MONTH), utcCalendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
+	}
+
+	public static boolean isAllDayEventByTimes(Date startDate, Date endDate) {
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+		calendar.setTime(startDate);
+		boolean startFits = calendar.get(Calendar.HOUR) == 0 && calendar.get(Calendar.MINUTE) == 0 && calendar.get(Calendar.SECOND) == 0;
+		calendar.setTime(endDate);
+		boolean endFits = calendar.get(Calendar.HOUR) == 0 && calendar.get(Calendar.MINUTE) == 0 && calendar.get(Calendar.SECOND) == 0;
+		return startFits && endFits;
+	}
 }

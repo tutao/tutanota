@@ -3,7 +3,6 @@ import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/uti
 import {pad} from "../api/common/utils/StringUtils"
 import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {formatWeekdayNarrow, formatWeekdayShort} from "../misc/Formatter"
 import {clone} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
@@ -57,10 +56,13 @@ export function getMonth(date: Date): CalendarMonthTimeRange {
 	return {start, end}
 }
 
+export function getTimeZone(): string {
+	return DateTime.local().zoneName
+}
 
 export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval: number): CalendarRepeatRule {
 	const rule = createCalendarRepeatRule()
-	rule.timeZone = DateTime.local().zoneName
+	rule.timeZone = getTimeZone()
 	rule.frequency = frequency
 	rule.interval = String(interval)
 	return rule

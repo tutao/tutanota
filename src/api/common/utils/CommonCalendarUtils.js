@@ -4,13 +4,16 @@ import {stringToCustomId} from "../EntityFunctions"
 
 export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 
-export function getAllDayDateLocal(utcDate: Date, timezone?: string): Date {
+export function getAllDayDateLocal(utcDate: Date): Date {
 	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 0, 0, 0, 0)
 }
 
 
-export function isAllDayEvent(event: CalendarEvent): boolean {
-	const {startTime, endTime} = event
+export function isAllDayEvent({startTime, endTime}: CalendarEvent): boolean {
+	return isAllDayEventByTimes(startTime, endTime)
+}
+
+export function isAllDayEventByTimes(startTime: Date, endTime: Date): boolean {
 	return startTime.getUTCHours() === 0 && startTime.getUTCMinutes() === 0 && startTime.getUTCSeconds() === 0
 		&& endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0
 }

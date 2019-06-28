@@ -1658,6 +1658,7 @@ type RepeatRule = {
 type AlarmNotification = {
 	_type: TypeRef<AlarmNotification>;
 	_id: Id;
+	eventEnd: Date;
 	eventStart: Date;
 	operation: NumberString;
 	summary: string;

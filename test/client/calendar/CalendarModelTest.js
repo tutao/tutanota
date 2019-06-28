@@ -491,8 +491,9 @@ o.spec("CalendarModel", function () {
 		o("iterates", function () {
 			const now = DateTime.fromObject({year: 2019, month: 5, day: 2, zone: timeZone}).toJSDate()
 			const eventStart = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 12, zone: timeZone}).toJSDate()
+			const eventEnd = DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 14, zone: timeZone}).toJSDate()
 			const occurrences = []
-			iterateEventOccurrences(now, timeZone, eventStart, RepeatPeriod.WEEKLY, 1, EndType.Never, 0, AlarmInterval.ONE_HOUR, (time) => {
+			iterateEventOccurrences(now, timeZone, eventStart, eventEnd, RepeatPeriod.WEEKLY, 1, EndType.Never, 0, AlarmInterval.ONE_HOUR, timeZone, (time) => {
 				occurrences.push(time)
 			})
 
@@ -501,6 +502,27 @@ o.spec("CalendarModel", function () {
 				DateTime.fromObject({year: 2019, month: 5, day: 9, hour: 11, zone: timeZone}).toJSDate(),
 				DateTime.fromObject({year: 2019, month: 5, day: 16, hour: 11, zone: timeZone}).toJSDate(),
 				DateTime.fromObject({year: 2019, month: 5, day: 23, hour: 11, zone: timeZone}).toJSDate()
+			])
+		})
+
+		o("ends for all-day event correctly", function () {
+			const repeatRuleTimeZone = "Asia/Anadyr" // +12
+
+			const now = DateTime.fromObject({year: 2019, month: 5, day: 1, zone: timeZone}).toJSDate()
+			// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
+			const eventStart = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 2}).toJSDate())
+			const eventEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 3}).toJSDate())
+			const repeatEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 4}).toJSDate())
+			const occurrences = []
+			iterateEventOccurrences(now, repeatRuleTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY, 1, EndType.UntilDate, repeatEnd, AlarmInterval.ONE_DAY,
+				timeZone,
+				(time) => {
+					occurrences.push(time)
+				})
+
+			o(occurrences).deepEquals([
+				DateTime.fromObject({year: 2019, month: 5, day: 1, hour: 0, zone: timeZone}).toJSDate(),
+				DateTime.fromObject({year: 2019, month: 5, day: 2, hour: 0, zone: timeZone}).toJSDate(),
 			])
 		})
 	})

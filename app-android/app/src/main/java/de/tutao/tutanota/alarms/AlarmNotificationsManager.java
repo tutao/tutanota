@@ -207,6 +207,7 @@ public class AlarmNotificationsManager {
 		TimeZone timeZone = repeatRule.getTimeZone(crypto, sessionKey);
 
 		Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
+		Date eventEnd = alarmNotification.getEventEnd(crypto, sessionKey);
 		RepeatPeriod frequency = repeatRule.getFrequency(crypto, sessionKey);
 		int interval = repeatRule.getInterval(crypto, sessionKey);
 		EndType endType = repeatRule.getEndType(crypto, sessionKey);
@@ -215,8 +216,8 @@ public class AlarmNotificationsManager {
 				alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
 
 		AlarmModel.iterateAlarmOccurrences(System.currentTimeMillis(),
-				timeZone, eventStart, frequency, interval, endType,
-				endValue, alarmTrigger, callback);
+				timeZone, eventStart, eventEnd, frequency, interval, endType,
+				endValue, alarmTrigger, TimeZone.getDefault(), callback);
 	}
 
 	private static class PushKeyResolver {

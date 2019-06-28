@@ -167,6 +167,7 @@ function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmI
 		operation: OperationType.CREATE,
 		summary: event.summary,
 		eventStart: event.startTime,
+		eventEnd: event.endTime,
 		user: userId
 	})
 }

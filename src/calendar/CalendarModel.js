@@ -1,13 +1,13 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateUTC} from "./CalendarUtils"
+import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {clone, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -147,25 +147,35 @@ export function iterateEventOccurrences(
 	now: Date,
 	timeZone: string,
 	eventStart: Date,
+	eventEnd: Date,
 	frequency: RepeatPeriodEnum,
 	interval: number,
 	endType: EndTypeEnum,
 	endValue: number,
 	alarmTrigger: AlarmIntervalEnum,
+	localTimeZone: string,
 	callback: (time: Date, occurrence: number) => mixed) {
 
 
 	let occurrences = 0
 	let futureOccurrences = 0
 
-	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
-		const occurrenceDate = incrementByRepeatPeriod(eventStart, frequency, interval * occurrences, timeZone);
+	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
+	const calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart) : eventStart
+	const endDate = endType === EndType.UntilDate
+		? isAllDayEvent
+			? getAllDayDateLocal(new Date(endValue))
+			: new Date(endValue)
+		: null
 
-		if (endType === EndType.UntilDate && occurrenceDate.getTime() > endValue) {
+	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
+		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrences, isAllDayEvent ? localTimeZone : timeZone);
+
+		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
 			break;
 		}
 
-		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, timeZone);
+		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone);
 
 		if (alarmTime >= now) {
 			callback(alarmTime, occurrences);
@@ -240,12 +250,14 @@ class CalendarModel {
 		if (repeatRule) {
 			iterateEventOccurrences(new Date(),
 				repeatRule.timeZone,
-				getEventStart(event),
+				event.startTime,
+				event.endTime,
 				downcast(repeatRule.frequency),
 				Number(repeatRule.interval),
 				downcast(repeatRule.endType) || EndType.Never,
 				Number(repeatRule.endValue),
-				downcast(userAlarmInfo.alarmInfo.trigger), (time, occurrence) => {
+				downcast(userAlarmInfo.alarmInfo.trigger),
+				getTimeZone(), (time, occurrence) => {
 					this._scheduleNotification(getElementId(userAlarmInfo) + occurrence, event, time)
 				})
 		} else {

@@ -13,6 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1558, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"eventEnd": {"name": "eventEnd", "id": 1562, "since": 47, "type": "Date", "cardinality": "One", "final": true, "encrypted": true},
 		"eventStart": {"name": "eventStart", "id": 1561, "since": 47, "type": "Date", "cardinality": "One", "final": true, "encrypted": true},
 		"operation": {"name": "operation", "id": 1559, "since": 47, "type": "Number", "cardinality": "One", "final": true, "encrypted": false},
 		"summary": {"name": "summary", "id": 1560, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
@@ -20,7 +21,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"alarmInfo": {
 			"name": "alarmInfo",
-			"id": 1562,
+			"id": 1563,
 			"since": 47,
 			"type": "AGGREGATION",
 			"cardinality": "One",
@@ -29,7 +30,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"notificationSessionKeys": {
 			"name": "notificationSessionKeys",
-			"id": 1564,
+			"id": 1565,
 			"since": 47,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -38,7 +39,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"repeatRule": {
 			"name": "repeatRule",
-			"id": 1563,
+			"id": 1564,
 			"since": 47,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
@@ -47,7 +48,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"user": {
 			"name": "user",
-			"id": 1565,
+			"id": 1566,
 			"since": 47,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
