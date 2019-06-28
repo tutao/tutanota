@@ -5,20 +5,20 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", "CalendarEventRef")
 export const _TypeModel: TypeModel = {
 	"name": "CalendarEventRef",
-	"since": 47,
+	"since": 48,
 	"type": "AGGREGATED_TYPE",
-	"id": 1525,
-	"rootId": "A3N5cwAF9Q",
+	"id": 1532,
+	"rootId": "A3N5cwAF_A",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 1526, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"elementId": {"name": "elementId", "id": 1527, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"listId": {"name": "listId", "id": 1528, "since": 47, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
+		"_id": {"name": "_id", "id": 1533, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"elementId": {"name": "elementId", "id": 1534, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"listId": {"name": "listId", "id": 1535, "since": 48, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createCalendarEventRef(): CalendarEventRef {

@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"pushServiceType": {"name": "pushServiceType", "id": 632, "since": 5, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
-	}, "associations": {}, "app": "sys", "version": "47"
+	}, "associations": {}, "app": "sys", "version": "48"
 }
 
 export function createPushIdentifier(): PushIdentifier {

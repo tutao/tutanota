@@ -26,8 +26,8 @@ export const _TypeModel: TypeModel = {
 	}, "associations": {
 		"alarmInfoList": {
 			"name": "alarmInfoList",
-			"id": 1545,
-			"since": 47,
+			"id": 1552,
+			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"refType": "UserAlarmInfoListType",
@@ -104,7 +104,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "sys", "version": "47"
+	}, "app": "sys", "version": "48"
 }
 
 export function createUser(): User {

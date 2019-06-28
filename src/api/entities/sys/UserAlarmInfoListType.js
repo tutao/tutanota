@@ -5,18 +5,18 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const UserAlarmInfoListTypeTypeRef: TypeRef<UserAlarmInfoListType> = new TypeRef("sys", "UserAlarmInfoListType")
 export const _TypeModel: TypeModel = {
 	"name": "UserAlarmInfoListType",
-	"since": 47,
+	"since": 48,
 	"type": "AGGREGATED_TYPE",
-	"id": 1542,
-	"rootId": "A3N5cwAGBg",
+	"id": 1549,
+	"rootId": "A3N5cwAGDQ",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 1543, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {"_id": {"name": "_id", "id": 1550, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
 	"associations": {
 		"alarms": {
 			"name": "alarms",
-			"id": 1544,
-			"since": 47,
+			"id": 1551,
+			"since": 48,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"refType": "UserAlarmInfo",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createUserAlarmInfoListType(): UserAlarmInfoListType {

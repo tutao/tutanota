@@ -5,18 +5,18 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", "AlarmServicePost")
 export const _TypeModel: TypeModel = {
 	"name": "AlarmServicePost",
-	"since": 47,
+	"since": 48,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1569,
-	"rootId": "A3N5cwAGIQ",
+	"id": 1576,
+	"rootId": "A3N5cwAGKA",
 	"versioned": false,
 	"encrypted": true,
-	"values": {"_format": {"name": "_format", "id": 1570, "since": 47, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {"_format": {"name": "_format", "id": 1577, "since": 48, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {
 		"alarmNotifications": {
 			"name": "alarmNotifications",
-			"id": 1571,
-			"since": 47,
+			"id": 1578,
+			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "AlarmNotification",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createAlarmServicePost(): AlarmServicePost {

@@ -5,22 +5,22 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const AlarmInfoTypeRef: TypeRef<AlarmInfo> = new TypeRef("sys", "AlarmInfo")
 export const _TypeModel: TypeModel = {
 	"name": "AlarmInfo",
-	"since": 47,
+	"since": 48,
 	"type": "AGGREGATED_TYPE",
-	"id": 1529,
-	"rootId": "A3N5cwAF-Q",
+	"id": 1536,
+	"rootId": "A3N5cwAGAA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 1530, "since": 47, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"alarmIdentifier": {"name": "alarmIdentifier", "id": 1532, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"trigger": {"name": "trigger", "id": 1531, "since": 47, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
+		"_id": {"name": "_id", "id": 1537, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"alarmIdentifier": {"name": "alarmIdentifier", "id": 1539, "since": 48, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"trigger": {"name": "trigger", "id": 1538, "since": 48, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {
 		"calendarRef": {
 			"name": "calendarRef",
-			"id": 1533,
-			"since": 47,
+			"id": 1540,
+			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"refType": "CalendarEventRef",
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createAlarmInfo(): AlarmInfo {

@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createChangePasswordData(): ChangePasswordData {

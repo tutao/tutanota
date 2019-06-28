@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		"pubKey": {"name": "pubKey", "id": 360, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"symEncGKey": {"name": "symEncGKey", "id": 362, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"symEncPrivKey": {"name": "symEncPrivKey", "id": 361, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
-	}, "associations": {}, "app": "sys", "version": "47"
+	}, "associations": {}, "app": "sys", "version": "48"
 }
 
 export function createCreateGroupData(): CreateGroupData {

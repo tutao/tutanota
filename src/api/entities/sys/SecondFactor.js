@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "47"
+	"version": "48"
 }
 
 export function createSecondFactor(): SecondFactor {
