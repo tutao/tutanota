@@ -29,6 +29,7 @@
     _operation = operation;
     _summary = summary;
     _eventStart = eventStart;
+    _eventEnd = eventEnd;
     _alarmInfo = alarmInfo;
     _notificationSessionKeys = notificationSessionKeys;
     _repeatRule = repeatRule;
