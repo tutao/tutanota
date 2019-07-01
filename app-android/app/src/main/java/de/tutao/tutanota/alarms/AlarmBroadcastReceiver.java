@@ -25,9 +25,10 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 	private static final String SUMMARY_EXTRA = "summary";
 	public static final String EVENT_DATE_EXTRA = "eventDate";
 
-	public static Intent makeAlarmIntent(int occurrence, String identifier, String summary, Date eventDate) {
+	public static Intent makeAlarmIntent(Context context, int occurrence, String identifier, String summary, Date eventDate) {
 		String occurrenceIdentifier = identifier + "#" + occurrence;
-		Intent intent = new Intent("de.tutao.tutanota.ALARM", Uri.fromParts("alarm", occurrenceIdentifier, ""));
+		Intent intent = new Intent(context, AlarmBroadcastReceiver.class);
+		intent.setData(Uri.fromParts("alarm", occurrenceIdentifier, ""));
 		intent.putExtra(SUMMARY_EXTRA, summary);
 		intent.putExtra(EVENT_DATE_EXTRA, eventDate.getTime());
 		return intent;

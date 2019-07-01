@@ -225,7 +225,7 @@ class CalendarModel {
 	constructor(notifications: Notifications, eventController: EventController) {
 		this._notifications = notifications
 		this._scheduledNotifications = new Map()
-		if (this._localAlarmsEnabled()) {
+		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				this._entityEventsReceived(updates)
 			})

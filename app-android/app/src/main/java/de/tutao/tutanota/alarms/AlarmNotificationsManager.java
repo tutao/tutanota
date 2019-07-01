@@ -171,6 +171,7 @@ public class AlarmNotificationsManager {
 		int indexOfExistingRepeatingAlarm = alarmNotifications.indexOf(alarmNotification);
 
 		if (indexOfExistingRepeatingAlarm == -1) {
+			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
 			PendingIntent pendingIntent = makeAlarmPendingIntent(0,
 					alarmNotification.getAlarmInfo().getIdentifier(), "", new Date());
 			getAlarmManager().cancel(pendingIntent);
@@ -180,7 +181,8 @@ public class AlarmNotificationsManager {
 			if (sessionKey != null) {
 				try {
 					this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
-						getAlarmManager().cancel(makeAlarmPendingIntent(0,
+						Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier() + " # " + occurrence);
+						getAlarmManager().cancel(makeAlarmPendingIntent(occurrence,
 								alarmNotification.getAlarmInfo().getIdentifier(), "", new Date()));
 					});
 				} catch (CryptoError cryptoError) {
@@ -195,7 +197,7 @@ public class AlarmNotificationsManager {
 	private PendingIntent makeAlarmPendingIntent(int occurrence, String identifier, String summary,
 												 Date eventDate) {
 		Intent intent =
-				AlarmBroadcastReceiver.makeAlarmIntent(occurrence, identifier, summary, eventDate);
+				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate);
 		return PendingIntent.getBroadcast(context, 1, intent, 0);
 	}
 

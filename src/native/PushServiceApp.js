@@ -12,6 +12,7 @@ import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector.js"
 import {getElementId} from "../api/common/EntityFunctions"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 class PushServiceApp {
 	_pushNotification: ?Object;
@@ -23,57 +24,65 @@ class PushServiceApp {
 
 	register(): Promise<void> {
 		if (isAndroidApp() || isDesktop()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [
-				logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
-			])).then(identifier => {
-				if (identifier) {
-					this._currentIdentifier = identifier
-					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
-						if (!pushIdentifier) { // push identifier is  not associated with current user
-							return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
-							           .then(pushIdentifier => {
-								           return this._storePushIdentifierLocally(pushIdentifier)
-								                      .then(() => this._bootstrapAlarms(pushIdentifier))
-							           })
-						} else {
-							return Promise.resolve()
-						}
-					})
-				} else {
-					return worker.generateSsePushIdentifer()
-					             .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-					             .then(pushIdentifier => {
-						             this._currentIdentifier = pushIdentifier.identifier
-						             return this._storePushIdentifierLocally(pushIdentifier)
-						                        .then(() => this._bootstrapAlarms(pushIdentifier))
-					             })
-				}
-			}).then(this._initPushNotifications)
+			return this._loadPushIdentifierFromNative()
+			           .then(identifier => {
+				           if (identifier) {
+					           this._currentIdentifier = identifier
+					           return this._loadPushIdentifier(identifier).then(pushIdentifier => {
+						           if (!pushIdentifier) { // push identifier is  not associated with current user
+							           return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
+							                      .then(pushIdentifier => {
+								                      return this._storePushIdentifierLocally(pushIdentifier)
+								                                 .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+							                      })
+						           } else {
+							           return this._scheduleAlarmsIfNeeded(pushIdentifier)
+						           }
+					           })
+				           } else {
+					           return worker.generateSsePushIdentifer()
+					                        .then(identifier => this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
+					                        .then(pushIdentifier => {
+						                        this._currentIdentifier = pushIdentifier.identifier
+						                        return this._storePushIdentifierLocally(pushIdentifier)
+						                                   .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+					                        })
+				           }
+			           })
+			           .then(this._initPushNotifications)
 		} else if (isIOSApp()) {
-			return nativeApp.invokeNative(new Request("getPushIdentifier", [])).then(identifier => {
-				if (identifier) {
-					this._currentIdentifier = identifier
-					return this._loadPushIdentifier(identifier).then(pushIdentifier => {
-						if (pushIdentifier) {
-							if (pushIdentifier.language !== lang.code) {
-								pushIdentifier.language = lang.code
-								update(pushIdentifier)
-							}
-							return this._storePushIdentifierLocally(pushIdentifier)
-						} else {
-							return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
-							           .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier)
-							                                       .then(() => this._bootstrapAlarms(pushIdentifier)))
-						}
-					})
-				} else {
-					console.log("denied by user")
-				}
-			})
+			return this._loadPushIdentifierFromNative()
+			           .then(identifier => {
+				           if (identifier) {
+					           this._currentIdentifier = identifier
+					           return this._loadPushIdentifier(identifier)
+					                      .then(pushIdentifier => {
+						                      if (pushIdentifier) {
+							                      if (pushIdentifier.language !== lang.code) {
+								                      pushIdentifier.language = lang.code
+								                      update(pushIdentifier)
+							                      }
+							                      return this._storePushIdentifierLocally(pushIdentifier)
+							                                 .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+						                      } else {
+							                      return this._createPushIdentiferInstance(identifier, PushServiceType.IOS)
+							                                 .then(pushIdentifier => this._storePushIdentifierLocally(pushIdentifier)
+							                                                             .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier)))
+						                      }
+					                      })
+				           } else {
+					           console.log("denied by user")
+				           }
+			           })
 		} else {
 			return Promise.resolve()
 		}
+	}
 
+	_loadPushIdentifierFromNative() {
+		return nativeApp.invokeNative(new Request("getPushIdentifier", [
+			logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
+		]))
 	}
 
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
@@ -133,8 +142,15 @@ class PushServiceApp {
 		return nativeApp.invokeNative(new Request("initPushNotifications", []))
 	}
 
-	_bootstrapAlarms(pushIdentifier: PushIdentifier): Promise<void> {
-		return worker.scheduleAlarmsForNewDevice(pushIdentifier)
+	_scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
+		const userId = logins.getUserController().user._id
+		if (!deviceConfig.isScheduledForUser(userId)) {
+			console.log("Alarms not scheduled for user, scheduling!")
+			return worker.scheduleAlarmsForNewDevice(pushIdentifier)
+			             .then(() => deviceConfig.setScheduledForUser(userId))
+		} else {
+			return Promise.resolve()
+		}
 	}
 }
 
