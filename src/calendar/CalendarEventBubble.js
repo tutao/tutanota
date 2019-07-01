@@ -13,7 +13,6 @@ export type CalendarEventBubbleAttrs = {
 	hasAlarm: boolean,
 	onEventClicked: clickHandler,
 	height?: number,
-	marginRight?: number,
 	noBorderRight?: boolean,
 	noBorderLeft?: boolean
 }
@@ -35,7 +34,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					opacity: '0',
 					minHeight: px(defaultBubbleHeight),
 					height: px(attrs.height ? attrs.height : defaultBubbleHeight),
-					lineHeight: px(defaultBubbleHeight)
+					lineHeight: px(defaultBubbleHeight),
 				},
 				oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
 				onbeforeremove: (vnode) => animations.add(vnode.dom, opacity(1, 0, true)),
@@ -44,7 +43,13 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					attrs.onEventClicked(e)
 				}
 			}, [
-				attrs.hasAlarm ? m(Icon, {icon: Icons.Notifications, style: {fill: colorForBg(attrs.color)}, class: "icon-small pt-xs"}) : null,
+				attrs.hasAlarm
+					? m(Icon, {
+						icon: Icons.Notifications,
+						style: {fill: colorForBg(attrs.color), "padding-top": "2px"},
+						class: "icon-small",
+					})
+					: null,
 				attrs.text
 			])
 	}

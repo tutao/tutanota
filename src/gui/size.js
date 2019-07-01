@@ -64,7 +64,9 @@ export const size = {
 		return this.font_size_small + 6
 	},
 	calendar_hour_width: 60,
-	calendar_hour_height: 80
+	calendar_hour_height: 80,
+	calendar_event_margin: 6,
+	calendar_event_margin_mobile: 2
 }
 
 export const inputLineHeight = size.font_size_base + 8

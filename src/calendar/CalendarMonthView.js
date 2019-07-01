@@ -6,13 +6,13 @@ import {px, size} from "../gui/size"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {getDateIndicator, getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
+import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithYear} from "../misc/Formatter"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
 type CalendarMonthAttrs = {
@@ -94,12 +94,13 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const maxEventsPerDay = (weekHeight - dayHeight) / eventHeight
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
+		const eventMargin = (styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile)
 		return layOutEvents(Array.from(events), (columns) => {
 			return columns.map((events, columnIndex) => {
 				return events.map(event => {
 					if (columnIndex < eventsPerDay) {
 						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight, columnIndex)
-						return m(".abs", {
+						return m(".abs.overflow-hidden", {
 							style: {
 								top: px(position.top),
 								height: px(size.calendar_line_height),
@@ -120,12 +121,12 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 				})
 			}).concat(moreEventsForDay.map((moreEventsCount, weekday) => {
 				if (moreEventsCount > 0) {
-					return m(".abs", {
+					return m(".abs.darker-hover", {
 						style: {
 							bottom: px(3),
 							height: px(size.calendar_line_height),
-							left: px(weekday * dayWidth),
-							width: px(dayWidth - 2)
+							left: px(weekday * dayWidth + eventMargin),
+							width: px(dayWidth - 2 - eventMargin * 2)
 						}
 					}, m(CalendarEventBubble, {
 						text: "+" + moreEventsCount,
@@ -133,7 +134,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						onEventClicked: () => {
 							attrs.onDateSelected(week[weekday].date)
 						},
-						hasAlarm: false
+						hasAlarm: false,
 					}))
 				} else {
 					return null
@@ -146,19 +147,21 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
 		const top = (size.calendar_line_height + 2) * columnIndex + calendarDayHeight
 
-
 		const eventStart = getEventStart(event)
 		const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
 
-		let dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
-		let dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
+		const dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
+		const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
 
-		const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth
-		const right = eventEndsAfterDay(lastDayOfWeek, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth) + 10
+		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
+
+
+		const left = (eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
+		const right = (eventEndsAfterDay(lastDayOfWeek, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth)) + calendarEventMargin
 		return {
 			top,
-			left: left === 0 ? 20 : left,
-			right: right === 0 ? 20 : right
+			left,
+			right,
 		}
 	}
 

@@ -14,8 +14,8 @@ import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
 import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
-import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import type {CalendarDay} from "../../calendar/CalendarUtils"
+import {getCalendarMonth} from "../../calendar/CalendarUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -186,7 +186,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): VirtualElement {
 		const size = px(this._elWidth(attrs))
-		return m(".center.click" + getDateIndicator(date, attrs.selectedDate, this._currentDate), {
+		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate, this._currentDate)), {
 			style: {
 				height: size,
 				width: size,

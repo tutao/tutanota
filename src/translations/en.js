@@ -966,7 +966,6 @@ module.exports = {
 		"interval_title": "Interval",
 		"calendarViewDay_title": "Day",
 		"calendarViewMonth_title": "Month",
-		"calendarAlarm_title": "Calendar reminder",
 		"deleteRepeatingEventConfirmation_msg": "Are you sure that you want to delete repeating event?",
 		"calendarEventDescription_label": "Description",
 		"calendarEventLocation_label": "Location",

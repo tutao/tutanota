@@ -12,7 +12,7 @@ import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
-import {LoginController, logins} from "../api/main/LoginController"
+import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -75,7 +75,12 @@ export class CalendarView implements CurrentView {
 				m(".folders.pt", [
 					m(VisualDatePicker, {
 						onDateSelected: (newDate, dayClicked) => {
-							this._setUrl(dayClicked ? CalendarViewType.DAY : this._currentViewType, newDate)
+							if (dayClicked) {
+								this._setUrl(CalendarViewType.DAY, newDate)
+								this.viewSlider.focus(this.contentColumn)
+							} else {
+								this._setUrl(this._currentViewType, newDate)
+							}
 						},
 						selectedDate: this.selectedDate(),
 						wide: false
@@ -110,25 +115,31 @@ export class CalendarView implements CurrentView {
 					})),
 				]),
 				m(".folders",
-					m(".folder-row.flex-space-between", {
-						style: {height: px(sizes.button_height)}
-					}, [
-						m("small.b.align-self-center.ml-negative-xs",
-							{style: {color: theme.navigation_button}},
-							lang.get("yourCalendars_label").toLocaleUpperCase()),
-						// m(ButtonN, {
-						// 	label: () => "add calendar",
-						// 	click: () => {},
-						// 	icon: () => Icons.Add
-						// })
-					]),
-					m(".folder-row.flex-start",
-						m(".flex.flex-grow..center-vertically.button-height", [
-							m(".calendar-checkbox", {
-								style: {"border-color": "#" + defaultCalendarColor, "background": "#" + defaultCalendarColor}
-							}),
-							m(".pl-m", lang.get("privateCalendar_label"))
-						])))
+					{style: {color: theme.navigation_button}},
+					[
+						m(".folder-row.flex-space-between", {
+							style: {height: px(sizes.button_height)}
+						}, [
+							m("small.b.align-self-center.ml-negative-xs",
+								lang.get("yourCalendars_label").toLocaleUpperCase()),
+							// m(ButtonN, {
+							// 	label: () => "add calendar",
+							// 	click: () => {},
+							// 	icon: () => Icons.Add
+							// })
+						]),
+						m(".folder-row.flex-start",
+							m(".flex.flex-grow..center-vertically.button-height", [
+								m(".calendar-checkbox", {
+									style: {
+										"border-color": "#" + defaultCalendarColor,
+										"background": "#" + defaultCalendarColor,
+										"margin-left": "-4px" // .folder-row > a adds -10px margin to other itmes but it has 6px padding
+									}
+								}),
+								m(".pl-m.b", lang.get("privateCalendar_label"))
+							]))
+					])
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("calendar_label"))
 

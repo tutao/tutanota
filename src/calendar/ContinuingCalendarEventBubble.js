@@ -16,11 +16,13 @@ type ContinuingCalendarEventBubbleAttrs = {
 }
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
+	_hovered: boolean;
+
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
 		const startsBefore = eventStartsBefore(attrs.startDate, attrs.event)
 		const endsAfter = eventEndsAfterDay(attrs.endDate, attrs.event)
 
-		return m(".flex", [
+		return m(".flex.calendar-event-cont.darker-hover", [
 			startsBefore
 				? m(".event-continues-right-arrow", {
 					style: {
@@ -30,7 +32,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 					},
 				})
 				: null,
-			m(".flex-grow",
+			m(".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
 					text: getEventText(attrs.event),
 					color: defaultCalendarColor,

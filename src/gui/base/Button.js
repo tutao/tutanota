@@ -110,11 +110,13 @@ export class Button {
 						: "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
-						addFlash(vnode.dom)
 					},
 					onbeforeremove: (vnode) => removeFlash(vnode.dom)
 				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 					class: this.getWrapperClasses().join(' '),
+					oncreate: (vnode) => {
+						addFlash(vnode.dom)
+					}
 				}, [
 					this.getIcon(),
 					this._getLabelElement(),
@@ -173,6 +175,7 @@ export class Button {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
+			buttonClasses.push("floating")
 		} else if (this._type === ButtonType.Action || this._type === ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser

@@ -96,9 +96,6 @@ class _Button {
 					: title,
 				oncreate: (vnode) => {
 					this._domButton = vnode.dom
-					if (type !== ButtonType.Toggle) {
-						addFlash(vnode.dom)
-					}
 					a.oncreate && a.oncreate(vnode)
 				},
 				onbeforeremove: (vnode) => removeFlash(vnode.dom)
@@ -106,6 +103,11 @@ class _Button {
 				class: this.getWrapperClasses(a).join(' '),
 				style: {
 					borderColor: getColors(a.colors).border
+				},
+				oncreate: (vnode) => {
+					if (type !== ButtonType.Toggle) {
+						addFlash(vnode.dom)
+					}
 				}
 			}, [
 				this.getIcon(a),
@@ -177,6 +179,7 @@ class _Button {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
+			buttonClasses.push("floating")
 		} else if ([ButtonType.Action, ButtonType.ActionLarge].includes(type)) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser

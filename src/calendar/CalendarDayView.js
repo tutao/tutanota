@@ -95,12 +95,12 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		}, [
 			m(".mt-s.pr-l", [
 				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
-				m(".calendar-day-content", allDayEvents.map(e => {
+				m(".calendar-day-content.darker-hover", allDayEvents.map(e => {
 					return m(CalendarEventBubble, {
 						text: getEventText(e),
 						color: defaultCalendarColor,
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
-						hasAlarm: e.alarmInfos.length > 0
+						hasAlarm: e.alarmInfos.length > 0,
 					})
 				})),
 				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
@@ -113,28 +113,34 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				}))),
 				m("hr.hr.mt-s")
 			]),
-			m(".scroll.col.rel", [
-				hours.map(n => m(".calendar-hour.flex", {
-					style: {
-						'border-bottom': `1px solid ${theme.content_border}`,
-						height: px(size.calendar_hour_height)
-					},
-					onclick: (e) => {
-						e.stopPropagation()
-						const eventDate = new Date(vnode.attrs.selectedDate)
-						eventDate.setHours(n.getHours(), n.getMinutes())
-						vnode.attrs.onNewEvent(eventDate)
-					},
-				}, m(".pt.pl-s.pr-s.center", {
-					style: {
-						width: px(size.calendar_hour_width),
-						height: px(size.calendar_hour_height),
-						'border-right': `2px solid ${theme.content_border}`,
-					},
-				}, formatTime(n)))),
-				this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null,
-				this._renderTimeIndicator(vnode.attrs),
-			])
+			m(".scroll.col.rel",
+				{
+					oncreate: (vnode) => {
+						vnode.dom.scrollTop = this._getTimeIndicatorPosition(new Date()) - 60
+					}
+				},
+				[
+					hours.map(n => m(".calendar-hour.flex", {
+						style: {
+							'border-bottom': `1px solid ${theme.content_border}`,
+							height: px(size.calendar_hour_height)
+						},
+						onclick: (e) => {
+							e.stopPropagation()
+							const eventDate = new Date(vnode.attrs.selectedDate)
+							eventDate.setHours(n.getHours(), n.getMinutes())
+							vnode.attrs.onNewEvent(eventDate)
+						},
+					}, m(".pt.pl-s.pr-s.center", {
+						style: {
+							width: px(size.calendar_hour_width),
+							height: px(size.calendar_hour_height),
+							'border-right': `2px solid ${theme.content_border}`,
+						},
+					}, formatTime(n)))),
+					this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null,
+					this._renderTimeIndicator(vnode.attrs),
+				])
 		])
 	}
 
@@ -157,7 +163,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
 		const colSpan = expandEvent(ev, columnIndex, columns)
 
-		return m(".abs", {
+		return m(".abs.darker-hover", {
 			style: {
 				left: px(size.calendar_hour_width + columnWidth * columnIndex),
 				width: px(columnWidth * colSpan),
@@ -179,9 +185,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		if (!isSameDay(attrs.selectedDate, now)) {
 			return null
 		}
+		const top = this._getTimeIndicatorPosition(now)
 
-		const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
-		const top = passedMillisInDay / DAY_IN_MILLIS * allHoursHeight
 		return [
 			m(".abs", {
 				"aria-hidden": "true",
@@ -207,5 +212,10 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				}
 			})
 		]
+	}
+
+	_getTimeIndicatorPosition(now: Date): number {
+		const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
+		return passedMillisInDay / DAY_IN_MILLIS * allHoursHeight
 	}
 }
