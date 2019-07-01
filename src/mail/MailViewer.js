@@ -480,8 +480,10 @@ export class MailViewer {
 						              ).return(inlineImages)
 				              })
 			              })
-			              .catch(NotFoundError, e =>
-				              console.log("could load attachments as they have been moved/deleted already", e))
+			              .catch(NotFoundError, e => {
+				              console.log("could load attachments as they have been moved/deleted already", e)
+				              return {}
+			              })
 		}
 	}
 
