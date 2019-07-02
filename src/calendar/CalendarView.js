@@ -34,6 +34,7 @@ import {geEventElementMaxId, getEventElementMinId, getEventStart} from "../api/c
 import {px, size as sizes} from "../gui/size"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {DateTime} from "luxon"
+import {NotFoundError} from "../api/common/error/RestError"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -357,16 +358,19 @@ export class CalendarView implements CurrentView {
 		this._calendarInfos.then((calendarEvents) => {
 			updates.forEach(update => {
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
-					if (update.operation === OperationType.CREATE) {
+					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 						load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
 							.then((event) => {
 								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
+								m.redraw()
+							})
+							.catch(NotFoundError, (e) => {
+								console.log("Not found event in entityEventsReceived of view", e)
 							})
 					} else if (update.operation === OperationType.DELETE) {
 						this._removeDaysForEvent([update.instanceListId, update.instanceId])
-					} else if (update.operation === OperationType.UPDATE) {
+						m.redraw()
 					}
-
 				} else if (isUpdateForTypeRef(UserTypeRef, update) 	// only process update event received for the user group - to not process user update from admin membership.
 					&& isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)) {
 					if (update.operation === OperationType.UPDATE) {
@@ -380,7 +384,6 @@ export class CalendarView implements CurrentView {
 					}
 				}
 			})
-			m.redraw()
 		})
 	}
 

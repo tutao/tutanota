@@ -5,18 +5,17 @@ import {eventEndsAfterDay, eventStartsBefore, getEventText} from "./CalendarUtil
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
-type ContinuingCalendarEventBubbleAttrs = {
+type ContinuingCalendarEventBubbleAttrs = {|
 	event: CalendarEvent,
 	startDate: Date,
 	endDate: Date,
 	color: string,
 	onEventClicked: clickHandler,
 	height?: number,
-	marginRight?: number
-}
+	showTime: boolean
+|}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
-	_hovered: boolean;
 
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
 		const startsBefore = eventStartsBefore(attrs.startDate, attrs.event)
@@ -34,7 +33,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 				: null,
 			m(".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
-					text: getEventText(attrs.event),
+					text: getEventText(attrs.event, attrs.showTime),
 					color: defaultCalendarColor,
 					onEventClicked: () => attrs.onEventClicked(attrs.event),
 					noBorderLeft: startsBefore,

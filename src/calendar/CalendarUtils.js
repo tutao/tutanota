@@ -252,8 +252,8 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
-export function getEventText(event: CalendarEvent): string {
-	if (isAllDayEvent(event)) {
+export function getEventText(event: CalendarEvent, showTime: boolean): string {
+	if (isAllDayEvent(event) || !showTime) {
 		return event.summary
 	} else {
 		return timeString(event.startTime) + " " + event.summary

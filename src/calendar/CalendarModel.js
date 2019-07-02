@@ -3,7 +3,8 @@ import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {clone, downcast} from "../api/common/utils/Utils"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
@@ -21,6 +22,7 @@ import {formatTime} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import {logins} from "../api/main/LoginController"
+import {NotFoundError} from "../api/common/error/RestError"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -221,10 +223,12 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 class CalendarModel {
 	_notifications: Notifications;
 	_scheduledNotifications: Map<string, TimeoutID>;
+	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
 
 	constructor(notifications: Notifications, eventController: EventController) {
 		this._notifications = notifications
 		this._scheduledNotifications = new Map()
+		this._pendingAlarmRequests = new Map()
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				this._entityEventsReceived(updates)
@@ -268,11 +272,20 @@ class CalendarModel {
 	}
 
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
-		const timeoutId = setTimeout(() => {
+		this._runAtDate(time, identifier, () => {
 			const title = lang.get("calendarReminder_label")
 			const body = `${formatTime(getEventStart(event))} ${event.summary}`
 			return this._notifications.showNotification(title, {body})
-		}, time - Date.now())
+		})
+	}
+
+	_runAtDate(date: Date, identifier: string, func: () => mixed) {
+		const now = Date.now()
+		const then = date.getTime()
+		const diff = Math.max((then - now), 0)
+		const timeoutId = diff > 0x7FFFFFFF // setTimeout limit is MAX_INT32=(2^31-1)
+			? setTimeout(() => this._runAtDate(date, identifier, func), 0x7FFFFFFF)
+			: setTimeout(func, diff)
 		this._scheduledNotifications.set(identifier, timeoutId)
 	}
 
@@ -280,12 +293,24 @@ class CalendarModel {
 		for (let update of updates) {
 			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					load(UserAlarmInfoTypeRef, [update.instanceListId, update.instanceId]).then(userAlarmInfo => {
-						return load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
-							.then(calendarEvent => {
-								this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
-							})
-					})
+					const userAlarmInfoId = [update.instanceListId, update.instanceId]
+					// Updates for UserAlarmInfo and CalendarEvent come in a
+					// separate batches and there's a race between loading of the
+					// UserAlarmInfo and creation of the event.
+					// We try to load UserAlarmInfo. Then we wait until the
+					// CalendarEvent is there (which might already be true)
+					// and load it.
+					load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
+						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
+						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
+						return deferredEvent.promise.then(() => {
+							this._pendingAlarmRequests.delete(elementId)
+							return load(CalendarEventTypeRef, [listId, elementId])
+								.then(calendarEvent => {
+									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
+								})
+						})
+					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", update, e))
 				} else if (update.operation === OperationType.DELETE) {
 					this._scheduledNotifications.forEach((value, key) => {
 						if (key.startsWith(update.instanceId)) {
@@ -294,6 +319,8 @@ class CalendarModel {
 						}
 					})
 				}
+			} else if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
+				getFromMap(this._pendingAlarmRequests, update.instanceId, defer).resolve()
 			}
 		}
 	}

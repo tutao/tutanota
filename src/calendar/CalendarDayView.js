@@ -97,7 +97,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
 				m(".calendar-day-content.darker-hover", allDayEvents.map(e => {
 					return m(CalendarEventBubble, {
-						text: getEventText(e),
+						text: getEventText(e, true),
 						color: defaultCalendarColor,
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						hasAlarm: e.alarmInfos.length > 0,
@@ -109,7 +109,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					endDate: vnode.attrs.selectedDate,
 					color: defaultCalendarColor,
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
-					showText: true
+					showTime: true,
 				}))),
 				m("hr.hr.mt-s")
 			]),
@@ -171,7 +171,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				height: px(height)
 			},
 		}, m(CalendarEventBubble, {
-			text: getEventText(ev),
+			text: getEventText(ev, true),
 			date: attrs.selectedDate,
 			color: defaultCalendarColor,
 			onEventClicked: () => attrs.onEventClicked(ev),

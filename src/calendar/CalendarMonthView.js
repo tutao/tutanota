@@ -60,6 +60,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
 		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute.day-with-border"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
+				key: d.date.getTime(),
 				onclick: () => {
 					if (styles.isDesktopLayout()) {
 						const newDate = new Date(d.date)
@@ -101,6 +102,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					if (columnIndex < eventsPerDay) {
 						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight, columnIndex)
 						return m(".abs.overflow-hidden", {
+							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							style: {
 								top: px(position.top),
 								height: px(size.calendar_line_height),
@@ -173,6 +175,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			startDate: firstDayOfWeek,
 			endDate: lastDayOfWeek,
 			color,
+			showTime: styles.isDesktopLayout(),
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			}
