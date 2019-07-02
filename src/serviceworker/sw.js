@@ -180,7 +180,7 @@ if (typeof env !== "undefined" && env.mode === "Test") {
 		? filesToCache()
 		: filesToCache().filter(file => !exclusions.includes(file)))
 		.map(file => selfLocation + file)
-	const applicationPaths = ["login", "signup", "recover", "mail", "contact", "settings", "search", "contactform"]
+	const applicationPaths = ["login", "signup", "recover", "mail", "contact", "settings", "search", "contactform", "calendar"]
 	const sw = new ServiceWorker(urlsToCache, caches, cacheName, selfLocation, applicationPaths, isTutanotaDomain())
 	init(sw)
 }

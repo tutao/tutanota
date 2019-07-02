@@ -222,7 +222,7 @@ function bundleServiceWorker(bundles) {
 	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
-			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))
+			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
 		const customDomainFileExclusions = ["index.html", "index.js"]
