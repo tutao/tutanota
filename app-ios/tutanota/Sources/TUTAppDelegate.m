@@ -94,9 +94,10 @@
     let apsDict = (NSDictionary *) userInfo[@"aps"];
     NSLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
-    if ([apsDict objectForKey:@"content-available"]) {
-        [_alarmManager fetchMissedNotifications:^{
-            completionHandler(UIBackgroundFetchResultNewData);
+    if (apsDict[@"content-available"]) {
+        NSString *changeTime = apsDict[@"changeTime"];
+        [_alarmManager fetchMissedNotifications:changeTime :^(NSError *error) {
+            completionHandler(error ? UIBackgroundFetchResultFailed : UIBackgroundFetchResultNewData);
         }];
     }
 }

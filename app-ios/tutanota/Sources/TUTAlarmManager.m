@@ -29,6 +29,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 @interface TUTAlarmManager ()
 @property (nonnull, readonly) TUTKeychainManager *keychainManager;
 @property (nonnull, readonly) TUTUserPreferenceFacade *userPreference;
+@property NSUInteger lastProcessedChangeTime;
 @end
 
 @implementation TUTAlarmManager
@@ -39,6 +40,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     if (self) {
         _keychainManager = [TUTKeychainManager new];
         _userPreference = userPref;
+        _lastProcessedChangeTime = 0;
     }
     return self;
 }
@@ -68,11 +70,13 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 
 - (void)sendConfirmationForIdentifier:(NSString *)identifier
                        confirmationId:(NSString *)confirmationId
+                           changeTime:(NSString *)changeTime
                                origin:(NSString *)origin
-                    completionHandler:(void (^)(void))completionHandler {
+                    completionHandler:(void (^)(NSError *))completionHandler {
     let configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
     configuration.HTTPAdditionalHeaders = @{
-                                            @"confirmationId": confirmationId
+                                            @"confirmationId":confirmationId,
+                                            @"changeTime":changeTime
                                             };
     let session = [NSURLSession sessionWithConfiguration:configuration];
     let urlString = [self missedNotificationUrl:origin pushIdentifier:identifier];
@@ -83,21 +87,33 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         if (error) {
             NSLog(@"Notification confirmation failed: %@", error);
-            completionHandler();
+            completionHandler(error);
             return;
         }
-        NSLog(@"sent confirmation with status code %zd", ((NSHTTPURLResponse *) response).statusCode);
-        completionHandler();
+        let statusCode = ((NSHTTPURLResponse *) response).statusCode;
+        NSLog(@"sent confirmation with status code %ld", statusCode);
+        if (statusCode == 200) {
+            completionHandler(nil);
+        } else {
+            completionHandler([NSError errorWithDomain:TUT_NETWORK_ERROR code:statusCode userInfo:@{@"message": @"Failed to send confirmation"}]);
+        }
     }] resume];
 }
 
-- (void)fetchMissedNotifications:(void(^)(void))completionHandler {
+- (void)fetchMissedNotifications:(NSString *)changeTime :(void(^)(NSError *error))completionHandler {
     let sseInfo = self.userPreference.getSseInfo;
     if (!sseInfo){
         NSLog(@"No stored SSE info");
-        completionHandler();
+        completionHandler(nil);
         return;
     }
+    
+    if (changeTime && changeTime.integerValue <= self.lastProcessedChangeTime) {
+        NSLog(@"Already processed notification with changeTime %@, ignoring", changeTime);
+        completionHandler(nil);
+        return;
+    }
+    
     let additionalHeaders = @{
                               @"userIds": [sseInfo.userIds componentsJoinedByString:@","]
                               };
@@ -111,9 +127,15 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         let httpResponse = (NSHTTPURLResponse *) response;
         NSLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
-        if (error || httpResponse.statusCode != 200) {
-            completionHandler();
+        if (error) {
+            completionHandler(error);
+        } if (httpResponse.statusCode == 404) {
+            completionHandler(nil);
+        } else if (httpResponse.statusCode != 200) {
+            let error = [NSError errorWithDomain:TUT_NETWORK_ERROR code:httpResponse.statusCode userInfo:@{@"message": @"Failed to fetch missed notification"}];
+            completionHandler(error);
         } else {
+            completionHandler(nil);
             NSError *jsonError;
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
             if (jsonError) {
@@ -121,11 +143,28 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                 return;
             }
             let missedNotification = [TUTMissedNotification fromJSON:json];
-            [self scheduleAlarms:missedNotification completionsHandler:^{
-                [self sendConfirmationForIdentifier:sseInfo.pushIdentifier confirmationId:missedNotification.confirmationId origin:sseInfo.sseOrigin completionHandler:^{
-                    completionHandler();
-                }];
-            }];
+            
+            [self sendConfirmationForIdentifier:sseInfo.pushIdentifier
+                                 confirmationId:missedNotification.confirmationId
+                                     changeTime:missedNotification.changeTime
+                                         origin:sseInfo.sseOrigin
+                              completionHandler:^(NSError *error) {
+                                  if (error && error.domain == TUT_NETWORK_ERROR && error.code == 412) { // Precondition failed
+                                      [self fetchMissedNotifications:changeTime :completionHandler];
+                                  } else if (error) {
+                                      if (missedNotification.changeTime) {
+                                          self.lastProcessedChangeTime = changeTime.integerValue;
+                                      }
+                                      completionHandler(error);
+                                  } else {
+                                      if (missedNotification.changeTime) {
+                                          self.lastProcessedChangeTime = changeTime.integerValue;
+                                      }
+                                      [self scheduleAlarms:missedNotification completionsHandler:^{
+                                          completionHandler(nil);
+                                      }];
+                                  }
+                              }];
         }
     }] resume];
 }
@@ -237,12 +276,11 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 }
 
 -(NSData *_Nullable)resolveSessionKey:(TUTAlarmNotification *)alarmNotification {
+    NSError *error;
     foreach(notificationSessionKey, alarmNotification.notificationSessionKeys) {
-        NSError *error;
+        error = nil;
         let pushIdentifierSessionSessionKey = [_keychainManager getKeyWithError:notificationSessionKey.pushIdentifier.elementId error:&error];
-        if (error) {
-            NSLog(@"Failed to retrieve key %@ %@", notificationSessionKey.pushIdentifier.elementId, error);
-        } else if (pushIdentifierSessionSessionKey) {
+        if (!error && pushIdentifierSessionSessionKey) {
             var encSessionKey = [TUTEncodingConverter base64ToBytes:notificationSessionKey.pushIdentifierSessionEncSessionKey];
             var sessionKey = [TUTAes128Facade decryptKey:encSessionKey
                                        withEncryptionKey:pushIdentifierSessionSessionKey error:&error];
@@ -252,6 +290,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             return sessionKey;
         }
     }
+    NSLog(@"Failed to resolve session key %@, last error: %@", alarmNotification.alarmInfo.alarmIdentifier, error);
     return nil;
 }
 

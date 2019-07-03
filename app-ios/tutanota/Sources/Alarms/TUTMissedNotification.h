@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonnull, readonly) NSArray<TUTAlarmNotification *> *alarmNotifications;
 @property (nonnull, readonly) NSString *confirmationId;
+@property (nullable, readonly) NSString *changeTime;
+
 
 +(TUTMissedNotification *)fromJSON:(NSDictionary *)jsonDict;
 

@@ -24,7 +24,7 @@
 // Frameworks
 #import <WebKit/WebKit.h>
 #import <SafariServices/SafariServices.h>
-#import <UIkit/UIkit.h>
+#import <UIKit/UIKit.h>
 
 // Runtime magic
 #import <objc/message.h>
@@ -108,7 +108,13 @@ typedef void(^VoidCallback)(void);
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
 	[self loadMainPageWithParams:nil];
-    [self.appDelegate.alarmManager fetchMissedNotifications:^{}];
+    [self.appDelegate.alarmManager fetchMissedNotifications:nil :^(NSError *error) {
+        if (error) {
+            NSLog(@"Failed to fetch/process missed notifications: %@", error);
+        } else {
+            NSLog(@"Successfully processed missed notifications");
+        }
+    }];
     [self.appDelegate.alarmManager rescheduleEvents];
 }
 

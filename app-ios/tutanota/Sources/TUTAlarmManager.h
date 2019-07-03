@@ -15,13 +15,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface TUTAlarmManager : NSObject
-- (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *) userPref;
-- (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler;
-- (void)sendConfirmationForIdentifier:(NSString *)identifier
-                       confirmationId:(NSString *)confirmationId
-                               origin:(NSString *)origin
-                    completionHandler:(void (^)(void))completionHandler;
-- (void)fetchMissedNotifications:(void(^)(void))completionHandler;
+- (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *)userPref;
+- (void)scheduleAlarms:(TUTMissedNotification*)notificaiton completionsHandler:(void(^)(void))completionHandler;
+- (void)fetchMissedNotifications:(NSString *)changeTime :(void(^)(NSError *))completionHandler;
 -(void)rescheduleEvents;
 
 @end
