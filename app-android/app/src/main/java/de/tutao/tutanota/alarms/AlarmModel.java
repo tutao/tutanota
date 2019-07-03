@@ -8,7 +8,7 @@ public class AlarmModel {
 
 	public static final int OCCURRENCES_SCHEDULED_AHEAD = 10;
 
-	public static void iterateAlarmOccurrences(long now,
+	public static void iterateAlarmOccurrences(Date now,
 											   TimeZone timeZone,
 											   Date eventStart,
 											   Date eventEnd,
@@ -46,7 +46,7 @@ public class AlarmModel {
 			}
 			Date alarmTime = calculateAlarmTime(calendar.getTime(), locaTimeZone, alarmTrigger);
 
-			if (calendar.getTimeInMillis() >= now) {
+			if (alarmTime.after(now)) {
 				callback.call(alarmTime, occurrences, calendar.getTime());
 				futureOccurrences++;
 			}

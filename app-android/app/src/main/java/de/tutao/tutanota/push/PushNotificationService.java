@@ -29,6 +29,7 @@ import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
+import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -45,7 +46,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
@@ -73,17 +75,10 @@ public final class PushNotificationService extends JobService {
 	private volatile int timeoutInSeconds;
 	private ConnectivityManager connectivityManager;
 	private volatile JobParameters jobParameters;
+	private long lastProcessedChangeTime = 0;
 
 	private final Map<String, LocalNotificationInfo> aliasNotification =
 			new ConcurrentHashMap<>();
-
-	private final BlockingQueue<Runnable> confirmationWorkQueue = new LinkedBlockingQueue<>();
-	private final ThreadPoolExecutor confirmationThreadPool = new ThreadPoolExecutor(
-			2, // initial pool size
-			2, // max pool size
-			1, // keep alive time
-			TimeUnit.SECONDS,
-			confirmationWorkQueue);
 
 	public static Intent startIntent(Context context, @Nullable SseInfo sseInfo, String sender) {
 		Intent intent = new Intent(context, PushNotificationService.class);
@@ -244,10 +239,8 @@ public final class PushNotificationService extends JobService {
 			this.reschedule(0);
 		} else if (connectedSseInfo != null && !connectedSseInfo.equals(oldConnectedInfo)) {
 			Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
-			confirmationThreadPool.execute(() -> {
-				Log.d(TAG, "Executing scheduled disconnect");
-				connection.disconnect();
-			});
+			Log.d(TAG, "Executing scheduled disconnect");
+			connection.disconnect();
 		} else {
 			Log.d(TAG, "ConnectionRef available, do nothing");
 		}
@@ -319,22 +312,7 @@ public final class PushNotificationService extends JobService {
 					continue;
 				}
 
-				PushMessage pushMessage;
-				try {
-					pushMessage = PushMessage.fromJson(event);
-				} catch (JSONException e) {
-					Log.e(TAG, "Failed to parse notification message", e);
-					continue;
-				}
-
-				List<PushMessage.NotificationInfo> notificationInfos = pushMessage.getNotificationInfos();
-
-				handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
-				handleAlarmNotifications(pushMessage);
-
-				Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
-				confirmationThreadPool.execute(
-						() -> sendConfirmation(pushMessage));
+				handlePushNotification(notificationManager, event);
 				Log.d(TAG, "Executing jobFinished after receiving notifications");
 				finishJobIfNeeded();
 			}
@@ -370,38 +348,91 @@ public final class PushNotificationService extends JobService {
 		}
 	}
 
-	private void handleAlarmNotifications(PushMessage pushMessage) {
-		if (!pushMessage.hasAlarmNotifications()) {
+	private void handlePushNotification(NotificationManager notificationManager, String event) throws IOException, PreconditionFailedException {
+		PushMessage pushMessage;
+		try {
+			pushMessage = PushMessage.fromJson(event);
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+		if (pushMessage.getChangeTime() != null && lastProcessedChangeTime >= Long.parseLong(pushMessage.getChangeTime())) {
+			Log.d(TAG, "Already processed notificaiton, ignoring: " + lastProcessedChangeTime);
 			return;
 		}
+		List<PushMessage.NotificationInfo> notificationInfos;
+		String changeTime;
+		String confirmationId;
+		List<AlarmNotification> alarmNotifications;
+		boolean failedToConfirm = false;
+		while (true) {
+			if (failedToConfirm || pushMessage.hasAlarmNotifications()) {
+				try {
+					MissedNotification missedNotification = downloadMissedNotification();
+					notificationInfos = missedNotification.getNotificationInfos();
+					changeTime = missedNotification.getChangeTime();
+					confirmationId = missedNotification.getConfirmationId();
+					alarmNotifications = missedNotification.getAlarmNotifications();
+				} catch (FileNotFoundException e) {
+					Log.i(TAG, "MissedNotificaiton is not found, ignoring: " + e.getMessage());
+					return;
+				} catch (IllegalArgumentException e) {
+					Log.w(TAG, e);
+					AlarmBroadcastReceiver.createNotificationChannel(getNotificationManager(), this);
+					Notification notification = new NotificationCompat.Builder(this, ALARM_NOTIFICATION_CHANNEL_ID)
+							.setSmallIcon(R.drawable.ic_status)
+							.setContentTitle("Could not schedule the alarm")
+							.setContentText("Please update the application")
+							.setDefaults(NotificationCompat.DEFAULT_ALL)
+							.build();
+					getNotificationManager().notify(1000, notification);
+					return;
+				}
+			} else {
+				notificationInfos = pushMessage.getNotificationInfos();
+				changeTime = pushMessage.getChangeTime();
+				confirmationId = pushMessage.getConfirmationId();
+				alarmNotifications = null;
+			}
+			Log.d(TAG, "Scheduling confirmation for " + connectedSseInfo.getPushIdentifier());
+			try {
+				sendConfirmation(confirmationId, changeTime);
+			} catch (PreconditionFailedException e) {
+				failedToConfirm = true;
+				// try again until we don't get up-to-date notification
+				continue;
+			}
+			break;
+		}
+		if (changeTime != null) {
+			this.lastProcessedChangeTime = Long.parseLong(changeTime);
+		}
+		handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
+		if (alarmNotifications != null) {
+			handleAlarmNotifications(alarmNotifications);
+		}
+	}
+
+	private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
+		this.alarmNotificationsManager.scheduleNewAlarms(alarmNotifications);
+	}
+
+	private MissedNotification downloadMissedNotification() throws IllegalArgumentException, IOException {
 		try {
 			URL url = makeAlarmNotificationUrl();
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
-			urlConnection.setConnectTimeout(30);
-			urlConnection.setReadTimeout(20);
+			urlConnection.setConnectTimeout(30 * 1000);
+			urlConnection.setReadTimeout(20 * 1000);
 
 			urlConnection.setRequestProperty("userIds", TextUtils.join(",", connectedSseInfo.getUserIds()));
-			InputStream inputStream = urlConnection.getInputStream();
-			String responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-			Log.d(TAG, "Missed notifications response:\n" + responseString);
-			MissedNotification missedNotification = MissedNotification.fromJson(new JSONObject(responseString));
-			this.alarmNotificationsManager
-					.scheduleNewAlarms(missedNotification.getAlarmNotifications());
+
+			try (InputStream inputStream = urlConnection.getInputStream()) {
+				String responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+				Log.d(TAG, "Missed notifications response:\n" + responseString);
+				return MissedNotification.fromJson(new JSONObject(responseString));
+			}
 		} catch (MalformedURLException | JSONException e) {
 			throw new RuntimeException(e);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			Log.w(TAG, e);
-			AlarmBroadcastReceiver.createNotificationChannel(getNotificationManager(), this);
-			Notification notification = new NotificationCompat.Builder(this, ALARM_NOTIFICATION_CHANNEL_ID)
-					.setSmallIcon(R.drawable.ic_status)
-					.setContentTitle("Could not schedule the alarm")
-					.setContentText("Please update the application")
-					.setDefaults(NotificationCompat.DEFAULT_ALL)
-					.build();
-			getNotificationManager().notify(1000, notification);
 		}
 	}
 
@@ -549,24 +580,24 @@ public final class PushNotificationService extends JobService {
 		return (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 	}
 
-	private void sendConfirmation(PushMessage pushMessage) {
+	private void sendConfirmation(String confrimationId, String changeTime) throws PreconditionFailedException {
 		Log.d(TAG, "Sending confirmation");
-		URL confirmUrl;
 		try {
-			confirmUrl = makeAlarmNotificationUrl();
-		} catch (MalformedURLException e) {
-			Log.w(TAG, "Confirmation URL is malformed", e);
-			return;
-		}
-		try {
+			URL confirmUrl = makeAlarmNotificationUrl();
 			HttpURLConnection httpURLConnection = (HttpURLConnection) confirmUrl.openConnection();
 			httpURLConnection.setRequestMethod("DELETE");
 			httpURLConnection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(5));
-			httpURLConnection.setRequestProperty("confirmationId", pushMessage.getConfirmationId());
+			httpURLConnection.setRequestProperty("confirmationId", confrimationId);
+			httpURLConnection.setRequestProperty("changeTime", changeTime);
 			Log.d(TAG, "Confirmation: opening connection " + confirmUrl);
 			httpURLConnection.connect();
 			int responseCode = httpURLConnection.getResponseCode();
+			if (responseCode == 412) {
+				throw new PreconditionFailedException();
+			}
 			Log.d(TAG, "Confirmation response code " + responseCode);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
 		} catch (IOException e) {
 			Log.e(TAG, "Failed to send confirmation");
 		}
@@ -649,5 +680,8 @@ final class LocalNotificationInfo {
 	LocalNotificationInfo incremented(int by) {
 		return new LocalNotificationInfo(message, counter + by, notificationInfo);
 	}
+}
+
+final class PreconditionFailedException extends Exception {
 }
 

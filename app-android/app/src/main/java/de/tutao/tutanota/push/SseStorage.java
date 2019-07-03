@@ -81,7 +81,9 @@ public final class SseStorage {
 			throw new RuntimeException(e);
 		}
 
-		IOUtils.write(keysJson.toString(), new FileOutputStream(file), StandardCharsets.UTF_8);
+		try (FileOutputStream fos = new FileOutputStream(file)) {
+			IOUtils.write(keysJson.toString(), fos, StandardCharsets.UTF_8);
+		}
 	}
 
 	public Map<String, String> getPushIdentifierKeys() throws IOException {
@@ -108,15 +110,17 @@ public final class SseStorage {
 		if (file.createNewFile()) {
 			keyMapJson = new JSONObject();
 		} else {
-			String jsonString = IOUtils.toString(new FileInputStream(file), StandardCharsets.UTF_8);
-			if (jsonString.isEmpty()) {
-				keyMapJson = new JSONObject();
-			} else {
-				try {
-					keyMapJson = new JSONObject(jsonString);
-				} catch (JSONException e) {
-					Log.w(TAG, "Failed to read keys file", e);
+			try (FileInputStream fis = new FileInputStream(file)) {
+				String jsonString = IOUtils.toString(fis, StandardCharsets.UTF_8);
+				if (jsonString.isEmpty()) {
 					keyMapJson = new JSONObject();
+				} else {
+					try {
+						keyMapJson = new JSONObject(jsonString);
+					} catch (JSONException e) {
+						Log.w(TAG, "Failed to read keys file", e);
+						keyMapJson = new JSONObject();
+					}
 				}
 			}
 		}

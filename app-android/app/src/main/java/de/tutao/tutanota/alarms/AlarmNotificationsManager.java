@@ -86,7 +86,7 @@ public class AlarmNotificationsManager {
 					return;
 				}
 				this.schedule(alarmNotification, sessionKey);
-				if (alarmNotification.getRepeatRule() != null) {
+				if (alarmNotification.getRepeatRule() != null && !savedInfos.contains(alarmNotification)) {
 					savedInfos.add(alarmNotification);
 				}
 			} else {
@@ -149,7 +149,7 @@ public class AlarmNotificationsManager {
 	private void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence,
 												   String identifier, String summary,
 												   Date eventDate) {
-		Log.d(TAG, "Scheduled notification at: " + alarmTime);
+		Log.d(TAG, "Scheduled notification " + identifier + " at: " + alarmTime);
 		AlarmManager alarmManager = getAlarmManager();
 		PendingIntent pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate);
 
@@ -213,11 +213,11 @@ public class AlarmNotificationsManager {
 		RepeatPeriod frequency = repeatRule.getFrequency(crypto, sessionKey);
 		int interval = repeatRule.getInterval(crypto, sessionKey);
 		EndType endType = repeatRule.getEndType(crypto, sessionKey);
-		int endValue = repeatRule.getEndValue(crypto, sessionKey);
+		long endValue = repeatRule.getEndValue(crypto, sessionKey);
 		AlarmTrigger alarmTrigger = AlarmTrigger.get(
 				alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
 
-		AlarmModel.iterateAlarmOccurrences(System.currentTimeMillis(),
+		AlarmModel.iterateAlarmOccurrences(new Date(),
 				timeZone, eventStart, eventEnd, frequency, interval, endType,
 				endValue, alarmTrigger, TimeZone.getDefault(), callback);
 	}

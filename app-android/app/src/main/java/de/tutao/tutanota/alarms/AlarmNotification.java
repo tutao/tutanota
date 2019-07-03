@@ -1,6 +1,5 @@
 package de.tutao.tutanota.alarms;
 
-import android.support.annotation.Nullable;
 import de.tutao.tutanota.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -112,27 +111,19 @@ public class AlarmNotification {
 		private final IdTuple pushIdentifier;
 		private final String pushIdentifierSessionEncSessionKey;
 
-		private final JSONObject originalJson;
 
 		public static NotificationSessionKey fromJson(JSONObject jsonObject) throws JSONException {
 			JSONArray id = jsonObject.getJSONArray("pushIdentifier");
 			return new NotificationSessionKey(
 					new IdTuple(id.getString(0), id.getString(1)),
-					jsonObject.getString("pushIdentifierSessionEncSessionKey"),
-					jsonObject
+					jsonObject.getString("pushIdentifierSessionEncSessionKey")
 			);
 		}
 
 		public NotificationSessionKey(IdTuple pushIdentifier,
-									  String pushIdentifierSessionEncSessionKey,
-									  JSONObject originalJson) {
+									  String pushIdentifierSessionEncSessionKey) {
 			this.pushIdentifier = pushIdentifier;
 			this.pushIdentifierSessionEncSessionKey = pushIdentifierSessionEncSessionKey;
-			this.originalJson = originalJson;
-		}
-
-		public JSONObject toJson() {
-			return originalJson;
 		}
 
 		public IdTuple getPushIdentifier() {

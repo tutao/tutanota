@@ -40,12 +40,12 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 		NotificationManager notificationManager =
 				(NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		createNotificationChannel(notificationManager, context);
+		String contentText = String.format("%tR %s", intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis()), intent.getStringExtra(SUMMARY_EXTRA));
 		notificationManager.notify((int) System.currentTimeMillis(),
 				new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 						.setSmallIcon(R.drawable.ic_status)
 						.setContentTitle(context.getString(R.string.calendarReminder_label))
-						.setContentText(intent.getStringExtra(SUMMARY_EXTRA))
-						.setWhen(intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis()))
+						.setContentText(contentText)
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
 						.setColor(context.getResources().getColor(R.color.colorPrimary))
 						.build());
