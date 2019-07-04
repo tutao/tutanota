@@ -16,23 +16,17 @@ declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteR
 declare module 'mithril' {
 	declare interface Mithril {
 
-		(selector: string | Component): Vnode<any>;
-
 		(selector: string | Component, children?: Children): Vnode<any>;
 
 		(selector: string | Component, attributes?: Object, children?: Children): Vnode<any>;
 
-		<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs): Vnode<Attrs>;
+		<Attrs>(component: Class<MComponent<Attrs>>, children?: Children): Vnode<Attrs>;
 
 		<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
-		<Attrs>(component: MComponent<Attrs>): Vnode<Attrs>;
-
-		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs): Vnode<Attrs>;
+		<Attrs>(component: MComponent<Attrs>, children?: Children): Vnode<Attrs>;
 
 		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
-
-		<Attrs>(closure: (Vnode<Attrs>) => MComponent<Attrs>): Vnode<Attrs>;
 
 		route: {
 			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
