@@ -36,7 +36,9 @@ class PushServiceApp {
 								                                 .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
 							                      })
 						           } else {
-							           return this._scheduleAlarmsIfNeeded(pushIdentifier)
+							           return this._storePushIdentifierLocally(pushIdentifier)
+							                      .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+
 						           }
 					           })
 				           } else {
