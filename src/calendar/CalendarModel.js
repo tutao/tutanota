@@ -223,6 +223,9 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 class CalendarModel {
 	_notifications: Notifications;
 	_scheduledNotifications: Map<string, TimeoutID>;
+	/**
+	 * Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event
+	 */
 	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
 
 	constructor(notifications: Notifications, eventController: EventController) {
@@ -290,10 +293,10 @@ class CalendarModel {
 	}
 
 	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, update)) {
-				if (update.operation === OperationType.CREATE) {
-					const userAlarmInfoId = [update.instanceListId, update.instanceId]
+		for (let entityEventData of updates) {
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
+				if (entityEventData.operation === OperationType.CREATE) {
+					const userAlarmInfoId = [entityEventData.instanceListId, entityEventData.instanceId]
 					// Updates for UserAlarmInfo and CalendarEvent come in a
 					// separate batches and there's a race between loading of the
 					// UserAlarmInfo and creation of the event.
@@ -310,17 +313,18 @@ class CalendarModel {
 									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
 								})
 						})
-					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", update, e))
-				} else if (update.operation === OperationType.DELETE) {
+					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))
+				} else if (entityEventData.operation === OperationType.DELETE) {
 					this._scheduledNotifications.forEach((value, key) => {
-						if (key.startsWith(update.instanceId)) {
+						if (key.startsWith(entityEventData.instanceId)) {
 							this._scheduledNotifications.delete(key)
 							clearTimeout(value)
 						}
 					})
 				}
-			} else if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
-				getFromMap(this._pendingAlarmRequests, update.instanceId, defer).resolve()
+			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)
+				&& (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)) {
+				getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
 			}
 		}
 	}

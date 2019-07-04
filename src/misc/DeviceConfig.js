@@ -14,7 +14,7 @@ const LocalStorageKey = 'tutanotaConfig'
 class DeviceConfig {
 	_version: number;
 	_credentials: Credentials[];
-	_scheduledAlarms: Id[];
+	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
 
 	/**
@@ -33,7 +33,7 @@ class DeviceConfig {
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
-		this._scheduledAlarms = loadedConfig && loadedConfig._scheduledAlarms || []
+		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 	}
 
 	getStoredAddresses(): string[] {
@@ -49,12 +49,12 @@ class DeviceConfig {
 	}
 
 	isScheduledForUser(userId: Id): boolean {
-		return this._scheduledAlarms.includes(userId)
+		return this._scheduledAlarmUsers.includes(userId)
 	}
 
 	setScheduledForUser(userId: Id) {
 		if (!this.isScheduledForUser(userId)) {
-			this._scheduledAlarms.push(userId)
+			this._scheduledAlarmUsers.push(userId)
 		}
 		this._store()
 	}

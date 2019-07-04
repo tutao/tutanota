@@ -135,7 +135,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             let error = [NSError errorWithDomain:TUT_NETWORK_ERROR code:httpResponse.statusCode userInfo:@{@"message": @"Failed to fetch missed notification"}];
             completionHandler(error);
         } else {
-            completionHandler(nil);
             NSError *jsonError;
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
             if (jsonError) {

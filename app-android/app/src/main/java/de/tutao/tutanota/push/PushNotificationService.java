@@ -355,7 +355,7 @@ public final class PushNotificationService extends JobService {
 		} catch (JSONException e) {
 			throw new RuntimeException(e);
 		}
-		if (pushMessage.getChangeTime() != null && lastProcessedChangeTime >= Long.parseLong(pushMessage.getChangeTime())) {
+		if (lastProcessedChangeTime >= Long.parseLong(pushMessage.getChangeTime())) {
 			Log.d(TAG, "Already processed notificaiton, ignoring: " + lastProcessedChangeTime);
 			return;
 		}
@@ -400,16 +400,15 @@ public final class PushNotificationService extends JobService {
 				failedToConfirm = true;
 				// try again until we don't get up-to-date notification
 				continue;
-			}
-			break;
+			}	
 		}
-		if (changeTime != null) {
-			this.lastProcessedChangeTime = Long.parseLong(changeTime);
-		}
+		this.lastProcessedChangeTime = Long.parseLong(changeTime);
+		
 		handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
 		if (alarmNotifications != null) {
 			handleAlarmNotifications(alarmNotifications);
 		}
+		break;
 	}
 
 	private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
@@ -580,14 +579,14 @@ public final class PushNotificationService extends JobService {
 		return (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 	}
 
-	private void sendConfirmation(String confrimationId, String changeTime) throws PreconditionFailedException {
+	private void sendConfirmation(String confirmationId, String changeTime) throws PreconditionFailedException {
 		Log.d(TAG, "Sending confirmation");
 		try {
 			URL confirmUrl = makeAlarmNotificationUrl();
 			HttpURLConnection httpURLConnection = (HttpURLConnection) confirmUrl.openConnection();
 			httpURLConnection.setRequestMethod("DELETE");
 			httpURLConnection.setConnectTimeout((int) TimeUnit.SECONDS.toMillis(5));
-			httpURLConnection.setRequestProperty("confirmationId", confrimationId);
+			httpURLConnection.setRequestProperty("confirmationId", confirmationId);
 			httpURLConnection.setRequestProperty("changeTime", changeTime);
 			Log.d(TAG, "Confirmation: opening connection " + confirmUrl);
 			httpURLConnection.connect();
