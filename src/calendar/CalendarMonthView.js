@@ -7,20 +7,23 @@ import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
-import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {getDateIndicator, getDayShifted, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithYear} from "../misc/Formatter"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import type {GestureInfo} from "../gui/base/ViewSlider"
+import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
 	onDateSelected: (date: Date) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
-	onEventClicked: (event: CalendarEvent) => mixed
+	onEventClicked: (event: CalendarEvent) => mixed,
+	onChangeMonthGesture: (next: boolean) => mixed,
 }
 
 const weekDaysHeight = 30
@@ -29,11 +32,38 @@ const dayHeight = 32
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
 	_monthDom: ?HTMLElement;
+	_lastGestureInfo: ?GestureInfo;
+	_oldGestureInfo: ?GestureInfo;
 
 	view(vnode: Vnode<CalendarMonthAttrs>): Children {
 		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate, 1, false)
 		const today = getStartOfDay(new Date())
-		return m(".fill-absolute.flex.col",
+		return m(".fill-absolute.flex.col", {
+				ontouchstart: (event) => {
+					this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
+				},
+				ontouchmove: (event) => {
+					this._oldGestureInfo = this._lastGestureInfo
+					this._lastGestureInfo = gestureInfoFromTouch(event.touches[0])
+				},
+				ontouchend: () => {
+					const lastGestureInfo = this._lastGestureInfo
+					const oldGestureInfo = this._oldGestureInfo
+					if (lastGestureInfo && oldGestureInfo) {
+						const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
+						const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
+						const absVerticalVelocity = Math.abs(verticalVelocity)
+						console.log("velocity", velocity, "vertical", verticalVelocity)
+						if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
+							// Do nothing, vertical scroll
+						} else if (velocity > 0.6) {
+							vnode.attrs.onChangeMonthGesture(false)
+						} else if (velocity < -0.6) {
+							vnode.attrs.onChangeMonthGesture(true)
+						}
+					}
+				},
+			},
 			[
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ? m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate)) : null,

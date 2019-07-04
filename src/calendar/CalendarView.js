@@ -167,6 +167,11 @@ export class CalendarView implements CurrentView {
 					selectedDate: this.selectedDate(),
 					onDateSelected: (date) => {
 						this._setUrl(CalendarViewType.DAY, date)
+					},
+					onChangeMonthGesture: (next) => {
+						let newDate = new Date(this.selectedDate().getTime())
+						newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+						this._setUrl(CalendarViewType.MONTH, newDate)
 					}
 				})
 				: m(CalendarDayView, {
