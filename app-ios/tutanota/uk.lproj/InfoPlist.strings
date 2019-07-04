@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Виберіть зображення або відео і додайте його у вкладенні.";
 NSPhotoLibraryUsageDescription = "Додайте зображення з вашої бібліотеки як вкладення.";
-NSPhotoLibraryAddUsageDescription = "Додайте зображення з вашої бібліотеки як вкладення.";
+NSMicrophoneUsageDescription = "Додайте зображення з вашої бібліотеки як вкладення.";
 NSMicrophoneUsageDescription = "Використовується під час запису відео у прикріплених файлах.";
 NSContactsUsageDescription = "Знайдіть адресу е-пошти отримувача в контактах.";
 NSRemindersUsageDescription = "Показувати сповіщення при надходженні нової пошти.";

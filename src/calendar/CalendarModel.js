@@ -276,7 +276,7 @@ class CalendarModel {
 
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
 		this._runAtDate(time, identifier, () => {
-			const title = lang.get("calendarReminder_label")
+			const title = lang.get("reminder_label")
 			const body = `${formatTime(getEventStart(event))} ${event.summary}`
 			return this._notifications.showNotification(title, {body})
 		})

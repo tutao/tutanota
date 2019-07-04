@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2019-05-04T13:29:01Z",
+	"updated_at": "2019-05-27T11:41:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Přijměte zásady ochrany osobních údajů zaškrtnutím políčka.",
@@ -210,6 +210,7 @@ module.exports = {
 		"customLogoInfo_msg": "Podporované typy souborů: svg, png, jpg. Velikost souboru max.: 100 KB. Výška displeje: 38 px, šířka displeje max.: 280 px.",
 		"customLogo_label": "Vlastní logo",
 		"customMetaTags_label": "Upravit meta štítky",
+		"customNotificationEmails_label": "Vlastní notifikační e-maily",
 		"custom_label": "Vlastní",
 		"cut_action": "Vyjmout",
 		"dataExpired_msg": "Vaše načtená data jsou zastaralá a nejsou synchronizována s daty na serverech Tutanota. Odhlašte se prosím a znovu se přihlaste, aby se obnovila data.",
@@ -850,6 +851,8 @@ module.exports = {
 		"takeoverAccountInvalid_msg": "Zadaná e-mailová adresa pro převzení účtu nepatří administrátorovi Premium účtu.",
 		"takeoverMailAddressInfo_msg": "Volitelné: Zadejte e-mailovou adresu administrátora účtu Premium, abyste mohli znovu použít svou e-mailovou adresu ve vybraném účtu.",
 		"takeoverMailAddress_label": "Převzít emailovou adresu",
+		"templateLanguageExists_msg": "Šablona pro vybraný jazyk už existuje.",
+		"templateMustContain_msg": "Šablona musí obsahovat zástupný text {value}",
 		"termsAcceptedNeutral_msg": "Potvrďte prosím, že souhlasíte s podmínkami.",
 		"termsAndConditionsLink_label": "Obecná pravidla a podmínky.",
 		"termsAndConditions_label": "Četl jsem následující dokumenty a souhlasím s nimi:",

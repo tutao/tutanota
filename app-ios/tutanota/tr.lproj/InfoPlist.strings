@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Eke ilave edilmek üzere fotoğraf yada video çekin.";
 NSPhotoLibraryUsageDescription = "Galerinizde bulunan bir resmi ek şeklinde ekleyin.";
-NSPhotoLibraryAddUsageDescription = "Galerinizde bulunan bir resmi ek şeklinde ekleyin.";
+NSMicrophoneUsageDescription = "Galerinizde bulunan bir resmi ek şeklinde ekleyin.";
 NSMicrophoneUsageDescription = "Video kaydını ek olarak kaydederken kullanılır.";
 NSContactsUsageDescription = "Alıcının eposta adresine kişilerden eriş.";
 NSRemindersUsageDescription = "Yeni eposta geldiğinde bildirimde bulun.";

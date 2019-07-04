@@ -62,8 +62,8 @@ export class CalendarView implements CurrentView {
 
 	constructor() {
 		const calendarViewValues = [
-			{name: lang.get("calendarViewDay_title"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
-			{name: lang.get("calendarViewMonth_title"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
+			{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
+			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 		]
 
 		this._currentViewType = CalendarViewType.MONTH
@@ -91,7 +91,7 @@ export class CalendarView implements CurrentView {
 					m(".folder-row.flex-space-between", [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
-							"view".toLocaleUpperCase()),
+							lang.get("view_label").toLocaleUpperCase()),
 						m(ButtonN, {
 							label: "today_label",
 							click: () => {

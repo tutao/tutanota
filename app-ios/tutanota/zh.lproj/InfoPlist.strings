@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "拍照或录像作为附件。";
 NSPhotoLibraryUsageDescription = "添加相册中图片作为附件。";
-NSPhotoLibraryAddUsageDescription = "添加相册中图片作为附件。";
+NSMicrophoneUsageDescription = "添加相册中图片作为附件。";
 NSMicrophoneUsageDescription = "录制视频附件时使用。";
 NSContactsUsageDescription = "从通讯录中查找收件地址。";
 NSRemindersUsageDescription = "收到新邮件时显示通知。";

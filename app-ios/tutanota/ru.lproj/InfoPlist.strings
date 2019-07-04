@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Сделайте снимок или видео, чтобы приложить его к сообщению.";
 NSPhotoLibraryUsageDescription = "Разместите изображение из библиотеки как вложение. ";
-NSPhotoLibraryAddUsageDescription = "Разместите изображение из библиотеки как вложение. ";
+NSMicrophoneUsageDescription = "Разместите изображение из библиотеки как вложение. ";
 NSMicrophoneUsageDescription = "Используется при записи видео-приложения.";
 NSContactsUsageDescription = "Найти адрес электронной почты получателя в контактах.";
 NSRemindersUsageDescription = "Показывает уведомление, когда приходит новое сообщение. ";

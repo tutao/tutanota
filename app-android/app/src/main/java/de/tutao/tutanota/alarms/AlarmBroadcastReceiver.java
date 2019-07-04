@@ -44,7 +44,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 		notificationManager.notify((int) System.currentTimeMillis(),
 				new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 						.setSmallIcon(R.drawable.ic_status)
-						.setContentTitle(context.getString(R.string.calendarReminder_label))
+						.setContentTitle(context.getString(R.string.reminder_label))
 						.setContentText(contentText)
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
 						.setColor(context.getResources().getColor(R.color.colorPrimary))
@@ -55,7 +55,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 	public static void createNotificationChannel(NotificationManager notificationManager, Context context) {
 		if (atLeastOreo()) {
 			NotificationChannel notificationsChannel = new NotificationChannel(
-					ALARM_NOTIFICATION_CHANNEL_ID, context.getString(R.string.calendarReminder_label), NotificationManager.IMPORTANCE_HIGH);
+					ALARM_NOTIFICATION_CHANNEL_ID, context.getString(R.string.reminder_label), NotificationManager.IMPORTANCE_HIGH);
 			notificationsChannel.setShowBadge(true);
 			Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 			AudioAttributes att = new AudioAttributes.Builder()
