@@ -14,6 +14,23 @@ declare type RouteResolverRender = {
 declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
 
 declare module 'mithril' {
+	declare interface Router {
+		(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
+
+		set(path: string, data?: ?{[string]: mixed},
+		    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
+
+		get(): string;
+
+		param(): Object;
+
+		param(key: string): string;
+
+		prefix(prefix: string): void;
+
+		link(vnode: any): Function;
+	}
+
 	declare interface Mithril {
 
 		(selector: string | Component, children?: Children): Vnode<any>;
@@ -28,16 +45,7 @@ declare module 'mithril' {
 
 		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
-		route: {
-			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
-			set(path: string, data?: ?{[string]: mixed},
-			    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
-			get(): string;
-			param(): Object;
-			param(key: string): string;
-			prefix(prefix: string): void;
-			link(vnode: any): Function;
-		};
+		route: Router;
 
 		redraw(): void;
 
