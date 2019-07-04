@@ -958,7 +958,7 @@ styles.registerStyle('main', () => {
 			'border-right': "none",
 		},
 
-		'.calendar-day-number': {
+		'.calendar-day-number': { // overriden for mobile
 			width: "24px",
 			height: "24px",
 			"line-height": "24px",
@@ -1108,6 +1108,15 @@ styles.registerStyle('main', () => {
 
 			'.notification-overlay-content': {
 				'padding-top': px(size.vpad_small)
+			},
+
+			'.calendar-day-number': {
+				width: "20px",
+				height: "20px",
+				"line-height": "20px",
+				"text-align": "center",
+				"font-size": "14px",
+				margin: "4px auto"
 			}
 		},
 
