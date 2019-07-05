@@ -400,7 +400,8 @@ public final class PushNotificationService extends JobService {
 				failedToConfirm = true;
 				// try again until we don't get up-to-date notification
 				continue;
-			}	
+			}
+			break;
 		}
 		this.lastProcessedChangeTime = Long.parseLong(changeTime);
 		
@@ -408,7 +409,6 @@ public final class PushNotificationService extends JobService {
 		if (alarmNotifications != null) {
 			handleAlarmNotifications(alarmNotifications);
 		}
-		break;
 	}
 
 	private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
