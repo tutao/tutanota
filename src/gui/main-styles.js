@@ -15,9 +15,6 @@ export function requiresStatusBarHack() {
 
 styles.registerStyle('main', () => {
 	return {
-		".print ": {
-			"display": "none"
-		},
 		"#link-tt": isDesktop() ? {
 			"pointer-events": "none",
 			"font-size": px(size.font_size_small),
