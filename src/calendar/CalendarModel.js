@@ -23,6 +23,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {NotFoundError} from "../api/common/error/RestError"
+import {client} from "../misc/ClientDetector"
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -330,7 +331,7 @@ class CalendarModel {
 	}
 
 	_localAlarmsEnabled(): boolean {
-		return !isApp() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
+		return !isApp() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
 	}
 }
 
