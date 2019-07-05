@@ -206,7 +206,7 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 			diff = {days: 1}
 			break
 		case AlarmInterval.TWO_DAYS:
-			diff = {days: 1}
+			diff = {days: 2}
 			break
 		case AlarmInterval.THREE_DAYS:
 			diff = {days: 3}
