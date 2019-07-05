@@ -26,7 +26,6 @@ import {SecondFactorTypeRef} from "../../entities/sys/SecondFactor"
 import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
-import {UserTypeRef} from "../../entities/sys/User"
 
 const ValueType = EC.ValueType
 

@@ -203,7 +203,14 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
-		this._loadGroupRoots()
+		// load all calendars. if there is no calendar yet, create one
+		this._loadGroupRoots().then(atLeastOneCalendarExists => {
+			if (!atLeastOneCalendarExists) {
+				worker.addCalendar().then(() => {
+					this._loadGroupRoots()
+				})
+			}
+		})
 
 		this.selectedDate.map((d) => {
 			const previousMonthDate = new Date(d)
@@ -338,25 +345,23 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	_loadGroupRoots() {
+	/**
+	 * @returns {Promise<boolean>} True if at least one calendar exists, false otherwise.
+	 */
+	_loadGroupRoots(): Promise<boolean> {
 		this._calendarInfos = load(UserTypeRef, logins.getUserController().user._id).then(user => {
 			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-			if (calendarMemberships.length === 0) {
-				worker.addCalendar()
-				return new Map()
-			} else {
-				return Promise
-					.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
-					.then((groupRoots) => {
-						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupRoots.forEach((groupRoot) => {
-							calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
-						})
-						return calendarInfos
+			return Promise
+				.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+				.then((groupRoots) => {
+					const calendarInfos: Map<Id, CalendarInfo> = new Map()
+					groupRoots.forEach((groupRoot) => {
+						calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
 					})
-			}
+					return calendarInfos
+				})
 		}).tap(() => m.redraw())
-
+		return this._calendarInfos.then(calendarInfos => calendarInfos.size > 0)
 	}
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
