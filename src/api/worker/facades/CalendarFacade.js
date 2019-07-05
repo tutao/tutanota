@@ -116,7 +116,7 @@ export class CalendarFacade {
 	}
 
 
-	addCalendar(): Promise<void> {
+	addCalendar(): Promise<User> {
 		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
@@ -131,7 +131,10 @@ export class CalendarFacade {
 				// remove the user from the cache before loading it again to make sure we get the latest version.
 				// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
 				this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
-				return load(UserTypeRef, neverNull(userGroup.user)).return()
+				return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+					this._loginFacade._user = user
+					return user
+				})
 			})
 		})
 	}
