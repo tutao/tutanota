@@ -1,4 +1,5 @@
 const fs = require("fs")
+const glob = require("glob")
 
 function prepareFiles(buildType) {
 	console.log("prepare mobile build for build type", buildType)
