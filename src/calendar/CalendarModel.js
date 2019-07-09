@@ -7,7 +7,7 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {DateTime} from "luxon"
+import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -48,6 +48,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
+	const repeatTimeZone = getValidTimeZone(repeatRule.timeZone)
 	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
 	const isLong = isLongEvent(event)
@@ -88,8 +89,8 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 				addDaysForEvent(events, eventClone, month)
 			}
 		}
-		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatRule.timeZone)
-		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatRule.timeZone)
+		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
+		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatTimeZone)
 		iteration++
 	}
 }
@@ -221,6 +222,21 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
 }
 
+function getValidTimeZone(zone: string, fallback: ?string): string {
+	if (IANAZone.isValidZone(zone)) {
+		return zone
+	} else {
+		if (fallback && IANAZone.isValidZone(fallback)) {
+			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
+			return fallback
+		} else {
+			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
+			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
+			return actualFallback
+		}
+	}
+}
+
 class CalendarModel {
 	_notifications: Notifications;
 	_scheduledNotifications: Map<string, TimeoutID>;
@@ -256,8 +272,12 @@ class CalendarModel {
 	scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo) {
 		const repeatRule = event.repeatRule
 		if (repeatRule) {
+			const localZone = getTimeZone()
+			let repeatTimeZone = getValidTimeZone(repeatRule.timeZone, localZone)
+
+			let calculationLocalZone = getValidTimeZone(localZone, null)
 			iterateEventOccurrences(new Date(),
-				repeatRule.timeZone,
+				repeatTimeZone,
 				event.startTime,
 				event.endTime,
 				downcast(repeatRule.frequency),
@@ -265,7 +285,8 @@ class CalendarModel {
 				downcast(repeatRule.endType) || EndType.Never,
 				Number(repeatRule.endValue),
 				downcast(userAlarmInfo.alarmInfo.trigger),
-				getTimeZone(), (time, occurrence) => {
+				calculationLocalZone,
+				(time, occurrence) => {
 					this._scheduleNotification(getElementId(userAlarmInfo) + occurrence, event, time)
 				})
 		} else {
