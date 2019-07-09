@@ -140,7 +140,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		const {instanceListId, instanceId, operation} = update
 		if (isUpdateForTypeRef(ContactFormTypeRef, update) && this._listId.isLoaded()
 			&& instanceListId === this._listId.getLoaded()) {
-			if (!logins.getUserController().isGlobalAdmin()) {
+			if (!logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
 				let listEntity = this.list.getEntity(instanceId)
 				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
 					return getAdministratedGroupIds().then(allAdministratedGroupIds => {

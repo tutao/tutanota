@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Ta et bilde eller video for å legge dette til som vedlegg.";
 NSPhotoLibraryUsageDescription = "Legg til et bilde fra ditt bibliotek som vedlegg.";
-NSPhotoLibraryAddUsageDescription = "Legg til et bilde fra ditt bibliotek som vedlegg.";
+NSMicrophoneUsageDescription = "Legg til et bilde fra ditt bibliotek som vedlegg.";
 NSMicrophoneUsageDescription = "Brukes når man innspiller en video som vedlegg.";
 NSContactsUsageDescription = "Finn mottaker e-mail adresse i kontakter.";
 NSRemindersUsageDescription = "Viser melding når det kommer ny e-mail";

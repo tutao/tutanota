@@ -47,7 +47,8 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const restClient = new EntityRestClient(getAuthHeaders)
 
 	locator._browserData = browserData
-	locator.cache = isAdminClient() ? restClient : new EntityRestCache(restClient) // we don't wont to cache within the admin area
+	let cache = new EntityRestCache(restClient)
+	locator.cache = isAdminClient() ? restClient : cache // we don't wont to cache within the admin area
 	locator.indexer = new Indexer(restClient, worker, browserData, locator.cache)
 	locator.login = new LoginFacade(worker)
 	const suggestionFacades = [
@@ -62,7 +63,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
-	locator.calendar = new CalendarFacade(locator.login, locator.userManagement)
+	locator.calendar = new CalendarFacade(locator.login, locator.userManagement, cache)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)

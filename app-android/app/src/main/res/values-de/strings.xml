@@ -1,4 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="notificationChannelEmail_label">E-Mail Benachrichungen</string>
-</resources>
+<resources>    <string name="reminder_label">Erinnerung</string></resources>

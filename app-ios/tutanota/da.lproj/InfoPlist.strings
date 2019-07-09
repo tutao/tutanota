@@ -1,6 +1,6 @@
-NSCameraUsageDescription = "Tag et billede eller video for at tilføje dette som vedhæft.";
+NSCameraUsageDescription = "Kameraet benyttes til at optage en video, du kan sende som vedhæftet fil.";
 NSPhotoLibraryUsageDescription = "Tilføj et billede fra dit bibliotek som vedhæftet fil.";
-NSPhotoLibraryAddUsageDescription = "Tilføj et billede fra dit bibliotek som vedhæftet fil.";
+NSMicrophoneUsageDescription = "Tilføj et billede fra dit bibliotek som vedhæftet fil.";
 NSMicrophoneUsageDescription = "Bruges, når du optager en video som vedhæftet fil.";
 NSContactsUsageDescription = "Find en modtagermailadresse i kontakter.";
 NSRemindersUsageDescription = "Viser beskeder når der kommer nye mails.";

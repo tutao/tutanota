@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Zrób zdjęcie lub nagraj wideo, aby umieścić je jako załącznik.";
 NSPhotoLibraryUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
-NSPhotoLibraryAddUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
+NSMicrophoneUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
 NSMicrophoneUsageDescription = "Używany podczas nagrywania wideo jako załącznik.";
 NSContactsUsageDescription = "Znajdź adres email adresata w kontaktach";
 NSRemindersUsageDescription = "Pokazuje powiadomienie, gdy zostanie odebrana nowa wiadomość.";

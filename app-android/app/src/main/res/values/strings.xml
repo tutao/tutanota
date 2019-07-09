@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Tutanota</string>
     <string name="notificationChannelEmail_label">Email notifications</string>
-    <string name="calendarReminder_label">Reminder</string>
+    <string name="reminder_label">Reminder</string>
 </resources>

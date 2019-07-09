@@ -25,6 +25,8 @@ import {TutanotaService} from "../../entities/tutanota/Services"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
 import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
+import {UserTypeRef} from "../../entities/sys/User"
+import {EntityRestCache} from "../rest/EntityRestCache"
 
 assertWorkerOrNode()
 
@@ -32,10 +34,12 @@ export class CalendarFacade {
 
 	_loginFacade: LoginFacade;
 	_userManagementFacade: UserManagementFacade;
+	_entityRestCache: EntityRestCache
 
-	constructor(loginFacade: LoginFacade, userManagementFacade: UserManagementFacade) {
+	constructor(loginFacade: LoginFacade, userManagementFacade: UserManagementFacade, entityRestCache: EntityRestCache) {
 		this._loginFacade = loginFacade
 		this._userManagementFacade = userManagementFacade
+		this._entityRestCache = entityRestCache
 	}
 
 	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent): Promise<void> {
@@ -112,7 +116,7 @@ export class CalendarFacade {
 	}
 
 
-	addCalendar(): Promise<void> {
+	addCalendar(): Promise<User> {
 		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
@@ -123,7 +127,15 @@ export class CalendarFacade {
 			const userGroupKey = this._loginFacade.getUserGroupKey()
 			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey)
 			const postData = Object.assign(createCalendarPostData(), {calendarData})
-			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData)
+			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData).then(() => {
+				// remove the user from the cache before loading it again to make sure we get the latest version.
+				// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
+				this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
+				return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+					this._loginFacade._user = user
+					return user
+				})
+			})
 		})
 	}
 

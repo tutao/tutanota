@@ -43,6 +43,10 @@ execFileSync('node', [options.webclient, `${options.host}`], {
 	stdio: [null, process.stdout, process.stderr]
 })
 
+execFileSync('node', ["buildSrc/prepareMobileBuild.js", options.webclient], {
+	stdio: [null, process.stdout, process.stderr],
+})
+
 
 try {
 	execFileSync("rm", ["-r", "build/app-android"], {stdio: 'ignore'})

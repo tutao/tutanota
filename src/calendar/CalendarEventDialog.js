@@ -125,7 +125,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	}
 
 	const dialog = Dialog.showActionDialog({
-		title: () => lang.get("createEvent_title"),
+		title: () => lang.get("createEvent_label"),
 		child: () => [
 			m(TextFieldN, {
 				label: "title_placeholder",
@@ -173,11 +173,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				icon: Icons.Edit,
 			}: DropDownSelectorAttrs<CalendarInfo>)),
 			m(TextFieldN, {
-				label: "calendarEventLocation_label",
+				label: "location_label",
 				value: locationValue
 			}),
 			m(TextFieldN, {
-				label: "calendarEventDescription_label",
+				label: "description_label",
 				value: notesValue,
 				type: Type.Area
 			}),
@@ -281,16 +281,16 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 }
 
 const repeatValues = [
-	{name: "Do not repeat", value: null},
-	{name: "Repeat daily", value: RepeatPeriod.DAILY},
-	{name: "Weekly", value: RepeatPeriod.WEEKLY},
-	{name: "Monthly", value: RepeatPeriod.MONTHLY},
-	{name: "Annually", value: RepeatPeriod.ANNUALLY}
+	{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
+	{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
+	{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
+	{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
+	{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
 ]
 
 function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 	return {
-		label: () => "Repeating",
+		label: "calendarRepeating_label",
 		items: repeatValues,
 		selectedValue: stream(repeatValues[0].value),
 		icon: Icons.Edit,
@@ -361,7 +361,7 @@ const alarmIntervalItems = [
 
 function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
 	return {
-		label: () => lang.get("calendarReminder_label"),
+		label: () => lang.get("reminder_label"),
 		items: alarmIntervalItems,
 		selectedValue: stream(null),
 		icon: Icons.Edit

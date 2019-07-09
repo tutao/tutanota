@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Prenez une photo ou une vidéo pour l'ajouter en pièce jointe.";
 NSPhotoLibraryUsageDescription = "Ajouter une photo de votre bibliothèque en pièce jointe.";
-NSPhotoLibraryAddUsageDescription = "Ajouter une photo de votre bibliothèque en pièce jointe.";
+NSMicrophoneUsageDescription = "Ajouter une photo de votre bibliothèque en pièce jointe.";
 NSMicrophoneUsageDescription = "Utilisé lors de l'enregistrement de vidéo en tant que pièce jointe.";
 NSContactsUsageDescription = "Trouver l'adresse email du destinataire dans les contacts";
 NSRemindersUsageDescription = "Montrer les notification quand de nouveaux mails arrivent.";
@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Aucune permission";
 TutaoChangePermissionMsg = "Pour autoriser l'accès, vous devez modifier les permissions pour cet appareil.";
 TutaoCancelAction = "Annuler";
 TutaoSettingsAction = "Paramètres";
+TutaoCalendarAlarmTitle = "Rappel";

@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "एक चित्र या वीडियो को लगाव के रूप में जोड़ने के लिए ";
 NSPhotoLibraryUsageDescription = "अपने संग्रह में से चित्र को जोड़ें। ";
-NSPhotoLibraryAddUsageDescription = "अपने संग्रह में से चित्र को जोड़ें। ";
+NSMicrophoneUsageDescription = "अपने संग्रह में से चित्र को जोड़ें। ";
 NSMicrophoneUsageDescription = "वीडियो संलग्नक रिकार्ड करते वक्त उपयोग किया जाता है।";
 NSContactsUsageDescription = "संपर्कों में प्राप्तकर्ता ईमेल पता ढूंढें";
 NSRemindersUsageDescription = "नया ईमेल आने पर अधिसूचना दिखाता है।";

@@ -207,8 +207,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					width: "12px",
 					"border-radius": "50%",
 					background: theme.content_accent,
-					"margin-top": "-6px",
-					"margin-left": "-6px",
+					"margin-top": "-5px",
+					"margin-left": "-7px",
 				}
 			})
 		]

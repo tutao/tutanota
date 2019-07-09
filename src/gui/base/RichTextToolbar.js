@@ -4,6 +4,7 @@ import {Icons} from "./icons/Icons"
 import type {Editor} from './Editor.js'
 import stream from "mithril/stream/stream.js"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
+import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {size} from '../size.js'
 import {noOp} from "../../api/common/utils/Utils"
@@ -96,7 +97,7 @@ export class RichTextToolbar {
 		if (attachHandler) {
 			styleToggleAttrs.unshift({
 				label: "emptyString_msg",
-				title: "addImage_action",
+				title: "insertImage_action",
 				click: (ev) => attachHandler(ev, editor),
 				type: ButtonType.Toggle,
 				icon: () => Icons.Picture
@@ -168,7 +169,8 @@ export class RichTextToolbar {
 							: "sticky" // normal browsers
 					}
 				}, [
-					m(".flex-end.wrap", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs).map(t => m(ButtonN, t))),
+					m(".flex-end.wrap", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs)
+					                                    .map((t: ButtonAttrs) => m(ButtonN, t))),
 					m("hr.hr")
 				]
 			)

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2019-03-21T12:54:10Z",
+	"updated_at": "2019-05-27T11:41:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Vennligst godta personvernreglene ved å merke av i avkrysningsruten.",

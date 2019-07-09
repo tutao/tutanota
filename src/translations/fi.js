@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2019-04-29T11:55:52Z",
+	"updated_at": "2019-05-27T11:41:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Hyväksy tietosuojamenettely valitsemalla valintaruutu.",

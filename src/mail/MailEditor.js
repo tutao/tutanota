@@ -9,7 +9,7 @@ import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} 
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
@@ -983,7 +983,7 @@ export class MailEditor {
 			} else {
 				return Promise.resolve(this._createBubbleContextButtons(recipientInfo.name, mailAddress, contact, () => bubbleWrapper.bubble))
 			}
-		})
+		}, undefined, 250)
 
 		resolveRecipientInfo(recipientInfo)
 			.then(() => m.redraw())
@@ -1000,35 +1000,39 @@ export class MailEditor {
 	_createBubbleContextButtons(name: string, mailAddress: string, contact: ? Contact, bubbleResolver: Function): Array<ButtonAttrs | string> {
 		let buttonAttrs = [mailAddress]
 		if (logins.getUserController().isInternalUser()) {
-			if (contact && contact._id) { // the contact may be new contact, in this case do not edit it
+			if (!logins.isEnabled(FeatureType.DisableContacts)) {
+				if (contact && contact._id) { // the contact may be new contact, in this case do not edit it
+					buttonAttrs.push({
+						label: "editContact_label",
+						type: ButtonType.Secondary,
+						click: () => new ContactEditor(contact).show()
+					})
+				} else {
+					buttonAttrs.push({
+						label: "createContact_action",
+						type: ButtonType.Secondary,
+						click: () => {
+							LazyContactListId.getAsync().then(contactListId => {
+								new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
+									let bubbles = [
+										this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
+									].find(b => contains(b, bubbleResolver()))
+									if (bubbles) {
+										this._updateBubble(bubbles, bubbleResolver(), [contactListId, contactElementId])
+									}
+								}).show()
+							})
+						}
+					})
+				}
+			}
+			if (!this._previousMail || !this._previousMail.restrictions || this._previousMail.restrictions.participantGroupInfos.length == 0) {
 				buttonAttrs.push({
-					label: "editContact_label",
+					label: "remove_action",
 					type: ButtonType.Secondary,
-					click: () => new ContactEditor(contact).show()
-				})
-			} else {
-				buttonAttrs.push({
-					label: "createContact_action",
-					type: ButtonType.Secondary,
-					click: () => {
-						LazyContactListId.getAsync().then(contactListId => {
-							new ContactEditor(createNewContact(mailAddress, name), contactListId, contactElementId => {
-								let bubbles = [
-									this.toRecipients.bubbles, this.ccRecipients.bubbles, this.bccRecipients.bubbles
-								].find(b => contains(b, bubbleResolver()))
-								if (bubbles) {
-									this._updateBubble(bubbles, bubbleResolver(), [contactListId, contactElementId])
-								}
-							}).show()
-						})
-					}
+					click: () => this._removeBubble(bubbleResolver())
 				})
 			}
-			buttonAttrs.push({
-				label: "remove_action",
-				type: ButtonType.Secondary,
-				click: () => this._removeBubble(bubbleResolver())
-			})
 		}
 
 		return buttonAttrs

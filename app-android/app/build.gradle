@@ -7,8 +7,8 @@ android {
         applicationId "de.tutao.tutanota"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 352010
-        versionName "3.52.1"
+        versionCode 355020
+        versionName "3.55.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -20,7 +20,7 @@ android {
         debugDist {
             initWith debug
             manifestPlaceholders = [contentProviderAuthority: 'de.tutao.fileprovider.debugdist']
-            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/app.html\""
+            buildConfigField 'String', 'RES_ADDRESS', "\"file:///android_asset/tutanota/dist/app.html\""
             applicationIdSuffix ".debugdist"
         }
         releaseTest {

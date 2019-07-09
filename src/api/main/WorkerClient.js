@@ -491,7 +491,10 @@ export class WorkerClient {
 	}
 
 	addCalendar(): Promise<void> {
-		return this._queue.postMessage(new Request("addCalendar", []))
+		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
+		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
+		// this should be removed once we handle missed events during startup
+		return this._queue.postMessage(new Request("addCalendar", [])).then(user => logins.getUserController().user = user)
 	}
 
 	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

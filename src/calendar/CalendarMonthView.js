@@ -7,7 +7,7 @@ import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
-import {getDateIndicator, getDayShifted, getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -27,7 +27,7 @@ type CalendarMonthAttrs = {
 }
 
 const weekDaysHeight = 30
-const dayHeight = 32
+const dayHeight = () => styles.isDesktopLayout() ? 32 : 28
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
@@ -80,7 +80,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					}
 				}, weeks.map((week) => {
 					return m(".flex.flex-grow.rel", [
-						week.map(d => this._renderDay(vnode.attrs, d, today)),
+						week.map((d) => this._renderDay(vnode.attrs, d, today)),
 						this._monthDom ? this._renderWeekEvents(vnode.attrs, week) : null,
 					])
 				}))
@@ -122,7 +122,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const dayWidth = this._getWidthForDay()
 		const weekHeight = this._getHeightForWeek()
 		const eventHeight = (size.calendar_line_height + 2) // height + border
-		const maxEventsPerDay = (weekHeight - dayHeight) / eventHeight
+		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		const eventMargin = (styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile)
@@ -130,7 +130,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			return columns.map((events, columnIndex) => {
 				return events.map(event => {
 					if (columnIndex < eventsPerDay) {
-						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight, columnIndex)
+						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight(), columnIndex)
 						return m(".abs.overflow-hidden", {
 							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							style: {

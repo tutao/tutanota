@@ -400,6 +400,10 @@ class ClientDetector {
 		return this.indexedDb() && !this.isIE()
 	}
 
+	calendarSupported(): boolean {
+		return !this.isIE()
+	}
+
 	browserData(): BrowserData {
 		return {needsMicrotaskHack: this.needsMicrotaskHack(), needsExplicitIDBIds: this.needsExplicitIDBIds(), indexedDbSupported: this.indexedDBSupported()}
 	}

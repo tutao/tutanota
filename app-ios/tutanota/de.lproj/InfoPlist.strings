@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Die Kamera wird verwendet, um Videos aufzunehmen und diese als Anhang zu versenden.";
 NSPhotoLibraryUsageDescription = "Es können Bilder aus deiner Bibliothek als Anhang versendet werden.";
-NSPhotoLibraryAddUsageDescription = "Es können Bilder aus deiner Bibliothek als Anhang versendet werden.";
+NSMicrophoneUsageDescription = "Es können Bilder aus deiner Bibliothek als Anhang versendet werden.";
 NSMicrophoneUsageDescription = "Wird zum Aufnehmen von Videos benötigt.";
 NSContactsUsageDescription = "Suche Empfänger-E-Mail-Adressen in Kontakten.";
 NSRemindersUsageDescription = "Zeige eine Nachricht beim Empfang von E-Mails an.";
@@ -10,4 +10,4 @@ TutaoNoPermissionTitle = "Keine Berechtigung";
 TutaoChangePermissionMsg = "Um die Berechtigung zu erteilen, müssen die Einstellungen für dieses Gerät geändert werden.";
 TutaoCancelAction = "Abbrechen";
 TutaoSettingsAction = "Einstellungen";
-TutaoCalendarAlarmTitle = "Kalender Erinerrung";
+TutaoCalendarAlarmTitle = "Erinnerung";

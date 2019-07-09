@@ -1,5 +1,7 @@
 NSMicrophoneUsageDescription = "Koristi se kada se snima video kao prilog.";
 NSRemindersUsageDescription = "Pokaži obaveštenje kada stigne nova e-pošta.";
-TutaoNoPermissionTitle = "Bez ovlašćenja";
+TutaoShowCameraAction = "Камера";
+TutaoChoosePhotosAction = "Слике";
+TutaoNoPermissionTitle = "Нема дозволе";
 TutaoCancelAction = "Odustati";
 TutaoSettingsAction = "Podešavanja";

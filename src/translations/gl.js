@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2019-03-21T12:54:10Z",
+	"updated_at": "2019-05-27T11:41:28Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",

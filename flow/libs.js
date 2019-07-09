@@ -14,36 +14,38 @@ declare type RouteResolverRender = {
 declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
 
 declare module 'mithril' {
-	declare interface Mithril {
+	declare interface Router {
+		(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
 
-		(selector: string | Component): Vnode<any>;
+		set(path: string, data?: ?{[string]: mixed},
+		    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
+
+		get(): string;
+
+		param(): Object;
+
+		param(key: string): string;
+
+		prefix(prefix: string): void;
+
+		link(vnode: any): Function;
+	}
+
+	declare interface Mithril {
 
 		(selector: string | Component, children?: Children): Vnode<any>;
 
 		(selector: string | Component, attributes?: Object, children?: Children): Vnode<any>;
 
-		<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs): Vnode<Attrs>;
+		<Attrs>(component: Class<MComponent<Attrs>>, children?: Children): Vnode<Attrs>;
 
 		<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
-		<Attrs>(component: MComponent<Attrs>): Vnode<Attrs>;
-
-		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs): Vnode<Attrs>;
+		<Attrs>(component: MComponent<Attrs>, children?: Children): Vnode<Attrs>;
 
 		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
 
-		<Attrs>(closure: (Vnode<Attrs>) => MComponent<Attrs>): Vnode<Attrs>;
-
-		route: {
-			(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
-			set(path: string, data?: ?{[string]: mixed},
-			    options?: {replace?: boolean, state?: ?Object, title?: ?string}): void;
-			get(): string;
-			param(): Object;
-			param(key: string): string;
-			prefix(prefix: string): void;
-			link(vnode: any): Function;
-		};
+		route: Router;
 
 		redraw(): void;
 
