@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "権限がありません";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
 TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";
+TutaoCalendarAlarmTitle = "リマインダー";

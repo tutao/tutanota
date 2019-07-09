@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Немає доступу";
 TutaoChangePermissionMsg = "Щоб надати доступ, змініть дозволи для цього пристрою.";
 TutaoCancelAction = "Скасувати";
 TutaoSettingsAction = "Налаштування";
+TutaoCalendarAlarmTitle = "Нагадування";
