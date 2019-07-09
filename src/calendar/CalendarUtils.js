@@ -36,9 +36,13 @@ export function parseTimeTo(timeString: string): ?{hours: number, minutes: numbe
 
 
 export function timeString(date: Date): string {
-	let hours = pad(date.getHours(), 2)
-	let minutes = pad(date.getMinutes(), 2)
-	return hours + ":" + minutes
+	return timeStringFromParts(date.getHours(), date.getMinutes())
+}
+
+export function timeStringFromParts(hours: number, minutes: number): string {
+	let hoursString = pad(hours, 2)
+	let minutesString = pad(minutes, 2)
+	return hoursString + ":" + minutesString
 }
 
 

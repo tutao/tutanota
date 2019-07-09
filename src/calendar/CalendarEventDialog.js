@@ -25,7 +25,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 
@@ -102,6 +102,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
 		endTime(timeString(endTimeDate))
+		m.redraw()
 	}
 
 	endTypePickerAttrs.selectedValue.map((endType) => {
@@ -111,6 +112,24 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatEndDatePicker.setDate(newRepeatEnd)
 		}
 	})
+
+
+	function onStartTimeBlur() {
+		let startDate = neverNull(startDatePicker.date())
+		let endDate = neverNull(endDatePicker.date())
+		if (startDate.getTime() !== endDate.getTime()) {
+			return
+		}
+		const parsedStartTime = parseTimeTo(startTime())
+		const parsedEndTime = parseTimeTo(endTime())
+		if (!parsedStartTime || !parsedEndTime) {
+			return
+		}
+		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes))
+			m.redraw()
+		}
+	}
 
 	function renderStopConditionValue(): Children {
 		if (repeatPickerAttrs.selectedValue() == null || endTypePickerAttrs.selectedValue() === EndType.Never) {
@@ -136,7 +155,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!allDay()
 					? m(".time-field", m(TextFieldN, {
 						label: "emptyString_msg",
-						value: startTime
+						value: startTime,
+						onblur: onStartTimeBlur,
 					}))
 					: null
 			]),
@@ -145,7 +165,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!allDay()
 					? m(".time-field", m(TextFieldN, {
 						label: "emptyString_msg",
-						value: endTime
+						value: endTime,
 					}))
 					: null
 			]),
