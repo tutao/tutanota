@@ -204,7 +204,7 @@ export class CalendarView implements CurrentView {
 		// load all calendars. if there is no calendar yet, create one
 		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
 			if (calendarInfos.size === 0) {
-				return Promise.delay(3000).then(() => worker.addCalendar()).then(() => this._loadGroupRoots())
+				return worker.addCalendar().then(() => this._loadGroupRoots())
 			} else {
 				return calendarInfos
 			}
@@ -344,9 +344,6 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	/**
-	 * @returns {Promise<boolean>} True if at least one calendar exists, false otherwise.
-	 */
 	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
 		return load(UserTypeRef, logins.getUserController().user._id)
 			.then(user => {

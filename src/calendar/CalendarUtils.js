@@ -24,7 +24,7 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 }
 
 export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
-	if (!timeString.match(/^[0-2]*[0-9]:[0-5]*[0-9]$/)) {
+	if (!timeString.match(/^[0-2]?[0-9]:[0-5]?[0-9]$/)) {
 		return null
 	}
 	const [hours, minutes] = timeString.split(":").map((part) => parseInt(part, 10))
