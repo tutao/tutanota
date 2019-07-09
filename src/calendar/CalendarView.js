@@ -25,7 +25,7 @@ import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
-import {findAllAndRemove} from "../api/common/utils/ArrayUtils"
+import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
@@ -378,7 +378,7 @@ export class CalendarView implements CurrentView {
 								console.log("Not found event in entityEventsReceived of view", e)
 							})
 					} else if (update.operation === OperationType.DELETE) {
-						this._removeDaysForEvent([update.instanceListId, update.instanceId])
+						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 						m.redraw()
 					}
 				} else if (isUpdateForTypeRef(UserTypeRef, update) 	// only process update event received for the user group - to not process user update from admin membership.
@@ -426,9 +426,19 @@ export class CalendarView implements CurrentView {
 		addDaysForRecurringEvent(this._eventsForDays, event, month)
 	}
 
-	_removeDaysForEvent(id: IdTuple) {
+	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {
 		this._eventsForDays.forEach((dayEvents) =>
 			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
+		if (this._calendarInfos.isFulfilled()) {
+			const infos = this._calendarInfos.value()
+			const info = infos.get(ownerGroupId)
+			if (info) {
+				const removedFromShort = findAndRemove(info.shortEvents, (e) => isSameId(e._id, id))
+				if (!removedFromShort) {
+					findAndRemove(info.longEvents, (e) => isSameId(e._id, id))
+				}
+			}
+		}
 	}
 
 	_addDaysForLongEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {

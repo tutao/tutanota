@@ -64,6 +64,11 @@ export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	}
 }
 
+/**
+ * @param theArray
+ * @param finder
+ * @return {boolean} if the element was found
+ */
 export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
 	const index = theArray.findIndex(finder)
 	if (index !== -1) {
