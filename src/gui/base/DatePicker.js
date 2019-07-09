@@ -233,7 +233,7 @@ function addMonth(date: Date, toAdd: number): Date {
 		newDate.setMonth(newDate.getMonth() + toAdd)
 		return newDate
 	} else {
-		return DateTime.fromJSDate(date).plus({months: 1}).toJSDate()
+		return DateTime.fromJSDate(date).plus({months: toAdd}).toJSDate()
 	}
 }
 
