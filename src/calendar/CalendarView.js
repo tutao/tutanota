@@ -35,6 +35,7 @@ import {px, size as sizes} from "../gui/size"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -160,9 +161,7 @@ export class CalendarView implements CurrentView {
 						})
 					},
 					onNewEvent: (date) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(date || new Date(), calendarInfos)
-						})
+						this._newEvent(date)
 					},
 					selectedDate: this.selectedDate(),
 					onDateSelected: (date) => {
@@ -182,9 +181,7 @@ export class CalendarView implements CurrentView {
 						})
 					},
 					onNewEvent: (date) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(date || new Date(), calendarInfos)
-						})
+						this._newEvent(date)
 					},
 					selectedDate: this.selectedDate(),
 					onDateSelected: (date) => {
@@ -203,12 +200,13 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
+
 		// load all calendars. if there is no calendar yet, create one
-		this._loadGroupRoots().then(atLeastOneCalendarExists => {
-			if (!atLeastOneCalendarExists) {
-				worker.addCalendar().then(() => {
-					this._loadGroupRoots()
-				})
+		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
+			if (calendarInfos.size === 0) {
+				return Promise.delay(3000).then(() => worker.addCalendar()).then(() => this._loadGroupRoots())
+			} else {
+				return calendarInfos
 			}
 		})
 
@@ -247,8 +245,9 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_newEvent(date?: Date) {
-		this._calendarInfos.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
+	_newEvent(date?: ?Date) {
+		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
+		p.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
 	}
 
 	view() {
@@ -348,20 +347,21 @@ export class CalendarView implements CurrentView {
 	/**
 	 * @returns {Promise<boolean>} True if at least one calendar exists, false otherwise.
 	 */
-	_loadGroupRoots(): Promise<boolean> {
-		this._calendarInfos = load(UserTypeRef, logins.getUserController().user._id).then(user => {
-			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-			return Promise
-				.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
-				.then((groupRoots) => {
-					const calendarInfos: Map<Id, CalendarInfo> = new Map()
-					groupRoots.forEach((groupRoot) => {
-						calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
+		return load(UserTypeRef, logins.getUserController().user._id)
+			.then(user => {
+				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+				return Promise
+					.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+					.then((groupRoots) => {
+						const calendarInfos: Map<Id, CalendarInfo> = new Map()
+						groupRoots.forEach((groupRoot) => {
+							calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+						})
+						return calendarInfos
 					})
-					return calendarInfos
-				})
-		}).tap(() => m.redraw())
-		return this._calendarInfos.then(calendarInfos => calendarInfos.size > 0)
+			})
+			.tap(() => m.redraw())
 	}
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
@@ -388,7 +388,7 @@ export class CalendarView implements CurrentView {
 						this._calendarInfos.then(calendarInfos => {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
-								this._loadGroupRoots()
+								this._calendarInfos = this._loadGroupRoots()
 							}
 						})
 					}
