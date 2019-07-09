@@ -1,7 +1,7 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
-import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
@@ -18,7 +18,7 @@ import {getElementId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
-import {formatTime} from "../misc/Formatter"
+import {formatDateWithWeekdayAndTime, formatTime} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import {logins} from "../api/main/LoginController"
@@ -278,7 +278,14 @@ class CalendarModel {
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
 		this._runAtDate(time, identifier, () => {
 			const title = lang.get("reminder_label")
-			const body = `${formatTime(getEventStart(event))} ${event.summary}`
+			const eventStart = getEventStart(event)
+			let dateString: string
+			if (isToday(eventStart)) {
+				dateString = formatTime(eventStart)
+			} else {
+				dateString = formatDateWithWeekdayAndTime(eventStart)
+			}
+			const body = `${dateString} ${event.summary}`
 			return this._notifications.showNotification(title, {body})
 		})
 	}

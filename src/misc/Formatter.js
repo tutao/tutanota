@@ -56,6 +56,10 @@ export function formatDateTimeShort(date: Date): string {
 	return lang.formats.dateTimeShort.format(date)
 }
 
+export function formatDateWithWeekdayAndTime(date: Date): string {
+	return lang.formats.dateWithWeekdayAndTime.format(date)
+}
+
 export function formatDateWithTimeIfNotEven(date: Date): string {
 	if (date.getHours() === 0 && date.getMinutes() === 0 // If it's beginning of the day
 		|| date.getHours() === 23 && date.getMinutes() === 59 && date.getSeconds() === 59) { // or the end of the day
