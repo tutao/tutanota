@@ -150,16 +150,7 @@ export class CalendarView implements CurrentView {
 			view: () => this._currentViewType === CalendarViewType.MONTH
 				? m(CalendarMonthView, {
 					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => {
-						this._calendarInfos.then((calendarInfos) => {
-							let p = Promise.resolve(event)
-							if (event.repeatRule) {
-								// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
-								p = load(CalendarEventTypeRef, event._id)
-							}
-							p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
-						})
-					},
+					onEventClicked: (event) => this._onEventSelected(event),
 					onNewEvent: (date) => {
 						this._newEvent(date)
 					},
@@ -175,11 +166,7 @@ export class CalendarView implements CurrentView {
 				})
 				: m(CalendarDayView, {
 					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(getEventStart(event), calendarInfos, event)
-						})
-					},
+					onEventClicked: (event) => this._onEventSelected(event),
 					onNewEvent: (date) => {
 						this._newEvent(date)
 					},
@@ -227,6 +214,19 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	_onEventSelected(event: CalendarEvent) {
+		this._calendarInfos.then((calendarInfos) => {
+			let p = Promise.resolve(event)
+			if (event.repeatRule) {
+				// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
+				p = load(CalendarEventTypeRef, event._id)
+			}
+			p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
+			 .catch(NotFoundError, () => {
+				 console.log("calendar event not found when clicking on the event")
+			 })
+		})
+	}
 
 	_getSelectedView(): CalendarViewTypeEnum {
 		return m.route.get().match("/calendar/month") ? CalendarViewType.MONTH : CalendarViewType.DAY

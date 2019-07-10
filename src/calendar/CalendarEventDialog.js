@@ -14,7 +14,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, load} from "../api/main/Entity"
 
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
@@ -28,6 +28,7 @@ import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
+import {NotFoundError} from "../api/common/error/RestError"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -210,7 +211,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						: Promise.resolve(true)
 					p.then((answer) => {
 						if (answer) {
-							erase(existingEvent)
+							erase(existingEvent).catch(NotFoundError, noOp)
 							dialog.close()
 						}
 					})

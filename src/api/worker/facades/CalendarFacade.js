@@ -4,7 +4,7 @@ import {erase, setup} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
 import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
 import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
@@ -50,7 +50,7 @@ export class CalendarFacade {
 		const alarmNotifications: Array<AlarmNotification> = []
 		// delete old calendar event
 		if (oldEvent) {
-			p = erase(oldEvent)
+			p = erase(oldEvent).catch(NotFoundError, noOp)
 		}
 		const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
 		event._id = [listId, generateEventElementId(event.startTime.getTime())]
