@@ -312,8 +312,16 @@ typedef void(^VoidCallback)(void);
 }
 
 - (nonnull NSURL *)appUrl {
-	NSString *filePath = [NSString stringWithFormat:@"%@%@", NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"], @"app"];
-	let path = [NSBundle.mainBundle pathForResource:filePath ofType:@"html"];
+    NSDictionary *environment = [[NSProcessInfo processInfo] environment];
+    
+    NSString *pagePath;
+    if (environment[@"TUT_PAGE_PATH"]) {
+        pagePath = environment[@"TUT_PAGE_PATH"];
+    } else {
+        pagePath = NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"];
+    }
+    
+	let path = [NSBundle.mainBundle pathForResource:[NSString stringWithFormat:@"%@%@", pagePath, @"app"] ofType:@"html"];
 	// For running tests
 	if (path == nil) {
 		return NSBundle.mainBundle.resourceURL;

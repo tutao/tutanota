@@ -19,7 +19,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>3.55.3</string>
 	<key>CFBundleURLTypes</key>
-	<array>s
+	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -53,7 +53,7 @@
 	<key>NSRemindersUsageDescription</key>
 	<string>Shows notification when new email arrives.</string>
 	<key>TutanotaApplicationPath</key>
-	<string>build/</string>
+	<string>build/dist/</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ionicons.ttf</string>

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2019-07-08T14:03:40Z",
+	"updated_at": "2019-07-09T23:12:34Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "このチェックボックスを選択し、プライバシーポリシーに同意してください。",
@@ -887,6 +887,7 @@ module.exports = {
 		"termsAndConditions_label": "私は以下の文書を読み同意しました:",
 		"text_label": "テキスト",
 		"thisClient_label": "<このクライアント>",
+		"timeFormatInvalid_msg": "時間形式が無効です",
 		"time_label": "日時",
 		"title_placeholder": "件名",
 		"today_label": "今日",
