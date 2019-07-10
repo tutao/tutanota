@@ -19,11 +19,11 @@ function prepareFiles(buildType) {
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = glob.sync(prefix + "images/*")
 		for (let file of imageFiles) {
-			console.log("unlinking ", file)
-			fs.unlinkSync(file)
+			if (!file.endsWith("ionicons.ttf")) {
+				console.log("unlinking ", file)
+				fs.unlinkSync(file)
+			}
 		}
-		fs.rmdirSync(imagesPath)
-		console.log("rm ", imagesPath)
 	} else {
 		console.log("No folder at", imagesPath)
 	}

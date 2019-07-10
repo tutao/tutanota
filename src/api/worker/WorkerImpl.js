@@ -18,6 +18,7 @@ import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
+import {IndexingNotSupportedError} from "../common/error/IndexingNotSupportedError"
 
 assertWorkerOrNode()
 
@@ -294,6 +295,22 @@ export class WorkerImpl {
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
+
+		if (workerScope) {
+			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
+				console.error("workerImpl.onerror", e, source, lineno, colno, error)
+				if (error instanceof Error) {
+					this.sendError(error)
+				} else {
+					const err = new Error(e)
+					err.lineNumber = lineno
+					err.columnNumber = colno
+					err.fileName = source
+					this.sendError(err)
+				}
+				return true
+			}
+		}
 	}
 
 	getTotpVerifier(): Promise<TotpVerifier> {
