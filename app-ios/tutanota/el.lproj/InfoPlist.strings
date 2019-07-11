@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "χωρίς άδεια";
 TutaoChangePermissionMsg = "Για να παραχωρήσετε πρόσβαση, πρέπει να τροποποιήσετε τα δικαιώματα αυτής της συσκευής.";
 TutaoCancelAction = "Ακύρωση";
 TutaoSettingsAction = "Ρυθμίσεις";
+TutaoCalendarAlarmTitle = "Υπενθύμιση";

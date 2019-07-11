@@ -213,9 +213,10 @@ export class IndexedDbTransaction implements DbTransaction {
 		this._transaction = transaction
 		this._onUnknownError = onUnknownError
 		this._promise = Promise.fromCallback((callback) => {
+
 			transaction.onerror = (event) => {
 				this._handleDbError(event, this._transaction, "transaction.onerror", (e) => {
-					throw e
+					callback(e)
 				})
 			}
 			transaction.oncomplete = (event) => {
@@ -233,7 +234,7 @@ export class IndexedDbTransaction implements DbTransaction {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					this._handleDbError(event,  request,"getAll().onError", callback)
+					this._handleDbError(event, request, "getAll().onError", callback)
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -274,7 +275,7 @@ export class IndexedDbTransaction implements DbTransaction {
 
 	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
-				   .then(result => result || [])
+		           .then(result => result || [])
 	}
 
 	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
@@ -290,7 +291,7 @@ export class IndexedDbTransaction implements DbTransaction {
 					callback(null, event.target.result)
 				}
 			} catch (e) {
-				this._handleDbError(e,  null,"put().catch", callback)
+				this._handleDbError(e, null, "put().catch", callback)
 			}
 		})
 	}
@@ -326,10 +327,13 @@ export class IndexedDbTransaction implements DbTransaction {
 		const msg = "IndexedDbTransaction " + prefix
 			+ "\nOSes: " + JSON.stringify((this._transaction: any).objectStoreNames) +
 			"\nevent:" + errorEntries +
-			"\ntransaction.error: " + (this._transaction.error ? this._transaction.error.message : '') +
-			"\nevent.target.error: " + (target && target.error ? target.error.message : '')
+			"\ntransaction.error: " + (this._transaction.error ? this._transaction.error.message : '<null>') +
+			"\nevent.target.error: " + (target && target.error ? target.error.message : '<null>') +
+			"\nevent.target.error.name: " + (target && target.error ? target.error.name : '<null>')
 
-		if (target && target.error && target.error.name === "UnknownError") {
+		if (target && target.error
+			&& (target.error.name === "UnknownError"
+				|| (typeof target.error.message === "string" && target.error.message.contains("UnknownError")))) {
 			this._onUnknownError(target.error)
 			callback(new IndexingNotSupportedError(msg, this._transaction.error))
 		} else {

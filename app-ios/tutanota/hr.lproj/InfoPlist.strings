@@ -9,3 +9,4 @@ TutaoChoosePhotosAction = "Slike";
 TutaoNoPermissionTitle = "Nema odobrenja";
 TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";
+TutaoCalendarAlarmTitle = "Podsjetnik";

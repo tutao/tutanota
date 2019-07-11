@@ -14,7 +14,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, load} from "../api/main/Entity"
 
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
@@ -25,9 +25,10 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
+import {NotFoundError} from "../api/common/error/RestError"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -102,6 +103,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
 		endTime(timeString(endTimeDate))
+		m.redraw()
 	}
 
 	endTypePickerAttrs.selectedValue.map((endType) => {
@@ -111,6 +113,24 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatEndDatePicker.setDate(newRepeatEnd)
 		}
 	})
+
+
+	function onStartTimeBlur() {
+		let startDate = neverNull(startDatePicker.date())
+		let endDate = neverNull(endDatePicker.date())
+		if (startDate.getTime() !== endDate.getTime()) {
+			return
+		}
+		const parsedStartTime = parseTimeTo(startTime())
+		const parsedEndTime = parseTimeTo(endTime())
+		if (!parsedStartTime || !parsedEndTime) {
+			return
+		}
+		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes))
+			m.redraw()
+		}
+	}
 
 	function renderStopConditionValue(): Children {
 		if (repeatPickerAttrs.selectedValue() == null || endTypePickerAttrs.selectedValue() === EndType.Never) {
@@ -136,7 +156,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!allDay()
 					? m(".time-field", m(TextFieldN, {
 						label: "emptyString_msg",
-						value: startTime
+						value: startTime,
+						onblur: onStartTimeBlur,
 					}))
 					: null
 			]),
@@ -145,7 +166,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				!allDay()
 					? m(".time-field", m(TextFieldN, {
 						label: "emptyString_msg",
-						value: endTime
+						value: endTime,
 					}))
 					: null
 			]),
@@ -190,7 +211,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						: Promise.resolve(true)
 					p.then((answer) => {
 						if (answer) {
-							erase(existingEvent)
+							erase(existingEvent).catch(NotFoundError, noOp)
 							dialog.close()
 						}
 					})

@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "لا يوجد إذن";
 TutaoChangePermissionMsg = "لمنح حق الوصول يجب عليك تعديل تسريحات هذا الجهاز.";
 TutaoCancelAction = "إلغاء";
 TutaoSettingsAction = "إعدادات";
+TutaoCalendarAlarmTitle = "تذكير ";

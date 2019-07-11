@@ -60,7 +60,7 @@ export class _TextField {
 					if (value && !this.active) {
 						this.animate(true)
 					}
-					if (vnode.attrs.type === Type.Area && value !== this._domInput.value) {
+					if (value !== this._domInput.value) {
 						this._domInput.value = value
 					}
 				}

@@ -24,10 +24,10 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 }
 
 export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
-	if (!timeString.match(/^[0-2][0-9]:[0-5][0-9]$/)) {
+	if (!timeString.match(/^[0-2]?[0-9]:[0-5]?[0-9]$/)) {
 		return null
 	}
-	const [hours, minutes] = timeString.split(":").map(Number)
+	const [hours, minutes] = timeString.split(":").map((part) => parseInt(part, 10))
 	if (hours > 23 || minutes > 59) {
 		return null
 	}
@@ -36,9 +36,13 @@ export function parseTimeTo(timeString: string): ?{hours: number, minutes: numbe
 
 
 export function timeString(date: Date): string {
-	let hours = pad(date.getHours(), 2)
-	let minutes = pad(date.getMinutes(), 2)
-	return hours + ":" + minutes
+	return timeStringFromParts(date.getHours(), date.getMinutes())
+}
+
+export function timeStringFromParts(hours: number, minutes: number): string {
+	let hoursString = pad(hours, 2)
+	let minutesString = pad(minutes, 2)
+	return hoursString + ":" + minutesString
 }
 
 

@@ -4,7 +4,7 @@ import {erase, setup} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
-import {neverNull} from "../../common/utils/Utils"
+import {neverNull, noOp} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
 import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
 import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
@@ -27,6 +27,7 @@ import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
 import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
+import {NotFoundError} from "../../common/error/RestError"
 
 assertWorkerOrNode()
 
@@ -49,7 +50,7 @@ export class CalendarFacade {
 		const alarmNotifications: Array<AlarmNotification> = []
 		// delete old calendar event
 		if (oldEvent) {
-			p = erase(oldEvent)
+			p = erase(oldEvent).catch(NotFoundError, noOp)
 		}
 		const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
 		event._id = [listId, generateEventElementId(event.startTime.getTime())]
@@ -154,11 +155,19 @@ export class CalendarFacade {
 		if (alarmInfoList) {
 			return loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
 				.then((userAlarmInfos) =>
-					Promise.map(userAlarmInfos, (userAlarmInfo) =>
-						load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
-							.then((event) => {
-								return {event, userAlarmInfo}
-							})))
+					Promise
+						.map(userAlarmInfos, (userAlarmInfo) =>
+							load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
+								.then((event) => {
+									return {event, userAlarmInfo}
+								})
+								.catch(NotFoundError, () => {
+									// We do not allow to delete userAlarmInfos currently but when we update the server we should do that
+									//erase(userAlarmInfo).catch(noOp)
+									return null
+								}))
+						.filter(Boolean) // filter out orphan alarms
+				)
 		} else {
 			console.warn("No alarmInfo list on user")
 			return Promise.resolve([])

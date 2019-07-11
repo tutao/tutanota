@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Ingen tilladelse";
 TutaoChangePermissionMsg = "For at give adgang er du nødt til at ændre tilladelserne for denne enhed.";
 TutaoCancelAction = "Annuller";
 TutaoSettingsAction = "Indstillinger";
+TutaoCalendarAlarmTitle = "Påmindelse";

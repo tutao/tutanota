@@ -50,7 +50,6 @@
 		3D9A1F1822031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6F22031B85002C2455 /* InfoPlist.strings */; };
 		3D9A1F1922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7222031B85002C2455 /* InfoPlist.strings */; };
 		3D9A1F1A22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7522031B86002C2455 /* InfoPlist.strings */; };
-		3D9A1F1B22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7822031B86002C2455 /* InfoPlist.strings */; };
 		3D9A1F1C22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7B22031B86002C2455 /* InfoPlist.strings */; };
 		3D9A1F1D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7E22031B87002C2455 /* InfoPlist.strings */; };
 		3D9A1F1E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8122031B87002C2455 /* InfoPlist.strings */; };
@@ -70,7 +69,6 @@
 		3D9A1F2C22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAB22031B8B002C2455 /* InfoPlist.strings */; };
 		3D9A1F2D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAE22031B8C002C2455 /* InfoPlist.strings */; };
 		3D9A1F2E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB122031B8C002C2455 /* InfoPlist.strings */; };
-		3D9A1F2F22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB422031B8C002C2455 /* InfoPlist.strings */; };
 		3D9A1F3022031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB722031B8D002C2455 /* InfoPlist.strings */; };
 		3D9A1F3122031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBA22031B8D002C2455 /* InfoPlist.strings */; };
 		3D9A1F3222031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBD22031B8D002C2455 /* InfoPlist.strings */; };
@@ -87,7 +85,6 @@
 		3D9A1F3D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EDE22031B91002C2455 /* InfoPlist.strings */; };
 		3D9A1F3E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE122031B92002C2455 /* InfoPlist.strings */; };
 		3D9A1F3F22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE422031B92002C2455 /* InfoPlist.strings */; };
-		3D9A1F4022031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE722031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4122031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EEA22031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4222031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EED22031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4322031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF022031B94002C2455 /* InfoPlist.strings */; };
@@ -109,6 +106,7 @@
 		3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
 		3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */; };
 		3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
+		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -189,7 +187,6 @@
 		3D9A1E7022031B85002C2455 /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7322031B85002C2455 /* fil */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fil; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7622031B86002C2455 /* lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1E7922031B86002C2455 /* af */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = af; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7C22031B86002C2455 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7F22031B87002C2455 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E8222031B87002C2455 /* sw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sw; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -209,7 +206,6 @@
 		3D9A1EAC22031B8B002C2455 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EAF22031B8C002C2455 /* es_ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es_ar; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EB222031B8C002C2455 /* bn_bd */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn_bd; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1EB522031B8C002C2455 /* yo_ng */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = yo_ng; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EB822031B8D002C2455 /* ta */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ta; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EBB22031B8D002C2455 /* ku */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ku; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EBE22031B8D002C2455 /* zh_tw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh_tw; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -226,7 +222,6 @@
 		3D9A1EDF22031B91002C2455 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EE222031B92002C2455 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EE522031B92002C2455 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1EE822031B93002C2455 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EEB22031B93002C2455 /* sr_cyrl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sr_cyrl; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EEE22031B93002C2455 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EF122031B94002C2455 /* bg */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bg; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -257,6 +252,7 @@
 		3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModelTest.m; sourceTree = "<group>"; };
 		3DD7A23622C604F000876B85 /* TUTAlarmModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmModel.h; sourceTree = "<group>"; };
 		3DD7A23722C604F000876B85 /* TUTAlarmModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModel.m; sourceTree = "<group>"; };
+		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
@@ -547,14 +543,6 @@
 			path = lt.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1E7722031B86002C2455 /* af.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1E7822031B86002C2455 /* InfoPlist.strings */,
-			);
-			path = af.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1E7A22031B86002C2455 /* cs.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -707,14 +695,6 @@
 			path = bn_bd.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1EB322031B8C002C2455 /* yo_ng.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1EB422031B8C002C2455 /* InfoPlist.strings */,
-			);
-			path = yo_ng.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1EB622031B8D002C2455 /* ta.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -843,14 +823,6 @@
 			path = es.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1EE622031B93002C2455 /* ar.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1EE722031B93002C2455 /* InfoPlist.strings */,
-			);
-			path = ar.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1EE922031B93002C2455 /* sr_cyrl.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -955,8 +927,6 @@
 			isa = PBXGroup;
 			children = (
 				3D74536121089D2200B16F2E /* Sources */,
-				3D9A1E7722031B86002C2455 /* af.lproj */,
-				3D9A1EE622031B93002C2455 /* ar.lproj */,
 				3D9A1F0422031B99002C2455 /* Base.lproj */,
 				3D9A1EEF22031B94002C2455 /* bg.lproj */,
 				3D9A1EB022031B8C002C2455 /* bn_bd.lproj */,
@@ -1018,7 +988,6 @@
 				3D9A1EE022031B92002C2455 /* tr.lproj */,
 				3D9A1E9E22031B8A002C2455 /* uk.lproj */,
 				3D9A1E4A22031B82002C2455 /* vi.lproj */,
-				3D9A1EB322031B8C002C2455 /* yo_ng.lproj */,
 				3D9A1EBC22031B8D002C2455 /* zh_tw.lproj */,
 				3D9A1EC222031B8E002C2455 /* zh.lproj */,
 				3D87ECDE212D921600FD7315 /* ionicons.ttf */,
@@ -1027,6 +996,7 @@
 				3DD4A08F20F8C6260086EB36 /* Assets.xcassets */,
 				3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */,
 				3DD4A09420F8C6260086EB36 /* Info.plist */,
+				3DE2E47722D5F198009A9368 /* Info-Debug.plist */,
 			);
 			path = tutanota;
 			sourceTree = "<group>";
@@ -1250,7 +1220,7 @@
 				3D9A1F4622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2B22031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F1B22031B99002C2455 /* InfoPlist.strings in Resources */,
+				3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */,
 				3D9A1F4422031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2122031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1A22031B99002C2455 /* InfoPlist.strings in Resources */,
@@ -1258,7 +1228,6 @@
 				3D9A1F3822031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F3922031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1822031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F2F22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F0B22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1F22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2222031B99002C2455 /* InfoPlist.strings in Resources */,
@@ -1273,7 +1242,6 @@
 				3D9A1F4922031B99002C2455 /* InfoPlist.strings in Resources */,
 				3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */,
 				3D9A1F3A22031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F4022031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2A22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1D22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */,
@@ -1497,14 +1465,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		3D9A1E7822031B86002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1E7922031B86002C2455 /* af */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
 		3D9A1E7B22031B86002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1657,14 +1617,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		3D9A1EB422031B8C002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1EB522031B8C002C2455 /* yo_ng */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
 		3D9A1EB722031B8D002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1789,14 +1741,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				3D9A1EE522031B92002C2455 /* es */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3D9A1EE722031B93002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1EE822031B93002C2455 /* ar */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

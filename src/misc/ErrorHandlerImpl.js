@@ -137,6 +137,7 @@ export function handleUncaughtError(e: Error) {
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
+		console.log("Indexing not supported", e)
 		locator.search.indexingSupported = false
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
