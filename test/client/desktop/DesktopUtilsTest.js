@@ -394,6 +394,29 @@ o.spec("json type check test", function () {
 		)).notThrows()
 	})
 
+	o("patterns with optional properties", () => {
+		o(() => DesktopUtils.checkDataFormat(
+			[{prop: 1}, {}, {prop: 3}],
+			[{prop: {type: "number", optional: true}}]
+			)
+		).notThrows()
+
+		o(() => DesktopUtils.checkDataFormat(
+			[{prop: 1}, {prop: null}, {prop: 3}],
+			[{prop: {type: "number", optional: true}}]
+			)
+		).notThrows()
+
+		o(() => DesktopUtils.checkDataFormat(
+			[{prop: 1}, {prop: undefined}, {prop: 3}],
+			[{prop: {type: "number", optional: true}}]
+			)
+		).notThrows()
+
+		o(() => DesktopUtils.checkDataFormat(undefined, {type: "boolean", optional: true}))
+			.notThrows()
+	})
+
 	o("basic type tests", () => {
 		o(() => DesktopUtils.checkDataFormat(true, {type: 'boolean'})).notThrows()
 		o(() => DesktopUtils.checkDataFormat("", {type: 'string'})).notThrows()
