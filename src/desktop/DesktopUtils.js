@@ -125,7 +125,11 @@ export default class DesktopUtils {
 	static checkDataFormat(obj: any, pattern: any): void {
 		if (typeof pattern.type === 'string') { // pattern is type def
 			if (!["boolean", "string", "number"].includes(pattern.type)) throw new JsonTypeError("invalid type def")
-			if (pattern.type !== typeof obj || (pattern.assert && !pattern.assert(obj))) {
+			if (
+				(!(pattern.optional && (typeof obj === "undefined" || obj === null)) && pattern.type !== typeof obj)
+				|| (pattern.assert && !pattern.assert(obj))
+
+			) {
 				throw new JsonTypeError(`invalid type or assertion failed`)
 			}
 		} else if (Array.isArray(pattern)) { // pattern defines array type
