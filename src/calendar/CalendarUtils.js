@@ -23,24 +23,69 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 	return getEventEnd(event).getTime() > getStartOfNextDay(currentDate).getTime()
 }
 
-export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
-	if (!timeString.match(/^[0-2][0-9]:[0-5][0-9]$/)) {
+/**
+ * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30
+ */
+export function parseTime(timeString: string): ?{hours: number, minutes: number} {
+	const suffix = timeString.substr(-2).toUpperCase()
+	if (suffix === "AM" || suffix === "PM") {
+		timeString = timeString.slice(0, -2)
+	}
+	const parts = timeString.split(":")
+	let hours = filterInt(parts[0])
+	let minutes = 0
+	if (parts.length === 2) {
+		minutes = filterInt(parts[1])
+	}
+	if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
 		return null
 	}
-	const [hours, minutes] = timeString.split(":").map(Number)
-	if (hours > 23 || minutes > 59) {
+	if (suffix === "PM") {
+		if (hours > 12) return null
+		if (hours !== 12) hours = hours + 12
+	} else if (suffix === "AM") {
+		if (hours > 12) return null
+		if (hours === 12) hours = 0
+	} else if (hours > 23) {
 		return null
 	}
 	return {hours, minutes}
 }
 
-
-export function timeString(date: Date): string {
-	let hours = pad(date.getHours(), 2)
-	let minutes = pad(date.getMinutes(), 2)
-	return hours + ":" + minutes
+function filterInt(value) {
+	if (/^\d+$/.test(value)) {
+		return parseInt(value, 10);
+	} else {
+		return NaN;
+	}
 }
 
+
+export function timeString(date: Date, amPm: boolean): string {
+	return timeStringFromParts(date.getHours(), date.getMinutes(), amPm)
+}
+
+export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {
+	let minutesString = pad(minutes, 2)
+	if (amPm) {
+		if (hours === 0) {
+			return `12:${minutesString}AM`
+		} else if (hours === 12) {
+			return `12:${minutesString}PM`
+		} else if (hours > 12) {
+			return `${hours - 12}:${minutesString}PM`
+		} else {
+			return `${hours}:${minutesString}AM`
+		}
+	} else {
+		let hoursString = pad(hours, 2)
+		return hoursString + ":" + minutesString
+	}
+}
+
+export function shouldDefaultToAmPmTimeFormat(): boolean {
+	return lang.code === "en"
+}
 
 export function getAllDayDateUTC(localDate: Date): Date {
 	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
@@ -252,11 +297,11 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
-export function getEventText(event: CalendarEvent, showTime: boolean): string {
+export function getEventText(event: CalendarEvent, showTime: boolean, amPm: boolean): string {
 	if (isAllDayEvent(event) || !showTime) {
 		return event.summary
 	} else {
-		return timeString(event.startTime) + " " + event.summary
+		return timeString(event.startTime, amPm) + " " + event.summary
 	}
 }
 

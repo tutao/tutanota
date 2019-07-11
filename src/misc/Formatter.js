@@ -14,6 +14,10 @@ export function formatMonthWithYear(date: Date): string {
 	return lang.formats.monthWithYear.format(date)
 }
 
+export function formatMonthWithFullYear(date: Date): string {
+	return lang.formats.monthWithFullYear.format(date)
+}
+
 export function formatDate(date: Date): string {
 	return lang.formats.simpleDate.format(date)
 }
@@ -54,6 +58,10 @@ export function formatDateTime(date: Date): string {
 
 export function formatDateTimeShort(date: Date): string {
 	return lang.formats.dateTimeShort.format(date)
+}
+
+export function formatDateWithWeekdayAndTime(date: Date): string {
+	return lang.formats.dateWithWeekdayAndTime.format(date)
 }
 
 export function formatDateWithTimeIfNotEven(date: Date): string {

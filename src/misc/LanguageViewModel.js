@@ -105,6 +105,7 @@ class LanguageViewModel {
 		simpleDateWithoutYear: Intl.DateTimeFormat,
 		dateWithWeekday: Intl.DateTimeFormat,
 		dateWithWeekdayAndYear: Intl.DateTimeFormat,
+		dateWithWeekdayAndTime: Intl.DateTimeFormat,
 		weekdayShort: Intl.DateTimeFormat,
 		weekdayNarrow: Intl.DateTimeFormat,
 		time: Intl.DateTimeFormat,
@@ -114,7 +115,8 @@ class LanguageViewModel {
 		priceWithCurrencyWithoutFractionDigits: Intl.NumberFormat,
 		priceWithoutCurrency: Intl.NumberFormat,
 		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat,
-		monthWithYear: Intl.DateTimeFormat
+		monthWithYear: Intl.DateTimeFormat,
+		monthWithFullYear: Intl.DateTimeFormat,
 	};
 
 	constructor() {
@@ -177,6 +179,13 @@ class LanguageViewModel {
 					month: 'short',
 					year: 'numeric'
 				}),
+				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, {
+					weekday: 'short',
+					day: 'numeric',
+					month: 'short',
+					hour: 'numeric',
+					minute: 'numeric'
+				}),
 				time: new Intl.DateTimeFormat(tag, {hour: 'numeric', minute: 'numeric'}),
 				dateTime: new Intl.DateTimeFormat(tag, {
 					day: 'numeric',
@@ -220,6 +229,10 @@ class LanguageViewModel {
 				monthWithYear: new Intl.DateTimeFormat(tag, {
 					month: 'long',
 					year: '2-digit'
+				}),
+				monthWithFullYear: new Intl.DateTimeFormat(tag, {
+					month: 'long',
+					year: 'numeric'
 				})
 			}
 		}

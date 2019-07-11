@@ -38,12 +38,12 @@ declare function importScripts(...urls: string[]): void;
 
 declare var __moduleName: string;
 
-// see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
-declare class DedicatedWorkerGlobalScope {
-	onmessage: Function;
-	navigator: Navigator;
-	postMessage(message: Object): void;
-}
+// // see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
+// declare class DedicatedWorkerGlobalScope {
+// 	onmessage: Function;
+// 	navigator: Navigator;
+// 	postMessage(message: Object): void;
+// }
 
 type Bluebird$ConcurrencyOption = {
 	concurrency: number,

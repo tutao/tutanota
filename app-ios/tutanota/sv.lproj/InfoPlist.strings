@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Inget tillstånd";
 TutaoChangePermissionMsg = "För att bevilja åtkomst måste du ändra behörigheterna för den här enheten.";
 TutaoCancelAction = "Avbryt";
 TutaoSettingsAction = "Inställningar";
+TutaoCalendarAlarmTitle = "Påminnelse";

@@ -54,7 +54,7 @@ export function arrayHash(array: Uint8Array): number {
  * @param elementToRemove The element to remove from the array.
  * @return True if the element was removed, false otherwise.
  */
-export function remove(theArray: Array<any>, elementToRemove: any): boolean {
+export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 	let i = theArray.indexOf(elementToRemove)
 	if (i !== -1) {
 		theArray.splice(i, 1)
@@ -64,6 +64,11 @@ export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	}
 }
 
+/**
+ * @param theArray
+ * @param finder
+ * @return {boolean} if the element was found
+ */
 export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
 	const index = theArray.findIndex(finder)
 	if (index !== -1) {
@@ -191,4 +196,21 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 		acc.push(...val)
 		return acc
 	}, [])
+}
+
+export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator: (left: T, right: T) => number) {
+	if (array.length === 0) {
+		array.push(element)
+	} else if (comparator(element, lastThrow(array)) >= 0) {
+		array.push(element)
+	} else {
+		for (let i = 0; i < array.length; i++) {
+			const compareResult = comparator(element, array[i])
+			if (compareResult < 0) {
+				array.splice(i, 0, element)
+				return
+			}
+		}
+		array.push(element)
+	}
 }

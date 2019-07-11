@@ -47,7 +47,7 @@ export class TextField {
 	view: Function;
 	onblur: Stream<*>;
 	skipNextBlur: boolean;
-	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
+	_keyHandler: ?keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
 	_preventAutofill: boolean;
 	autocomplete: string;
@@ -135,7 +135,7 @@ export class TextField {
 			if (this.value() !== inputValue) {
 				const oldValue = this.value()
 				this.value(inputValue)
-				if ((oldValue == null || oldValue === "" ) && inputValue !== "" && !this.active) {
+				if ((oldValue == null || oldValue === "") && inputValue !== "" && !this.active) {
 					this.animate() // animate in case of browser autocompletion (non-webkit)
 				}
 			}
@@ -191,7 +191,7 @@ export class TextField {
 					onblur: e => this.blur(e),
 					onkeydown: e => {
 						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-						let key = {keyCode: e.which, ctrl: e.ctrlKey}
+						let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
 						const input = this._domInput
 						if (input && input.value !== this.value()) {
 							this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191

@@ -16,17 +16,17 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType, reverse} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getMonth} from "./CalendarUtils"
+import {getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
-import {findAllAndRemove} from "../api/common/utils/ArrayUtils"
-import {formatDateWithWeekday, formatMonthWithYear} from "../misc/Formatter"
+import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
+import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
@@ -35,6 +35,8 @@ import {px, size as sizes} from "../gui/size"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {CalendarAgendaView} from "./CalendarAgendaView"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -44,8 +46,11 @@ export type CalendarInfo = {
 
 export const CalendarViewType = Object.freeze({
 	DAY: "day",
-	MONTH: "month"
+	MONTH: "month",
+	AGENDA: "agenda"
 })
+const CalendarViewTypeByValue = reverse(CalendarViewType)
+
 export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
 
 export class CalendarView implements CurrentView {
@@ -64,6 +69,7 @@ export class CalendarView implements CurrentView {
 		const calendarViewValues = [
 			{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
+			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
 
 		this._currentViewType = CalendarViewType.MONTH
@@ -146,56 +152,54 @@ export class CalendarView implements CurrentView {
 
 
 		this.contentColumn = new ViewColumn({
-			view: () => this._currentViewType === CalendarViewType.MONTH
-				? m(CalendarMonthView, {
-					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => {
-						this._calendarInfos.then((calendarInfos) => {
-							let p = Promise.resolve(event)
-							if (event.repeatRule) {
-								// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
-								p = load(CalendarEventTypeRef, event._id)
-							}
-							p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
+			view: () => {
+				switch (this._currentViewType) {
+					case CalendarViewType.MONTH:
+						return m(CalendarMonthView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							onChangeMonthGesture: (next) => {
+								let newDate = new Date(this.selectedDate().getTime())
+								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+								this._setUrl(CalendarViewType.MONTH, newDate)
+							},
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
 						})
-					},
-					onNewEvent: (date) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(date || new Date(), calendarInfos)
+					case CalendarViewType.DAY:
+						return m(CalendarDayView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
 						})
-					},
-					selectedDate: this.selectedDate(),
-					onDateSelected: (date) => {
-						this._setUrl(CalendarViewType.DAY, date)
-					},
-					onChangeMonthGesture: (next) => {
-						let newDate = new Date(this.selectedDate().getTime())
-						newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
-						this._setUrl(CalendarViewType.MONTH, newDate)
-					}
-				})
-				: m(CalendarDayView, {
-					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(getEventStart(event), calendarInfos, event)
+					case CalendarViewType.AGENDA:
+						return m(CalendarAgendaView, {
+							eventsForDays: this._eventsForDays,
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+							onEventClicked: (event) => this._onEventSelected(event),
 						})
-					},
-					onNewEvent: (date) => {
-						this._calendarInfos.then((calendarInfos) => {
-							showCalendarEventDialog(date || new Date(), calendarInfos)
-						})
-					},
-					selectedDate: this.selectedDate(),
-					onDateSelected: (date) => {
-						this._setUrl(CalendarViewType.DAY, date)
-					}
-				})
+				}
+			},
 		}, ColumnType.Background, 700, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
-				return formatMonthWithYear(this.selectedDate())
+				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {
 				return formatDateWithWeekday(this.selectedDate())
+			} else if (this._currentViewType === CalendarViewType.AGENDA) {
+				return lang.get("agenda_label")
 			} else {
 				return ""
 			}
@@ -203,12 +207,13 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
+
 		// load all calendars. if there is no calendar yet, create one
-		this._loadGroupRoots().then(atLeastOneCalendarExists => {
-			if (!atLeastOneCalendarExists) {
-				worker.addCalendar().then(() => {
-					this._loadGroupRoots()
-				})
+		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
+			if (calendarInfos.size === 0) {
+				return worker.addCalendar().then(() => this._loadGroupRoots())
+			} else {
+				return calendarInfos
 			}
 		})
 
@@ -229,6 +234,19 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	_onEventSelected(event: CalendarEvent) {
+		this._calendarInfos.then((calendarInfos) => {
+			let p = Promise.resolve(event)
+			if (event.repeatRule) {
+				// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
+				p = load(CalendarEventTypeRef, event._id)
+			}
+			p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
+			 .catch(NotFoundError, () => {
+				 console.log("calendar event not found when clicking on the event")
+			 })
+		})
+	}
 
 	_getSelectedView(): CalendarViewTypeEnum {
 		return m.route.get().match("/calendar/month") ? CalendarViewType.MONTH : CalendarViewType.DAY
@@ -247,8 +265,9 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_newEvent(date?: Date) {
-		this._calendarInfos.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
+	_newEvent(date?: ?Date) {
+		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
+		p.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
 	}
 
 	view() {
@@ -299,9 +318,9 @@ export class CalendarView implements CurrentView {
 		if (!args.view) {
 			this._setUrl(this._currentViewType, this.selectedDate(), true)
 		} else {
-			this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
+			this._currentViewType = CalendarViewTypeByValue[args.view] ? args.view : CalendarViewType.MONTH
 			const urlDateParam = args.date
-			if (urlDateParam) {
+			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
 				const date = DateTime.fromISO(urlDateParam).toJSDate()
 				if (this.selectedDate().getTime() !== date.getTime()) {
@@ -345,23 +364,21 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	/**
-	 * @returns {Promise<boolean>} True if at least one calendar exists, false otherwise.
-	 */
-	_loadGroupRoots(): Promise<boolean> {
-		this._calendarInfos = load(UserTypeRef, logins.getUserController().user._id).then(user => {
-			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-			return Promise
-				.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
-				.then((groupRoots) => {
-					const calendarInfos: Map<Id, CalendarInfo> = new Map()
-					groupRoots.forEach((groupRoot) => {
-						calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
+		return load(UserTypeRef, logins.getUserController().user._id)
+			.then(user => {
+				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+				return Promise
+					.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+					.then((groupRoots) => {
+						const calendarInfos: Map<Id, CalendarInfo> = new Map()
+						groupRoots.forEach((groupRoot) => {
+							calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+						})
+						return calendarInfos
 					})
-					return calendarInfos
-				})
-		}).tap(() => m.redraw())
-		return this._calendarInfos.then(calendarInfos => calendarInfos.size > 0)
+			})
+			.tap(() => m.redraw())
 	}
 
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
@@ -378,7 +395,7 @@ export class CalendarView implements CurrentView {
 								console.log("Not found event in entityEventsReceived of view", e)
 							})
 					} else if (update.operation === OperationType.DELETE) {
-						this._removeDaysForEvent([update.instanceListId, update.instanceId])
+						this._removeDaysForEvent([update.instanceListId, update.instanceId], eventOwnerGroupId)
 						m.redraw()
 					}
 				} else if (isUpdateForTypeRef(UserTypeRef, update) 	// only process update event received for the user group - to not process user update from admin membership.
@@ -388,7 +405,7 @@ export class CalendarView implements CurrentView {
 						this._calendarInfos.then(calendarInfos => {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
-								this._loadGroupRoots()
+								this._calendarInfos = this._loadGroupRoots()
 							}
 						})
 					}
@@ -426,9 +443,19 @@ export class CalendarView implements CurrentView {
 		addDaysForRecurringEvent(this._eventsForDays, event, month)
 	}
 
-	_removeDaysForEvent(id: IdTuple) {
+	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {
 		this._eventsForDays.forEach((dayEvents) =>
 			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
+		if (this._calendarInfos.isFulfilled()) {
+			const infos = this._calendarInfos.value()
+			const info = infos.get(ownerGroupId)
+			if (info) {
+				const removedFromShort = findAndRemove(info.shortEvents, (e) => isSameId(e._id, id))
+				if (!removedFromShort) {
+					findAndRemove(info.longEvents, (e) => isSameId(e._id, id))
+				}
+			}
+		}
 	}
 
 	_addDaysForLongEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {

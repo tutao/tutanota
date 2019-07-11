@@ -5,7 +5,7 @@ import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
-import {formatDate, formatDateWithMonth, formatMonthWithYear, parseDate} from "../../misc/Formatter"
+import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {Dialog} from "./Dialog"
@@ -16,6 +16,7 @@ import {Icon} from "./Icon"
 import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
 import type {CalendarDay} from "../../calendar/CalendarUtils"
 import {getCalendarMonth} from "../../calendar/CalendarUtils"
+import {DateTime} from "luxon"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -149,7 +150,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 					style: {
 						fontSize: px(14)
 					}
-				}, formatMonthWithYear(date)),
+				}, formatMonthWithFullYear(date)),
 				this._switchMonthArrowIcon(true, vnode.attrs)
 			]),
 			m(".flex.flex-space-between", this._weekdaysVdom(vnode.attrs.wide, weekdays)),
@@ -176,12 +177,14 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_onPrevMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
-		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate, false)
+		const selectedDate = addMonth(this._lastSelectedDate || new Date(), -1)
+		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
 	_onNextMonthSelected = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
-		attrs.onDateSelected && attrs.onDateSelected(this._displayingDate, false)
+		const selectedDate = addMonth(this._lastSelectedDate || new Date(), 1)
+		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
 	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): VirtualElement {
@@ -222,6 +225,16 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 	}
 
 
+}
+
+function addMonth(date: Date, toAdd: number): Date {
+	if (client.isIE()) {
+		const newDate = new Date(date)
+		newDate.setMonth(newDate.getMonth() + toAdd)
+		return newDate
+	} else {
+		return DateTime.fromJSDate(date).plus({months: toAdd}).toJSDate()
+	}
 }
 
 

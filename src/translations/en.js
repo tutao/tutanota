@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-07-04T12:06:13Z",
+	"updated_at": "2019-07-07T17:43:40Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
@@ -102,7 +102,7 @@ module.exports = {
 		"calendarRepeating_label": "Repeating",
 		"calendarRepeatIntervalAnnually_label": "Annually",
 		"calendarRepeatIntervalDaily_label": "Daily",
-		"calendarRepeatIntervalMonthly_label": "Montly",
+		"calendarRepeatIntervalMonthly_label": "Monthly",
 		"calendarRepeatIntervalNoRepeat_label": "Do not repeat",
 		"calendarRepeatIntervalWeekly_label": "Weekly",
 		"calendarRepeatStopConditionDate_label": "On date",
@@ -987,6 +987,8 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"agenda_label": "Agenda",
+		"tomorrow_label": "Tomorrow"
 	}
 }

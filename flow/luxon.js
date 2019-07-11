@@ -46,6 +46,20 @@ declare module "luxon" {
 		offset(ts: number): number;
 	}
 
+	declare export class FixedOffsetZone {
+		static +utcInstance: FixedOffsetZone;
+		static instance(offset: number): FixedOffsetZone;
+		static parseSpecifier(s: string): FixedOffsetZone;
+		+name: string;
+	}
+
+	declare export class IANAZone {
+		static create(name: string): IANAZone;
+		static isValidSpecifier(s: string): boolean;
+		static isValidZone(zone: string): boolean;
+		static resetCache(): void;
+	}
+
 	declare export class Settings {
 		static defaultLocale: string;
 		static defaultNumberingSystem: ?string;

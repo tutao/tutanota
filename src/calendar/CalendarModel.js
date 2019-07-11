@@ -1,13 +1,13 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
-import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {DateTime} from "luxon"
+import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -18,12 +18,18 @@ import {getElementId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
-import {formatTime} from "../misc/Formatter"
+import {formatDateWithWeekdayAndTime, formatTime} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
+import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
+
+
+function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
+	return l.startTime.getTime() - r.startTime.getTime()
+}
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -34,10 +40,10 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 		return
 	}
 
-	// if start time is in current month then also add events for subsequent months until event ends
+// if start time is in current month then also add events for subsequent months until event ends
 	while (calculationDate.getTime() < eventEndDate.getTime()) {
 		if (eventEndDate.getTime() >= month.start.getTime()) {
-			getFromMap(events, calculationDate.getTime(), () => []).push(event)
+			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
 		}
 		incrementDate(calculationDate, 1)
 	}
@@ -48,6 +54,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
+	const repeatTimeZone = getValidTimeZone(repeatRule.timeZone)
 	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
 	const isLong = isLongEvent(event)
@@ -88,8 +95,8 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 				addDaysForEvent(events, eventClone, month)
 			}
 		}
-		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatRule.timeZone)
-		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatRule.timeZone)
+		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
+		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatTimeZone)
 		iteration++
 	}
 }
@@ -122,10 +129,9 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 	}
 
 	while (calculationDate.getTime() < eventEndInMonth) {
-		getFromMap(events, calculationDate.getTime(), () => []).push(event)
+		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
 		incrementDate(calculationDate, 1)
 	}
-
 }
 
 
@@ -221,6 +227,21 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
 }
 
+function getValidTimeZone(zone: string, fallback: ?string): string {
+	if (IANAZone.isValidZone(zone)) {
+		return zone
+	} else {
+		if (fallback && IANAZone.isValidZone(fallback)) {
+			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
+			return fallback
+		} else {
+			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
+			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
+			return actualFallback
+		}
+	}
+}
+
 class CalendarModel {
 	_notifications: Notifications;
 	_scheduledNotifications: Map<string, TimeoutID>;
@@ -256,8 +277,12 @@ class CalendarModel {
 	scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo) {
 		const repeatRule = event.repeatRule
 		if (repeatRule) {
+			const localZone = getTimeZone()
+			let repeatTimeZone = getValidTimeZone(repeatRule.timeZone, localZone)
+
+			let calculationLocalZone = getValidTimeZone(localZone, null)
 			iterateEventOccurrences(new Date(),
-				repeatRule.timeZone,
+				repeatTimeZone,
 				event.startTime,
 				event.endTime,
 				downcast(repeatRule.frequency),
@@ -265,7 +290,8 @@ class CalendarModel {
 				downcast(repeatRule.endType) || EndType.Never,
 				Number(repeatRule.endValue),
 				downcast(userAlarmInfo.alarmInfo.trigger),
-				getTimeZone(), (time, occurrence) => {
+				calculationLocalZone,
+				(time, occurrence) => {
 					this._scheduleNotification(getElementId(userAlarmInfo) + occurrence, event, time)
 				})
 		} else {
@@ -278,7 +304,14 @@ class CalendarModel {
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
 		this._runAtDate(time, identifier, () => {
 			const title = lang.get("reminder_label")
-			const body = `${formatTime(getEventStart(event))} ${event.summary}`
+			const eventStart = getEventStart(event)
+			let dateString: string
+			if (isToday(eventStart)) {
+				dateString = formatTime(eventStart)
+			} else {
+				dateString = formatDateWithWeekdayAndTime(eventStart)
+			}
+			const body = `${dateString} ${event.summary}`
 			return this._notifications.showNotification(title, {body})
 		})
 	}
@@ -308,7 +341,6 @@ class CalendarModel {
 						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
 						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
 						return deferredEvent.promise.then(() => {
-							this._pendingAlarmRequests.delete(elementId)
 							return load(CalendarEventTypeRef, [listId, elementId])
 								.then(calendarEvent => {
 									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)

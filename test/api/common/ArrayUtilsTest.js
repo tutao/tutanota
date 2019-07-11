@@ -1,6 +1,6 @@
 //@flow
 import o from "ospec/ospec.js"
-import {arrayEquals, concat, findLastIndex, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
+import {arrayEquals, concat, findLastIndex, insertIntoSortedArray, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
 
 o.spec("array utils", function () {
 
@@ -37,6 +37,20 @@ o.spec("array utils", function () {
 
 		o("returns -1 if not found", function () {
 			o(findLastIndex([1, 2, 3, 4, 5], (n) => n === 8)).equals(-1)
+		})
+	})
+
+	o.spec("insertIntoSortedArray", function () {
+		o("works", function () {
+			let arr = [1, 2, 8, 10]
+			insertIntoSortedArray(4, arr, (l, r) => l - r)
+			o(arr).deepEquals([1, 2, 4, 8, 10])
+		})
+
+		o("works with empty array", function () {
+			let arr = []
+			insertIntoSortedArray(4, arr, (l, r) => l - r)
+			o(arr).deepEquals([4])
 		})
 	})
 })

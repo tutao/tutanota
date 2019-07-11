@@ -46,7 +46,7 @@ declare interface Shortcut {
 /**
  * @return false, if the default action should be aborted
  */
-declare function keyHandler(key: KeyPress): boolean;
+type keyHandler = (key: KeyPress) => boolean;
 
 
 declare interface UpdatableSettingsViewer {

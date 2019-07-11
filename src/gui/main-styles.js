@@ -978,6 +978,10 @@ styles.registerStyle('main', () => {
 			'box-sizing': 'content-box',
 			'cursor': 'pointer'
 		},
+
+		'.calendar-bubble-more-padding-day .calendar-event': {
+			'border': `1px solid ${theme.list_bg}`,
+		},
 		'.darker-hover:hover': {
 			'filter': 'brightness(95%)',
 		},
@@ -1002,7 +1006,20 @@ styles.registerStyle('main', () => {
 			"margin-bottom": px(1),
 		},
 		'.time-field': {
-			'max-width': '44px'
+			'width': '80px'
+		},
+
+		'.calendar-agenda-time-column': {
+			width: px(80)
+		},
+
+		'.calendar-agenda-time-column > *': {
+			height: px(44)
+		},
+
+		'.calendar-agenda-row': {
+			'min-height': '44px',
+			flex: "1 0 auto",
 		},
 
 		'button.floating': {
@@ -1113,7 +1130,7 @@ styles.registerStyle('main', () => {
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
-				margin: "4px auto"
+				margin: "2px auto"
 			}
 		},
 

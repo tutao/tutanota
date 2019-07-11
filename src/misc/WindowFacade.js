@@ -14,7 +14,7 @@ export type KeyboardSizeListener = (keyboardSize: number) => mixed;
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
-	resizeTimeout: ?TimeoutID;
+	resizeTimeout: ?AnimationFrameID;
 	windowCloseConfirmation: boolean;
 	_windowCloseListeners: Set<() => void>;
 	_worker: WorkerClient;
@@ -82,15 +82,14 @@ class WindowFacade {
 	}
 
 	init() {
-		window.onresize = (event) => {
+		window.onresize = () => {
 			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
-			// TODO (android >= 4.4) switch to requestAnimationFrame
 			if (!this.resizeTimeout) {
-				this.resizeTimeout = setTimeout(() => {
+				this.resizeTimeout = requestAnimationFrame(() => {
 					this.resizeTimeout = null
 					this._resize()
 					// The actualResizeHandler will execute at a rate of 15fps
-				}, 66)
+				})
 			}
 		}
 		if (window.addEventListener && !isApp()) {

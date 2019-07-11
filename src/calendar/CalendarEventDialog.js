@@ -14,20 +14,22 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, load} from "../api/main/Entity"
 
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {numberRange} from "../api/common/utils/ArrayUtils"
+import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, shouldDefaultToAmPmTimeFormat, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
+import {NotFoundError} from "../api/common/error/RestError"
+import {TimePicker} from "../gui/base/TimePicker"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -43,7 +45,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(date)
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const startTime = stream(timeString(date))
+	const startTime = stream(timeString(date, shouldDefaultToAmPmTimeFormat()))
 	const endTime = stream()
 	const allDay = stream(false)
 	const locationValue = stream("")
@@ -54,7 +56,30 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const endTypePickerAttrs = createEndTypePicker()
 	const repeatEndDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
 	const endCountPickerAttrs = createEndCountPicker()
-	const alarmPickerAttrs = createAlarmrPicker()
+
+	const alarmPickerAttrs = []
+
+	function createAlarmPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
+		const selectedValue = stream(null)
+		const attrs = {
+			label: () => lang.get("reminder_label"),
+			items: alarmIntervalItems,
+			selectedValue,
+			icon: Icons.Edit
+		}
+		selectedValue.map((v) => {
+			const lastAttrs = last(alarmPickerAttrs)
+			if (attrs === lastAttrs && selectedValue() != null) {
+				alarmPickerAttrs.push(createAlarmPicker())
+			} else if (v == null && alarmPickerAttrs.some(a => a !== attrs && a.selectedValue() == null)) {
+				remove(alarmPickerAttrs, attrs)
+			}
+		})
+		return attrs
+
+	}
+
+	alarmPickerAttrs.push(createAlarmPicker())
 
 	let loadedUserAlarmInfo: ?UserAlarmInfo = null
 	const user = logins.getUserController().user
@@ -65,14 +90,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(existingEvent)))
+		startTime(timeString(getEventStart(existingEvent), shouldDefaultToAmPmTimeFormat()))
 		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
 		}
-		endTime(timeString(getEventEnd(existingEvent)))
+		endTime(timeString(getEventEnd(existingEvent), shouldDefaultToAmPmTimeFormat()))
 		if (existingEvent.repeatRule) {
 			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
@@ -90,10 +115,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
 					loadedUserAlarmInfo = userAlarmInfo
-					alarmPickerAttrs.selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
+					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
-				break
 			}
 		}
 
@@ -101,7 +125,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
-		endTime(timeString(endTimeDate))
+		endTime(timeString(endTimeDate, shouldDefaultToAmPmTimeFormat()))
+		m.redraw()
 	}
 
 	endTypePickerAttrs.selectedValue.map((endType) => {
@@ -111,6 +136,25 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatEndDatePicker.setDate(newRepeatEnd)
 		}
 	})
+
+
+	function onStartTimeSelected(value) {
+		startTime(value)
+		let startDate = neverNull(startDatePicker.date())
+		let endDate = neverNull(endDatePicker.date())
+		if (startDate.getTime() !== endDate.getTime()) {
+			return
+		}
+		const parsedStartTime = parseTime(startTime())
+		const parsedEndTime = parseTime(endTime())
+		if (!parsedStartTime || !parsedEndTime) {
+			return
+		}
+		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, shouldDefaultToAmPmTimeFormat()))
+			m.redraw()
+		}
+	}
 
 	function renderStopConditionValue(): Children {
 		if (repeatPickerAttrs.selectedValue() == null || endTypePickerAttrs.selectedValue() === EndType.Never) {
@@ -134,18 +178,20 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(".flex", [
 				m(".flex-grow.mr-s", m(startDatePicker)),
 				!allDay()
-					? m(".time-field", m(TextFieldN, {
-						label: "emptyString_msg",
-						value: startTime
+					? m(".time-field", m(TimePicker, {
+						value: startTime,
+						onselected: onStartTimeSelected,
+						amPmFormat: shouldDefaultToAmPmTimeFormat(),
 					}))
 					: null
 			]),
 			m(".flex", [
 				m(".flex-grow.mr-s", m(endDatePicker)),
 				!allDay()
-					? m(".time-field", m(TextFieldN, {
-						label: "emptyString_msg",
-						value: endTime
+					? m(".time-field", m(TimePicker, {
+						value: endTime,
+						onselected: endTime,
+						amPmFormat: shouldDefaultToAmPmTimeFormat(),
 					}))
 					: null
 			]),
@@ -163,7 +209,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					m(".flex-grow.ml-s", renderStopConditionValue()),
 				])
 				: null,
-			m(DropDownSelectorN, alarmPickerAttrs),
+			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -190,7 +236,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						: Promise.resolve(true)
 					p.then((answer) => {
 						if (answer) {
-							erase(existingEvent)
+							erase(existingEvent).catch(NotFoundError, noOp)
 							dialog.close()
 						}
 					})
@@ -200,8 +246,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		okAction: () => {
 			const newEvent = createCalendarEvent()
 			let startDate = neverNull(startDatePicker.date())
-			const parsedStartTime = parseTimeTo(startTime())
-			const parsedEndTime = parseTimeTo(endTime())
+			const parsedStartTime = parseTime(startTime())
+			const parsedEndTime = parseTime(endTime())
 			let endDate = neverNull(endDatePicker.date())
 
 			if (allDay()) {
@@ -263,10 +309,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}
 				}
 			}
-			const alarmValue = alarmPickerAttrs.selectedValue()
-			const newAlarm = alarmValue
-				&& createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-			worker.createCalendarEvent(groupRoot, newEvent, newAlarm, existingEvent)
+			const newAlarms = []
+			for (let pickerAttrs of alarmPickerAttrs) {
+				const alarmValue = pickerAttrs.selectedValue()
+				if (alarmValue) {
+					const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+					newAlarms.push(newAlarm)
+				}
+			}
+			worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
 
 			dialog.close()
 		}
@@ -359,13 +410,5 @@ const alarmIntervalItems = [
 	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
 ]
 
-function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
-	return {
-		label: () => lang.get("reminder_label"),
-		items: alarmIntervalItems,
-		selectedValue: stream(null),
-		icon: Icons.Edit
-	}
-}
 
 

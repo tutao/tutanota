@@ -1,7 +1,8 @@
-NSMicrophoneUsageDescription = "Koristi se kada se snima video kao prilog.";
-NSRemindersUsageDescription = "Pokaži obaveštenje kada stigne nova e-pošta.";
+NSMicrophoneUsageDescription = "Користи се при снимању видео прилога.";
+NSRemindersUsageDescription = "Покажи обавештење када стигне пошта.";
 TutaoShowCameraAction = "Камера";
 TutaoChoosePhotosAction = "Слике";
 TutaoNoPermissionTitle = "Нема дозволе";
-TutaoCancelAction = "Odustati";
-TutaoSettingsAction = "Podešavanja";
+TutaoCancelAction = "Одустати";
+TutaoSettingsAction = "Подешавања";
+TutaoCalendarAlarmTitle = "Подсетник";

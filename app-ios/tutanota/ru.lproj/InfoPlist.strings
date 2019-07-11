@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Нет доступа";
 TutaoChangePermissionMsg = "Чтобы предоставить доступ, Вам придётся изменить полномочия для этого устройства.";
 TutaoCancelAction = "Отменить";
 TutaoSettingsAction = "Настройки";
+TutaoCalendarAlarmTitle = "Напоминание";
