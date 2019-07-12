@@ -25,7 +25,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString, timeStringFromParts} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, shouldDefaultToAmPmTimeFormat, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -45,7 +45,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(date)
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const startTime = stream(timeString(date))
+	const startTime = stream(timeString(date, shouldDefaultToAmPmTimeFormat()))
 	const endTime = stream()
 	const allDay = stream(false)
 	const locationValue = stream("")
@@ -67,14 +67,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(existingEvent)))
+		startTime(timeString(getEventStart(existingEvent), shouldDefaultToAmPmTimeFormat()))
 		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
 		}
-		endTime(timeString(getEventEnd(existingEvent)))
+		endTime(timeString(getEventEnd(existingEvent), shouldDefaultToAmPmTimeFormat()))
 		if (existingEvent.repeatRule) {
 			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
@@ -103,7 +103,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
-		endTime(timeString(endTimeDate))
+		endTime(timeString(endTimeDate, shouldDefaultToAmPmTimeFormat()))
 		m.redraw()
 	}
 
@@ -123,13 +123,13 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (startDate.getTime() !== endDate.getTime()) {
 			return
 		}
-		const parsedStartTime = parseTimeTo(startTime())
-		const parsedEndTime = parseTimeTo(endTime())
+		const parsedStartTime = parseTime(startTime())
+		const parsedEndTime = parseTime(endTime())
 		if (!parsedStartTime || !parsedEndTime) {
 			return
 		}
 		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
-			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes))
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, shouldDefaultToAmPmTimeFormat()))
 			m.redraw()
 		}
 	}
@@ -159,6 +159,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: startTime,
 						onselected: onStartTimeSelected,
+						amPmFormat: shouldDefaultToAmPmTimeFormat(),
 					}))
 					: null
 			]),
@@ -168,6 +169,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: endTime,
 						onselected: endTime,
+						amPmFormat: shouldDefaultToAmPmTimeFormat(),
 					}))
 					: null
 			]),
@@ -222,8 +224,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		okAction: () => {
 			const newEvent = createCalendarEvent()
 			let startDate = neverNull(startDatePicker.date())
-			const parsedStartTime = parseTimeTo(startTime())
-			const parsedEndTime = parseTimeTo(endTime())
+			const parsedStartTime = parseTime(startTime())
+			const parsedEndTime = parseTime(endTime())
 			let endDate = neverNull(endDatePicker.date())
 
 			if (allDay()) {

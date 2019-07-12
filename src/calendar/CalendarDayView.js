@@ -4,7 +4,7 @@ import m from "mithril"
 import {numberRange} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {px, size as sizes, size} from "../gui/size"
-import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
+import {formatDateWithWeekday} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {DAY_IN_MILLIS, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
@@ -12,7 +12,7 @@ import {CalendarEventBubble} from "./CalendarEventBubble"
 import {styles} from "../gui/styles"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents, timeString} from "./CalendarUtils"
 import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 
@@ -21,7 +21,8 @@ export type CalendarDayViewAttrs = {
 	onDateSelected: (date: Date) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
-	onEventClicked: (event: CalendarEvent) => mixed
+	onEventClicked: (event: CalendarEvent) => mixed,
+	amPmFormat: boolean
 }
 
 const hours = numberRange(0, 23).map((n) => {
@@ -97,7 +98,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
 				m(".calendar-day-content.darker-hover", allDayEvents.map(e => {
 					return m(CalendarEventBubble, {
-						text: getEventText(e, true),
+						text: getEventText(e, true, vnode.attrs.amPmFormat),
 						color: defaultCalendarColor,
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						hasAlarm: e.alarmInfos.length > 0,
@@ -110,6 +111,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					color: defaultCalendarColor,
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: true,
+					amPmFormat: vnode.attrs.amPmFormat,
 				}))),
 				m("hr.hr.mt-s")
 			]),
@@ -131,13 +133,13 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 							eventDate.setHours(n.getHours(), n.getMinutes())
 							vnode.attrs.onNewEvent(eventDate)
 						},
-					}, m(".pt.pl-s.pr-s.center", {
+					}, m(".pt.pl-s.pr-s.center.small", {
 						style: {
 							width: px(size.calendar_hour_width),
 							height: px(size.calendar_hour_height),
 							'border-right': `2px solid ${theme.content_border}`,
 						},
-					}, formatTime(n)))),
+					}, timeString(n, vnode.attrs.amPmFormat)))),
 					this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null,
 					this._renderTimeIndicator(vnode.attrs),
 				])
@@ -171,7 +173,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				height: px(height)
 			},
 		}, m(CalendarEventBubble, {
-			text: getEventText(ev, true),
+			text: getEventText(ev, true, attrs.amPmFormat),
 			date: attrs.selectedDate,
 			color: defaultCalendarColor,
 			onEventClicked: () => attrs.onEventClicked(ev),

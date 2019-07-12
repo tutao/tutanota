@@ -3,11 +3,12 @@
 import m from "mithril"
 import {TextFieldN} from "./TextFieldN"
 import {theme} from "../theme"
-import {parseTimeTo, timeStringFromParts} from "../../calendar/CalendarUtils"
+import {parseTime, timeStringFromParts} from "../../calendar/CalendarUtils"
 
 export type Attrs = {
 	value: Stream<string>,
 	onselected: (string) => mixed,
+	amPmFormat: boolean,
 }
 
 export class TimePicker implements MComponent<Attrs> {
@@ -16,12 +17,12 @@ export class TimePicker implements MComponent<Attrs> {
 	_previousSelectedIndex: number;
 	_selectedIndex: number;
 
-	constructor() {
+	constructor({attrs}: Vnode<Attrs>) {
 		this._focused = false
 		const times = []
 		for (let hour = 0; hour < 24; hour++) {
-			for (let minute = 0; minute < 60; minute += 15) {
-				times.push(timeStringFromParts(hour, minute))
+			for (let minute = 0; minute < 60; minute += 30) {
+				times.push(timeStringFromParts(hour, minute, attrs.amPmFormat))
 			}
 		}
 		this._values = times
@@ -29,10 +30,10 @@ export class TimePicker implements MComponent<Attrs> {
 
 
 	view({attrs}: Vnode<Attrs>) {
-		const parsedTime = parseTimeTo(attrs.value())
+		const parsedTime = parseTime(attrs.value())
 		if (parsedTime) {
 			this._previousSelectedIndex = this._selectedIndex
-			this._selectedIndex = this._values.indexOf(timeStringFromParts(parsedTime.hours, parsedTime.minutes))
+			this._selectedIndex = this._values.indexOf(timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat))
 		}
 		return [
 			m(TextFieldN, {
@@ -61,7 +62,7 @@ export class TimePicker implements MComponent<Attrs> {
 					oncreate: (vnode) => this._setScrollTop(attrs, vnode),
 					onupdate: (vnode) => this._setScrollTop(attrs, vnode),
 					style: {
-						width: "80px",
+						width: "100px",
 						height: "400px",
 						"z-index": "3",
 						background: theme.content_bg,
@@ -72,7 +73,7 @@ export class TimePicker implements MComponent<Attrs> {
 					key: t,
 					style: {
 						"background-color": this._selectedIndex === i ? theme.list_bg : theme.list_alternate_bg,
-						flex: "1 0 44px",
+						flex: "1 0 auto",
 						"line-height": "44px"
 					},
 					onmousedown: () => {
@@ -87,8 +88,8 @@ export class TimePicker implements MComponent<Attrs> {
 
 	_onSelected(attrs: Attrs) {
 		this._focused = false
-		const parsedTime = parseTimeTo(attrs.value())
-		const timeString = parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes)
+		const parsedTime = parseTime(attrs.value())
+		const timeString = parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat)
 		attrs.onselected(timeString || attrs.value())
 	}
 

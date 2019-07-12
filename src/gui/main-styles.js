@@ -1002,7 +1002,7 @@ styles.registerStyle('main', () => {
 			"margin-bottom": px(1),
 		},
 		'.time-field': {
-			'max-width': '44px'
+			'width': '80px'
 		},
 
 		'button.floating': {

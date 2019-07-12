@@ -20,7 +20,7 @@ import {defaultCalendarColor, GroupType, OperationType} from "../api/common/Tuta
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getMonth} from "./CalendarUtils"
+import {getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -162,7 +162,8 @@ export class CalendarView implements CurrentView {
 						let newDate = new Date(this.selectedDate().getTime())
 						newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 						this._setUrl(CalendarViewType.MONTH, newDate)
-					}
+					},
+					amPmFormat: shouldDefaultToAmPmTimeFormat(),
 				})
 				: m(CalendarDayView, {
 					eventsForDays: this._eventsForDays,
@@ -173,7 +174,8 @@ export class CalendarView implements CurrentView {
 					selectedDate: this.selectedDate(),
 					onDateSelected: (date) => {
 						this._setUrl(CalendarViewType.DAY, date)
-					}
+					},
+					amPmFormat: shouldDefaultToAmPmTimeFormat(),
 				})
 		}, ColumnType.Background, 700, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {

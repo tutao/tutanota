@@ -24,6 +24,7 @@ type CalendarMonthAttrs = {
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
 	onChangeMonthGesture: (next: boolean) => mixed,
+	amPmFormat: boolean
 }
 
 const weekDaysHeight = 30
@@ -208,7 +209,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			showTime: styles.isDesktopLayout(),
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
-			}
+			},
+			amPmFormat: attrs.amPmFormat
 		})
 	}
 
