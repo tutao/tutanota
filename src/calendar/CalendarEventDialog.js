@@ -29,6 +29,7 @@ import {createRepeatRuleWithValues, getAllDayDateUTC, parseTimeTo, timeString, t
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
+import {TimePicker} from "../gui/base/TimePicker"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -115,7 +116,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	})
 
 
-	function onStartTimeBlur() {
+	function onStartTimeSelected(value) {
+		startTime(value)
 		let startDate = neverNull(startDatePicker.date())
 		let endDate = neverNull(endDatePicker.date())
 		if (startDate.getTime() !== endDate.getTime()) {
@@ -154,19 +156,18 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(".flex", [
 				m(".flex-grow.mr-s", m(startDatePicker)),
 				!allDay()
-					? m(".time-field", m(TextFieldN, {
-						label: "emptyString_msg",
+					? m(".time-field", m(TimePicker, {
 						value: startTime,
-						onblur: onStartTimeBlur,
+						onselected: onStartTimeSelected,
 					}))
 					: null
 			]),
 			m(".flex", [
 				m(".flex-grow.mr-s", m(endDatePicker)),
 				!allDay()
-					? m(".time-field", m(TextFieldN, {
-						label: "emptyString_msg",
+					? m(".time-field", m(TimePicker, {
 						value: endTime,
+						onselected: endTime,
 					}))
 					: null
 			]),

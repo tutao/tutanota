@@ -35,14 +35,16 @@ export class DropdownN {
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
 	_isFilterable: boolean;
+	_allowCustomValue: boolean;
 
 
-	constructor(lazyChildren: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number) {
+	constructor(lazyChildren: lazy<$ReadOnlyArray<DropDownChildAttrs>>, width: number, allowCustomValue: boolean = false) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
 		this._buttonsHeight = 0
 		this._filterString = stream("")
+		this._allowCustomValue = allowCustomValue
 
 		this.oninit = () => {
 			this.children = lazyChildren()

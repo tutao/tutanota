@@ -23,6 +23,7 @@ export type TextFieldAttrs = {
 	injectionsLeft?: lazy<Children>, // only used by the BubbleTextField to display bubbles
 	injectionsRight?: lazy<Children>,
 	keyHandler?: keyHandler, // interceptor used by the BubbleTextField to react on certain keys
+	onfocus?: (dom: HTMLElement, input: HTMLInputElement) => mixed,
 	onblur?: Function,
 	maxWidth?: number,
 	class?: string,
@@ -155,11 +156,14 @@ export class _TextField {
 							})
 						}
 					},
-					onfocus: (e) => this.focus(e, a),
+					onfocus: (e) => {
+						this.focus(e, a)
+						a.onfocus && a.onfocus(this._domWrapper, this._domInput)
+					},
 					onblur: e => this.blur(e, a),
 					onkeydown: e => {
 						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-						let key = {keyCode: e.which, ctrl: e.ctrlKey}
+						let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
 						return a.keyHandler != null ? a.keyHandler(key) : true
 					},
 					onremove: e => {

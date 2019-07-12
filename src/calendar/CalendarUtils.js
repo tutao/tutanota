@@ -23,12 +23,17 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 	return getEventEnd(event).getTime() > getStartOfNextDay(currentDate).getTime()
 }
 
+/**
+ * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30
+ */
 export function parseTimeTo(timeString: string): ?{hours: number, minutes: number} {
-	if (!timeString.match(/^[0-2]?[0-9]:[0-5]?[0-9]$/)) {
-		return null
+	const parts = timeString.split(":")
+	let hours = parseInt(parts[0], 10)
+	let minutes = 0
+	if (parts.length === 2) {
+		minutes = parseInt(parts[1], 10)
 	}
-	const [hours, minutes] = timeString.split(":").map((part) => parseInt(part, 10))
-	if (hours > 23 || minutes > 59) {
+	if (isNaN(hours) || isNaN(minutes) || hours > 23 || minutes > 59) {
 		return null
 	}
 	return {hours, minutes}
