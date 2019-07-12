@@ -197,3 +197,14 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 		return acc
 	}, [])
 }
+
+export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator: (left: T, right: T) => number) {
+	for (let i = 0; i < array.length; i++) {
+		const compareResult = comparator(element, array[i])
+		if (compareResult !== -1) {
+			array.splice(i, 0, element)
+			return
+		}
+	}
+	array.push(element)
+}

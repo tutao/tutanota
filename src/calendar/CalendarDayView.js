@@ -174,11 +174,13 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			},
 		}, m(CalendarEventBubble, {
 			text: getEventText(ev, true, attrs.amPmFormat),
+			secondLineText: ev.location,
 			date: attrs.selectedDate,
 			color: defaultCalendarColor,
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2,
-			hasAlarm: ev.alarmInfos.length > 0
+			hasAlarm: ev.alarmInfos.length > 0,
+			verticalPadding: 2
 		}))
 	}
 

@@ -16,7 +16,7 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType, reverse} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
@@ -36,6 +36,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {CalendarAgendaView} from "./CalendarAgendaView"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -45,8 +46,11 @@ export type CalendarInfo = {
 
 export const CalendarViewType = Object.freeze({
 	DAY: "day",
-	MONTH: "month"
+	MONTH: "month",
+	AGENDA: "agenda"
 })
+const CalendarViewTypeByValue = reverse(CalendarViewType)
+
 export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
 
 export class CalendarView implements CurrentView {
@@ -65,6 +69,7 @@ export class CalendarView implements CurrentView {
 		const calendarViewValues = [
 			{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
+			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
 
 		this._currentViewType = CalendarViewType.MONTH
@@ -147,41 +152,54 @@ export class CalendarView implements CurrentView {
 
 
 		this.contentColumn = new ViewColumn({
-			view: () => this._currentViewType === CalendarViewType.MONTH
-				? m(CalendarMonthView, {
-					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => this._onEventSelected(event),
-					onNewEvent: (date) => {
-						this._newEvent(date)
-					},
-					selectedDate: this.selectedDate(),
-					onDateSelected: (date) => {
-						this._setUrl(CalendarViewType.DAY, date)
-					},
-					onChangeMonthGesture: (next) => {
-						let newDate = new Date(this.selectedDate().getTime())
-						newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
-						this._setUrl(CalendarViewType.MONTH, newDate)
-					},
-					amPmFormat: shouldDefaultToAmPmTimeFormat(),
-				})
-				: m(CalendarDayView, {
-					eventsForDays: this._eventsForDays,
-					onEventClicked: (event) => this._onEventSelected(event),
-					onNewEvent: (date) => {
-						this._newEvent(date)
-					},
-					selectedDate: this.selectedDate(),
-					onDateSelected: (date) => {
-						this._setUrl(CalendarViewType.DAY, date)
-					},
-					amPmFormat: shouldDefaultToAmPmTimeFormat(),
-				})
+			view: () => {
+				switch (this._currentViewType) {
+					case CalendarViewType.MONTH:
+						return m(CalendarMonthView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							onChangeMonthGesture: (next) => {
+								let newDate = new Date(this.selectedDate().getTime())
+								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+								this._setUrl(CalendarViewType.MONTH, newDate)
+							},
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						})
+					case CalendarViewType.DAY:
+						return m(CalendarDayView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						})
+					case CalendarViewType.AGENDA:
+						return m(CalendarAgendaView, {
+							eventsForDays: this._eventsForDays,
+							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+							onEventClicked: (event) => this._onEventSelected(event),
+						})
+				}
+			},
 		}, ColumnType.Background, 700, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
 				return formatMonthWithYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {
 				return formatDateWithWeekday(this.selectedDate())
+			} else if (this._currentViewType === CalendarViewType.AGENDA) {
+				return lang.get("agenda_label")
 			} else {
 				return ""
 			}
@@ -300,9 +318,9 @@ export class CalendarView implements CurrentView {
 		if (!args.view) {
 			this._setUrl(this._currentViewType, this.selectedDate(), true)
 		} else {
-			this._currentViewType = args.view === CalendarViewType.DAY ? CalendarViewType.DAY : CalendarViewType.MONTH
+			this._currentViewType = CalendarViewTypeByValue[args.view] ? args.view : CalendarViewType.MONTH
 			const urlDateParam = args.date
-			if (urlDateParam) {
+			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
 				const date = DateTime.fromISO(urlDateParam).toJSDate()
 				if (this.selectedDate().getTime() !== date.getTime()) {

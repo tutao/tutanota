@@ -24,6 +24,12 @@ import {isApp} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
+import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
+
+
+function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
+	return l.startTime.getTime() - r.startTime.getTime()
+}
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
 	const calculationDate = getStartOfDay(getEventStart(event))
@@ -34,10 +40,10 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 		return
 	}
 
-	// if start time is in current month then also add events for subsequent months until event ends
+// if start time is in current month then also add events for subsequent months until event ends
 	while (calculationDate.getTime() < eventEndDate.getTime()) {
 		if (eventEndDate.getTime() >= month.start.getTime()) {
-			getFromMap(events, calculationDate.getTime(), () => []).push(event)
+			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
 		}
 		incrementDate(calculationDate, 1)
 	}
@@ -123,10 +129,9 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 	}
 
 	while (calculationDate.getTime() < eventEndInMonth) {
-		getFromMap(events, calculationDate.getTime(), () => []).push(event)
+		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
 		incrementDate(calculationDate, 1)
 	}
-
 }
 
 
