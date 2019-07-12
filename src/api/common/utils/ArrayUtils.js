@@ -54,7 +54,7 @@ export function arrayHash(array: Uint8Array): number {
  * @param elementToRemove The element to remove from the array.
  * @return True if the element was removed, false otherwise.
  */
-export function remove(theArray: Array<any>, elementToRemove: any): boolean {
+export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 	let i = theArray.indexOf(elementToRemove)
 	if (i !== -1) {
 		theArray.splice(i, 1)

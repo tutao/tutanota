@@ -43,7 +43,7 @@ export class CalendarFacade {
 		this._entityRestCache = entityRestCache
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: ?AlarmInfo, oldEvent: ?CalendarEvent): Promise<void> {
+	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		let p = Promise.resolve()
@@ -56,8 +56,7 @@ export class CalendarFacade {
 		event._id = [listId, generateEventElementId(event.startTime.getTime())]
 
 		return p
-			.then(() => {
-				if (alarmInfo) {
+			.then(() => Promise.map(alarmInfos, (alarmInfo) => {
 					const newAlarm = createUserAlarmInfo()
 					newAlarm._ownerGroup = user.userGroup.group
 					newAlarm.alarmInfo = alarmInfo
@@ -68,13 +67,13 @@ export class CalendarFacade {
 					const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
 					alarmNotifications.push(alarmNotification)
 					return setup(userAlarmInfoListId, newAlarm)
-				}
-			})
-			.then(newUserAlarmElementId => {
+				})
+			)
+			.then(newUserAlarmElementIds => {
 				findAllAndRemove(event.alarmInfos, (userAlarmInfoId) => isSameId(userAlarmInfoListId, listIdPart(userAlarmInfoId)))
-				if (newUserAlarmElementId) {
-					event.alarmInfos.push([userAlarmInfoListId, newUserAlarmElementId])
-				}
+				newUserAlarmElementIds.forEach((id) => {
+					event.alarmInfos.push([userAlarmInfoListId, id])
+				})
 
 				return setup(listId, event)
 			})

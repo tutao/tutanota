@@ -18,7 +18,7 @@ import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
-import {numberRange} from "../api/common/utils/ArrayUtils"
+import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
@@ -56,7 +56,30 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const endTypePickerAttrs = createEndTypePicker()
 	const repeatEndDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
 	const endCountPickerAttrs = createEndCountPicker()
-	const alarmPickerAttrs = createAlarmrPicker()
+
+	const alarmPickerAttrs = []
+
+	function createAlarmPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
+		const selectedValue = stream(null)
+		const attrs = {
+			label: () => lang.get("reminder_label"),
+			items: alarmIntervalItems,
+			selectedValue,
+			icon: Icons.Edit
+		}
+		selectedValue.map((v) => {
+			const lastAttrs = last(alarmPickerAttrs)
+			if (attrs === lastAttrs && selectedValue() != null) {
+				alarmPickerAttrs.push(createAlarmPicker())
+			} else if (v == null && alarmPickerAttrs.some(a => a !== attrs && a.selectedValue() == null)) {
+				remove(alarmPickerAttrs, attrs)
+			}
+		})
+		return attrs
+
+	}
+
+	alarmPickerAttrs.push(createAlarmPicker())
 
 	let loadedUserAlarmInfo: ?UserAlarmInfo = null
 	const user = logins.getUserController().user
@@ -92,10 +115,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
 					loadedUserAlarmInfo = userAlarmInfo
-					alarmPickerAttrs.selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
+					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
-				break
 			}
 		}
 
@@ -187,7 +209,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					m(".flex-grow.ml-s", renderStopConditionValue()),
 				])
 				: null,
-			m(DropDownSelectorN, alarmPickerAttrs),
+			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -287,10 +309,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}
 				}
 			}
-			const alarmValue = alarmPickerAttrs.selectedValue()
-			const newAlarm = alarmValue
-				&& createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-			worker.createCalendarEvent(groupRoot, newEvent, newAlarm, existingEvent)
+			const newAlarms = []
+			for (let pickerAttrs of alarmPickerAttrs) {
+				const alarmValue = pickerAttrs.selectedValue()
+				if (alarmValue) {
+					const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+					newAlarms.push(newAlarm)
+				}
+			}
+			worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
 
 			dialog.close()
 		}
@@ -383,13 +410,5 @@ const alarmIntervalItems = [
 	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
 ]
 
-function createAlarmrPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
-	return {
-		label: () => lang.get("reminder_label"),
-		items: alarmIntervalItems,
-		selectedValue: stream(null),
-		icon: Icons.Edit
-	}
-}
 
 

@@ -341,7 +341,6 @@ class CalendarModel {
 						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
 						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
 						return deferredEvent.promise.then(() => {
-							this._pendingAlarmRequests.delete(elementId)
 							return load(CalendarEventTypeRef, [listId, elementId])
 								.then(calendarEvent => {
 									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
