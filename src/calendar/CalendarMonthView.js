@@ -16,6 +16,8 @@ import {formatMonthWithYear} from "../misc/Formatter"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
+import {windowFacade} from "../misc/WindowFacade"
+import {debounce} from "../api/common/utils/Utils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -28,13 +30,27 @@ type CalendarMonthAttrs = {
 }
 
 const weekDaysHeight = 30
-const dayHeight = () => styles.isDesktopLayout() ? 32 : 28
+const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
+const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
-
 	_monthDom: ?HTMLElement;
 	_lastGestureInfo: ?GestureInfo;
 	_oldGestureInfo: ?GestureInfo;
+	_resizeListener: () => mixed;
+
+	constructor() {
+		// Redraw after timeout with pause because when changing mobile device orientation the size is not correct on the first draw
+		this._resizeListener = debounce(100, m.redraw)
+	}
+
+	oncreate() {
+		windowFacade.addResizeListener(this._resizeListener)
+	}
+
+	onremove() {
+		windowFacade.removeResizeListener(this._resizeListener)
+	}
 
 	view(vnode: Vnode<CalendarMonthAttrs>): Children {
 		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate, 1, false)
@@ -66,9 +82,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 				},
 			},
 			[
-				m(".mt-s.pr-l", [
-					styles.isDesktopLayout() ? m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate)) : null,
-				]),
+				styles.isDesktopLayout() ?
+					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate)),)
+					: null,
 				m(".flex.pt-s.pb-s", {
 					style: {
 						height: px(weekDaysHeight)
@@ -122,7 +138,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const lastDayOfWeek = lastThrow(week)
 		const dayWidth = this._getWidthForDay()
 		const weekHeight = this._getHeightForWeek()
-		const eventHeight = (size.calendar_line_height + 2) // height + border
+		const eventHeight = (size.calendar_line_height + spaceBetweenEvents()) // height + border
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
@@ -136,7 +152,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							style: {
 								top: px(position.top),
-								height: px(size.calendar_line_height),
+								height: px(size.calendar_line_height + 2),
 								left: px(position.left),
 								right: px(position.right)
 							}
@@ -158,8 +174,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 				if (moreEventsCount > 0) {
 					return m(".abs.darker-hover" + (isPadding ? ".calendar-bubble-more-padding-day" : ""), {
 						style: {
-							bottom: px(3),
-							height: px(size.calendar_line_height),
+							bottom: px(1),
+							height: px(size.calendar_line_height + 2),
 							left: px(weekday * dayWidth + eventMargin),
 							width: px(dayWidth - 2 - eventMargin * 2)
 						}
@@ -180,7 +196,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	}
 
 	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
-		const top = (size.calendar_line_height + 2) * columnIndex + calendarDayHeight
+		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight
 
 		const eventStart = getEventStart(event)
 		const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
@@ -221,16 +237,15 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		if (!this._monthDom) {
 			return 1
 		}
-		const monthDomHeight = this._monthDom.scrollHeight
-		const weeksHeight = monthDomHeight - weekDaysHeight
-		return weeksHeight / 6
+		const monthDomHeight = this._monthDom.offsetHeight
+		return monthDomHeight / 6
 	}
 
 	_getWidthForDay(): number {
 		if (!this._monthDom) {
 			return 1
 		}
-		const monthDomWidth = this._monthDom.scrollWidth
+		const monthDomWidth = this._monthDom.offsetWidth
 		return monthDomWidth / 7
 	}
 }

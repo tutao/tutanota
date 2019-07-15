@@ -11,7 +11,6 @@ type ContinuingCalendarEventBubbleAttrs = {|
 	endDate: Date,
 	color: string,
 	onEventClicked: clickHandler,
-	height?: number,
 	showTime: boolean,
 	amPmFormat: boolean
 |}

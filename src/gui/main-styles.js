@@ -1130,7 +1130,7 @@ styles.registerStyle('main', () => {
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
-				margin: "4px auto"
+				margin: "2px auto"
 			}
 		},
 
