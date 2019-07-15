@@ -89,7 +89,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	}
 
 	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
-		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute.day-with-border"
+		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
 				onclick: () => {
@@ -153,8 +153,10 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					}
 				})
 			}).concat(moreEventsForDay.map((moreEventsCount, weekday) => {
+				const day = week[weekday]
+				const isPadding = day.paddingDay
 				if (moreEventsCount > 0) {
-					return m(".abs.darker-hover", {
+					return m(".abs.darker-hover" + (isPadding ? ".calendar-bubble-more-padding-day" : ""), {
 						style: {
 							bottom: px(3),
 							height: px(size.calendar_line_height),
@@ -163,9 +165,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						}
 					}, m(CalendarEventBubble, {
 						text: "+" + moreEventsCount,
-						color: theme.content_bg.substring(1),
+						color: isPadding ? theme.list_bg.substring(1) : theme.content_bg.substring(1),
 						onEventClicked: () => {
-							attrs.onDateSelected(week[weekday].date)
+							attrs.onDateSelected(day.date)
 						},
 						hasAlarm: false,
 					}))

@@ -35,7 +35,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					opacity: '0',
 					minHeight: px(defaultBubbleHeight),
 					height: px(attrs.height ? attrs.height : defaultBubbleHeight),
-					"padding-top": px(attrs.verticalPadding)
+					"padding-top": px(attrs.verticalPadding),
 				},
 				oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
 				onbeforeremove: (vnode) => animations.add(vnode.dom, opacity(1, 0, true)),

@@ -978,6 +978,10 @@ styles.registerStyle('main', () => {
 			'box-sizing': 'content-box',
 			'cursor': 'pointer'
 		},
+
+		'.calendar-bubble-more-padding-day .calendar-event': {
+			'border': `1px solid ${theme.list_bg}`,
+		},
 		'.darker-hover:hover': {
 			'filter': 'brightness(95%)',
 		},
