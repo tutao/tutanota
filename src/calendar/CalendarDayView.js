@@ -96,12 +96,15 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		}, [
 			m(".mt-s.pr-l", [
 				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
-				m(".calendar-day-content.darker-hover", allDayEvents.map(e => {
-					return m(CalendarEventBubble, {
-						text: getEventText(e, true, vnode.attrs.amPmFormat),
+				m(".calendar-day-content", allDayEvents.map(e => {
+					return m(ContinuingCalendarEventBubble, {
+						event: e,
+						startDate: vnode.attrs.selectedDate,
+						endDate: vnode.attrs.selectedDate,
 						color: defaultCalendarColor,
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
-						hasAlarm: e.alarmInfos.length > 0,
+						showTime: false,
+						amPmFormat: vnode.attrs.amPmFormat,
 					})
 				})),
 				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
