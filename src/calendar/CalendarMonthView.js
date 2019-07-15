@@ -12,7 +12,7 @@ import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
-import {formatMonthWithYear} from "../misc/Formatter"
+import {formatMonthWithFullYear} from "../misc/Formatter"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
@@ -83,7 +83,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			},
 			[
 				styles.isDesktopLayout() ?
-					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithYear(vnode.attrs.selectedDate)),)
+					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithFullYear(vnode.attrs.selectedDate)),)
 					: null,
 				m(".flex.pt-s.pb-s", {
 					style: {

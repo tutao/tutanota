@@ -5,7 +5,7 @@ import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
-import {formatDate, formatDateWithMonth, formatMonthWithYear, parseDate} from "../../misc/Formatter"
+import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {Dialog} from "./Dialog"
@@ -150,7 +150,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 					style: {
 						fontSize: px(14)
 					}
-				}, formatMonthWithYear(date)),
+				}, formatMonthWithFullYear(date)),
 				this._switchMonthArrowIcon(true, vnode.attrs)
 			]),
 			m(".flex.flex-space-between", this._weekdaysVdom(vnode.attrs.wide, weekdays)),

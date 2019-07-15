@@ -26,7 +26,7 @@ import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
-import {formatDateWithWeekday, formatMonthWithYear} from "../misc/Formatter"
+import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
@@ -195,7 +195,7 @@ export class CalendarView implements CurrentView {
 			},
 		}, ColumnType.Background, 700, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
-				return formatMonthWithYear(this.selectedDate())
+				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {
 				return formatDateWithWeekday(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.AGENDA) {
