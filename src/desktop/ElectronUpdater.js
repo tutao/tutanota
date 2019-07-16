@@ -12,8 +12,6 @@ import {handleRestError} from "../api/common/error/RestError"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./DesktopTray"
 
-let FALLBACK_POLL_INTERVAL: number = 15 * 60 * 1000 // 15min
-
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
 	_notifier: DesktopNotifier;
@@ -24,6 +22,7 @@ export class ElectronUpdater {
 	_checkUpdateSignature: boolean;
 	_pubKey: string;
 	_errorCount: number;
+	_fallbackPollInterval: number = 15 * 60 * 1000;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
 
 	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
@@ -31,7 +30,7 @@ export class ElectronUpdater {
 		this._notifier = notifier
 		this._errorCount = 0
 		if (fallbackPollInterval) {
-			FALLBACK_POLL_INTERVAL = fallbackPollInterval
+			this._fallbackPollInterval = fallbackPollInterval
 		}
 
 		this._logger = {
@@ -66,15 +65,17 @@ export class ElectronUpdater {
 			} else {
 				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${e.message}`)
 				this._notifyUpdateError()
-				setTimeout(() => this._startPolling(), FALLBACK_POLL_INTERVAL)
+				setTimeout(() => this._startPolling(), this._fallbackPollInterval)
 			}
 		})
 	}
 
+	+_enableAutoUpdateListener = () => this.start()
+
 	start() {
 		// if user changes auto update setting, we want to know
-		this._conf.removeListener('enableAutoUpdate', () => this.start())
-		    .on('enableAutoUpdate', () => this.start())
+		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)
+		    .on('enableAutoUpdate', this._enableAutoUpdateListener)
 
 		if (!this._conf.getDesktopConfig("enableAutoUpdate")) {
 			this._stopPolling()
@@ -171,12 +172,12 @@ export class ElectronUpdater {
 	_retryKeyRetrieval(when: ?number) {
 		this._logger.info("retrying key retrieval in", when)
 		clearTimeout(neverNull(this._keyRetrievalTimeout))
-		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || FALLBACK_POLL_INTERVAL)
+		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || this._fallbackPollInterval)
 	}
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
-			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || FALLBACK_POLL_INTERVAL)
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || this._fallbackPollInterval)
 			this._checkUpdate()
 		}
 	}
