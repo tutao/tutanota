@@ -363,6 +363,7 @@ declare module 'electron-localshortcut' {
 
 declare class AutoUpdater {
 	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => AutoUpdater;
+	removeAllListeners: (AutoUpdaterEvent) => AutoUpdater;
 	logger: ?{
 		info: (string) => void,
 		debug: (string) => void,
