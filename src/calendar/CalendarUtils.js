@@ -41,8 +41,8 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 		return null
 	}
 	if (suffix === "PM") {
-		if (hours >= 12) return null
-		hours = hours + 12
+		if (hours > 12) return null
+		if (hours !== 12) hours = hours + 12
 	} else if (suffix === "AM") {
 		if (hours > 12) return null
 		if (hours === 12) hours = 0

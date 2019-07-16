@@ -151,6 +151,7 @@ o.spec("calendar utils tests", function () {
 
 		o("parses AM/PM time", function () {
 			o(parseTime("11PM")).deepEquals({hours: 23, minutes: 0})
+			o(parseTime("12PM")).deepEquals({hours: 12, minutes: 0})
 			o(parseTime("11:30PM")).deepEquals({hours: 23, minutes: 30})
 			o(parseTime("12AM")).deepEquals({hours: 0, minutes: 0})
 			o(parseTime("12:30AM")).deepEquals({hours: 0, minutes: 30})

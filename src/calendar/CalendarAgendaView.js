@@ -44,7 +44,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
 						key: day,
 					}, [
-						m(".pb-s" + (dayCount === 1 ? ".b" : ""), dateDescription),
+						m(".pb-s" + (dayCount < 3 ? ".b" : ""), dateDescription),
 						m(".flex-grow", {
 							style: {
 								"max-width": "600px",

@@ -199,12 +199,18 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 }
 
 export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator: (left: T, right: T) => number) {
-	for (let i = 0; i < array.length; i++) {
-		const compareResult = comparator(element, array[i])
-		if (compareResult !== -1) {
-			array.splice(i, 0, element)
-			return
+	if (array.length === 0) {
+		array.push(element)
+	} else if (comparator(element, lastThrow(array)) >= 0) {
+		array.push(element)
+	} else {
+		for (let i = 0; i < array.length; i++) {
+			const compareResult = comparator(element, array[i])
+			if (compareResult < 0) {
+				array.splice(i, 0, element)
+				return
+			}
 		}
+		array.push(element)
 	}
-	array.push(element)
 }
