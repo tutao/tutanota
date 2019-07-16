@@ -47,7 +47,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
             }
         },
         "dependencies": {
-            "electron-updater": "4.0.10",
+            "electron-updater": "4.1.2",
             "chalk": "2.4.2",
             "electron-localshortcut": "3.1.0",
             "fs-extra": "7.0.1",
