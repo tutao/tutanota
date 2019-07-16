@@ -12,6 +12,8 @@ import {handleRestError} from "../api/common/error/RestError"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./DesktopTray"
 
+let FALLBACK_POLL_INTERVAL: number = 15 * 60 * 1000 // 15min
+
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
 	_notifier: DesktopNotifier;
@@ -21,37 +23,59 @@ export class ElectronUpdater {
 	_foundKey: DeferredObject<void>;
 	_checkUpdateSignature: boolean;
 	_pubKey: string;
+	_errorCount: number;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
 		this._conf = conf
 		this._notifier = notifier
+		this._errorCount = 0
+		if (fallbackPollInterval) {
+			FALLBACK_POLL_INTERVAL = fallbackPollInterval
+		}
 
 		this._logger = {
 			info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
-			warn: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater warn:\n", m].concat(args)),
+			warn: (m: string, ...args: any) => console.warn.apply(console, ["autoUpdater warn:\n", m].concat(args)),
 			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
 		}
 		this._foundKey = defer()
 		autoUpdater.logger = null
 		autoUpdater.on('update-available', updateInfo => {
+			this._logger.info("update-available")
 			this._stopPolling()
 			this._foundKey.promise
 			    .then(() => this._verifySignature(updateInfo))
 			    .then(() => this._downloadUpdate())
 		}).on('update-downloaded', info => {
+			this._logger.info("update-downloaded")
 			this._stopPolling()
 			this._notifyAndInstall(info)
+		}).on('checking-for-update', () => {
+			this._logger.info("checking-for-update")
 		}).on('error', e => {
-			this._logger.error(`Auto Update Error, continuing polling:\n${e.message}`)
-			this._notifyUpdateError()
-			this._startPolling()
+			this._stopPolling()
+			this._errorCount += 1
+			if (this._errorCount >= 5) {
+				this._logger.error(`Auto Update Error ${this._errorCount}, shutting down updater:\n${e.message}`)
+				autoUpdater.removeAllListeners('update-available')
+				autoUpdater.removeAllListeners('update-downloaded')
+				autoUpdater.removeAllListeners('checking-for-update')
+				autoUpdater.removeAllListeners('error')
+				throw new UpdateError(`Update failed multiple times. Last error:\n${e.message}`)
+			} else {
+				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${e.message}`)
+				this._notifyUpdateError()
+				setTimeout(() => this._startPolling(), FALLBACK_POLL_INTERVAL)
+			}
 		})
 	}
 
 	start() {
+		// if user changes auto update setting, we want to know
 		this._conf.removeListener('enableAutoUpdate', () => this.start())
 		    .on('enableAutoUpdate', () => this.start())
+
 		if (!this._conf.getDesktopConfig("enableAutoUpdate")) {
 			this._stopPolling()
 			return
@@ -147,13 +171,13 @@ export class ElectronUpdater {
 	_retryKeyRetrieval(when: ?number) {
 		this._logger.info("retrying key retrieval in", when)
 		clearTimeout(neverNull(this._keyRetrievalTimeout))
-		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || 1000000)
+		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || FALLBACK_POLL_INTERVAL)
 	}
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || FALLBACK_POLL_INTERVAL)
 			this._checkUpdate()
-			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || 1000000)
 		}
 	}
 
@@ -165,7 +189,10 @@ export class ElectronUpdater {
 	_checkUpdate(): void {
 		autoUpdater
 			.checkForUpdates()
-			.catch((e: Error) => this._logger.error("Update check failed,", e.message))
+			.catch((e: Error) => {
+				this._logger.error("Update check failed,", e.message)
+				this._notifyUpdateError()
+			})
 	}
 
 	_downloadUpdate(): void {
@@ -174,7 +201,6 @@ export class ElectronUpdater {
 			.catch(e => {
 				this._logger.error("Update Download failed,", e.message)
 				this._notifyUpdateError()
-				this._startPolling()
 			})
 	}
 
