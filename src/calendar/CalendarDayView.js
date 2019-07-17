@@ -7,14 +7,15 @@ import {px, size as sizes, size} from "../gui/size"
 import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {DAY_IN_MILLIS, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {styles} from "../gui/styles"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventColor, getEventText, layOutEvents} from "./CalendarUtils"
 import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
+import {neverNull} from "../api/common/utils/Utils"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,
@@ -22,6 +23,8 @@ export type CalendarDayViewAttrs = {
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
+	groupColors: {[Id]: string},
+	hiddenCalendars: Set<Id>,
 }
 
 const hours = numberRange(0, 23).map((n) => {
@@ -45,6 +48,9 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		const longEvents = []
 		const allDayEvents = []
 		events.forEach((e) => {
+			if (vnode.attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) {
+				return
+			}
 			if (isAllDayEvent(e)) {
 				allDayEvents.push(e)
 			} else if (eventStartsBefore(date, e) || eventEndsAfterDay(date, e)) {
@@ -100,7 +106,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						event: e,
 						startDate: vnode.attrs.selectedDate,
 						endDate: vnode.attrs.selectedDate,
-						color: defaultCalendarColor,
+						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						showTime: EventTextTimeOption.NO_TIME,
 					})
@@ -109,7 +115,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					event: e,
 					startDate: vnode.attrs.selectedDate,
 					endDate: vnode.attrs.selectedDate,
-					color: defaultCalendarColor,
+					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
 				}))),
@@ -176,7 +182,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			text: getEventText(ev, EventTextTimeOption.START_TIME),
 			secondLineText: ev.location,
 			date: attrs.selectedDate,
-			color: defaultCalendarColor,
+			color: getEventColor(ev, attrs.groupColors),
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2,
 			hasAlarm: ev.alarmInfos.length > 0,

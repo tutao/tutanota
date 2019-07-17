@@ -28,6 +28,7 @@ import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {NotFoundError} from "../../common/error/RestError"
+import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 
 assertWorkerOrNode()
 
@@ -116,7 +117,7 @@ export class CalendarFacade {
 	}
 
 
-	addCalendar(): Promise<User> {
+	addCalendar(name: string): Promise<User> {
 		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
@@ -127,6 +128,7 @@ export class CalendarFacade {
 			const userGroupKey = this._loginFacade.getUserGroupKey()
 			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey)
 			const postData = Object.assign(createCalendarPostData(), {calendarData})
+			// name is not working. Should be encrypted with customerGroupKey?
 			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData).then(() => {
 				// remove the user from the cache before loading it again to make sure we get the latest version.
 				// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
@@ -137,6 +139,10 @@ export class CalendarFacade {
 				})
 			})
 		})
+	}
+
+	deleteCalendar(groupRootId: Id): Promise<void> {
+		return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {groupRootId}))
 	}
 
 	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

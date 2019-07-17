@@ -2,9 +2,9 @@
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {EventTextTimeOptionEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {clone} from "../api/common/utils/Utils"
+import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
@@ -300,7 +300,7 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 }
 
 
-export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum, amPm: boolean): string {
+export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum): string {
 	if (isAllDayEvent(event) || showTime == EventTextTimeOption.NO_TIME) {
 		return event.summary
 	} else {
@@ -332,4 +332,12 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 export function getDiffInDays(a: Date, b: Date): number {
 	// discard the time and time-zone information
 	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
+}
+
+export function getCalendarName(name: ?string): string {
+	return name || lang.get("privateCalendar_label")
+}
+
+export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {
+	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
 }

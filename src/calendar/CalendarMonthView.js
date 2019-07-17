@@ -4,10 +4,10 @@
 import m from "mithril"
 import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, WeekStart, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {WeekStart, EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, getEventColor, layOutEvents} from "./CalendarUtils"
 import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
@@ -18,7 +18,7 @@ import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/Com
 import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 import {windowFacade} from "../misc/WindowFacade"
-import {debounce} from "../api/common/utils/Utils"
+import {debounce, neverNull} from "../api/common/utils/Utils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -29,6 +29,8 @@ type CalendarMonthAttrs = {
 	onChangeMonthGesture: (next: boolean) => mixed,
 	amPmFormat: boolean,
 	startOfTheWeek: WeekStartEnum,
+	groupColors: {[Id]: string},
+	hiddenCalendars: Set<Id>,
 }
 
 const weekDaysHeight = 30
@@ -143,7 +145,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const events = new Set()
 		week.forEach((day) => {
 			const dayEvents = attrs.eventsForDays.get(day.date.getTime())
-			dayEvents && dayEvents.forEach(e => events.add(e))
+			dayEvents && dayEvents.forEach(e => {
+				if (!attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) events.add(e)
+			})
 		})
 
 
@@ -231,12 +235,11 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
 
 	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date): Children {
-		let color = defaultCalendarColor
 		return m(ContinuingCalendarEventBubble, {
 			event: event,
 			startDate: firstDayOfWeek,
 			endDate: lastDayOfWeek,
-			color,
+			color: getEventColor(event, attrs.groupColors),
 			showTime: styles.isDesktopLayout() ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)

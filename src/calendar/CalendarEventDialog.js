@@ -25,7 +25,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, getCalendarName, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -214,7 +214,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
-					return {name: lang.get("privateCalendar_label"), value: calendarInfo}
+					return {name: getCalendarName(calendarInfo.groupInfo.name), value: calendarInfo}
 				}),
 				selectedValue: selectedCalendar,
 				icon: Icons.Edit,

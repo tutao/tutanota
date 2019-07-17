@@ -1,13 +1,14 @@
 //@flow
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDateWithWeekday} from "../misc/Formatter"
-import {getEventText} from "./CalendarUtils"
+import {getEventColor, getEventText} from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {neverNull} from "../api/common/utils/Utils"
 
 type Attrs = {
 	/**
@@ -15,6 +16,8 @@ type Attrs = {
 	 */
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onEventClicked: (ev: CalendarEvent) => mixed,
+	groupColors: {[Id]: string},
+	hiddenCalendars: Set<Id>,
 }
 
 export class CalendarAgendaView implements MComponent<Attrs> {
@@ -37,7 +40,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 					if (day < today) {
 						return null
 					}
-					let events = attrs.eventsForDays.get(day) || []
+					let events = (attrs.eventsForDays.get(day) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 					if (day === today) {
 						// only show future and currently running events
 						events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
@@ -64,7 +67,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 							: events.map((ev) => m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
 								text: getEventText(ev, EventTextTimeOption.START_END_TIME),
 								secondLineText: ev.location,
-								color: defaultCalendarColor,
+								color: getEventColor(ev, attrs.groupColors),
 								hasAlarm: ev.alarmInfos.length > 0,
 								onEventClicked: () => attrs.onEventClicked(ev),
 								height: 38,
