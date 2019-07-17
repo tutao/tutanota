@@ -156,6 +156,11 @@ class LanguageViewModel {
 	 */
 	_setLanguageTag(tag: string) {
 		this.languageTag = tag
+		this.updateFormats({})
+	}
+
+	updateFormats(options: Intl$DateTimeFormatOptions) {
+		const tag = this.languageTag
 		if (client.dateFormat()) {
 			this.formats = {
 				simpleDate: new Intl.DateTimeFormat(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
@@ -179,27 +184,27 @@ class LanguageViewModel {
 					month: 'short',
 					year: 'numeric'
 				}),
-				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, {
+				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short',
 					hour: 'numeric',
 					minute: 'numeric'
-				}),
-				time: new Intl.DateTimeFormat(tag, {hour: 'numeric', minute: 'numeric'}),
-				dateTime: new Intl.DateTimeFormat(tag, {
+				}, options)),
+				time: new Intl.DateTimeFormat(tag, Object.assign({}, {hour: 'numeric', minute: 'numeric'}, options)),
+				dateTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric',
 					hour: 'numeric',
 					minute: 'numeric'
-				}),
-				dateTimeShort: new Intl.DateTimeFormat(tag, {
+				}, options)),
+				dateTimeShort: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					day: 'numeric',
 					month: 'numeric',
 					year: 'numeric',
 					hour: 'numeric',
-				}),
+				}, options)),
 				weekdayShort: new Intl.DateTimeFormat(tag, {
 					weekday: 'short'
 				}),
@@ -294,12 +299,11 @@ class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, languageTag: string} {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 	if (typeof navigator !== 'undefined') {
-		languageTags = (navigator.languages && navigator.languages.length
-			> 0) ? navigator.languages : [navigator.language]
+		languageTags = (navigator.languages && navigator.languages.length > 0) ? navigator.languages : [navigator.language]
 	}
 	if (languageTags) {
 		for (let tag of languageTags) {
@@ -309,6 +313,17 @@ export function getLanguage(restrictions: ?string[]): {code: string, languageTag
 			}
 		}
 	}
+	return null
+}
+
+/**
+ * Gets the default language derived from the browser language.
+ * @param restrictions An array of language codes the selection should be restricted to
+ */
+export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+	const language = getLanguageNoDefault(restrictions)
+	if (language) return language
+
 	if (restrictions == null || restrictions.indexOf("en") !== -1) {
 		return {code: 'en', languageTag: 'en-US'}
 	} else {

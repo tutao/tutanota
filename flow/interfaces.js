@@ -18,6 +18,7 @@ interface IUserController {
 	props: TutanotaProperties;
 	sessionId: IdTuple;
 	accessToken: string;
+	+userSettingsGroupRoot: UserSettingsGroupRoot;
 
 	isGlobalAdmin(): boolean;
 

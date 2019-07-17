@@ -1,6 +1,5 @@
 // @flow
 import {lang} from "./LanguageViewModel"
-import {pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
@@ -45,7 +44,7 @@ export function formatDateTimeFromYesterdayOn(date: Date): string {
 	} else {
 		dateString = formatDateWithWeekday(date)
 	}
-	return (dateString + " " + pad(date.getHours(), 2) + ":" + pad(date.getMinutes(), 2)).trim()
+	return (dateString + " " + formatTime(date)).trim()
 }
 
 export function formatTime(date: Date): string {

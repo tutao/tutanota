@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "33"
+	"version": "34"
 }
 
 export function createBirthday(): Birthday {

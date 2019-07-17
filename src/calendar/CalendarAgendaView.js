@@ -14,7 +14,6 @@ type Attrs = {
 	 * maps start of day timestamp to events on that day
 	 */
 	eventsForDays: Map<number, Array<CalendarEvent>>,
-	amPmFormat: boolean,
 	onEventClicked: (ev: CalendarEvent) => mixed,
 }
 
@@ -63,7 +62,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						}, events.length === 0
 							? m(".mb-s", lang.get("noEntries_msg"))
 							: events.map((ev) => m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
-								text: getEventText(ev, EventTextTimeOption.START_END_TIME, attrs.amPmFormat),
+								text: getEventText(ev, EventTextTimeOption.START_END_TIME),
 								secondLineText: ev.location,
 								color: defaultCalendarColor,
 								hasAlarm: ev.alarmInfos.length > 0,

@@ -17,7 +17,7 @@ import {erase, load} from "../api/main/Entity"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -25,7 +25,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, shouldDefaultToAmPmTimeFormat, timeString, timeStringFromParts} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -45,7 +45,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(date)
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const startTime = stream(timeString(date, shouldDefaultToAmPmTimeFormat()))
+	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS
+	const startTime = stream(timeString(date, amPmFormat))
 	const endTime = stream()
 	const allDay = stream(false)
 	const locationValue = stream("")
@@ -90,14 +91,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(existingEvent), shouldDefaultToAmPmTimeFormat()))
+		startTime(timeString(getEventStart(existingEvent), amPmFormat))
 		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
 		}
-		endTime(timeString(getEventEnd(existingEvent), shouldDefaultToAmPmTimeFormat()))
+		endTime(timeString(getEventEnd(existingEvent), amPmFormat))
 		if (existingEvent.repeatRule) {
 			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
@@ -125,7 +126,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
-		endTime(timeString(endTimeDate, shouldDefaultToAmPmTimeFormat()))
+		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
 
@@ -151,7 +152,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			return
 		}
 		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
-			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, shouldDefaultToAmPmTimeFormat()))
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, amPmFormat))
 			m.redraw()
 		}
 	}
@@ -181,7 +182,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: startTime,
 						onselected: onStartTimeSelected,
-						amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						amPmFormat: amPmFormat,
 					}))
 					: null
 			]),
@@ -191,7 +192,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: endTime,
 						onselected: endTime,
-						amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						amPmFormat: amPmFormat,
 					}))
 					: null
 			]),

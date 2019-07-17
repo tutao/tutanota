@@ -3,7 +3,8 @@
 
 import m from "mithril"
 import {px, size} from "../gui/size"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import type {WeekStartEnum} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, WeekStart, EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
@@ -26,12 +27,23 @@ type CalendarMonthAttrs = {
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
 	onChangeMonthGesture: (next: boolean) => mixed,
-	amPmFormat: boolean
+	amPmFormat: boolean,
+	startOfTheWeek: WeekStartEnum,
 }
 
 const weekDaysHeight = 30
 const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
+
+function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
+	switch (weekStart) {
+		case WeekStart.SUNDAY:
+			return 0
+		case WeekStart.MONDAY:
+		default:
+			return 1
+	}
+}
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
@@ -52,8 +64,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		windowFacade.removeResizeListener(this._resizeListener)
 	}
 
-	view(vnode: Vnode<CalendarMonthAttrs>): Children {
-		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate, 1, false)
+	view({attrs}: Vnode<CalendarMonthAttrs>): Children {
+		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
+		const {weekdays, weeks} = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, false)
 		const today = getStartOfDay(new Date())
 		return m(".fill-absolute.flex.col", {
 				ontouchstart: (event) => {
@@ -74,16 +87,16 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
 							// Do nothing, vertical scroll
 						} else if (velocity > 0.6) {
-							vnode.attrs.onChangeMonthGesture(false)
+							attrs.onChangeMonthGesture(false)
 						} else if (velocity < -0.6) {
-							vnode.attrs.onChangeMonthGesture(true)
+							attrs.onChangeMonthGesture(true)
 						}
 					}
 				},
 			},
 			[
 				styles.isDesktopLayout() ?
-					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithFullYear(vnode.attrs.selectedDate)),)
+					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithFullYear(attrs.selectedDate)),)
 					: null,
 				m(".flex.pt-s.pb-s", {
 					style: {
@@ -97,8 +110,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					}
 				}, weeks.map((week) => {
 					return m(".flex.flex-grow.rel", [
-						week.map((d) => this._renderDay(vnode.attrs, d, today)),
-						this._monthDom ? this._renderWeekEvents(vnode.attrs, week) : null,
+						week.map((d) => this._renderDay(attrs, d, today)),
+						this._monthDom ? this._renderWeekEvents(attrs, week) : null,
 					])
 				}))
 			])
@@ -228,7 +241,6 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},
-			amPmFormat: attrs.amPmFormat
 		})
 	}
 

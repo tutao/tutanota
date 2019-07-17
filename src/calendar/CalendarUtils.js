@@ -8,6 +8,7 @@ import {clone} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
+import {formatTime} from "../misc/Formatter"
 
 
 export type CalendarMonthTimeRange = {
@@ -303,8 +304,8 @@ export function getEventText(event: CalendarEvent, showTime: EventTextTimeOption
 	if (isAllDayEvent(event) || showTime == EventTextTimeOption.NO_TIME) {
 		return event.summary
 	} else {
-		return timeString(event.startTime, amPm) +
-			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + timeString(event.endTime, amPm)) : "")
+		return formatTime(event.startTime) +
+			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + formatTime(event.endTime)) : "")
 			+ " " + event.summary
 	}
 }

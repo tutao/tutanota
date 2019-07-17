@@ -16,9 +16,9 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, TimeFormat, OperationType, reverse} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
@@ -167,7 +167,8 @@ export class CalendarView implements CurrentView {
 								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 								this._setUrl(CalendarViewType.MONTH, newDate)
 							},
-							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS,
+							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 						})
 					case CalendarViewType.DAY:
 						return m(CalendarDayView, {

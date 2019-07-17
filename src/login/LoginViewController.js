@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
-import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, Const, TimeFormat} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -230,6 +230,9 @@ export class LoginViewController implements ILoginViewController {
 				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
 			}
 		}).then(() => calendarModel.scheduleAlarmsLocally())
+		                         .then(() => lang.updateFormats({
+			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS
+		                         }))
 	}
 
 	_showUpgradeReminder(): Promise<void> {

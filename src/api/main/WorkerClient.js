@@ -6,7 +6,7 @@ import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
-import {loadRoot} from "./Entity"
+import {load, loadRoot, setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
 import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
@@ -16,6 +16,8 @@ import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
+import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
+import {NotFoundError} from "../common/error/RestError"
 
 assertMainOrNode()
 
@@ -157,9 +159,19 @@ export class WorkerClient {
 	}
 
 	_initUserController(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
-			logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession))
-		})
+		return Promise
+			.all([
+				loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
+				load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+					.catch(NotFoundError, () =>
+						setup(null, Object.assign(createUserSettingsGroupRoot(), {
+							_ownerGroup: user.userGroup.group
+						}))
+							.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group)))
+			])
+			.then(([props, userSettingsGroupRoot]) => {
+				logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot))
+			})
 	}
 
 	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
