@@ -1,7 +1,7 @@
 // @flow
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactAddress} from "../api/entities/tutanota/ContactAddress"
-import type {ContactPhoneNumberTypeEnum, ContactAddressTypeEnum} from "../api/common/TutanotaConstants"
+import type {ContactAddressTypeEnum, ContactPhoneNumberTypeEnum} from "../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
@@ -23,8 +23,9 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 	vCardFileData = vCardFileData.replace(/end:vcard/g, "END:VCARD")
 	vCardFileData = vCardFileData.replace(/version:2.1/g, "VERSION:2.1")
 	let vCardList = []
-	if (vCardFileData.indexOf("BEGIN:VCARD") > -1 && vCardFileData.indexOf(E) > -1 && vCardFileData.indexOf(V3) > -1
-		|| vCardFileData.indexOf(V2) > -1) {
+	if (vCardFileData.indexOf("BEGIN:VCARD") > -1
+		&& vCardFileData.indexOf(E) > -1
+		&& (vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1)) {
 		vCardFileData = vCardFileData.replace(/\r/g, "")
 		vCardFileData = vCardFileData.replace(/\n /g, "") //folding symbols removed
 		vCardFileData = vCardFileData.replace(/\nEND:VCARD\n\n/g, "")

@@ -323,6 +323,7 @@ export const InvoiceStatus = Object.freeze({
 	SECONDREMINDER: "11"
 })
 export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;
+export const ValueToInvoiceStatus = reverse(FeatureType)
 
 export const CloseEventBusOption = Object.freeze({
 	Terminate: "terminate",

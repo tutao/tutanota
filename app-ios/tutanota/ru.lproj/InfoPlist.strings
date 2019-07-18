@@ -8,6 +8,6 @@ TutaoShowCameraAction = "Камера";
 TutaoChoosePhotosAction = "Фотографии";
 TutaoNoPermissionTitle = "Нет доступа";
 TutaoChangePermissionMsg = "Чтобы предоставить доступ, Вам придётся изменить полномочия для этого устройства.";
-TutaoCancelAction = "Отменить";
+TutaoCancelAction = "Отмена";
 TutaoSettingsAction = "Настройки";
 TutaoCalendarAlarmTitle = "Напоминание";

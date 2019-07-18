@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Sem Permissão";
 TutaoChangePermissionMsg = "Para atribuir acesso tem de modificar as permissões deste dispositivo.";
 TutaoCancelAction = "Cancelar";
 TutaoSettingsAction = "Definições";
+TutaoCalendarAlarmTitle = "Lembrete";

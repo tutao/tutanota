@@ -31,7 +31,6 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {CalendarDayView} from "./CalendarDayView"
 import {geEventElementMaxId, getEventElementMinId, getEventStart} from "../api/common/utils/CommonCalendarUtils"
-import {px, size as sizes} from "../gui/size"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -94,18 +93,18 @@ export class CalendarView implements CurrentView {
 					})
 				]),
 				m(".folders", [
-					m(".folder-row.flex-space-between", [
+					m(".folder-row.flex-space-between.button-height", [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
 							lang.get("view_label").toLocaleUpperCase()),
-						m(ButtonN, {
+						(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
 							label: "today_label",
 							click: () => {
 								this._setUrl(m.route.param("view"), new Date())
 							},
 							colors: ButtonColors.Nav,
 							type: ButtonType.Primary,
-						})
+						}) : null
 					]),
 					m(".folder-row", calendarViewValues.map(viewType => {
 						return m(NavButtonN, {
@@ -124,9 +123,7 @@ export class CalendarView implements CurrentView {
 				m(".folders",
 					{style: {color: theme.navigation_button}},
 					[
-						m(".folder-row.flex-space-between", {
-							style: {height: px(sizes.button_height)}
-						}, [
+						m(".folder-row.flex-space-between.button-height", [
 							m("small.b.align-self-center.ml-negative-xs",
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							// m(ButtonN, {
