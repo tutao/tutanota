@@ -9,6 +9,7 @@
 	"scripts": {
 		"flow": "flow; test $? -eq 0 -o $? -eq 2",
 		"start": "./node_modules/electron/dist/electron --inspect=5858 ./build/",
+		"install": "./node_modules/.bin/electron-rebuild -p -f -t dev",
 		"test": "cd test && node test api && node test client",
 		"testapi": "cd test && node test api",
 		"testclient": "cd test && node test client"
@@ -39,12 +40,14 @@
 		"electron-builder": "20.44.4",
 		"electron-localshortcut": "3.1.0",
 		"electron-packager": "13.1.1",
+		"electron-rebuild": "^1.8.5",
 		"electron-updater": "4.1.2",
 		"express": "4.16.4",
 		"flow-bin": "0.77.0",
 		"fs-extra": "7.0.1",
 		"glob": "7.1.3",
 		"js-yaml": "3.13.1",
+		"keytar": "^4.11.0",
 		"luxon": "^1.15.0",
 		"mithril-node-render": "1.0.1-4",
 		"mockery": "^2.1.0",

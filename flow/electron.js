@@ -577,3 +577,15 @@ declare module 'node-forge' {
 declare module 'winreg' {
 	declare export default any;
 }
+
+declare module 'keytar' {
+	declare export function getPassword(service: string, account: string): Promise<?string>;
+
+	declare export function setPassword(service: string, account: string, password: string): Promise<void>;
+
+	declare export function deletePassword(service: string, account: string): Promise<boolean>;
+
+	declare export function findCredentials(service: string): Promise<{account: string, password: string}>;
+
+	declare export function findPassword(service: string): Promise<?string>;
+}
