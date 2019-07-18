@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2019-07-04T12:07:39Z",
+	"updated_at": "2019-07-18T12:08:18Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -67,6 +67,7 @@ module.exports = {
 		"adminSubscription_action": "Abonnement",
 		"adminUserList_action": "Benutzerverwaltung",
 		"ageConfirmation_msg": "Ich bin mindestens 16 Jahre alt.",
+		"agenda_label": "Agenda",
 		"allDay_label": "Ganztags",
 		"allowPushNotification_msg": "Bitte deaktivieren Sie die Akkuoptimierung für Tutanota, damit Benachrichtigungen für neue E-Mails zuverlässig angezeigt werden können. Sie können dies auch später in den Einstellungen ändern.",
 		"all_contacts_label": "Alle Kontakte",
@@ -907,6 +908,7 @@ module.exports = {
 		"time_label": "Uhrzeit",
 		"title_placeholder": "Titel",
 		"today_label": "Heute",
+		"tomorrow_label": "Morgen",
 		"tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
 		"tooBigInlineImages_msg": "Es sind nur Bilder bis zu einer Größe von {size} KB erlaubt.",
 		"tooManyAttempts_msg": "Anzahl erlaubter Versuche überschritten. Bitte versuchen Sie es es später erneut.",

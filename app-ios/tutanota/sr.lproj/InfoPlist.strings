@@ -1,8 +1,13 @@
+NSCameraUsageDescription = "Снимите фотографију или видеозапис за додавање као додатак.";
+NSPhotoLibraryUsageDescription = "Додајте слику из ваше библиотеке као додатак.";
+NSMicrophoneUsageDescription = "Додајте слику из ваше библиотеке као додатак.";
 NSMicrophoneUsageDescription = "Користи се при снимању видео прилога.";
+NSContactsUsageDescription = "Нађи поштанску адресу примаоца у контактима.";
 NSRemindersUsageDescription = "Покажи обавештење када стигне пошта.";
 TutaoShowCameraAction = "Камера";
 TutaoChoosePhotosAction = "Слике";
 TutaoNoPermissionTitle = "Нема дозволе";
+TutaoChangePermissionMsg = "Да би сте одобрили приступ, морате изменити допуштења за овај уређај.";
 TutaoCancelAction = "Одустати";
 TutaoSettingsAction = "Подешавања";
 TutaoCalendarAlarmTitle = "Подсетник";

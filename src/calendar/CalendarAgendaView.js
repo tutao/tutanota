@@ -2,13 +2,16 @@
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
-import {getStartOfDay} from "../api/common/utils/DateUtils"
+import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDateWithWeekday} from "../misc/Formatter"
 import {getEventText} from "./CalendarUtils"
 
 type Attrs = {
+	/**
+	 * maps start of day timestamp to events on that day
+	 */
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	amPmFormat: boolean,
 	onEventClicked: (ev: CalendarEvent) => mixed,
@@ -17,7 +20,9 @@ type Attrs = {
 export class CalendarAgendaView implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>) {
 		const today = getStartOfDay(new Date()).getTime()
-		let dayCount = 0
+		const tomorrow = getDayShifted(new Date(today), 1).getTime()
+		let days = Array.from(attrs.eventsForDays.keys())
+		days.sort((a, b) => a - b)
 		return m(".fill-absolute.flex.col", [
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
@@ -27,24 +32,23 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						]
 						: null,
 				]),
-				m(".scroll.pt-s", Array.from(attrs.eventsForDays.keys()).map((day) => {
+				m(".scroll.pt-s", days.map((day) => {
 					if (day < today) {
 						return null
 					}
-					dayCount++
 					const events = attrs.eventsForDays.get(day) || []
 					if (events.length === 0) return null
 
 					const date = new Date(day)
-					const dateDescription = dayCount === 1
+					const dateDescription = day === today
 						? lang.get("today_label")
-						: dayCount === 2
+						: day === tomorrow
 							? lang.get("tomorrow_label")
 							: formatDateWithWeekday(date)
 					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
 						key: day,
 					}, [
-						m(".pb-s" + (dayCount < 3 ? ".b" : ""), dateDescription),
+						m(".pb-s" + (day === today || day === tomorrow ? ".b" : ""), dateDescription),
 						m(".flex-grow", {
 							style: {
 								"max-width": "600px",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-07-07T17:43:40Z",
+	"updated_at": "2019-07-18T12:08:12Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
@@ -60,6 +60,7 @@ module.exports = {
 		"adminSubscription_action": "Subscription",
 		"adminUserList_action": "User management",
 		"ageConfirmation_msg": "I am at least 16 years old.",
+		"agenda_label": "Agenda",
 		"allDay_label": "All Day",
 		"allowPushNotification_msg": "To receive push notifications for new emails reliably, please agree to disable battery optimizations for Tutanota. You can change this later in the system settings.",
 		"all_contacts_label": "All contacts",
@@ -900,6 +901,7 @@ module.exports = {
 		"time_label": "Time",
 		"title_placeholder": "Title",
 		"today_label": "Today",
+		"tomorrow_label": "Tomorrow",
 		"tooBigAttachment_msg": "The following files could not be attached because the overall size exceeds 25 MB: ",
 		"tooBigInlineImages_msg": "Only files up to {size} KB are allowed.",
 		"tooManyAttempts_msg": "Number of allowed attempts exceeded. Please try again later.",
@@ -987,8 +989,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"agenda_label": "Agenda",
-		"tomorrow_label": "Tomorrow"
+		"yourMessage_label": "Your message"
 	}
 }

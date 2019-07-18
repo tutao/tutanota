@@ -7,6 +7,7 @@ NSRemindersUsageDescription = "Prikaz obavijesti kad stigne novi email.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Slike";
 TutaoNoPermissionTitle = "Nema odobrenja";
+TutaoChangePermissionMsg = "Da biste odobrili pristup, morate izmijeniti dopuštenja za ovaj uređaj.";
 TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";
 TutaoCalendarAlarmTitle = "Podsjetnik";
