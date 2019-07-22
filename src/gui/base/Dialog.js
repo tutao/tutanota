@@ -469,6 +469,14 @@ export class Dialog {
 				help: "cancel_action"
 			})
 		}
+		if (okAction) {
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false
+				exec: doAction,
+				help: "ok_action"
+			})
+		}
 
 		return dialog.show()
 	}
