@@ -18,22 +18,29 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
 
 - (void)storeKey:(NSData *)key withId:(NSString *)keyId error:(NSError **)error {
     let keyTag = [self keyTagFromKeyId:keyId];
-    NSDictionary* addquery = @{
-                               (id)kSecValueData:key,
-                               (id)kSecClass:(id)kSecClassKey,
-                               (id)kSecAttrApplicationTag:keyTag,
-                               };
-    
+
     NSError *getKeyError;
     let existingKey = [self getKeyWithError:keyId error:&getKeyError];
     
     OSStatus status;
     if (existingKey) {
+        let updateQuery = @{
+                            (id)kSecClass:(id)kSecClassKey,
+                            (id)kSecAttrApplicationTag:keyTag
+                          };
+        
         let updateFields = @{
-                               (id)kSecValueData:key
-                               };
-        status = SecItemUpdate((__bridge CFDictionaryRef)addquery, (__bridge CFDictionaryRef) updateFields);
+                               (id)kSecValueData:key,
+                               (id)kSecAttrAccessible:(id)kSecAttrAccessibleAlwaysThisDeviceOnly
+                            };
+        status = SecItemUpdate((__bridge CFDictionaryRef)updateQuery, (__bridge CFDictionaryRef) updateFields);
     } else {
+        NSDictionary* addquery = @{
+                                   (id)kSecValueData:key,
+                                   (id)kSecClass:(id)kSecClassKey,
+                                   (id)kSecAttrApplicationTag:keyTag,
+                                   (id)kSecAttrAccessible:(id)kSecAttrAccessibleAlwaysThisDeviceOnly // Allow access to keychain item if the device is locked.
+                                   };
         status = SecItemAdd((__bridge CFDictionaryRef)addquery, NULL);
     }
     
