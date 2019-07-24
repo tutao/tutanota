@@ -23,7 +23,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		const now = new Date()
 		const today = getStartOfDay(now).getTime()
 		const tomorrow = getDayShifted(new Date(today), 1).getTime()
-		let days = Array.from(attrs.eventsForDays.keys())
+		let days = Array.from(new Set(attrs.eventsForDays.keys()).add(today).add(tomorrow)) // ensure that today and tomorrow are added to the days list
 		days.sort((a, b) => a - b)
 		return m(".fill-absolute.flex.col", [
 				m(".mt-s.pr-l", [
@@ -42,7 +42,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 					if (day === today) {
 						// only show future and currently running events
 						events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
-					} else if (events.length === 0) {
+					} else if (day > tomorrow && events.length === 0) {
 						return null
 					}
 
@@ -55,20 +55,22 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
 						key: day,
 					}, [
-						m(".pb-s" + (day === today || day === tomorrow ? ".b" : ""), dateDescription),
+						m(".pb-s.b", dateDescription),
 						m(".flex-grow", {
 							style: {
 								"max-width": "600px",
 							}
-						}, events.map((ev) => m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
-							text: getEventText(ev, EventTextTimeOption.START_END_TIME, attrs.amPmFormat),
-							secondLineText: ev.location,
-							color: defaultCalendarColor,
-							hasAlarm: ev.alarmInfos.length > 0,
-							onEventClicked: () => attrs.onEventClicked(ev),
-							height: 38,
-							verticalPadding: 2
-						}))))
+						}, events.length === 0
+							? m(".mb-s", lang.get("noEntries_msg"))
+							: events.map((ev) => m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
+								text: getEventText(ev, EventTextTimeOption.START_END_TIME, attrs.amPmFormat),
+								secondLineText: ev.location,
+								color: defaultCalendarColor,
+								hasAlarm: ev.alarmInfos.length > 0,
+								onEventClicked: () => attrs.onEventClicked(ev),
+								height: 38,
+								verticalPadding: 2
+							}))))
 					])
 				}))
 			]
