@@ -3,7 +3,7 @@
 
 import m from "mithril"
 import {px, size} from "../gui/size"
-import {defaultCalendarColor} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
@@ -224,7 +224,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			startDate: firstDayOfWeek,
 			endDate: lastDayOfWeek,
 			color,
-			showTime: styles.isDesktopLayout(),
+			showTime: styles.isDesktopLayout() ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},

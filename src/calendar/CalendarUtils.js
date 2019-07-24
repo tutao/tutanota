@@ -1,7 +1,8 @@
 //@flow
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import type {EventTextTimeOptionEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -297,11 +298,14 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
-export function getEventText(event: CalendarEvent, showTime: boolean, amPm: boolean): string {
-	if (isAllDayEvent(event) || !showTime) {
+
+export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum, amPm: boolean): string {
+	if (isAllDayEvent(event) || showTime == EventTextTimeOption.NO_TIME) {
 		return event.summary
 	} else {
-		return timeString(event.startTime, amPm) + " " + event.summary
+		return timeString(event.startTime, amPm) +
+			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + timeString(event.endTime, amPm)) : "")
+			+ " " + event.summary
 	}
 }
 
