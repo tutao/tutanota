@@ -243,15 +243,15 @@ export class MailEditor {
 			})
 		}
 
+		let windowCloseUnsubscribe = () => {}
 		this.view = () => {
-			let unsubscribeFunction = () => {}
 			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => {
 					this._domElement = vnode.dom
-					unsubscribeFunction = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
+					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
 				},
 				onremove: vnode => {
-					unsubscribeFunction()
+					windowCloseUnsubscribe()
 					this._objectURLs.forEach((url) => URL.revokeObjectURL(url))
 				},
 				onclick: (e) => {
@@ -611,12 +611,10 @@ export class MailEditor {
 	show() {
 		locator.eventController.addEntityListener(this._entityEventReceived)
 		this.dialog.show()
-		windowFacade.checkWindowClosing(true)
 	}
 
 
 	_close() {
-		windowFacade.checkWindowClosing(false)
 		locator.eventController.removeEntityListener(this._entityEventReceived)
 		this.dialog.close()
 	}
@@ -1026,7 +1024,7 @@ export class MailEditor {
 					})
 				}
 			}
-			if (!this._previousMail || !this._previousMail.restrictions || this._previousMail.restrictions.participantGroupInfos.length == 0) {
+			if (!this._previousMail || !this._previousMail.restrictions || this._previousMail.restrictions.participantGroupInfos.length === 0) {
 				buttonAttrs.push({
 					label: "remove_action",
 					type: ButtonType.Secondary,

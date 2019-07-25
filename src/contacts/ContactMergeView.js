@@ -135,9 +135,12 @@ export class ContactMergeView {
 			                                               .setHtmlMonospace(false)
 		}
 
-
+		let windowCloseUnsubscribe
 		this.view = () => {
-			return m("#contact-editor", [
+			return m("#contact-editor", {
+				oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+				onremove: vnode => windowCloseUnsubscribe(),
+			}, [
 				m(".flex-center.mt", [
 					m(".full-width.max-width-s", [
 						m(mergeButton)
@@ -274,14 +277,12 @@ export class ContactMergeView {
 
 	show(): Promise<ContactMergeActionEnum> {
 		this.dialog.show()
-		windowFacade.checkWindowClosing(true)
 		let d = defer()
 		this.resolveFunction = d.resolve
 		return d.promise
 	}
 
 	_close(action: ContactMergeActionEnum): void {
-		windowFacade.checkWindowClosing(false)
 		this.dialog.close()
 		Promise.delay(200).then(() => {
 			this.resolveFunction(action)

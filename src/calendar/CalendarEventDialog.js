@@ -30,6 +30,7 @@ import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from 
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
+import {windowFacade} from "../misc/WindowFacade"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -38,7 +39,7 @@ import {TimePicker} from "../gui/base/TimePicker"
 // {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
 // We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
 // interpret it as full day in Europe/Berlin, not in the UTC.
-export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent?: CalendarEvent) {
+export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent ?: CalendarEvent) {
 	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
@@ -168,9 +169,13 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	}
 
+	let windowCloseUnsubscribe
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
-		child: () => [
+		child: () => m("", {
+			oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+			onremove: vnode => windowCloseUnsubscribe()
+		}, [
 			m(TextFieldN, {
 				label: "title_placeholder",
 				value: summary
@@ -242,7 +247,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					})
 				}
 			})) : null,
-		],
+		]),
 		okAction: () => {
 			const newEvent = createCalendarEvent()
 			let startDate = neverNull(startDatePicker.date())

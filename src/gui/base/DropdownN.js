@@ -214,6 +214,11 @@ export class DropdownN {
 		this.close()
 	}
 
+	popState(e: Event): boolean {
+		this.close()
+		return true
+	}
+
 	chooseMatch = () => {
 		const filterString = this._filterString().toLowerCase()
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)

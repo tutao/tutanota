@@ -203,6 +203,10 @@ export class Dialog {
 		}
 	}
 
+	popState(e: Event): boolean {
+		this.onClose(e)
+		return false
+	}
 
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
