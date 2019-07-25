@@ -383,3 +383,11 @@ export const AlarmInterval = Object.freeze({
 	ONE_WEEK: "1W",
 })
 export type AlarmIntervalEnum = $Values<typeof AlarmInterval>
+
+
+export const EventTextTimeOption = Object.freeze({
+	NO_TIME: "noTime",
+	START_TIME: "startTime",
+	START_END_TIME: "startAndEndTime"
+})
+export type EventTextTimeOptionEnum = $Values<typeof EventTextTimeOption>;

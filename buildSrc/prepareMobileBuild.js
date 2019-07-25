@@ -8,7 +8,7 @@ function prepareFiles(buildType) {
 		case "dist":
 			prefix = "build/dist/"
 			break
-		case "build":
+		case "make":
 			prefix = "build/"
 			break
 		default:

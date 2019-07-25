@@ -2,6 +2,7 @@
 
 import m from "mithril"
 import {eventEndsAfterDay, eventStartsBefore, getEventText} from "./CalendarUtils"
+import type {EventTextTimeOptionEnum} from "../api/common/TutanotaConstants"
 import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
@@ -11,7 +12,7 @@ type ContinuingCalendarEventBubbleAttrs = {|
 	endDate: Date,
 	color: string,
 	onEventClicked: clickHandler,
-	showTime: boolean,
+	showTime: EventTextTimeOptionEnum,
 	amPmFormat: boolean
 |}
 
