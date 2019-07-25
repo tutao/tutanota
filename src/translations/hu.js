@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Felhasználók hozzáadása",
 		"addUserToGroup_label": "Tag hozzáadása",
 		"add_action": "Hozzáadás",
-		"adminCustomDomainInfo_msg": "Győződjön meg róla, hogy az MX és SPF bejegyzései helyesen vannak-e megadva a DNS-nél.",
 		"adminCustomDomain_label": "Egyéni domain",
 		"adminDeleteAccount_action": "Fiók törlése",
 		"adminEmailSettings_action": "E-mail",
@@ -200,9 +199,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "A domain már hozzá lett rendelve a fiókjához.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-keresés sikertelen.",
 		"customDomainErrorDomainNotAvailable_msg": "A domain nem hozzáférhető.",
-		"customDomainErrorInvalidDnsRecord_msg": "A domainhez tartozó DNS bejegyzés érvénytelen értékeket tartalmaz.",
-		"customDomainErrorMissingMxEntry_msg": "Hiányzik a domainhez tartozó MX-bejegyzés.",
-		"customDomainErrorMissingSpfEntry_msg": "Hiányzik a domainhez tartozó SPF-bejegyzés.",
 		"customDomainNeutral_msg": "Kérem adja meg a domaint.",
 		"customEmailDomains_label": "Egyéni e-mail domain",
 		"customLabel_label": "Egyedi címke",

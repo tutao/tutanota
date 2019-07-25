@@ -32,6 +32,7 @@ export const DialogType = Object.freeze({
 	Reminder: "Reminder",
 	EditSmall: "EditSmall",
 	EditMedium: "EditMedium",
+	EditLarger: "EditLarger",
 	EditLarge: "EditLarge"
 })
 export type DialogTypeEnum = $Values<typeof DialogType>;
@@ -153,7 +154,7 @@ export class Dialog {
 			dialogStyle += ".dialog-width-s.flex.flex-column"
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m"
-		} else if (dialogType === DialogType.EditLarge) {
+		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l"
 		}
 		return dialogStyle

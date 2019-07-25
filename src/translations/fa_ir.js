@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2019-06-04T18:27:57Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "لطفا با انتخاب جعبه بررسی، قوانین  حفظ حریم خصوصی را بپذیرید.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "اضافه کردن کاربران",
 		"addUserToGroup_label": "افزودن عضو",
 		"add_action": "ضمیمه کنید",
-		"adminCustomDomainInfo_msg": "لطفاً اطمینان حاصل کنید که سوابق MX و SPF شما در DNS شما به درستی تنظیم شده است.",
 		"adminCustomDomain_label": "دامنه سفارشی",
 		"adminDeleteAccount_action": "حذف حساب کاربری",
 		"adminEmailSettings_action": "ایمیل",
@@ -200,9 +199,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "این دامنه پیش از این به حساب کاربری شما اختصاص داده شده است.",
 		"customDomainErrorDnsLookupFailure_msg": "برقراری ارتباط با DNS با مشکل مواجه شد.",
 		"customDomainErrorDomainNotAvailable_msg": "این دامنه در دسترس نیست.",
-		"customDomainErrorInvalidDnsRecord_msg": "رکورد DNS از این دامنه شامل مقادیر غیرقابل قبول است.",
-		"customDomainErrorMissingMxEntry_msg": "این دامنه بدون رکورد MX است.",
-		"customDomainErrorMissingSpfEntry_msg": "این دامنه بدون رکورد SPF است.",
 		"customDomainNeutral_msg": "لطفا دامنه را وارد کنید.",
 		"customEmailDomains_label": "دامنه‌های ایمیل سفارشی",
 		"customLabel_label": "برچسب سفارشی",

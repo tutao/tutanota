@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Engadir usuarios",
 		"addUserToGroup_label": "Engadir participante",
 		"add_action": "Engadir",
-		"adminCustomDomainInfo_msg": "Por favor asegúrese previamente de que os rexistros MX e SPF están correctamente configurados no seu DNS.",
 		"adminCustomDomain_label": "Dominio personalizado",
 		"adminDeleteAccount_action": "Eliminar conta",
 		"adminEmailSettings_action": "Correo",
@@ -190,9 +189,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Este dominio xa está asignado a súa conta.",
 		"customDomainErrorDnsLookupFailure_msg": "Fallo o descubrimento DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "O dominio non está dispoñible",
-		"customDomainErrorInvalidDnsRecord_msg": "O rexistro DNS para este dominio contén valores non válidos.",
-		"customDomainErrorMissingMxEntry_msg": "Falta o rexistro MX para este dominio.",
-		"customDomainErrorMissingSpfEntry_msg": "Falta o rexistro SPF de este dominio.",
 		"customDomainNeutral_msg": "Por favor, introduza o seu dominio.",
 		"customEmailDomains_label": "Dominios personalizados de correo",
 		"customLabel_label": "Etiqueta personalizada",

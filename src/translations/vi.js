@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2019-07-11T11:50:55Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Vui lòng chấp nhận chính sách bảo mật bằng cách tích vào các ô.",
@@ -41,7 +41,6 @@ module.exports = {
 		"addUsers_action": "Thêm người dùng",
 		"addUserToGroup_label": "Thêm thành viên",
 		"add_action": "Thêm",
-		"adminCustomDomainInfo_msg": "Xin chắc rằng các bản ghi MX và SPF đã được thiết lập chính xác từ trước trong DNS.",
 		"adminCustomDomain_label": "Tuỳ chọn tên miền",
 		"adminDeleteAccount_action": "Xoá tài khoản",
 		"adminEmailSettings_action": "Email",
@@ -183,9 +182,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Tên miền đã được gán cho tài khoản của bạn rồi.",
 		"customDomainErrorDnsLookupFailure_msg": "Tra cứu DNS thất bại.",
 		"customDomainErrorDomainNotAvailable_msg": "Miền không khả dụng.",
-		"customDomainErrorInvalidDnsRecord_msg": "Bản ghi DNS cho miền này có chứa các giá trị không hợp lệ.",
-		"customDomainErrorMissingMxEntry_msg": "Bản ghi MX cho miền này đang thất lạc.",
-		"customDomainErrorMissingSpfEntry_msg": "Bản ghi SPF cho tên miền này đang thất lạc.",
 		"customDomainNeutral_msg": "Xin nhập tên miền.",
 		"customEmailDomains_label": "Địa chỉ email tùy chỉnh",
 		"customLabel_label": "Nhãn tuỳ chọn",

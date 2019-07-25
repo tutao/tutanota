@@ -34,8 +34,14 @@ export type TableAttrs = {
 	lines: ?TableLineAttrs[]
 }
 
+export type CellTextData = {
+	main: string,
+	info: ?string,
+	click?: clickHandler
+}
+
 export type TableLineAttrs = {
-	cells: string[],
+	cells: string[] | () => CellTextData[],
 	actionButtonAttrs?: ?ButtonAttrs
 }
 
@@ -71,10 +77,23 @@ class _Table {
 	}
 
 	_createLine(lineAttrs: TableLineAttrs, showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
-		let cells = lineAttrs.cells.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index]
-			+ ((bold) ? ".b" : ""), {
-			title: text, // show the text as tooltip, so ellipsed lines can be shown
-		}, text))
+		let cells
+		if (typeof lineAttrs.cells == "function") {
+			cells = lineAttrs.cells().map((cellTextData, index) =>
+				m("td", [
+					m(".text-ellipsis.pr.pt-s" + columnWidths[index] + ((bold) ? ".b" : "") + (cellTextData.click ? ".click" : ""), {
+						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+					}, cellTextData.main), m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+					}, cellTextData.info)
+				]))
+		} else {
+			cells = lineAttrs.cells.map((text, index) =>
+				m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + ((bold) ? ".b" : ""), {
+					title: text, // show the text as tooltip, so ellipsed lines can be shown
+				}, text))
+		}
 		if (showActionButtonColumn) {
 			cells.push(m("td", {
 				style: {
@@ -101,7 +120,7 @@ interface UpdateableInstanceWithArray<T> {
 	updateInstance: () => Promise<void>;
 }
 
-export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement:T, indexOfElement: number): ButtonAttrs {
+export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement: T, indexOfElement: number): ButtonAttrs {
 	const elements = instance.getArray()
 	const dropDownActions: $ReadOnlyArray<ButtonAttrs> = [
 		{

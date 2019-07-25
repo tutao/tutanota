@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -47,7 +47,6 @@ module.exports = {
 		"addUsers_action": "添加用户",
 		"addUserToGroup_label": "添加成员",
 		"add_action": "添加",
-		"adminCustomDomainInfo_msg": "请提前确保您的MX和SPF记录在DNS中配置正确。",
 		"adminCustomDomain_label": "自定义域名",
 		"adminDeleteAccount_action": "删除账户",
 		"adminEmailSettings_action": "邮件",
@@ -203,9 +202,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "该域名已指定到您的账户。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS查询失败。",
 		"customDomainErrorDomainNotAvailable_msg": "域名不可用。",
-		"customDomainErrorInvalidDnsRecord_msg": "该域名的DNS记录包含无效信息。",
-		"customDomainErrorMissingMxEntry_msg": "该域名邮件交换记录丢失。",
-		"customDomainErrorMissingSpfEntry_msg": "该域名的发送方策略框架记录已丢失。",
 		"customDomainNeutral_msg": "请填写您的域名。",
 		"customEmailDomains_label": "自定义电邮域名",
 		"customLabel_label": "自定义标签",

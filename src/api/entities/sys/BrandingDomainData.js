@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "48"
+	"version": "49"
 }
 
 export function createBrandingDomainData(): BrandingDomainData {

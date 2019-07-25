@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2019-06-18T11:39:02Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"action_label": "Darbība",
@@ -30,7 +30,6 @@ module.exports = {
 		"addStatisticsField_action": "Pievienot statistikas lauku",
 		"addUsers_action": "Pievienot lietotājus",
 		"add_action": "Pievienot",
-		"adminCustomDomainInfo_msg": "Lūdzu, nodrošiniet iepriekš, lai MX un SPF ieraksti ir iestatīti pareizi iekš jūsu DNS.",
 		"adminCustomDomain_label": "Pielāgots domēns",
 		"adminDeleteAccount_action": "Dzēst kontu",
 		"adminEmailSettings_action": "E-vēstule",
@@ -147,9 +146,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Domēns jau ir piešķirts jūsu kontam.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS meklēšana neveiksmīga.",
 		"customDomainErrorDomainNotAvailable_msg": "Domēns nav pieejams.",
-		"customDomainErrorInvalidDnsRecord_msg": "Domēna DNS ieraksti satur kļūdainu informāciju.",
-		"customDomainErrorMissingMxEntry_msg": "MX ieraksti šim domēna vārdam netika atrasti.",
-		"customDomainErrorMissingSpfEntry_msg": "Trūkst domēna SPF ierakstu.",
 		"customDomainNeutral_msg": "Lūdzu ievadiet savu domēnu.",
 		"customLogo_label": "Izvēles logo",
 		"custom_label": "Pielāgots",

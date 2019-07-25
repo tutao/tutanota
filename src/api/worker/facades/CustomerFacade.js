@@ -65,6 +65,10 @@ export class CustomerFacade {
 		this._counters = counters
 	}
 
+	getDomainValidationRecord(): Promise<string> {
+		return Promise.resolve("t-verify=" + uint8ArrayToHex(hash(stringToUtf8Uint8Array(neverNull(this._login.getLoggedInUser().customer))).slice(0, 16)))
+	}
+
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
 		let data = createCustomDomainData()
 		data.domain = domainName.trim().toLowerCase()

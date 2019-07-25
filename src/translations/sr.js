@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2019-07-14T07:41:41Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Молим вас да прихватите правила приватности кликом на поље за селектовање.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Додај корисника",
 		"addUserToGroup_label": "Додај члана",
 		"add_action": "Додај",
-		"adminCustomDomainInfo_msg": "Молимо вас да на вашем DNS-у унапред проверите да ли је ваш MX и SPF запоис исправно подешен.",
 		"adminCustomDomain_label": "Ваши домени",
 		"adminDeleteAccount_action": "Обриши налог",
 		"adminEmailSettings_action": "Пошта",
@@ -216,9 +215,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Домен је већ додељен вашем налогу.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS претрага није успела.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен није доступан.",
-		"customDomainErrorInvalidDnsRecord_msg": "DNS запис садржи неважеће вредности.",
-		"customDomainErrorMissingMxEntry_msg": "За овај домен недостаје MX запис.",
-		"customDomainErrorMissingSpfEntry_msg": "недостаје SPF запис за овај домен.",
 		"customDomainNeutral_msg": "Молимо вас да унесете свој домен.",
 		"customEmailDomains_label": "Прилагођене домене поште",
 		"customLabel_label": "Прилагођена ознака",
