@@ -6,9 +6,8 @@ import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {load, loadAll, setup, update} from "../api/main/Entity"
-import {compareGroupInfos, getWhitelabelDomain, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {compareGroupInfos, getGroupInfoDisplayName, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
-import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -37,6 +36,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {Keys} from "../misc/KeyManager"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {windowFacade} from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -250,7 +250,11 @@ export class ContactFormEditor {
 			middle: () => lang.get(this._createNew ? "createContactForm_label" : "editContactForm_label")
 		}
 
-		this.view = () => m("#contact-editor.pb", [
+		let windowCloseUnsubscribe
+		this.view = () => m("#contact-editor.pb", {
+			oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+			onremove: vnode => windowCloseUnsubscribe()
+		}, [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
 			m(this._receivingMailboxField),
 			(this._receivingMailbox() && neverNull(this._receivingMailbox()).groupType === GroupType.User)
@@ -311,7 +315,6 @@ export class ContactFormEditor {
 	}
 
 	_close() {
-		windowFacade.checkWindowClosing(false)
 		this.dialog.close()
 	}
 
@@ -419,7 +422,6 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 								.then(sharedMailGroupInfos => {
 									let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, whitelabelDomain.domain)
 									editor.dialog.show()
-									windowFacade.checkWindowClosing(true)
 								})
 						})
 					}))

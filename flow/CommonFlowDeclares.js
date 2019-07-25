@@ -160,6 +160,8 @@ declare interface ModalComponent {
 	view(vnode: Vnode<any>): Vnode<any>;
 
 	backgroundClick(e: MouseEvent): void;
+
+	popState(e: Event): boolean;
 }
 
 type LogCategory = {[key: string]: string}

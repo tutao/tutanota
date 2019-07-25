@@ -17,11 +17,13 @@ class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?AnimationFrameID | ?TimeoutID;
 	windowCloseConfirmation: boolean;
-	_windowCloseListeners: Set<() => void>;
+	_windowCloseListeners: Set<(e: Event) => void>;
+	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
 	_worker: WorkerClient;
 	// following two properties are for the iOS
 	_keyboardSize = 0;
 	_keyboardSizeListeners: KeyboardSizeListener[] = [];
+	_ignoreNextPopstate: boolean = false;
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -55,11 +57,18 @@ class WindowFacade {
 
 	addWindowCloseListener(listener: () => void): Function {
 		this._windowCloseListeners.add(listener)
-		return () => this._windowCloseListeners.delete(listener)
+		this._checkWindowClosing(this._windowCloseListeners.size > 0)
+		console.log("added win close listener:", this._windowCloseListeners.size, listener)
+		return () => {
+			this._windowCloseListeners.delete(listener)
+			console.log("removed win close listener:", this._windowCloseListeners.size, listener)
+			this._checkWindowClosing(this._windowCloseListeners.size > 0)
+		}
 	}
 
-	notifyCloseListeners() {
-		this._windowCloseListeners.forEach(f => f())
+	_notifyCloseListeners(e: Event) {
+		console.log("notifycloselisteners")
+		this._windowCloseListeners.forEach(f => f(e))
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {
@@ -98,12 +107,12 @@ class WindowFacade {
 		}
 		if (window.addEventListener && !isApp()) {
 			window.addEventListener("beforeunload", e => this._beforeUnload(e))
+			window.addEventListener("popstate", e => this._popState(e))
 			window.addEventListener("unload", e => this._onUnload())
 		}
 	}
 
 	_resize() {
-		//console.log("resize")
 		try {
 			for (let listener of this._windowSizeListeners) {
 				listener(window.innerWidth, window.innerHeight)
@@ -113,18 +122,60 @@ class WindowFacade {
 		}
 	}
 
-	checkWindowClosing(enable: boolean) {
+	_checkWindowClosing(enable: boolean) {
 		this.windowCloseConfirmation = enable
 	}
 
 	_beforeUnload(e: any) { // BeforeUnloadEvent
-		this.notifyCloseListeners()
+		console.log("windowfacade._beforeUnload")
+		this._notifyCloseListeners(e)
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m
 			return m
 		} else {
 			this._worker.logout(true)
+		}
+	}
+
+	/**
+	 * add a function to call when onpopstate event occurs
+	 * @param listener: return true if this popstate may go ahead
+	 * @returns {Function}
+	 */
+	addHistoryEventListener(listener: (e: Event) => boolean): ()=>void {
+		this._historyStateEventListeners.push(listener)
+		console.log("added history state listener:", this._historyStateEventListeners.length)
+		return () => {
+			const index = this._historyStateEventListeners.indexOf(listener)
+			if (index !== -1) {
+				this._historyStateEventListeners.splice(index, 1)
+				console.log("removed history state listener:", this._historyStateEventListeners.length)
+			}
+		}
+	}
+
+	/**
+	 * calls the last history event listener that was added
+	 * and reverts the state change if it returns false
+	 * TODO: this also fires for forward-events and when the user jumps around in the history
+	 * TODO: by long-clicking the back/forward buttons.
+	 * TODO: solving this requires extensive bookkeeping because the events are indistinguishable by default
+	 * @param e: popstate DOM event
+	 * @private
+	 */
+	_popState(e: Event) {
+		const len = this._historyStateEventListeners.length
+		if (len === 0) return
+		if (this._ignoreNextPopstate) {
+			console.log("ignoring popstate")
+			this._ignoreNextPopstate = false
+			return
+		}
+		console.log("windowfacade._popState")
+		if (!this._historyStateEventListeners[len - 1](e)) {
+			this._ignoreNextPopstate = true
+			history.go(1)
 		}
 	}
 
