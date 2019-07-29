@@ -2,7 +2,7 @@
 
 import {OperationType} from "../../common/TutanotaConstants"
 import {containsEventOfType} from "../../common/utils/Utils"
-import {ConnectionError} from "../../common/error/RestError"
+import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
 import {WorkerImpl} from "../WorkerImpl"
 
 export type QueuedBatch = {
@@ -47,6 +47,10 @@ export class EventQueue {
 				    this._eventQueue.shift()
 				    this._processingActive = false
 				    this._processNext()
+			    })
+			    .catch(ServiceUnavailableError, e => {
+				    // processing continues if the event bus receives a new event
+				    this._processingActive = false
 			    })
 			    .catch(ConnectionError, e => {
 				    // processing continues if the event bus receives a new event

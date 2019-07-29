@@ -7,6 +7,7 @@ import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
+import type {DeferredObject} from "../../common/utils/Utils"
 import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
@@ -39,7 +40,6 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
-import type {DeferredObject} from "../../common/utils/Utils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -358,6 +358,7 @@ export class Indexer {
 	}
 
 	_loadNewEntities(groupIdToEventBatches: {groupId: Id, eventBatchIds: Id[]}[]): Promise<void> {
+		const batchesOfAllGroups: QueuedBatch[] = []
 		return Promise
 			.each(groupIdToEventBatches, (groupIdToEventBatch) => {
 				if (groupIdToEventBatch.eventBatchIds.length > 0) {
@@ -390,14 +391,19 @@ export class Indexer {
 							           // the index.
 							           throw new OutOfSyncError()
 						           }
-						           this.addBatchesToQueue(batchesToQueue)
+						           batchesOfAllGroups.push(...batchesToQueue)
 					           })
 					           .catch(NotAuthorizedError, () => {
 						           console.log("could not download entity updates => lost permission on list")
 					           })
 				}
 			})
-			.then(() => this.startProcessing())
+			.then(() => {
+				// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
+				this.addBatchesToQueue(batchesOfAllGroups)
+				console.log("_indexer.startProcessing from Indexer")
+				this.startProcessing()
+			})
 	}
 
 	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds: Id[]): Id {
@@ -427,7 +433,8 @@ export class Indexer {
 							eventBatchIds: groupData.lastBatchIds
 						}
 					} else {
-						throw new InvalidDatabaseStateError("no group data for group " + membership.group + " indexedGroupIds: " + this._indexedGroupIds.join(","))
+						throw new InvalidDatabaseStateError("no group data for group " + membership.group + " indexedGroupIds: "
+							+ this._indexedGroupIds.join(","))
 					}
 				})
 			}))
