@@ -272,6 +272,13 @@ export class ViewSlider {
 		}
 	}
 
+	focusNextColumn() {
+		const indexOfCurrent = this.columns.indexOf(this.focusedColumn)
+		if (indexOfCurrent + 1 < this.columns.length) {
+			this.focus(this.columns[indexOfCurrent + 1])
+		}
+	}
+
 	getPreviousColumn(): ?ViewColumn {
 		if (this.columns.indexOf(this._visibleBackgroundColumns[0]) > 0 && !this.focusedColumn.isInForeground) {
 			let visibleColumnIndex = this.columns.indexOf(this._visibleBackgroundColumns[0])

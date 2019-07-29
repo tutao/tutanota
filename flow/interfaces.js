@@ -10,6 +10,8 @@ interface IViewSlider {
 	getPreviousColumn(): ?_ViewColumn;
 
 	focusPreviousColumn(): void;
+
+	focusNextColumn(): void;
 }
 
 interface IUserController {
