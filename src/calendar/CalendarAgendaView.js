@@ -18,6 +18,7 @@ type Attrs = {
 	onEventClicked: (ev: CalendarEvent) => mixed,
 	groupColors: {[Id]: string},
 	hiddenCalendars: Set<Id>,
+	onDateSelected: (date: Date) => mixed,
 }
 
 export class CalendarAgendaView implements MComponent<Attrs> {
@@ -54,7 +55,9 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
 						key: day,
 					}, [
-						m(".pb-s.b", dateDescription),
+						m("button.pb-s.b", {
+							onclick: () => attrs.onDateSelected(new Date(day)),
+						}, dateDescription),
 						m(".flex-grow", {
 							style: {
 								"max-width": "600px",

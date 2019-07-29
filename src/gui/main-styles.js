@@ -172,6 +172,7 @@ styles.registerStyle('main', () => {
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
+		'.ml-m': {'margin-left': px(size.hpad_medium)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -1071,15 +1072,18 @@ styles.registerStyle('main', () => {
 
 		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
 
-		'.date-selected': {
+		'.date-current': {
 			'border-radius': '50%',
 			background: theme.content_accent,
 			color: theme.content_button_icon,
 		},
-		'.date-current': {
-			'border-radius': '50%',
-			background: theme.navigation_button,
-			color: theme.navigation_button_icon,
+
+		'.switch-month-button': {
+			'cursor': 'pointer',
+		},
+
+		'.switch-month-button svg': {
+			'fill': theme.navigation_button
 		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout

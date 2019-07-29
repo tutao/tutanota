@@ -62,10 +62,8 @@ export function incrementDate(date: Date, byValue: number): Date {
 }
 
 
-export function getDateIndicator(day: Date, selectedDate: ?Date, currentDate: Date): string {
-	if (isSameDayOfDate(day, selectedDate)) {
-		return ".date-selected"
-	} else if (isSameDayOfDate(day, currentDate)) {
+export function getDateIndicator(day: Date, currentDate: Date): string {
+	if (isSameDayOfDate(day, currentDate)) {
 		return ".date-current"
 	} else {
 		return ""

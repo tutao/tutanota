@@ -4,7 +4,7 @@
 import m from "mithril"
 import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {WeekStart, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, getEventColor, layOutEvents} from "./CalendarUtils"
@@ -19,6 +19,8 @@ import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 import {windowFacade} from "../misc/WindowFacade"
 import {debounce, neverNull} from "../api/common/utils/Utils"
+import {Icon} from "../gui/base/Icon"
+import {Icons} from "../gui/base/icons/Icons"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -26,7 +28,7 @@ type CalendarMonthAttrs = {
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
-	onChangeMonthGesture: (next: boolean) => mixed,
+	onChangeMonth: (next: boolean) => mixed,
 	amPmFormat: boolean,
 	startOfTheWeek: WeekStartEnum,
 	groupColors: {[Id]: string},
@@ -85,20 +87,28 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 						const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
 						const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
 						const absVerticalVelocity = Math.abs(verticalVelocity)
-						console.log("velocity", velocity, "vertical", verticalVelocity)
 						if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
 							// Do nothing, vertical scroll
 						} else if (velocity > 0.6) {
-							attrs.onChangeMonthGesture(false)
+							attrs.onChangeMonth(false)
 						} else if (velocity < -0.6) {
-							attrs.onChangeMonthGesture(true)
+							attrs.onChangeMonth(true)
 						}
 					}
 				},
 			},
 			[
 				styles.isDesktopLayout() ?
-					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithFullYear(attrs.selectedDate)),)
+					m(".mt-s.pr-l.flex.row.items-center",
+						[
+							m("button.ml-s.calendar-day-content", {
+								onclick: () => attrs.onChangeMonth(false)
+							}, m(Icon, {icon: Icons.ArrowBackward, class: "icon-large switch-month-button"})),
+							m("button", {
+								onclick: () => attrs.onChangeMonth(true)
+							}, m(Icon, {icon: Icons.ArrowForward, class: "icon-large switch-month-button"})),
+							m("h1.ml-m", formatMonthWithFullYear(attrs.selectedDate)),
+						])
 					: null,
 				m(".flex.pt-s.pb-s", {
 					style: {
@@ -123,7 +133,8 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
-				onclick: () => {
+				onclick: () => attrs.onDateSelected(new Date(d.date)),
+				oncontextmenu: (e) => {
 					if (styles.isDesktopLayout()) {
 						const newDate = new Date(d.date)
 						let hour = new Date().getHours()
@@ -135,9 +146,10 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					} else {
 						attrs.onDateSelected(new Date(d.date))
 					}
-				},
+					e.preventDefault()
+				}
 			},
-			m(".calendar-day-number" + getDateIndicator(d.date, attrs.selectedDate, today), String(d.day)),
+			m(".calendar-day-number" + getDateIndicator(d.date, today), String(d.day)),
 		)
 	}
 

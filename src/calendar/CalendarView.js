@@ -7,7 +7,6 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
-import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
@@ -43,6 +42,7 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
+import {styles} from "../gui/styles"
 
 
 export type CalendarInfo = {
@@ -76,13 +76,12 @@ export class CalendarView implements CurrentView {
 
 	constructor() {
 		const calendarViewValues = [
-			{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
 
 
-		this._currentViewType = CalendarViewType.MONTH
+		this._currentViewType = styles.isDesktopLayout() ? CalendarViewType.MONTH : CalendarViewType.AGENDA
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
 		this._hiddenCalendars = new Set()
@@ -90,21 +89,7 @@ export class CalendarView implements CurrentView {
 
 		this.sidebarColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
-				m(".folders.pt", [
-					m(VisualDatePicker, {
-						onDateSelected: (newDate, dayClicked) => {
-							if (dayClicked) {
-								this._setUrl(CalendarViewType.DAY, newDate)
-								this.viewSlider.focus(this.contentColumn)
-							} else {
-								this._setUrl(this._currentViewType, newDate)
-							}
-						},
-						selectedDate: this.selectedDate(),
-						wide: false
-					})
-				]),
-				m(".folders", [
+				m(".folders.pt-s", [
 					m(".folder-row.flex-space-between.button-height", [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
@@ -169,7 +154,7 @@ export class CalendarView implements CurrentView {
 							onDateSelected: (date) => {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
-							onChangeMonthGesture: (next) => {
+							onChangeMonth: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
 								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 								this._setUrl(CalendarViewType.MONTH, newDate)
@@ -201,6 +186,9 @@ export class CalendarView implements CurrentView {
 							onEventClicked: (event) => this._onEventSelected(event),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
 						})
 				}
 			},

@@ -244,7 +244,14 @@ class Header {
 			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn())
 				.getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
-				.setClickHandler(() => viewSlider.focusPreviousColumn())
+				.setClickHandler(() => {
+					const route = m.route.get()
+					if (route.startsWith("/calendar/day")) {
+						m.route.set(route.replace("day", "month"))
+					} else {
+						viewSlider.focusPreviousColumn()
+					}
+				})
 				.setHideLabel(true)
 			return [m(navButtonBack)]
 		} else {

@@ -86,7 +86,6 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
 					const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
 					const absVerticalVelocity = Math.abs(verticalVelocity)
-					console.log("velocity", velocity, "vertical", verticalVelocity)
 					if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
 						// Do nothing, vertical scroll
 					} else if (velocity > 0.6) {

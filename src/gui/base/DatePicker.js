@@ -189,7 +189,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 
 	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): VirtualElement {
 		const size = px(this._elWidth(attrs))
-		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate, this._currentDate)), {
+		return m(".center.click" + (paddingDay ? "" : getDateIndicator(date, this._currentDate)), {
 			style: {
 				height: size,
 				width: size,
