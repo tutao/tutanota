@@ -1,6 +1,6 @@
 //@flow
 
-import {erase, setup} from "../EntityWorker"
+import {erase, serviceRequest, setup} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
@@ -29,6 +29,7 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
+import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
 
 assertWorkerOrNode()
 
@@ -117,7 +118,7 @@ export class CalendarFacade {
 	}
 
 
-	addCalendar(name: string): Promise<User> {
+	addCalendar(name: string): Promise<{user: User, group: Group}> {
 		return load(GroupTypeRef, this._loginFacade.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 			let adminGroupKey = null
@@ -126,18 +127,22 @@ export class CalendarFacade {
 			}
 			const customerGroupKey = this._loginFacade.getGroupKey(this._loginFacade.getGroupId(GroupType.Customer))
 			const userGroupKey = this._loginFacade.getUserGroupKey()
-			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey)
-			const postData = Object.assign(createCalendarPostData(), {calendarData})
+			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey, name)
 			// name is not working. Should be encrypted with customerGroupKey?
-			return serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.POST, postData).then(() => {
-				// remove the user from the cache before loading it again to make sure we get the latest version.
-				// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-				this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
-				return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-					this._loginFacade._user = user
-					return user
+			// const encName = encryptString(calendarData.ownerEncGroupInfoSessionKey, name)
+			const postData = Object.assign(createCalendarPostData(), {calendarData})
+			return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CalendarPostReturnTypeRef)
+				.then((returnData) => load(GroupTypeRef, returnData.group))
+				.then((group) => {
+					// remove the user from the cache before loading it again to make sure we get the latest version.
+					// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
+					this._entityRestCache._tryRemoveFromCache(UserTypeRef, null, neverNull(userGroup.user))
+					return load(UserTypeRef, neverNull(userGroup.user))
+						.then(user => {
+							this._loginFacade._user = user
+							return {user, group}
+						})
 				})
-			})
 		})
 	}
 

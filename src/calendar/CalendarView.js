@@ -140,16 +140,7 @@ export class CalendarView implements CurrentView {
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
 								label: () => "add calendar",
-								click: () => {
-									if (logins.getUserController().isFreeAccount()) {
-										showNotAvailableForFreeDialog(true)
-									} else {
-										showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, props) => {
-											dialog.close()
-											worker.addCalendar(props.name)
-										})
-									}
-								},
+								click: () => this._onPressedAddCalendar(),
 								icon: () => Icons.Add
 							})
 						]),
@@ -254,6 +245,26 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	_onPressedAddCalendar() {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(true)
+		} else {
+			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
+				dialog.close()
+				worker.addCalendar(properties.name)
+				      .then((group) => {
+					      const {userSettingsGroupRoot} = logins.getUserController()
+					      const newGroupColor = Object.assign(createGroupColor(), {
+						      group: group._id,
+						      color: properties.color
+					      })
+					      userSettingsGroupRoot.groupColors.push(newGroupColor)
+					      update(userSettingsGroupRoot)
+				      })
+			})
+		}
+	}
+
 	_renderCalendars(): Children {
 		return this._calendarInfos.isFulfilled() ?
 			Array.from(this._calendarInfos.value().values()).map(({groupRoot, groupInfo}) => {
@@ -285,24 +296,7 @@ export class CalendarView implements CurrentView {
 							{
 								label: "edit_action",
 								icon: () => Icons.Edit,
-								click: () => showEditCalendarDialog({
-									name: getCalendarName(groupInfo.name),
-									color: colorValue.substring(1)
-								}, (dialog, properties) => {
-									groupInfo.name = properties.name
-									update(groupInfo)
-									if (existingGroupColor) {
-										existingGroupColor.color = properties.color
-									} else {
-										const newGroupColor = Object.assign(createGroupColor(), {
-											group: groupInfo.group,
-											color: properties.color
-										})
-										userSettingsGroupRoot.groupColors.push(newGroupColor)
-									}
-									update(userSettingsGroupRoot)
-									dialog.close()
-								}),
+								click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
 								type: ButtonType.Dropdown,
 							},
 							{
@@ -319,6 +313,28 @@ export class CalendarView implements CurrentView {
 					])
 			})
 			: null
+	}
+
+	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot) {
+		showEditCalendarDialog({
+			name: getCalendarName(groupInfo.name),
+			color: colorValue.substring(1)
+		}, (dialog, properties) => {
+			groupInfo.name = properties.name
+			update(groupInfo)
+			// color always set for existing calendar
+			if (existingGroupColor) {
+				existingGroupColor.color = properties.color
+			} else {
+				const newGroupColor = Object.assign(createGroupColor(), {
+					group: groupInfo.group,
+					color: properties.color
+				})
+				userSettingsGroupRoot.groupColors.push(newGroupColor)
+			}
+			update(userSettingsGroupRoot)
+			dialog.close()
+		})
 	}
 
 	_onEventSelected(event: CalendarEvent) {
