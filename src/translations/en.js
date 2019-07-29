@@ -1007,5 +1007,6 @@ module.exports = {
 		"timeFormat_label": "Time format",
 		"timeFormatTwelveHour_label": "12 hour",
 		"timeFormatTwentyFourHour_label": "24 hour",
+		"reminderBeforeEvent_label": "Reminder before event"
 	}
 }

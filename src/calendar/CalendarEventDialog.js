@@ -60,10 +60,22 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const alarmPickerAttrs = []
 
+	const alarmIntervalItems = [
+		{name: lang.get("comboBoxSelectionNone_msg"), value: null},
+		{name: lang.get("calendarReminderIntervalFiveMinutes_label"), value: AlarmInterval.FIVE_MINUTES},
+		{name: lang.get("calendarReminderIntervalTenMinutes_label"), value: AlarmInterval.TEN_MINUTES},
+		{name: lang.get("calendarReminderIntervalThirtyMinutes_label"), value: AlarmInterval.THIRTY_MINUTES},
+		{name: lang.get("calendarReminderIntervalOneHour_label"), value: AlarmInterval.ONE_HOUR},
+		{name: lang.get("calendarReminderIntervalOneDay_label"), value: AlarmInterval.ONE_DAY},
+		{name: lang.get("calendarReminderIntervalTwoDays_label"), value: AlarmInterval.TWO_DAYS},
+		{name: lang.get("calendarReminderIntervalThreeDays_label"), value: AlarmInterval.THREE_DAYS},
+		{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
+	]
+
 	function createAlarmPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
 		const selectedValue = stream(null)
 		const attrs = {
-			label: () => lang.get("reminder_label"),
+			label: () => lang.get("reminderBeforeEvent_label"),
 			items: alarmIntervalItems,
 			selectedValue,
 			icon: Icons.Edit
@@ -332,15 +344,16 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 	return calendarAlarmInfo
 }
 
-const repeatValues = [
-	{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
-	{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
-	{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
-	{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
-	{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
-]
 
 function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
+	const repeatValues = [
+		{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
+		{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
+		{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
+		{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
+		{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
+	]
+	
 	return {
 		label: "calendarRepeating_label",
 		items: repeatValues,
@@ -363,13 +376,13 @@ function createIntervalPicker(): DropDownSelectorAttrs<number> {
 	}
 }
 
-const stopConditionValues = [
-	{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
-	{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
-	{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
-]
-
 function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
+	const stopConditionValues = [
+		{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
+		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
+		{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
+	]
+
 	return {
 		label: () => lang.get("calendarRepeatStopCondition_label"),
 		items: stopConditionValues,
@@ -399,17 +412,7 @@ const AlarmInterval = Object.freeze({
 })
 type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 
-const alarmIntervalItems = [
-	{name: lang.get("comboBoxSelectionNone_msg"), value: null},
-	{name: lang.get("calendarReminderIntervalFiveMinutes_label"), value: AlarmInterval.FIVE_MINUTES},
-	{name: lang.get("calendarReminderIntervalTenMinutes_label"), value: AlarmInterval.TEN_MINUTES},
-	{name: lang.get("calendarReminderIntervalThirtyMinutes_label"), value: AlarmInterval.THIRTY_MINUTES},
-	{name: lang.get("calendarReminderIntervalOneHour_label"), value: AlarmInterval.ONE_HOUR},
-	{name: lang.get("calendarReminderIntervalOneDay_label"), value: AlarmInterval.ONE_DAY},
-	{name: lang.get("calendarReminderIntervalTwoDays_label"), value: AlarmInterval.TWO_DAYS},
-	{name: lang.get("calendarReminderIntervalThreeDays_label"), value: AlarmInterval.THREE_DAYS},
-	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
-]
+
 
 
 
