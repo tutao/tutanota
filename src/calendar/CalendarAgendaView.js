@@ -2,7 +2,7 @@
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
-import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDateWithWeekday} from "../misc/Formatter"
@@ -25,8 +25,8 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		const now = new Date()
 		const today = getStartOfDay(now).getTime()
 		const tomorrow = getDayShifted(new Date(today), 1).getTime()
-		let days = Array.from(new Set(attrs.eventsForDays.keys()).add(today).add(tomorrow)) // ensure that today and tomorrow are added to the days list
-		days.sort((a, b) => a - b)
+
+		const days = getWeek()
 		return m(".fill-absolute.flex.col", [
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
@@ -37,9 +37,6 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						: null,
 				]),
 				m(".scroll.pt-s", days.map((day) => {
-					if (day < today) {
-						return null
-					}
 					let events = (attrs.eventsForDays.get(day) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 					if (day === today) {
 						// only show future and currently running events
@@ -78,4 +75,14 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 			]
 		)
 	}
+}
+
+function getWeek(): Array<number> {
+	let calculationDate = getStartOfDay(new Date())
+	const days = []
+	for (let i = 0; i < 14; i++) {
+		days.push(calculationDate.getTime())
+		calculationDate = incrementDate(calculationDate, 1)
+	}
+	return days
 }
