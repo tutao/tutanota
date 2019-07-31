@@ -9,6 +9,7 @@ import {formatDateWithWeekday} from "../misc/Formatter"
 import {getEventColor, getEventText} from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
+import {px, size} from "../gui/size"
 
 type Attrs = {
 	/**
@@ -32,7 +33,11 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
 						[
-							m("h1.calendar-day-content", lang.get("agenda_label")),
+							m("h1", {
+								style: {
+									"margin-left": px(size.calendar_hour_width)
+								}
+							}, lang.get("agenda_label")),
 							m("hr.hr.mt-s"),
 						]
 						: null,

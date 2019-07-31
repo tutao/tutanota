@@ -5,7 +5,7 @@ import type {GestureInfo} from "../gui/base/ViewSlider"
 import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
-import {dateWithWeekdayWoMonth, formatMonthWithFullYear, formatTime} from "../misc/Formatter"
+import {formatTime} from "../misc/Formatter"
 import {eventEndsAfterDay, eventStartsBefore, getCalendarWeek, getDiffInDays, getEventColor, layOutEvents} from "./CalendarUtils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {neverNull} from "../api/common/utils/Utils"
@@ -19,6 +19,7 @@ import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import {lang} from "../misc/LanguageViewModel"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -39,15 +40,14 @@ export class CalendarWeekView implements MComponent<Attrs> {
 
 	view(vnode: Vnode<Attrs>) {
 		const todayTimestamp = getStartOfDay(new Date()).getTime()
-		const date = vnode.attrs.selectedDate
 		const week = getCalendarWeek(vnode.attrs.selectedDate, vnode.attrs.startOfTheWeek)
 
 		const eventsForWeek = new Set()
 		const eventsPerDay = []
 		week.forEach((wd) => {
-			const weekdayDate = new Date(wd)
+			const weekdayDate = wd
 			const eventsForWeekDay = []
-			getFromMap(vnode.attrs.eventsForDays, wd, () => [])
+			getFromMap(vnode.attrs.eventsForDays, wd.getTime(), () => [])
 				.forEach((event) => {
 					if (!vnode.attrs.hiddenCalendars.has(neverNull(event._ownerGroup)) && !eventsForWeek.has(event)) {
 						const isShort = !isAllDayEvent(event)
@@ -62,6 +62,15 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				})
 			eventsPerDay.push(eventsForWeekDay)
 		})
+
+		const firstDate = week[0]
+		const lastDate = lastThrow(week)
+		let title: string
+		if (firstDate.getMonth() !== lastDate.getMonth()) {
+			title = `${lang.formats.monthLong.format(firstDate)} - ${lang.formats.monthLong.format(lastDate)} ${lang.formats.yearNumeric.format(firstDate)}`
+		} else {
+			title = `${lang.formats.monthLong.format(firstDate)} ${lang.formats.yearNumeric.format(firstDate)}`
+		}
 
 		return m(".fill-absolute.flex.col", {
 			oncreate: () => {
@@ -101,30 +110,38 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				styles.isDesktopLayout()
 					? m(".pr-l.flex.row.items-center",
 					[
-						m("button.ml-s.calendar-day-content", {
-							onclick: () => vnode.attrs.onChangeWeek(false)
-						}, m(Icon, {icon: Icons.ArrowBackward, class: "icon-large switch-month-button"})),
-						m("button", {
-							onclick: () => vnode.attrs.onChangeWeek(true)
-						}, m(Icon, {icon: Icons.ArrowForward, class: "icon-large switch-month-button"})),
-						m("h1.ml-m", formatMonthWithFullYear(vnode.attrs.selectedDate)),
+						m("button.calendar-switch-button", {
+							onclick: () => vnode.attrs.onChangeWeek(false),
+						}, m(Icon, {icon: Icons.ArrowDropLeft, class: "icon-large switch-month-button"})),
+						m("button.calendar-switch-button", {
+							onclick: () => vnode.attrs.onChangeWeek(true),
+						}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
+						m("h1", title),
 					])
 					: null,
 				m(".flex", {
 					style: {
-						"margin-left": px(size.calendar_hour_width),
+						"margin": `0 0 ${eventsForWeek.size === 0 ? "0" : "6px"} ${px(size.calendar_hour_width)}`
 					}
-				}, week.map((wd) => m(".flex-grow.center" + (todayTimestamp === wd ? ".b" : ""), dateWithWeekdayWoMonth(new Date(wd))))),
-				m(".calendar-day-content.flex.row",
-					{
+				}, week.map((wd) => m(".flex.center-horizontally.flex-grow.center.b.", [
+					m(".calendar-day-indicator", {
+						style: {"margin-right": "4px"},
+					}, lang.formats.weekdayShort.format(wd) + " "),
+					m(".calendar-day-indicator.calendar-day-number" + (todayTimestamp === wd.getTime() ? ".date-current" : ""), {
+						style: {margin: "0"}
+					}, wd.getDate())
+				]))),
+				m(".calendar-hour-margin.flex.row", {
 						oncreate: (vnode) => {
 							this._longEventsDom = vnode.dom
 							m.redraw()
 						}
 					},
 					this._renderLongEvents(week, eventsForWeek, vnode)),
-				m("hr.hr.mt-s")
 			]),
+			m("", {
+				style: {'border-bottom': `1px solid ${theme.content_border}`,}
+			}),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
 					vnode.dom.scrollTop = size.calendar_hour_height * 6
@@ -132,6 +149,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			}, [
 				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
 						style: {
+							flex: '1 0 auto',
 							'border-bottom': `1px solid ${theme.content_border}`,
 							height: px(size.calendar_hour_height)
 						},
@@ -140,8 +158,9 @@ export class CalendarWeekView implements MComponent<Attrs> {
 							// vnode.attrs.onTimePressed(n.getHours(), n.getMinutes())
 						},
 					},
-					m(".pt.pl-s.pr-s.center.small", {
+					m(".center.small", {
 						style: {
+							'line-height': px(size.calendar_hour_height),
 							width: px(size.calendar_hour_width),
 							height: px(size.calendar_hour_height),
 							'border-right': `2px solid ${theme.content_border}`,
@@ -151,9 +170,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				)),
 				m(".flex.flex-grow", week.map((weekdayTimestamp, i) => {
 						const events = eventsPerDay[i]
-						return m(".flex-grow", {
+						return m(".flex-grow.calendar-column-border", {
 							style: {
-								"border": `1px solid ${theme.list_border}`,
 								height: px(calendarDayTimes.length * size.calendar_hour_height)
 							}
 						}, m(CalendarDayEventsView, {
@@ -174,14 +192,14 @@ export class CalendarWeekView implements MComponent<Attrs> {
 
 	}
 
-	_renderLongEvents(week: Array<number>, eventsForWeek: Set<CalendarEvent>, vnode: Vnode<Attrs>) {
+	_renderLongEvents(week: Array<Date>, eventsForWeek: Set<CalendarEvent>, vnode: Vnode<Attrs>) {
 		if (this._longEventsDom == null) {
 			return null
 		}
 		const dayWidth = this._longEventsDom.offsetWidth / 7
 		let maxColumns = 0
-		const firstDayOfWeek = new Date(week[0])
-		const lastDayOfWeek = new Date(lastThrow(week))
+		const firstDayOfWeek = week[0]
+		const lastDayOfWeek = lastThrow(week)
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 
 		const children = layOutEvents(Array.from(eventsForWeek), (columns) => {
@@ -210,7 +228,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				}))
 		}, true)
 
-		return m(".rel",
+		return m(".rel.mb-s",
 			{style: {height: px(maxColumns * 20), width: "100%"}},
 			children
 		)

@@ -241,18 +241,21 @@ class Header {
 	_getLeftElements() {
 		const viewSlider = this._getViewSlider()
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn())
-				.getTitle(), () => BootIcons.Back, () => m.route.get())
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(),
+				() => BootIcons.Back,
+				() => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => {
 					const route = m.route.get()
 					if (route.startsWith("/calendar/day")) {
 						m.route.set(route.replace("day", "month"))
+					} else if (route.startsWith("/calendar/week")) {
+						m.route.set(route.replace("week", "month"))
 					} else {
 						viewSlider.focusPreviousColumn()
 					}
 				})
-				.setHideLabel(true)
+				.setHideLabel(!m.route.get().startsWith("/calendar"))
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {

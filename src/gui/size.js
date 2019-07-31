@@ -63,7 +63,8 @@ export const size = {
 	get calendar_line_height() {
 		return this.font_size_small + 6
 	},
-	calendar_hour_width: 60,
+	calendar_hour_width: 80,
+	calendar_hour_width_mobile: 60,
 	calendar_hour_height: 60,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2

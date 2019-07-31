@@ -116,8 +116,10 @@ class LanguageViewModel {
 		priceWithCurrencyWithoutFractionDigits: Intl.NumberFormat,
 		priceWithoutCurrency: Intl.NumberFormat,
 		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat,
+		monthLong: Intl.DateTimeFormat,
 		monthWithYear: Intl.DateTimeFormat,
 		monthWithFullYear: Intl.DateTimeFormat,
+		yearNumeric: Intl.DateTimeFormat,
 	};
 
 	constructor() {
@@ -236,6 +238,9 @@ class LanguageViewModel {
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
 				}),
+				monthLong: new Intl.DateTimeFormat(tag, {
+					month: 'long'
+				}),
 				monthWithYear: new Intl.DateTimeFormat(tag, {
 					month: 'long',
 					year: '2-digit'
@@ -243,7 +248,10 @@ class LanguageViewModel {
 				monthWithFullYear: new Intl.DateTimeFormat(tag, {
 					month: 'long',
 					year: 'numeric'
-				})
+				}),
+				yearNumeric: new Intl.DateTimeFormat(tag, {
+					year: 'numeric'
+				}),
 			}
 		}
 	}

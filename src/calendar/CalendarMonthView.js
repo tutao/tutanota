@@ -35,7 +35,6 @@ type CalendarMonthAttrs = {
 	hiddenCalendars: Set<Id>,
 }
 
-const weekDaysHeight = 30
 const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
@@ -92,20 +91,16 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 				styles.isDesktopLayout() ?
 					m(".mt-s.pr-l.flex.row.items-center",
 						[
-							m("button.ml-s.calendar-day-content", {
-								onclick: () => attrs.onChangeMonth(false)
-							}, m(Icon, {icon: Icons.ArrowBackward, class: "icon-large switch-month-button"})),
-							m("button", {
-								onclick: () => attrs.onChangeMonth(true)
-							}, m(Icon, {icon: Icons.ArrowForward, class: "icon-large switch-month-button"})),
-							m("h1.ml-m", formatMonthWithFullYear(attrs.selectedDate)),
+							m("button.calendar-switch-button", {
+								onclick: () => attrs.onChangeMonth(false),
+							}, m(Icon, {icon: Icons.ArrowDropLeft, class: "icon-large switch-month-button"})),
+							m("button.calendar-switch-button", {
+								onclick: () => attrs.onChangeMonth(true),
+							}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
+							m("h1", formatMonthWithFullYear(attrs.selectedDate)),
 						])
-					: null,
-				m(".flex.pt-s.pb-s", {
-					style: {
-						height: px(weekDaysHeight)
-					}
-				}, weekdays.map((wd) => m(".flex-grow", m(".b.small.center", wd)))),
+					: m(".pt-s"),
+				m(".flex.mb-s", weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd)))),
 				m(".flex.col.flex-grow", {
 					oncreate: (vnode) => {
 						this._monthDom = vnode.dom
@@ -121,7 +116,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	}
 
 	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
-		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute"
+		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
 				onclick: () => attrs.onDateSelected(new Date(d.date)),
@@ -140,7 +135,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					e.preventDefault()
 				}
 			},
-			m(".calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
+			m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
 		)
 	}
 

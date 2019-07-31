@@ -348,12 +348,12 @@ export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: numbe
 	return newDate
 }
 
-export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<number> {
+export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<Date> {
 	let calculationDate = getStartOfWeek(dayInTheWeek, getStartOfTheWeekOffset(startOfTheWeek))
 	const days = []
 	for (let i = 0; i < 7; i++) {
-		days.push(calculationDate.getTime())
-		calculationDate = incrementDate(calculationDate, 1)
+		days.push(calculationDate)
+		calculationDate = incrementDate(new Date(calculationDate), 1)
 	}
 	return days
 }

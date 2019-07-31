@@ -134,7 +134,7 @@ export class CalendarView implements CurrentView {
 						this._renderCalendars()
 					])
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("calendar_label"))
+		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label"))
 
 
 		this.contentColumn = new ViewColumn({
@@ -215,7 +215,7 @@ export class CalendarView implements CurrentView {
 
 				}
 			},
-		}, ColumnType.Background, 700, 2000, () => {
+		}, ColumnType.Background, 1024, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
 				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {

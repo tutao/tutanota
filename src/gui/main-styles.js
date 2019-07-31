@@ -945,29 +945,35 @@ styles.registerStyle('main', () => {
 			'background': theme.list_bg
 		},
 
-		'.calendar-day': {
+		'.calendar-column-border': {
 			'border-right': `1px solid ${theme.content_border}`,
+		},
+
+		'.calendar-column-border:nth-child(7)': {
+			'border-right': "none",
+		},
+
+		'.calendar-hour-margin': {
+			'margin-left': px(size.calendar_hour_width)
+		},
+
+		'.calendar-day': {
 			'border-top': `1px solid ${theme.content_border}`,
 			'transition': 'background 0.4s',
 			'background': theme.list_alternate_bg,
 			'cursor': 'pointer'
 		},
-		'.calendar-day:nth-child(7)': {
-			'border-right': "none",
-		},
 
-		'.calendar-day-number': { // overriden for mobile
-			width: "24px",
+		'.calendar-day-indicator': { // overriden for mobile
 			height: "24px",
 			"line-height": "24px",
 			"text-align": "center",
 			"font-size": "14px",
-			margin: "4px auto"
 		},
 
-
-		'.calendar-day-content': {
-			'margin-left': px(size.calendar_hour_width)
+		'.calendar-day-number': {
+			margin: "4px auto",
+			width: "24px",
 		},
 
 		'.calendar-event': {
@@ -1021,6 +1027,11 @@ styles.registerStyle('main', () => {
 		'.calendar-agenda-row': {
 			'min-height': '44px',
 			flex: "1 0 auto",
+		},
+
+		'.calendar-switch-button': {
+			width: "40px",
+			"text-align": "center",
 		},
 
 		'button.floating': {
@@ -1133,14 +1144,22 @@ styles.registerStyle('main', () => {
 				'padding-top': px(size.vpad_small)
 			},
 
-			'.calendar-day-number': {
-				width: "20px",
+			'.calendar-day-indicator': {
 				height: "20px",
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
-				margin: "2px auto"
+
+			},
+			'.calendar-day-number': {
+				margin: "2px auto",
+				width: "20px",
+			},
+
+			'.calendar-hour-margin': {
+				"margin-left": px(size.calendar_hour_width_mobile)
 			}
+
 		},
 
 		"@media print": {

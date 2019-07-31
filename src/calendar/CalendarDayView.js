@@ -1,7 +1,7 @@
 //@flow
 
 import m from "mithril"
-import {formatDateWithWeekday, formatTime} from "../misc/Formatter"
+import {formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
@@ -87,9 +87,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				}
 			},
 		}, [
-			m(".mt-s.pr-l", [
-				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
-				m(".calendar-day-content", allDayEvents.map(e => {
+			m(".mt-s", [
+				m(".calendar-hour-margin.pr-l", allDayEvents.map(e => {
 					return m(ContinuingCalendarEventBubble, {
 						event: e,
 						startDate: vnode.attrs.selectedDate,
@@ -99,7 +98,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						showTime: EventTextTimeOption.NO_TIME,
 					})
 				})),
-				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
+				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
 					event: e,
 					startDate: vnode.attrs.selectedDate,
 					endDate: vnode.attrs.selectedDate,
@@ -107,9 +106,15 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
 				}))),
-				m("hr.hr.mt-s")
+				(styles.isDesktopLayout() || allDayEvents.length > 0 || longEvents.length > 0)
+					? m("hr.hr.mt-s")
+					: null
 			]),
-			m(".flex.scroll", [
+			m(".flex.scroll", {
+				oncreate: (vnode) => {
+					vnode.dom.scrollTop = vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+				}
+			}, [
 				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
 						style: {
 							'border-bottom': `1px solid ${theme.content_border}`,
@@ -122,7 +127,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					},
 					m(".pt.pl-s.pr-s.center.small", {
 						style: {
-							width: px(size.calendar_hour_width),
+							width: px(size.calendar_hour_width_mobile),
 							height: px(size.calendar_hour_height),
 							'border-right': `2px solid ${theme.content_border}`,
 						},
