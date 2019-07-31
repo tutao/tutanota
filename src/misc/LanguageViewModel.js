@@ -104,6 +104,7 @@ class LanguageViewModel {
 		dateWithoutYear: Intl.DateTimeFormat,
 		simpleDateWithoutYear: Intl.DateTimeFormat,
 		dateWithWeekday: Intl.DateTimeFormat,
+		dateWithWeekdayWoMonth: Intl.DateTimeFormat,
 		dateWithWeekdayAndYear: Intl.DateTimeFormat,
 		dateWithWeekdayAndTime: Intl.DateTimeFormat,
 		weekdayShort: Intl.DateTimeFormat,
@@ -177,6 +178,10 @@ class LanguageViewModel {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short'
+				}),
+				dateWithWeekdayWoMonth: new Intl.DateTimeFormat(tag, {
+					weekday: 'short',
+					day: 'numeric',
 				}),
 				dateWithWeekdayAndYear: new Intl.DateTimeFormat(tag, {
 					weekday: 'short',

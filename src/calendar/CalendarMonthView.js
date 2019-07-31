@@ -4,10 +4,10 @@
 import m from "mithril"
 import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, getEventColor, layOutEvents} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, getEventColor, getStartOfTheWeekOffset, layOutEvents} from "./CalendarUtils"
 import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
@@ -39,15 +39,6 @@ const weekDaysHeight = 30
 const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
-function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
-	switch (weekStart) {
-		case WeekStart.SUNDAY:
-			return 0
-		case WeekStart.MONDAY:
-		default:
-			return 1
-	}
-}
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
@@ -149,7 +140,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					e.preventDefault()
 				}
 			},
-			m(".calendar-day-number" + getDateIndicator(d.date, today), String(d.day)),
+			m(".calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
 		)
 	}
 

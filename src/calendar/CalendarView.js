@@ -43,6 +43,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../gui/styles"
+import {CalendarWeekView} from "./CalendarWeekView"
 
 
 export type CalendarInfo = {
@@ -54,6 +55,7 @@ export type CalendarInfo = {
 
 export const CalendarViewType = Object.freeze({
 	DAY: "day",
+	WEEK: "week",
 	MONTH: "month",
 	AGENDA: "agenda"
 })
@@ -152,7 +154,8 @@ export class CalendarView implements CurrentView {
 							},
 							selectedDate: this.selectedDate(),
 							onDateSelected: (date) => {
-								this._setUrl(CalendarViewType.DAY, date)
+								const viewType = styles.isDesktopLayout() ? CalendarViewType.WEEK : CalendarViewType.DAY
+								this._setUrl(viewType, date)
 							},
 							onChangeMonth: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
@@ -175,9 +178,28 @@ export class CalendarView implements CurrentView {
 							onDateSelected: (date) => {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
-							amPmFormat: shouldDefaultToAmPmTimeFormat(),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
+						})
+					case CalendarViewType.WEEK:
+						return m(CalendarWeekView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+							groupColors,
+							hiddenCalendars: this._hiddenCalendars,
+							onChangeWeek: (next) => {
+								let newDate = new Date(this.selectedDate().getTime())
+								newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+								this._setUrl(CalendarViewType.WEEK, newDate)
+							}
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
@@ -190,6 +212,7 @@ export class CalendarView implements CurrentView {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
 						})
+
 				}
 			},
 		}, ColumnType.Background, 700, 2000, () => {

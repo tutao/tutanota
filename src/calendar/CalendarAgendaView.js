@@ -27,7 +27,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		const today = getStartOfDay(now).getTime()
 		const tomorrow = getDayShifted(new Date(today), 1).getTime()
 
-		const days = getWeek()
+		const days = getNextFourteenDays()
 		return m(".fill-absolute.flex.col", [
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
@@ -80,7 +80,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 	}
 }
 
-function getWeek(): Array<number> {
+function getNextFourteenDays(): Array<number> {
 	let calculationDate = getStartOfDay(new Date())
 	const days = []
 	for (let i = 0; i < 14; i++) {

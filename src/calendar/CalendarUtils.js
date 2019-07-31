@@ -1,8 +1,8 @@
 //@flow
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {EventTextTimeOptionEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -340,4 +340,30 @@ export function getCalendarName(name: ?string): string {
 
 export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {
 	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
+}
+
+export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: number): Date {
+	const newDate = getStartOfDay(date)
+	newDate.setDate(date.getDate() - date.getDay() + firstDayOfWeekFromSundayOffset)
+	return newDate
+}
+
+export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<number> {
+	let calculationDate = getStartOfWeek(dayInTheWeek, getStartOfTheWeekOffset(startOfTheWeek))
+	const days = []
+	for (let i = 0; i < 7; i++) {
+		days.push(calculationDate.getTime())
+		calculationDate = incrementDate(calculationDate, 1)
+	}
+	return days
+}
+
+export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
+	switch (weekStart) {
+		case WeekStart.SUNDAY:
+			return 0
+		case WeekStart.MONDAY:
+		default:
+			return 1
+	}
 }

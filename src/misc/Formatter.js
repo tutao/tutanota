@@ -80,6 +80,10 @@ export function formatWeekdayNarrow(date: Date): string {
 	return lang.formats.weekdayNarrow.format(date)
 }
 
+export function dateWithWeekdayWoMonth(date: Date): string {
+	return lang.formats.dateWithWeekdayWoMonth.format(date)
+}
+
 /**
  * Formats as yyyy-mm-dd
  */

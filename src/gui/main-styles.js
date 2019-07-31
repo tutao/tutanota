@@ -1072,10 +1072,15 @@ styles.registerStyle('main', () => {
 
 		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
 
-		'.date-current': {
+		'.date-selected': {
 			'border-radius': '50%',
 			background: theme.content_accent,
 			color: theme.content_button_icon,
+		},
+		'.date-current': {
+			'border-radius': '50%',
+			background: theme.navigation_button,
+			color: theme.navigation_button_icon,
 		},
 
 		'.switch-month-button': {
