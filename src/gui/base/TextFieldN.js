@@ -36,7 +36,8 @@ export const Type = Object.freeze({
 	Password: "password",
 	Area: "area",
 	ExternalPassword: "externalpassword",
-	Number: "number"
+	Number: "number",
+	Time: "time"
 })
 export type TextFieldTypeEnum = $Values<typeof Type>;
 

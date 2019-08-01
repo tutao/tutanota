@@ -1,9 +1,11 @@
 // @flow
 
 import m from "mithril"
-import {TextFieldN} from "./TextFieldN"
+import stream from "mithril/stream/stream.js"
+import {TextFieldN, Type as TextFieldType} from "./TextFieldN"
 import {theme} from "../theme"
 import {parseTime, timeStringFromParts} from "../../calendar/CalendarUtils"
+import {client} from "../../misc/ClientDetector"
 
 export type Attrs = {
 	value: Stream<string>,
@@ -16,6 +18,7 @@ export class TimePicker implements MComponent<Attrs> {
 	_focused: boolean;
 	_previousSelectedIndex: number;
 	_selectedIndex: number;
+	_oldValue: string;
 
 	constructor({attrs}: Vnode<Attrs>) {
 		this._focused = false
@@ -35,6 +38,19 @@ export class TimePicker implements MComponent<Attrs> {
 			this._previousSelectedIndex = this._selectedIndex
 			this._selectedIndex = this._values.indexOf(timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat))
 		}
+		if (client.isMobileDevice()) {
+			if (this._oldValue !== attrs.value()) {
+				this._onSelected(attrs)
+			}
+			this._oldValue = attrs.value()
+			return m(TextFieldN, {
+				label: "emptyString_msg",
+				// input[type=time] wants value in 24h format, no matter what is actually displayed. Otherwise it will be empty.
+				value: stream(parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, false) || ""),
+				type: TextFieldType.Time,
+			})
+		}
+
 		return [
 			m(TextFieldN, {
 				label: "emptyString_msg",
