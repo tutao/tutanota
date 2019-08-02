@@ -1048,7 +1048,6 @@ class ListSwipeHandler extends SwipeHandler {
 			let relativeYposition = this.list.currentPosition + this.startPos.y - touchAreaOffset
 			let targetElementPosition = Math.floor(relativeYposition / this.list._config.rowHeight)
 				* this.list._config.rowHeight
-			console.log("virtual element", targetElementPosition)
 			this.virtualElement = this.list._virtualList.find(ve => ve.top === targetElementPosition)
 		}
 		return (this.virtualElement: any)

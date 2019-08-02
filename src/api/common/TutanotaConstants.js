@@ -417,7 +417,7 @@ export type EventTextTimeOptionEnum = $Values<typeof EventTextTimeOption>;
 
 export const TimeFormat = Object.freeze({
 	TWENTY_FOUR_HOURS: '0',
-	TWELWE_HOURS: '1',
+	TWELVE_HOURS: '1',
 })
 export type TimeFormatEnum = $Values<typeof TimeFormat>
 

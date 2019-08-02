@@ -162,7 +162,7 @@ export class CalendarView implements CurrentView {
 								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 								this._setUrl(CalendarViewType.MONTH, newDate)
 							},
-							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS,
+							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,

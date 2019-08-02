@@ -45,7 +45,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(date)
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS
+	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
 	const endTime = stream()
 	const allDay = stream(false)

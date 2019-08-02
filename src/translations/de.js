@@ -1004,6 +1004,6 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"reminderBeforeEvent_label": "Erinnerung vom Ereignis"
+		"reminderBeforeEvent_label": "Erinnerung bevor Ereignis"
 	}
 }

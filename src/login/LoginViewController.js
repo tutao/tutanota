@@ -231,7 +231,7 @@ export class LoginViewController implements ILoginViewController {
 			}
 		}).then(() => calendarModel.scheduleAlarmsLocally())
 		                         .then(() => lang.updateFormats({
-			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELWE_HOURS
+			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 		                         }))
 	}
 

@@ -128,8 +128,6 @@ export class CalendarFacade {
 			const customerGroupKey = this._loginFacade.getGroupKey(this._loginFacade.getGroupId(GroupType.Customer))
 			const userGroupKey = this._loginFacade.getUserGroupKey()
 			const calendarData = this._userManagementFacade.generateCalendarGroupData(adminGroupId, adminGroupKey, customerGroupKey, userGroupKey, name)
-			// name is not working. Should be encrypted with customerGroupKey?
-			// const encName = encryptString(calendarData.ownerEncGroupInfoSessionKey, name)
 			const postData = Object.assign(createCalendarPostData(), {calendarData})
 			return serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CalendarPostReturnTypeRef)
 				.then((returnData) => load(GroupTypeRef, returnData.group))

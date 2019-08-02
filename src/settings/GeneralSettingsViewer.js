@@ -42,7 +42,7 @@ export class GeneralSettingsViewer implements UpdatableSettingsViewer {
 			label: "timeFormat_label",
 			items: [
 				{name: lang.get("timeFormatTwentyFourHour_label"), value: TimeFormat.TWENTY_FOUR_HOURS},
-				{name: lang.get("timeFormatTwelveHour_label"), value: TimeFormat.TWELWE_HOURS}
+				{name: lang.get("timeFormatTwelveHour_label"), value: TimeFormat.TWELVE_HOURS}
 			],
 			selectedValue: stream(downcast(userSettingsGroupRoot.timeFormat)),
 			selectionChangedHandler: (value) => {
@@ -81,7 +81,7 @@ export class GeneralSettingsViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				load(UserSettingsGroupRootTypeRef, update.instanceId)
 					.then((settings) => {
-						lang.updateFormats({hour12: settings.timeFormat === TimeFormat.TWELWE_HOURS})
+						lang.updateFormats({hour12: settings.timeFormat === TimeFormat.TWELVE_HOURS})
 						m.redraw()
 					})
 			}
