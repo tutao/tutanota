@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Cat, log, timer} from "../../misc/Log"
-import {px, size} from "../size"
+import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
@@ -17,6 +17,7 @@ import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
+import {SwipeHandler} from "./SwipeHandler"
 
 assertMainOrNode()
 
@@ -51,7 +52,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_visibleElementsHeight: number;
 	bufferHeight: number;
 
-	_swipeHandler: ?SwipeHandler;
+	_swipeHandler: ?ListSwipeHandler;
 	_domSwipeSpacerLeft: HTMLElement;
 	_domSwipeSpacerRight: HTMLElement;
 	_domLoadingRow: HTMLElement;
@@ -551,7 +552,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			this._reposition()
 			this.ready = true
 			if (client.isTouchSupported() && this._config.swipe.enabled) {
-				this._swipeHandler = new SwipeHandler(this._domListContainer, this)
+				this._swipeHandler = new ListSwipeHandler(this._domListContainer, this)
 			}
 		})
 	}
@@ -936,86 +937,39 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 }
 
-const ActionDistance = 150
+export const ActionDistance = 150
 
-const DirectionLock = Object.freeze({
-	Horizontal: 1,
-	Vertical: 2
-})
-type DirectionLockEnum = $Values<typeof DirectionLock>
-
-class SwipeHandler {
-	startPos: {x: number, y: number};
+class ListSwipeHandler extends SwipeHandler {
 	virtualElement: ?VirtualRow<*>;
 	list: List<*, *>;
 	xoffset: number;
-	touchArea: HTMLElement;
-	animating: Promise<any>;
-	directionLock: ?DirectionLockEnum;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
-		this.startPos = {x: 0, y: 0}
+		super(touchArea)
 		this.list = list
-		this.xoffset = 0
-		this.touchArea = touchArea
-		this.animating = Promise.resolve()
-		this.directionLock = null
-		let eventListenerArgs = client.passive() ? {passive: true} : false
-		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), client.passive() ? {passive: false} : false) // does invoke prevent default
-		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
 	}
 
-	start(e: TouchEvent) {
-		this.startPos.x = e.touches[0].clientX
-		this.startPos.y = e.touches[0].clientY
-	}
+	onHorizontalDrag(xDelta: number, yDelta: number) {
+		super.onHorizontalDrag(xDelta, yDelta)
 
-	move(e: TouchEvent) {
-		let {x, y} = this.getDelta(e)
-		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
-		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y) && Math.abs(x) > 14) {
-			this.directionLock = DirectionLock.Horizontal
-			// Do not scroll the list
-			e.preventDefault()
-			if (this.animating.isFulfilled()) {
-				let ve = this.getVirtualElement()
-				window.requestAnimationFrame(() => {
-					// Do not animate the swipe gesture more than necessary
-					this.xoffset = x < 0 ? Math.max(x, -ActionDistance) : Math.min(x, ActionDistance)
+		// get it *before* raf so that we don't pick an element after reset() again
+		const ve = this.getVirtualElement()
 
-					// Animate the row with following touch
-					if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
-						ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
-						this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
-						this.list._domSwipeSpacerRight.style.transform = `translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
-					}
-				})
+		// Animate the row with following touch
+		window.requestAnimationFrame(() => {
+			// Do not animate the swipe gesture more than necessary
+			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ActionDistance) : Math.min(xDelta, ActionDistance)
+			if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
+				ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
+				this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
+				this.list._domSwipeSpacerRight.style.transform = `translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
 			}
-			// If we don't have a vertical lock yet but we would like to have it, lock vertically
-		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > size.list_row_height) {
-			this.directionLock = DirectionLock.Vertical
-			if (this.animating.isFulfilled()) {
-				// Reset the row
-				window.requestAnimationFrame(() => {
-					if (this.animating.isFulfilled()) {
-						this.reset()
-					}
-				})
-			}
-		}
+		})
+
 	}
 
-	end(e: TouchEvent) {
-		this.gestureEnd(e)
-	}
-
-	gestureEnd(e: TouchEvent) {
-		const delta = this.getDelta(e)
-		if (this.animating.isFulfilled()
-			&& this.virtualElement
-			&& this.virtualElement.entity
-			&& Math.abs(delta.x) > ActionDistance && this.directionLock === DirectionLock.Horizontal) {
+	onHorizontalGestureCompleted(delta): Promise<void> {
+		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance) {
 			// Gesture is completed
 			let entity = this.virtualElement.entity
 			let swipePromise
@@ -1024,12 +978,10 @@ class SwipeHandler {
 			} else {
 				swipePromise = this.list._config.swipe.swipeRight(entity)
 			}
-			this.animating = this.finish(entity._id, swipePromise)
-		} else if (this.animating.isFulfilled()) {
-			// Gesture is not completed, reset row
-			this.animating = this.reset()
+			return this.finish(entity._id, swipePromise)
+		} else {
+			return this.reset()
 		}
-		this.directionLock = null
 	}
 
 	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
@@ -1090,6 +1042,26 @@ class SwipeHandler {
 		}
 	}
 
+	getVirtualElement(): VirtualElement {
+		if (!this.virtualElement) {
+			let touchAreaOffset = this.touchArea.getBoundingClientRect().top
+			let relativeYposition = this.list.currentPosition + this.startPos.y - touchAreaOffset
+			let targetElementPosition = Math.floor(relativeYposition / this.list._config.rowHeight)
+				* this.list._config.rowHeight
+			console.log("virtual element", targetElementPosition)
+			this.virtualElement = this.list._virtualList.find(ve => ve.top === targetElementPosition)
+		}
+		return (this.virtualElement: any)
+	}
+
+	updateWidth() {
+		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
+		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
+		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
+		this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.list._width) + 'px) translateY(0px)'
+	}
+
+
 	reset(): Promise<any> {
 		try {
 			if (this.xoffset !== 0) {
@@ -1113,31 +1085,5 @@ class SwipeHandler {
 		}
 		return Promise.resolve()
 	}
-
-	getVirtualElement(): VirtualElement {
-		if (!this.virtualElement) {
-			let touchAreaOffset = this.touchArea.getBoundingClientRect().top
-			let relativeYposition = this.list.currentPosition + this.startPos.y - touchAreaOffset
-			let targetElementPosition = Math.floor(relativeYposition / this.list._config.rowHeight)
-				* this.list._config.rowHeight
-			this.virtualElement = this.list._virtualList.find(ve => ve.top === targetElementPosition)
-		}
-		return (this.virtualElement: any)
-	}
-
-	getDelta(e: any) {
-		return {
-			x: e.changedTouches[0].clientX - this.startPos.x,
-			y: e.changedTouches[0].clientY - this.startPos.y
-		}
-	}
-
-	updateWidth() {
-		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
-		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
-		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
-		this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.list._width) + 'px) translateY(0px)'
-	}
 }
-
 

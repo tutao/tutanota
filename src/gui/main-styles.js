@@ -1034,6 +1034,13 @@ styles.registerStyle('main', () => {
 			"text-align": "center",
 		},
 
+		'.calendar-long-events-header': {
+			overflow: "hidden",
+			"background-color": theme.content_bg,
+			"border-bottom": `1px solid ${theme.content_border}`,
+			transition: 'height 200ms ease-in-out'
+		},
+
 		'button.floating': {
 			'border-radius': '50%',
 			'box-shadow': `0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12)`,

@@ -3,18 +3,16 @@
 import m from "mithril"
 import {formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
+import {incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
-import {styles} from "../gui/styles"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getEventColor} from "./CalendarUtils"
-import type {GestureInfo} from "../gui/base/ViewSlider"
-import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
+import {CALENDAR_EVENT_HEIGHT, eventEndsAfterDay, eventStartsBefore, getEventColor} from "./CalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
+import {PageView} from "../gui/base/PageView"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,
@@ -26,20 +24,38 @@ export type CalendarDayViewAttrs = {
 	hiddenCalendars: Set<Id>,
 }
 
+type PageEvents = {shortEvents: Array<CalendarEvent>, longEvents: Array<CalendarEvent>, allDayEvents: Array<CalendarEvent>}
 
 export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
-	_lastGestureInfo: ?GestureInfo;
-	_oldGestureInfo: ?GestureInfo;
 	_redrawIntervalId: ?IntervalID
+	_selectedDate: Date
+	_domElements = []
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
-		const date = vnode.attrs.selectedDate
-		const events = getFromMap(vnode.attrs.eventsForDays, date.getTime(), () => [])
+		this._selectedDate = vnode.attrs.selectedDate
+		const previousDate = incrementDate(new Date(vnode.attrs.selectedDate), -1)
+		const nextDate = incrementDate(new Date(vnode.attrs.selectedDate), 1)
+
+		const previousPageEvents = this._calculateEventsForDate(vnode.attrs, previousDate)
+		const currentPageEvents = this._calculateEventsForDate(vnode.attrs, vnode.attrs.selectedDate)
+		const nextPageEvents = this._calculateEventsForDate(vnode.attrs, nextDate)
+
+		return m(PageView, {
+			previousPage: this._renderDay(vnode, previousDate, previousPageEvents, currentPageEvents),
+			currentPage: this._renderDay(vnode, vnode.attrs.selectedDate, currentPageEvents, currentPageEvents),
+			nextPage: this._renderDay(vnode, nextDate, nextPageEvents, currentPageEvents),
+			onChangePage: (next) => vnode.attrs.onDateSelected(next ? nextDate : previousDate)
+		})
+	}
+
+	_calculateEventsForDate(attrs: CalendarDayViewAttrs,
+	                        date: Date): PageEvents {
+		const events = getFromMap(attrs.eventsForDays, date.getTime(), () => [])
 		const shortEvents = []
 		const longEvents = []
 		const allDayEvents = []
 		events.forEach((e) => {
-			if (vnode.attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) {
+			if (attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) {
 				return
 			}
 			if (isAllDayEvent(e)) {
@@ -50,8 +66,13 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				shortEvents.push(e)
 			}
 		})
+		return {shortEvents, longEvents, allDayEvents}
+	}
 
-		return m(".fill-absolute.flex.col", {
+	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents) {
+		const {shortEvents, longEvents, allDayEvents} = thisPageEvents
+		const mainPageEventsCount = mainPageEvents.allDayEvents.length + mainPageEvents.longEvents.length
+		return m(".fill-absolute.flex.col.calendar-column-border", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 			},
@@ -61,38 +82,18 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					this._redrawIntervalId = null
 				}
 			},
-			ontouchstart: (event) => {
-				this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
-			},
-			ontouchmove: (event) => {
-				this._oldGestureInfo = this._lastGestureInfo
-				this._lastGestureInfo = gestureInfoFromTouch(event.touches[0])
-			},
-			ontouchend: () => {
-				const lastGestureInfo = this._lastGestureInfo
-				const oldGestureInfo = this._oldGestureInfo
-				if (lastGestureInfo && oldGestureInfo) {
-					const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
-					const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
-					const absVerticalVelocity = Math.abs(verticalVelocity)
-					if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
-						// Do nothing, vertical scroll
-					} else if (velocity > 0.6) {
-						const nextDate = incrementDate(vnode.attrs.selectedDate, -1)
-						vnode.attrs.onDateSelected(nextDate)
-					} else if (velocity < -0.6) {
-						const nextDate = getStartOfNextDay(vnode.attrs.selectedDate)
-						vnode.attrs.onDateSelected(nextDate)
-					}
-				}
-			},
 		}, [
-			m(".mt-s", [
+			m(".calendar-long-events-header.flex-fixed" + (mainPageEventsCount === 0 ? "" : ".mt-s"), {
+				style: {
+					height: px(mainPageEventsCount === 0 ? 0 : (mainPageEventsCount * CALENDAR_EVENT_HEIGHT + 9)),
+
+				},
+			}, [
 				m(".calendar-hour-margin.pr-l", allDayEvents.map(e => {
 					return m(ContinuingCalendarEventBubble, {
 						event: e,
-						startDate: vnode.attrs.selectedDate,
-						endDate: vnode.attrs.selectedDate,
+						startDate: date,
+						endDate: date,
 						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						showTime: EventTextTimeOption.NO_TIME,
@@ -100,20 +101,30 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				})),
 				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
 					event: e,
-					startDate: vnode.attrs.selectedDate,
-					endDate: vnode.attrs.selectedDate,
+					startDate: date,
+					endDate: date,
 					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
 				}))),
-				(styles.isDesktopLayout() || allDayEvents.length > 0 || longEvents.length > 0)
-					? m("hr.hr.mt-s")
+				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0
+					? m(".mt-s")
 					: null
 			]),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
-				}
+					vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+					this._domElements.push(vnode.dom)
+				},
+				onscroll: (event) => {
+					if (date === vnode.attrs.selectedDate) {
+						this._domElements.forEach(dom => {
+							if (dom !== event.target) {
+								dom.scrollTop = event.target.scrollTop
+							}
+						})
+					}
+				},
 			}, [
 				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
 						style: {
@@ -149,5 +160,4 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 		])
 	}
-
 }

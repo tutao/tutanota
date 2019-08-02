@@ -9,7 +9,9 @@ import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatR
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
 import {formatTime} from "../misc/Formatter"
+import {size} from "../gui/size"
 
+export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
 
 export type CalendarMonthTimeRange = {
 	start: Date,
