@@ -505,6 +505,12 @@ export class CalendarView implements CurrentView {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
 						this._calendarInfos.then(calendarInfos => {
+							// Hide events for calendars we no longer have membership in
+							calendarInfos.forEach((ci, group) => {
+								if (calendarMemberships.every((mb) => group !== mb.group)) {
+									this._hiddenCalendars.add(group)
+								}
+							})
 							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
 								this._calendarInfos = this._loadGroupRoots()
