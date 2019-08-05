@@ -15,6 +15,7 @@ import {
 	getDiffInDays,
 	getEventColor,
 	getStartOfTheWeekOffset,
+	getWeekNumber,
 	layOutEvents
 } from "./CalendarUtils"
 import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
@@ -101,14 +102,14 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			m(".flex.mb-s", weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd)))),
 			m(".flex.col.flex-grow", {oncreate: onCreateMonth}, weeks.map((week) => {
 				return m(".flex.flex-grow.rel", [
-					week.map((d) => this._renderDay(attrs, d, today)),
+					week.map((d, i) => this._renderDay(attrs, d, today, i)),
 					this._monthDom ? this._renderWeekEvents(attrs, week) : null,
 				])
 			}))
 		])
 	}
 
-	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
+	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date, weekDayNumber: number): Children {
 		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
@@ -128,7 +129,10 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					e.preventDefault()
 				}
 			},
-			m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
+			[
+				m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
+				weekDayNumber === 0 ? m(".calendar-month-week-number.abs", getWeekNumber(d.date)) : null,
+			]
 		)
 	}
 

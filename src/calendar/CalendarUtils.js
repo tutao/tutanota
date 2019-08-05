@@ -345,9 +345,13 @@ export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string})
 }
 
 export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: number): Date {
-	const newDate = getStartOfDay(date)
-	newDate.setDate(date.getDate() - date.getDay() + firstDayOfWeekFromSundayOffset)
-	return newDate
+	let firstDay
+	if (firstDayOfWeekFromSundayOffset > date.getDay()) {
+		firstDay = (date.getDay() + 7) - firstDayOfWeekFromSundayOffset
+	} else {
+		firstDay = date.getDay() - firstDayOfWeekFromSundayOffset
+	}
+	return incrementDate(new Date(date), -firstDay)
 }
 
 export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<Date> {
@@ -368,4 +372,9 @@ export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
 		default:
 			return 1
 	}
+}
+
+export function getWeekNumber(startOfTheWeek: Date): number {
+	// Currently it doesn't support US-based week numbering system with partial weeks.
+	return DateTime.fromJSDate(startOfTheWeek).weekNumber
 }

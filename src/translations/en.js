@@ -1000,13 +1000,12 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"agenda_label": "Agenda",
-		"tomorrow_label": "Tomorrow",
 		"generalSettings_label": "General",
 		"weekStart_label": "Week start",
 		"timeFormat_label": "Time format",
 		"timeFormatTwelveHour_label": "12 hour",
 		"timeFormatTwentyFourHour_label": "24 hour",
-		"reminderBeforeEvent_label": "Reminder before event"
+		"reminderBeforeEvent_label": "Reminder before event",
+		"weekNumber_label": "Week {week}",
 	}
 }
