@@ -31,6 +31,9 @@ assertMainOrNodeBoot()
 export interface CurrentView extends Component {
 	+headerView?: () => Children;
 	+getViewSlider?: () => ?IViewSlider;
+	/** @return true if view handled press itself */
+	+handleBackButton?: () => boolean;
+	+backButtonLabelShown?: () => boolean;
 }
 
 class Header {
@@ -246,16 +249,11 @@ class Header {
 				() => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => {
-					const route = m.route.get()
-					if (route.startsWith("/calendar/day")) {
-						m.route.set(route.replace("day", "month"))
-					} else if (route.startsWith("/calendar/week")) {
-						m.route.set(route.replace("week", "month"))
-					} else {
+					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
 						viewSlider.focusPreviousColumn()
 					}
 				})
-				.setHideLabel(!m.route.get().startsWith("/calendar"))
+				.setHideLabel(this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true)
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {

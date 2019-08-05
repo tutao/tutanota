@@ -256,6 +256,23 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	handleBackButton(): boolean {
+		const route = m.route.get()
+		if (route.startsWith("/calendar/day")) {
+			m.route.set(route.replace("day", "month"))
+			return true
+		} else if (route.startsWith("/calendar/week")) {
+			m.route.set(route.replace("week", "month"))
+			return true
+		} else {
+			return false
+		}
+	}
+
+	backButtonLabelShown(): boolean {
+		return true
+	}
+
 	_onPressedAddCalendar() {
 		if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)

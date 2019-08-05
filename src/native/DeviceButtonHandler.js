@@ -27,8 +27,7 @@ export function handleBackPress(): boolean {
 			&& viewSlider.focusedColumn === viewSlider.columns[0]) {
 			viewSlider.focusNextColumn()
 			return true
-		} else if (currentRoute.startsWith("/calendar/day")) { // if the day is select, go back to month
-			m.route.set(m.route.get().replace("day", "month"))
+		} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
 			return true
 		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
 			|| currentRoute.startsWith("/search") || currentRoute.startsWith("/calendar")) { // go back to mail from other paths
