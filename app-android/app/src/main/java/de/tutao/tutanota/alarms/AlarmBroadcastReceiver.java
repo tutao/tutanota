@@ -55,13 +55,13 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 
 	private PendingIntent openCalendarIntent(Context context, Intent alarmIntent) {
 		String userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY);
-		Intent openMailboxIntent = new Intent(context, MainActivity.class);
-		openMailboxIntent.setAction(MainActivity.OPEN_CALENDAR_ACTION);
-		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId);
+		Intent openCalendarEventIntent = new Intent(context, MainActivity.class);
+		openCalendarEventIntent.setAction(MainActivity.OPEN_CALENDAR_ACTION);
+		openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId);
 		return PendingIntent.getActivity(
 				context,
 				alarmIntent.getData().toString().hashCode(),
-				openMailboxIntent,
+				openCalendarEventIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 
