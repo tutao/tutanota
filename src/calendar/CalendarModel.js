@@ -25,6 +25,7 @@ import {logins} from "../api/main/LoginController"
 import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
+import m from "mithril"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -312,7 +313,9 @@ class CalendarModel {
 				dateString = formatDateWithWeekdayAndTime(eventStart)
 			}
 			const body = `${dateString} ${event.summary}`
-			return this._notifications.showNotification(title, {body})
+			return this._notifications.showNotification(title, {body}, () => {
+				m.route.set("/calendar/agenda")
+			})
 		})
 	}
 
