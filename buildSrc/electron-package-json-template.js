@@ -52,9 +52,9 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"electron-localshortcut": "3.1.0",
 			"fs-extra": "7.0.1",
 			"bluebird": "3.5.2",
-			"node-forge": "0.8.3",
+			"node-forge": "0.8.5",
 			"winreg": "1.2.4",
-			"keytar": "4.11.0"
+			"keytar": "4.13.0"
 		},
 		"build": {
 			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
