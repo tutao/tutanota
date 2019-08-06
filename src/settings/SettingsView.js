@@ -38,7 +38,7 @@ import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {GeneralSettingsViewer} from "./GeneralSettingsViewer"
+import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 
 assertMainOrNode()
 
@@ -60,7 +60,7 @@ export class SettingsView implements CurrentView {
 		this._userFolders = [
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
-			new SettingsFolder("generalSettings_label", () => BootIcons.Settings, "general", () => new GeneralSettingsViewer()),
+			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
 
 		if (isDesktop()) {

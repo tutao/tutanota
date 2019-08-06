@@ -16,7 +16,7 @@ import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSetting
 import {incrementDate} from "../api/common/utils/DateUtils"
 
 
-export class GeneralSettingsViewer implements UpdatableSettingsViewer {
+export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	view(): VirtualElement | VirtualElement[] {
 		const languageDropDownAttrs: DropDownSelectorAttrs<?string> = {
 			label: "language_label",
