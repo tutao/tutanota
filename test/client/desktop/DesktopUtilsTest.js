@@ -4,6 +4,7 @@ import DesktopUtils from "../../../src/desktop/DesktopUtils.js"
 import path from 'path'
 import {isMailAddress} from "../../../src/misc/FormatValidator"
 import {JsonTypeError} from "../../../src/api/common/error/JsonTypeError"
+import n from '../nodemocker'
 
 function setEnv(platform: string) {
 	let sep = ''
@@ -160,6 +161,52 @@ o.spec("nonClobberingFileName Test", function () {
 		o(DesktopUtils.nonClobberingFilename([
 			'hello.ext',
 		], '')).equals('')
+	})
+})
+
+o.spec("touch test", function () {
+	n.startGroup(__filename, [
+		'../api/common/utils/Utils.js',
+		'../TutanotaConstants',
+		'./utils/Utils',
+		'../EntityFunctions',
+		'./utils/Encoding',
+		'../error/CryptoError',
+		'./TutanotaError',
+		'./StringUtils',
+		'./EntityConstants',
+		'./utils/Utils',
+		'./utils/ArrayUtils',
+		'./Utils',
+		'./MapUtils',
+		'./Utils',
+		'../api/common/error/JsonTypeError',
+		'./TutanotaError'
+	])
+
+	o('touch a file', function () {
+		const fsMock = n.mock('fs-extra', {
+			closeSync: (id) => {},
+			openSync: (path, mode) => 42
+		}).set()
+
+		const electronMock = n.mock('electron', {}).set()
+		const cpMock = n.mock('child_process', {}).set()
+		const cryptoMock = n.mock('crypto', {}).set()
+
+		const desktopUtils = n.subject("../../src/desktop/DesktopUtils.js").default
+
+		desktopUtils.touch('hello')
+
+		o(fsMock.openSync.callCount).equals(1)
+		o(fsMock.openSync.args[0]).equals('hello')
+		o(fsMock.openSync.args[1]).equals('a')
+		o(fsMock.openSync.args[2]).equals(undefined)
+
+		o(fsMock.closeSync.callCount).equals(1)
+		o(fsMock.closeSync.args[0]).equals(42)
+		o(fsMock.closeSync.args[1]).equals(undefined)
+
 	})
 })
 

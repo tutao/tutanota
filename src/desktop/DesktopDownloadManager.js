@@ -30,7 +30,7 @@ export class DesktopDownloadManager {
                         )
                     )
                     // touch file so it is already in the dir the next time sth gets dl'd
-                    fs.closeSync(fs.openSync(savePath, 'w'))
+                    DesktopUtils.touch(savePath)
                     item.setSavePath(savePath)
 
                     // if the last dl ended more than 30s ago, open dl dir in file manager

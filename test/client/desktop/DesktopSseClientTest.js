@@ -155,7 +155,7 @@ o.spec("DesktopSseClient Test", () => {
 		const cryptoMock = n.mock("crypto", crypto).set()
 
 		// our modules
-		const notifierMock = n.mock("./DesktopNotifier.js", notifier).set()
+		const notifierMock = n.mock("./DesktopNotifier", notifier).set()
 		const desktopUtilsMock = n.mock("./DesktopUtils", desktopUtils).set()
 
 		// instances

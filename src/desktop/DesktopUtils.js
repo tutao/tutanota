@@ -69,6 +69,14 @@ export default class DesktopUtils {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
 	}
 
+	/**
+	 * open and close a file to make sure it exists
+	 * @param path: the file to touch
+	 */
+	static touch(path: string): void {
+		fs.closeSync(fs.openSync(path, 'a'))
+	}
+
 	static registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
 		console.log("trying to register...")
 		switch (process.platform) {
