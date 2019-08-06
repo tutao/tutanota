@@ -48,6 +48,7 @@ export class TimePicker implements MComponent<Attrs> {
 				// input[type=time] wants value in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 				value: stream(parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, false) || ""),
 				type: TextFieldType.Time,
+				oninput: (value) => attrs.value(value)
 			})
 		}
 

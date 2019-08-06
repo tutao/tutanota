@@ -28,6 +28,7 @@ export type TextFieldAttrs = {
 	maxWidth?: number,
 	class?: string,
 	disabled?: boolean,
+	oninput?: (value: string, input: HTMLInputElement) => mixed,
 }
 
 export const Type = Object.freeze({
@@ -172,13 +173,17 @@ export class _TextField {
 						// TODO test if still needed with newer mithril releases
 						this._domInput.onblur = null
 					},
-					onupdate: () => this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1",
+					onupdate: () => {
+						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
+						this._domInput.value = a.value()
+					},
 					oninput: () => {
 						if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
 							&& !this.webkitAutofill) {
 							this.animate(true) // animate in case of browser autocompletion (non-webkit)
 						}
 						a.value(this._domInput.value) // update the input on each change
+						a.oninput && a.oninput(this._domInput.value, this._domInput)
 					},
 					style: {
 						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise

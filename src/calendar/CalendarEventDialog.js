@@ -30,6 +30,7 @@ import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from 
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
+import {client} from "../misc/ClientDetector"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -181,12 +182,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	}
 
+	const now = Date.now()
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => [
 			m(TextFieldN, {
 				label: "title_placeholder",
-				value: summary
+				value: summary,
+				onfocus: (dom, input) => {
+					if (client.isMobileDevice() && Date.now() - now < 1000) {
+						input.blur()
+					}
+				}
 			}),
 			m(".flex", [
 				m(".flex-grow.mr-s", m(startDatePicker)),
@@ -353,7 +361,7 @@ function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 		{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
 		{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
 	]
-	
+
 	return {
 		label: "calendarRepeating_label",
 		items: repeatValues,
