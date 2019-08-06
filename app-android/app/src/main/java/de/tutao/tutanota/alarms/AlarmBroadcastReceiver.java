@@ -50,6 +50,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
 						.setColor(context.getResources().getColor(R.color.colorPrimary))
 						.setContentIntent(openCalendarIntent(context, intent))
+						.setAutoCancel(true)
 						.build());
 	}
 
