@@ -135,11 +135,11 @@ public class AlarmNotificationsManager {
 			if (alarmNotification.getRepeatRule() == null) {
 				Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
 				if (alarmTime.after(new Date())) {
-					scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart);
+					scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart, alarmNotification.getUser());
 				}
 			} else {
 				this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) ->
-						this.scheduleAlarmOccurrenceWithSystem(alarmTime, occurrence, identifier, summary, eventStartTime));
+						this.scheduleAlarmOccurrenceWithSystem(alarmTime, occurrence, identifier, summary, eventStartTime, alarmNotification.getUser()));
 			}
 		} catch (CryptoError cryptoError) {
 			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
@@ -148,10 +148,10 @@ public class AlarmNotificationsManager {
 
 	private void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence,
 												   String identifier, String summary,
-												   Date eventDate) {
+												   Date eventDate, String user) {
 		Log.d(TAG, "Scheduled notification " + identifier + " at: " + alarmTime);
 		AlarmManager alarmManager = getAlarmManager();
-		PendingIntent pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate);
+		PendingIntent pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user);
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.getTime(), pendingIntent);
@@ -173,7 +173,7 @@ public class AlarmNotificationsManager {
 		if (indexOfExistingRepeatingAlarm == -1) {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
 			PendingIntent pendingIntent = makeAlarmPendingIntent(0,
-					alarmNotification.getAlarmInfo().getIdentifier(), "", new Date());
+					alarmNotification.getAlarmInfo().getIdentifier(), "", new Date(), "");
 			getAlarmManager().cancel(pendingIntent);
 		} else {
 			AlarmNotification savedAlarmNotification = alarmNotifications.get(indexOfExistingRepeatingAlarm);
@@ -183,7 +183,7 @@ public class AlarmNotificationsManager {
 					this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
 						Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier() + " # " + occurrence);
 						getAlarmManager().cancel(makeAlarmPendingIntent(occurrence,
-								alarmNotification.getAlarmInfo().getIdentifier(), "", new Date()));
+								alarmNotification.getAlarmInfo().getIdentifier(), "", new Date(), ""));
 					});
 				} catch (CryptoError cryptoError) {
 					Log.w(TAG, "Failed to decrypt notification to cancel alarm " + savedAlarmNotification, cryptoError);
@@ -195,9 +195,9 @@ public class AlarmNotificationsManager {
 	}
 
 	private PendingIntent makeAlarmPendingIntent(int occurrence, String identifier, String summary,
-												 Date eventDate) {
+												 Date eventDate, String user) {
 		Intent intent =
-				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate);
+				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user);
 		return PendingIntent.getBroadcast(context, 1, intent, 0);
 	}
 

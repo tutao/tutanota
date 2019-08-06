@@ -2,6 +2,7 @@ package de.tutao.tutanota.alarms;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +11,7 @@ import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
+import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 
 import java.util.Date;
@@ -25,18 +26,18 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 	private static final String SUMMARY_EXTRA = "summary";
 	public static final String EVENT_DATE_EXTRA = "eventDate";
 
-	public static Intent makeAlarmIntent(Context context, int occurrence, String identifier, String summary, Date eventDate) {
+	public static Intent makeAlarmIntent(Context context, int occurrence, String identifier, String summary, Date eventDate, String userId) {
 		String occurrenceIdentifier = identifier + "#" + occurrence;
 		Intent intent = new Intent(context, AlarmBroadcastReceiver.class);
 		intent.setData(Uri.fromParts("alarm", occurrenceIdentifier, ""));
 		intent.putExtra(SUMMARY_EXTRA, summary);
 		intent.putExtra(EVENT_DATE_EXTRA, eventDate.getTime());
+		intent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId);
 		return intent;
 	}
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.d(TAG, "Received broadcast");
 		NotificationManager notificationManager =
 				(NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		createNotificationChannel(notificationManager, context);
@@ -48,9 +49,21 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 						.setContentText(contentText)
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
 						.setColor(context.getResources().getColor(R.color.colorPrimary))
+						.setContentIntent(openCalendarIntent(context, intent))
 						.build());
 	}
 
+	private PendingIntent openCalendarIntent(Context context, Intent alarmIntent) {
+		String userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY);
+		Intent openMailboxIntent = new Intent(context, MainActivity.class);
+		openMailboxIntent.setAction(MainActivity.OPEN_CALENDAR_ACTION);
+		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId);
+		return PendingIntent.getActivity(
+				context,
+				alarmIntent.getData().toString().hashCode(),
+				openMailboxIntent,
+				PendingIntent.FLAG_UPDATE_CURRENT);
+	}
 
 	public static void createNotificationChannel(NotificationManager notificationManager, Context context) {
 		if (atLeastOreo()) {
