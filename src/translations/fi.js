@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Hyväksy tietosuojamenettely valitsemalla valintaruutu.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Lisää käyttäjiä",
 		"addUserToGroup_label": "Lisää ryhmään",
 		"add_action": "Lisää",
-		"adminCustomDomainInfo_msg": "Varmista etukäteen, että DNS-palvelimesi MX- ja SPF-tietueet ovat oikein määriteltyjä.",
 		"adminCustomDomain_label": "Oma verkkotunnus",
 		"adminDeleteAccount_action": "Poista käyttäjätunnus",
 		"adminEmailSettings_action": "Sähköposti",
@@ -200,9 +199,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Verkkotunnus on jo liitetty tilillesi.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-haku epäonnistui.",
 		"customDomainErrorDomainNotAvailable_msg": "Verkkotunnus ei ole käytettävissä.",
-		"customDomainErrorInvalidDnsRecord_msg": "Verkkotunnuksen DNS-tietueessa on virheellisiä arvoja.",
-		"customDomainErrorMissingMxEntry_msg": "Verkkotunnuksen MX-tietue puuttuu.",
-		"customDomainErrorMissingSpfEntry_msg": "Verkkotunnuksen SPF-tietue puuttuu.",
 		"customDomainNeutral_msg": "Anna verkkotunnuksesi.",
 		"customEmailDomains_label": "Mukautetut verkkotunnukset",
 		"customLabel_label": "Mukautettu tunniste",

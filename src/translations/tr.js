@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2019-06-18T19:39:09Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -48,7 +48,6 @@ module.exports = {
 		"addUsers_action": "Kullanıcı ekle",
 		"addUserToGroup_label": "Üye ekle",
 		"add_action": "Ekle",
-		"adminCustomDomainInfo_msg": "Öncelikli olarak lütfen MX ve SPF kayıtlarınızın DNS ayarlarınıza doğru bir şekilde girildiğinden emin olun.",
 		"adminCustomDomain_label": "Kişisel alan adı",
 		"adminDeleteAccount_action": "Hesabı sil",
 		"adminEmailSettings_action": "E-posta",
@@ -204,9 +203,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Alan adı halihazırda hesabınıza atanmış.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS araması başarısız oldu.",
 		"customDomainErrorDomainNotAvailable_msg": "Alan adı bulunmuyor",
-		"customDomainErrorInvalidDnsRecord_msg": "Bu alan adının DNS kayıtları geçersiz değerler içermekte.",
-		"customDomainErrorMissingMxEntry_msg": "Bu alan adı için MX kaydı bulunmamakta.",
-		"customDomainErrorMissingSpfEntry_msg": "Bu alan adı için SPF kaydı bulunmuyor.",
 		"customDomainNeutral_msg": "Lütfen alan adınızı girin.",
 		"customEmailDomains_label": "Özel e-posta etki alanları",
 		"customLabel_label": "Özel etiket",

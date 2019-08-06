@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2019-05-29T08:36:32Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -48,7 +48,6 @@ module.exports = {
 		"addUsers_action": "Gebruikers toevoegen",
 		"addUserToGroup_label": "Lid toevoegen",
 		"add_action": "Toevoegen",
-		"adminCustomDomainInfo_msg": "Zorg ervoor op voorhand dat uw MX- en SPF gegevens correct zijn ingesteld op uw DNS.",
 		"adminCustomDomain_label": "Aangepast domein",
 		"adminDeleteAccount_action": "Verwijder account",
 		"adminEmailSettings_action": "E-mail",
@@ -204,9 +203,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Dit domein is al gekoppeld aan uw account",
 		"customDomainErrorDnsLookupFailure_msg": "DNS opzoeken mislukt.",
 		"customDomainErrorDomainNotAvailable_msg": "Domein niet beschikbaar.",
-		"customDomainErrorInvalidDnsRecord_msg": "Het DNS voor dit domein heeft ongeldige tekens.",
-		"customDomainErrorMissingMxEntry_msg": "Het MX record voor dit domein ontbreekt.",
-		"customDomainErrorMissingSpfEntry_msg": "Geen SPF gegevens voor dit domein.",
 		"customDomainNeutral_msg": "A.u.b. domein invullen.",
 		"customEmailDomains_label": "Standaard email domeinen",
 		"customLabel_label": "Standaard label",

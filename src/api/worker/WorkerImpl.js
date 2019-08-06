@@ -18,7 +18,6 @@ import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
-import {IndexingNotSupportedError} from "../common/error/IndexingNotSupportedError"
 
 assertWorkerOrNode()
 
@@ -291,6 +290,9 @@ export class WorkerImpl {
 			},
 			loadAlarmEvents: (message: Request) => {
 				return locator.calendar.loadAlarmEvents(...message.args)
+			},
+			getDomainValidationRecord: (message: Request) => {
+				return locator.customer.getDomainValidationRecord(...message.args)
 			}
 		})
 

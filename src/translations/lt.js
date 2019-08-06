@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -39,7 +39,6 @@ module.exports = {
 		"addUsers_action": "Pridėti vartotojus",
 		"addUserToGroup_label": "Pridėti narį",
 		"add_action": "Pridėti",
-		"adminCustomDomainInfo_msg": "Prašome užtikrinti iš anksto, kad jūsų MX ir SPF duomenys sukonfigūruoti  teisingai jūsų DNS įrašuose.",
 		"adminCustomDomain_label": "Pasirinktinis domenas",
 		"adminDeleteAccount_action": "Pašalinti paskyrą",
 		"adminEmailSettings_action": "el. paštas",
@@ -153,9 +152,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Šis domenas jau yra priskirtas jūsų pašto paskyrai.",
 		"customDomainErrorDnsLookupFailure_msg": "Nepavyko nuskaityti DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Domenas negalimas",
-		"customDomainErrorInvalidDnsRecord_msg": "Šio domeno DNS įrašas turi neleistinų reikšmių.",
-		"customDomainErrorMissingMxEntry_msg": "MX įrašo šioje srityje nėra.",
-		"customDomainErrorMissingSpfEntry_msg": "SPF įrašo šioje srityje nėra.",
 		"customDomainNeutral_msg": "Prašome įvesti savo domeną.",
 		"custom_label": "Individualus",
 		"cut_action": "Iškirpti",

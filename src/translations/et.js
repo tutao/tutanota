@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2019-07-02T09:52:40Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -34,7 +34,6 @@ module.exports = {
 		"addStatisticsField_action": "Lisa statistikaväli",
 		"addUserToGroup_label": "Lisa liige",
 		"add_action": "Lisa",
-		"adminCustomDomainInfo_msg": "Palun veenduge ette, et teie MX ja SPF kirjed on DNSis korralikult üles seatud.",
 		"adminCustomDomain_label": "Kohandatud domeen",
 		"adminDeleteAccount_action": "Kustuta konto",
 		"adminEmailSettings_action": "E-post",
@@ -169,9 +168,6 @@ module.exports = {
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Palun deaktiveerige kõik kasutajad ja e-maili aliased, mis sisaldavad domeeni: {domainName} ning eemaldage domeen registreeritava e-maili domeenina.",
 		"customDomainDomainAssigned_msg": "See domeen on juba teie kontole määratud.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS otsing ebaõnnestus.",
-		"customDomainErrorInvalidDnsRecord_msg": "Selle domeeni DNS kirjed sisaldavad vigaseid väärtusi.",
-		"customDomainErrorMissingMxEntry_msg": "Selle domeeni MX kirje on puudu.",
-		"customDomainErrorMissingSpfEntry_msg": "Selle domeeni SPF kirje on puudu.",
 		"customDomainNeutral_msg": "Palun sisestage oma domeen.",
 		"customEmailDomains_label": "Kohandatud e-posti domeenid",
 		"customLabel_label": "Kohandatud silt",

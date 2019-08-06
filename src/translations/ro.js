@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -49,7 +49,6 @@ module.exports = {
 		"addUsers_action": "Adauga user",
 		"addUserToGroup_label": "Adaugă membru",
 		"add_action": "Adaugă",
-		"adminCustomDomainInfo_msg": "Vă rugăm asigurați-vă înainte că înregistrările MX și SPF sunt setate corect în DNS-ul dvs.",
 		"adminCustomDomain_label": "Domeniu personalizat",
 		"adminDeleteAccount_action": "Ștergere cont",
 		"adminEmailSettings_action": "Email",
@@ -200,9 +199,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Domeniul este deja asociat contului tău.",
 		"customDomainErrorDnsLookupFailure_msg": "Căutarea DNS a eșuat.",
 		"customDomainErrorDomainNotAvailable_msg": "Domeniul nu este disponibil.",
-		"customDomainErrorInvalidDnsRecord_msg": "Datele registrului DNS pentru acest domeniu includ valori invalide.",
-		"customDomainErrorMissingMxEntry_msg": "\"MX record\"-ul pentru acest domeniu lipseste.",
-		"customDomainErrorMissingSpfEntry_msg": "Inregistrarile SPF pentru acest domeniu lipsesc",
 		"customDomainNeutral_msg": "Vă rugăm introduceți domeniul dvs.",
 		"customEmailDomains_label": "Domenii de email personalizate",
 		"customLabel_label": "Etichetă personalizată",

@@ -191,15 +191,38 @@ export const EmailSignatureType = Object.freeze({
 })
 export type EmailSignatureTypeEnum = $Values<typeof EmailSignatureType>;
 
-export const CustomDomainStatusCode = Object.freeze({
-	CUSTOM_DOMAIN_STATUS_OK: "0",
-	CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED: "1",
-	CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD: "2",
-	CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD: "3",
-	CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD: "4",
-	CUSTOM_DOMAIN_STATUS_DOMAIN_NOT_AVAILABLE: "5"
+export const CustomDomainValidationResult = Object.freeze({
+	CUSTOM_DOMAIN_VALIDATION_RESULT_OK: "0",
+	CUSTOM_DOMAIN_VALIDATION_RESULT_DNS_LOOKUP_FAILED: "1",
+	CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_FOUND: "2",
+	CUSTOM_DOMAIN_VALIDATION_RESULT_NAMESERVER_NOT_FOUND: "3",
+	CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_AVAILABLE: "4",
+	CUSTOM_DOMAIN_VALIDATION_RESULT_VALIDATION_FAILED: "5"
 })
-export type CustomDomainStatusCodeEnum = $Values<typeof CustomDomainStatusCode>;
+export type CustomDomainValidationResultEnum = $Values<typeof CustomDomainValidationResult>;
+
+export const CustomDomainCheckResult = Object.freeze({
+	CUSTOM_DOMAIN_CHECK_RESULT_OK: "0",
+	CUSTOM_DOMAIN_CHECK_RESULT_DNS_LOOKUP_FAILED: "1",
+	CUSTOM_DOMAIN_CHECK_RESULT_DOMAIN_NOT_FOUND: "2",
+	CUSTOM_DOMAIN_CHECK_RESULT_NAMESERVER_NOT_FOUND: "3",
+})
+export type CustomDomainCheckResultEnum = $Values<typeof CustomDomainCheckResult>;
+
+export const DnsRecordType = Object.freeze({
+	DNS_RECORD_TYPE_MX: "0",
+	DNS_RECORD_TYPE_TXT_SPF: "1",
+	DNS_RECORD_TYPE_CNAME_DKIM: "2",
+	DNS_RECORD_TYPE_TXT_DMARC: "3",
+})
+export type DnsRecordTypeEnum = $Values<typeof DnsRecordType>;
+
+export const DnsRecordTypeToName = Object.freeze({
+	"0": "MX",
+	"1": "TXT",
+	"2": "CNAME",
+	"3": "TXT",
+})
 
 export const SessionState = Object.freeze({
 	SESSION_STATE_ACTIVE: "0",

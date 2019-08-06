@@ -504,6 +504,10 @@ export class WorkerClient {
 	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
 		return this._queue.postMessage(new Request("loadAlarmEvents", []))
 	}
+
+	getDomainValidationRecord(): Promise<string> {
+		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
+	}
 }
 
 export const worker = new WorkerClient()

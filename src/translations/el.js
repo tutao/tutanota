@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2019-07-04T19:22:04Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -48,7 +48,6 @@ module.exports = {
 		"addUsers_action": "Προσθήκη χρήστη ",
 		"addUserToGroup_label": "Προσθήκη μέλος ",
 		"add_action": "Προσθήκη",
-		"adminCustomDomainInfo_msg": "Παρακαλώ, βεβαιωθείτε εκ των προτέρων, ότι οι εγγραφές MX και SPF είναι ρυθμισμένες σωστά στο DNS σας.",
 		"adminCustomDomain_label": "Προσαρμοσμένο domain",
 		"adminDeleteAccount_action": "Διαγραφή λογαριασμού",
 		"adminEmailSettings_action": "Email",
@@ -225,9 +224,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Αυτό το domain έχει ήδη ανατεθεί στον λογαριασμό σας.",
 		"customDomainErrorDnsLookupFailure_msg": "Απέτυχε η αναζήτηση DNS",
 		"customDomainErrorDomainNotAvailable_msg": "Ο ιστότοπος δεν είναι διαθέσιμος.",
-		"customDomainErrorInvalidDnsRecord_msg": "Η εγγραφή DNS για αυτό το όνομα χώρου περιέχει μη έγκυρες τιμές.",
-		"customDomainErrorMissingMxEntry_msg": "Η εγγραφή MX για αυτό το domain λείπει.",
-		"customDomainErrorMissingSpfEntry_msg": "Η εγγραφή SPF για αυτό το domain λείπει.",
 		"customDomainNeutral_msg": "Παρακαλώ εισάγετε το  όνομα χώρου σας.",
 		"customEmailDomains_label": "Προσαρμοσμένα email domains",
 		"customLabel_label": "Προσαρμοσμένη ετικέτα",

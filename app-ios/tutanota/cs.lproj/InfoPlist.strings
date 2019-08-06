@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Žádný přístup.";
 TutaoChangePermissionMsg = "K umožnění přístupu musíte upravit povolení pro toto zařízení.";
 TutaoCancelAction = "Zrušit";
 TutaoSettingsAction = "Nastavení";
+TutaoCalendarAlarmTitle = "Připomenutí";

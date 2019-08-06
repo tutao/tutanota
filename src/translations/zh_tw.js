@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2019-05-27T11:41:29Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -43,7 +43,6 @@ module.exports = {
 		"addUsers_action": "新增用戶",
 		"addUserToGroup_label": "新增成員",
 		"add_action": "新增",
-		"adminCustomDomainInfo_msg": "請事先確保您的網域 DNS 已正確設定好 MX 和 SPF 紀錄",
 		"adminCustomDomain_label": "客製化網域",
 		"adminDeleteAccount_action": "刪除帳號",
 		"adminEmailSettings_action": "電子郵件",
@@ -199,9 +198,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "此網域已被指派至您的帳戶。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS 查找失敗。",
 		"customDomainErrorDomainNotAvailable_msg": "網域不可用。",
-		"customDomainErrorInvalidDnsRecord_msg": "此網域的 DNS 記錄內含無效值。",
-		"customDomainErrorMissingMxEntry_msg": "查無此網域的MX紀錄。",
-		"customDomainErrorMissingSpfEntry_msg": "查無此網域的 SPF 紀錄。",
 		"customDomainNeutral_msg": "請輸入您的網域。",
 		"customEmailDomains_label": "客製化電子郵件網域",
 		"customLabel_label": "客製化標籤",

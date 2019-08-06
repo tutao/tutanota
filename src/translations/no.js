@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2019-05-27T11:41:28Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Vennligst godta personvernreglene ved å merke av i avkrysningsruten.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Legg til brukere",
 		"addUserToGroup_label": "Legg til medlem",
 		"add_action": "Legg til",
-		"adminCustomDomainInfo_msg": "Vennligst sjekk på forhånd at dine MX- og SPF-oppføringer er satt opp riktig i DNS.",
 		"adminCustomDomain_label": "Eget domene",
 		"adminDeleteAccount_action": "Slett konto",
 		"adminEmailSettings_action": "E-post",
@@ -193,9 +192,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Domenet er allerede tilordnet til kontoen din.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-oppslag feilet.",
 		"customDomainErrorDomainNotAvailable_msg": "Domene er ikke tilgjengelig.",
-		"customDomainErrorInvalidDnsRecord_msg": "DNS-informasjonen for dette domenet inneholder ugyldige verdier.",
-		"customDomainErrorMissingMxEntry_msg": "Domenet mangler MX-innslag.",
-		"customDomainErrorMissingSpfEntry_msg": "Domenet mangler SPF-oppføring.",
 		"customDomainNeutral_msg": "Vennligst skriv inn ditt domene.",
 		"customEmailDomains_label": "Egne e-postdomener",
 		"customLabel_label": "Tilpasset merkelapp",

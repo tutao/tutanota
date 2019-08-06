@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2019-07-11T11:53:41Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "कृपया चेकबॉक्स का चयन करके प्राइवेसी नीति स्वीकार करें",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "उपयोगकर्ताओं को जोड़ें",
 		"addUserToGroup_label": "सदस्य जोड़ें",
 		"add_action": "जोड़ना",
-		"adminCustomDomainInfo_msg": "कृपया यह सुनिश्चित करें कि आपके एमएक्स और एसपीएफ़ अभिलेखों को आपके डीएनएस में ठीक से स्थापित किया गया है।",
 		"adminCustomDomain_label": "कस्टम डोमेन",
 		"adminDeleteAccount_action": "खाता बंद करें",
 		"adminEmailSettings_action": "ईमेल",
@@ -199,9 +198,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "डोमेन पहले से ही आपके खाते को सौंपा गया है।",
 		"customDomainErrorDnsLookupFailure_msg": "DNS लुकअप विफल",
 		"customDomainErrorDomainNotAvailable_msg": "डोमेन उपलब्ध नहीं है",
-		"customDomainErrorInvalidDnsRecord_msg": "इस डोमेन के लिए DNS रिकॉर्ड में अमान्य मान हैं",
-		"customDomainErrorMissingMxEntry_msg": "इस डोमेन के लिए एमएक्स रिकॉर्ड गायब है।",
-		"customDomainErrorMissingSpfEntry_msg": "इस डोमेन के लिए एसपीएफ़ रिकॉर्ड गायब है।",
 		"customDomainNeutral_msg": "कृपया अपना डोमेन दर्ज करें",
 		"customEmailDomains_label": "कस्टम ईमेल डोमेन",
 		"customLabel_label": "कस्टम लेबल",

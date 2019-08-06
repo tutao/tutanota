@@ -38,3 +38,4 @@ type SysServiceEnum =
 	| "resetfactorsservice"
 	| "upgradepriceservice"
 	| "alarmservice"
+	| "customdomaincheckservice"

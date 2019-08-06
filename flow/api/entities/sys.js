@@ -904,7 +904,7 @@ type StringWrapper = {
 type CustomDomainReturn = {
 	_type: TypeRef<CustomDomainReturn>;
 	_format: NumberString;
-	statusCode: NumberString;
+	validationResult: NumberString;
 
 	invalidDnsRecords: StringWrapper[];
 }
@@ -1675,4 +1675,29 @@ type AlarmServicePost = {
 	_format: NumberString;
 
 	alarmNotifications: AlarmNotification[];
+}
+
+type DnsRecord = {
+	_type: TypeRef<DnsRecord>;
+	_id: Id;
+	subdomain: ?string;
+	type: NumberString;
+	value: string;
+
+}
+
+type CustomDomainCheckData = {
+	_type: TypeRef<CustomDomainCheckData>;
+	_format: NumberString;
+	domain: string;
+
+}
+
+type CustomDomainCheckReturn = {
+	_type: TypeRef<CustomDomainCheckReturn>;
+	_format: NumberString;
+	checkResult: NumberString;
+
+	invalidRecords: DnsRecord[];
+	missingRecords: DnsRecord[];
 }

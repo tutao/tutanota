@@ -39,5 +39,6 @@ export const SysService = {
 	SignOrderProcessingAgreementService: "signorderprocessingagreementservice",
 	ResetFactorsService: "resetfactorsservice",
 	UpgradePriceService: "upgradepriceservice",
-	AlarmService: "alarmservice"
+	AlarmService: "alarmservice",
+	CustomDomainCheckService: "customdomaincheckservice"
 }

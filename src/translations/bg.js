@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2019-07-18T11:52:50Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Моля приемете политиката за поверителност като изберете отметката.",
@@ -44,7 +44,6 @@ module.exports = {
 		"addUsers_action": "Добавяне на потребители",
 		"addUserToGroup_label": "Добавяне на член",
 		"add_action": "Добави",
-		"adminCustomDomainInfo_msg": "Моля, провери дали MX и SPF записите са настроени коректно в DNS-а.",
 		"adminCustomDomain_label": "Персонален домейн",
 		"adminDeleteAccount_action": "Изтриване на профил",
 		"adminEmailSettings_action": "Електронна поща",
@@ -221,9 +220,6 @@ module.exports = {
 		"customDomainDomainAssigned_msg": "Домейнът вече е част от твоя профил. ",
 		"customDomainErrorDnsLookupFailure_msg": "Грешка при DNS проверката.",
 		"customDomainErrorDomainNotAvailable_msg": "Домейнът е недостъпен",
-		"customDomainErrorInvalidDnsRecord_msg": "Записът на DNS за този домейн съдържа невалидни стойности.",
-		"customDomainErrorMissingMxEntry_msg": "Лиспва MX записа за този домейн.",
-		"customDomainErrorMissingSpfEntry_msg": "SPF записът за този домейн липсва.",
 		"customDomainNeutral_msg": "Моля, въведи своя домейн.",
 		"customEmailDomains_label": "Персонализиран домейн за имейли",
 		"customLabel_label": "Персонализирано поле",
