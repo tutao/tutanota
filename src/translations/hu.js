@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2019-07-22T13:52:52Z",
+	"updated_at": "2019-07-30T12:52:50Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -119,6 +119,7 @@ module.exports = {
 		"changePassword_label": "Jelszó megváltoztatása",
 		"changePermissions_msg": "A hozzáféréshez módosítani kell az engedélyeket az eszközön.",
 		"changeTimeFrame_msg": "Váltson Prémiumra a keresési időszak beállításához!",
+		"checkAgain_action": "Ellenőrizze újra",
 		"chooseDirectory_action": "Válasszon könyvtárat",
 		"chooseNumber_msg": "Kérem kattintson valamelyik \"SMS küldése\" gombra, hogy megkapja Tutanota jelszavát.",
 		"choosePhotos_action": "Fényképek",
@@ -236,6 +237,7 @@ module.exports = {
 		"deleteContacts_msg": "Biztosan törölni szeretné a kiválaszott kapcsolato(ka)t?",
 		"deleteContact_msg": "Biztosan törölni akarja a névjegyet?",
 		"deleteCredentials_action": "Bejelentkezési adatok törlése",
+		"deleteDnsRecords_msg": "Kérjük, törölje vagy javítsa a következő DNS beállításokat:",
 		"deleteEmails_action": "A kijelölt e-mailek törlése",
 		"delete_action": "Törlés",
 		"desktopSettings_label": "Asztali beállítások",

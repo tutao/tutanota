@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Geen machtiging";
 TutaoChangePermissionMsg = "Om toegang te verlenen, moet u de machtigingen voor dit apparaat wijzigen.";
 TutaoCancelAction = "Annuleer";
 TutaoSettingsAction = "Instellingen";
+TutaoCalendarAlarmTitle = "Herinnering";

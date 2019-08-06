@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-07-25T11:09:28Z",
+	"updated_at": "2019-08-06T13:51:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -72,6 +72,7 @@ module.exports = {
 		"alwaysAsk_action": "Jedes Mal fragen",
 		"amountUsedAndActivatedOf_label": "{used} benutzt, {active} aktiviert von {totalAmount}",
 		"amountUsedOf_label": "{amount} benutzt von {totalAmount}",
+		"appearanceSettings_label": "Aussehen",
 		"appInfoAndroidImageAlt_alt": "Android App bei Google Play",
 		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
 		"appInfoIosImageAlt_alt": "iOS App im Apple store",
@@ -767,6 +768,7 @@ module.exports = {
 		"register_label": "Registrieren",
 		"registrationHeadline_msg": "Registrierung",
 		"releaseNotes_action": "Release Notes",
+		"reminderBeforeEvent_label": "Erinnerung bevor Ereignis",
 		"remindersUsageDescription_msg": "Zeige eine Nachricht beim Empfang von E-Mails an.",
 		"reminder_label": "Erinnerung",
 		"removeFormatting_action": "Textformatierung der Auswahl entfernen",
@@ -912,6 +914,9 @@ module.exports = {
 		"text_label": "Text",
 		"thisClient_label": "<Dieser Client>",
 		"timeFormatInvalid_msg": "Ungültiges Zeitformat",
+		"timeFormatTwelveHour_label": "12 Stunden",
+		"timeFormatTwentyFourHour_label": "24 Stunden",
+		"timeFormat_label": "Zeitformat",
 		"time_label": "Uhrzeit",
 		"title_placeholder": "Titel",
 		"today_label": "Heute",
@@ -974,6 +979,8 @@ module.exports = {
 		"view_label": "Ansicht",
 		"waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um eine anonyme Registrierung zu ermöglichen und gleichzeitig Massenregistrierungen zu verhindern. Dein Account wird nach 48 Stunden automatisch freigeschaltet. Vielen Dank für deine Geduld!",
 		"wantToSendReport_msg": "Es ist ein unerwarteter Fehler aufgetreten. Möchtest du einen Fehlerbericht senden? Du kannst eine Nachricht hinzufügen, um uns zu helfen, diesen Fehler zu beheben.",
+		"weekNumber_label": "Woche {week}",
+		"weekStart_label": "Wochenstart",
 		"welcomeMailBody1_msg": "Herzlich willkommen in deiner sicheren und werbefreien Tutanota-Mailbox, geschützt mit starker Verschlüsselung. Selbst wir, die Entwickler, haben keinen Zugriff auf deine Daten. Du allein kannst deine E-Mails und deine Kontakte mit deinem Passwort entschlüsseln. Bitte verlier dein Passwort nicht, da wir es nicht zurücksetzen können.",
 		"welcomeMailBody2_msg": "Du kannst E-Mails an jede E-Mail-Adresse weltweit senden. Wenn deine Freunde ebenfalls Tutanota nutzen, werden alle E-Mails automatisch Ende-zu-Ende verschlüsselt. Außerdem kannst du E-Mails an andere E-Mail-Provider verschlüsseln. Tutanota verschlüsselt Betreff, Inhalt und Anhänge automatisch. Selbst E-Mails, die du unverschlüsselt erhältst, werden auf unseren Servern verschlüsselt. ",
 		"welcomeMailBody3a_msg": "Bitte schau dir das How-to von Tutanota, die FAQ und das Support-Forum an, um alles zu erfahren, was du über deine neue verschlüsselte Mailbox wissen möchtest:",
@@ -1003,7 +1010,6 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"reminderBeforeEvent_label": "Erinnerung bevor Ereignis"
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

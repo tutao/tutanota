@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2019-07-25T11:09:10Z",
+	"updated_at": "2019-07-30T08:39:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -868,7 +868,7 @@ module.exports = {
 		"signingNeeded_msg": "Potpis je potreban!",
 		"signupOneFreeAccountConfirm_msg": "Dopušten je samo jedan besplatni račun po osobi. Potvrdite da nemate nijedan drugi Tutanota besplatni račun.",
 		"sign_action": "Potpiši",
-		"skipDnsRecordsInfo_msg": "Postavite DNS zapise za prilagođenu domenu e-pošte. Dokle god nisu ispravno konfigurirani, možda nećete moći slati i primati e-poštu s prilagođenom domenom. Međutim, taj korak možete odgoditi dok ne postavite adrese e-pošte za prilagođenu domenu.",
+		"skipDnsRecordsInfo_msg": "Postavite DNS zapise za prilagođenu domenu e-pošte. Dokle god nisu ispravno konfigurirani, možda nećete moći slati i primati e-poštu na prilagođenoj domeni. Međutim, taj korak možete odgoditi dok ne postavite adrese e-pošte za prilagođenu domenu.",
 		"skip_action": "preskoči_aktivnost\nPreskoči\n",
 		"smsError_msg": "Tekst poruka nije mogla biti poslana.",
 		"smsResent_msg": "Ako tekst poruka nije stigla, možete je sada ponovo poslati.",

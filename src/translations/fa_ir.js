@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2019-07-22T13:52:52Z",
+	"updated_at": "2019-08-02T10:29:20Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "لطفا با انتخاب جعبه بررسی، قوانین  حفظ حریم خصوصی را بپذیرید.",
@@ -782,7 +782,7 @@ module.exports = {
 		"sent_action": "ارسال شد",
 		"serverDownForMaintenance_msg": "سرور برای انجام تعمیر و نگهداری تعطیل است. لطفا بعدا دوباره امتحان کنید",
 		"serverNotReachable_msg": "سرور نمی تواند یافت شود، شما ONLINE  نیستید. لطفا بعدا دوباره امتحان کنید.",
-		"serviceUnavailable_msg": "یک خطای غیر منتظره در کارساز رخ داده است. لطفا بعدا دوباره امتحان کنید.",
+		"serviceUnavailable_msg": "یک خطای موقتی در کارساز رخ داده است. لطفا بعدا دوباره امتحان کنید.",
 		"sessionsInfo_msg": "مشتری و آدرس IP فقط به طور رمزگذاری شده ذخیره می شوند.",
 		"sessionsWillBeDeleted_msg": "اینها ۲هفته پس ازبستن  حذف خواهند شد.",
 		"setCatchAllMailbox_action": "تنظیمcatch all صندوق ایمیل ",
