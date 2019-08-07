@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-08-06T13:51:53Z",
+	"updated_at": "2019-08-07T08:06:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -274,7 +274,7 @@ module.exports = {
 		"deleteCredentials_action": "Zugangsdaten löschen",
 		"deleteDnsRecords_msg": "Bitte lösche oder korrigiere die folgenden DNS-Einträge:",
 		"deleteEmails_action": "Lösche die ausgewählten E-Mails",
-		"deleteRepeatingEventConfirmation_msg": "Möchtest du diesen wiederholenden Termin wirklich löschen?",
+		"deleteRepeatingEventConfirmation_msg": "Möchtest du diesen sich wiederholenden Termin wirklich löschen?",
 		"delete_action": "Löschen",
 		"description_label": "Beschreibung",
 		"desktopSettings_label": "Desktop-Einstellungen",

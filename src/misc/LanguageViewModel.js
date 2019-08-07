@@ -43,6 +43,7 @@ export const languages: Language[] = [
 	{code: 'ro', textId: 'languageRomanian_label'},
 	{code: 'ru', textId: 'languageRussian_label'},
 	{code: 'sk', textId: 'languageSlovak_label'},
+	{code: 'sl', textId: 'languageSlovenian_label'},
 	{code: 'sr', textId: 'languageSerbian_label'},
 	{code: 'sv', textId: 'languageSwedish_label'},
 	{code: 'tr', textId: 'languageTurkish_label'},
