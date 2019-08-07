@@ -70,7 +70,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(DropDownSelectorN, languageDropDownAttrs),
-			themeId === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
+			themeId() === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
 		])
