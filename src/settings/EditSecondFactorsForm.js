@@ -216,7 +216,7 @@ export class EditSecondFactorsForm {
 					if (cleanedValue.length === 6) {
 						const time = Math.floor(new Date().getTime() / 1000 / 30)
 						const expectedCode = Number(cleanedValue)
-						// We try out 3 codes: current minute, one minute before and one minute after.
+						// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
 						// If at least one of them works, we accept it.
 						return worker
 							.generateTotpCode(time, totpKeys.key)
