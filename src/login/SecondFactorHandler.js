@@ -141,6 +141,7 @@ export class SecondFactorHandler {
 			}
 
 			u2fClient.isSupported().then(u2fSupport => {
+				console.log("u2fSupport", u2fSupport)
 				let keyForThisDomainExisting = keys.filter(key => key.appId === u2fClient.appId).length > 0
 				let otherDomainAppIds = keys.filter(key => key.appId !== u2fClient.appId).map(key => key.appId)
 				let otherLoginDomain = otherDomainAppIds.length > 0
