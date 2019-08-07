@@ -161,7 +161,7 @@ o.spec("calendar utils tests", function () {
 	})
 
 	o.spec("getStartOfWeek", function () {
-		o.only("works", function () {
+		o("works", function () {
 			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
 			o(getStartOfWeek(new Date(2019, 6, 7), 1).toISOString()).equals(new Date(2019, 6, 1).toISOString())
 		})

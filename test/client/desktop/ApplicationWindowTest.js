@@ -273,8 +273,8 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+W',
 			'CommandOrControl+H',
 			'CommandOrControl+N',
-			'Alt+Left',
 			'Alt+Right',
+			'Alt+Left',
 			'F11'
 		])
 	})
@@ -294,8 +294,8 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+W',
 			'CommandOrControl+H',
 			'CommandOrControl+N',
-			'Alt+Left',
 			'Alt+Right',
+			'Alt+Left',
 			'F11'
 		])
 	})
@@ -315,8 +315,8 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+W',
 			'CommandOrControl+H',
 			'CommandOrControl+N',
-			'Alt+Left',
-			'Alt+Right',
+			'Command+Right',
+			'Command+Left',
 			'Command+Control+F'
 		])
 	})
