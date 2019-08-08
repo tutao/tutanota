@@ -44,6 +44,7 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 
 export type CalendarInfo = {
@@ -90,7 +91,11 @@ export class CalendarView implements CurrentView {
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, [
 				m(".folders.pt-s", [
 					m(".folder-row.flex-space-between.button-height", [
 						m("small.b.align-self-center.ml-negative-xs",
@@ -247,8 +252,8 @@ export class CalendarView implements CurrentView {
 			nextMonthDate.setMonth(d.getMonth() + 1)
 
 			this._loadMonthIfNeeded(d)
-			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
-			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
+				.then(() => this._loadMonthIfNeeded(nextMonthDate))
+				.then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
@@ -280,15 +285,15 @@ export class CalendarView implements CurrentView {
 			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
 				dialog.close()
 				worker.addCalendar(properties.name)
-				      .then((group) => {
-					      const {userSettingsGroupRoot} = logins.getUserController()
-					      const newGroupColor = Object.assign(createGroupColor(), {
-						      group: group._id,
-						      color: properties.color
-					      })
-					      userSettingsGroupRoot.groupColors.push(newGroupColor)
-					      update(userSettingsGroupRoot)
-				      })
+					  .then((group) => {
+						  const {userSettingsGroupRoot} = logins.getUserController()
+						  const newGroupColor = Object.assign(createGroupColor(), {
+							  group: group._id,
+							  color: properties.color
+						  })
+						  userSettingsGroupRoot.groupColors.push(newGroupColor)
+						  update(userSettingsGroupRoot)
+					  })
 			})
 		}
 	}
@@ -443,8 +448,8 @@ export class CalendarView implements CurrentView {
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements
-					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
-					                 .forEach((e) => this._addDaysForEvent(e, month))
+									 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+									 .forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {
 							this._addDaysForRecurringEvent(e, month)

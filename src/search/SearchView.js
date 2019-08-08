@@ -38,6 +38,7 @@ import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
@@ -148,7 +149,11 @@ export class SearchView implements CurrentView {
 		})
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, [
 				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
 					m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
 						lang.get("search_label").toLocaleUpperCase())

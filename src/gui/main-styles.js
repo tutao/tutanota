@@ -457,8 +457,14 @@ styles.registerStyle('main', () => {
 			bottom: px(0),
 			left: px(0),
 			'overflow-x': 'hidden',
-			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
+			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)', // insets for iPhone X)
 		},
+
+		'.margin-are-inset-lr': {
+			'margin-right': 'env(safe-area-inset-right)',
+			'margin-left': 'env(safe-area-inset-left)',
+		},
+
 
 		// view slider
 

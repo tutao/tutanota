@@ -18,6 +18,7 @@ import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
+import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 
 assertMainOrNode()
 
@@ -87,12 +88,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		const updateWidth = () => {
 			if (this._domListContainer) {
-				window.requestAnimationFrame(() => {
+				this._domSwipeSpacerLeft.style.opacity = '0'
+				this._domSwipeSpacerRight.style.opacity = '0'
+				setTimeout(() => {
 					this._width = this._domListContainer.clientWidth
 					if (this._swipeHandler) {
 						this._swipeHandler.updateWidth()
+						this._domSwipeSpacerLeft.style.opacity = '1'
+						this._domSwipeSpacerRight.style.opacity = '1'
 					}
-				})
+				}, 20)
 			}
 		}
 
@@ -185,7 +190,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 											style: {
 												transform: `translateY(-${this._config.rowHeight}px)`,
 												paddingTop: px(15),
-												paddingBottom: px(15)
+												paddingBottom: px(15),
 											},
 											ondragstart: (event) => this._dragstart(event, virtualRow)
 										}, virtualRow.render())
@@ -300,6 +305,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				clearTimeout(timeoutId)
 			}
 		}
+		applySafeAreaInsetMarginLR(domElement)
 	}
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
@@ -1058,6 +1064,9 @@ class ListSwipeHandler extends SwipeHandler {
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
 		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
 		this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.list._width) + 'px) translateY(0px)'
+		this.list._virtualList.forEach((element) => {
+			applySafeAreaInsetMarginLR(element.domElement)
+		})
 	}
 
 

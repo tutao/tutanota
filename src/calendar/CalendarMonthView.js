@@ -53,8 +53,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_resizeListener: () => mixed;
 
 	constructor() {
-		// Redraw after timeout with pause because when changing mobile device orientation the size is not correct on the first draw
-		this._resizeListener = debounce(100, m.redraw)
+		this._resizeListener = m.redraw
 	}
 
 	oncreate() {
