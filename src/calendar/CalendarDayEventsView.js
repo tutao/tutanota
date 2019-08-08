@@ -99,7 +99,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 		return m(".abs.darker-hover", {
 			style: {
 				left: px(columnWidth * columnIndex),
-				width: px(columnWidth * colSpan - (columnIndex === columns.length - 1 ? 20 : 0)),
+				width: px(columnWidth * colSpan),
 				top: px(startTime / DAY_IN_MILLIS * allHoursHeight),
 				height: px(height)
 			},
