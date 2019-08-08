@@ -427,3 +427,5 @@ export const WeekStart = Object.freeze({
 })
 
 export type WeekStartEnum = $Values<typeof WeekStart>
+
+export const SECOND_MS = 1000

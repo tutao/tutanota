@@ -6,6 +6,7 @@ import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
 import u2fApi from "./u2f-api"
+import {SECOND_MS} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -48,7 +49,7 @@ export class U2fClient {
 							resolve(responseOrError['js_api_version'] != null)
 						}, 2)
 					}),
-					Promise.delay(1, false),
+					Promise.delay(SECOND_MS, false),
 				])
 			)
 			.catch(() => false)
