@@ -151,13 +151,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 					}
 				},
 			}, [
-				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
-						style: {
-							flex: '1 0 auto',
-							'border-bottom': `1px solid ${theme.content_border}`,
-							height: px(size.calendar_hour_height)
-						},
-					},
+				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex",
 					m(".center.small", {
 						style: {
 							'line-height': px(size.calendar_hour_height),

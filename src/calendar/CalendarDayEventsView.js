@@ -39,10 +39,6 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			},
 			[
 				calendarDayTimes.map(n => m(".calendar-hour.flex", {
-						style: {
-							'border-bottom': `1px solid ${theme.content_border}`,
-							height: px(size.calendar_hour_height)
-						},
 						onclick: (e) => {
 							e.stopPropagation()
 							vnode.attrs.onTimePressed(n.getHours(), n.getMinutes())

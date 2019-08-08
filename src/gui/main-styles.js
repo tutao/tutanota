@@ -938,7 +938,10 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-hour': {
-			'cursor': 'pointer'
+			'cursor': 'pointer',
+			'border-bottom': `1px solid ${theme.content_border}`,
+			height: px(size.calendar_hour_height),
+			flex: '1 0 auto',
 		},
 
 		'.calendar-hour:hover': {

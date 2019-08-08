@@ -127,10 +127,6 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				},
 			}, [
 				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
-						style: {
-							'border-bottom': `1px solid ${theme.content_border}`,
-							height: px(size.calendar_hour_height)
-						},
 						onclick: (e) => {
 							e.stopPropagation()
 							vnode.attrs.onNewEvent(n)
