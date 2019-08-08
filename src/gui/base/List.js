@@ -61,6 +61,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	ready: boolean;
 	view: Function;
 	onbeforeupdate: Function;
+	oncreate: Function;
 	onremove: Function;
 	_scrollListener: Function;
 
@@ -86,43 +87,12 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			return wrapper
 		}
 
-		const updateWidth = () => {
-			if (this._domListContainer) {
-				this._domSwipeSpacerLeft.style.opacity = '0'
-				this._domSwipeSpacerRight.style.opacity = '0'
-				setTimeout(() => {
-					this._width = this._domListContainer.clientWidth
-					if (this._swipeHandler) {
-						this._swipeHandler.updateWidth()
-						this._domSwipeSpacerLeft.style.opacity = '1'
-						this._domSwipeSpacerRight.style.opacity = '1'
-					}
-				}, 20)
-			}
-		}
-
 		this._scrollListener = (e) => {
 			this.currentPosition = this._domListContainer.scrollTop
 			if (this.lastPosition !== this.currentPosition) {
 				window.requestAnimationFrame(() => this._scroll())
 			}
 		}
-
-		let reset = () => {
-			if (this._domListContainer) {
-				this._domListContainer.removeEventListener('scroll', this._scrollListener)
-			}
-			this._domInitialized = createPromise()
-
-			this.ready = false
-			this._virtualList = []
-
-			windowFacade.removeResizeListener(updateWidth)
-		}
-
-		reset()
-
-		windowFacade.addResizeListener(updateWidth)
 
 		this._virtualList = []
 		this._width = 0
@@ -144,7 +114,37 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this.onbeforeupdate = () => !this.ready // the list should never be redrawn by mithril after the inial draw
 
+		const updateWidth = () => {
+			if (this._domListContainer) {
+				this._domSwipeSpacerLeft.style.opacity = '0'
+				this._domSwipeSpacerRight.style.opacity = '0'
+				setTimeout(() => {
+					this._width = this._domListContainer.clientWidth
+					if (this._swipeHandler) {
+						this._swipeHandler.updateWidth()
+						this._domSwipeSpacerLeft.style.opacity = '1'
+						this._domSwipeSpacerRight.style.opacity = '1'
+					}
+				}, 60)
+			}
+		}
+
+		const reset = () => {
+			if (this._domListContainer) {
+				this._domListContainer.removeEventListener('scroll', this._scrollListener)
+			}
+			this._domInitialized = createPromise()
+
+			this.ready = false
+			this._virtualList = []
+			windowFacade.removeResizeListener(updateWidth)
+		}
+
 		this.onremove = reset
+		this.oncreate = () => {
+			reset()
+			windowFacade.addResizeListener(updateWidth)
+		}
 
 		this._emptyMessageBox = new MessageBox(() => this._config.emptyMessage, "list-message-bg")
 			.setVisible(false)

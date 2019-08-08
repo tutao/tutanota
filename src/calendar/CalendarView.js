@@ -91,13 +91,13 @@ export class CalendarView implements CurrentView {
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", {
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", {
 				style: {
 					paddingLeft: getSafeAreaInsetLeft()
 				}
 			}, [
 				m(".folders.pt-s", [
-					m(".folder-row.flex-space-between.button-height", [
+					m(".folder-row.flex-space-between.button-height.plr-l", [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
 							lang.get("view_label").toLocaleUpperCase()),
@@ -110,7 +110,7 @@ export class CalendarView implements CurrentView {
 							type: ButtonType.Primary,
 						}) : null
 					]),
-					m(".folder-row", calendarViewValues.map(viewType => {
+					m(".folder-row.plr-l", calendarViewValues.map(viewType => {
 						return m(NavButtonN, {
 							label: viewType.name,
 							icon: () => viewType.icon,
@@ -127,7 +127,7 @@ export class CalendarView implements CurrentView {
 				m(".folders",
 					{style: {color: theme.navigation_button}},
 					[
-						m(".folder-row.flex-space-between.button-height", [
+						m(".folder-row.flex-space-between.button-height.plr-l", [
 							m("small.b.align-self-center.ml-negative-xs",
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
@@ -304,7 +304,7 @@ export class CalendarView implements CurrentView {
 				const {userSettingsGroupRoot} = logins.getUserController()
 				const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === groupInfo.group)
 				const colorValue = "#" + (existingGroupColor ? existingGroupColor.color : defaultCalendarColor)
-				return m(".folder-row.flex-start",
+				return m(".folder-row.flex-start.plr-l",
 					[
 						m(".flex.flex-grow.center-vertically.button-height", [
 							m(".calendar-checkbox", {
