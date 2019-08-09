@@ -112,6 +112,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this._idOfEntityToSelectWhenReceived = null
 
+		this.onbeforeupdate = () => !this.ready // the list should never be redrawn by mithril after the inial draw
+
 		const updateWidth = () => {
 			if (this._domListContainer) {
 				this._domSwipeSpacerLeft.style.opacity = '0'
@@ -1058,7 +1060,6 @@ class ListSwipeHandler extends SwipeHandler {
 	}
 
 	updateWidth() {
-		console.log("updateWidth")
 		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
 		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
