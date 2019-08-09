@@ -10,5 +10,5 @@ export function getSafeAreaInsetLeft(){
 }
 
 export function getSafeAreaInsetRight(){
-	return window.orientation === 90 ? 'env(safe-area-inset-right)' : ""
+	return window.orientation === -90 ? 'env(safe-area-inset-right)' : ""
 }
