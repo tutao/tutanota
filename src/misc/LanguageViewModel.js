@@ -381,6 +381,20 @@ export function getAvailableLanguageCode(code: string): string {
 	return _getSubstitutedLanguageCode(code, null) || "en"
 }
 
+/**
+ * pt_br -> pt-BR
+ * @param code
+ */
+export function languageCodeToTag(code: string): string {
+	const indexOfUnderscore = code.indexOf("_")
+	if (indexOfUnderscore === -1) {
+		return code
+	} else {
+		const [before, after] = code.split("_")
+		return `${before}-${after.toUpperCase()}`
+	}
+}
+
 
 export const assertTranslation: (id: string) => TranslationKey = downcast
 

@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {lang, languages} from "../misc/LanguageViewModel"
+import {getLanguage, lang, languageCodeToTag, languages} from "../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
@@ -26,7 +26,11 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: stream(deviceConfig.getLanguage()),
 			selectionChangedHandler: (value) => {
 				deviceConfig.setLanguage(value)
-				lang.setLanguage({code: value, languageTag: value}).then(m.redraw)
+				if (value) {
+					lang.setLanguage({code: value, languageTag: languageCodeToTag(value)}).then(m.redraw)
+				} else {
+					lang.setLanguage(getLanguage()).then(m.redraw)
+				}
 			}
 		}
 

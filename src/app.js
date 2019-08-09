@@ -3,7 +3,7 @@ import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import en from "./translations/en"
-import {lang, languages} from "./misc/LanguageViewModel"
+import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
@@ -117,7 +117,7 @@ let initialized = lang.init(en).then(() => {
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
-		lang.setLanguage({code: userLanguage.code, languageTag: userLanguage.code})
+		lang.setLanguage({code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)})
 	}
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
