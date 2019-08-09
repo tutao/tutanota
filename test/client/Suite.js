@@ -17,23 +17,23 @@ import "./misc/U2fClientTest"
 import "./contact/ContactUtilsTest"
 import "./contact/ContactMergeUtilsTest"
 import "./calendar/CalendarModelTest"
-import "./mail/MailModelTest"
 import "./calendar/CalendarUtilsTest"
+import "./calendar/CalendarParsertest"
 
 import o from "ospec/ospec.js"
 
 node(() => {
-    require("./desktop/DesktopUtilsTest.js")
-    require("./desktop/DesktopConfigHandlerTest")
-    require("./desktop/ElectronUpdaterTest")
-    require("./desktop/DesktopNotifierTest")
-    require("./desktop/DesktopWindowManagerTest.js")
-    require("./desktop/DesktopTrayTest.js")
-    require("./desktop/ApplicationWindowTest.js")
-    require("./desktop/DesktopSseClientTest.js")
-    require("./desktop/DesktopDownloadManagerTest.js")
-    require("./desktop/IPCTest.js")
-    require("./desktop/SocketeerTest.js")
+	require("./desktop/DesktopUtilsTest.js")
+	require("./desktop/DesktopConfigHandlerTest")
+	require("./desktop/ElectronUpdaterTest")
+	require("./desktop/DesktopNotifierTest")
+	require("./desktop/DesktopWindowManagerTest.js")
+	require("./desktop/DesktopTrayTest.js")
+	require("./desktop/ApplicationWindowTest.js")
+	require("./desktop/DesktopSseClientTest.js")
+	require("./desktop/DesktopDownloadManagerTest.js")
+	require("./desktop/IPCTest.js")
+	require("./desktop/SocketeerTest.js")
 })()
 
 o.run()

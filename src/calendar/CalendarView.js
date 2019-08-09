@@ -45,6 +45,7 @@ import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteD
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {showCalendarImportDialog} from "./CalendarImportDialog"
 
 
 export type CalendarInfo = {
@@ -252,8 +253,8 @@ export class CalendarView implements CurrentView {
 			nextMonthDate.setMonth(d.getMonth() + 1)
 
 			this._loadMonthIfNeeded(d)
-				.then(() => this._loadMonthIfNeeded(nextMonthDate))
-				.then(() => this._loadMonthIfNeeded(previousMonthDate))
+			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
+			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
@@ -285,15 +286,15 @@ export class CalendarView implements CurrentView {
 			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
 				dialog.close()
 				worker.addCalendar(properties.name)
-					  .then((group) => {
-						  const {userSettingsGroupRoot} = logins.getUserController()
-						  const newGroupColor = Object.assign(createGroupColor(), {
-							  group: group._id,
-							  color: properties.color
-						  })
-						  userSettingsGroupRoot.groupColors.push(newGroupColor)
-						  update(userSettingsGroupRoot)
-					  })
+				      .then((group) => {
+					      const {userSettingsGroupRoot} = logins.getUserController()
+					      const newGroupColor = Object.assign(createGroupColor(), {
+						      group: group._id,
+						      color: properties.color
+					      })
+					      userSettingsGroupRoot.groupColors.push(newGroupColor)
+					      update(userSettingsGroupRoot)
+				      })
 			})
 		}
 	}
@@ -333,6 +334,12 @@ export class CalendarView implements CurrentView {
 								type: ButtonType.Dropdown,
 							},
 							{
+								label: () => "Import",
+								icon: () => Icons.Archive,
+								click: () => showCalendarImportDialog(groupRoot),
+								type: ButtonType.Dropdown,
+							},
+							{
 								label: "delete_action",
 								icon: () => Icons.Trash,
 								click: () => {
@@ -341,7 +348,7 @@ export class CalendarView implements CurrentView {
 									}))
 								},
 								type: ButtonType.Dropdown,
-							}
+							},
 						])),
 					])
 			})
@@ -448,8 +455,8 @@ export class CalendarView implements CurrentView {
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements
-									 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
-									 .forEach((e) => this._addDaysForEvent(e, month))
+					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+					                 .forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {
 							this._addDaysForRecurringEvent(e, month)
