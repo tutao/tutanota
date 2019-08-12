@@ -56,7 +56,7 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	return {hours, minutes}
 }
 
-function filterInt(value) {
+export function filterInt(value: string) {
 	if (/^\d+$/.test(value)) {
 		return parseInt(value, 10);
 	} else {

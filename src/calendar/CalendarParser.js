@@ -2,9 +2,11 @@
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {DateTime} from "luxon"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {createRepeatRule} from "../api/entities/sys/RepeatRule"
+import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
+import {DAY_IN_MILLIS, incrementDate} from "../api/common/utils/DateUtils"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -53,7 +55,7 @@ export function parseIntoTree(stringData: string): ICalObject {
 	return parse("VCALENDAR", iterator)
 }
 
-export function parseIntoCalendarEvents(icalObject: ICalObject): Array<CalendarEvent> {
+export function parseIntoCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
 	function getProp(obj: ICalObject, tag: string): Property {
@@ -70,11 +72,39 @@ export function parseIntoCalendarEvents(icalObject: ICalObject): Array<CalendarE
 		event.startTime = parseTime(startProp.value, typeof tzId === "string" ? tzId : null)
 
 
-		// TODO: end might be missing, then we must assume ending on the same day
-		const endProp = getProp(eventObj, "DTEND")
-		if (typeof endProp.value !== "string") throw new Error("DTEND value is not a string")
-		const endTzId = startProp.params["TZID"]
-		event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null)
+		// TODO: end might be missing, then we must assume ending on the same day or use duration
+		const endProp = eventObj.properties.find(p => p.name === "DTEND")
+		if (endProp) {
+			if (typeof endProp.value !== "string") throw new Error("DTEND value is not a string")
+			const endTzId = startProp.params["TZID"]
+			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null)
+		} else {
+			const durationProp = eventObj.properties.find(p => p.name === "DURATION")
+			if (durationProp) {
+				if (typeof durationProp.value !== "string") throw new Error("DURATION value is not a string")
+				const duration = parseDuration(durationProp.value)
+				let durationInMillis = 0
+				if (duration.week) {
+					durationInMillis += DAY_IN_MILLIS * 7 * duration.week
+				}
+				if (duration.day) {
+					durationInMillis += DAY_IN_MILLIS * duration.day
+				}
+				if (duration.hour) {
+					durationInMillis += 1000 * 60 * 60 * duration.hour
+				}
+				if (duration.minute) {
+					durationInMillis += 1000 * 60 * duration.minute
+				}
+				event.endTime = new Date(event.startTime.getTime() + durationInMillis)
+			} else {
+				// If nothing else duration is one day.
+				// We interpret it like that. Maybe it should be different for all-day events
+				// It's not common to omit end date anyway.
+				event.endTime = incrementDate(new Date(event.startTime), 1)
+			}
+		}
+
 
 		const summaryProp = getProp(eventObj, "SUMMARY")
 		if (typeof summaryProp.value !== "string") throw new Error("SUMAMRY value is not a string")
@@ -110,15 +140,67 @@ export function parseIntoCalendarEvents(icalObject: ICalObject): Array<CalendarE
 				repeatRule.endType = endType
 				repeatRule.interval = String(interval)
 				repeatRule.frequency = frequency
+				if (typeof tzId === "string") {
+					repeatRule.timeZone = tzId
+				}
 
 				event.repeatRule = repeatRule
 			}
 		}
 
+		const alarms = []
+		eventObj.children.filter(c => c.type === "VALARM").forEach((alarmChild) => {
+			const triggerProp = getProp(alarmChild, "TRIGGER")
+			if (typeof triggerProp.value !== "string") throw new Error("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
+			const duration = parseDuration(triggerProp.value)
+			if (!duration.positive) {
+				let trigger: AlarmIntervalEnum
+				if (duration.week) {
+					trigger = AlarmInterval.ONE_WEEK
+				} else if (duration.day) {
+					if (duration.day >= 3) {
+						trigger = AlarmInterval.THREE_DAYS
+					} else if (duration.day === 2) {
+						trigger = AlarmInterval.TWO_DAYS
+					} else {
+						trigger = AlarmInterval.ONE_DAY
+					}
+				} else if (duration.hour) {
+					if (duration.hour > 1) {
+						trigger = AlarmInterval.ONE_DAY
+					} else {
+						trigger = AlarmInterval.ONE_HOUR
+					}
+				} else if (duration.minute) {
+					if (duration.minute > 30) {
+						trigger = AlarmInterval.ONE_HOUR
+					} else if (duration.minute > 10) {
+						trigger = AlarmInterval.THIRTY_MINUTES
+					} else if (duration.minute > 5) {
+						trigger = AlarmInterval.TEN_MINUTES
+					} else {
+						trigger = AlarmInterval.FIVE_MINUTES
+					}
+				} else {
+					trigger = AlarmInterval.THREE_DAYS
+				}
+				alarms.push(Object.assign(createAlarmInfo(), {trigger}))
+			}
+		})
 
-		return event
+
+		return {event, alarms}
 	})
 }
+
+type Duration = {
+	positive: boolean,
+	day?: number,
+	week?: number,
+	hour?: number,
+	minute?: number,
+}
+
 
 function parseFrequency(value: string): RepeatPeriodEnum {
 	const map = {
@@ -143,7 +225,10 @@ export function parseTime(value: string, zone: ?string): Date {
 		return DateTime.fromObject({year, month, day, hour, minute, zone}).toJSDate()
 	} else if (/[0-9]{8}/.test(value)) {
 		const {year, month, day} = parseDateString(value)
-		return DateTime.fromObject({year, month, day, hour: 0, minute: 0, second: 0, zone}).toJSDate()
+		const date = new Date()
+		date.setUTCFullYear(year, month, day)
+		date.setUTCHours(0, 0, 0, 0)
+		return date
 	} else {
 		throw new Error("Failed to parse time: " + value)
 	}
@@ -176,7 +261,7 @@ const combineParsers: (<A, B>(Parser<A>, Parser<B>) => Parser<[A, B]>)
 	& ((<A, B, C, D, E>(Parser<A>, Parser<B>, Parser<C>, Parser<D>, Parser<E>) => Parser<[A, B, C, D, E]>))
 	= downcast((...parsers) => (iterator) => parsers.map(p => p(iterator)))
 
-const characterParser = (character: string) => (iterator: StringIterator) => {
+const parseCharacter = (character: string) => (iterator: StringIterator) => {
 	let value = iterator.peek()
 	if (value === character) {
 		iterator.next()
@@ -185,7 +270,7 @@ const characterParser = (character: string) => (iterator: StringIterator) => {
 	throw new Error("expected character " + character)
 }
 
-const repeatedParser = <T>(anotherParser: Parser<T>): Parser<Array<T>> => (iterator: StringIterator) => {
+const parseZeroOrMore = <T>(anotherParser: Parser<T>): Parser<Array<T>> => (iterator: StringIterator) => {
 	const result = []
 	try {
 		let parseResult = anotherParser(iterator)
@@ -197,6 +282,15 @@ const repeatedParser = <T>(anotherParser: Parser<T>): Parser<Array<T>> => (itera
 	}
 	return result
 }
+
+const mapParser = <T, R>(parser: Parser<T>, mapper: (T) => R): Parser<R> => (iterator: StringIterator) => mapper(parser(iterator))
+
+const parseOneOrMore = <T>(parser: Parser<T>): Parser<Array<T>> => mapParser(parseZeroOrMore(parser), (value: Array<T>) => {
+	if (value.length === 0) {
+		throw new Error("Expected at least one value, got none")
+	}
+	return value
+})
 
 
 const optionalParser = <T>(parser: Parser<T>): Parser<?T> => (iterator) => {
@@ -232,17 +326,17 @@ const parseEither: <A, B>(Parser<A>, Parser<B>) => Parser<A | B> = (parserA, par
 	}
 }
 
-const propertyKeyValueParser = combineParsers(parsePropertyName, characterParser("="), parseStringValue)
+const propertyKeyValueParser = combineParsers(parsePropertyName, parseCharacter("="), parseStringValue)
 
 const parsePropertyParameters = combineParsers(
-	characterParser(";"),
+	parseCharacter(";"),
 	separatedBy(
-		characterParser(";"),
+		parseCharacter(";"),
 		propertyKeyValueParser,
 	),
 )
 
-const parsePropertyValue = parseEither(separatedBy(characterParser(";"), propertyKeyValueParser), parseStringValue)
+const parsePropertyValue = parseEither(separatedBy(parseCharacter(";"), propertyKeyValueParser), parseStringValue)
 
 export const parsePropertySequence: Parser<[
 	string,
@@ -253,7 +347,7 @@ export const parsePropertySequence: Parser<[
 	combineParsers(
 		parsePropertyName,
 		optionalParser(parsePropertyParameters),
-		characterParser(":"),
+		parseCharacter(":"),
 		parsePropertyValue
 	)
 
@@ -279,6 +373,126 @@ export function parseProperty(data: string): Property {
 	}
 	return {name, params, value}
 }
+
+
+const parseOneOf = <T>(allowed: Array<Parser<T>>) => allowed.reduce(parseEither, () => {
+	throw new Error("None of the allowed parsers matched")
+})
+// const parseOneOfCharacters = (allowed: Array<string>) => parseOneOf(allowed.map(parseCharacter))
+const parseOneOfCharacters = (allowed: Array<string>): Parser<string> => (iterator: StringIterator) => {
+	const value = iterator.peek()
+	if (allowed.includes(value)) {
+		iterator.next()
+		return value
+	}
+	throw new Error(`Expected one of ${String(allowed)}, got ${value}`)
+}
+const parseNumber: Parser<number> = mapParser(parseOneOrMore(parseOneOfCharacters(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
+	(values) => parseInt(values.join(""), 10))
+
+const secondDurationParser: Parser<[number, string]> =
+	combineParsers(parseNumber, parseCharacter("S"))
+const minuteDurationParser: Parser<[number, string, ?[number, string]]> =
+	combineParsers(parseNumber, parseCharacter("M"), optionalParser(secondDurationParser))
+const hourDurationParser: Parser<[number, string, ?[number, string, ?[number, string]]]> =
+	combineParsers(parseNumber, parseCharacter("H"), optionalParser(minuteDurationParser))
+
+type TimeDuration = {
+	type: "time",
+	hour?: number,
+	minute?: number,
+	second?: number,
+}
+type DateDuration = {
+	type: "date",
+	day: number,
+	time: ?TimeDuration,
+}
+type WeekDuration = {
+	type: "week",
+	week: number,
+}
+const parseDurationTime = mapParser(combineParsers(
+	parseCharacter("T"),
+	parseEither(
+		hourDurationParser,
+		parseEither(
+			minuteDurationParser,
+			secondDurationParser
+		)
+	)
+), ([t, value]) => {
+	let minuteTuple, secondTuple
+	let hour, minute, second
+	if (value[1] === "H") {
+		hour = value[0]
+		minuteTuple = downcast(value)[2]
+	} else if (value[1] === "M") {
+		minuteTuple = value
+	} else if (value[1] === "S") {
+		secondTuple = value
+	}
+	if (minuteTuple) {
+		minute = minuteTuple[0]
+		secondTuple = downcast(minuteTuple)[2]
+	}
+	if (secondTuple) {
+		second = secondTuple[0]
+	}
+	return {type: "time", hour, minute, second}
+})
+const parseDurationDay = combineParsers(parseNumber, parseCharacter("D"))
+const parseDurationWeek: Parser<WeekDuration> = mapParser(combineParsers(parseNumber, parseCharacter("W")), (parsed) => {
+	return {type: "week", week: parsed[0]}
+})
+const parseDurationDate: Parser<DateDuration> = mapParser(combineParsers(parseDurationDay, optionalParser(parseDurationTime)), (parsed) => {
+	return {type: "date", day: parsed[0][0], time: parsed[1]}
+})
+
+const durationParser = mapParser(combineParsers(
+	optionalParser(
+		parseEither(
+			parseCharacter("+"),
+			parseCharacter("-")
+		)
+	),
+	parseCharacter("P"),
+	parseEither(
+		parseDurationDate,
+		parseEither(
+			parseDurationTime,
+			parseDurationWeek
+		)
+	)
+), ([sign, p, durationValue]) => {
+	const positive = sign !== "-"
+	let day, timeDuration, week, hour, minute
+	switch (durationValue.type) {
+		case "date":
+			day = durationValue.day
+			timeDuration = durationValue.time
+			break
+		case "time":
+			timeDuration = durationValue
+			break
+		case "week":
+			week = durationValue.week
+	}
+	if (timeDuration) {
+		hour = timeDuration.hour
+		minute = timeDuration.minute
+	}
+	return {positive, day, hour, minute, week}
+})
+export const parseDuration: (string) => Duration = (value) => {
+	const iterator = new StringIterator(value)
+	const duration = durationParser(iterator)
+	if (iterator.peek()) {
+		throw new Error("Could not parse duration completely")
+	}
+	return duration
+}
+
 
 export class StringIterator {
 	iteratee: string
