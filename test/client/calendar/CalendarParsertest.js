@@ -1,14 +1,15 @@
 //@flow
 
 import o from "ospec/ospec.js"
-import {parseDuration, parseProperty, parsePropertySequence, StringIterator} from "../../../src/calendar/CalendarParser"
+import {parseDuration, parseProperty, parsePropertySequence} from "../../../src/calendar/CalendarParser"
+import {StringIterator} from "../../../src/misc/parsing"
 
 o.spec("CalendarParser", function () {
 	o.spec("parsePropertySequence", function () {
 		o("simple value", function () {
 			o(parsePropertySequence(new StringIterator("DTSTART:20190531T083000Z"))).deepEquals(["DTSTART", null, ":", "20190531T083000Z"])
 		})
-		o.only("simple value, property parameter", function () {
+		o("simple value, property parameter", function () {
 			o(parsePropertySequence(new StringIterator("DTSTART;VALUE=DATE:20190607")))
 				.deepEquals([
 					"DTSTART",

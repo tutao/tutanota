@@ -2,7 +2,7 @@
 
 import {fileController} from "../file/FileController"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {parseIntoCalendarEvents, parseIntoTree} from "./CalendarParser"
+import {parseIntoCalendarEvents, parseICalendar} from "./CalendarParser"
 import {generateEventElementId, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {getTimeZone} from "./CalendarUtils"
@@ -35,6 +35,6 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 function parseFile(file: DataFile) {
 	const stringData = utf8Uint8ArrayToString(file.data)
-	const tree = parseIntoTree(stringData)
+	const tree = parseICalendar(stringData)
 	return parseIntoCalendarEvents(tree)
 }
