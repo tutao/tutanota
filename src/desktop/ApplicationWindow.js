@@ -7,6 +7,7 @@ import u2f from '../misc/u2f-api.js'
 import {lang} from './DesktopLocalizationProvider.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
+import url from "url"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -156,7 +157,14 @@ export class ApplicationWindow {
 			process.platform === 'darwin'
 				? 'Command+Left'
 				: 'Alt+Left',
-			() => this._browserWindow.webContents.goBack())
+			() => {
+				const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
+				if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
+					this._browserWindow.webContents.goBack()
+				} else {
+					console.log("Ignore back events on login page")
+				}
+			})
 		localShortcut.register(
 			this._browserWindow,
 			process.platform === 'darwin'
