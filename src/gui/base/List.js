@@ -115,7 +115,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this.onbeforeupdate = () => !this.ready // the list should never be redrawn by mithril after the inial draw
 
 		const updateWidth = () => {
-			if (this._domListContainer) {
+			if (this._domListContainer && this._domSwipeSpacerLeft && this._domSwipeSpacerRight) {
 				this._domSwipeSpacerLeft.style.opacity = '0'
 				this._domSwipeSpacerRight.style.opacity = '0'
 				setTimeout(() => {
