@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2019-07-22T13:52:52Z",
+	"updated_at": "2019-08-04T04:28:55Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "このチェックボックスを選択し、プライバシーポリシーに同意してください。",
@@ -821,7 +821,7 @@ module.exports = {
 		"sent_action": "送信済み",
 		"serverDownForMaintenance_msg": "サーバーがダウンしているかメンテナンス中です。後ほどお試しください。",
 		"serverNotReachable_msg": "サーバーに接続できませんでした。オフラインのようです。 後でもう一度やり直してください。",
-		"serviceUnavailable_msg": "サーバーに一時的なエラーが発生しました。時間をおいてから再度お試しください。",
+		"serviceUnavailable_msg": "サーバーに一時的なエラーが生じました。時間をおいて再度お試しください。",
 		"sessionsInfo_msg": "クライアントとIPアドレスは暗号化されてのみ保存されます。",
 		"sessionsWillBeDeleted_msg": "これらは、閉じた後2週間で削除されます。",
 		"setCatchAllMailbox_action": "すべてのメールボックス取得に設定する",
@@ -896,6 +896,7 @@ module.exports = {
 		"time_label": "日時",
 		"title_placeholder": "件名",
 		"today_label": "今日",
+		"tomorrow_label": "明日",
 		"tooBigAttachment_msg": "次のファイルは全体サイズが25MBを超えるため添付できません:",
 		"tooBigInlineImages_msg": "{size}KBサイズまでの画像のみが許可されています。",
 		"tooManyAttempts_msg": "許可された試行回数を超えました。 後でもう一度やり直してください。",

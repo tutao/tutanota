@@ -10,6 +10,8 @@ interface IViewSlider {
 	getPreviousColumn(): ?_ViewColumn;
 
 	focusPreviousColumn(): void;
+
+	focusNextColumn(): void;
 }
 
 interface IUserController {
@@ -18,6 +20,7 @@ interface IUserController {
 	props: TutanotaProperties;
 	sessionId: IdTuple;
 	accessToken: string;
+	+userSettingsGroupRoot: UserSettingsGroupRoot;
 
 	isGlobalAdmin(): boolean;
 

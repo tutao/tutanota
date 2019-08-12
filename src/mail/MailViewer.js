@@ -304,7 +304,7 @@ export class MailViewer {
 					{
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
-						m(".header.plr-l", [
+						m(".header.plr-l.margin-are-inset-lr", [
 							m(".flex-space-between.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
 									(detailsExpander.panel.expanded)
@@ -335,7 +335,7 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links"
+						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links.margin-are-inset-lr"
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
 							+ (client.isMobileDevice() ? "" : ".scroll"), {
 							oncreate: vnode => {

@@ -1,20 +1,18 @@
 //@flow
 
 import m from "mithril"
-import {numberRange} from "../api/common/utils/ArrayUtils"
-import {theme} from "../gui/theme"
-import {px, size as sizes, size} from "../gui/size"
-import {formatDateWithWeekday} from "../misc/Formatter"
+import {formatTime} from "../misc/Formatter"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {DAY_IN_MILLIS, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
-import {CalendarEventBubble} from "./CalendarEventBubble"
-import {styles} from "../gui/styles"
+import {incrementDate, isSameDay} from "../api/common/utils/DateUtils"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, expandEvent, getEventText, layOutEvents, timeString} from "./CalendarUtils"
-import type {GestureInfo} from "../gui/base/ViewSlider"
-import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
+import {CALENDAR_EVENT_HEIGHT, eventEndsAfterDay, eventStartsBefore, getEventColor} from "./CalendarUtils"
+import {neverNull} from "../api/common/utils/Utils"
+import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
+import {theme} from "../gui/theme"
+import {px, size} from "../gui/size"
+import {PageView} from "../gui/base/PageView"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,
@@ -22,30 +20,44 @@ export type CalendarDayViewAttrs = {
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
-	amPmFormat: boolean
+	groupColors: {[Id]: string},
+	hiddenCalendars: Set<Id>,
 }
 
-const hours = numberRange(0, 23).map((n) => {
-	const d = new Date()
-	d.setHours(n, 0, 0, 0)
-	return d
-})
-const allHoursHeight = size.calendar_hour_height * hours.length
+type PageEvents = {shortEvents: Array<CalendarEvent>, longEvents: Array<CalendarEvent>, allDayEvents: Array<CalendarEvent>}
 
 export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
-
-	dayDom: HTMLElement;
-	_lastGestureInfo: ?GestureInfo;
-	_oldGestureInfo: ?GestureInfo;
 	_redrawIntervalId: ?IntervalID
+	_selectedDate: Date
+	_domElements = []
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
-		const date = vnode.attrs.selectedDate
-		const events = getFromMap(vnode.attrs.eventsForDays, date.getTime(), () => [])
+		this._selectedDate = vnode.attrs.selectedDate
+		const previousDate = incrementDate(new Date(vnode.attrs.selectedDate), -1)
+		const nextDate = incrementDate(new Date(vnode.attrs.selectedDate), 1)
+
+		const previousPageEvents = this._calculateEventsForDate(vnode.attrs, previousDate)
+		const currentPageEvents = this._calculateEventsForDate(vnode.attrs, vnode.attrs.selectedDate)
+		const nextPageEvents = this._calculateEventsForDate(vnode.attrs, nextDate)
+
+		return m(PageView, {
+			previousPage: this._renderDay(vnode, previousDate, previousPageEvents, currentPageEvents),
+			currentPage: this._renderDay(vnode, vnode.attrs.selectedDate, currentPageEvents, currentPageEvents),
+			nextPage: this._renderDay(vnode, nextDate, nextPageEvents, currentPageEvents),
+			onChangePage: (next) => vnode.attrs.onDateSelected(next ? nextDate : previousDate)
+		})
+	}
+
+	_calculateEventsForDate(attrs: CalendarDayViewAttrs,
+	                        date: Date): PageEvents {
+		const events = getFromMap(attrs.eventsForDays, date.getTime(), () => [])
 		const shortEvents = []
 		const longEvents = []
 		const allDayEvents = []
 		events.forEach((e) => {
+			if (attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) {
+				return
+			}
 			if (isAllDayEvent(e)) {
 				allDayEvents.push(e)
 			} else if (eventStartsBefore(date, e) || eventEndsAfterDay(date, e)) {
@@ -54,12 +66,15 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				shortEvents.push(e)
 			}
 		})
+		return {shortEvents, longEvents, allDayEvents}
+	}
 
-		return m(".fill-absolute.flex.col", {
-			oncreate: (vnode) => {
-				this.dayDom = vnode.dom
+	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents) {
+		const {shortEvents, longEvents, allDayEvents} = thisPageEvents
+		const mainPageEventsCount = mainPageEvents.allDayEvents.length + mainPageEvents.longEvents.length
+		return m(".fill-absolute.flex.col.calendar-column-border", {
+			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
-				m.redraw()
 			},
 			onremove: () => {
 				if (this._redrawIntervalId != null) {
@@ -67,162 +82,78 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					this._redrawIntervalId = null
 				}
 			},
-			ontouchstart: (event) => {
-				this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
-			},
-			ontouchmove: (event) => {
-				this._oldGestureInfo = this._lastGestureInfo
-				this._lastGestureInfo = gestureInfoFromTouch(event.touches[0])
-			},
-			ontouchend: () => {
-				const lastGestureInfo = this._lastGestureInfo
-				const oldGestureInfo = this._oldGestureInfo
-				if (lastGestureInfo && oldGestureInfo) {
-					const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
-					const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
-					const absVerticalVelocity = Math.abs(verticalVelocity)
-					console.log("velocity", velocity, "vertical", verticalVelocity)
-					if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
-						// Do nothing, vertical scroll
-					} else if (velocity > 0.6) {
-						const nextDate = incrementDate(vnode.attrs.selectedDate, -1)
-						vnode.attrs.onDateSelected(nextDate)
-					} else if (velocity < -0.6) {
-						const nextDate = getStartOfNextDay(vnode.attrs.selectedDate)
-						vnode.attrs.onDateSelected(nextDate)
-					}
-				}
-			},
 		}, [
-			m(".mt-s.pr-l", [
-				styles.isDesktopLayout() ? m("h1.calendar-day-content", formatDateWithWeekday(vnode.attrs.selectedDate)) : null,
-				m(".calendar-day-content", allDayEvents.map(e => {
+			m(".calendar-long-events-header.flex-fixed" + (mainPageEventsCount === 0 ? "" : ".mt-s"), {
+				style: {
+					height: px(mainPageEventsCount === 0 ? 0 : (mainPageEventsCount * CALENDAR_EVENT_HEIGHT + 9)),
+
+				},
+			}, [
+				m(".calendar-hour-margin.pr-l", allDayEvents.map(e => {
 					return m(ContinuingCalendarEventBubble, {
 						event: e,
-						startDate: vnode.attrs.selectedDate,
-						endDate: vnode.attrs.selectedDate,
-						color: defaultCalendarColor,
+						startDate: date,
+						endDate: date,
+						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						showTime: EventTextTimeOption.NO_TIME,
-						amPmFormat: vnode.attrs.amPmFormat,
 					})
 				})),
-				m(".calendar-day-content", longEvents.map(e => m(ContinuingCalendarEventBubble, {
+				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
 					event: e,
-					startDate: vnode.attrs.selectedDate,
-					endDate: vnode.attrs.selectedDate,
-					color: defaultCalendarColor,
+					startDate: date,
+					endDate: date,
+					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
-					amPmFormat: vnode.attrs.amPmFormat,
 				}))),
-				m("hr.hr.mt-s")
+				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0
+					? m(".mt-s")
+					: null
 			]),
-			m(".scroll.col.rel",
-				{
-					oncreate: (vnode) => {
-						vnode.dom.scrollTop = this._getTimeIndicatorPosition(new Date()) - 60
+			m(".flex.scroll", {
+				oncreate: (vnode) => {
+					vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+					this._domElements.push(vnode.dom)
+				},
+				onscroll: (event) => {
+					if (date === vnode.attrs.selectedDate) {
+						this._domElements.forEach(dom => {
+							if (dom !== event.target) {
+								dom.scrollTop = event.target.scrollTop
+							}
+						})
 					}
 				},
-				[
-					hours.map(n => m(".calendar-hour.flex", {
-						style: {
-							'border-bottom': `1px solid ${theme.content_border}`,
-							height: px(size.calendar_hour_height)
-						},
+			}, [
+				m(".flex.col", calendarDayTimes.map(n => m(".calendar-hour.flex", {
 						onclick: (e) => {
 							e.stopPropagation()
-							const eventDate = new Date(vnode.attrs.selectedDate)
-							eventDate.setHours(n.getHours(), n.getMinutes())
-							vnode.attrs.onNewEvent(eventDate)
+							vnode.attrs.onNewEvent(n)
 						},
-					}, m(".pt.pl-s.pr-s.center.small", {
+					},
+					m(".pt.pl-s.pr-s.center.small", {
 						style: {
-							width: px(size.calendar_hour_width),
+							width: px(size.calendar_hour_width_mobile),
 							height: px(size.calendar_hour_height),
 							'border-right': `2px solid ${theme.content_border}`,
 						},
-					}, timeString(n, vnode.attrs.amPmFormat)))),
-					this.dayDom ? this._renderEvents(vnode.attrs, shortEvents) : null,
-					this._renderTimeIndicator(vnode.attrs),
-				])
+					}, formatTime(n))
+					)
+				)),
+				m(".flex-grow", m(CalendarDayEventsView, {
+					onEventClicked: vnode.attrs.onEventClicked,
+					groupColors: vnode.attrs.groupColors,
+					events: shortEvents.filter((ev) => !vnode.attrs.hiddenCalendars.has(neverNull(ev._ownerGroup))),
+					displayTimeIndicator: isSameDay(new Date(), vnode.attrs.selectedDate),
+					onTimePressed: (hours, minutes) => {
+						const newDate = new Date(vnode.attrs.selectedDate)
+						newDate.setHours(hours, minutes)
+						vnode.attrs.onNewEvent(newDate)
+					}
+				})),
+			]),
+
 		])
-	}
-
-	_renderColumns(attrs: CalendarDayViewAttrs, columns: Array<Array<CalendarEvent>>): ChildArray {
-		const columnWidth = (this.dayDom.scrollWidth - size.calendar_hour_width) / columns.length
-		return columns.map((column, index) => {
-			return column.map(event => {
-				return this._renderEvent(attrs, event, index, columns, Math.floor(columnWidth))
-			})
-		})
-	}
-
-	_renderEvents(attrs: CalendarDayViewAttrs, events: Array<CalendarEvent>): Children {
-		return layOutEvents(events, (columns) => this._renderColumns(attrs, columns), false)
-	}
-
-
-	_renderEvent(attrs: CalendarDayViewAttrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
-		const startTime = (ev.startTime.getHours() * 60 + ev.startTime.getMinutes()) * 60 * 1000
-		const height = (ev.endTime.getTime() - ev.startTime.getTime()) / (1000 * 60 * 60) * size.calendar_hour_height
-		const colSpan = expandEvent(ev, columnIndex, columns)
-
-		return m(".abs.darker-hover", {
-			style: {
-				left: px(size.calendar_hour_width + columnWidth * columnIndex),
-				width: px(columnWidth * colSpan),
-				top: px(startTime / DAY_IN_MILLIS * allHoursHeight),
-				height: px(height)
-			},
-		}, m(CalendarEventBubble, {
-			text: getEventText(ev, EventTextTimeOption.START_TIME, attrs.amPmFormat),
-			secondLineText: ev.location,
-			date: attrs.selectedDate,
-			color: defaultCalendarColor,
-			onEventClicked: () => attrs.onEventClicked(ev),
-			height: height - 2,
-			hasAlarm: ev.alarmInfos.length > 0,
-			verticalPadding: 2
-		}))
-	}
-
-	_renderTimeIndicator(attrs: CalendarDayViewAttrs): Children {
-		const now = new Date()
-		if (!isSameDay(attrs.selectedDate, now)) {
-			return null
-		}
-		const top = this._getTimeIndicatorPosition(now)
-
-		return [
-			m(".abs", {
-				"aria-hidden": "true",
-				style: {
-					top: px(top),
-					left: px(sizes.calendar_hour_width),
-					right: 0,
-					height: "2px",
-					background: theme.content_accent
-				}
-			}),
-			m(".abs", {
-				"aria-hidden": "true",
-				style: {
-					top: px(top),
-					left: px(sizes.calendar_hour_width),
-					height: "12px",
-					width: "12px",
-					"border-radius": "50%",
-					background: theme.content_accent,
-					"margin-top": "-5px",
-					"margin-left": "-7px",
-				}
-			})
-		]
-	}
-
-	_getTimeIndicatorPosition(now: Date): number {
-		const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
-		return passedMillisInDay / DAY_IN_MILLIS * allHoursHeight
 	}
 }

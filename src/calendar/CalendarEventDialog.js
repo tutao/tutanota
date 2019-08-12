@@ -17,7 +17,7 @@ import {erase, load} from "../api/main/Entity"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -25,12 +25,13 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, parseTime, shouldDefaultToAmPmTimeFormat, timeString, timeStringFromParts} from "./CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, getCalendarName, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {windowFacade} from "../misc/WindowFacade"
+import {client} from "../misc/ClientDetector"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -46,7 +47,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(date)
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
-	const startTime = stream(timeString(date, shouldDefaultToAmPmTimeFormat()))
+	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
+	const startTime = stream(timeString(date, amPmFormat))
 	const endTime = stream()
 	const allDay = stream(false)
 	const locationValue = stream("")
@@ -60,10 +62,22 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const alarmPickerAttrs = []
 
+	const alarmIntervalItems = [
+		{name: lang.get("comboBoxSelectionNone_msg"), value: null},
+		{name: lang.get("calendarReminderIntervalFiveMinutes_label"), value: AlarmInterval.FIVE_MINUTES},
+		{name: lang.get("calendarReminderIntervalTenMinutes_label"), value: AlarmInterval.TEN_MINUTES},
+		{name: lang.get("calendarReminderIntervalThirtyMinutes_label"), value: AlarmInterval.THIRTY_MINUTES},
+		{name: lang.get("calendarReminderIntervalOneHour_label"), value: AlarmInterval.ONE_HOUR},
+		{name: lang.get("calendarReminderIntervalOneDay_label"), value: AlarmInterval.ONE_DAY},
+		{name: lang.get("calendarReminderIntervalTwoDays_label"), value: AlarmInterval.TWO_DAYS},
+		{name: lang.get("calendarReminderIntervalThreeDays_label"), value: AlarmInterval.THREE_DAYS},
+		{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
+	]
+
 	function createAlarmPicker(): DropDownSelectorAttrs<?AlarmIntervalEnum> {
 		const selectedValue = stream(null)
 		const attrs = {
-			label: () => lang.get("reminder_label"),
+			label: () => lang.get("reminderBeforeEvent_label"),
 			items: alarmIntervalItems,
 			selectedValue,
 			icon: Icons.Edit
@@ -91,14 +105,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(existingEvent), shouldDefaultToAmPmTimeFormat()))
+		startTime(timeString(getEventStart(existingEvent), amPmFormat))
 		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
 			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
 		}
-		endTime(timeString(getEventEnd(existingEvent), shouldDefaultToAmPmTimeFormat()))
+		endTime(timeString(getEventEnd(existingEvent), amPmFormat))
 		if (existingEvent.repeatRule) {
 			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
@@ -126,7 +140,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const endTimeDate = new Date(date)
 		endTimeDate.setHours(endTimeDate.getHours() + 1)
 		endDatePicker.setDate(date)
-		endTime(timeString(endTimeDate, shouldDefaultToAmPmTimeFormat()))
+		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
 
@@ -152,7 +166,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			return
 		}
 		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
-			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, shouldDefaultToAmPmTimeFormat()))
+			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, amPmFormat))
 			m.redraw()
 		}
 	}
@@ -170,6 +184,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	}
 
 	let windowCloseUnsubscribe
+	const now = Date.now()
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
@@ -178,7 +194,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}, [
 			m(TextFieldN, {
 				label: "title_placeholder",
-				value: summary
+				value: summary,
+				onfocus: (dom, input) => {
+					if (client.isMobileDevice() && Date.now() - now < 1000) {
+						input.blur()
+					}
+				}
 			}),
 			m(".flex", [
 				m(".flex-grow.mr-s", m(startDatePicker)),
@@ -186,7 +207,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: startTime,
 						onselected: onStartTimeSelected,
-						amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						amPmFormat: amPmFormat,
 					}))
 					: null
 			]),
@@ -196,7 +217,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					? m(".time-field", m(TimePicker, {
 						value: endTime,
 						onselected: endTime,
-						amPmFormat: shouldDefaultToAmPmTimeFormat(),
+						amPmFormat: amPmFormat,
 					}))
 					: null
 			]),
@@ -218,7 +239,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
-					return {name: lang.get("privateCalendar_label"), value: calendarInfo}
+					return {name: getCalendarName(calendarInfo.groupInfo.name), value: calendarInfo}
 				}),
 				selectedValue: selectedCalendar,
 				icon: Icons.Edit,
@@ -336,15 +357,16 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 	return calendarAlarmInfo
 }
 
-const repeatValues = [
-	{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
-	{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
-	{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
-	{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
-	{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
-]
 
 function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
+	const repeatValues = [
+		{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
+		{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
+		{name: lang.get("calendarRepeatIntervalWeekly_label"), value: RepeatPeriod.WEEKLY},
+		{name: lang.get("calendarRepeatIntervalMonthly_label"), value: RepeatPeriod.MONTHLY},
+		{name: lang.get("calendarRepeatIntervalAnnually_label"), value: RepeatPeriod.ANNUALLY}
+	]
+
 	return {
 		label: "calendarRepeating_label",
 		items: repeatValues,
@@ -367,13 +389,13 @@ function createIntervalPicker(): DropDownSelectorAttrs<number> {
 	}
 }
 
-const stopConditionValues = [
-	{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
-	{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
-	{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
-]
-
 function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
+	const stopConditionValues = [
+		{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
+		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
+		{name: lang.get("calendarRepeatStopConditionDate_label"), value: EndType.UntilDate}
+	]
+
 	return {
 		label: () => lang.get("calendarRepeatStopCondition_label"),
 		items: stopConditionValues,
@@ -403,17 +425,7 @@ const AlarmInterval = Object.freeze({
 })
 type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 
-const alarmIntervalItems = [
-	{name: lang.get("comboBoxSelectionNone_msg"), value: null},
-	{name: lang.get("calendarReminderIntervalFiveMinutes_label"), value: AlarmInterval.FIVE_MINUTES},
-	{name: lang.get("calendarReminderIntervalTenMinutes_label"), value: AlarmInterval.TEN_MINUTES},
-	{name: lang.get("calendarReminderIntervalThirtyMinutes_label"), value: AlarmInterval.THIRTY_MINUTES},
-	{name: lang.get("calendarReminderIntervalOneHour_label"), value: AlarmInterval.ONE_HOUR},
-	{name: lang.get("calendarReminderIntervalOneDay_label"), value: AlarmInterval.ONE_DAY},
-	{name: lang.get("calendarReminderIntervalTwoDays_label"), value: AlarmInterval.TWO_DAYS},
-	{name: lang.get("calendarReminderIntervalThreeDays_label"), value: AlarmInterval.THREE_DAYS},
-	{name: lang.get("calendarReminderIntervalOneWeek_label"), value: AlarmInterval.ONE_WEEK}
-]
+
 
 
 

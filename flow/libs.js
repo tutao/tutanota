@@ -1,6 +1,6 @@
 // Declared at the top level to not import it in all places
 declare interface Component {
-	view(): VirtualElement | VirtualElement[];
+	view(vnode:Vnode<any>): VirtualElement | VirtualElement[];
 }
 
 declare type RouteResolverMatch = {

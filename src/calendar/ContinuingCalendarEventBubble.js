@@ -3,7 +3,6 @@
 import m from "mithril"
 import {eventEndsAfterDay, eventStartsBefore, getEventText} from "./CalendarUtils"
 import type {EventTextTimeOptionEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
 type ContinuingCalendarEventBubbleAttrs = {|
@@ -13,7 +12,6 @@ type ContinuingCalendarEventBubbleAttrs = {|
 	color: string,
 	onEventClicked: clickHandler,
 	showTime: EventTextTimeOptionEnum,
-	amPmFormat: boolean
 |}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
@@ -27,15 +25,15 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 				? m(".event-continues-right-arrow", {
 					style: {
 						"border-left-color": "transparent",
-						"border-top-color": "#" + defaultCalendarColor,
-						"border-bottom-color": "#" + defaultCalendarColor,
+						"border-top-color": "#" + attrs.color,
+						"border-bottom-color": "#" + attrs.color,
 					},
 				})
 				: null,
 			m(".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
-					text: getEventText(attrs.event, attrs.showTime, attrs.amPmFormat),
-					color: defaultCalendarColor,
+					text: getEventText(attrs.event, attrs.showTime),
+					color: attrs.color,
 					onEventClicked: () => attrs.onEventClicked(attrs.event),
 					noBorderLeft: startsBefore,
 					noBorderRight: endsAfter,
@@ -44,7 +42,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 			),
 			endsAfter
 				? m(".event-continues-right-arrow", {
-					style: {"border-left-color": "#" + defaultCalendarColor}
+					style: {"border-left-color": "#" + attrs.color}
 				})
 				: null,
 		])

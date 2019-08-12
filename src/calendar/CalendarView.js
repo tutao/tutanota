@@ -1,26 +1,25 @@
 // @flow
 import m from "mithril"
-import {load, loadAll} from "../api/main/Entity"
+import {load, loadAll, serviceRequestVoid, update} from "../api/main/Entity"
 import stream from "mithril/stream/stream.js"
 import type {CurrentView} from "../gui/base/Header"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
-import {VisualDatePicker} from "../gui/base/DatePicker"
 import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {_loadReverseRangeBetween, getListId, isSameId} from "../api/common/EntityFunctions"
+import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType, reverse, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
+import {getCalendarName, getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -36,15 +35,28 @@ import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import {showEditCalendarDialog} from "./EditCalendarDialog"
+import {createGroupColor} from "../api/entities/tutanota/GroupColor"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {attachDropdown} from "../gui/base/DropdownN"
+import {TutanotaService} from "../api/entities/tutanota/Services"
+import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
+import {styles} from "../gui/styles"
+import {CalendarWeekView} from "./CalendarWeekView"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
 	shortEvents: Array<CalendarEvent>,
 	longEvents: Array<CalendarEvent>,
+	groupInfo: GroupInfo,
 }
 
 export const CalendarViewType = Object.freeze({
 	DAY: "day",
+	WEEK: "week",
 	MONTH: "month",
 	AGENDA: "agenda"
 })
@@ -63,37 +75,29 @@ export class CalendarView implements CurrentView {
 	_eventsForDays: Map<number, Array<CalendarEvent>>
 	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
+	_hiddenCalendars: Set<Id>
 
 	constructor() {
 		const calendarViewValues = [
-			{name: lang.get("day_label"), value: CalendarViewType.DAY, icon: Icons.ListAlt, href: "/calendar/day"},
 			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
 			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
 		]
 
-		this._currentViewType = CalendarViewType.MONTH
+
+		this._currentViewType = styles.isDesktopLayout() ? CalendarViewType.MONTH : CalendarViewType.AGENDA
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
+		this._hiddenCalendars = new Set()
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col.plr-l", [
-				m(".folders.pt", [
-					m(VisualDatePicker, {
-						onDateSelected: (newDate, dayClicked) => {
-							if (dayClicked) {
-								this._setUrl(CalendarViewType.DAY, newDate)
-								this.viewSlider.focus(this.contentColumn)
-							} else {
-								this._setUrl(this._currentViewType, newDate)
-							}
-						},
-						selectedDate: this.selectedDate(),
-						wide: false
-					})
-				]),
-				m(".folders", [
-					m(".folder-row.flex-space-between.button-height", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, [
+				m(".folders.pt-s", [
+					m(".folder-row.flex-space-between.button-height.plr-l", [
 						m("small.b.align-self-center.ml-negative-xs",
 							{style: {color: theme.navigation_button}},
 							lang.get("view_label").toLocaleUpperCase()),
@@ -106,7 +110,7 @@ export class CalendarView implements CurrentView {
 							type: ButtonType.Primary,
 						}) : null
 					]),
-					m(".folder-row", calendarViewValues.map(viewType => {
+					m(".folder-row.plr-l", calendarViewValues.map(viewType => {
 						return m(NavButtonN, {
 							label: viewType.name,
 							icon: () => viewType.icon,
@@ -123,33 +127,28 @@ export class CalendarView implements CurrentView {
 				m(".folders",
 					{style: {color: theme.navigation_button}},
 					[
-						m(".folder-row.flex-space-between.button-height", [
+						m(".folder-row.flex-space-between.button-height.plr-l", [
 							m("small.b.align-self-center.ml-negative-xs",
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
-							// m(ButtonN, {
-							// 	label: () => "add calendar",
-							// 	click: () => {},
-							// 	icon: () => Icons.Add
-							// })
+							m(ButtonN, {
+								label: () => "add calendar",
+								click: () => this._onPressedAddCalendar(),
+								icon: () => Icons.Add
+							})
 						]),
-						m(".folder-row.flex-start",
-							m(".flex.flex-grow..center-vertically.button-height", [
-								m(".calendar-checkbox", {
-									style: {
-										"border-color": "#" + defaultCalendarColor,
-										"background": "#" + defaultCalendarColor,
-										"margin-left": "-4px" // .folder-row > a adds -10px margin to other itmes but it has 6px padding
-									}
-								}),
-								m(".pl-m.b", lang.get("privateCalendar_label"))
-							]))
+						this._renderCalendars()
 					])
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("calendar_label"))
+		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label"))
 
 
 		this.contentColumn = new ViewColumn({
 			view: () => {
+				const groupColors = logins.getUserController().userSettingsGroupRoot.groupColors.reduce((acc, gc) => {
+					acc[gc.group] = gc.color
+					return acc
+				}, {})
+
 				switch (this._currentViewType) {
 					case CalendarViewType.MONTH:
 						return m(CalendarMonthView, {
@@ -160,14 +159,18 @@ export class CalendarView implements CurrentView {
 							},
 							selectedDate: this.selectedDate(),
 							onDateSelected: (date) => {
-								this._setUrl(CalendarViewType.DAY, date)
+								const viewType = styles.isDesktopLayout() ? CalendarViewType.WEEK : CalendarViewType.DAY
+								this._setUrl(viewType, date)
 							},
-							onChangeMonthGesture: (next) => {
+							onChangeMonth: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
 								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 								this._setUrl(CalendarViewType.MONTH, newDate)
 							},
-							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
+							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+							groupColors,
+							hiddenCalendars: this._hiddenCalendars,
 						})
 					case CalendarViewType.DAY:
 						return m(CalendarDayView, {
@@ -180,17 +183,44 @@ export class CalendarView implements CurrentView {
 							onDateSelected: (date) => {
 								this._setUrl(CalendarViewType.DAY, date)
 							},
-							amPmFormat: shouldDefaultToAmPmTimeFormat(),
+							groupColors,
+							hiddenCalendars: this._hiddenCalendars,
+						})
+					case CalendarViewType.WEEK:
+						return m(CalendarWeekView, {
+							eventsForDays: this._eventsForDays,
+							onEventClicked: (event) => this._onEventSelected(event),
+							onNewEvent: (date) => {
+								this._newEvent(date)
+							},
+							selectedDate: this.selectedDate(),
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
+							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
+							groupColors,
+							hiddenCalendars: this._hiddenCalendars,
+							onChangeWeek: (next) => {
+								let newDate = new Date(this.selectedDate().getTime())
+								newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+								this._setUrl(CalendarViewType.WEEK, newDate)
+							}
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
 							eventsForDays: this._eventsForDays,
 							amPmFormat: shouldDefaultToAmPmTimeFormat(),
 							onEventClicked: (event) => this._onEventSelected(event),
+							groupColors,
+							hiddenCalendars: this._hiddenCalendars,
+							onDateSelected: (date) => {
+								this._setUrl(CalendarViewType.DAY, date)
+							},
 						})
+
 				}
 			},
-		}, ColumnType.Background, 700, 2000, () => {
+		}, ColumnType.Background, 1024, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
 				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {
@@ -208,7 +238,7 @@ export class CalendarView implements CurrentView {
 		// load all calendars. if there is no calendar yet, create one
 		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
 			if (calendarInfos.size === 0) {
-				return worker.addCalendar().then(() => this._loadGroupRoots())
+				return worker.addCalendar("").then(() => this._loadGroupRoots())
 			} else {
 				return calendarInfos
 			}
@@ -222,12 +252,121 @@ export class CalendarView implements CurrentView {
 			nextMonthDate.setMonth(d.getMonth() + 1)
 
 			this._loadMonthIfNeeded(d)
-			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
-			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
+				.then(() => this._loadMonthIfNeeded(nextMonthDate))
+				.then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
 			this.entityEventReceived(updates, eventOwnerGroupId)
+		})
+	}
+
+	handleBackButton(): boolean {
+		const route = m.route.get()
+		if (route.startsWith("/calendar/day")) {
+			m.route.set(route.replace("day", "month"))
+			return true
+		} else if (route.startsWith("/calendar/week")) {
+			m.route.set(route.replace("week", "month"))
+			return true
+		} else {
+			return false
+		}
+	}
+
+	backButtonLabelShown(): boolean {
+		return true
+	}
+
+	_onPressedAddCalendar() {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(true)
+		} else {
+			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
+				dialog.close()
+				worker.addCalendar(properties.name)
+					  .then((group) => {
+						  const {userSettingsGroupRoot} = logins.getUserController()
+						  const newGroupColor = Object.assign(createGroupColor(), {
+							  group: group._id,
+							  color: properties.color
+						  })
+						  userSettingsGroupRoot.groupColors.push(newGroupColor)
+						  update(userSettingsGroupRoot)
+					  })
+			})
+		}
+	}
+
+	_renderCalendars(): Children {
+		return this._calendarInfos.isFulfilled() ?
+			Array.from(this._calendarInfos.value().values()).map(({groupRoot, groupInfo}) => {
+				const {userSettingsGroupRoot} = logins.getUserController()
+				const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === groupInfo.group)
+				const colorValue = "#" + (existingGroupColor ? existingGroupColor.color : defaultCalendarColor)
+				return m(".folder-row.flex-start.plr-l",
+					[
+						m(".flex.flex-grow.center-vertically.button-height", [
+							m(".calendar-checkbox", {
+								onclick: () => this._hiddenCalendars.has(groupRoot._id)
+									? this._hiddenCalendars.delete(groupRoot._id)
+									: this._hiddenCalendars.add(groupRoot._id),
+								style: {
+									"border-color": colorValue,
+									"background": this._hiddenCalendars.has(groupRoot._id) ? "" : colorValue,
+									"margin-left": "-4px", // .folder-row > a adds -10px margin to other items but it has 6px padding
+									"transition": "all 0.3s",
+									"cursor": "pointer",
+								}
+							}),
+							m(".pl-m.b", getCalendarName(groupInfo.name))
+						]),
+						m(ButtonN, attachDropdown({
+							label: "more_label",
+							click: noOp,
+							icon: () => Icons.More
+						}, () => [
+							{
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
+								type: ButtonType.Dropdown,
+							},
+							{
+								label: "delete_action",
+								icon: () => Icons.Trash,
+								click: () => {
+									serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {
+										groupRootId: groupRoot._id
+									}))
+								},
+								type: ButtonType.Dropdown,
+							}
+						])),
+					])
+			})
+			: null
+	}
+
+	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot) {
+		showEditCalendarDialog({
+			name: getCalendarName(groupInfo.name),
+			color: colorValue.substring(1)
+		}, (dialog, properties) => {
+			groupInfo.name = properties.name
+			update(groupInfo)
+			// color always set for existing calendar
+			if (existingGroupColor) {
+				existingGroupColor.color = properties.color
+			} else {
+				const newGroupColor = Object.assign(createGroupColor(), {
+					group: groupInfo.group,
+					color: properties.color
+				})
+				userSettingsGroupRoot.groupColors.push(newGroupColor)
+			}
+			update(userSettingsGroupRoot)
+			dialog.close()
 		})
 	}
 
@@ -279,38 +418,6 @@ export class CalendarView implements CurrentView {
 		])
 	}
 
-
-	// _showFullDayEvents(e: any, d: CalendarDay, events: Array<CalendarEvent>) {
-	// 	const animtaionOpts = {duration: 100, easing: ease.in}
-	// 	let dom
-	// 	const dayModal = {
-	// 		oncreate: (vnode) => {
-	// 			dom = vnode.dom
-	// 			animations.add(dom, [transform('scale', 0.5, 1)], animtaionOpts)
-	// 		},
-	// 		view: (vnode) => {
-	// 			return m(".content-bg.abs", {
-	// 				style: {
-	// 					"max-width": "400px",
-	// 					"min-width": "300px",
-	// 					top: px(e.clientY),
-	// 					left: px(e.clientX),
-	// 					padding: px(size.hpad_small),
-	// 				}
-	// 			}, [
-	// 				m(".center.b", String(d.day)),
-	// 				events.map((e) => this._renderEvent(e, d.date)),
-	// 			])
-	// 		},
-	// 		hideAnimation: () => dom && animations.add(dom, [opacity(1, 0, true), transform('scale', 1, 0.5)], animtaionOpts),
-	// 		backgroundClick: () => {modal.remove(dayModal)},
-	// 		onClose: () => {modal.remove(dayModal)},
-	// 		shortcuts: () => []
-	// 	}
-	// 	modal.displayUnique(dayModal)
-	// }
-
-
 	updateUrl(args: Object) {
 		if (!args.view) {
 			this._setUrl(this._currentViewType, this.selectedDate(), true)
@@ -335,14 +442,14 @@ export class CalendarView implements CurrentView {
 			// events anyway.
 			const startId = getEventElementMinId(month.start.getTime() - DAY_IN_MILLIS)
 			const endId = geEventElementMaxId(month.end.getTime() + DAY_IN_MILLIS)
-			return Promise.map(calendarInfos.values(), ({groupRoot, longEvents}) => {
+			return Promise.map(calendarInfos.values(), ({groupRoot, groupInfo, longEvents}) => {
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements
-					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
-					                 .forEach((e) => this._addDaysForEvent(e, month))
+									 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+									 .forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {
 							this._addDaysForRecurringEvent(e, month)
@@ -352,6 +459,7 @@ export class CalendarView implements CurrentView {
 					})
 					calendarInfos.set(groupRoot._id, {
 							groupRoot,
+							groupInfo,
 							shortEvents: shortEventsResult.elements,
 							longEvents
 						}
@@ -366,11 +474,13 @@ export class CalendarView implements CurrentView {
 			.then(user => {
 				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
 				return Promise
-					.map(calendarMemberships, (membership) => load(CalendarGroupRootTypeRef, membership.group))
+					.map(calendarMemberships, (membership) => Promise.all([
+						load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
+					]))
 					.then((groupRoots) => {
 						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupRoots.forEach((groupRoot) => {
-							calendarInfos.set(groupRoot._id, {groupRoot, shortEvents: [], longEvents: []})
+						groupRoots.forEach(([groupRoot, groupInfo]) => {
+							calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})
 						})
 						return calendarInfos
 					})
@@ -400,6 +510,12 @@ export class CalendarView implements CurrentView {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
 						this._calendarInfos.then(calendarInfos => {
+							// Hide events for calendars we no longer have membership in
+							calendarInfos.forEach((ci, group) => {
+								if (calendarMemberships.every((mb) => group !== mb.group)) {
+									this._hiddenCalendars.add(group)
+								}
+							})
 							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
 								this._calendarInfos = this._loadGroupRoots()

@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
-import {getCalendarMonth, parseTime} from "../../../src/calendar/CalendarUtils"
+import {getCalendarMonth, getStartOfWeek, getWeekNumber, parseTime} from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("calendar utils tests", function () {
@@ -157,6 +157,22 @@ o.spec("calendar utils tests", function () {
 			o(parseTime("12:30AM")).deepEquals({hours: 0, minutes: 30})
 			o(parseTime("3:30AM")).deepEquals({hours: 3, minutes: 30})
 			o(parseTime("3:30PM")).deepEquals({hours: 15, minutes: 30})
+		})
+	})
+
+	o.spec("getStartOfWeek", function () {
+		o("works", function () {
+			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
+			o(getStartOfWeek(new Date(2019, 6, 7), 1).toISOString()).equals(new Date(2019, 6, 1).toISOString())
+		})
+	})
+
+	o.spec("getWeekNumber", function () {
+		o("works", function () {
+			o(getWeekNumber(new Date(2019, 7, 5))).equals(32)
+			o(getWeekNumber(new Date(2019, 7, 4))).equals(31)
+			o(getWeekNumber(new Date(2017, 11, 25))).equals(52)
+			o(getWeekNumber(new Date(2018, 0, 1))).equals(1)
 		})
 	})
 })

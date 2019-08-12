@@ -19,6 +19,7 @@ public class AlarmNotification {
 	private AlarmInfo alarmInfo;
 	private RepeatRule repeatRule;
 	private List<NotificationSessionKey> notificationSessionKeys;
+	private String user;
 
 	private JSONObject originalJson;
 
@@ -26,6 +27,7 @@ public class AlarmNotification {
 							 AlarmInfo alarmInfo,
 							 RepeatRule repeatRule,
 							 List<NotificationSessionKey> notificationSessionKeys,
+							 String user,
 							 JSONObject originalJson) {
 		this.operation = operation;
 		this.summary = summaryEnc;
@@ -34,6 +36,7 @@ public class AlarmNotification {
 		this.alarmInfo = alarmInfo;
 		this.repeatRule = repeatRule;
 		this.notificationSessionKeys = notificationSessionKeys;
+		this.user = user;
 		this.originalJson = originalJson;
 	}
 
@@ -54,8 +57,9 @@ public class AlarmNotification {
 		for (int i = 0; i < notificationSessionKeysJSON.length(); i++) {
 			notificationSessionKeys.add(NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(i)));
 		}
+		String user = jsonObject.getString("user");
 		return new AlarmNotification(operationType, summaryEnc, eventStartEnc, eventEndEnc, alarmInfo,
-				repeatRule, notificationSessionKeys, jsonObject);
+				repeatRule, notificationSessionKeys, user, jsonObject);
 	}
 
 	public JSONObject toJSON() {
@@ -90,6 +94,10 @@ public class AlarmNotification {
 
 	public List<NotificationSessionKey> getNotificationSessionKeys() {
 		return notificationSessionKeys;
+	}
+
+	public String getUser() {
+		return user;
 	}
 
 	@Override

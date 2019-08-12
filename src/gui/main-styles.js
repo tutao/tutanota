@@ -172,6 +172,7 @@ styles.registerStyle('main', () => {
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
+		'.ml-m': {'margin-left': px(size.hpad_medium)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -456,8 +457,14 @@ styles.registerStyle('main', () => {
 			bottom: px(0),
 			left: px(0),
 			'overflow-x': 'hidden',
-			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
+			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)', // insets for iPhone X)
 		},
+
+		'.margin-are-inset-lr': {
+			'margin-right': 'env(safe-area-inset-right)',
+			'margin-left': 'env(safe-area-inset-left)',
+		},
+
 
 		// view slider
 
@@ -937,36 +944,45 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-hour': {
-			'cursor': 'pointer'
+			'cursor': 'pointer',
+			'border-bottom': `1px solid ${theme.content_border}`,
+			height: px(size.calendar_hour_height),
+			flex: '1 0 auto',
 		},
 
 		'.calendar-hour:hover': {
 			'background': theme.list_bg
 		},
 
-		'.calendar-day': {
+		'.calendar-column-border': {
 			'border-right': `1px solid ${theme.content_border}`,
+		},
+
+		'.calendar-column-border:nth-child(7)': {
+			'border-right': "none",
+		},
+
+		'.calendar-hour-margin': {
+			'margin-left': px(size.calendar_hour_width)
+		},
+
+		'.calendar-day': {
 			'border-top': `1px solid ${theme.content_border}`,
 			'transition': 'background 0.4s',
 			'background': theme.list_alternate_bg,
 			'cursor': 'pointer'
 		},
-		'.calendar-day:nth-child(7)': {
-			'border-right': "none",
-		},
 
-		'.calendar-day-number': { // overriden for mobile
-			width: "24px",
+		'.calendar-day-indicator': { // overriden for mobile
 			height: "24px",
 			"line-height": "24px",
 			"text-align": "center",
 			"font-size": "14px",
-			margin: "4px auto"
 		},
 
-
-		'.calendar-day-content': {
-			'margin-left': px(size.calendar_hour_width)
+		'.calendar-day-number': {
+			margin: "4px auto",
+			width: "24px",
 		},
 
 		'.calendar-event': {
@@ -1020,6 +1036,25 @@ styles.registerStyle('main', () => {
 		'.calendar-agenda-row': {
 			'min-height': '44px',
 			flex: "1 0 auto",
+		},
+
+		'.calendar-switch-button': {
+			width: "40px",
+			"text-align": "center",
+		},
+
+		'.calendar-long-events-header': {
+			overflow: "hidden",
+			"background-color": theme.content_bg,
+			"border-bottom": `1px solid ${theme.content_border}`,
+			transition: 'height 200ms ease-in-out'
+		},
+
+		'.calendar-month-week-number': {
+			"font-size": "12px",
+			"opacity": "0.8",
+			top: "8px",
+			left: "6px",
 		},
 
 		'button.floating': {
@@ -1082,6 +1117,14 @@ styles.registerStyle('main', () => {
 			color: theme.navigation_button_icon,
 		},
 
+		'.switch-month-button': {
+			'cursor': 'pointer',
+		},
+
+		'.switch-month-button svg': {
+			'fill': theme.navigation_button
+		},
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},
@@ -1124,14 +1167,28 @@ styles.registerStyle('main', () => {
 				'padding-top': px(size.vpad_small)
 			},
 
-			'.calendar-day-number': {
-				width: "20px",
+			'.calendar-day-indicator': {
 				height: "20px",
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
-				margin: "2px auto"
-			}
+
+			},
+			'.calendar-day-number': {
+				margin: "2px auto",
+				width: "20px",
+			},
+
+			'.calendar-hour-margin': {
+				"margin-left": px(size.calendar_hour_width_mobile)
+			},
+
+			'.calendar-month-week-number': {
+				"font-size": "10px",
+				"opacity": "0.8",
+				top: "3px",
+				left: "3px",
+			},
 		},
 
 		"@media print": {

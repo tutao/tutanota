@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "33"
+	"version": "34"
 }
 
 export function createCalendarPostData(): CalendarPostData {

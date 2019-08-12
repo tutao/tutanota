@@ -38,6 +38,7 @@ import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {throttleRoute} from "../misc/RouteChange"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 
 assertMainOrNode()
@@ -61,7 +62,11 @@ export class ContactView implements CurrentView {
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			},[
 				m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
 				m(expander.panel)
 			])

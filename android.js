@@ -83,7 +83,7 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
 	// jarsigner must be run before zipalign
-	execFileSync('jarsigner', [
+	execFileSync('/opt/jdk1.8.0_112/bin/jarsigner', [
 		'-verbose',
 		'-strict',
 		'-keystore', keyStore,

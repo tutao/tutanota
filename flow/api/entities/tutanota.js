@@ -1050,3 +1050,40 @@ type CalendarPostData = {
 
 	calendarData: CalendarGroupData;
 }
+
+type GroupColor = {
+	_type: TypeRef<GroupColor>;
+	_id: Id;
+	color: string;
+
+	group: Id;
+}
+
+type UserSettingsGroupRoot = {
+	_type: TypeRef<UserSettingsGroupRoot>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	startOfTheWeek: NumberString;
+	timeFormat: NumberString;
+
+	groupColors: GroupColor[];
+}
+
+type CalendarDeleteData = {
+	_type: TypeRef<CalendarDeleteData>;
+	_format: NumberString;
+
+	groupRootId: Id;
+}
+
+type CalendarPostReturn = {
+	_type: TypeRef<CalendarPostReturn>;
+	_errors: Object;
+	_format: NumberString;
+
+	group: Id;
+}

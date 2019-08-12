@@ -414,3 +414,18 @@ export const EventTextTimeOption = Object.freeze({
 	START_END_TIME: "startAndEndTime"
 })
 export type EventTextTimeOptionEnum = $Values<typeof EventTextTimeOption>;
+
+export const TimeFormat = Object.freeze({
+	TWENTY_FOUR_HOURS: '0',
+	TWELVE_HOURS: '1',
+})
+export type TimeFormatEnum = $Values<typeof TimeFormat>
+
+export const WeekStart = Object.freeze({
+	MONDAY: '0',
+	SUNDAY: '1',
+})
+
+export type WeekStartEnum = $Values<typeof WeekStart>
+
+export const SECOND_MS = 1000

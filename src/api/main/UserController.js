@@ -11,6 +11,7 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
+import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 
 assertMainOrNode()
 
@@ -21,14 +22,17 @@ export class UserController implements IUserController {
 	sessionId: IdTuple;
 	accessToken: Base64Url;
 	persistentSession: boolean;
+	userSettingsGroupRoot: UserSettingsGroupRoot;
 
-	constructor(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, props: TutanotaProperties, accessToken: Base64Url, persistentSession: boolean) {
+	constructor(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, props: TutanotaProperties, accessToken: Base64Url, persistentSession: boolean,
+	            userSettingsGroupRoot: UserSettingsGroupRoot) {
 		this.user = user
 		this.userGroupInfo = userGroupInfo
 		this.props = props
 		this.sessionId = sessionId
 		this.accessToken = accessToken
 		this.persistentSession = persistentSession
+		this.userSettingsGroupRoot = userSettingsGroupRoot
 	}
 
 	/**
@@ -114,6 +118,10 @@ export class UserController implements IUserController {
 			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 				return loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group).then(props => {
 					this.props = props
+				})
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				return load(UserSettingsGroupRootTypeRef, this.user.userGroup.group).then((userSettingsGroupRoot) => {
+					this.userSettingsGroupRoot = userSettingsGroupRoot
 				})
 			}
 			return Promise.resolve()

@@ -7,6 +7,7 @@ import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
+import {client} from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -14,7 +15,7 @@ export type KeyboardSizeListener = (keyboardSize: number) => mixed;
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
-	resizeTimeout: ?AnimationFrameID;
+	resizeTimeout: ?AnimationFrameID | ?TimeoutID;
 	windowCloseConfirmation: boolean;
 	_windowCloseListeners: Set<(e: Event) => void>;
 	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
@@ -94,11 +95,14 @@ class WindowFacade {
 		window.onresize = () => {
 			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
 			if (!this.resizeTimeout) {
-				this.resizeTimeout = requestAnimationFrame(() => {
+				const cb = () => {
 					this.resizeTimeout = null
 					this._resize()
 					// The actualResizeHandler will execute at a rate of 15fps
-				})
+				}
+				// On mobile devices there's usaually no resize but when changing orientation it's to early to
+				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
+				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
 			}
 		}
 		if (window.addEventListener && !isApp()) {

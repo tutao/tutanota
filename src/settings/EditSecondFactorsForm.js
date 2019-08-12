@@ -136,6 +136,7 @@ export class EditSecondFactorsForm {
 		let userPromise = this._user.getAsync()
 		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise]))
 			.spread((totpKeys, u2fSupport, user) => {
+				console.log("u2fSupport", u2fSupport)
 				const nameValue: Stream<string> = stream("")
 				const selectedType: Stream<string> = stream(u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp)
 				const totpCode: Stream<string> = stream("")
@@ -214,13 +215,24 @@ export class EditSecondFactorsForm {
 				totpCode.map(v => {
 					let cleanedValue = v.replace(/ /g, "")
 					if (cleanedValue.length === 6) {
-						worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys.key)
-						      .then(number => verificationStatus(number === Number(cleanedValue)
-							      ? VerificationStatus.Success
-							      : VerificationStatus.Failed
-						      ))
+						const time = Math.floor(new Date().getTime() / 1000 / 30)
+						const expectedCode = Number(cleanedValue)
+						// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
+						// If at least one of them works, we accept it.
+						return worker
+							.generateTotpCode(time, totpKeys.key)
+							.then(number => number === expectedCode
+								? VerificationStatus.Success
+								: worker.generateTotpCode(time - 1, totpKeys.key)
+								        .then((number) => number === expectedCode
+									        ? VerificationStatus.Success
+									        : worker.generateTotpCode(time + 1, totpKeys.key)
+									                .then((number) => number === expectedCode
+										                ? VerificationStatus.Success
+										                : VerificationStatus.Failed)))
+							.then(verificationStatus)
 					} else {
-						verificationStatus(VerificationStatus.Progress)
+						return verificationStatus(VerificationStatus.Progress)
 					}
 				})
 

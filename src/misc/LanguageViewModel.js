@@ -43,6 +43,7 @@ export const languages: Language[] = [
 	{code: 'ro', textId: 'languageRomanian_label'},
 	{code: 'ru', textId: 'languageRussian_label'},
 	{code: 'sk', textId: 'languageSlovak_label'},
+	{code: 'sl', textId: 'languageSlovenian_label'},
 	{code: 'sr', textId: 'languageSerbian_label'},
 	{code: 'sv', textId: 'languageSwedish_label'},
 	{code: 'tr', textId: 'languageTurkish_label'},
@@ -104,6 +105,7 @@ class LanguageViewModel {
 		dateWithoutYear: Intl.DateTimeFormat,
 		simpleDateWithoutYear: Intl.DateTimeFormat,
 		dateWithWeekday: Intl.DateTimeFormat,
+		dateWithWeekdayWoMonth: Intl.DateTimeFormat,
 		dateWithWeekdayAndYear: Intl.DateTimeFormat,
 		dateWithWeekdayAndTime: Intl.DateTimeFormat,
 		weekdayShort: Intl.DateTimeFormat,
@@ -115,8 +117,10 @@ class LanguageViewModel {
 		priceWithCurrencyWithoutFractionDigits: Intl.NumberFormat,
 		priceWithoutCurrency: Intl.NumberFormat,
 		priceWithoutCurrencyWithoutFractionDigits: Intl.NumberFormat,
+		monthLong: Intl.DateTimeFormat,
 		monthWithYear: Intl.DateTimeFormat,
 		monthWithFullYear: Intl.DateTimeFormat,
+		yearNumeric: Intl.DateTimeFormat,
 	};
 
 	constructor() {
@@ -156,6 +160,11 @@ class LanguageViewModel {
 	 */
 	_setLanguageTag(tag: string) {
 		this.languageTag = tag
+		this.updateFormats({})
+	}
+
+	updateFormats(options: Intl$DateTimeFormatOptions) {
+		const tag = this.languageTag
 		if (client.dateFormat()) {
 			this.formats = {
 				simpleDate: new Intl.DateTimeFormat(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
@@ -173,33 +182,37 @@ class LanguageViewModel {
 					day: 'numeric',
 					month: 'short'
 				}),
+				dateWithWeekdayWoMonth: new Intl.DateTimeFormat(tag, {
+					weekday: 'short',
+					day: 'numeric',
+				}),
 				dateWithWeekdayAndYear: new Intl.DateTimeFormat(tag, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric'
 				}),
-				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, {
+				dateWithWeekdayAndTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					weekday: 'short',
 					day: 'numeric',
 					month: 'short',
 					hour: 'numeric',
 					minute: 'numeric'
-				}),
-				time: new Intl.DateTimeFormat(tag, {hour: 'numeric', minute: 'numeric'}),
-				dateTime: new Intl.DateTimeFormat(tag, {
+				}, options)),
+				time: new Intl.DateTimeFormat(tag, Object.assign({}, {hour: 'numeric', minute: 'numeric'}, options)),
+				dateTime: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					day: 'numeric',
 					month: 'short',
 					year: 'numeric',
 					hour: 'numeric',
 					minute: 'numeric'
-				}),
-				dateTimeShort: new Intl.DateTimeFormat(tag, {
+				}, options)),
+				dateTimeShort: new Intl.DateTimeFormat(tag, Object.assign({}, {
 					day: 'numeric',
 					month: 'numeric',
 					year: 'numeric',
 					hour: 'numeric',
-				}),
+				}, options)),
 				weekdayShort: new Intl.DateTimeFormat(tag, {
 					weekday: 'short'
 				}),
@@ -226,6 +239,9 @@ class LanguageViewModel {
 					maximiumFractionDigits: 0,
 					minimumFractionDigits: 0
 				}),
+				monthLong: new Intl.DateTimeFormat(tag, {
+					month: 'long'
+				}),
 				monthWithYear: new Intl.DateTimeFormat(tag, {
 					month: 'long',
 					year: '2-digit'
@@ -233,7 +249,10 @@ class LanguageViewModel {
 				monthWithFullYear: new Intl.DateTimeFormat(tag, {
 					month: 'long',
 					year: 'numeric'
-				})
+				}),
+				yearNumeric: new Intl.DateTimeFormat(tag, {
+					year: 'numeric'
+				}),
 			}
 		}
 	}
@@ -294,12 +313,11 @@ class LanguageViewModel {
  * Gets the default language derived from the browser language.
  * @param restrictions An array of language codes the selection should be restricted to
  */
-export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, languageTag: string} {
 	// navigator.languages can be an empty array on android 5.x devices
 	let languageTags
 	if (typeof navigator !== 'undefined') {
-		languageTags = (navigator.languages && navigator.languages.length
-			> 0) ? navigator.languages : [navigator.language]
+		languageTags = (navigator.languages && navigator.languages.length > 0) ? navigator.languages : [navigator.language]
 	}
 	if (languageTags) {
 		for (let tag of languageTags) {
@@ -309,6 +327,17 @@ export function getLanguage(restrictions: ?string[]): {code: string, languageTag
 			}
 		}
 	}
+	return null
+}
+
+/**
+ * Gets the default language derived from the browser language.
+ * @param restrictions An array of language codes the selection should be restricted to
+ */
+export function getLanguage(restrictions: ?string[]): {code: string, languageTag: string} {
+	const language = getLanguageNoDefault(restrictions)
+	if (language) return language
+
 	if (restrictions == null || restrictions.indexOf("en") !== -1) {
 		return {code: 'en', languageTag: 'en-US'}
 	} else {
@@ -350,6 +379,20 @@ function getBasePart(code: string): string {
 
 export function getAvailableLanguageCode(code: string): string {
 	return _getSubstitutedLanguageCode(code, null) || "en"
+}
+
+/**
+ * pt_br -> pt-BR
+ * @param code
+ */
+export function languageCodeToTag(code: string): string {
+	const indexOfUnderscore = code.indexOf("_")
+	if (indexOfUnderscore === -1) {
+		return code
+	} else {
+		const [before, after] = code.split("_")
+		return `${before}-${after.toUpperCase()}`
+	}
 }
 
 

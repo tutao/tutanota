@@ -53,6 +53,7 @@ import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
 import {animations, opacity} from "../gui/animation/Animations"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
@@ -92,16 +93,19 @@ export class MailView implements CurrentView {
 		this._throttledRouteSet = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden",
-				Object.keys(this._mailboxExpanders)
-				      .map(mailGroupId => {
-						      let expander = this._mailboxExpanders[mailGroupId]
-						      return [
-							      m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-							      m(neverNull(expander.expanderButton).panel)
-						      ]
-					      }
-				      ))
+			view: () => m(".folder-column.scroll.overflow-x-hidden", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, Object.keys(this._mailboxExpanders)
+					 .map(mailGroupId => {
+							 let expander = this._mailboxExpanders[mailGroupId]
+							 return [
+								 m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+								 m(neverNull(expander.expanderButton).panel)
+							 ]
+						 }
+					 ))
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
@@ -360,35 +364,35 @@ export class MailView implements CurrentView {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
 				return m(".folders",
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
-					                                   .map(({id, button}) => {
-						                                   const count = groupCounters[id]
-						                                   return m(MailFolderComponent, {
-							                                   count: count,
-							                                   button,
-							                                   rightButton: null,
-							                                   key: id
-						                                   })
-					                                   })
-					                                   .concat(logins.isInternalUserLoggedIn()
-						                                   ? [
-							                                   m(".folder-row.flex-space-between.plr-l", [
-								                                   m("small.b.align-self-center.ml-negative-xs",
-									                                   {style: {color: theme.navigation_button}},
-									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
-								                                   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
-							                                   ])
-						                                   ]
-						                                   : []
-					                                   )
-					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
-						                                   const count = groupCounters[id]
-						                                   return m(MailFolderComponent, {
-							                                   count,
-							                                   button,
-							                                   rightButton: button.isSelected() ? folderMoreButton : null,
-							                                   key: id
-						                                   })
-					                                   })))
+													   .map(({id, button}) => {
+														   const count = groupCounters[id]
+														   return m(MailFolderComponent, {
+															   count: count,
+															   button,
+															   rightButton: null,
+															   key: id
+														   })
+													   })
+													   .concat(logins.isInternalUserLoggedIn()
+														   ? [
+															   m(".folder-row.flex-space-between.plr-l", [
+																   m("small.b.align-self-center.ml-negative-xs",
+																	   {style: {color: theme.navigation_button}},
+																	   lang.get("yourFolders_action").toLocaleUpperCase()),
+																   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
+															   ])
+														   ]
+														   : []
+													   )
+													   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
+														   const count = groupCounters[id]
+														   return m(MailFolderComponent, {
+															   count,
+															   button,
+															   rightButton: button.isSelected() ? folderMoreButton : null,
+															   key: id
+														   })
+													   })))
 			}
 		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
@@ -420,7 +424,7 @@ export class MailView implements CurrentView {
 			let userGroupInfo = logins.getUserController().userGroupInfo
 			pushServiceApp.closePushNotification(
 				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
-				             .concat(userGroupInfo.mailAddress || []))
+							 .concat(userGroupInfo.mailAddress || []))
 		}
 
 		if (this.isInitialized() && args.listId && this.mailList && args.listId !== this.mailList.listId) {
@@ -514,11 +518,11 @@ export class MailView implements CurrentView {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
-			             .then((name) => {
-				             return worker.createMailFolder(name,
-					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
-					             mailGroupId)
-			             })
+						 .then((name) => {
+							 return worker.createMailFolder(name,
+								 getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
+								 mailGroupId)
+						 })
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -527,19 +531,19 @@ export class MailView implements CurrentView {
 			new Button('rename_action', () => {
 				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
 					getFolderName(this.selectedFolder), (name) => this._checkFolderName(name, mailGroupId))
-				             .then((newName) => {
-					             let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
-					             return update(renamedFolder)
-				             })
+							 .then((newName) => {
+								 let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
+								 return update(renamedFolder)
+							 })
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
 					{"{1}": getFolderName(this.selectedFolder)}))
-				      .then(confirmed => {
-					      if (confirmed) {
-						      this._finallyDeleteCustomMailFolder()
-					      }
-				      })
+					  .then(confirmed => {
+						  if (confirmed) {
+							  this._finallyDeleteCustomMailFolder()
+						  }
+					  })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
 		]).setColors(ButtonColors.Nav)
 	}

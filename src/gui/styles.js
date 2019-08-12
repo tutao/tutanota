@@ -15,12 +15,17 @@ class Styles {
 	styles: Map<string, Function>;
 	initialized: boolean;
 	bodyWidth: number;
+	bodyHeight: number;
 
 	constructor() {
 		this.initialized = false
 		this.styles = new Map()
 		this.bodyWidth = neverNull(document.body).offsetWidth
-		windowFacade.addResizeListener((width: number, height: number) => this.bodyWidth = width)
+		this.bodyHeight = neverNull(document.body).offsetHeight
+		windowFacade.addResizeListener((width: number, height: number) => {
+			this.bodyWidth = width
+			this.bodyHeight = height
+		})
 		themeId.map(() => {
 			this._updateDomStyles()
 		})

@@ -38,6 +38,8 @@ import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
@@ -59,6 +61,7 @@ export class SettingsView implements CurrentView {
 		this._userFolders = [
 			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
+			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
 
 		if (isDesktop()) {
@@ -96,7 +99,11 @@ export class SettingsView implements CurrentView {
 		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, [
 				m(".plr-l", m(userFolderExpander)),
 				m(userFolderExpander.panel),
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,

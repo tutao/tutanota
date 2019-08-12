@@ -3,10 +3,21 @@
 
 import m from "mithril"
 import {px, size} from "../gui/size"
-import {defaultCalendarColor, EventTextTimeOption} from "../api/common/TutanotaConstants"
+import type {WeekStartEnum} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
-import {eventEndsAfterDay, eventStartsBefore, getCalendarMonth, getDiffInDays, layOutEvents} from "./CalendarUtils"
+import {
+	CALENDAR_EVENT_HEIGHT,
+	eventEndsAfterDay,
+	eventStartsBefore,
+	getCalendarMonth,
+	getDiffInDays,
+	getEventColor,
+	getStartOfTheWeekOffset,
+	getWeekNumber,
+	layOutEvents
+} from "./CalendarUtils"
 import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
@@ -14,10 +25,11 @@ import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithFullYear} from "../misc/Formatter"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import type {GestureInfo} from "../gui/base/ViewSlider"
-import {gestureInfoFromTouch} from "../gui/base/ViewSlider"
 import {windowFacade} from "../misc/WindowFacade"
-import {debounce} from "../api/common/utils/Utils"
+import {debounce, neverNull} from "../api/common/utils/Utils"
+import {Icon} from "../gui/base/Icon"
+import {Icons} from "../gui/base/icons/Icons"
+import {PageView} from "../gui/base/PageView"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -25,23 +37,23 @@ type CalendarMonthAttrs = {
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
 	onEventClicked: (event: CalendarEvent) => mixed,
-	onChangeMonthGesture: (next: boolean) => mixed,
-	amPmFormat: boolean
+	onChangeMonth: (next: boolean) => mixed,
+	amPmFormat: boolean,
+	startOfTheWeek: WeekStartEnum,
+	groupColors: {[Id]: string},
+	hiddenCalendars: Set<Id>,
 }
 
-const weekDaysHeight = 30
 const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
+
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
-	_lastGestureInfo: ?GestureInfo;
-	_oldGestureInfo: ?GestureInfo;
 	_resizeListener: () => mixed;
 
 	constructor() {
-		// Redraw after timeout with pause because when changing mobile device orientation the size is not correct on the first draw
-		this._resizeListener = debounce(100, m.redraw)
+		this._resizeListener = m.redraw
 	}
 
 	oncreate() {
@@ -52,63 +64,56 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		windowFacade.removeResizeListener(this._resizeListener)
 	}
 
-	view(vnode: Vnode<CalendarMonthAttrs>): Children {
-		const {weekdays, weeks} = getCalendarMonth(vnode.attrs.selectedDate, 1, false)
-		const today = getStartOfDay(new Date())
-		return m(".fill-absolute.flex.col", {
-				ontouchstart: (event) => {
-					this._lastGestureInfo = this._oldGestureInfo = gestureInfoFromTouch(event.touches[0])
-				},
-				ontouchmove: (event) => {
-					this._oldGestureInfo = this._lastGestureInfo
-					this._lastGestureInfo = gestureInfoFromTouch(event.touches[0])
-				},
-				ontouchend: () => {
-					const lastGestureInfo = this._lastGestureInfo
-					const oldGestureInfo = this._oldGestureInfo
-					if (lastGestureInfo && oldGestureInfo) {
-						const velocity = (lastGestureInfo.x - oldGestureInfo.x) / (lastGestureInfo.time - oldGestureInfo.time)
-						const verticalVelocity = (lastGestureInfo.y - oldGestureInfo.y) / (lastGestureInfo.time - oldGestureInfo.time)
-						const absVerticalVelocity = Math.abs(verticalVelocity)
-						console.log("velocity", velocity, "vertical", verticalVelocity)
-						if (absVerticalVelocity > Math.abs(velocity) || absVerticalVelocity > 0.8) {
-							// Do nothing, vertical scroll
-						} else if (velocity > 0.6) {
-							vnode.attrs.onChangeMonthGesture(false)
-						} else if (velocity < -0.6) {
-							vnode.attrs.onChangeMonthGesture(true)
-						}
-					}
-				},
-			},
-			[
-				styles.isDesktopLayout() ?
-					m(".mt-s.pr-l", m("h1.calendar-day-content", formatMonthWithFullYear(vnode.attrs.selectedDate)),)
-					: null,
-				m(".flex.pt-s.pb-s", {
-					style: {
-						height: px(weekDaysHeight)
-					}
-				}, weekdays.map((wd) => m(".flex-grow", m(".b.small.center", wd)))),
-				m(".flex.col.flex-grow", {
-					oncreate: (vnode) => {
-						this._monthDom = vnode.dom
-						m.redraw() // render week events needs height and width of days, schedule a redraw when dom is available.
-					}
-				}, weeks.map((week) => {
-					return m(".flex.flex-grow.rel", [
-						week.map((d) => this._renderDay(vnode.attrs, d, today)),
-						this._monthDom ? this._renderWeekEvents(vnode.attrs, week) : null,
-					])
-				}))
-			])
+	view({attrs}: Vnode<CalendarMonthAttrs>): Children {
+		const previousMonthDate = new Date(attrs.selectedDate)
+		previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
+
+		const nextMonthDate = new Date(attrs.selectedDate)
+		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+		return m(PageView, {
+			previousPage: this._monthDom ? this._renderCalendar(attrs, previousMonthDate) : null,
+			currentPage: this._renderCalendar(attrs, attrs.selectedDate, (vnode) => {
+				this._monthDom = vnode.dom
+				m.redraw() // render week events needs height and width of days, schedule a redraw when dom is available.
+			}),
+			nextPage: this._monthDom ? this._renderCalendar(attrs, nextMonthDate) : null,
+			onChangePage: (next) => attrs.onChangeMonth(next)
+		})
 	}
 
-	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date): Children {
-		return m(".calendar-day.flex-grow.rel.overflow-hidden.fill-absolute"
+	_renderCalendar(attrs: CalendarMonthAttrs, date: Date, onCreateMonth: ?(Vnode<any> => mixed)): Children {
+		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
+		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
+		const today = getStartOfDay(new Date())
+		return m(".fill-absolute.flex.col", [
+			styles.isDesktopLayout() ?
+				m(".mt-s.pr-l.flex.row.items-center",
+					[
+						m("button.calendar-switch-button", {
+							onclick: () => attrs.onChangeMonth(false),
+						}, m(Icon, {icon: Icons.ArrowDropLeft, class: "icon-large switch-month-button"})),
+						m("button.calendar-switch-button", {
+							onclick: () => attrs.onChangeMonth(true),
+						}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
+						m("h1", formatMonthWithFullYear(date)),
+					])
+				: m(".pt-s"),
+			m(".flex.mb-s", weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd)))),
+			m(".flex.col.flex-grow", {oncreate: onCreateMonth}, weeks.map((week) => {
+				return m(".flex.flex-grow.rel", [
+					week.map((d, i) => this._renderDay(attrs, d, today, i)),
+					this._monthDom ? this._renderWeekEvents(attrs, week) : null,
+				])
+			}))
+		])
+	}
+
+	_renderDay(attrs: CalendarMonthAttrs, d: CalendarDay, today: Date, weekDayNumber: number): Children {
+		return m(".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute"
 			+ (d.paddingDay ? ".calendar-alternate-background" : ""), {
 				key: d.date.getTime(),
-				onclick: () => {
+				onclick: () => attrs.onDateSelected(new Date(d.date)),
+				oncontextmenu: (e) => {
 					if (styles.isDesktopLayout()) {
 						const newDate = new Date(d.date)
 						let hour = new Date().getHours()
@@ -120,9 +125,13 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					} else {
 						attrs.onDateSelected(new Date(d.date))
 					}
-				},
+					e.preventDefault()
+				}
 			},
-			m(".calendar-day-number" + getDateIndicator(d.date, attrs.selectedDate, today), String(d.day)),
+			[
+				m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
+				weekDayNumber === 0 ? m(".calendar-month-week-number.abs", getWeekNumber(d.date)) : null,
+			]
 		)
 	}
 
@@ -130,7 +139,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const events = new Set()
 		week.forEach((day) => {
 			const dayEvents = attrs.eventsForDays.get(day.date.getTime())
-			dayEvents && dayEvents.forEach(e => events.add(e))
+			dayEvents && dayEvents.forEach(e => {
+				if (!attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) events.add(e)
+			})
 		})
 
 
@@ -152,7 +163,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							style: {
 								top: px(position.top),
-								height: px(size.calendar_line_height + 2),
+								height: px(CALENDAR_EVENT_HEIGHT),
 								left: px(position.left),
 								right: px(position.right)
 							}
@@ -175,7 +186,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					return m(".abs.darker-hover" + (isPadding ? ".calendar-bubble-more-padding-day" : ""), {
 						style: {
 							bottom: px(1),
-							height: px(size.calendar_line_height + 2),
+							height: px(CALENDAR_EVENT_HEIGHT),
 							left: px(weekday * dayWidth + eventMargin),
 							width: px(dayWidth - 2 - eventMargin * 2)
 						}
@@ -218,17 +229,15 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 
 
 	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date): Children {
-		let color = defaultCalendarColor
 		return m(ContinuingCalendarEventBubble, {
 			event: event,
 			startDate: firstDayOfWeek,
 			endDate: lastDayOfWeek,
-			color,
+			color: getEventColor(event, attrs.groupColors),
 			showTime: styles.isDesktopLayout() ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},
-			amPmFormat: attrs.amPmFormat
 		})
 	}
 

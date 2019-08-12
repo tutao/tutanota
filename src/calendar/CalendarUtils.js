@@ -1,14 +1,17 @@
 //@flow
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {EventTextTimeOptionEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption} from "../api/common/TutanotaConstants"
+import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {clone} from "../api/common/utils/Utils"
+import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
+import {formatTime} from "../misc/Formatter"
+import {size} from "../gui/size"
 
+export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -299,12 +302,12 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 }
 
 
-export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum, amPm: boolean): string {
+export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum): string {
 	if (isAllDayEvent(event) || showTime == EventTextTimeOption.NO_TIME) {
 		return event.summary
 	} else {
-		return timeString(event.startTime, amPm) +
-			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + timeString(event.endTime, amPm)) : "")
+		return formatTime(event.startTime) +
+			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + formatTime(event.endTime)) : "")
 			+ " " + event.summary
 	}
 }
@@ -331,4 +334,47 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 export function getDiffInDays(a: Date, b: Date): number {
 	// discard the time and time-zone information
 	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
+}
+
+export function getCalendarName(name: ?string): string {
+	return name || lang.get("privateCalendar_label")
+}
+
+export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {
+	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
+}
+
+export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: number): Date {
+	let firstDay
+	if (firstDayOfWeekFromSundayOffset > date.getDay()) {
+		firstDay = (date.getDay() + 7) - firstDayOfWeekFromSundayOffset
+	} else {
+		firstDay = date.getDay() - firstDayOfWeekFromSundayOffset
+	}
+	return incrementDate(new Date(date), -firstDay)
+}
+
+export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<Date> {
+	let calculationDate = getStartOfWeek(dayInTheWeek, getStartOfTheWeekOffset(startOfTheWeek))
+	const days = []
+	for (let i = 0; i < 7; i++) {
+		days.push(calculationDate)
+		calculationDate = incrementDate(new Date(calculationDate), 1)
+	}
+	return days
+}
+
+export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
+	switch (weekStart) {
+		case WeekStart.SUNDAY:
+			return 0
+		case WeekStart.MONDAY:
+		default:
+			return 1
+	}
+}
+
+export function getWeekNumber(startOfTheWeek: Date): number {
+	// Currently it doesn't support US-based week numbering system with partial weeks.
+	return DateTime.fromJSDate(startOfTheWeek).weekNumber
 }

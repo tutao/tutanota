@@ -241,7 +241,8 @@ export class UserManagementFacade {
 	 * @param adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
 	 * @param adminGroupKey Is not set when generating calendar as normal user
 	 */
-	generateCalendarGroupData(adminGroup: ?Id, adminGroupKey: ?Aes128Key, customerGroupKey: Aes128Key, userGroupKey: Aes128Key): CalendarGroupData {
+	generateCalendarGroupData(adminGroup: ?Id, adminGroupKey: ?Aes128Key, customerGroupKey: Aes128Key, userGroupKey: Aes128Key,
+	                          name: ?string): CalendarGroupData {
 		let calendarGroupRootSessionKey = aes128RandomKey()
 		let calendarGroupInfoSessionKey = aes128RandomKey()
 		let calendarGroupKey = aes128RandomKey()
@@ -250,7 +251,7 @@ export class UserManagementFacade {
 		calendarData.calendarEncCalendarGroupRootSessionKey = encryptKey(calendarGroupKey, calendarGroupRootSessionKey)
 		calendarData.ownerEncGroupInfoSessionKey = encryptKey(customerGroupKey, calendarGroupInfoSessionKey)
 		calendarData.userEncGroupKey = encryptKey(userGroupKey, calendarGroupKey)
-		calendarData.groupInfoEncName = new Uint8Array([])
+		calendarData.groupInfoEncName = name && encryptString(calendarGroupInfoSessionKey, name) || new Uint8Array([])
 		calendarData.adminEncGroupKey = adminGroupKey ? encryptKey(adminGroupKey, calendarGroupKey) : null
 		calendarData.adminGroup = adminGroup
 		return calendarData

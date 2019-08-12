@@ -31,6 +31,9 @@ assertMainOrNodeBoot()
 export interface CurrentView extends Component {
 	+headerView?: () => Children;
 	+getViewSlider?: () => ?IViewSlider;
+	/** @return true if view handled press itself */
+	+handleBackButton?: () => boolean;
+	+backButtonLabelShown?: () => boolean;
 }
 
 class Header {
@@ -241,11 +244,16 @@ class Header {
 	_getLeftElements() {
 		const viewSlider = this._getViewSlider()
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn())
-				.getTitle(), () => BootIcons.Back, () => m.route.get())
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(),
+				() => BootIcons.Back,
+				() => m.route.get())
 				.setColors(NavButtonColors.Header)
-				.setClickHandler(() => viewSlider.focusPreviousColumn())
-				.setHideLabel(true)
+				.setClickHandler(() => {
+					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
+						viewSlider.focusPreviousColumn()
+					}
+				})
+				.setHideLabel(this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true)
 			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {

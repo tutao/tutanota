@@ -3,7 +3,7 @@ import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import en from "./translations/en"
-import {lang} from "./misc/LanguageViewModel"
+import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
@@ -22,6 +22,7 @@ import {windowFacade} from "./misc/WindowFacade"
 import {Const} from "./api/common/TutanotaConstants"
 import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
+import {deviceConfig} from "./misc/DeviceConfig"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -112,6 +113,11 @@ let initialized = lang.init(en).then(() => {
 		}
 
 		return;
+	}
+
+	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
+	if (userLanguage) {
+		lang.setLanguage({code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)})
 	}
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
