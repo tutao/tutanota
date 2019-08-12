@@ -9,6 +9,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {DAY_IN_MILLIS, incrementDate} from "../api/common/utils/DateUtils"
 import type {Parser} from "../misc/parsing"
 import {combineParsers, mapParser, maybeParse, parseCharacter, parseEither, parseNumber, parseSeparatedBy, StringIterator} from "../misc/parsing"
+import {reverse} from "../api/common/TutanotaConstants"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -247,7 +248,7 @@ export function parseIntoCalendarEvents(icalObject: ICalObject): Array<{event: C
 
 		const descriptionProp = eventObj.properties.find(p => p.name === "DESCRIPTION")
 		if (descriptionProp) {
-			if (typeof descriptionProp !== "string") throw new Error("DESCRIPTION value is not a string")
+			if (typeof descriptionProp.value !== "string") throw new Error("DESCRIPTION value is not a string")
 			event.description = descriptionProp.value
 		}
 		const alarms = []
@@ -271,14 +272,16 @@ type Duration = {
 }
 
 
+const icalToTutaFrequency = {
+	"DAILY": RepeatPeriod.DAILY,
+	"WEEKLY": RepeatPeriod.WEEKLY,
+	"MONTHLY": RepeatPeriod.MONTHLY,
+	"YEARLY": RepeatPeriod.ANNUALLY,
+}
+export const tutaToIcalFrequency = reverse(icalToTutaFrequency)
+
 function parseFrequency(value: string): RepeatPeriodEnum {
-	const map = {
-		"DAILY": RepeatPeriod.DAILY,
-		"WEEKLY": RepeatPeriod.WEEKLY,
-		"MONTHLY": RepeatPeriod.MONTHLY,
-		"YEARLY": RepeatPeriod.ANNUALLY,
-	}
-	return map[value]
+	return icalToTutaFrequency[value]
 }
 
 export function parseTime(value: string, zone: ?string): Date {

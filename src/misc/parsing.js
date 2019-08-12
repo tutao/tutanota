@@ -52,13 +52,14 @@ export const maybeParse = <T>(parser: Parser<T>): Parser<?T> => (iterator) => {
 export const parseSeparatedBy = <T, S>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> => {
 	return (iterator) => {
 		const result = []
+		result.push(valueParser(iterator))
 		while (true) {
-			result.push(valueParser(iterator))
 			try {
 				separatorParser(iterator)
 			} catch (e) {
 				break
 			}
+			result.push(valueParser(iterator))
 		}
 		return result
 	}

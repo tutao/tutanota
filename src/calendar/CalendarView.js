@@ -45,7 +45,7 @@ import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteD
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
-import {showCalendarImportDialog} from "./CalendarImportDialog"
+import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 
 
 export type CalendarInfo = {
@@ -337,6 +337,15 @@ export class CalendarView implements CurrentView {
 								label: () => "Import",
 								icon: () => Icons.Archive,
 								click: () => showCalendarImportDialog(groupRoot),
+								type: ButtonType.Dropdown,
+							},
+							{
+								label: () => "Export",
+								icon: () => Icons.Archive,
+								click: () => {
+									const alarmInfoList = logins.getUserController().user.alarmInfoList
+									alarmInfoList && exportCalendar(groupRoot, alarmInfoList.alarms)
+								},
 								type: ButtonType.Dropdown,
 							},
 							{
