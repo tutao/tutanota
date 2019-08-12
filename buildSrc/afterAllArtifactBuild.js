@@ -5,12 +5,16 @@ const signer = require('./installerSigner.js')
  * @param args
  */
 
+const MAC_EXTENSION = process.platform === "darwin"
+	? "dmg"
+	: "zip"
+
 function hook(args) {
 	console.log("AfterAllArtifactBuild hook...")
 
 	const exePath = args.artifactPaths.find(path => path.endsWith('.exe'))
 	const appImagePath = args.artifactPaths.find(path => path.endsWith('AppImage'))
-	const zipPath = args.artifactPaths.find(path => path.endsWith('zip'))
+	const dmgPath = args.artifactPaths.find(path => path.endsWith(MAC_EXTENSION))
 
 	console.log('artifacts:')
 
@@ -24,9 +28,9 @@ function hook(args) {
 		signer(exePath, 'win')
 	}
 
-	if (zipPath !== undefined && process.env.MAC_CSC_LINK) {
-		console.log(zipPath)
-		signer(zipPath, 'mac')
+	if (dmgPath !== undefined && process.env.MAC_CSC_LINK) {
+		console.log(dmgPath)
+		signer(dmgPath, 'mac')
 	}
 }
 

@@ -115,7 +115,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				},
 				"target": [
 					{
-						"target": "zip",
+						"target": process.platform === "darwin" ? "dmg" : "zip",
 						"arch": "x64"
 					}
 				]
