@@ -4,6 +4,11 @@
  * enables the User to verify the authenticity of their manually downloaded
  * Installer with the openssl utility.
  *
+ * ATTENTION MAC USERS: Safari started to automatically unpack zip files and then delete them,
+ * so you'll have to look in your trash to get the original file.
+ * once we switch to dmg this won't be necessary anymore, but:
+ * https://github.com/electron-userland/electron-builder/issues/2199
+ *
  * The installer signatures are provided as separate files:
  * https://mail.tutanota.com/desktop/tutanota-desktop-win-sig.bin (for Windows)
  * https://mail.tutanota.com/desktop/tutanota-desktop-mac-sig.bin (for Mac)
