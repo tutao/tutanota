@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCustomDomainData(): CustomDomainData {
-	return create(_TypeModel, CustomDomainDataTypeRef)
+export function createCustomDomainData(values?: $Shape<$Exact<CustomDomainData>>): CustomDomainData {
+	return Object.assign(create(_TypeModel, CustomDomainDataTypeRef), values)
 }

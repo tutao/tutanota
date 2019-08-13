@@ -19,6 +19,7 @@ import "./contact/ContactMergeUtilsTest"
 import "./calendar/CalendarModelTest"
 import "./calendar/CalendarUtilsTest"
 import "./calendar/CalendarParsertest"
+import "./calendar/CalendarImporterTest"
 
 import o from "ospec/ospec.js"
 

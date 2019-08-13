@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRegistrationConfigReturn(): RegistrationConfigReturn {
-	return create(_TypeModel, RegistrationConfigReturnTypeRef)
+export function createRegistrationConfigReturn(values?: $Shape<$Exact<RegistrationConfigReturn>>): RegistrationConfigReturn {
+	return Object.assign(create(_TypeModel, RegistrationConfigReturnTypeRef), values)
 }

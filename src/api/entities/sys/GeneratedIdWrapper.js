@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createGeneratedIdWrapper(): GeneratedIdWrapper {
-	return create(_TypeModel, GeneratedIdWrapperTypeRef)
+export function createGeneratedIdWrapper(values?: $Shape<$Exact<GeneratedIdWrapper>>): GeneratedIdWrapper {
+	return Object.assign(create(_TypeModel, GeneratedIdWrapperTypeRef), values)
 }

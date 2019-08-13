@@ -83,6 +83,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createMailboxGroupRoot(): MailboxGroupRoot {
-	return create(_TypeModel, MailboxGroupRootTypeRef)
+export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
+	return Object.assign(create(_TypeModel, MailboxGroupRootTypeRef), values)
 }

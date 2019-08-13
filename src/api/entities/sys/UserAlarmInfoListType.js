@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUserAlarmInfoListType(): UserAlarmInfoListType {
-	return create(_TypeModel, UserAlarmInfoListTypeTypeRef)
+export function createUserAlarmInfoListType(values?: $Shape<$Exact<UserAlarmInfoListType>>): UserAlarmInfoListType {
+	return Object.assign(create(_TypeModel, UserAlarmInfoListTypeTypeRef), values)
 }

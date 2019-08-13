@@ -33,6 +33,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createNewDraftAttachment(): NewDraftAttachment {
-	return create(_TypeModel, NewDraftAttachmentTypeRef)
+export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {
+	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), values)
 }

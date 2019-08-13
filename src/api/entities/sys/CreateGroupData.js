@@ -25,6 +25,6 @@ export const _TypeModel: TypeModel = {
 	}, "associations": {}, "app": "sys", "version": "49"
 }
 
-export function createCreateGroupData(): CreateGroupData {
-	return create(_TypeModel, CreateGroupDataTypeRef)
+export function createCreateGroupData(values?: $Shape<$Exact<CreateGroupData>>): CreateGroupData {
+	return Object.assign(create(_TypeModel, CreateGroupDataTypeRef), values)
 }

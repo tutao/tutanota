@@ -41,6 +41,7 @@ function getProp(obj: ICalObject, tag: string): Property {
 	return prop
 }
 
+// Left side of the semicolon
 const parameterStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
 	while (iterator.peek() && /[:;,]/.test(iterator.peek()) === false) {
@@ -61,10 +62,28 @@ const parsePropertyParameters = combineParsers(
 )
 
 
+export const iCalReplacements = {
+	";": "\\;",
+	"\\": "\\\\",
+	"\n": "\\n"
+}
+
+// Right side of the semicolon
 const propertyStringValueParser: Parser<string> = (iterator) => {
 	let value = ""
-	while (iterator.peek() && (/[;]/.test(iterator.peek()) === false || value[value.length - 1] === "\\")) {
-		value += neverNull(iterator.next().value)
+	let lastCharacter = null
+	while (iterator.peek() && (/[;]/.test(iterator.peek()) === false || lastCharacter === "\\")) {
+		lastCharacter = iterator.next().value
+		if (lastCharacter === "\\") {
+			if (iterator.peek() in iCalReplacements) {
+				continue
+			} else if (iterator.peek() === "n") {
+				iterator.next()
+				value += "\n"
+				continue
+			}
+		}
+		value += neverNull(lastCharacter)
 	}
 	return value
 }
@@ -140,7 +159,7 @@ export function parseICalendar(stringData: string): ICalObject {
 	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 	if (firstLine.value !== "BEGIN:VCALENDAR") {
-		throw new Error("Not a VCALENDAR")
+		throw new Error("Not a VCALENDAR: " + String(firstLine.value))
 	}
 	return parseIcalObject("VCALENDAR", iterator)
 }
@@ -212,13 +231,13 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	return Object.assign(createAlarmInfo(), {trigger})
 }
 
-function parseRrule(rruleProp, tzId): RepeatRule {
+function parseRrule(rruleProp, tzId: ?string): RepeatRule {
 	const rruleValue = rruleProp.value
 	if (Array.isArray(rruleValue) || typeof rruleValue === "string") {
 		throw new Error("RRULE value is not an object")
 	}
 	const frequency = parseFrequency(rruleValue["FREQ"])
-	const until = rruleValue["UNTIL"] ? parseDateString(rruleValue["UNTIL"]) : null
+	const until = rruleValue["UNTIL"] ? parseTime(rruleValue["UNTIL"], tzId) : null
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
 	const endType: EndTypeEnum = until != null
 		? EndType.UntilDate
@@ -228,9 +247,7 @@ function parseRrule(rruleProp, tzId): RepeatRule {
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
 
 	const repeatRule = createRepeatRule()
-	repeatRule.endValue = String(until
-		? DateTime.fromObject({year: until.year, month: until.month, day: until.day}).toMillis()
-		: count || 0)
+	repeatRule.endValue = String(until ? until.getTime() : count || 0)
 	repeatRule.endType = endType
 	repeatRule.interval = String(interval)
 	repeatRule.frequency = frequency
@@ -266,8 +283,8 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new Error("DTSTART value is not a string")
-		const tzId = startProp.params["TZID"]
-		event.startTime = parseTime(startProp.value, typeof tzId === "string" ? tzId : null)
+		const tzId = typeof startProp.params["TZID"] === "string" ? startProp.params["TZID"] : null
+		event.startTime = parseTime(startProp.value, tzId)
 
 		const endProp = eventObj.properties.find(p => p.name === "DTEND")
 		if (endProp) {
@@ -345,7 +362,7 @@ export function parseTime(value: string, zone: ?string): Date {
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))
 		const minute = parseInt(value.slice(11, 13))
-		return DateTime.fromObject({year, month, day, hour, minute, zone}).toJSDate()
+		return DateTime.fromObject({year, month, day, hour, minute, zone: "UTC"}).toJSDate()
 	} else if (/[0-9]{8}T[0-9]{6}/.test(value)) {
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))

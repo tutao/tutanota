@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createPasswordRetrievalData(): PasswordRetrievalData {
-	return create(_TypeModel, PasswordRetrievalDataTypeRef)
+export function createPasswordRetrievalData(values?: $Shape<$Exact<PasswordRetrievalData>>): PasswordRetrievalData {
+	return Object.assign(create(_TypeModel, PasswordRetrievalDataTypeRef), values)
 }

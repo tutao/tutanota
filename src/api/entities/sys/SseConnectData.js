@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSseConnectData(): SseConnectData {
-	return create(_TypeModel, SseConnectDataTypeRef)
+export function createSseConnectData(values?: $Shape<$Exact<SseConnectData>>): SseConnectData {
+	return Object.assign(create(_TypeModel, SseConnectDataTypeRef), values)
 }

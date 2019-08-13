@@ -67,6 +67,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createFile(): TutanotaFile {
-	return create(_TypeModel, FileTypeRef)
+export function createFile(values?: $Shape<$Exact<TutanotaFile>>): TutanotaFile {
+	return Object.assign(create(_TypeModel, FileTypeRef), values)
 }

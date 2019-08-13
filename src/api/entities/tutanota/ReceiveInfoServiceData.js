@@ -17,6 +17,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createReceiveInfoServiceData(): ReceiveInfoServiceData {
-	return create(_TypeModel, ReceiveInfoServiceDataTypeRef)
+export function createReceiveInfoServiceData(values?: $Shape<$Exact<ReceiveInfoServiceData>>): ReceiveInfoServiceData {
+	return Object.assign(create(_TypeModel, ReceiveInfoServiceDataTypeRef), values)
 }

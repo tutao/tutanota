@@ -38,6 +38,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createDeleteMailData(): DeleteMailData {
-	return create(_TypeModel, DeleteMailDataTypeRef)
+export function createDeleteMailData(values?: $Shape<$Exact<DeleteMailData>>): DeleteMailData {
+	return Object.assign(create(_TypeModel, DeleteMailDataTypeRef), values)
 }

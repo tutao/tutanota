@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createPhotosRef(): PhotosRef {
-	return create(_TypeModel, PhotosRefTypeRef)
+export function createPhotosRef(values?: $Shape<$Exact<PhotosRef>>): PhotosRef {
+	return Object.assign(create(_TypeModel, PhotosRefTypeRef), values)
 }

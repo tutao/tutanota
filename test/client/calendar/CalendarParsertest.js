@@ -49,6 +49,12 @@ o.spec("CalendarParser", function () {
 					value: "20190607"
 				})
 		})
+		o("value with colon", function () {
+			o(parseProperty("DTSTART:https://stuff")).deepEquals({name: "DTSTART", params: {}, value: "https://stuff"})
+		})
+		o("value with semicolon", function () {
+			o(parseProperty("DTSTART:some\\;things")).deepEquals({name: "DTSTART", params: {}, value: "some;things"})
+		})
 	})
 
 	o("parseDuraion", function () {

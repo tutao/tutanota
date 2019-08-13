@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createInternalRecipientKeyData(): InternalRecipientKeyData {
-	return create(_TypeModel, InternalRecipientKeyDataTypeRef)
+export function createInternalRecipientKeyData(values?: $Shape<$Exact<InternalRecipientKeyData>>): InternalRecipientKeyData {
+	return Object.assign(create(_TypeModel, InternalRecipientKeyDataTypeRef), values)
 }

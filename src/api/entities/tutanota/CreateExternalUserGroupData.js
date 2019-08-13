@@ -38,6 +38,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createCreateExternalUserGroupData(): CreateExternalUserGroupData {
-	return create(_TypeModel, CreateExternalUserGroupDataTypeRef)
+export function createCreateExternalUserGroupData(values?: $Shape<$Exact<CreateExternalUserGroupData>>): CreateExternalUserGroupData {
+	return Object.assign(create(_TypeModel, CreateExternalUserGroupDataTypeRef), values)
 }

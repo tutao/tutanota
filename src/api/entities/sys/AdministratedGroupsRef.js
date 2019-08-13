@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createAdministratedGroupsRef(): AdministratedGroupsRef {
-	return create(_TypeModel, AdministratedGroupsRefTypeRef)
+export function createAdministratedGroupsRef(values?: $Shape<$Exact<AdministratedGroupsRef>>): AdministratedGroupsRef {
+	return Object.assign(create(_TypeModel, AdministratedGroupsRefTypeRef), values)
 }

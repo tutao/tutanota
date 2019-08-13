@@ -34,6 +34,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createImapSyncConfiguration(): ImapSyncConfiguration {
-	return create(_TypeModel, ImapSyncConfigurationTypeRef)
+export function createImapSyncConfiguration(values?: $Shape<$Exact<ImapSyncConfiguration>>): ImapSyncConfiguration {
+	return Object.assign(create(_TypeModel, ImapSyncConfigurationTypeRef), values)
 }

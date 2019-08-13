@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCreateCustomerServerPropertiesReturn(): CreateCustomerServerPropertiesReturn {
-	return create(_TypeModel, CreateCustomerServerPropertiesReturnTypeRef)
+export function createCreateCustomerServerPropertiesReturn(values?: $Shape<$Exact<CreateCustomerServerPropertiesReturn>>): CreateCustomerServerPropertiesReturn {
+	return Object.assign(create(_TypeModel, CreateCustomerServerPropertiesReturnTypeRef), values)
 }

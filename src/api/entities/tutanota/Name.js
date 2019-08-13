@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createName(): Name {
-	return create(_TypeModel, NameTypeRef)
+export function createName(values?: $Shape<$Exact<Name>>): Name {
+	return Object.assign(create(_TypeModel, NameTypeRef), values)
 }

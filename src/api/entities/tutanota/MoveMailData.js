@@ -38,6 +38,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createMoveMailData(): MoveMailData {
-	return create(_TypeModel, MoveMailDataTypeRef)
+export function createMoveMailData(values?: $Shape<$Exact<MoveMailData>>): MoveMailData {
+	return Object.assign(create(_TypeModel, MoveMailDataTypeRef), values)
 }

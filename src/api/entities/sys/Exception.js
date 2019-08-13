@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createException(): Exception {
-	return create(_TypeModel, ExceptionTypeRef)
+export function createException(values?: $Shape<$Exact<Exception>>): Exception {
+	return Object.assign(create(_TypeModel, ExceptionTypeRef), values)
 }

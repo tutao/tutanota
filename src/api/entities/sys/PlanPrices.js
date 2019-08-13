@@ -40,6 +40,6 @@ export const _TypeModel: TypeModel = {
 	}, "associations": {}, "app": "sys", "version": "49"
 }
 
-export function createPlanPrices(): PlanPrices {
-	return create(_TypeModel, PlanPricesTypeRef)
+export function createPlanPrices(values?: $Shape<$Exact<PlanPrices>>): PlanPrices {
+	return Object.assign(create(_TypeModel, PlanPricesTypeRef), values)
 }

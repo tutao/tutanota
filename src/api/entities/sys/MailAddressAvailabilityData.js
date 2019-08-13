@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailAddressAvailabilityData(): MailAddressAvailabilityData {
-	return create(_TypeModel, MailAddressAvailabilityDataTypeRef)
+export function createMailAddressAvailabilityData(values?: $Shape<$Exact<MailAddressAvailabilityData>>): MailAddressAvailabilityData {
+	return Object.assign(create(_TypeModel, MailAddressAvailabilityDataTypeRef), values)
 }

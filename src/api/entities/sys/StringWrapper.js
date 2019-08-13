@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createStringWrapper(): StringWrapper {
-	return create(_TypeModel, StringWrapperTypeRef)
+export function createStringWrapper(values?: $Shape<$Exact<StringWrapper>>): StringWrapper {
+	return Object.assign(create(_TypeModel, StringWrapperTypeRef), values)
 }

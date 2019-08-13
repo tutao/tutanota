@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createFileDataDataGet(): FileDataDataGet {
-	return create(_TypeModel, FileDataDataGetTypeRef)
+export function createFileDataDataGet(values?: $Shape<$Exact<FileDataDataGet>>): FileDataDataGet {
+	return Object.assign(create(_TypeModel, FileDataDataGetTypeRef), values)
 }

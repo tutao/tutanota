@@ -27,6 +27,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createVersionReturn(): VersionReturn {
-	return create(_TypeModel, VersionReturnTypeRef)
+export function createVersionReturn(values?: $Shape<$Exact<VersionReturn>>): VersionReturn {
+	return Object.assign(create(_TypeModel, VersionReturnTypeRef), values)
 }

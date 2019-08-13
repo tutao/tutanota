@@ -32,6 +32,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createMailHeaders(): MailHeaders {
-	return create(_TypeModel, MailHeadersTypeRef)
+export function createMailHeaders(values?: $Shape<$Exact<MailHeaders>>): MailHeaders {
+	return Object.assign(create(_TypeModel, MailHeadersTypeRef), values)
 }

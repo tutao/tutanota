@@ -23,6 +23,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailAddressAliasServiceReturn(): MailAddressAliasServiceReturn {
-	return create(_TypeModel, MailAddressAliasServiceReturnTypeRef)
+export function createMailAddressAliasServiceReturn(values?: $Shape<$Exact<MailAddressAliasServiceReturn>>): MailAddressAliasServiceReturn {
+	return Object.assign(create(_TypeModel, MailAddressAliasServiceReturnTypeRef), values)
 }

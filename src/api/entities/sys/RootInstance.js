@@ -23,6 +23,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRootInstance(): RootInstance {
-	return create(_TypeModel, RootInstanceTypeRef)
+export function createRootInstance(values?: $Shape<$Exact<RootInstance>>): RootInstance {
+	return Object.assign(create(_TypeModel, RootInstanceTypeRef), values)
 }

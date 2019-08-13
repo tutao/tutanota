@@ -103,6 +103,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createExternalUserData(): ExternalUserData {
-	return create(_TypeModel, ExternalUserDataTypeRef)
+export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {
+	return Object.assign(create(_TypeModel, ExternalUserDataTypeRef), values)
 }

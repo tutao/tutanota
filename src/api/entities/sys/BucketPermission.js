@@ -46,6 +46,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBucketPermission(): BucketPermission {
-	return create(_TypeModel, BucketPermissionTypeRef)
+export function createBucketPermission(values?: $Shape<$Exact<BucketPermission>>): BucketPermission {
+	return Object.assign(create(_TypeModel, BucketPermissionTypeRef), values)
 }

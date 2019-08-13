@@ -144,6 +144,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createUserAccountUserData(): UserAccountUserData {
-	return create(_TypeModel, UserAccountUserDataTypeRef)
+export function createUserAccountUserData(values?: $Shape<$Exact<UserAccountUserData>>): UserAccountUserData {
+	return Object.assign(create(_TypeModel, UserAccountUserDataTypeRef), values)
 }

@@ -79,6 +79,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createInvoiceInfo(): InvoiceInfo {
-	return create(_TypeModel, InvoiceInfoTypeRef)
+export function createInvoiceInfo(values?: $Shape<$Exact<InvoiceInfo>>): InvoiceInfo {
+	return Object.assign(create(_TypeModel, InvoiceInfoTypeRef), values)
 }

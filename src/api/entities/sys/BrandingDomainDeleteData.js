@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBrandingDomainDeleteData(): BrandingDomainDeleteData {
-	return create(_TypeModel, BrandingDomainDeleteDataTypeRef)
+export function createBrandingDomainDeleteData(values?: $Shape<$Exact<BrandingDomainDeleteData>>): BrandingDomainDeleteData {
+	return Object.assign(create(_TypeModel, BrandingDomainDeleteDataTypeRef), values)
 }

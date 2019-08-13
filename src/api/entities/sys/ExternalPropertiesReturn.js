@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createExternalPropertiesReturn(): ExternalPropertiesReturn {
-	return create(_TypeModel, ExternalPropertiesReturnTypeRef)
+export function createExternalPropertiesReturn(values?: $Shape<$Exact<ExternalPropertiesReturn>>): ExternalPropertiesReturn {
+	return Object.assign(create(_TypeModel, ExternalPropertiesReturnTypeRef), values)
 }

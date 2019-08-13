@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createCreateLocalAdminGroupData(): CreateLocalAdminGroupData {
-	return create(_TypeModel, CreateLocalAdminGroupDataTypeRef)
+export function createCreateLocalAdminGroupData(values?: $Shape<$Exact<CreateLocalAdminGroupData>>): CreateLocalAdminGroupData {
+	return Object.assign(create(_TypeModel, CreateLocalAdminGroupDataTypeRef), values)
 }

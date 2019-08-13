@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "10"
 }
 
-export function createReadCounterReturn(): ReadCounterReturn {
-	return create(_TypeModel, ReadCounterReturnTypeRef)
+export function createReadCounterReturn(values?: $Shape<$Exact<ReadCounterReturn>>): ReadCounterReturn {
+	return Object.assign(create(_TypeModel, ReadCounterReturnTypeRef), values)
 }

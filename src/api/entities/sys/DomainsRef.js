@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createDomainsRef(): DomainsRef {
-	return create(_TypeModel, DomainsRefTypeRef)
+export function createDomainsRef(values?: $Shape<$Exact<DomainsRef>>): DomainsRef {
+	return Object.assign(create(_TypeModel, DomainsRefTypeRef), values)
 }

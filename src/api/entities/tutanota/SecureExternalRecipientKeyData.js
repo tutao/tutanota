@@ -61,6 +61,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createSecureExternalRecipientKeyData(): SecureExternalRecipientKeyData {
-	return create(_TypeModel, SecureExternalRecipientKeyDataTypeRef)
+export function createSecureExternalRecipientKeyData(values?: $Shape<$Exact<SecureExternalRecipientKeyData>>): SecureExternalRecipientKeyData {
+	return Object.assign(create(_TypeModel, SecureExternalRecipientKeyDataTypeRef), values)
 }

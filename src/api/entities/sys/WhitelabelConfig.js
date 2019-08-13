@@ -62,6 +62,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createWhitelabelConfig(): WhitelabelConfig {
-	return create(_TypeModel, WhitelabelConfigTypeRef)
+export function createWhitelabelConfig(values?: $Shape<$Exact<WhitelabelConfig>>): WhitelabelConfig {
+	return Object.assign(create(_TypeModel, WhitelabelConfigTypeRef), values)
 }

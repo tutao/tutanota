@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createDraftRecipient(): DraftRecipient {
-	return create(_TypeModel, DraftRecipientTypeRef)
+export function createDraftRecipient(values?: $Shape<$Exact<DraftRecipient>>): DraftRecipient {
+	return Object.assign(create(_TypeModel, DraftRecipientTypeRef), values)
 }

@@ -32,6 +32,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createInboxRule(): InboxRule {
-	return create(_TypeModel, InboxRuleTypeRef)
+export function createInboxRule(values?: $Shape<$Exact<InboxRule>>): InboxRule {
+	return Object.assign(create(_TypeModel, InboxRuleTypeRef), values)
 }

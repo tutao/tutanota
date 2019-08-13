@@ -64,6 +64,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createMailFolder(): MailFolder {
-	return create(_TypeModel, MailFolderTypeRef)
+export function createMailFolder(values?: $Shape<$Exact<MailFolder>>): MailFolder {
+	return Object.assign(create(_TypeModel, MailFolderTypeRef), values)
 }

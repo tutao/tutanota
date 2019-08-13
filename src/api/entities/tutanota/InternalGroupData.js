@@ -42,6 +42,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createInternalGroupData(): InternalGroupData {
-	return create(_TypeModel, InternalGroupDataTypeRef)
+export function createInternalGroupData(values?: $Shape<$Exact<InternalGroupData>>): InternalGroupData {
+	return Object.assign(create(_TypeModel, InternalGroupDataTypeRef), values)
 }

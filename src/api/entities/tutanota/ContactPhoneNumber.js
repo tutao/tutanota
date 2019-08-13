@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createContactPhoneNumber(): ContactPhoneNumber {
-	return create(_TypeModel, ContactPhoneNumberTypeRef)
+export function createContactPhoneNumber(values?: $Shape<$Exact<ContactPhoneNumber>>): ContactPhoneNumber {
+	return Object.assign(create(_TypeModel, ContactPhoneNumberTypeRef), values)
 }

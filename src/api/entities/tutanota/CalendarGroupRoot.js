@@ -52,6 +52,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createCalendarGroupRoot(): CalendarGroupRoot {
-	return create(_TypeModel, CalendarGroupRootTypeRef)
+export function createCalendarGroupRoot(values?: $Shape<$Exact<CalendarGroupRoot>>): CalendarGroupRoot {
+	return Object.assign(create(_TypeModel, CalendarGroupRootTypeRef), values)
 }

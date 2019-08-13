@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createSubfiles(): Subfiles {
-	return create(_TypeModel, SubfilesTypeRef)
+export function createSubfiles(values?: $Shape<$Exact<Subfiles>>): Subfiles {
+	return Object.assign(create(_TypeModel, SubfilesTypeRef), values)
 }

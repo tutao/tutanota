@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBootstrapFeature(): BootstrapFeature {
-	return create(_TypeModel, BootstrapFeatureTypeRef)
+export function createBootstrapFeature(values?: $Shape<$Exact<BootstrapFeature>>): BootstrapFeature {
+	return Object.assign(create(_TypeModel, BootstrapFeatureTypeRef), values)
 }

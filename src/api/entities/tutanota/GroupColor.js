@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createGroupColor(): GroupColor {
-	return create(_TypeModel, GroupColorTypeRef)
+export function createGroupColor(values?: $Shape<$Exact<GroupColor>>): GroupColor {
+	return Object.assign(create(_TypeModel, GroupColorTypeRef), values)
 }

@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createEncryptTutanotaPropertiesData(): EncryptTutanotaPropertiesData {
-	return create(_TypeModel, EncryptTutanotaPropertiesDataTypeRef)
+export function createEncryptTutanotaPropertiesData(values?: $Shape<$Exact<EncryptTutanotaPropertiesData>>): EncryptTutanotaPropertiesData {
+	return Object.assign(create(_TypeModel, EncryptTutanotaPropertiesDataTypeRef), values)
 }

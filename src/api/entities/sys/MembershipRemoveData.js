@@ -38,6 +38,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMembershipRemoveData(): MembershipRemoveData {
-	return create(_TypeModel, MembershipRemoveDataTypeRef)
+export function createMembershipRemoveData(values?: $Shape<$Exact<MembershipRemoveData>>): MembershipRemoveData {
+	return Object.assign(create(_TypeModel, MembershipRemoveDataTypeRef), values)
 }

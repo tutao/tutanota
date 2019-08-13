@@ -34,6 +34,6 @@ export const _TypeModel: TypeModel = {
 	}, "associations": {}, "app": "sys", "version": "49"
 }
 
-export function createVariableExternalAuthInfo(): VariableExternalAuthInfo {
-	return create(_TypeModel, VariableExternalAuthInfoTypeRef)
+export function createVariableExternalAuthInfo(values?: $Shape<$Exact<VariableExternalAuthInfo>>): VariableExternalAuthInfo {
+	return Object.assign(create(_TypeModel, VariableExternalAuthInfoTypeRef), values)
 }

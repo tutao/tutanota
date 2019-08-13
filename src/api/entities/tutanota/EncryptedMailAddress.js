@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createEncryptedMailAddress(): EncryptedMailAddress {
-	return create(_TypeModel, EncryptedMailAddressTypeRef)
+export function createEncryptedMailAddress(values?: $Shape<$Exact<EncryptedMailAddress>>): EncryptedMailAddress {
+	return Object.assign(create(_TypeModel, EncryptedMailAddressTypeRef), values)
 }

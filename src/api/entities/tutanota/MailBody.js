@@ -34,6 +34,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createMailBody(): MailBody {
-	return create(_TypeModel, MailBodyTypeRef)
+export function createMailBody(values?: $Shape<$Exact<MailBody>>): MailBody {
+	return Object.assign(create(_TypeModel, MailBodyTypeRef), values)
 }

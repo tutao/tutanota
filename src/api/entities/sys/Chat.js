@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createChat(): Chat {
-	return create(_TypeModel, ChatTypeRef)
+export function createChat(values?: $Shape<$Exact<Chat>>): Chat {
+	return Object.assign(create(_TypeModel, ChatTypeRef), values)
 }

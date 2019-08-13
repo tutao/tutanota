@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createPasswordMessagingData(): PasswordMessagingData {
-	return create(_TypeModel, PasswordMessagingDataTypeRef)
+export function createPasswordMessagingData(values?: $Shape<$Exact<PasswordMessagingData>>): PasswordMessagingData {
+	return Object.assign(create(_TypeModel, PasswordMessagingDataTypeRef), values)
 }

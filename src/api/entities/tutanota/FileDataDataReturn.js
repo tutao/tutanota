@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createFileDataDataReturn(): FileDataDataReturn {
-	return create(_TypeModel, FileDataDataReturnTypeRef)
+export function createFileDataDataReturn(values?: $Shape<$Exact<FileDataDataReturn>>): FileDataDataReturn {
+	return Object.assign(create(_TypeModel, FileDataDataReturnTypeRef), values)
 }

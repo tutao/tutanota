@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createInputField(): InputField {
-	return create(_TypeModel, InputFieldTypeRef)
+export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {
+	return Object.assign(create(_TypeModel, InputFieldTypeRef), values)
 }

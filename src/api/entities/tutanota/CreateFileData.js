@@ -44,6 +44,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createCreateFileData(): CreateFileData {
-	return create(_TypeModel, CreateFileDataTypeRef)
+export function createCreateFileData(values?: $Shape<$Exact<CreateFileData>>): CreateFileData {
+	return Object.assign(create(_TypeModel, CreateFileDataTypeRef), values)
 }

@@ -55,6 +55,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPaymentDataServicePutData(): PaymentDataServicePutData {
-	return create(_TypeModel, PaymentDataServicePutDataTypeRef)
+export function createPaymentDataServicePutData(values?: $Shape<$Exact<PaymentDataServicePutData>>): PaymentDataServicePutData {
+	return Object.assign(create(_TypeModel, PaymentDataServicePutDataTypeRef), values)
 }

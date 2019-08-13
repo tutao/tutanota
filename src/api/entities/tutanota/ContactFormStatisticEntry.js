@@ -56,6 +56,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createContactFormStatisticEntry(): ContactFormStatisticEntry {
-	return create(_TypeModel, ContactFormStatisticEntryTypeRef)
+export function createContactFormStatisticEntry(values?: $Shape<$Exact<ContactFormStatisticEntry>>): ContactFormStatisticEntry {
+	return Object.assign(create(_TypeModel, ContactFormStatisticEntryTypeRef), values)
 }

@@ -31,6 +31,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createDeleteGroupData(): DeleteGroupData {
-	return create(_TypeModel, DeleteGroupDataTypeRef)
+export function createDeleteGroupData(values?: $Shape<$Exact<DeleteGroupData>>): DeleteGroupData {
+	return Object.assign(create(_TypeModel, DeleteGroupDataTypeRef), values)
 }

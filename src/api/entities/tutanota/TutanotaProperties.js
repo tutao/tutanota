@@ -101,6 +101,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createTutanotaProperties(): TutanotaProperties {
-	return create(_TypeModel, TutanotaPropertiesTypeRef)
+export function createTutanotaProperties(values?: $Shape<$Exact<TutanotaProperties>>): TutanotaProperties {
+	return Object.assign(create(_TypeModel, TutanotaPropertiesTypeRef), values)
 }

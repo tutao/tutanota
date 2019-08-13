@@ -17,6 +17,6 @@ export const _TypeModel: TypeModel = {
 	"version": "34"
 }
 
-export function createPasswordAutoAuthenticationReturn(): PasswordAutoAuthenticationReturn {
-	return create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef)
+export function createPasswordAutoAuthenticationReturn(values?: $Shape<$Exact<PasswordAutoAuthenticationReturn>>): PasswordAutoAuthenticationReturn {
+	return Object.assign(create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef), values)
 }

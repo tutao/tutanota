@@ -2,8 +2,8 @@
 
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
-import {generateEventElementId, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
+import {generateEventElementId, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -46,7 +46,11 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 function parseFile(file: DataFile) {
 	const stringData = utf8Uint8ArrayToString(file.data)
-	const tree = parseICalendar(stringData)
+	return parseCalendarStringData(stringData)
+}
+
+export function parseCalendarStringData(value: string) {
+	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree)
 }
 
@@ -71,20 +75,7 @@ export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoo
 }
 
 function exportCalendarEvents(calendarName: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>) {
-	let value = [
-		"BEGIN:VCALENDAR",
-		`PRODID:-//Tutao GmbH//Tutanota ${env.versionNumber}//EN`,
-		"VERSION:2.0",
-		"CALSCALE:GREGORIAN",
-		"METHOD:PUBLISH",
-	]
-
-	for (let {event, alarms} of events) {
-		value.push(...serializeEvent(event, alarms))
-	}
-	value.push(...["END:VCALENDAR"])
-
-	const stringValue = value.join("\r\n")
+	const stringValue = serializeCalendar(env.versionNumber, events)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = calendarName === "" ? "export.ical" : (calendarName + "-export.ical")
@@ -93,12 +84,29 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	return fileController.open(createDataFile(tmpFile, data))
 }
 
+export function serializeCalendar(versionNumber: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>, now: Date = new Date()): string {
+	let value = [
+		"BEGIN:VCALENDAR",
+		`PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`,
+		"VERSION:2.0",
+		"CALSCALE:GREGORIAN",
+		"METHOD:PUBLISH",
+	]
+
+	for (let {event, alarms} of events) {
+		value.push(...serializeEvent(event, alarms, now))
+	}
+	value.push(...["END:VCALENDAR"])
+
+	return value.join("\r\n")
+}
+
 function serializeRepeatRule(repeatRule: ?RepeatRule) {
 	if (repeatRule) {
 		const endType = repeatRule.endType === EndType.Count
 			? ";COUNT=" + neverNull(repeatRule.endValue)
 			: repeatRule.endType === EndType.UntilDate
-				? ";" + formatDateTimeUTC(new Date(parseInt(repeatRule.endValue)))
+				? ";UNTIL=" + formatDateTimeUTC(new Date(parseInt(repeatRule.endValue)))
 				: ""
 		return [
 			`RRULE:FREQ=${tutaToIcalFrequency[repeatRule.frequency]}` +
@@ -113,11 +121,11 @@ function serializeRepeatRule(repeatRule: ?RepeatRule) {
 function serializeTrigger(alarmInterval: AlarmIntervalEnum): string {
 	switch (alarmInterval) {
 		case AlarmInterval.FIVE_MINUTES:
-			return "-P05M"
+			return "-PT05M"
 		case AlarmInterval.TEN_MINUTES:
-			return "-P10M"
-		case AlarmInterval.THIRTY_MINUTES:
 			return "-PT10M"
+		case AlarmInterval.THIRTY_MINUTES:
+			return "-PT30M"
 		case AlarmInterval.ONE_HOUR:
 			return "-PT01H"
 		case AlarmInterval.ONE_DAY:
@@ -143,14 +151,25 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 	]
 }
 
-function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>): Array<string> {
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date()): Array<string> {
 	const repeatRule = event.repeatRule
-	// TODO: differentiate all-day events
+	const isAllDay = isAllDayEvent(event)
+	let dateStart, dateEnd
+	if (isAllDay) {
+		dateStart = `DTSTART:${formatDate(event.startTime)}`
+		dateEnd = `DTEND:${formatDate(event.endTime)}`
+	} else if (repeatRule) {
+		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime)}`
+		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime)}`
+	} else {
+		dateStart = `DTSTART:${formatDateTimeUTC(event.startTime)}`
+		dateEnd = `DTEND:${formatDateTimeUTC(event.endTime)}`
+	}
 	return [
 		"BEGIN:VEVENT",
-		`DTSTART:${formatDateTimeUTC(event.startTime)}`,
-		`DTEND:${formatDateTimeUTC(event.endTime)}`,
-		`DTSTAMP:${formatDateTimeUTC(new Date())}`,
+		dateStart,
+		dateEnd,
+		`DTSTAMP:${formatDateTimeUTC(now)}`,
 		`UID:${event._id[0] + event._id[1]}@tutanota.com`,
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
@@ -161,7 +180,7 @@ function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>): Arr
 }
 
 function escapeSemicolons(value: string): string {
-	return value.replace(/;/g, "\;")
+	return value.replace(/[;\\\n]/g, (ch) => iCalReplacements[ch])
 }
 
 function pad2(number) {
@@ -169,9 +188,13 @@ function pad2(number) {
 }
 
 export function formatDateTime(date: Date): string {
-	return `${date.getFullYear()}${pad2(date.getMonth())}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}00`
+	return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}00`
 }
 
 export function formatDateTimeUTC(date: Date): string {
-	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth())}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}00Z`
+	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}00Z`
+}
+
+export function formatDate(date: Date): string {
+	return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}`
 }
