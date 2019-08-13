@@ -3,13 +3,12 @@ import {downcast, neverNull} from "../api/common/utils/Utils"
 import {DateTime} from "luxon"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
 import {createRepeatRule} from "../api/entities/sys/RepeatRule"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {DAY_IN_MILLIS, incrementDate} from "../api/common/utils/DateUtils"
 import type {Parser} from "../misc/parsing"
 import {combineParsers, mapParser, maybeParse, parseCharacter, parseEither, parseNumber, parseSeparatedBy, StringIterator} from "../misc/parsing"
-import {reverse} from "../api/common/TutanotaConstants"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -29,7 +28,7 @@ type ICalObject = {type: string, properties: Array<Property>, children: Array<IC
 
 function getProp(obj: ICalObject, tag: string): Property {
 	const prop = obj.properties.find(p => p.name === tag)
-	if (prop == null) throw new Error("Missing DTSTART")
+	if (prop == null) throw new Error(`Missing prop ${tag}`)
 	return prop
 }
 
@@ -108,7 +107,10 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 }
 
 export function parseICalendar(stringData: string): ICalObject {
-	const iterator = stringData.split("\r\n").values()
+	const withFoldedLines = stringData
+		.replace(/\r\n\s/g, "")
+		.split("\r\n")
+	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 	if (firstLine.value !== "BEGIN:VCALENDAR") {
 		throw new Error("Not a VCALENDAR")
@@ -116,43 +118,70 @@ export function parseICalendar(stringData: string): ICalObject {
 	return parseIcalObject("VCALENDAR", iterator)
 }
 
-function parseAlarm(alarmObject: ICalObject): ?AlarmInfo {
+function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	const triggerProp = getProp(alarmObject, "TRIGGER")
-	if (typeof triggerProp.value !== "string") throw new Error("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
-	const duration = parseDuration(triggerProp.value)
-	if (!duration.positive) {
-		let trigger: AlarmIntervalEnum
-		if (duration.week) {
+	if (triggerProp.params["ACTION"] !== "DISPLAY") return null
+	const triggerValue = triggerProp.value
+	if (typeof triggerValue !== "string") throw new Error("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
+	let trigger: AlarmIntervalEnum
+	// Absolute time
+	if (triggerValue.endsWith("Z")) {
+		const triggerTime = parseTime(triggerValue)
+		const tillEvent = event.startTime.getTime() - triggerTime.getTime()
+		if (tillEvent >= DAY_IN_MILLIS * 7) {
 			trigger = AlarmInterval.ONE_WEEK
-		} else if (duration.day) {
-			if (duration.day >= 3) {
-				trigger = AlarmInterval.THREE_DAYS
-			} else if (duration.day === 2) {
-				trigger = AlarmInterval.TWO_DAYS
-			} else {
-				trigger = AlarmInterval.ONE_DAY
-			}
-		} else if (duration.hour) {
-			if (duration.hour > 1) {
-				trigger = AlarmInterval.ONE_DAY
-			} else {
-				trigger = AlarmInterval.ONE_HOUR
-			}
-		} else if (duration.minute) {
-			if (duration.minute > 30) {
-				trigger = AlarmInterval.ONE_HOUR
-			} else if (duration.minute > 10) {
-				trigger = AlarmInterval.THIRTY_MINUTES
-			} else if (duration.minute > 5) {
-				trigger = AlarmInterval.TEN_MINUTES
-			} else {
-				trigger = AlarmInterval.FIVE_MINUTES
-			}
-		} else {
+		} else if (tillEvent >= DAY_IN_MILLIS * 3) {
 			trigger = AlarmInterval.THREE_DAYS
+		} else if (tillEvent >= DAY_IN_MILLIS * 2) {
+			trigger = AlarmInterval.TWO_DAYS
+		} else if (tillEvent >= DAY_IN_MILLIS) {
+			trigger = AlarmInterval.ONE_DAY
+		} else if (tillEvent >= 60 * 60 * 1000) {
+			trigger = AlarmInterval.ONE_HOUR
+		} else if (tillEvent >= 30 * 60 * 1000) {
+			trigger = AlarmInterval.THIRTY_MINUTES
+		} else if (tillEvent >= 10 * 60 * 1000) {
+			trigger = AlarmInterval.TEN_MINUTES
+		} else if (tillEvent >= 0) {
+			trigger = AlarmInterval.FIVE_MINUTES
+		} else {
+			return null
 		}
-		return Object.assign(createAlarmInfo(), {trigger})
+	} else {
+		const duration = parseDuration(triggerValue)
+		if (!duration.positive) {
+			if (duration.week) {
+				trigger = AlarmInterval.ONE_WEEK
+			} else if (duration.day) {
+				if (duration.day >= 3) {
+					trigger = AlarmInterval.THREE_DAYS
+				} else if (duration.day === 2) {
+					trigger = AlarmInterval.TWO_DAYS
+				} else {
+					trigger = AlarmInterval.ONE_DAY
+				}
+			} else if (duration.hour) {
+				if (duration.hour > 1) {
+					trigger = AlarmInterval.ONE_DAY
+				} else {
+					trigger = AlarmInterval.ONE_HOUR
+				}
+			} else if (duration.minute) {
+				if (duration.minute > 30) {
+					trigger = AlarmInterval.ONE_HOUR
+				} else if (duration.minute > 10) {
+					trigger = AlarmInterval.THIRTY_MINUTES
+				} else if (duration.minute > 5) {
+					trigger = AlarmInterval.TEN_MINUTES
+				} else {
+					trigger = AlarmInterval.FIVE_MINUTES
+				}
+			} else {
+				trigger = AlarmInterval.THREE_DAYS
+			}
+		}
 	}
+	return Object.assign(createAlarmInfo(), {trigger})
 }
 
 function parseRrule(rruleProp, tzId) {
@@ -168,7 +197,7 @@ function parseRrule(rruleProp, tzId) {
 		: count != null
 			? EndType.Count
 			: EndType.Never
-	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["UNTIL"]) : 1
+	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
 
 	const repeatRule = createRepeatRule()
 	repeatRule.endValue = String(until
@@ -230,10 +259,10 @@ export function parseIntoCalendarEvents(icalObject: ICalObject): Array<{event: C
 			}
 		}
 
-
-		const summaryProp = getProp(eventObj, "SUMMARY")
-		if (typeof summaryProp.value !== "string") throw new Error("SUMAMRY value is not a string")
-		event.summary = summaryProp.value
+		const summaryProp = eventObj.properties.find(p => p.name === "SUMMARY")
+		if (summaryProp && typeof summaryProp.value === "string") {
+			event.summary = summaryProp.value
+		}
 
 		const locationProp = eventObj.properties.find(p => p.name === "LOCATION")
 		if (locationProp) {
@@ -254,7 +283,7 @@ export function parseIntoCalendarEvents(icalObject: ICalObject): Array<{event: C
 		const alarms = []
 		eventObj.children.forEach((alarmChild) => {
 			if (alarmChild.type === "VALARM") {
-				const newAlarm = parseAlarm(alarmChild)
+				const newAlarm = parseAlarm(alarmChild, event)
 				if (newAlarm) alarms.push(newAlarm)
 			}
 		})
