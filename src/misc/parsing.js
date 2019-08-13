@@ -9,47 +9,57 @@ export const combineParsers: (<A, B>(Parser<A>, Parser<B>) => Parser<[A, B]>)
 	& ((<A, B, C, D, E>(Parser<A>, Parser<B>, Parser<C>, Parser<D>, Parser<E>) => Parser<[A, B, C, D, E]>))
 	= downcast((...parsers) => (iterator) => parsers.map(p => p(iterator)))
 
-export const parseCharacter = (character: string) => (iterator: StringIterator) => {
-	let value = iterator.peek()
-	if (value === character) {
-		iterator.next()
-		return value
-	}
-	throw new Error("expected character " + character)
-}
 
-const parseZeroOrMore = <T>(anotherParser: Parser<T>): Parser<Array<T>> => (iterator: StringIterator) => {
-	const result = []
-	try {
-		let parseResult = anotherParser(iterator)
-		while (true) {
-			result.push(parseResult)
-			parseResult = anotherParser(iterator)
+export function makeCharacterParser(character: string): Parser<string> {
+	return (iterator: StringIterator) => {
+		let value = iterator.peek()
+		if (value === character) {
+			iterator.next()
+			return value
 		}
-	} catch (e) {
-	}
-	return result
-}
-
-export const mapParser = <T, R>(parser: Parser<T>, mapper: (T) => R): Parser<R> => (iterator: StringIterator) => mapper(parser(iterator))
-
-const parseOneOrMore = <T>(parser: Parser<T>): Parser<Array<T>> => mapParser(parseZeroOrMore(parser), (value: Array<T>) => {
-	if (value.length === 0) {
-		throw new Error("Expected at least one value, got none")
-	}
-	return value
-})
-
-
-export const maybeParse = <T>(parser: Parser<T>): Parser<?T> => (iterator) => {
-	try {
-		return parser(iterator)
-	} catch (e) {
-		return null
+		throw new Error("expected character " + character)
 	}
 }
 
-export const parseSeparatedBy = <T, S>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> => {
+function makeZeroOrMoreParser<T>(anotherParser: Parser<T>): Parser<Array<T>> {
+	return (iterator: StringIterator) => {
+		const result = []
+		try {
+			let parseResult = anotherParser(iterator)
+			while (true) {
+				result.push(parseResult)
+				parseResult = anotherParser(iterator)
+			}
+		} catch (e) {
+		}
+		return result
+	}
+}
+
+export function mapParser<T, R>(parser: Parser<T>, mapper: (T) => R): Parser<R> {
+	return (iterator: StringIterator) => mapper(parser(iterator))
+}
+
+function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
+	return mapParser(makeZeroOrMoreParser(parser), (value: Array<T>) => {
+		if (value.length === 0) {
+			throw new Error("Expected at least one value, got none")
+		}
+		return value
+	})
+}
+
+export function maybeParse<T>(parser: Parser<T>): Parser<?T> {
+	return (iterator) => {
+		try {
+			return parser(iterator)
+		} catch (e) {
+			return null
+		}
+	}
+}
+
+export function makeSeparatedByParser<S, T>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> {
 	return (iterator) => {
 		const result = []
 		result.push(valueParser(iterator))
@@ -65,29 +75,30 @@ export const parseSeparatedBy = <T, S>(separatorParser: Parser<S>, valueParser: 
 	}
 }
 
-export const parseEither: <A, B>(Parser<A>, Parser<B>) => Parser<A | B> = (parserA, parserB) => (iterator) => {
-	const iteratorPosition = iterator.position
-	try {
-		return parserA(iterator)
-	} catch (e) {
-		iterator.position = iteratorPosition
-		return parserB(iterator)
+export function makeEitherParser<A, B>(parserA: Parser<A>, parserB: Parser<B>): Parser<A | B> {
+	return (iterator) => {
+		const iteratorPosition = iterator.position
+		try {
+			return parserA(iterator)
+		} catch (e) {
+			iterator.position = iteratorPosition
+			return parserB(iterator)
+		}
 	}
 }
 
-const parseOneOf = <T>(allowed: Array<Parser<T>>) => allowed.reduce(parseEither, () => {
-	throw new Error("None of the allowed parsers matched")
-})
-
-const parseOneOfCharacters = (allowed: Array<string>): Parser<string> => (iterator: StringIterator) => {
-	const value = iterator.peek()
-	if (allowed.includes(value)) {
-		iterator.next()
-		return value
+function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
+	return (iterator: StringIterator) => {
+		const value = iterator.peek()
+		if (allowed.includes(value)) {
+			iterator.next()
+			return value
+		}
+		throw new Error(`Expected one of ${String(allowed)}, got ${value}`)
 	}
-	throw new Error(`Expected one of ${String(allowed)}, got ${value}`)
 }
-export const parseNumber: Parser<number> = mapParser(parseOneOrMore(parseOneOfCharacters(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
+
+export const numberParser: Parser<number> = mapParser(makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
 	(values) => parseInt(values.join(""), 10))
 
 export class StringIterator {

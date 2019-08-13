@@ -1,16 +1,16 @@
 //@flow
 
 import o from "ospec/ospec.js"
-import {parseDuration, parseProperty, parsePropertySequence} from "../../../src/calendar/CalendarParser"
+import {parseDuration, parseProperty, propertySequenceParser} from "../../../src/calendar/CalendarParser"
 import {StringIterator} from "../../../src/misc/parsing"
 
 o.spec("CalendarParser", function () {
-	o.spec("parsePropertySequence", function () {
+	o.spec("propertySequenceParser", function () {
 		o("simple value", function () {
-			o(parsePropertySequence(new StringIterator("DTSTART:20190531T083000Z"))).deepEquals(["DTSTART", null, ":", "20190531T083000Z"])
+			o(propertySequenceParser(new StringIterator("DTSTART:20190531T083000Z"))).deepEquals(["DTSTART", null, ":", "20190531T083000Z"])
 		})
 		o("simple value, property parameter", function () {
-			o(parsePropertySequence(new StringIterator("DTSTART;VALUE=DATE:20190607")))
+			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE:20190607")))
 				.deepEquals([
 					"DTSTART",
 					[";", [["VALUE", "=", "DATE"]]],
@@ -19,7 +19,7 @@ o.spec("CalendarParser", function () {
 				])
 		})
 		o("simple value, multiple property parameters", function () {
-			o(parsePropertySequence(new StringIterator("DTSTART;VALUE=DATE;ANOTHER=VALUE:20190607"))).deepEquals([
+			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE;ANOTHER=VALUE:20190607"))).deepEquals([
 				"DTSTART",
 				[";", [["VALUE", "=", "DATE"], ["ANOTHER", "=", "VALUE"]]],
 				":",
@@ -28,7 +28,7 @@ o.spec("CalendarParser", function () {
 		})
 
 		o("key-value value", function () {
-			o(parsePropertySequence(new StringIterator("RRULE:FREQ=WEEKLY;BYDAY=SA"))).deepEquals([
+			o(propertySequenceParser(new StringIterator("RRULE:FREQ=WEEKLY;BYDAY=SA"))).deepEquals([
 				"RRULE",
 				null,
 				":",

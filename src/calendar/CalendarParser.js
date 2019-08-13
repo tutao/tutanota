@@ -8,7 +8,16 @@ import {createRepeatRule} from "../api/entities/sys/RepeatRule"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {DAY_IN_MILLIS, incrementDate} from "../api/common/utils/DateUtils"
 import type {Parser} from "../misc/parsing"
-import {combineParsers, mapParser, maybeParse, parseCharacter, parseEither, parseNumber, parseSeparatedBy, StringIterator} from "../misc/parsing"
+import {
+	combineParsers,
+	makeCharacterParser,
+	makeEitherParser,
+	makeSeparatedByParser,
+	mapParser,
+	maybeParse,
+	numberParser,
+	StringIterator
+} from "../misc/parsing"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -32,24 +41,43 @@ function getProp(obj: ICalObject, tag: string): Property {
 	return prop
 }
 
-const parsePropertyKeyValue: Parser<[string, string, string]> =
-	combineParsers(parsePropertyName, parseCharacter("="), parseStringValue)
+const parameterStringValueParser: Parser<string> = (iterator) => {
+	let value = ""
+	while (iterator.peek() && /[:;,]/.test(iterator.peek()) === false) {
+		value += neverNull(iterator.next().value)
+	}
+	return value
+}
+
+const propertyParametersKeyValueParser: Parser<[string, string, string]> =
+	combineParsers(parsePropertyName, makeCharacterParser("="), parameterStringValueParser)
 
 const parsePropertyParameters = combineParsers(
-	parseCharacter(";"),
-	parseSeparatedBy(
-		parseCharacter(";"),
-		parsePropertyKeyValue,
+	makeCharacterParser(";"),
+	makeSeparatedByParser(
+		makeCharacterParser(";"),
+		propertyParametersKeyValueParser,
 	),
 )
 
-const parseValuesSeparatedBySemicolon: Parser<Array<[string, string, string]>> =
-	parseSeparatedBy(parseCharacter(";"), parsePropertyKeyValue)
 
-const parsePropertyValue: Parser<Array<[string, string, string]> | string> =
-	parseEither(parseValuesSeparatedBySemicolon, parseStringValue)
+const propertyStringValueParser: Parser<string> = (iterator) => {
+	let value = ""
+	while (iterator.peek() && (/[;]/.test(iterator.peek()) === false || value[value.length - 1] === "\\")) {
+		value += neverNull(iterator.next().value)
+	}
+	return value
+}
+const propertyKeyValueParser: Parser<[string, string, string]> =
+	combineParsers(parsePropertyName, makeCharacterParser("="), propertyStringValueParser)
 
-export const parsePropertySequence: Parser<[
+const valuesSeparatedBySemicolonParser: Parser<Array<[string, string, string]>> =
+	makeSeparatedByParser(makeCharacterParser(";"), propertyKeyValueParser)
+
+const propertyValueParser: Parser<Array<[string, string, string]> | string> =
+	makeEitherParser(valuesSeparatedBySemicolonParser, propertyStringValueParser)
+
+export const propertySequenceParser: Parser<[
 	string,
 	?[string, Array<[string, string, string]>],
 	string,
@@ -58,12 +86,12 @@ export const parsePropertySequence: Parser<[
 	combineParsers(
 		parsePropertyName,
 		maybeParse(parsePropertyParameters),
-		parseCharacter(":"),
-		parsePropertyValue
+		makeCharacterParser(":"),
+		propertyValueParser
 	)
 
 export function parseProperty(data: string): Property {
-	const sequence = parsePropertySequence(new StringIterator(data))
+	const sequence = propertySequenceParser(new StringIterator(data))
 	const name = sequence[0]
 	const params = {}
 	if (sequence[1]) {
@@ -92,7 +120,7 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 	while (!iteration.done && iteration.value) {
 		const property = parseProperty(iteration.value)
 		if (property.name === "END" && property.value === tag) {
-			break
+			return {type: tag, properties, children}
 		}
 		if (property.name === "BEGIN") {
 			if (typeof property.value !== "string") throw new Error("BEGIN with array value")
@@ -100,16 +128,15 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 		} else {
 			properties.push(property)
 		}
-
 		iteration = iterator.next()
 	}
-	return {type: tag, properties, children}
+	throw new Error("no end for tag " + tag)
 }
 
 export function parseICalendar(stringData: string): ICalObject {
 	const withFoldedLines = stringData
-		.replace(/\r\n\s/g, "")
-		.split("\r\n")
+		.replace(/\r?\n\s/g, "")
+		.split(/\r?\n/)
 	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 	if (firstLine.value !== "BEGIN:VCALENDAR") {
@@ -120,7 +147,8 @@ export function parseICalendar(stringData: string): ICalObject {
 
 function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	const triggerProp = getProp(alarmObject, "TRIGGER")
-	if (triggerProp.params["ACTION"] !== "DISPLAY") return null
+	const actionProp = getProp(alarmObject, "ACTION")
+	if (actionProp.value !== "DISPLAY") return null
 	const triggerValue = triggerProp.value
 	if (typeof triggerValue !== "string") throw new Error("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
 	let trigger: AlarmIntervalEnum
@@ -184,7 +212,7 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	return Object.assign(createAlarmInfo(), {trigger})
 }
 
-function parseRrule(rruleProp, tzId) {
+function parseRrule(rruleProp, tzId): RepeatRule {
 	const rruleValue = rruleProp.value
 	if (Array.isArray(rruleValue) || typeof rruleValue === "string") {
 		throw new Error("RRULE value is not an object")
@@ -209,11 +237,10 @@ function parseRrule(rruleProp, tzId) {
 	if (typeof tzId === "string") {
 		repeatRule.timeZone = tzId
 	}
-
 	return repeatRule
 }
 
-function parseEventDuration(durationProp, event) {
+function parseEventDuration(durationProp, event): void {
 	if (typeof durationProp.value !== "string") throw new Error("DURATION value is not a string")
 	const duration = parseDuration(durationProp.value)
 	let durationInMillis = 0
@@ -232,7 +259,7 @@ function parseEventDuration(durationProp, event) {
 	event.endTime = new Date(event.startTime.getTime() + durationInMillis)
 }
 
-export function parseIntoCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
+export function parseCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
 	return eventObjects.map((eventObj) => {
@@ -326,10 +353,7 @@ export function parseTime(value: string, zone: ?string): Date {
 		return DateTime.fromObject({year, month, day, hour, minute, zone}).toJSDate()
 	} else if (/[0-9]{8}/.test(value)) {
 		const {year, month, day} = parseDateString(value)
-		const date = new Date()
-		date.setUTCFullYear(year, month, day)
-		date.setUTCHours(0, 0, 0, 0)
-		return date
+		return DateTime.fromObject({year, month, day, hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"}).toJSDate()
 	} else {
 		throw new Error("Failed to parse time: " + value)
 	}
@@ -347,21 +371,13 @@ function parsePropertyName(iterator: StringIterator): string {
 	return text
 }
 
-function parseStringValue(iterator: StringIterator): string {
-	let value = ""
-	while (iterator.peek() && /[:;,]/.test(iterator.peek()) === false) {
-		value += neverNull(iterator.next().value)
-	}
-	return value
-}
-
 
 const secondDurationParser: Parser<[number, string]> =
-	combineParsers(parseNumber, parseCharacter("S"))
+	combineParsers(numberParser, makeCharacterParser("S"))
 const minuteDurationParser: Parser<[number, string, ?[number, string]]> =
-	combineParsers(parseNumber, parseCharacter("M"), maybeParse(secondDurationParser))
+	combineParsers(numberParser, makeCharacterParser("M"), maybeParse(secondDurationParser))
 const hourDurationParser: Parser<[number, string, ?[number, string, ?[number, string]]]> =
-	combineParsers(parseNumber, parseCharacter("H"), maybeParse(minuteDurationParser))
+	combineParsers(numberParser, makeCharacterParser("H"), maybeParse(minuteDurationParser))
 
 type TimeDuration = {
 	type: "time",
@@ -378,11 +394,11 @@ type WeekDuration = {
 	type: "week",
 	week: number,
 }
-const parseDurationTime = mapParser(combineParsers(
-	parseCharacter("T"),
-	parseEither(
+const durationTimeParser = mapParser(combineParsers(
+	makeCharacterParser("T"),
+	makeEitherParser(
 		hourDurationParser,
-		parseEither(
+		makeEitherParser(
 			minuteDurationParser,
 			secondDurationParser
 		)
@@ -407,27 +423,27 @@ const parseDurationTime = mapParser(combineParsers(
 	}
 	return {type: "time", hour, minute, second}
 })
-const parseDurationDay = combineParsers(parseNumber, parseCharacter("D"))
-const parseDurationWeek: Parser<WeekDuration> = mapParser(combineParsers(parseNumber, parseCharacter("W")), (parsed) => {
+const durationDayParser = combineParsers(numberParser, makeCharacterParser("D"))
+const durationWeekParser: Parser<WeekDuration> = mapParser(combineParsers(numberParser, makeCharacterParser("W")), (parsed) => {
 	return {type: "week", week: parsed[0]}
 })
-const parseDurationDate: Parser<DateDuration> = mapParser(combineParsers(parseDurationDay, maybeParse(parseDurationTime)), (parsed) => {
+const durationDateParser: Parser<DateDuration> = mapParser(combineParsers(durationDayParser, maybeParse(durationTimeParser)), (parsed) => {
 	return {type: "date", day: parsed[0][0], time: parsed[1]}
 })
 
 const durationParser = mapParser(combineParsers(
 	maybeParse(
-		parseEither(
-			parseCharacter("+"),
-			parseCharacter("-")
+		makeEitherParser(
+			makeCharacterParser("+"),
+			makeCharacterParser("-")
 		)
 	),
-	parseCharacter("P"),
-	parseEither(
-		parseDurationDate,
-		parseEither(
-			parseDurationTime,
-			parseDurationWeek
+	makeCharacterParser("P"),
+	makeEitherParser(
+		durationDateParser,
+		makeEitherParser(
+			durationTimeParser,
+			durationWeekParser
 		)
 	)
 ), ([sign, p, durationValue]) => {
@@ -451,7 +467,7 @@ const durationParser = mapParser(combineParsers(
 	return {positive, day, hour, minute, week}
 })
 
-export const parseDuration: (string) => Duration = (value) => {
+export function parseDuration(value: string): Duration {
 	const iterator = new StringIterator(value)
 	const duration = durationParser(iterator)
 	if (iterator.peek()) {

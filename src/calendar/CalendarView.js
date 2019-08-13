@@ -344,7 +344,7 @@ export class CalendarView implements CurrentView {
 								icon: () => Icons.Archive,
 								click: () => {
 									const alarmInfoList = logins.getUserController().user.alarmInfoList
-									alarmInfoList && exportCalendar(groupRoot, alarmInfoList.alarms)
+									alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
 								},
 								type: ButtonType.Dropdown,
 							},

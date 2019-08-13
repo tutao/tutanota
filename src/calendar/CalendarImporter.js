@@ -2,12 +2,12 @@
 
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {parseICalendar, parseIntoCalendarEvents, tutaToIcalFrequency} from "./CalendarParser"
+import {parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
 import {generateEventElementId, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {load, loadAll} from "../api/main/Entity"
+import {loadAll, loadMultiple} from "../api/main/Entity"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
@@ -15,22 +15,22 @@ import {pad} from "../api/common/utils/StringUtils"
 import type {AlarmIntervalEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType} from "../api/common/TutanotaConstants"
 import {downcast, neverNull} from "../api/common/utils/Utils"
-import {isSameId} from "../api/common/EntityFunctions"
+import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"]).then((dataFiles) => {
-		dataFiles.map(parseFile).map((events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
-			Promise.each(events, ({event, alarms}) => {
+		return Promise.each(dataFiles.map(parseFile), (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
+			return Promise.each(events, ({event, alarms}) => {
 				const elementId = generateEventElementId(event.startTime.getTime())
-				if (isLongEvent(event)) {
+				const repeatRule = event.repeatRule
+				if (isLongEvent(event) || repeatRule) {
 					event._id = [calendarGroupRoot.longEvents, elementId]
 				} else {
 					event._id = [calendarGroupRoot.shortEvents, elementId]
 				}
 				event._ownerGroup = calendarGroupRoot._id
 
-				const repeatRule = event.repeatRule
 				if (repeatRule && repeatRule.timeZone === "") {
 					repeatRule.timeZone = getTimeZone()
 				}
@@ -47,10 +47,10 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 function parseFile(file: DataFile) {
 	const stringData = utf8Uint8ArrayToString(file.data)
 	const tree = parseICalendar(stringData)
-	return parseIntoCalendarEvents(tree)
+	return parseCalendarEvents(tree)
 }
 
-export function exportCalendar(groupRoot: CalendarGroupRoot, userAlarmInfos: Id) {
+export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoot, userAlarmInfos: Id) {
 	showProgressDialog("pleaseWait_msg", loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 		.then((longEvents) =>
 			loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
@@ -59,18 +59,18 @@ export function exportCalendar(groupRoot: CalendarGroupRoot, userAlarmInfos: Id)
 		.then(({longEvents, shortEvents}) => {
 			const allEvents = shortEvents.concat(longEvents)
 			return Promise.map(allEvents, event => {
-				const thisUserAlarm = event.alarmInfos.find(info => isSameId(userAlarmInfos, info[0]))
-				if (thisUserAlarm) {
-					return load(UserAlarmInfoTypeRef, thisUserAlarm).then(alarm => ({event, alarm}))
+				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
+				if (thisUserAlarms.length > 0) {
+					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart)).then(alarms => ({event, alarms}))
 				} else {
-					return {event, alarm: null}
+					return {event, alarms: []}
 				}
 			})
 		})
-		.then(exportCalendarEvents)
+		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms))
 }
 
-function exportCalendarEvents(events: Array<{event: CalendarEvent, alarm: ?UserAlarmInfo}>) {
+function exportCalendarEvents(calendarName: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>) {
 	let value = [
 		"BEGIN:VCALENDAR",
 		`PRODID:-//Tutao GmbH//Tutanota ${env.versionNumber}//EN`,
@@ -79,15 +79,15 @@ function exportCalendarEvents(events: Array<{event: CalendarEvent, alarm: ?UserA
 		"METHOD:PUBLISH",
 	]
 
-	for (let {event, alarm} of events) {
-		value.push(...serializeEvent(event))
+	for (let {event, alarms} of events) {
+		value.push(...serializeEvent(event, alarms))
 	}
 	value.push(...["END:VCALENDAR"])
 
 	const stringValue = value.join("\r\n")
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
-	tmpFile.name = "export.ical"
+	tmpFile.name = calendarName === "" ? "export.ical" : (calendarName + "-export.ical")
 	tmpFile.mimeType = "text/calendar"
 	tmpFile.size = String(data.byteLength)
 	return fileController.open(createDataFile(tmpFile, data))
@@ -133,33 +133,35 @@ function serializeTrigger(alarmInterval: AlarmIntervalEnum): string {
 	}
 }
 
-function serializeAlarm(event: CalendarEvent, alarm: ?UserAlarmInfo) {
-	if (alarm) {
-		return [
-			"BEGIN:VALARM",
-			"ACTION:DISPLAY",
-			"DESCRIPTION:This is an event reminder",
-			`TRIGGER:${serializeTrigger(downcast(alarm.alarmInfo.trigger))}`,
-			"END:VALARM"
-		]
-	} else {
-		return []
-	}
+function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<string> {
+	return [
+		"BEGIN:VALARM",
+		"ACTION:DISPLAY",
+		"DESCRIPTION:This is an event reminder",
+		`TRIGGER:${serializeTrigger(downcast(alarm.alarmInfo.trigger))}`,
+		"END:VALARM"
+	]
 }
 
-function serializeEvent(event: CalendarEvent, alarm: ?UserAlarmInfo): Array<string> {
+function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>): Array<string> {
 	const repeatRule = event.repeatRule
 	// TODO: differentiate all-day events
 	return [
 		"BEGIN:VEVENT",
 		`DTSTART:${formatDateTimeUTC(event.startTime)}`,
 		`DTEND:${formatDateTimeUTC(event.endTime)}`,
-		`DTSTAMP:${formatDateTimeUTC(new Date())}Z`,
+		`DTSTAMP:${formatDateTimeUTC(new Date())}`,
 		`UID:${event._id[0] + event._id[1]}@tutanota.com`,
-		`SUMMARY:${event.summary}`,
-	].concat(serializeRepeatRule(repeatRule))
-	 .concat(serializeAlarm(event, alarm))
-	 .concat("END:VEVENT")
+		`SUMMARY:${escapeSemicolons(event.summary)}`,
+	]
+		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
+		.concat(serializeRepeatRule(repeatRule))
+		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
+		.concat("END:VEVENT")
+}
+
+function escapeSemicolons(value: string): string {
+	return value.replace(/;/g, "\;")
 }
 
 function pad2(number) {
