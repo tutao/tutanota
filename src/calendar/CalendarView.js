@@ -335,13 +335,13 @@ export class CalendarView implements CurrentView {
 							},
 							{
 								label: "import_action",
-								icon: () => Icons.Archive,
+								icon: () => Icons.Import,
 								click: () => showCalendarImportDialog(groupRoot),
 								type: ButtonType.Dropdown,
 							},
 							{
 								label: "export_action",
-								icon: () => Icons.Archive,
+								icon: () => Icons.Export,
 								click: () => {
 									const alarmInfoList = logins.getUserController().user.alarmInfoList
 									alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)

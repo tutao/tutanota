@@ -18,7 +18,6 @@ import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
 import {NotFoundError} from "../api/common/error/RestError"
 import {noOp} from "../api/common/utils/Utils"
-import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 
 assertMainOrNode()
 
@@ -124,7 +123,7 @@ export class MultiMailViewer {
 			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => this._markAll(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => this._markAll(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
-				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => this._exportAll(mails)), () => Icons.Download).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => this._exportAll(mails)), () => Icons.Export).setType(ButtonType.Dropdown))
 			}
 			return moreButtons
 		}))

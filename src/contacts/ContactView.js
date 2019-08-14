@@ -66,7 +66,7 @@ export class ContactView implements CurrentView {
 				style: {
 					paddingLeft: getSafeAreaInsetLeft()
 				}
-			},[
+			}, [
 				m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
 				m(expander.panel)
 			])
@@ -207,7 +207,7 @@ export class ContactView implements CurrentView {
 		} else {
 			return [
 				new Button('importVCard_action', () => this._importAsVCard(), () => Icons.ContactImport).setType(ButtonType.Dropdown),
-				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown)
+				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Export).setType(ButtonType.Dropdown)
 			]
 		}
 	}

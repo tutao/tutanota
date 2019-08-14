@@ -114,7 +114,7 @@ export class MultiSearchViewer {
 				}
 			}
 			exportContacts(selectedContacts)
-		}, () => Icons.Download))
+		}, () => Icons.Export))
 		return actionBar
 	}
 
@@ -183,7 +183,7 @@ export class MultiSearchViewer {
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
 					this.getSelectedMails((mails) => this._exportAll(mails).then(this._searchListView.selectNone())),
-					() => Icons.Download)
+					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}
 			return moreButtons
