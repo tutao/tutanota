@@ -29,7 +29,8 @@ export const _TypeModel: TypeModel = {
 		"endTime": {"name": "endTime", "id": 943, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
 		"location": {"name": "location", "id": 944, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"startTime": {"name": "startTime", "id": 942, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
-		"summary": {"name": "summary", "id": 940, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
+		"summary": {"name": "summary", "id": 940, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"uid": {"name": "uid", "id": 988, "since": 35, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"repeatRule": {
@@ -53,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "35"
 }
 
 export function createCalendarEvent(values?: $Shape<$Exact<CalendarEvent>>): CalendarEvent {

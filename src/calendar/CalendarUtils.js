@@ -27,6 +27,10 @@ export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): bool
 	return getEventEnd(event).getTime() > getStartOfNextDay(currentDate).getTime()
 }
 
+export function generateUid(event: CalendarEvent, timestamp: number): string {
+	return `${neverNull(event._ownerGroup)}${timestamp}@tutanota.com`
+}
+
 /**
  * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30
  */

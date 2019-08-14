@@ -1007,6 +1007,10 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"color_label": "Color"
+		"color_label": "Color",
+		"importReadFileError_msg": "Can not read file {filename}.",
+		"importCalendar_label": "Importing calendar",
+		"addCalendar_action": "Add calendar",
+		"import_action": "Import",
 	}
 }

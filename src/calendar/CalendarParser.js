@@ -16,6 +16,7 @@ import {
 	mapParser,
 	maybeParse,
 	numberParser,
+	ParserError,
 	StringIterator
 } from "../misc/parsing"
 
@@ -37,8 +38,15 @@ type ICalObject = {type: string, properties: Array<Property>, children: Array<IC
 
 function getProp(obj: ICalObject, tag: string): Property {
 	const prop = obj.properties.find(p => p.name === tag)
-	if (prop == null) throw new Error(`Missing prop ${tag}`)
+	if (prop == null) throw new ParserError(`Missing prop ${tag}`)
 	return prop
+}
+
+
+function getPropStringValue(obj: ICalObject, tag: string): string {
+	const prop = getProp(obj, tag)
+	if (typeof prop.value !== "string") throw new ParserError(`value of ${tag} is not of type string`)
+	return prop.value
 }
 
 // Left side of the semicolon
@@ -142,14 +150,14 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 			return {type: tag, properties, children}
 		}
 		if (property.name === "BEGIN") {
-			if (typeof property.value !== "string") throw new Error("BEGIN with array value")
+			if (typeof property.value !== "string") throw new ParserError("BEGIN with array value")
 			children.push(parseIcalObject(property.value, iterator))
 		} else {
 			properties.push(property)
 		}
 		iteration = iterator.next()
 	}
-	throw new Error("no end for tag " + tag)
+	throw new ParserError("no end for tag " + tag)
 }
 
 export function parseICalendar(stringData: string): ICalObject {
@@ -159,7 +167,7 @@ export function parseICalendar(stringData: string): ICalObject {
 	const iterator = withFoldedLines.values()
 	const firstLine = iterator.next()
 	if (firstLine.value !== "BEGIN:VCALENDAR") {
-		throw new Error("Not a VCALENDAR: " + String(firstLine.value))
+		throw new ParserError("Not a VCALENDAR: " + String(firstLine.value))
 	}
 	return parseIcalObject("VCALENDAR", iterator)
 }
@@ -169,7 +177,7 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	const actionProp = getProp(alarmObject, "ACTION")
 	if (actionProp.value !== "DISPLAY") return null
 	const triggerValue = triggerProp.value
-	if (typeof triggerValue !== "string") throw new Error("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
+	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
 	let trigger: AlarmIntervalEnum
 	// Absolute time
 	if (triggerValue.endsWith("Z")) {
@@ -234,7 +242,7 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 function parseRrule(rruleProp, tzId: ?string): RepeatRule {
 	const rruleValue = rruleProp.value
 	if (Array.isArray(rruleValue) || typeof rruleValue === "string") {
-		throw new Error("RRULE value is not an object")
+		throw new ParserError("RRULE value is not an object")
 	}
 	const frequency = parseFrequency(rruleValue["FREQ"])
 	const until = rruleValue["UNTIL"] ? parseTime(rruleValue["UNTIL"], tzId) : null
@@ -258,7 +266,7 @@ function parseRrule(rruleProp, tzId: ?string): RepeatRule {
 }
 
 function parseEventDuration(durationProp, event): void {
-	if (typeof durationProp.value !== "string") throw new Error("DURATION value is not a string")
+	if (typeof durationProp.value !== "string") throw new ParserError("DURATION value is not a string")
 	const duration = parseDuration(durationProp.value)
 	let durationInMillis = 0
 	if (duration.week) {
@@ -282,13 +290,13 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 	return eventObjects.map((eventObj) => {
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
-		if (typeof startProp.value !== "string") throw new Error("DTSTART value is not a string")
+		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
 		const tzId = typeof startProp.params["TZID"] === "string" ? startProp.params["TZID"] : null
 		event.startTime = parseTime(startProp.value, tzId)
 
 		const endProp = eventObj.properties.find(p => p.name === "DTEND")
 		if (endProp) {
-			if (typeof endProp.value !== "string") throw new Error("DTEND value is not a string")
+			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
 			const endTzId = startProp.params["TZID"]
 			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null)
 		} else {
@@ -310,7 +318,7 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 
 		const locationProp = eventObj.properties.find(p => p.name === "LOCATION")
 		if (locationProp) {
-			if (typeof locationProp.value !== "string") throw new Error("LOCATION value is not a string")
+			if (typeof locationProp.value !== "string") throw new ParserError("LOCATION value is not a string")
 			event.location = locationProp.value
 		}
 
@@ -321,7 +329,7 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 
 		const descriptionProp = eventObj.properties.find(p => p.name === "DESCRIPTION")
 		if (descriptionProp) {
-			if (typeof descriptionProp.value !== "string") throw new Error("DESCRIPTION value is not a string")
+			if (typeof descriptionProp.value !== "string") throw new ParserError("DESCRIPTION value is not a string")
 			event.description = descriptionProp.value
 		}
 		const alarms = []
@@ -331,7 +339,7 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 				if (newAlarm) alarms.push(newAlarm)
 			}
 		})
-
+		event.uid = getPropStringValue(eventObj, "UID")
 		return {event, alarms}
 	})
 }
@@ -362,18 +370,25 @@ export function parseTime(value: string, zone: ?string): Date {
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))
 		const minute = parseInt(value.slice(11, 13))
-		return DateTime.fromObject({year, month, day, hour, minute, zone: "UTC"}).toJSDate()
+		return toValidJSDate(DateTime.fromObject({year, month, day, hour, minute, zone: "UTC"}), value, zone)
 	} else if (/[0-9]{8}T[0-9]{6}/.test(value)) {
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))
 		const minute = parseInt(value.slice(11, 13))
-		return DateTime.fromObject({year, month, day, hour, minute, zone}).toJSDate()
+		return toValidJSDate(DateTime.fromObject({year, month, day, hour, minute, zone}), value, zone)
 	} else if (/[0-9]{8}/.test(value)) {
 		const {year, month, day} = parseDateString(value)
-		return DateTime.fromObject({year, month, day, hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"}).toJSDate()
+		return toValidJSDate(DateTime.fromObject({year, month, day, hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"}), value, zone)
 	} else {
-		throw new Error("Failed to parse time: " + value)
+		throw new ParserError("Failed to parse time: " + value)
 	}
+}
+
+function toValidJSDate(dateTime: DateTime, value: string, zone: ?string): Date {
+	if (!dateTime.isValid) {
+		throw new ParserError(`Date value ${value} is invalid in zone ${String(zone)}`)
+	}
+	return dateTime.toJSDate()
 }
 
 
@@ -383,7 +398,7 @@ function parsePropertyName(iterator: StringIterator): string {
 		text += neverNull(iterator.next().value)
 	}
 	if (text === "") {
-		throw new Error("could not parse property name: " + iterator.peek())
+		throw new ParserError("could not parse property name: " + iterator.peek())
 	}
 	return text
 }
@@ -488,7 +503,7 @@ export function parseDuration(value: string): Duration {
 	const iterator = new StringIterator(value)
 	const duration = durationParser(iterator)
 	if (iterator.peek()) {
-		throw new Error("Could not parse duration completely")
+		throw new ParserError("Could not parse duration completely")
 	}
 	return duration
 }

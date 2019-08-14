@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "35"
 }
 
 export function createContactAddress(values?: $Shape<$Exact<ContactAddress>>): ContactAddress {

@@ -1,8 +1,8 @@
 //@flow
 
 import o from "ospec/ospec.js"
-import {parseDuration, parseProperty, propertySequenceParser} from "../../../src/calendar/CalendarParser"
-import {StringIterator} from "../../../src/misc/parsing"
+import {parseDuration, parseProperty, parseTime, propertySequenceParser} from "../../../src/calendar/CalendarParser"
+import {ParserError, StringIterator} from "../../../src/misc/parsing"
 
 o.spec("CalendarParser", function () {
 	o.spec("propertySequenceParser", function () {
@@ -64,5 +64,10 @@ o.spec("CalendarParser", function () {
 		o(parseDuration("P8W")).deepEquals({positive: true, day: undefined, hour: undefined, minute: undefined, week: 8})
 
 		o(() => parseDuration("P8W15M")).throws(Error)
+	})
+
+	o("parseTime", function () {
+		o(parseTime("20180115T214000Z", "Europe/Berlin")).deepEquals(new Date(Date.UTC(2018, 0, 15, 21, 40, 0)))
+		o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
 	})
 })

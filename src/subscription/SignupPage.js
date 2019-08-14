@@ -23,7 +23,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showWorkerProgressDialog} from "../gui/base/ProgressDialog"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
@@ -169,7 +169,7 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
 	_signup(mailAddress: string, pw: string, registrationCode: string, campaign: ?string): Promise<void> {
-		return showProgressDialog("createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
+		return showWorkerProgressDialog("createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
 			return this._runCaptcha(mailAddress, campaign).then(regDataId => {
 				if (regDataId) {
 					return worker.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)
@@ -184,7 +184,7 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 					             })
 				}
 			})
-		}), true)
+		}))
 	}
 
 	/**

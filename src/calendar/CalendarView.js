@@ -132,7 +132,7 @@ export class CalendarView implements CurrentView {
 							m("small.b.align-self-center.ml-negative-xs",
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
-								label: () => "add calendar",
+								label: "addCalendar_action",
 								click: () => this._onPressedAddCalendar(),
 								icon: () => Icons.Add
 							})
@@ -334,13 +334,13 @@ export class CalendarView implements CurrentView {
 								type: ButtonType.Dropdown,
 							},
 							{
-								label: () => "Import",
+								label: "import_action",
 								icon: () => Icons.Archive,
 								click: () => showCalendarImportDialog(groupRoot),
 								type: ButtonType.Dropdown,
 							},
 							{
-								label: () => "Export",
+								label: "export_action",
 								icon: () => Icons.Archive,
 								click: () => {
 									const alarmInfoList = logins.getUserController().user.alarmInfoList
@@ -548,6 +548,11 @@ export class CalendarView implements CurrentView {
 			const eventListId = getListId(event);
 			const eventMonth = getMonth(getEventStart(event))
 			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
+				// If the month is not loaded, we don't want to put it into events.
+				// We will put it there when we load the month
+				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
+					return
+				}
 				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {

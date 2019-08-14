@@ -1014,6 +1014,7 @@ type CalendarEvent = {
 	location: string;
 	startTime: Date;
 	summary: string;
+	uid: ?string;
 
 	repeatRule: ?CalendarRepeatRule;
 	alarmInfos: IdTuple[];

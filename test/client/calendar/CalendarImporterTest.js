@@ -16,17 +16,19 @@ o.spec("CalendarImporterTest", function () {
 		o("simple one", function () {
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
+					uid: "test@tutanota.com",
 				}), [], now)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				"DTSTART:20190813T030600Z",
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				"UID:test@tutanota.com",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 				"END:VEVENT"
@@ -36,6 +38,7 @@ o.spec("CalendarImporterTest", function () {
 		o("all day", function () {
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, zone: "UTC"}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 14, zone: "UTC"}).toJSDate(),
@@ -46,7 +49,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART:20190813`,
 				`DTEND:20190914`,
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 				"END:VEVENT"
@@ -69,6 +72,7 @@ o.spec("CalendarImporterTest", function () {
 
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -79,7 +83,7 @@ o.spec("CalendarImporterTest", function () {
 				"DTSTART:20190813T030600Z",
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 
@@ -102,6 +106,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (never ends)", function () {
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -117,7 +122,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=WEEKLY;INTERVAL=3",
 				"END:VEVENT"
@@ -127,6 +132,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (ends after occurrences)", function () {
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -143,7 +149,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
 				"END:VEVENT"
@@ -153,6 +159,7 @@ o.spec("CalendarImporterTest", function () {
 		o("with repeat rule (ends on a date)", function () {
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -169,7 +176,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
-				"UID:123456@tutanota.com",
+				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T220000Z",
 				"END:VEVENT"
@@ -194,15 +201,17 @@ o.spec("CalendarImporterTest", function () {
 				event: createCalendarEvent({
 					_id: ["123", "456"],
 					summary: "Word \\ ; \n simple",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					startTime: DateTime.fromObject({year: 2019, month: 1, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
+					uid: "test@tutanota.com",
 				}),
 				alarms: []
 			},
 			{
 				event: createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n alarms",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -212,6 +221,7 @@ o.spec("CalendarImporterTest", function () {
 			{
 				event: createCalendarEvent({
 					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n repeating",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
@@ -227,11 +237,11 @@ o.spec("CalendarImporterTest", function () {
 			}
 		]
 		const versionNumber = "3.57.6"
-		const serialized = serializeCalendar(versionNumber, events)
+		const serialized = serializeCalendar(versionNumber, events, now)
 		const eventsWithoutIds = events.map(({event, alarms}) => {
 			return {
-				event: Object.assign({}, event, {_id: null}),
-				alarms: alarms.map(a => a.alarmInfo)
+				event: Object.assign({}, event, {_id: null, uid: event.uid || `ownerId${now.getTime()}@tutanota.com`, _ownerGroup: null}),
+				alarms: alarms.map(a => a.alarmInfo),
 			}
 		})
 		const parsed = parseCalendarStringData(serialized)
@@ -248,7 +258,7 @@ BEGIN:VEVENT
 DTSTART:20190813T030600Z
 DTEND:20190913T030600Z
 DTSTAMP:20190813T140100Z
-UID:123456@tutanota.com
+UID:test@tutanota.com
 SUMMARY:Word \\\\ \\; \\n simple
 DESCRIPTION:Descr \\\\ \\; \\n
 END:VEVENT

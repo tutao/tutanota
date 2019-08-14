@@ -1,7 +1,18 @@
 //@flow
 import {downcast} from "../api/common/utils/Utils"
+import {TutanotaError} from "../api/common/error/TutanotaError"
 
 export type Parser<T> = (StringIterator) => T
+
+
+export class ParserError extends TutanotaError {
+	filename: ?string
+
+	constructor(message: string, filename?: string) {
+		super("ParserError", message)
+		this.filename = filename
+	}
+}
 
 export const combineParsers: (<A, B>(Parser<A>, Parser<B>) => Parser<[A, B]>)
 	& ((<A, B, C>(Parser<A>, Parser<B>, Parser<C>) => Parser<[A, B, C]>))
@@ -17,7 +28,7 @@ export function makeCharacterParser(character: string): Parser<string> {
 			iterator.next()
 			return value
 		}
-		throw new Error("expected character " + character)
+		throw new ParserError("expected character " + character)
 	}
 }
 
@@ -43,7 +54,7 @@ export function mapParser<T, R>(parser: Parser<T>, mapper: (T) => R): Parser<R> 
 function makeOneOrMoreParser<T>(parser: Parser<T>): Parser<Array<T>> {
 	return mapParser(makeZeroOrMoreParser(parser), (value: Array<T>) => {
 		if (value.length === 0) {
-			throw new Error("Expected at least one value, got none")
+			throw new ParserError("Expected at least one value, got none")
 		}
 		return value
 	})
@@ -94,7 +105,7 @@ function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
 			iterator.next()
 			return value
 		}
-		throw new Error(`Expected one of ${String(allowed)}, got ${value}`)
+		throw new ParserError(`Expected one of ${String(allowed)}, got ${value}`)
 	}
 }
 

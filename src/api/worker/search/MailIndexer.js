@@ -9,7 +9,7 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
-import {containsEventOfType, neverNull} from "../../common/utils/Utils"
+import {containsEventOfType, neverNull, ProgressMonitor} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -596,24 +596,6 @@ export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): numbe
 type TimeRange = [number, number]
 
 type MboxIndexData = {mailListIds: Array<Id>, newestTimestamp: number, ownerGroup: Id}
-
-class ProgressMonitor {
-	totalWork: number
-	workCompleted: number
-	updater: (percentageCompleted: number) => void
-
-	constructor(totalWork: number, updater: (percentageCompleted: number) => void) {
-		this.updater = updater
-		this.totalWork = totalWork
-		this.workCompleted = 0
-	}
-
-	workDone(amount: number) {
-		this.workCompleted += amount
-		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
-		this.updater(Math.min(100, result))
-	}
-}
 
 class IndexLoader {
 	_entityCache: EntityRestCache;

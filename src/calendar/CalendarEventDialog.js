@@ -25,7 +25,7 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, getCalendarName, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
+import {createRepeatRuleWithValues, generateUid, getAllDayDateUTC, getCalendarName, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -304,6 +304,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			newEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
 			newEvent._ownerGroup = selectedCalendar().groupRoot._id
+			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
 			const repeatFrequency = repeatPickerAttrs.selectedValue()
 			if (repeatFrequency == null) {
 				newEvent.repeatRule = null
