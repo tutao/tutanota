@@ -46,6 +46,8 @@ import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
+import {Dialog} from "../gui/base/Dialog"
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
 
 
 export type CalendarInfo = {
@@ -280,23 +282,35 @@ export class CalendarView implements CurrentView {
 	}
 
 	_onPressedAddCalendar() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (logins.getUserController().getCalendarMemberships().length === 0) {
+			this._showCreateCalendarDialog()
+		} else if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)
 		} else {
-			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
-				dialog.close()
-				worker.addCalendar(properties.name)
-				      .then((group) => {
-					      const {userSettingsGroupRoot} = logins.getUserController()
-					      const newGroupColor = Object.assign(createGroupColor(), {
-						      group: group._id,
-						      color: properties.color
-					      })
-					      userSettingsGroupRoot.groupColors.push(newGroupColor)
-					      update(userSettingsGroupRoot)
-				      })
+			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+				if (customer.canceledPremiumAccount) {
+					return Dialog.error("subscriptionCancelledMessage_msg")
+				} else {
+					this._showCreateCalendarDialog()
+				}
 			})
 		}
+	}
+
+	_showCreateCalendarDialog() {
+		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
+			dialog.close()
+			worker.addCalendar(properties.name)
+			      .then((group) => {
+				      const {userSettingsGroupRoot} = logins.getUserController()
+				      const newGroupColor = Object.assign(createGroupColor(), {
+					      group: group._id,
+					      color: properties.color
+				      })
+				      userSettingsGroupRoot.groupColors.push(newGroupColor)
+				      update(userSettingsGroupRoot)
+			      })
+		})
 	}
 
 	_renderCalendars(): Children {
