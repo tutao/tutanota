@@ -340,7 +340,7 @@ declare module 'electron' {
 
 declare type ClientRequest = {
 	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage)=>void): ClientRequest,
-	end(): void,
+	end(): ClientRequest,
 	abort(): void,
 };
 

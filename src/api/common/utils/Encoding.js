@@ -196,7 +196,7 @@ export function _replaceLoneSurrogates(s: ?string): string {
 		let code = s.charCodeAt(i)
 		let char = s.charAt(i)
 		if (0xD800 <= code && code <= 0xDBFF) {
-			if (s.length == i) {
+			if (s.length === i) {
 				// replace high surrogate without following low surrogate
 				result.push(REPLACEMENT_CHAR)
 			} else {

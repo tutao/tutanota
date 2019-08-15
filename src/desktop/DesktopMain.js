@@ -13,6 +13,7 @@ import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./DesktopSseClient"
 import {Socketeer} from "./Socketeer"
+import {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 
 const oldLog = console.log
 const oldError = console.error
@@ -22,9 +23,20 @@ const oldWarn = console.warn
 ;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
 ;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
 
+global.btoa = str => Buffer.from(str, 'binary').toString('base64')
+global.atob = str => Buffer.from(str, 'base64').toString('binary')
+
 const conf = new DesktopConfigHandler()
 const sock = new Socketeer()
 const notifier = new DesktopNotifier()
+const secureStorage = new DesktopAlarmStorage()
+secureStorage.init()
+             .then(() => {
+	             console.log("secureStorage initialized")
+             })
+             .catch(() => {
+	             console.warn("secureStorage failed to initialize")
+             })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
