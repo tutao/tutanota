@@ -245,7 +245,7 @@ function parseRrule(rruleProp, tzId: ?string): RepeatRule {
 		throw new ParserError("RRULE value is not an object")
 	}
 	const frequency = parseFrequency(rruleValue["FREQ"])
-	const until = rruleValue["UNTIL"] ? parseTime(rruleValue["UNTIL"], tzId) : null
+	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], tzId) : null
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
 	const endType: EndTypeEnum = until != null
 		? EndType.UntilDate
@@ -365,23 +365,54 @@ function parseFrequency(value: string): RepeatPeriodEnum {
 	return icalToTutaFrequency[value]
 }
 
-export function parseTime(value: string, zone: ?string): Date {
+type DateComponents = {year: number, month: number, day: number, zone?: string}
+type TimeComponents = {hour: number, minute: number}
+type DateTimeComponents = DateComponents & TimeComponents
+
+export function parseTimeIntoComponents(value: string): DateComponents | DateTimeComponents {
 	if (/[0-9]{8}T[0-9]{6}Z/.test(value)) {
+		// date with time in UTC
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))
 		const minute = parseInt(value.slice(11, 13))
-		return toValidJSDate(DateTime.fromObject({year, month, day, hour, minute, zone: "UTC"}), value, zone)
+		return {year, month, day, hour, minute, zone: "UTC"}
 	} else if (/[0-9]{8}T[0-9]{6}/.test(value)) {
+		// date with time in local timezone
 		const {year, month, day} = parseDateString(value)
 		const hour = parseInt(value.slice(9, 11))
 		const minute = parseInt(value.slice(11, 13))
-		return toValidJSDate(DateTime.fromObject({year, month, day, hour, minute, zone}), value, zone)
+		return {year, month, day, hour, minute}
 	} else if (/[0-9]{8}/.test(value)) {
-		const {year, month, day} = parseDateString(value)
-		return toValidJSDate(DateTime.fromObject({year, month, day, hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"}), value, zone)
+		// all day events
+		return Object.assign({}, parseDateString(value))
 	} else {
 		throw new ParserError("Failed to parse time: " + value)
 	}
+}
+
+export function parseUntilRruleTime(value: string, zone: ?string): Date {
+	const components = parseTimeIntoComponents(value)
+	// rrule until is inclusive in ical but exclusive in Tutanota
+	const filledComponents = Object.assign(
+		{},
+		components,
+		{zone: "minute" in components ? zone : "UTC"}, // if minute is not provided it is an all day date YYYYMMDD
+	)
+
+
+	const luxonDate = DateTime.fromObject(filledComponents)
+	const startOfNextDay = luxonDate.plus({"day": 1}).startOf("day")
+	return toValidJSDate(startOfNextDay, value, components.zone)
+}
+
+export function parseTime(value: string, zone: ?string): Date {
+	const components = parseTimeIntoComponents(value)
+	const filledComponents = Object.assign(
+		{},
+		"minute" in components ? {zone} : {hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"},
+		components
+	)
+	return toValidJSDate(DateTime.fromObject(filledComponents), value, zone)
 }
 
 function toValidJSDate(dateTime: DateTime, value: string, zone: ?string): Date {

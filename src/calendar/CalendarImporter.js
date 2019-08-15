@@ -13,7 +13,7 @@ import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
 import type {AlarmIntervalEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, SECOND_MS} from "../api/common/TutanotaConstants"
 import {downcast, neverNull, ProgressMonitor} from "../api/common/utils/Utils"
 import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
@@ -21,6 +21,7 @@ import stream from "mithril/stream/stream.js"
 import {ParserError} from "../misc/parsing"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
+import {incrementDate} from "../api/common/utils/DateUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
@@ -71,6 +72,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 		              return showProgressDialog("importCalendar_label", importPromise.then(() => progress(100)), progress)
 	              })
 	              .catch(ParserError, (e) => {
+		              console.log("Failed to parse file", e)
 		              Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
 	              })
 
@@ -122,7 +124,7 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	const stringValue = serializeCalendar(env.versionNumber, events)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
-	tmpFile.name = calendarName === "" ? "export.ical" : (calendarName + "-export.ical")
+	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
 	tmpFile.mimeType = "text/calendar"
 	tmpFile.size = String(data.byteLength)
 	return fileController.open(createDataFile(tmpFile, data))
@@ -145,13 +147,39 @@ export function serializeCalendar(versionNumber: string, events: Array<{event: C
 	return value.join("\r\n")
 }
 
-function serializeRepeatRule(repeatRule: ?RepeatRule) {
+function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean) {
 	if (repeatRule) {
-		const endType = repeatRule.endType === EndType.Count
-			? ";COUNT=" + neverNull(repeatRule.endValue)
-			: repeatRule.endType === EndType.UntilDate
-				? ";UNTIL=" + formatDateTimeUTC(new Date(parseInt(repeatRule.endValue)))
-				: ""
+		let endType = ""
+		if (repeatRule.endType === EndType.Count) {
+			endType = `;COUNT=${neverNull(repeatRule.endValue)}`
+		} else if (repeatRule.endType === EndType.UntilDate) {
+			// According to the RFC 5545 section 3.3.5
+			//  The UNTIL rule part defines a DATE or DATE-TIME value that bounds
+			//  the recurrence rule in an inclusive manner.  If the value
+			//  specified by UNTIL is synchronized with the specified recurrence,
+			//  this DATE or DATE-TIME becomes the last instance of the
+			//  recurrence.  The value of the UNTIL rule part MUST have the same
+			//  value type as the "DTSTART" property.  Furthermore, if the
+			//  "DTSTART" property is specified as a date with local time, then
+			//  the UNTIL rule part MUST also be specified as a date with local
+			//  time.  If the "DTSTART" property is specified as a date with UTC
+			//  time or a date with local time and time zone reference, then the
+			//  UNTIL rule part MUST be specified as a date with UTC time.
+			// We have three cases (check serializeEvent()).
+			// So our matrix wil be:
+			//
+			// Case       | start/end format | UNTIL format
+			// All-day:   | date             | date
+			// w/RR       | TZID + DateTime  | timestamp
+			// w/o/RR     | timestamp        | N/A
+			//
+			// In this branch there is a repeat rule and we just check if it's all day.
+			// We also differ in a way that we define end as exclusive (because it's so
+			// hard to find anything in this RFC).
+			const date = new Date(Number(repeatRule.endValue))
+			const value = isAllDayEvent ? formatDate(incrementDate(date, -1)) : formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
+			endType = `;UNTIL=${value}`
+		}
 		return [
 			`RRULE:FREQ=${tutaToIcalFrequency[repeatRule.frequency]}` +
 			`;INTERVAL=${repeatRule.interval}` +
@@ -218,7 +246,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
-		.concat(serializeRepeatRule(repeatRule))
+		.concat(serializeRepeatRule(repeatRule, isAllDay))
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
 		.concat("END:VEVENT")
 }
@@ -232,11 +260,13 @@ function pad2(number) {
 }
 
 export function formatDateTime(date: Date): string {
-	return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}00`
+	return `${date.getFullYear()}${pad2(date.getMonth()
+		+ 1)}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}${pad2(date.getSeconds())}`
 }
 
 export function formatDateTimeUTC(date: Date): string {
-	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}00Z`
+	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth()
+		+ 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(date.getUTCSeconds())}Z`
 }
 
 export function formatDate(date: Date): string {
