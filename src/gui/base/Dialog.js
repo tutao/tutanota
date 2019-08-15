@@ -487,7 +487,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: TranslationKey | lazy<string>, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
 			const textFieldAttrs: TextFieldAttrs = {
@@ -497,7 +497,7 @@ export class Dialog {
 			}
 
 			Dialog.showActionDialog({
-				title: lang.get(titleId),
+				title: lang.getMaybeLazy(titleId),
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
 				okAction: dialog => {
