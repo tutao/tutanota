@@ -1,7 +1,7 @@
 //@flow
 
 import o from "ospec/ospec.js"
-import {parseDuration, parseProperty, parseTime, propertySequenceParser} from "../../../src/calendar/CalendarParser"
+import {parseDuration, parseProperty, parsePropertyKeyValue, parseTime, propertySequenceParser} from "../../../src/calendar/CalendarParser"
 import {ParserError, StringIterator} from "../../../src/misc/parsing"
 
 o.spec("CalendarParser", function () {
@@ -19,9 +19,9 @@ o.spec("CalendarParser", function () {
 				])
 		})
 		o("simple value, multiple property parameters", function () {
-			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE;ANOTHER=VALUE:20190607"))).deepEquals([
+			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE;ANOTHER=VALUE;QUOTED=\"IN ; QUOTES\":20190607"))).deepEquals([
 				"DTSTART",
-				[";", [["VALUE", "=", "DATE"], ["ANOTHER", "=", "VALUE"]]],
+				[";", [["VALUE", "=", "DATE"], ["ANOTHER", "=", "VALUE"], ["QUOTED", "=", "IN ; QUOTES"]]],
 				":",
 				"20190607"
 			])
@@ -32,7 +32,7 @@ o.spec("CalendarParser", function () {
 				"RRULE",
 				null,
 				":",
-				[["FREQ", "=", "WEEKLY"], ["BYDAY", "=", "SA"]]
+				"FREQ=WEEKLY;BYDAY=SA"
 			])
 		})
 	})
@@ -55,6 +55,11 @@ o.spec("CalendarParser", function () {
 		o("value with semicolon", function () {
 			o(parseProperty("DTSTART:some\\;things")).deepEquals({name: "DTSTART", params: {}, value: "some;things"})
 		})
+	})
+
+	o("parsePropertyKeyValue", function () {
+		o(parsePropertyKeyValue("KEY=VALUE")).deepEquals({"KEY": "VALUE"})
+		o(parsePropertyKeyValue("KEY=VALUE;ANOTHERKEY=ANOTHERVALUE")).deepEquals({"KEY": "VALUE", "ANOTHERKEY": "ANOTHERVALUE"})
 	})
 
 	o("parseDuraion", function () {

@@ -92,8 +92,11 @@ export function makeEitherParser<A, B>(parserA: Parser<A>, parserB: Parser<B>): 
 		try {
 			return parserA(iterator)
 		} catch (e) {
-			iterator.position = iteratorPosition
-			return parserB(iterator)
+			if (e instanceof ParserError) {
+				iterator.position = iteratorPosition
+				return parserB(iterator)
+			}
+			throw e
 		}
 	}
 }

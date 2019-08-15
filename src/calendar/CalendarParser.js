@@ -1,6 +1,6 @@
 //@flow
 import {downcast, neverNull} from "../api/common/utils/Utils"
-import {DateTime} from "luxon"
+import {DateTime, IANAZone} from "luxon"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
@@ -19,6 +19,7 @@ import {
 	ParserError,
 	StringIterator
 } from "../misc/parsing"
+import WindowsZones from "./WindowsZones"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -27,12 +28,11 @@ function parseDateString(dateString: string): {year: number, month: number, day:
 	return {year, month, day}
 }
 
-type PropertyValue = {[string]: string} | Array<string> | string
-type PropertyParamValue = Array<string> | string
+type PropertyParamValue = string
 type Property = {
 	name: string,
 	params: {[string]: PropertyParamValue},
-	value: PropertyValue,
+	value: string,
 }
 type ICalObject = {type: string, properties: Array<Property>, children: Array<ICalObject>}
 
@@ -58,8 +58,23 @@ const parameterStringValueParser: Parser<string> = (iterator) => {
 	return value
 }
 
+const escapedStringValueParser: Parser<string> = (iterator: StringIterator) => {
+	if (iterator.next().value !== "\"") {
+		throw new ParserError("Not a quoted value")
+	}
+	let value = ""
+	while (iterator.peek() && iterator.peek() !== "\"") {
+		value += neverNull(iterator.next().value)
+	}
+	if (!iterator.peek() === "") {
+		throw new Error("Not a quoted value, does not end with quote: " + value)
+	}
+	iterator.next()
+	return value
+}
+
 const propertyParametersKeyValueParser: Parser<[string, string, string]> =
-	combineParsers(parsePropertyName, makeCharacterParser("="), parameterStringValueParser)
+	combineParsers(parsePropertyName, makeCharacterParser("="), makeEitherParser(escapedStringValueParser, parameterStringValueParser))
 
 const parsePropertyParameters = combineParsers(
 	makeCharacterParser(";"),
@@ -77,10 +92,14 @@ export const iCalReplacements = {
 }
 
 // Right side of the semicolon
-const propertyStringValueParser: Parser<string> = (iterator) => {
+
+/**
+ * Parses everything until the end of the string and unescapes what it should
+ */
+const anyStringUnescapeParser: Parser<string> = (iterator) => {
 	let value = ""
 	let lastCharacter = null
-	while (iterator.peek() && (/[;]/.test(iterator.peek()) === false || lastCharacter === "\\")) {
+	while (iterator.peek()) {
 		lastCharacter = iterator.next().value
 		if (lastCharacter === "\\") {
 			if (iterator.peek() in iCalReplacements) {
@@ -95,26 +114,32 @@ const propertyStringValueParser: Parser<string> = (iterator) => {
 	}
 	return value
 }
-const propertyKeyValueParser: Parser<[string, string, string]> =
-	combineParsers(parsePropertyName, makeCharacterParser("="), propertyStringValueParser)
 
-const valuesSeparatedBySemicolonParser: Parser<Array<[string, string, string]>> =
-	makeSeparatedByParser(makeCharacterParser(";"), propertyKeyValueParser)
+/**
+ * Parses everything until the semicolon character
+ */
+const propertyStringValueParser: Parser<string> = (iterator) => {
+	let value = ""
+	while (iterator.peek() && (/[;]/.test(iterator.peek()) === false)) {
+		value += neverNull(iterator.next().value)
+	}
+	return value
+}
 
-const propertyValueParser: Parser<Array<[string, string, string]> | string> =
-	makeEitherParser(valuesSeparatedBySemicolonParser, propertyStringValueParser)
-
+/**
+ * Parses the whole property (both sides)
+ */
 export const propertySequenceParser: Parser<[
 	string,
 	?[string, Array<[string, string, string]>],
 	string,
-	Array<[string, string, string]> | string
+	string
 	]> =
 	combineParsers(
 		parsePropertyName,
 		maybeParse(parsePropertyParameters),
 		makeCharacterParser(":"),
-		propertyValueParser
+		anyStringUnescapeParser
 	)
 
 export function parseProperty(data: string): Property {
@@ -126,18 +151,33 @@ export function parseProperty(data: string): Property {
 			params[name] = value
 		})
 	}
-	const valuePart = sequence[3]
-	let value
-	if (Array.isArray(valuePart)) {
-		const dictValue = {}
-		valuePart.forEach(([name, eq, propValue]) => {
-			dictValue[name] = propValue
-		})
-		value = dictValue
-	} else {
-		value = valuePart
-	}
+	const value = sequence[3]
 	return {name, params, value}
+}
+
+
+/**
+ * Parses single key=value pair on the right side of the semicolon (value side)
+ */
+const propertyKeyValueParser: Parser<[string, string, string]> =
+	combineParsers(parsePropertyName, makeCharacterParser("="), propertyStringValueParser)
+
+/**
+ * Parses multiple key=value pair on the right side of the semicolon (value side)
+ */
+const valuesSeparatedBySemicolonParser: Parser<Array<[string, string, string]>> =
+	makeSeparatedByParser(makeCharacterParser(";"), propertyKeyValueParser)
+
+/**
+ * Parses multiple key=value pair on the right side of the semicolon (value side)
+ */
+export function parsePropertyKeyValue(data: string): {[string]: string} {
+	const value = valuesSeparatedBySemicolonParser(new StringIterator(data))
+	const result = {}
+	value.forEach(([key, eq, value]) => {
+		result[key] = value
+	})
+	return result
 }
 
 function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
@@ -240,10 +280,17 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 }
 
 function parseRrule(rruleProp, tzId: ?string): RepeatRule {
-	const rruleValue = rruleProp.value
-	if (Array.isArray(rruleValue) || typeof rruleValue === "string") {
-		throw new ParserError("RRULE value is not an object")
+	let rruleValue
+	try {
+		rruleValue = parsePropertyKeyValue(rruleProp.value)
+	} catch (e) {
+		if (e instanceof ParserError) {
+			throw new ParserError("RRULE is not an object " + e.message)
+		} else {
+			throw e
+		}
 	}
+
 	const frequency = parseFrequency(rruleValue["FREQ"])
 	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], tzId) : null
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
@@ -255,7 +302,7 @@ function parseRrule(rruleProp, tzId: ?string): RepeatRule {
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
 
 	const repeatRule = createRepeatRule()
-	repeatRule.endValue = String(until ? until.getTime() : count || 0)
+	repeatRule.endValue = until ? String(until.getTime()) : count ? String(count) : null
 	repeatRule.endType = endType
 	repeatRule.interval = String(interval)
 	repeatRule.frequency = frequency
@@ -284,6 +331,19 @@ function parseEventDuration(durationProp, event): void {
 	event.endTime = new Date(event.startTime.getTime() + durationInMillis)
 }
 
+function getTzId(prop: Property): ?string {
+	let tzId = null
+	const tzIdValue = prop.params["TZID"]
+	if (tzIdValue) {
+		if (IANAZone.isValidZone(tzIdValue)) {
+			tzId = tzIdValue
+		} else if (tzIdValue in WindowsZones) {
+			tzId = WindowsZones[tzIdValue]
+		}
+	}
+	return tzId
+}
+
 export function parseCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
@@ -291,13 +351,13 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
-		const tzId = typeof startProp.params["TZID"] === "string" ? startProp.params["TZID"] : null
+		const tzId = getTzId(startProp)
 		event.startTime = parseTime(startProp.value, tzId)
 
 		const endProp = eventObj.properties.find(p => p.name === "DTEND")
 		if (endProp) {
 			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
-			const endTzId = startProp.params["TZID"]
+			const endTzId = getTzId(endProp)
 			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null)
 		} else {
 			const durationProp = eventObj.properties.find(p => p.name === "DURATION")

@@ -214,6 +214,43 @@ o.spec("CalendarImporterTest", function () {
 
 	})
 
+	o("importer", function () {
+		o(parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:test@tutanota.com`,
+				"SUMMARY:Word \\\\ \\; \\n",
+				"RRULE:FREQ=WEEKLY;INTERVAL=3",
+				"END:VEVENT",
+				"END:VCALENDAR"
+			].join("\r\n"))[0]
+		).deepEquals([
+			{
+				event: createCalendarEvent({
+					summary: "Word \\ ; \n",
+					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					uid: "test@tutanota.com",
+					repeatRule: createRepeatRule({
+						endType: EndType.Never,
+						interval: "3",
+						frequency: RepeatPeriod.WEEKLY,
+						timeZone: zone,
+					})
+				}),
+				alarms: []
+			},
+
+		][0])
+	})
+
 	o("roundtrip export -> import", function () {
 		const alarmOne = createUserAlarmInfo({
 			alarmInfo: createAlarmInfo({
@@ -272,6 +309,7 @@ o.spec("CalendarImporterTest", function () {
 					summary: "Word \\ ; \n",
 					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13, zone}).toJSDate()),
 					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15, zone}).toJSDate()),
+					uid: "b64lookingValue==",
 					repeatRule: createRepeatRule({
 						endType: EndType.UntilDate,
 						interval: "3",
@@ -285,7 +323,6 @@ o.spec("CalendarImporterTest", function () {
 		]
 		const versionNumber = "3.57.6"
 		const serialized = serializeCalendar(versionNumber, events, now)
-		console.log(serialized)
 		const eventsWithoutIds = events.map(({event, alarms}) => {
 			return {
 				event: Object.assign({}, event, {_id: null, uid: event.uid || `ownerId${now.getTime()}@tutanota.com`, _ownerGroup: null}),
@@ -339,7 +376,7 @@ BEGIN:VEVENT
 DTSTART:20190813
 DTEND:20190815
 DTSTAMP:20190813T140100Z
-UID:ownerId1565704860630@tutanota.com
+UID:b64lookingValue==
 SUMMARY:Word \\\\ \\; \\n
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919
 END:VEVENT
