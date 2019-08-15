@@ -366,9 +366,14 @@ export class CalendarView implements CurrentView {
 								label: "delete_action",
 								icon: () => Icons.Trash,
 								click: () => {
-									serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {
-										groupRootId: groupRoot._id
-									}))
+									Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": groupInfo.name}))
+									      .then((confirmed) => {
+										      if (confirmed) {
+											      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {
+												      groupRootId: groupRoot._id
+											      }))
+										      }
+									      })
 								},
 								type: ButtonType.Dropdown,
 							},
