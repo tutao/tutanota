@@ -52,58 +52,61 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						]
 						: null,
 				]),
-				m(".scroll.pt-s", days.map((day) => {
-					let events = (attrs.eventsForDays.get(day.getTime()) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
-					if (day === today) {
-						// only show future and currently running events
-						events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
-					} else if (day > tomorrow && events.length === 0) {
-						return null
-					}
+				m(".scroll.pt-s", days
+					.map((day) => {
+						let events = (attrs.eventsForDays.get(day.getTime()) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+						if (day === today) {
+							// only show future and currently running events
+							events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
+						} else if (day > tomorrow && events.length === 0) {
+							return null
+						}
 
-					const dateDescription = day === today
-						? lang.get("today_label")
-						: day === tomorrow
-							? lang.get("tomorrow_label")
-							: formatDateWithWeekday(day)
-					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
-						key: day,
-					}, [
-						m("button.pb-s.b", {
-							onclick: () => attrs.onDateSelected(new Date(day)),
-						}, dateDescription),
-						m(".flex-grow", {
-							style: {
-								"max-width": "600px",
-							}
-						}, events.length === 0
-							? m(".mb-s", lang.get("noEntries_msg"))
-							: events.map((ev) => {
-								const startsBefore = eventStartsBefore(day, ev)
-								const endsAfter = eventEndsAfterDay(day, ev)
-								let textOption
-								if (isAllDayEvent(ev) || (startsBefore && endsAfter)) {
-									textOption = EventTextTimeOption.ALL_DAY
-								} else if (startsBefore && !endsAfter) {
-									textOption = EventTextTimeOption.END_TIME
-								} else if (!startsBefore && endsAfter) {
-									textOption = EventTextTimeOption.START_TIME
-								} else {
-									textOption = EventTextTimeOption.START_END_TIME
+						const dateDescription = day === today
+							? lang.get("today_label")
+							: day === tomorrow
+								? lang.get("tomorrow_label")
+								: formatDateWithWeekday(day)
+						return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
+							key: day,
+						}, [
+							m("button.pb-s.b", {
+								onclick: () => attrs.onDateSelected(new Date(day)),
+							}, dateDescription),
+							m(".flex-grow", {
+								style: {
+									"max-width": "600px",
 								}
+							}, events.length === 0
+								? m(".mb-s", lang.get("noEntries_msg"))
+								: events.map((ev) => {
+									const startsBefore = eventStartsBefore(day, ev)
+									const endsAfter = eventEndsAfterDay(day, ev)
+									let textOption
+									if (isAllDayEvent(ev) || (startsBefore && endsAfter)) {
+										textOption = EventTextTimeOption.ALL_DAY
+									} else if (startsBefore && !endsAfter) {
+										textOption = EventTextTimeOption.END_TIME
+									} else if (!startsBefore && endsAfter) {
+										textOption = EventTextTimeOption.START_TIME
+									} else {
+										textOption = EventTextTimeOption.START_END_TIME
+									}
 
-								return m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
-									text: getEventText(ev, textOption),
-									secondLineText: ev.location,
-									color: getEventColor(ev, attrs.groupColors),
-									hasAlarm: ev.alarmInfos.length > 0 && !startsBefore,
-									onEventClicked: () => attrs.onEventClicked(ev),
-									height: 38,
-									verticalPadding: 2
+									return m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
+										text: getEventText(ev, textOption),
+										secondLineText: ev.location,
+										color: getEventColor(ev, attrs.groupColors),
+										hasAlarm: ev.alarmInfos.length > 0 && !startsBefore,
+										onEventClicked: () => attrs.onEventClicked(ev),
+										height: 38,
+										verticalPadding: 2
+									}))
 								}))
-							}))
-					])
-				}).concat(m(".mlr-l", `Showing events until ${lastDayFormatted}`)))
+						])
+					})
+					.filter(Boolean) // mithril doesn't allow mixing keyed elements with null (for perf reasons it seems)
+					.concat(m(".mlr-l", {key: "events_until"}, `Showing events until ${lastDayFormatted}`)))
 			]
 		)
 	}

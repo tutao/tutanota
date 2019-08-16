@@ -26,7 +26,7 @@ import {styles} from "../gui/styles"
 import {formatMonthWithFullYear} from "../misc/Formatter"
 import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {windowFacade} from "../misc/WindowFacade"
-import {debounce, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {PageView} from "../gui/base/PageView"
@@ -71,17 +71,23 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const nextMonthDate = new Date(attrs.selectedDate)
 		nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
 		return m(PageView, {
-			previousPage: this._monthDom ? this._renderCalendar(attrs, previousMonthDate) : null,
-			currentPage: this._renderCalendar(attrs, attrs.selectedDate, (vnode) => {
-				this._monthDom = vnode.dom
-				m.redraw() // render week events needs height and width of days, schedule a redraw when dom is available.
-			}),
-			nextPage: this._monthDom ? this._renderCalendar(attrs, nextMonthDate) : null,
+			previousPage: {
+				key: previousMonthDate.getTime(),
+				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonthDate) : null
+			},
+			currentPage: {
+				key: attrs.selectedDate.getTime(),
+				nodes: this._renderCalendar(attrs, attrs.selectedDate)
+			},
+			nextPage: {
+				key: nextMonthDate.getTime(),
+				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonthDate) : null
+			},
 			onChangePage: (next) => attrs.onChangeMonth(next)
 		})
 	}
 
-	_renderCalendar(attrs: CalendarMonthAttrs, date: Date, onCreateMonth: ?(Vnode<any> => mixed)): Children {
+	_renderCalendar(attrs: CalendarMonthAttrs, date: Date): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
 		const today = getStartOfDay(new Date())
@@ -99,7 +105,19 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 					])
 				: m(".pt-s"),
 			m(".flex.mb-s", weekdays.map((wd) => m(".flex-grow", m(".calendar-day-indicator.b", wd)))),
-			m(".flex.col.flex-grow", {oncreate: onCreateMonth}, weeks.map((week) => {
+			m(".flex.col.flex-grow", {
+				oncreate: (vnode) => {
+					if (date === attrs.selectedDate) {
+						this._monthDom = vnode.dom
+						m.redraw()
+					}
+				},
+				onupdate: (vnode) => {
+					if (date === attrs.selectedDate) {
+						this._monthDom = vnode.dom
+					}
+				}
+			}, weeks.map((week) => {
 				return m(".flex.flex-grow.rel", [
 					week.map((d, i) => this._renderDay(attrs, d, today, i)),
 					this._monthDom ? this._renderWeekEvents(attrs, week) : null,
