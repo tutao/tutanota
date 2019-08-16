@@ -11,7 +11,7 @@ import {erase, load, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {mailModel} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {getListId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -156,13 +156,11 @@ export class MultiSearchViewer {
 					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
 					.map(f => {
 						return new Button(() => getFolderName(f), () => {
-								let groupedMails = groupBy(selectedMails, mail => mail._id[0])
+								const mailsGroupedByFolder = groupBy(selectedMails, getListId)
 								//is needed for correct selection behavior on mobile
 								this._searchListView.selectNone()
-								// move all groups in parallel
-								Array.from(groupedMails.values()).forEach(mails => {
-									mailModel.moveMails(mails, f)
-								})
+								// move all groups one by one because the mail list cannot be modified in parallel
+								Promise.each(mailsGroupedByFolder.values(), (mails) => mailModel.moveMails(mails, f))
 							}, getFolderIcon(f)
 						).setType(ButtonType.Dropdown)
 					})
