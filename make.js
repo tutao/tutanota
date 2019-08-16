@@ -131,7 +131,7 @@ function createHtml(env) {
 			`System.import("src/system-resolve.js")`
 			+ (options.watch ? `.then(function() { System.import('src/bootstrapHotReload.js') })` : `;System.import('src/app.js')`)
 		].join("\n")),
-		_writeFile(`./build/${filenamePrefix}.html`, LaunchHtml.renderHtml(imports, env))
+		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/${filenamePrefix}.html`, content))
 	])
 }
 

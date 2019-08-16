@@ -1,7 +1,8 @@
 // @flow
 import m from "mithril"
 import {NavBar} from "./NavBar"
-import {NavButton, NavButtonColors} from "./NavButton"
+import type {NavButtonAttrs} from "./NavButtonN"
+import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
 import {asyncImport, neverNull} from "../../api/common/utils/Utils"
 import {keyManager, Keys} from "../../misc/KeyManager"
@@ -46,7 +47,7 @@ class Header {
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
-	mailNavButton: NavButton;
+	mailNavButton: NavButtonAttrs;
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
 
@@ -61,9 +62,13 @@ class Header {
 			return !m.route.get().startsWith("/signup")
 		}
 
-		let searchViewButton = new NavButton("search_label", () => BootIcons.Search, "/search", "/search") // the href is just a dummy value here
-			.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !styles.isDesktopLayout())
-			.setClickHandler(() => {
+		const searchViewButton: NavButtonAttrs = {
+			label: "search_label",
+			icon: () => BootIcons.Search,
+			href: "/search",
+			isSelectedPrefix: "/search",
+			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !styles.isDesktopLayout(),
+			click: () => {
 				const route = m.route.get()
 				let url
 				if (route.startsWith(this.contactsUrl) || route.startsWith("/search/contact")) {
@@ -72,35 +77,78 @@ class Header {
 					url = "/search/mail"
 				}
 				m.route.set(url)
-			})
+			}
+		}
 
-		this.mailNavButton = new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
-			.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn())
+		this.mailNavButton = {
+			label: 'emails_label',
+			icon: () => BootIcons.Mail,
+			href: this.mailsUrl,
+			isSelectedPrefix: this.mailsUrl,
+			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
+		}
 
 		this.buttonBar = new NavBar()
 			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
-			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
-			.addButton(new NavButton("calendar_label", () => BootIcons.Calendar, "/calendar", "/calendar")
-				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
-					&& client.calendarSupported()))
-			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => m.route.get(), premiumUrl)
-				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount())
-				.setClickHandler(() => this._showUpgradeDialog()), 0, false)
-			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
-				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn())
-				.setClickHandler(() => this._writeInviteMail()), 0, true)
-			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
-				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn()), 0, true)
-			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
-				.setIsVisibleHandler(() => isNotSignup() && logins.isInternalUserLoggedIn()), 0, false)
-			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
-				.setIsVisibleHandler(() => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
-				.setClickHandler(() => this._writeSupportMail()), 0, true)
-			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
-				.setIsVisibleHandler(() => isNotSignup() && logins.isUserLoggedIn()), 0, true)
-
+			.addButton({
+				label: 'contacts_label',
+				icon: () => BootIcons.Contacts,
+				href: this.contactsUrl,
+				isSelectedPrefix: this.contactsUrl,
+				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
+			})
+			.addButton({
+				label: "calendar_label",
+				icon: () => BootIcons.Calendar,
+				href: "/calendar",
+				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
+					&& client.calendarSupported()
+			})
+			.addButton({
+				label: 'upgradePremium_label',
+				icon: () => BootIcons.Premium,
+				href: () => m.route.get(),
+				isSelectedPrefix: premiumUrl,
+				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount(),
+				click: () => this._showUpgradeDialog(),
+			}, 0, false)
+			.addButton({
+				label: 'invite_alt',
+				icon: () => BootIcons.Share,
+				href: () => m.route.get(),
+				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn(),
+				click: () => this._writeInviteMail(),
+				isSelectedPrefix: false,
+			}, 0, true)
+			.addButton({
+				label: 'community_label',
+				icon: () => BootIcons.Heart,
+				href: 'https://tutanota.com/community',
+				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn(),
+				isSelectedPrefix: false,
+			}, 0, true)
+			.addButton({
+				label: 'settings_label',
+				icon: () => BootIcons.Settings,
+				href: () => this.settingsUrl,
+				isSelectedPrefix: this.settingsUrl,
+				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn(),
+			}, 0, false)
+			.addButton({
+				label: 'supportMenu_label',
+				icon: () => BootIcons.Help,
+				href: () => m.route.get(),
+				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount(),
+				click: () => this._writeSupportMail(),
+				isSelectedPrefix: false,
+			}, 0, true)
+			.addButton({
+				label: "logout_label",
+				icon: () => BootIcons.Logout,
+				href: LogoutUrl,
+				isVisible: () => isNotSignup() && logins.isUserLoggedIn()
+			}, 0, true)
 
 		this._setupShortcuts()
 
@@ -241,20 +289,21 @@ class Header {
 		})
 	}
 
-	_getLeftElements() {
+	_getLeftElements(): Children {
 		const viewSlider = this._getViewSlider()
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(),
-				() => BootIcons.Back,
-				() => m.route.get())
-				.setColors(NavButtonColors.Header)
-				.setClickHandler(() => {
+			return m(NavButtonN, {
+				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
+				icon: () => BootIcons.Back,
+				colors: NavButtonColors.Header,
+				href: m.route.get,
+				click: () => {
 					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
 						viewSlider.focusPreviousColumn()
 					}
-				})
-				.setHideLabel(this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true)
-			return [m(navButtonBack)]
+				},
+				hideLabel: this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true,
+			})
 		} else {
 			if (styles.isDesktopLayout()) {
 				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))] // the custom logo is already sanitized in theme.js

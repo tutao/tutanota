@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {NavButton} from "./NavButton"
 import {modal} from "./Modal"
 import {animations, DefaultAnimationTime, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -58,7 +57,7 @@ export class DomRectReadOnlyPolyfilled implements PosRect {
 }
 
 export class Dropdown {
-	children: $ReadOnlyArray<string | NavButton | Button>;
+	children: $ReadOnlyArray<string | Button>;
 	_domDropdown: HTMLElement;
 	_domInput: HTMLInputElement;
 	_domContents: HTMLElement;
@@ -76,7 +75,7 @@ export class Dropdown {
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(lazyChildren: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number) {
+	constructor(lazyChildren: lazy<$ReadOnlyArray<string | Button>>, width: number) {
 		this.children = []
 		this.maxHeight = 0
 		this._width = width
@@ -195,7 +194,7 @@ export class Dropdown {
 	_createShortcuts() {
 		const next = () => {
 			let visibleElements = this._visibleItems().filter(b => (typeof b !== "string"))
-			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
+			visibleElements = ((visibleElements: any): Array<Button>).map(b => b._domButton)
 			if (this._domInput) {
 				visibleElements = [this._domInput].concat(visibleElements)
 			}
@@ -208,7 +207,7 @@ export class Dropdown {
 		}
 		const previous = () => {
 			let visibleElements = this._visibleItems().filter(b => (typeof b !== "string"))
-			visibleElements = ((visibleElements: any): Array<Button | NavButton>).map(b => b._domButton)
+			visibleElements = ((visibleElements: any): Array<Button>).map(b => b._domButton)
 			if (this._domInput) {
 				visibleElements = [this._domInput].concat(visibleElements)
 			}
@@ -221,7 +220,7 @@ export class Dropdown {
 		}
 
 		const chooseMatch = () => {
-			let visibleElements: Array<Button | NavButton> = (this._visibleItems().filter(b => (typeof b !== "string")): any)
+			let visibleElements: Array<Button> = (this._visibleItems().filter(b => (typeof b !== "string")): any)
 			let matchingButton = visibleElements.find(b => b.getLabel().toLowerCase() === this._filterString().toLowerCase())
 			if (document.activeElement === this._domInput
 				&& matchingButton
@@ -363,7 +362,7 @@ export class Dropdown {
 		], {easing: ease.out})
 	}
 
-	_visibleItems(): Array<string | NavButton | Button> {
+	_visibleItems(): Array<string | Button> {
 		return this.children.filter(b => {
 			return (typeof b === "string")
 				? b.includes(this._filterString().toLowerCase())

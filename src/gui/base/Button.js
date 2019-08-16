@@ -3,7 +3,6 @@ import {size} from "../size"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {NavButton} from "./NavButton"
 import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
@@ -303,14 +302,14 @@ export class Button {
 }
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
-                                     lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200,
+                                     lazyButtons: lazy<$ReadOnlyArray<string | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
-                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | NavButton | Button>>,
+                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {

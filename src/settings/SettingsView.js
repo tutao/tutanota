@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {NavButton} from "../gui/base/NavButton"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -40,6 +39,7 @@ import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 
 assertMainOrNode()
 
@@ -156,20 +156,21 @@ export class SettingsView implements CurrentView {
 			() => showUserImportDialog(this._customDomains.getLoaded()),
 			() => Icons.ContactImport
 		).setColors(ButtonColors.Nav)
-		let buttons = folders.map(folder => {
-			let button = new NavButton(folder.nameTextId, folder.icon, () => folder.url, folder.url)
-				.setColors(ButtonColors.Nav)
-			button.setClickHandler(event => {
-				this.viewSlider.focus(this._settingsColumn)
-			})
-			button.setIsVisibleHandler(() => folder.isVisible())
-			return button
+		const buttons = folders.map(folder => {
+			return {
+				label: folder.nameTextId,
+				icon: folder.icon,
+				href: folder.url,
+				colors: ButtonColors.Nav,
+				click: () => this.viewSlider.focus(this._settingsColumn),
+				isVisible: () => folder.isVisible()
+			}
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
-			view: () => m(".folders", buttons.map(fb => fb.isVisible() ?
-				m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
-					m(fb),
-					!isApp() && fb.isSelected() && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+			view: () => m(".folders", buttons.map(fb => fb.isVisible()
+				? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
+					m(NavButtonN, fb),
+					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
 					&& this._customDomains.getLoaded().length > 0
 						? m(importUsersButton)
 						: null

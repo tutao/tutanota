@@ -1,8 +1,8 @@
 // @flow
 import {assertMainOrNode} from "../api/Env"
-import {isSelectedPrefix} from "../gui/base/NavButton"
 import type {lazyIcon} from "../gui/base/Icon"
 import type {TranslationKey} from "../misc/LanguageViewModel"
+import {isSelectedPrefix} from "../gui/base/NavButtonN"
 
 assertMainOrNode()
 

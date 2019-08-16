@@ -115,7 +115,7 @@ export class CalendarView implements CurrentView {
 					]),
 					m(".folder-row.plr-l", calendarViewValues.map(viewType => {
 						return m(NavButtonN, {
-							label: viewType.name,
+							label: () => viewType.name,
 							icon: () => viewType.icon,
 							href: m.route.get(),
 							isSelectedPrefix: viewType.href,
