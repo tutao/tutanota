@@ -1012,6 +1012,9 @@ module.exports = {
 		"importCalendar_label": "Importing calendar",
 		"addCalendar_action": "Add calendar",
 		"import_action": "Import",
-		"deleteCalendarConfirm_msg": "Are you sure that you want to delete calendar \"{calendar}\" and all events in it?"
+		"deleteCalendarConfirm_msg": "Are you sure that you want to delete calendar \"{calendar}\" and all events in it?",
+		"automatic_label": "Automatic",
+		"settingsForDevice_label": "Settings for device",
+		"settingsForAccount_label": "Settings for account"
 	}
 }
