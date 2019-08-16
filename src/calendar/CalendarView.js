@@ -298,7 +298,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_showCreateCalendarDialog() {
-		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
+		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, false, (dialog, properties) => {
 			dialog.close()
 			worker.addCalendar(properties.name)
 			      .then((group) => {
@@ -387,7 +387,7 @@ export class CalendarView implements CurrentView {
 		showEditCalendarDialog({
 			name: getCalendarName(groupInfo.name),
 			color: colorValue.substring(1)
-		}, (dialog, properties) => {
+		}, true, (dialog, properties) => {
 			groupInfo.name = properties.name
 			update(groupInfo)
 			// color always set for existing calendar
