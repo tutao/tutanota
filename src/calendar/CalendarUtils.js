@@ -307,12 +307,19 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 
 
 export function getEventText(event: CalendarEvent, showTime: EventTextTimeOptionEnum): string {
-	if (isAllDayEvent(event) || showTime == EventTextTimeOption.NO_TIME) {
-		return event.summary
-	} else {
-		return formatTime(event.startTime) +
-			(showTime == EventTextTimeOption.START_END_TIME ? (" - " + formatTime(event.endTime)) : "")
-			+ " " + event.summary
+	switch (showTime) {
+		case EventTextTimeOption.NO_TIME:
+			return event.summary
+		case EventTextTimeOption.START_TIME:
+			return `${formatTime(event.startTime)} ${event.summary}`
+		case EventTextTimeOption.END_TIME:
+			return `- ${formatTime(event.endTime)} ${event.summary}`
+		case EventTextTimeOption.START_END_TIME:
+			return `${formatTime(event.startTime)} - ${formatTime(event.endTime)} ${event.summary}`
+		case EventTextTimeOption.ALL_DAY:
+			return `${lang.get("allDay_label")} ${event.summary}`
+		default:
+			throw new Error("Unknown time option " + showTime)
 	}
 }
 

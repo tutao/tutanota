@@ -234,7 +234,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			startDate: firstDayOfWeek,
 			endDate: lastDayOfWeek,
 			color: getEventColor(event, attrs.groupColors),
-			showTime: styles.isDesktopLayout() ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
+			showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},

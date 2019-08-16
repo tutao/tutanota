@@ -9,6 +9,7 @@ import {expandEvent, getEventColor, getEventText, layOutEvents} from "./Calendar
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
+import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 
 export type Attrs = {
 	onEventClicked: (event: CalendarEvent) => mixed,
@@ -104,7 +105,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				height: px(height)
 			},
 		}, m(CalendarEventBubble, {
-			text: getEventText(ev, EventTextTimeOption.START_TIME),
+			text: getEventText(ev, isAllDayEvent(ev) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME),
 			secondLineText: ev.location,
 			color: getEventColor(ev, attrs.groupColors),
 			onEventClicked: () => attrs.onEventClicked(ev),
