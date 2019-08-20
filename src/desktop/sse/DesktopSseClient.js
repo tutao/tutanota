@@ -1,20 +1,20 @@
 // @flow
 
-import type {DesktopConfigHandler} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import {app} from 'electron'
 import crypto from 'crypto'
 import http from 'http'
 import https from 'https'
-import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {SseError} from "../api/common/error/SseError"
-import {isMailAddress} from "../misc/FormatValidator"
-import {downcast, neverNull, randomIntFromInterval} from "../api/common/utils/Utils"
-import type {DesktopNotifier} from './DesktopNotifier.js'
-import type {WindowManager} from "./DesktopWindowManager.js"
-import DesktopUtils from "./DesktopUtils"
-import {NotificationResult} from "./DesktopNotifier"
-import {PreconditionFailedError} from "../api/common/error/RestError"
-import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
+import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {SseError} from "../../api/common/error/SseError"
+import {isMailAddress} from "../../misc/FormatValidator"
+import {downcast, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
+import type {DesktopNotifier} from '../DesktopNotifier.js'
+import type {WindowManager} from "../DesktopWindowManager.js"
+import DesktopUtils from "../DesktopUtils"
+import {NotificationResult} from "../DesktopNotifier"
+import {PreconditionFailedError} from "../../api/common/error/RestError"
+import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 
 export type SseInfo = {|
 	identifier: string,
@@ -94,10 +94,6 @@ export class DesktopSseClient {
 		return pushIdentifier
 			? pushIdentifier.identifier
 			: null
-	}
-
-	clear() {
-		this._conf.setDesktopConfig('pushIdentifier', null)
 	}
 
 	connect() {
@@ -376,8 +372,9 @@ export class PushMessage {
 	}
 
 	static fromJSON(json: string): PushMessage {
-		const obj = JSON.parse(json)
+		let obj
 		try {
+			obj = JSON.parse(json)
 			DesktopUtils.checkDataFormat(obj, {
 				title: {type: 'string'},
 				confirmationId: {type: 'string'},
@@ -412,55 +409,56 @@ export class MissedNotification {
 	}
 
 	static fromJSON(json: string): MissedNotification {
-		const obj = JSON.parse(json)
-		console.log(obj)
+		let obj
 		try {
+			obj = JSON.parse(json)
+			console.log(obj)
 			obj.alarmNotifications.forEach(an => an.notificationSessionKeys.forEach(nfsk => console.warn(nfsk)))
-			DesktopUtils.checkDataFormat(obj, {
-				_format: {type: 'string'},
-				_id: [{type: 'string'}],
-				_ownerEncSessionKey: {type: 'string', optional: true},
-				_ownerGroup: {type: 'string'},
-				_permissions: {type: 'string'},
-				changeTime: {type: 'string', assert: v => !isNaN(parseInt(v))},
-				confirmationId: {type: 'string'},
-				alarmNotifications: [
-					{
-						_id: {type: 'string'},
-						eventEnd: {type: 'string'},
-						eventStart: {type: 'string'},
-						operation: {type: 'string'},
-						summary: {type: 'string'},
-						alarmInfo: {
-							_id: {type: 'string'},
-							alarmIdentifier: {type: 'string'},
-							trigger: {type: 'string'},
-							calendarRef: {
-								_id: {type: 'string'},
-								elementId: {type: 'string'},
-								listId: {type: 'string'}
-							}
-						},
-						notificationSessionKeys: [
-							{
-								_id: {type: 'string'},
-								pushIdentifierSessionEncSessionKey: {type: 'string'},
-								pushIdentifier: [{type: 'string'}],
-							}
-						],
-						repeatRule: {
-							_id: {type: 'string'},
-							endType: {type: 'string'},
-							endValue: {type: 'string', optional: true},
-							frequency: {type: 'string'},
-							interval: {type: 'string'},
-							timeZone: {type: 'string'},
-						},
-						user: {type: 'string'}
-					}
-				],
-				notificationInfos: [{address: {type: 'string'}, counter: {type: 'number'}, userId: {type: 'string'}}]
-			})
+			// DesktopUtils.checkDataFormat(obj, {
+			// 	_format: {type: 'string'},
+			// 	_id: [{type: 'string'}],
+			// 	_ownerEncSessionKey: {type: 'string', optional: true},
+			// 	_ownerGroup: {type: 'string'},
+			// 	_permissions: {type: 'string'},
+			// 	changeTime: {type: 'string', assert: v => !isNaN(parseInt(v))},
+			// 	confirmationId: {type: 'string'},
+			// 	alarmNotifications: [
+			// 		{
+			// 			_id: {type: 'string'},
+			// 			eventEnd: {type: 'string'},
+			// 			eventStart: {type: 'string'},
+			// 			operation: {type: 'string'},
+			// 			summary: {type: 'string'},
+			// 			alarmInfo: {
+			// 				_id: {type: 'string'},
+			// 				alarmIdentifier: {type: 'string'},
+			// 				trigger: {type: 'string'},
+			// 				calendarRef: {
+			// 					_id: {type: 'string'},
+			// 					elementId: {type: 'string'},
+			// 					listId: {type: 'string'}
+			// 				}
+			// 			},
+			// 			notificationSessionKeys: [
+			// 				{
+			// 					_id: {type: 'string'},
+			// 					pushIdentifierSessionEncSessionKey: {type: 'string'},
+			// 					pushIdentifier: [{type: 'string'}],
+			// 				}
+			// 			],
+			// 			repeatRule: {
+			// 				_id: {type: 'string'},
+			// 				endType: {type: 'string'},
+			// 				endValue: {type: 'string', optional: true},
+			// 				frequency: {type: 'string'},
+			// 				interval: {type: 'string'},
+			// 				timeZone: {type: 'string'},
+			// 			},
+			// 			user: {type: 'string'}
+			// 		}
+			// 	],
+			// 	notificationInfos: [{address: {type: 'string'}, counter: {type: 'number'}, userId: {type: 'string'}}]
+			// })
 		} catch (e) {
 			throw new SseError(`missed notification type error: ${e.message}`)
 		}

@@ -11,9 +11,9 @@ import {WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
 import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
-import {DesktopSseClient} from "./DesktopSseClient"
+import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
-import {DesktopAlarmStorage} from "./DesktopAlarmStorage"
+import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 
 const oldLog = console.log
 const oldError = console.error
@@ -29,21 +29,21 @@ global.atob = str => Buffer.from(str, 'base64').toString('binary')
 const conf = new DesktopConfigHandler()
 const sock = new Socketeer()
 const notifier = new DesktopNotifier()
-const secureStorage = new DesktopAlarmStorage()
-secureStorage.init()
-             .then(() => {
-	             console.log("secureStorage initialized")
-             })
-             .catch(() => {
-	             console.warn("secureStorage failed to initialize")
-             })
+const alarmStorage = new DesktopAlarmStorage(conf)
+alarmStorage.init()
+            .then(() => {
+	            console.log("secureStorage initialized")
+            })
+            .catch(() => {
+	            console.warn("secureStorage failed to initialize")
+            })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(conf, notifier, wm)
 sse.start()
-const ipc = new IPC(conf, notifier, sse, wm, sock)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage)
 wm.setIPC(ipc)
 
 PreloadImports.keep(sock)

@@ -1,6 +1,6 @@
 // @flow
 
-import {DesktopNotifier} from "./DesktopNotifier"
+import {DesktopNotifier} from "../DesktopNotifier"
 import {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 
 export class DesktopAlarmScheduler {
@@ -10,15 +10,25 @@ export class DesktopAlarmScheduler {
 	constructor(notifier: DesktopNotifier, alarmStorage: DesktopAlarmStorage) {
 		this._notifier = notifier
 		this._alarmStorage = alarmStorage
-
-		// load from disk and reschedule
+		this._rescheduleAll()
 	}
 
-	schedule(): void {
+	processAlarmNotification(an: AlarmNotification): void {
 
 	}
 
-	cancel(): void {
+	_cancelAlarm(an: AlarmNotification): void {
+
+	}
+
+	_scheduleAlarm(an: AlarmNotification): void {
+
+	}
+
+	/**
+	 * read all stored alarms and reschedule the notifications
+	 */
+	_rescheduleAll(): void {
 
 	}
 }

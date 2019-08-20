@@ -134,9 +134,8 @@ export default class DesktopUtils {
 		if (typeof pattern.type === 'string') { // pattern is type def
 			if (!["boolean", "string", "number"].includes(pattern.type)) throw new JsonTypeError(`invalid type def for ${key}`)
 			if (
-				(!(pattern.optional && (typeof obj === "undefined" || obj === null)) && pattern.type !== typeof obj)
+				(!(pattern.optional && obj == null) && pattern.type !== typeof obj)
 				|| (pattern.assert && !pattern.assert(obj))
-
 			) {
 				throw new JsonTypeError(`invalid type or assertion failed for ${key}`)
 			}
