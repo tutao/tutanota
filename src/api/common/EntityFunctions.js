@@ -19,6 +19,7 @@ export type HttpMethodEnum = $Values<typeof HttpMethod>;
 export const MediaType = Object.freeze({
 	Json: 'application/json',
 	Binary: 'application/octet-stream',
+	Text: 'text/plain',
 })
 export type MediaTypeEnum = $Values<typeof MediaType>;
 

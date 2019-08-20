@@ -29,7 +29,7 @@ export class RestClient {
 			var xhr = new XMLHttpRequest()
 			xhr.open(method, url)
 			this._setHeaders(xhr, headers, body, responseType);
-			xhr.responseType = responseType === MediaType.Json ? "text" : 'arraybuffer'
+			xhr.responseType = (responseType === MediaType.Json || responseType === MediaType.Text) ? "text" : 'arraybuffer'
 
 			const abortAfterTimeout = () => {
 				let res = {
@@ -53,7 +53,7 @@ export class RestClient {
 				}
 				clearTimeout(timeout)
 				if (xhr.status === 200 || method === HttpMethod.POST && xhr.status === 201) {
-					if (responseType === MediaType.Json) {
+					if (responseType === MediaType.Json || responseType === MediaType.Text) {
 						resolve(xhr.response)
 					} else if (responseType === MediaType.Binary) {
 						resolve(new Uint8Array(xhr.response))
