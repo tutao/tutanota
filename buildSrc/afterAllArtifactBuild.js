@@ -5,9 +5,7 @@ const signer = require('./installerSigner.js')
  * @param args
  */
 
-const MAC_EXTENSION = process.platform === "darwin"
-	? "dmg"
-	: "zip"
+const MAC_EXTENSION = "zip"
 
 function hook(args) {
 	console.log("AfterAllArtifactBuild hook...")
