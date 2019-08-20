@@ -98,7 +98,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "35"
+	"version": "36"
 }
 
 export function createTutanotaProperties(values?: $Shape<$Exact<TutanotaProperties>>): TutanotaProperties {

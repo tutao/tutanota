@@ -23,7 +23,7 @@ import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, neverNull, noOp} from "../api/common/utils/Utils"
+import {defer, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -252,7 +252,7 @@ export class MailViewer {
 				}
 				if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 					moreButtons.push(new Button("export_action",
-						() => exportAsEml(this.mail, this._mailBody ? htmlSanitizer.sanitize(this._mailBody.text, false).text : ""),
+						() => exportAsEml(this.mail, this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""),
 						() => Icons.Export).setType(ButtonType.Dropdown))
 				}
 				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
@@ -262,7 +262,7 @@ export class MailViewer {
 					moreButtons.push(new Button("unsubscribe_action", () => {
 						if (this.mail.headers) {
 							return showProgressDialog("pleaseWait_msg", load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
-								let headers = mailHeaders.headers.split("\n").filter(headerLine =>
+								let headers = getMailHeaders(mailHeaders).split("\n").filter(headerLine =>
 									headerLine.toLowerCase().startsWith("list-unsubscribe"))
 								if (headers.length > 0) {
 									let data = createListUnsubscribeData()
@@ -392,7 +392,7 @@ export class MailViewer {
 			if (this._mailBody) {
 				Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
 					if (confirmed) {
-						this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(neverNull(this._mailBody).text, false).html))
+						this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false).html))
 						this._contentBlocked = false
 						this._domBodyDeferred = defer()
 						this._replaceInlineImages()
@@ -420,7 +420,7 @@ export class MailViewer {
 	_loadMailBody(mail: Mail): Promise<Array<string>> {
 		return load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(body.text, true)
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true)
 
 			/**
 			 * check if we need to improve contrast for dark theme.
@@ -741,7 +741,11 @@ export class MailViewer {
 	}
 
 	_getMailBody() {
-		return this._mailBody && this._mailBody.text || ""
+		if (this._mailBody) {
+			return getMailBodyText(this._mailBody)
+		} else {
+			return ""
+		}
 	}
 
 	_forward() {
@@ -895,7 +899,7 @@ export class MailViewer {
 		if (!this.mailHeaderDialog.visible) {
 			if (this.mail.headers) {
 				load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
-						this.mailHeaderInfo = mailHeaders.headers
+						this.mailHeaderInfo = getMailHeaders(mailHeaders)
 						this.mailHeaderDialog.show()
 					}
 				).catch(NotFoundError, noOp)

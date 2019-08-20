@@ -9,7 +9,7 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
-import {containsEventOfType, neverNull, ProgressMonitor} from "../../common/utils/Utils"
+import {containsEventOfType, getMailBodyText, neverNull, ProgressMonitor} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -85,7 +85,7 @@ export class MailIndexer {
 			}, {
 				attribute: MailModel.associations["body"],
 				// Sometimes we encounter inconsistencies such as when deleted emails appear again
-				value: () => mailBody != null ? htmlToText(mailBody.text) : ""
+				value: () => mailBody != null ? htmlToText(getMailBodyText(mailBody)) : ""
 			}, {
 				attribute: MailModel.associations["attachments"],
 				value: () => files.map(file => file.name).join(" ")

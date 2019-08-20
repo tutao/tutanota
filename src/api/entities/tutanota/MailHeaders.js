@@ -25,11 +25,20 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 609, "since": 14, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"_permissions": {"name": "_permissions", "id": 607, "since": 14, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"headers": {"name": "headers", "id": 611, "since": 14, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
+		"compressedHeaders": {
+			"name": "compressedHeaders",
+			"id": 990,
+			"since": 36,
+			"type": "CompressedString",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		},
+		"headers": {"name": "headers", "id": 611, "since": 14, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true}
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "35"
+	"version": "36"
 }
 
 export function createMailHeaders(values?: $Shape<$Exact<MailHeaders>>): MailHeaders {

@@ -25,7 +25,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
-import {lazyMemoized, noOp} from "../api/common/utils/Utils"
+import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -191,7 +191,7 @@ export class MultiSearchViewer {
 
 	_exportAll(mails: Mail[]): Promise<void> {
 		return Promise.map(mails, mail => load(MailBodyTypeRef, mail.body).then(body => {
-			return exportAsEml(mail, htmlSanitizer.sanitize(body.text, false).text)
+			return exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)
 		}), {concurrency: 5}).return()
 	}
 

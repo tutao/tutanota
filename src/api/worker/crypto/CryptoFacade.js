@@ -38,6 +38,7 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
+import {inflate} from "pako_inflate"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -52,18 +53,21 @@ assertWorkerOrNode()
 let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
 
 export function valueToDefault(type: ValueTypeEnum) {
-	if (type === ValueType.String) {
-		return ""
-	} else if (type === ValueType.Number) {
-		return "0"
-	} else if (type === ValueType.Bytes) {
-		return new Uint8Array(0)
-	} else if (type === ValueType.Date) {
-		return new Date()
-	} else if (type === ValueType.Boolean) {
-		return false
-	} else {
-		throw new ProgrammingError(`${type} is not a valid value type`)
+	switch (type) {
+		case ValueType.String:
+			return ""
+		case ValueType.Number:
+			return "0"
+		case ValueType.Bytes:
+			return new Uint8Array(0)
+		case ValueType.Date:
+			return new Date()
+		case ValueType.Boolean:
+			return false
+		case ValueType.CompressedString:
+			return ""
+		default:
+			throw new ProgrammingError(`${type} is not a valid value type`)
 	}
 }
 
@@ -494,6 +498,9 @@ export function decryptValue(valueType: ModelValue, value: ?Base64 | String, sk:
 		let decryptedBytes = aes128Decrypt((sk: any), base64ToUint8Array((value: any)))
 		if (valueType.type === ValueType.Bytes) {
 			return decryptedBytes
+		} else if (valueType.type === ValueType.CompressedString) {
+			const uncompressedBytes = inflate(decryptedBytes)
+			return utf8Uint8ArrayToString(uncompressedBytes)
 		} else {
 			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}

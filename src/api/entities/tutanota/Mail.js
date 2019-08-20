@@ -94,7 +94,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "tutanota", "version": "35"
+	}, "app": "tutanota", "version": "36"
 }
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {

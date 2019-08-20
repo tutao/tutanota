@@ -5,7 +5,7 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/FormatValidator"
 import {HttpMethod, isSameId, getElementId} from "../api/common/EntityFunctions"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
@@ -90,7 +90,7 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 			if (mail.headers) {
 				return load(MailHeadersTypeRef, mail.headers)
 					.then(mailHeaders => {
-						return _checkContainsRule(mailHeaders.headers, inboxRule)
+						return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
 					})
 					.catch(NotFoundError, noOp)
 			} else {

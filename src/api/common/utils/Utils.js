@@ -255,3 +255,12 @@ export class ProgressMonitor {
 		this.updater(Math.min(100, result))
 	}
 }
+
+
+export function getMailBodyText(body: MailBody): string {
+	return body.compressedText || body.text || ""
+}
+
+export function getMailHeaders(headers: MailHeaders): string {
+	return headers.compressedHeaders || headers.headers || ""
+}

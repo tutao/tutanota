@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "35"
+	"version": "36"
 }
 
 export function createPhotosRef(values?: $Shape<$Exact<PhotosRef>>): PhotosRef {

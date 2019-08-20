@@ -17,7 +17,7 @@ import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
 import {NotFoundError} from "../api/common/error/RestError"
-import {noOp} from "../api/common/utils/Utils"
+import {getMailBodyText, noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -49,7 +49,7 @@ export class MultiMailViewer {
 	_exportAll(mails: Mail[]): Promise<void> {
 		return Promise.map(mails, mail =>
 				load(MailBodyTypeRef, mail.body)
-					.then(body => exportAsEml(mail, htmlSanitizer.sanitize(body.text, false).text)),
+					.then(body => exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)),
 			{concurrency: 5}).return()
 	}
 
