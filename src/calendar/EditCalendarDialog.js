@@ -33,7 +33,7 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, edit: 
 			])
 		},
 		okAction: (dialog) => {
-			okAction(dialog, {name: nameStream(), color: colorPickerDom ? colorPickerDom.value.substring(1) : color})
+			okAction(dialog, {name: nameStream(), color: colorStream().substring(1)})
 		}
 	})
 }

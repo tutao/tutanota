@@ -28,9 +28,7 @@ declare module 'mithril' {
 
 		prefix: string;
 
-		Link: MComponent<any>,
-
-		link(vnode: any): Function;
+		Link: MComponent<any>;
 	}
 
 	declare interface Mithril {

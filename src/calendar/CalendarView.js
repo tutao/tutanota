@@ -48,6 +48,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {isApp} from "../api/Env"
 
 
 export type CalendarInfo = {
@@ -337,47 +338,52 @@ export class CalendarView implements CurrentView {
 							m(".pl-m.b", getCalendarName(groupInfo.name))
 						]),
 						m(ButtonN, attachDropdown({
-							label: "more_label",
-							click: noOp,
-							icon: () => Icons.More
-						}, () => [
-							{
-								label: "edit_action",
-								icon: () => Icons.Edit,
-								click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
-								type: ButtonType.Dropdown,
-							},
-							{
-								label: "import_action",
-								icon: () => Icons.Import,
-								click: () => showCalendarImportDialog(groupRoot),
-								type: ButtonType.Dropdown,
-							},
-							{
-								label: "export_action",
-								icon: () => Icons.Export,
-								click: () => {
-									const alarmInfoList = logins.getUserController().user.alarmInfoList
-									alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
+								label: "more_label",
+								click: noOp,
+								icon: () => Icons.More
+							}, () => [
+								{
+									label: "edit_action",
+									icon: () => Icons.Edit,
+									click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
+									type: ButtonType.Dropdown,
 								},
-								type: ButtonType.Dropdown,
-							},
-							{
-								label: "delete_action",
-								icon: () => Icons.Trash,
-								click: () => {
-									Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": groupInfo.name}))
-									      .then((confirmed) => {
-										      if (confirmed) {
-											      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {
-												      groupRootId: groupRoot._id
-											      }))
-										      }
-									      })
+								isApp()
+									? null
+									: {
+										label: "import_action",
+										icon: () => Icons.Import,
+										click: () => showCalendarImportDialog(groupRoot),
+										type: ButtonType.Dropdown,
+									},
+								isApp()
+									? null
+									: {
+										label: "export_action",
+										icon: () => Icons.Export,
+										click: () => {
+											const alarmInfoList = logins.getUserController().user.alarmInfoList
+											alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
+										},
+										type: ButtonType.Dropdown,
+									},
+								{
+									label: "delete_action",
+									icon: () => Icons.Trash,
+									click: () => {
+										Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": groupInfo.name}))
+										      .then((confirmed) => {
+											      if (confirmed) {
+												      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
+													      groupRootId: groupRoot._id
+												      }))
+											      }
+										      })
+									},
+									type: ButtonType.Dropdown,
 								},
-								type: ButtonType.Dropdown,
-							},
-						])),
+							].filter(Boolean)
+						)),
 					])
 			})
 			: null
