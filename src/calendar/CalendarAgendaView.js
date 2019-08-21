@@ -106,7 +106,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						])
 					})
 					.filter(Boolean) // mithril doesn't allow mixing keyed elements with null (for perf reasons it seems)
-					.concat(m(".mlr-l", {key: "events_until"}, `Showing events until ${lastDayFormatted}`)))
+					.concat(m(".mlr-l", {key: "events_until"}, lang.get("showingEventsUntil_msg", {"{untilDay}": lastDayFormatted}))))
 			]
 		)
 	}

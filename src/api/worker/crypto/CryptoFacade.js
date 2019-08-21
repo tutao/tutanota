@@ -485,7 +485,7 @@ export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key):
 	}
 }
 
-export function decryptValue(valueType: ModelValue, value: ?Base64 | String, sk: ?Aes128Key): any {
+export function decryptValue(valueType: ModelValue, value: ?Base64 | string, sk: ?Aes128Key): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
@@ -499,26 +499,35 @@ export function decryptValue(valueType: ModelValue, value: ?Base64 | String, sk:
 		if (valueType.type === ValueType.Bytes) {
 			return decryptedBytes
 		} else if (valueType.type === ValueType.CompressedString) {
-			const uncompressedBytes = inflate(decryptedBytes)
-			return utf8Uint8ArrayToString(uncompressedBytes)
+			return decompressString(decryptedBytes)
 		} else {
 			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
 	} else {
-		return convertDbToJsType(valueType.type, (value: any))
+		return convertDbToJsType(valueType.type, value)
 	}
 }
 
-function convertDbToJsType(type: ValueType, value: string): any {
-	if (type === ValueType.Bytes && value != null && !(value instanceof Uint8Array)) {
+function convertDbToJsType(type: ValueType, value: Base64 | string): any {
+	if (type === ValueType.Bytes) {
 		return base64ToUint8Array((value: any))
 	} else if (type === ValueType.Boolean) {
 		return value !== '0'
 	} else if (type === ValueType.Date) {
 		return new Date(parseInt(value))
+	} else if (type === ValueType.CompressedString) {
+		return decompressString(base64ToUint8Array(value))
 	} else {
 		return value
 	}
+}
+
+function decompressString(compressed: Uint8Array): string {
+	if (compressed.length === 0) {
+		return ""
+	}
+	const uncompressedBytes = inflate(compressed)
+	return utf8Uint8ArrayToString(uncompressedBytes)
 }
 
 function convertJsToDbType(type: ValueType, value: any): Base64 | string {
@@ -528,6 +537,8 @@ function convertJsToDbType(type: ValueType, value: any): Base64 | string {
 		return value ? '1' : '0'
 	} else if (type === ValueType.Date) {
 		return value.getTime().toString()
+	} else if (type === ValueType.CompressedString) {
+		throw new ProgrammingError("Compression is not implemented yet")
 	} else {
 		return value
 	}

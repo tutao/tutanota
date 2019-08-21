@@ -1008,13 +1008,13 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"color_label": "Color",
-		"importReadFileError_msg": "Can not read file {filename}.",
+		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importCalendar_label": "Importing calendar",
 		"addCalendar_action": "Add calendar",
 		"import_action": "Import",
-		"deleteCalendarConfirm_msg": "Are you sure that you want to delete calendar \"{calendar}\" and all events in it?",
+		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
 		"automatic_label": "Automatic",
-		"settingsForDevice_label": "Settings for device",
-		"settingsForAccount_label": "Settings for account"
+		"settingsForDevice_label": "Settings for this device",
+		"showingEventsUntil_msg": "Showing events until {untilDay}."
 	}
 }

@@ -83,11 +83,13 @@ const csp = (m, env) => {
 	}
 }
 
-module.exports.renderTestHtml = function (scripts) {
+module.exports.renderTestHtml = async function (scripts) {
 	global.window = require("mithril/test-utils/browserMock")()
+	global.requestAnimationFrame = setTimeout
 	const m = require('mithril')
 	const render = require('mithril-node-render')
-	let html = '<!DOCTYPE html>\n' + render(
+
+	let html = '<!DOCTYPE html>\n' + await render(
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),

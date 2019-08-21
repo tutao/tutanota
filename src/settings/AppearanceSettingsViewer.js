@@ -76,7 +76,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			m(".h4.mt-l", lang.get('settingsForDevice_label')),
 			m(DropDownSelectorN, languageDropDownAttrs),
 			themeId() === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
-			m(".h4.mt-l", lang.get('settingsForAccount_label')),
+			m(".h4.mt-l", lang.get('userSettings_label')),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
 		])
