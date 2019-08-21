@@ -9,7 +9,14 @@ import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} 
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
+	FeatureType,
+	MAX_ATTACHMENT_SIZE,
+	OperationType,
+	ReplyType
+} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
@@ -17,7 +24,13 @@ import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
-import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
+import {
+	AccessBlockedError,
+	ConnectionError,
+	NotFoundError,
+	PreconditionFailedError,
+	TooManyRequestsError
+} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, isApp, Mode} from "../api/Env"
@@ -83,6 +96,7 @@ import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {DbError} from "../api/common/error/DbError"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
+import {getTimeZone} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -371,7 +385,8 @@ export class MailEditor {
 		return logins.getUserController().loadCustomer()
 		             .then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 		             .then((customerProperties) => {
-			             return sortedLanguages.filter(sL => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
+			             return sortedLanguages.filter(sL =>
+				             customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
 		             })
 		             .catch(() => [])
 	}
@@ -1024,7 +1039,9 @@ export class MailEditor {
 					})
 				}
 			}
-			if (!this._previousMail || !this._previousMail.restrictions || this._previousMail.restrictions.participantGroupInfos.length === 0) {
+			if (!this._previousMail
+				|| !this._previousMail.restrictions
+				|| this._previousMail.restrictions.participantGroupInfos.length === 0) {
 				buttonAttrs.push({
 					label: "remove_action",
 					type: ButtonType.Secondary,
@@ -1120,6 +1137,7 @@ export class MailEditor {
 			let signature = "<br><br>--"
 			signature += "<br>Client: " + client.getIdentifier()
 			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>Time zone: " + getTimeZone()
 			signature += "<br>User agent:<br>" + navigator.userAgent
 			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
 				editor.show()
