@@ -57,6 +57,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createVersionInfo(): VersionInfo {
-	return create(_TypeModel, VersionInfoTypeRef)
+export function createVersionInfo(values?: $Shape<$Exact<VersionInfo>>): VersionInfo {
+	return Object.assign(create(_TypeModel, VersionInfoTypeRef), values)
 }

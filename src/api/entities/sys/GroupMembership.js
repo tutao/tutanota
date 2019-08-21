@@ -53,6 +53,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createGroupMembership(): GroupMembership {
-	return create(_TypeModel, GroupMembershipTypeRef)
+export function createGroupMembership(values?: $Shape<$Exact<GroupMembership>>): GroupMembership {
+	return Object.assign(create(_TypeModel, GroupMembershipTypeRef), values)
 }

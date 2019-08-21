@@ -32,6 +32,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createU2fKey(): U2fKey {
-	return create(_TypeModel, U2fKeyTypeRef)
+export function createU2fKey(values?: $Shape<$Exact<U2fKey>>): U2fKey {
+	return Object.assign(create(_TypeModel, U2fKeyTypeRef), values)
 }

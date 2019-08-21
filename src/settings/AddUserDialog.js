@@ -15,7 +15,7 @@ import {addAll} from "../api/common/utils/ArrayUtils"
 import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog, showWorkerProgressDialog} from "../gui/base/ProgressDialog"
 
 
 assertMainOrNode()
@@ -40,10 +40,10 @@ export function show(): Promise<void> {
 				.then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						showProgressDialog(() => lang.get("createActionStatus_msg", {
+						showWorkerProgressDialog(() => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
-						}), p, true).then(dialog.close())
+						}), p).then(dialog.close())
 					}
 				})
 		}

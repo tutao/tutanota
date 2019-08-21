@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createInputField(): InputField {
-	return create(_TypeModel, InputFieldTypeRef)
+export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {
+	return Object.assign(create(_TypeModel, InputFieldTypeRef), values)
 }

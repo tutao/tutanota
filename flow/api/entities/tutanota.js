@@ -67,7 +67,8 @@ type MailBody = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	text: string;
+	compressedText: ?string;
+	text: ?string;
 
 }
 
@@ -655,7 +656,8 @@ type MailHeaders = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	headers: string;
+	compressedHeaders: ?string;
+	headers: ?string;
 
 }
 
@@ -1014,6 +1016,7 @@ type CalendarEvent = {
 	location: string;
 	startTime: Date;
 	summary: string;
+	uid: ?string;
 
 	repeatRule: ?CalendarRepeatRule;
 	alarmInfos: IdTuple[];

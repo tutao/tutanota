@@ -5,11 +5,12 @@ import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
-import {formatDateWithWeekday} from "../misc/Formatter"
-import {getEventColor, getEventText} from "./CalendarUtils"
+import {formatDate, formatDateWithWeekday} from "../misc/Formatter"
+import {eventEndsAfterDay, eventStartsBefore, getEventColor, getEventText} from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {px, size} from "../gui/size"
+import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 type Attrs = {
 	/**
@@ -25,71 +26,97 @@ type Attrs = {
 export class CalendarAgendaView implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>) {
 		const now = new Date()
-		const today = getStartOfDay(now).getTime()
-		const tomorrow = getDayShifted(new Date(today), 1).getTime()
 
-		const days = getNextFourteenDays()
+		const today = getStartOfDay(now)
+		const tomorrow = getDayShifted(new Date(today), 1).getTime()
+		const days = getNextFourteenDays(today)
+		const lastDay = lastThrow(days)
+		let title: string
+		if (days[0].getMonth() === lastDay.getMonth()) {
+			title = `${lang.formats.dateWithWeekdayWoMonth.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
+		} else {
+			title = `${lang.formats.dateWithWeekday.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
+		}
+		const lastDayFormatted = formatDate(lastDay)
+
 		return m(".fill-absolute.flex.col", [
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
 						[
-							m("h1", {
+							m("h1.flex.row", {
 								style: {
 									"margin-left": px(size.calendar_hour_width)
 								}
-							}, lang.get("agenda_label")),
+							}, [lang.get("agenda_label"), m(".ml-m.no-wrap.overflow-hidden", title)]),
 							m("hr.hr.mt-s"),
 						]
 						: null,
 				]),
-				m(".scroll.pt-s", days.map((day) => {
-					let events = (attrs.eventsForDays.get(day) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
-					if (day === today) {
-						// only show future and currently running events
-						events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
-					} else if (day > tomorrow && events.length === 0) {
-						return null
-					}
+				m(".scroll.pt-s", days
+					.map((day) => {
+						let events = (attrs.eventsForDays.get(day.getTime()) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+						if (day === today) {
+							// only show future and currently running events
+							events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
+						} else if (day > tomorrow && events.length === 0) {
+							return null
+						}
 
-					const date = new Date(day)
-					const dateDescription = day === today
-						? lang.get("today_label")
-						: day === tomorrow
-							? lang.get("tomorrow_label")
-							: formatDateWithWeekday(date)
-					return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
-						key: day,
-					}, [
-						m("button.pb-s.b", {
-							onclick: () => attrs.onDateSelected(new Date(day)),
-						}, dateDescription),
-						m(".flex-grow", {
-							style: {
-								"max-width": "600px",
-							}
-						}, events.length === 0
-							? m(".mb-s", lang.get("noEntries_msg"))
-							: events.map((ev) => m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
-								text: getEventText(ev, EventTextTimeOption.START_END_TIME),
-								secondLineText: ev.location,
-								color: getEventColor(ev, attrs.groupColors),
-								hasAlarm: ev.alarmInfos.length > 0,
-								onEventClicked: () => attrs.onEventClicked(ev),
-								height: 38,
-								verticalPadding: 2
-							}))))
-					])
-				}))
+						const dateDescription = day === today
+							? lang.get("today_label")
+							: day === tomorrow
+								? lang.get("tomorrow_label")
+								: formatDateWithWeekday(day)
+						return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
+							key: day,
+						}, [
+							m("button.pb-s.b", {
+								onclick: () => attrs.onDateSelected(new Date(day)),
+							}, dateDescription),
+							m(".flex-grow", {
+								style: {
+									"max-width": "600px",
+								}
+							}, events.length === 0
+								? m(".mb-s", lang.get("noEntries_msg"))
+								: events.map((ev) => {
+									const startsBefore = eventStartsBefore(day, ev)
+									const endsAfter = eventEndsAfterDay(day, ev)
+									let textOption
+									if (isAllDayEvent(ev) || (startsBefore && endsAfter)) {
+										textOption = EventTextTimeOption.ALL_DAY
+									} else if (startsBefore && !endsAfter) {
+										textOption = EventTextTimeOption.END_TIME
+									} else if (!startsBefore && endsAfter) {
+										textOption = EventTextTimeOption.START_TIME
+									} else {
+										textOption = EventTextTimeOption.START_END_TIME
+									}
+
+									return m(".darker-hover.mb-s", {key: ev._id}, m(CalendarEventBubble, {
+										text: getEventText(ev, textOption),
+										secondLineText: ev.location,
+										color: getEventColor(ev, attrs.groupColors),
+										hasAlarm: ev.alarmInfos.length > 0 && !startsBefore,
+										onEventClicked: () => attrs.onEventClicked(ev),
+										height: 38,
+										verticalPadding: 2
+									}))
+								}))
+						])
+					})
+					.filter(Boolean) // mithril doesn't allow mixing keyed elements with null (for perf reasons it seems)
+					.concat(m(".mlr-l", {key: "events_until"}, `Showing events until ${lastDayFormatted}`)))
 			]
 		)
 	}
 }
 
-function getNextFourteenDays(): Array<number> {
-	let calculationDate = getStartOfDay(new Date())
+function getNextFourteenDays(startOfToday: Date): Array<Date> {
+	let calculationDate = new Date(startOfToday)
 	const days = []
 	for (let i = 0; i < 14; i++) {
-		days.push(calculationDate.getTime())
+		days.push(new Date(calculationDate.getTime()))
 		calculationDate = incrementDate(calculationDate, 1)
 	}
 	return days

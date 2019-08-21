@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createNotificationMailTemplate(): NotificationMailTemplate {
-	return create(_TypeModel, NotificationMailTemplateTypeRef)
+export function createNotificationMailTemplate(values?: $Shape<$Exact<NotificationMailTemplate>>): NotificationMailTemplate {
+	return Object.assign(create(_TypeModel, NotificationMailTemplateTypeRef), values)
 }

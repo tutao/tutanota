@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createChallenge(): Challenge {
-	return create(_TypeModel, ChallengeTypeRef)
+export function createChallenge(values?: $Shape<$Exact<Challenge>>): Challenge {
+	return Object.assign(create(_TypeModel, ChallengeTypeRef), values)
 }

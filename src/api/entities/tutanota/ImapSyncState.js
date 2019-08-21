@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createImapSyncState(): ImapSyncState {
-	return create(_TypeModel, ImapSyncStateTypeRef)
+export function createImapSyncState(values?: $Shape<$Exact<ImapSyncState>>): ImapSyncState {
+	return Object.assign(create(_TypeModel, ImapSyncStateTypeRef), values)
 }

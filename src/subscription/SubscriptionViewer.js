@@ -48,7 +48,8 @@ import {
 	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
-	isWhitelabelActive, SubscriptionType
+	isWhitelabelActive,
+	SubscriptionType
 } from "./SubscriptionUtils"
 
 assertMainOrNode()

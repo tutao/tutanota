@@ -24,6 +24,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createU2fRegisteredDevice(): U2fRegisteredDevice {
-	return create(_TypeModel, U2fRegisteredDeviceTypeRef)
+export function createU2fRegisteredDevice(values?: $Shape<$Exact<U2fRegisteredDevice>>): U2fRegisteredDevice {
+	return Object.assign(create(_TypeModel, U2fRegisteredDeviceTypeRef), values)
 }

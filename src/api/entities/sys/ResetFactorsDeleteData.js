@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createResetFactorsDeleteData(): ResetFactorsDeleteData {
-	return create(_TypeModel, ResetFactorsDeleteDataTypeRef)
+export function createResetFactorsDeleteData(values?: $Shape<$Exact<ResetFactorsDeleteData>>): ResetFactorsDeleteData {
+	return Object.assign(create(_TypeModel, ResetFactorsDeleteDataTypeRef), values)
 }

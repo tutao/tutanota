@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBucket(): Bucket {
-	return create(_TypeModel, BucketTypeRef)
+export function createBucket(values?: $Shape<$Exact<Bucket>>): Bucket {
+	return Object.assign(create(_TypeModel, BucketTypeRef), values)
 }

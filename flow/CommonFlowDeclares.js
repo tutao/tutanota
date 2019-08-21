@@ -23,7 +23,7 @@ declare function mapper<T, R>(T): ?R;
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 declare function clickHandler(event: MouseEvent, dom: HTMLElement): void;
 
-declare function dropHandler(dragData: string): void;
+declare type dropHandler = (dragData: string) => void;
 
 type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
 

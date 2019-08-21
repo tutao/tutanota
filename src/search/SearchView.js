@@ -8,7 +8,7 @@ import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, Opera
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {NavButton, NavButtonColors} from "../gui/base/NavButton"
+import {NavButtonColors} from "../gui/base/NavButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -39,6 +39,8 @@ import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 
 assertMainOrNode()
 
@@ -53,8 +55,8 @@ export class SearchView implements CurrentView {
 	oncreate: Function;
 	onbeforeremove: Function;
 
-	_mailFolder: NavButton;
-	_contactFolder: NavButton;
+	_mailFolder: NavButtonAttrs;
+	_contactFolder: NavButtonAttrs;
 	_time: TextField;
 	_endDate: ?Date; // null = today
 	_startDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
@@ -64,10 +66,19 @@ export class SearchView implements CurrentView {
 	_doNotUpdateQuery: boolean;
 
 	constructor() {
-		this._mailFolder = new NavButton('emails_label', () => BootIcons.Mail, () => this._getCurrentSearchUrl("mail", null), "/search/mail")
-			.setColors(NavButtonColors.Nav)
-		this._contactFolder = new NavButton('contacts_label', () => BootIcons.Contacts, () => "/search/contact", "/search/contact")
-			.setColors(NavButtonColors.Nav)
+		this._mailFolder = {
+			label: "emails_label",
+			icon: () => BootIcons.Mail,
+			href: () => this._getCurrentSearchUrl("mail", null),
+			isSelectedPrefix: "/search/mail",
+			colors: NavButtonColors.Nav,
+		}
+		this._contactFolder = {
+			label: "contacts_label",
+			icon: () => BootIcons.Contacts,
+			href: "/search/contact",
+			colors: NavButtonColors.Nav,
+		}
 
 		this._endDate = null
 		this._startDate = null
@@ -159,20 +170,22 @@ export class SearchView implements CurrentView {
 						lang.get("search_label").toLocaleUpperCase())
 				]),
 				m(".folders", [
-					m(".folder-row.plr-l", {class: this._mailFolder.isSelected() ? "row-selected" : ""}, m(this._mailFolder)),
-					m(".folder-row.plr-l", {class: this._contactFolder.isSelected() ? "row-selected" : ""}, m(this._contactFolder)),
+					m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
+					m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
 				]),
-				this._mailFolder.isSelected() ? m("", [
-					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-							lang.get("filter_label").toLocaleUpperCase())
-					]),
-					m(".plr-l.mt-negative-s", [
-						m(this._getUpdatedTimeField()),
-						m(this._mailFieldSelection),
-						m(this._mailFolderSelection),
+				isNavButtonSelected(this._mailFolder)
+					? m("", [
+						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+								lang.get("filter_label").toLocaleUpperCase())
+						]),
+						m(".plr-l.mt-negative-s", [
+							m(this._getUpdatedTimeField()),
+							m(this._mailFieldSelection),
+							m(this._mailFolderSelection),
+						])
 					])
-				]) : null
+					: null
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
 

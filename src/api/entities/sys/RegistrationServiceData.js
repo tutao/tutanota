@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRegistrationServiceData(): RegistrationServiceData {
-	return create(_TypeModel, RegistrationServiceDataTypeRef)
+export function createRegistrationServiceData(values?: $Shape<$Exact<RegistrationServiceData>>): RegistrationServiceData {
+	return Object.assign(create(_TypeModel, RegistrationServiceDataTypeRef), values)
 }

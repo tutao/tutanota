@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createEncryptedMailAddress(): EncryptedMailAddress {
-	return create(_TypeModel, EncryptedMailAddressTypeRef)
+export function createEncryptedMailAddress(values?: $Shape<$Exact<EncryptedMailAddress>>): EncryptedMailAddress {
+	return Object.assign(create(_TypeModel, EncryptedMailAddressTypeRef), values)
 }

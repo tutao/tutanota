@@ -50,6 +50,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUserExternalAuthInfo(): UserExternalAuthInfo {
-	return create(_TypeModel, UserExternalAuthInfoTypeRef)
+export function createUserExternalAuthInfo(values?: $Shape<$Exact<UserExternalAuthInfo>>): UserExternalAuthInfo {
+	return Object.assign(create(_TypeModel, UserExternalAuthInfoTypeRef), values)
 }

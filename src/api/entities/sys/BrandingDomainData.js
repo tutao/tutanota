@@ -47,6 +47,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBrandingDomainData(): BrandingDomainData {
-	return create(_TypeModel, BrandingDomainDataTypeRef)
+export function createBrandingDomainData(values?: $Shape<$Exact<BrandingDomainData>>): BrandingDomainData {
+	return Object.assign(create(_TypeModel, BrandingDomainDataTypeRef), values)
 }

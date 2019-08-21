@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createU2fChallenge(): U2fChallenge {
-	return create(_TypeModel, U2fChallengeTypeRef)
+export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {
+	return Object.assign(create(_TypeModel, U2fChallengeTypeRef), values)
 }

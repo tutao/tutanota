@@ -49,6 +49,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUpdateAdminshipData(): UpdateAdminshipData {
-	return create(_TypeModel, UpdateAdminshipDataTypeRef)
+export function createUpdateAdminshipData(values?: $Shape<$Exact<UpdateAdminshipData>>): UpdateAdminshipData {
+	return Object.assign(create(_TypeModel, UpdateAdminshipDataTypeRef), values)
 }

@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "1"
 }
 
-export function createPersistenceResourcePostReturn(): PersistenceResourcePostReturn {
-	return create(_TypeModel, PersistenceResourcePostReturnTypeRef)
+export function createPersistenceResourcePostReturn(values?: $Shape<$Exact<PersistenceResourcePostReturn>>): PersistenceResourcePostReturn {
+	return Object.assign(create(_TypeModel, PersistenceResourcePostReturnTypeRef), values)
 }

@@ -41,9 +41,18 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		const nextPageEvents = this._calculateEventsForDate(vnode.attrs, nextDate)
 
 		return m(PageView, {
-			previousPage: this._renderDay(vnode, previousDate, previousPageEvents, currentPageEvents),
-			currentPage: this._renderDay(vnode, vnode.attrs.selectedDate, currentPageEvents, currentPageEvents),
-			nextPage: this._renderDay(vnode, nextDate, nextPageEvents, currentPageEvents),
+			previousPage: {
+				key: previousDate.getTime(),
+				nodes: this._renderDay(vnode, previousDate, previousPageEvents, currentPageEvents)
+			},
+			currentPage: {
+				key: vnode.attrs.selectedDate.getTime(),
+				nodes: this._renderDay(vnode, vnode.attrs.selectedDate, currentPageEvents, currentPageEvents)
+			},
+			nextPage: {
+				key: nextDate.getTime(),
+				nodes: this._renderDay(vnode, nextDate, nextPageEvents, currentPageEvents)
+			},
 			onChangePage: (next) => vnode.attrs.onDateSelected(next ? nextDate : previousDate)
 		})
 	}

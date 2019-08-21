@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createCalendarDeleteData(): CalendarDeleteData {
-	return create(_TypeModel, CalendarDeleteDataTypeRef)
+export function createCalendarDeleteData(values?: $Shape<$Exact<CalendarDeleteData>>): CalendarDeleteData {
+	return Object.assign(create(_TypeModel, CalendarDeleteDataTypeRef), values)
 }

@@ -34,6 +34,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createBookingItem(): BookingItem {
-	return create(_TypeModel, BookingItemTypeRef)
+export function createBookingItem(values?: $Shape<$Exact<BookingItem>>): BookingItem {
+	return Object.assign(create(_TypeModel, BookingItemTypeRef), values)
 }

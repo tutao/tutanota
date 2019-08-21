@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createCreateMailFolderData(): CreateMailFolderData {
-	return create(_TypeModel, CreateMailFolderDataTypeRef)
+export function createCreateMailFolderData(values?: $Shape<$Exact<CreateMailFolderData>>): CreateMailFolderData {
+	return Object.assign(create(_TypeModel, CreateMailFolderDataTypeRef), values)
 }

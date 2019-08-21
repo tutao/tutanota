@@ -50,6 +50,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUpdatePermissionKeyData(): UpdatePermissionKeyData {
-	return create(_TypeModel, UpdatePermissionKeyDataTypeRef)
+export function createUpdatePermissionKeyData(values?: $Shape<$Exact<UpdatePermissionKeyData>>): UpdatePermissionKeyData {
+	return Object.assign(create(_TypeModel, UpdatePermissionKeyDataTypeRef), values)
 }

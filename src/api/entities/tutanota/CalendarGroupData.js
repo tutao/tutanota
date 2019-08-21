@@ -56,9 +56,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createCalendarGroupData(): CalendarGroupData {
-	return create(_TypeModel, CalendarGroupDataTypeRef)
+export function createCalendarGroupData(values?: $Shape<$Exact<CalendarGroupData>>): CalendarGroupData {
+	return Object.assign(create(_TypeModel, CalendarGroupDataTypeRef), values)
 }

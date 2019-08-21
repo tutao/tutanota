@@ -32,6 +32,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPriceData(): PriceData {
-	return create(_TypeModel, PriceDataTypeRef)
+export function createPriceData(values?: $Shape<$Exact<PriceData>>): PriceData {
+	return Object.assign(create(_TypeModel, PriceDataTypeRef), values)
 }

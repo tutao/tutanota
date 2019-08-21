@@ -259,7 +259,7 @@ function createHtml(env) {
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,
 		].join("\n")),
-		_writeFile(`./build/dist/${filenamePrefix}.html`, LaunchHtml.renderHtml(imports, env))
+		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
 	])
 }
 

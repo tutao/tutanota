@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createFileDataReturnPost(): FileDataReturnPost {
-	return create(_TypeModel, FileDataReturnPostTypeRef)
+export function createFileDataReturnPost(values?: $Shape<$Exact<FileDataReturnPost>>): FileDataReturnPost {
+	return Object.assign(create(_TypeModel, FileDataReturnPostTypeRef), values)
 }

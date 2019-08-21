@@ -24,7 +24,6 @@ import {logins} from "../api/main/LoginController"
 import {vCardFileToVCards, vCardListToContacts} from "./VCardImporter"
 import {NotFoundError} from "../api/common/error/RestError"
 import {MultiContactViewer} from "./MultiContactViewer"
-import {NavButton} from "../gui/base/NavButton"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -39,6 +38,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {NavButtonN} from "../gui/base/NavButtonN"
 
 
 assertMainOrNode()
@@ -66,7 +66,7 @@ export class ContactView implements CurrentView {
 				style: {
 					paddingLeft: getSafeAreaInsetLeft()
 				}
-			},[
+			}, [
 				m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
 				m(expander.panel)
 			])
@@ -181,12 +181,14 @@ export class ContactView implements CurrentView {
 
 	createContactFoldersExpander(): ExpanderButton {
 		let folderMoreButton = this.createFolderMoreButton()
-		let folderButton = new NavButton('all_contacts_label', () => BootIcons.Contacts, () => m.route.get())
 		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
 				view: () => m(".folders", [
 					m(".folder-row.flex-space-between.plr-l.row-selected", [
-						m(folderButton),
-						m(folderMoreButton)
+						m(NavButtonN, {
+							label: "all_contacts_label",
+							icon: () => BootIcons.Contacts,
+							href: m.route.get(),
+						}),
 					])
 				])
 			}), false, {}, theme.navigation_button
@@ -207,7 +209,7 @@ export class ContactView implements CurrentView {
 		} else {
 			return [
 				new Button('importVCard_action', () => this._importAsVCard(), () => Icons.ContactImport).setType(ButtonType.Dropdown),
-				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Download).setType(ButtonType.Dropdown)
+				new Button("exportVCard_action", () => exportAsVCard(), () => Icons.Export).setType(ButtonType.Dropdown)
 			]
 		}
 	}

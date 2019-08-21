@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createPasswordChannelPhoneNumber(): PasswordChannelPhoneNumber {
-	return create(_TypeModel, PasswordChannelPhoneNumberTypeRef)
+export function createPasswordChannelPhoneNumber(values?: $Shape<$Exact<PasswordChannelPhoneNumber>>): PasswordChannelPhoneNumber {
+	return Object.assign(create(_TypeModel, PasswordChannelPhoneNumberTypeRef), values)
 }

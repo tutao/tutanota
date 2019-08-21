@@ -89,6 +89,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPermission(): Permission {
-	return create(_TypeModel, PermissionTypeRef)
+export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {
+	return Object.assign(create(_TypeModel, PermissionTypeRef), values)
 }

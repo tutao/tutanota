@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createPasswordMessagingReturn(): PasswordMessagingReturn {
-	return create(_TypeModel, PasswordMessagingReturnTypeRef)
+export function createPasswordMessagingReturn(values?: $Shape<$Exact<PasswordMessagingReturn>>): PasswordMessagingReturn {
+	return Object.assign(create(_TypeModel, PasswordMessagingReturnTypeRef), values)
 }

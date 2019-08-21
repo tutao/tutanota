@@ -5,7 +5,7 @@ import {load} from "../api/main/Entity"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
-import {neverNull} from "../api/common/utils/Utils"
+import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
 import {formatSortableDateTime} from "../misc/Formatter"
@@ -49,7 +49,7 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 		let emlArray
 
 		if (header) {
-			emlArray = header.headers.split("\n")
+			emlArray = getMailHeaders(header).split("\n")
 			for (let i = emlArray.length - 1; i >= 0; i--) {
 				if (emlArray[i].match(/^\s*(Content-Type:|boundary=)/)) {
 					emlArray.splice(i, 1)

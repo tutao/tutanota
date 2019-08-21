@@ -24,9 +24,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createCalendarPostData(): CalendarPostData {
-	return create(_TypeModel, CalendarPostDataTypeRef)
+export function createCalendarPostData(values?: $Shape<$Exact<CalendarPostData>>): CalendarPostData {
+	return Object.assign(create(_TypeModel, CalendarPostDataTypeRef), values)
 }

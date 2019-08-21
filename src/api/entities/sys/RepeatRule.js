@@ -24,6 +24,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRepeatRule(): RepeatRule {
-	return create(_TypeModel, RepeatRuleTypeRef)
+export function createRepeatRule(values?: $Shape<$Exact<RepeatRule>>): RepeatRule {
+	return Object.assign(create(_TypeModel, RepeatRuleTypeRef), values)
 }

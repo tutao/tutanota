@@ -35,6 +35,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSecondFactor(): SecondFactor {
-	return create(_TypeModel, SecondFactorTypeRef)
+export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {
+	return Object.assign(create(_TypeModel, SecondFactorTypeRef), values)
 }

@@ -28,6 +28,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPushIdentifierList(): PushIdentifierList {
-	return create(_TypeModel, PushIdentifierListTypeRef)
+export function createPushIdentifierList(values?: $Shape<$Exact<PushIdentifierList>>): PushIdentifierList {
+	return Object.assign(create(_TypeModel, PushIdentifierListTypeRef), values)
 }

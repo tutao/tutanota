@@ -1,6 +1,6 @@
 // Declared at the top level to not import it in all places
 declare interface Component {
-	view(vnode:Vnode<any>): VirtualElement | VirtualElement[];
+	view(vnode: Vnode<any>): VirtualElement | VirtualElement[];
 }
 
 declare type RouteResolverMatch = {
@@ -26,7 +26,9 @@ declare module 'mithril' {
 
 		param(key: string): string;
 
-		prefix(prefix: string): void;
+		prefix: string;
+
+		Link: MComponent<any>,
 
 		link(vnode: any): Function;
 	}

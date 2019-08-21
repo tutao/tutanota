@@ -200,7 +200,7 @@ let initialized = lang.init(en).then(() => {
 		history.replaceState(null, "", neverNull(state.prefix) + target)
 		start = target
 	}
-	m.route.prefix(neverNull(state.prefix))
+	m.route.prefix = neverNull(state.prefix)
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	m.route(document.body, start, {

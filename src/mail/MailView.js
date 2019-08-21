@@ -4,7 +4,8 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {isSelectedPrefix, NavButton} from "../gui/base/NavButton"
+import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import {isNavButtonSelected, isSelectedPrefix, NavButtonN} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {MailViewer} from "./MailViewer"
@@ -57,7 +58,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
-type MailFolderRowData = {id: Id, button: NavButton}
+type MailFolderRowData = {id: Id, button: NavButtonAttrs}
 
 type MailboxExpander = {
 	expanderButton: ExpanderButton,
@@ -98,14 +99,14 @@ export class MailView implements CurrentView {
 					paddingLeft: getSafeAreaInsetLeft()
 				}
 			}, Object.keys(this._mailboxExpanders)
-					 .map(mailGroupId => {
-							 let expander = this._mailboxExpanders[mailGroupId]
-							 return [
-								 m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-								 m(neverNull(expander.expanderButton).panel)
-							 ]
-						 }
-					 ))
+			         .map(mailGroupId => {
+					         let expander = this._mailboxExpanders[mailGroupId]
+					         return [
+						         m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+						         m(neverNull(expander.expanderButton).panel)
+					         ]
+				         }
+			         ))
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
@@ -364,35 +365,34 @@ export class MailView implements CurrentView {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
 				return m(".folders",
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
-													   .map(({id, button}) => {
-														   const count = groupCounters[id]
-														   return m(MailFolderComponent, {
-															   count: count,
-															   button,
-															   rightButton: null,
-															   key: id
-														   })
-													   })
-													   .concat(logins.isInternalUserLoggedIn()
-														   ? [
-															   m(".folder-row.flex-space-between.plr-l", [
-																   m("small.b.align-self-center.ml-negative-xs",
-																	   {style: {color: theme.navigation_button}},
-																	   lang.get("yourFolders_action").toLocaleUpperCase()),
-																   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
-															   ])
-														   ]
-														   : []
-													   )
-													   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
-														   const count = groupCounters[id]
-														   return m(MailFolderComponent, {
-															   count,
-															   button,
-															   rightButton: button.isSelected() ? folderMoreButton : null,
-															   key: id
-														   })
-													   })))
+					                                   .map(({id, button}) => {
+						                                   const count = groupCounters[id]
+						                                   return m(MailFolderComponent, {
+							                                   count: count,
+							                                   button,
+							                                   rightButton: null,
+						                                   })
+					                                   })
+					                                   .concat(logins.isInternalUserLoggedIn()
+						                                   ? [
+							                                   m(".folder-row.flex-space-between.plr-l", [
+								                                   m("small.b.align-self-center.ml-negative-xs",
+									                                   {style: {color: theme.navigation_button}},
+									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
+								                                   m(neverNull(this._mailboxExpanders[mailGroupId].folderAddButton))
+							                                   ])
+						                                   ]
+						                                   : []
+					                                   )
+					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
+						                                   const count = groupCounters[id]
+						                                   return m(MailFolderComponent, {
+							                                   count,
+							                                   button,
+							                                   rightButton: isNavButtonSelected(button) ? folderMoreButton : null,
+							                                   key: id
+						                                   })
+					                                   })))
 			}
 		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
@@ -424,7 +424,7 @@ export class MailView implements CurrentView {
 			let userGroupInfo = logins.getUserController().userGroupInfo
 			pushServiceApp.closePushNotification(
 				userGroupInfo.mailAddressAliases.map(alias => alias.mailAddress)
-							 .concat(userGroupInfo.mailAddress || []))
+				             .concat(userGroupInfo.mailAddress || []))
 		}
 
 		if (this.isInitialized() && args.listId && this.mailList && args.listId !== this.mailList.listId) {
@@ -491,25 +491,26 @@ export class MailView implements CurrentView {
 	createFolderButtons(folders: MailFolder[]): MailFolderRowData[] {
 		return folders.map(folder => {
 			this._folderToUrl[folder._id[1]] = `/mail/${folder.mails}`
-			let button = new NavButton(() => getFolderName(folder),
-				getFolderIcon(folder),
-				() => this._folderToUrl[folder._id[1]], "/mail/" + folder.mails)
-				.setColors(ButtonColors.Nav)
-			button.setClickHandler((event) => {
-				this.viewSlider.focus(this.listColumn)
-			})
-
-			button.setDropHandler(droppedMailId => {
-				// the dropped mail is among the selected mails, move all selected mails
-				if (this.mailList.list.isEntitySelected(droppedMailId)) {
-					mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
-				} else {
-					let entity = this.mailList.list.getEntity(droppedMailId)
-					if (entity) {
-						mailModel.moveMails([entity], folder)
+			const button = {
+				label: () => getFolderName(folder),
+				icon: getFolderIcon(folder),
+				href: () => this._folderToUrl[folder._id[1]],
+				isSelectedPrefix: "/mail/" + folder.mails,
+				colors: ButtonColors.Nav,
+				click: this.viewSlider.focus(this.listColumn),
+				dropHandler: (droppedMailId) => {
+					// the dropped mail is among the selected mails, move all selected mails
+					if (this.mailList.list.isEntitySelected(droppedMailId)) {
+						mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
+					} else {
+						let entity = this.mailList.list.getEntity(droppedMailId)
+						if (entity) {
+							mailModel.moveMails([entity], folder)
+						}
 					}
 				}
-			})
+			}
+
 			return {id: folder.mails, button}
 		})
 	}
@@ -518,11 +519,11 @@ export class MailView implements CurrentView {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
-						 .then((name) => {
-							 return worker.createMailFolder(name,
-								 getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
-								 mailGroupId)
-						 })
+			             .then((name) => {
+				             return worker.createMailFolder(name,
+					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
+					             mailGroupId)
+			             })
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -531,19 +532,19 @@ export class MailView implements CurrentView {
 			new Button('rename_action', () => {
 				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
 					getFolderName(this.selectedFolder), (name) => this._checkFolderName(name, mailGroupId))
-							 .then((newName) => {
-								 let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
-								 return update(renamedFolder)
-							 })
+				             .then((newName) => {
+					             let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
+					             return update(renamedFolder)
+				             })
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
 					{"{1}": getFolderName(this.selectedFolder)}))
-					  .then(confirmed => {
-						  if (confirmed) {
-							  this._finallyDeleteCustomMailFolder()
-						  }
-					  })
+				      .then(confirmed => {
+					      if (confirmed) {
+						      this._finallyDeleteCustomMailFolder()
+					      }
+				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
 		]).setColors(ButtonColors.Nav)
 	}
@@ -681,12 +682,12 @@ export class MailView implements CurrentView {
 	}
 }
 
-class MailFolderComponent implements MComponent<{count: number, button: NavButton, rightButton: ?Button}> {
+class MailFolderComponent implements MComponent<{count: number, button: NavButtonAttrs, rightButton: ?Button}> {
 	_hovered: boolean = false;
 
 	view(vnode): ?Children {
 		const {count, button, rightButton} = vnode.attrs
-		return m(".folder-row.plr-l.flex.flex-row" + (button.isSelected() ? ".row-selected" : ""), {}, [
+		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [
 			count > 0
 				?
 				m(".folder-counter.z2", {
@@ -698,7 +699,7 @@ class MailFolderComponent implements MComponent<{count: number, button: NavButto
 					}
 				}, count < 99 || this._hovered ? count : "99+")
 				: null,
-			m(button),
+			m(NavButtonN, button),
 			rightButton
 				? m(rightButton, {
 					// Setting initial opacity here because oncreate is called too late and it's blinking

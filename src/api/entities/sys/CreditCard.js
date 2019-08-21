@@ -24,6 +24,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCreditCard(): CreditCard {
-	return create(_TypeModel, CreditCardTypeRef)
+export function createCreditCard(values?: $Shape<$Exact<CreditCard>>): CreditCard {
+	return Object.assign(create(_TypeModel, CreditCardTypeRef), values)
 }

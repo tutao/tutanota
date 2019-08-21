@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createPasswordRetrievalReturn(): PasswordRetrievalReturn {
-	return create(_TypeModel, PasswordRetrievalReturnTypeRef)
+export function createPasswordRetrievalReturn(values?: $Shape<$Exact<PasswordRetrievalReturn>>): PasswordRetrievalReturn {
+	return Object.assign(create(_TypeModel, PasswordRetrievalReturnTypeRef), values)
 }

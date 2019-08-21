@@ -11,7 +11,7 @@ import {erase, load, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {mailModel} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {getListId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -25,7 +25,7 @@ import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
-import {lazyMemoized, noOp} from "../api/common/utils/Utils"
+import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -114,7 +114,7 @@ export class MultiSearchViewer {
 				}
 			}
 			exportContacts(selectedContacts)
-		}, () => Icons.Download))
+		}, () => Icons.Export))
 		return actionBar
 	}
 
@@ -156,13 +156,11 @@ export class MultiSearchViewer {
 					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
 					.map(f => {
 						return new Button(() => getFolderName(f), () => {
-								let groupedMails = groupBy(selectedMails, mail => mail._id[0])
+								const mailsGroupedByFolder = groupBy(selectedMails, getListId)
 								//is needed for correct selection behavior on mobile
 								this._searchListView.selectNone()
-								// move all groups in parallel
-								Array.from(groupedMails.values()).forEach(mails => {
-									mailModel.moveMails(mails, f)
-								})
+								// move all groups one by one because the mail list cannot be modified in parallel
+								Promise.each(mailsGroupedByFolder.values(), (mails) => mailModel.moveMails(mails, f))
 							}, getFolderIcon(f)
 						).setType(ButtonType.Dropdown)
 					})
@@ -183,7 +181,7 @@ export class MultiSearchViewer {
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
 					this.getSelectedMails((mails) => this._exportAll(mails).then(this._searchListView.selectNone())),
-					() => Icons.Download)
+					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}
 			return moreButtons
@@ -193,7 +191,7 @@ export class MultiSearchViewer {
 
 	_exportAll(mails: Mail[]): Promise<void> {
 		return Promise.map(mails, mail => load(MailBodyTypeRef, mail.body).then(body => {
-			return exportAsEml(mail, htmlSanitizer.sanitize(body.text, false).text)
+			return exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)
 		}), {concurrency: 5}).return()
 	}
 

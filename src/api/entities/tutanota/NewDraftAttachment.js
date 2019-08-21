@@ -30,9 +30,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createNewDraftAttachment(): NewDraftAttachment {
-	return create(_TypeModel, NewDraftAttachmentTypeRef)
+export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {
+	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), values)
 }

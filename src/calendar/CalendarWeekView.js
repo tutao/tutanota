@@ -64,9 +64,9 @@ export class CalendarWeekView implements MComponent<Attrs> {
 		const nextPageEvents = this._getEventsForWeek(nextWeek, vnode.attrs)
 
 		return m(PageView, {
-			previousPage: this._renderWeek(vnode.attrs, previousPageEvents, currentPageEvents),
-			currentPage: this._renderWeek(vnode.attrs, currentPageEvents, currentPageEvents),
-			nextPage: this._renderWeek(vnode.attrs, nextPageEvents, currentPageEvents),
+			previousPage: {key: previousWeek[0].getTime(), nodes: this._renderWeek(vnode.attrs, previousPageEvents, currentPageEvents)},
+			currentPage: {key: currentWeek[0].getTime(), nodes: this._renderWeek(vnode.attrs, currentPageEvents, currentPageEvents)},
+			nextPage: {key: nextWeek[0].getTime(), nodes: this._renderWeek(vnode.attrs, nextPageEvents, currentPageEvents)},
 			onChangePage: (next) => vnode.attrs.onChangeWeek(next)
 		})
 	}
@@ -126,6 +126,11 @@ export class CalendarWeekView implements MComponent<Attrs> {
 								this._longEventsDom = vnode.dom
 							}
 							m.redraw()
+						},
+						onupdate: (vnode) => {
+							if (mainWeek === thisWeek) {
+								this._longEventsDom = vnode.dom
+							}
 						}
 					},
 					m(".rel.mb-s",
@@ -236,7 +241,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 							top: px(c * CALENDAR_EVENT_HEIGHT),
 							left: px(left),
 							right: px(right),
-						}
+						},
+						key: event._id[0] + event._id[1] + event.startTime.getTime()
 					}, m(ContinuingCalendarEventBubble, {
 						event,
 						startDate: firstDayOfWeek,

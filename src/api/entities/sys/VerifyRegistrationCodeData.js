@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createVerifyRegistrationCodeData(): VerifyRegistrationCodeData {
-	return create(_TypeModel, VerifyRegistrationCodeDataTypeRef)
+export function createVerifyRegistrationCodeData(values?: $Shape<$Exact<VerifyRegistrationCodeData>>): VerifyRegistrationCodeData {
+	return Object.assign(create(_TypeModel, VerifyRegistrationCodeDataTypeRef), values)
 }

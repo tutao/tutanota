@@ -4,10 +4,11 @@ import m from "mithril"
 import {SwipeHandler} from "./SwipeHandler"
 import {animations, transform} from "../animation/Animations"
 
+type Page = {key: string | number, nodes: Children}
 type Attrs = {
-	previousPage: Children,
-	currentPage: Children,
-	nextPage: Children,
+	previousPage: Page,
+	currentPage: Page,
+	nextPage: Page,
 	onChangePage: (next: boolean) => mixed,
 }
 
@@ -26,20 +27,23 @@ export class PageView implements MComponent<Attrs> {
 			},
 			[
 				m(".abs", {
+					key: attrs.previousPage.key,
 					style: this._viewDom && this._viewDom.offsetWidth > 0 && {
 						width: this._viewDom.offsetWidth + "px",
 						height: this._viewDom.offsetHeight + "px",
-						transform: `translateX(${-this._viewDom.offsetWidth}px)`
+						transform: `translateX(${-this._viewDom.offsetWidth}px)`,
+
 					},
-				}, attrs.previousPage),
-				attrs.currentPage,
+				}, attrs.previousPage.nodes),
+				m("..fill-absolute", {key: attrs.currentPage.key}, attrs.currentPage.nodes),
 				m(".abs", {
+					key: attrs.nextPage.key,
 					style: this._viewDom && this._viewDom.offsetWidth > 0 && {
 						width: this._viewDom.offsetWidth + "px",
 						height: this._viewDom.offsetHeight + "px",
-						transform: `translateX(${this._viewDom.offsetWidth}px)`
+						transform: `translateX(${this._viewDom.offsetWidth}px)`,
 					},
-				}, attrs.nextPage)
+				}, attrs.nextPage.nodes)
 			]
 		)
 	}

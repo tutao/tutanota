@@ -41,6 +41,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createAuthentication(): Authentication {
-	return create(_TypeModel, AuthenticationTypeRef)
+export function createAuthentication(values?: $Shape<$Exact<Authentication>>): Authentication {
+	return Object.assign(create(_TypeModel, AuthenticationTypeRef), values)
 }

@@ -52,6 +52,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createGroupRoot(): GroupRoot {
-	return create(_TypeModel, GroupRootTypeRef)
+export function createGroupRoot(values?: $Shape<$Exact<GroupRoot>>): GroupRoot {
+	return Object.assign(create(_TypeModel, GroupRootTypeRef), values)
 }

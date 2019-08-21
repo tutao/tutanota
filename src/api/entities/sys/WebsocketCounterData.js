@@ -30,6 +30,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createWebsocketCounterData(): WebsocketCounterData {
-	return create(_TypeModel, WebsocketCounterDataTypeRef)
+export function createWebsocketCounterData(values?: $Shape<$Exact<WebsocketCounterData>>): WebsocketCounterData {
+	return Object.assign(create(_TypeModel, WebsocketCounterDataTypeRef), values)
 }
