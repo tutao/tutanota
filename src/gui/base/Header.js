@@ -83,7 +83,7 @@ class Header {
 		this.mailNavButton = {
 			label: 'emails_label',
 			icon: () => BootIcons.Mail,
-			href: this.mailsUrl,
+			href: () => this.mailsUrl,
 			isSelectedPrefix: this.mailsUrl,
 			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
 		}
@@ -94,7 +94,7 @@ class Header {
 			.addButton({
 				label: 'contacts_label',
 				icon: () => BootIcons.Contacts,
-				href: this.contactsUrl,
+				href: () => this.contactsUrl,
 				isSelectedPrefix: this.contactsUrl,
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
 			})
@@ -110,7 +110,8 @@ class Header {
 				icon: () => BootIcons.Premium,
 				href: () => m.route.get(),
 				isSelectedPrefix: premiumUrl,
-				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController().isFreeAccount(),
+				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController()
+				                                                                                             .isFreeAccount(),
 				click: () => this._showUpgradeDialog(),
 			}, 0, false)
 			.addButton({
@@ -296,7 +297,7 @@ class Header {
 				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
 				icon: () => BootIcons.Back,
 				colors: NavButtonColors.Header,
-				href: m.route.get,
+				href: () => m.route.get(),
 				click: () => {
 					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
 						viewSlider.focusPreviousColumn()

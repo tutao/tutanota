@@ -187,7 +187,7 @@ export class ContactView implements CurrentView {
 						m(NavButtonN, {
 							label: "all_contacts_label",
 							icon: () => BootIcons.Contacts,
-							href: m.route.get(),
+							href: () => m.route.get(),
 						}),
 					])
 				])
