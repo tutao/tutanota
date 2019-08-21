@@ -331,7 +331,7 @@ export class SearchListView {
 
 export class SearchResultListRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?SearchResultListEntry;
 	_delegate: MailRow | ContactRow
 

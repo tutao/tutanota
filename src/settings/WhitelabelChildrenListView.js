@@ -139,7 +139,7 @@ export class WhitelabelChildrenListView {
 
 export class WhitelabelChildRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?WhitelabelChild;
 	_domMailAddress: HTMLElement;
 	_domDeletedIcon: HTMLElement;
@@ -153,6 +153,9 @@ export class WhitelabelChildRow {
 	}
 
 	update(whitelabelChild: WhitelabelChild, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 		} else {

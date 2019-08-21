@@ -188,7 +188,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 
 export class ContactFormRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?ContactForm;
 	_domPageTitle: HTMLElement;
 	_domUrl: HTMLElement;
@@ -204,6 +204,9 @@ export class ContactFormRow {
 	}
 
 	update(contactForm: ContactForm, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 		} else {
