@@ -32,7 +32,7 @@
 		"body-parser": "1.18.3",
 		"caller": "1.0.1",
 		"chalk": "2.4.2",
-		"chokidar": "1.4.3",
+		"chokidar": "3.0.2",
 		"chokidar-socket-emitter": "0.6.0",
 		"commander": "2.20.0",
 		"core-js": "2.5.7",

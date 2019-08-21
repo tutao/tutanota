@@ -497,7 +497,7 @@ export class MailView implements CurrentView {
 				href: () => this._folderToUrl[folder._id[1]],
 				isSelectedPrefix: "/mail/" + folder.mails,
 				colors: ButtonColors.Nav,
-				click: this.viewSlider.focus(this.listColumn),
+				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => {
 					// the dropped mail is among the selected mails, move all selected mails
 					if (this.mailList.list.isEntitySelected(droppedMailId)) {

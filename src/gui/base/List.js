@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
-import {Cat, log, timer} from "../../misc/Log"
+import {Cat, log} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getLetId} from "../../api/common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
@@ -53,7 +53,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_visibleElementsHeight: number;
 	bufferHeight: number;
 
-	_swipeHandler: ?ListSwipeHandler;
+	_swipeHandler: ?ListSwipeHandler<T, R>;
 	_domSwipeSpacerLeft: HTMLElement;
 	_domSwipeSpacerRight: HTMLElement;
 	_domLoadingRow: HTMLElement;
@@ -87,7 +87,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			return wrapper
 		}
 
-		this._scrollListener = (e) => {
+		this._scrollListener = () => {
 			this.currentPosition = this._domListContainer.scrollTop
 			if (this.lastPosition !== this.currentPosition) {
 				window.requestAnimationFrame(() => this._scroll())
@@ -149,7 +149,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._emptyMessageBox = new MessageBox(() => this._config.emptyMessage, "list-message-bg")
 			.setVisible(false)
 
-		this.view = (vnode): VirtualElement => {
+		this.view = (): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
@@ -263,18 +263,18 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 	}
 
-	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
+	_initRow(virtualRow: R, domElement: HTMLElement) {
 		let touchStartTime
 		virtualRow.domElement = domElement
 		domElement.onclick = (e) => {
 			if (!touchStartTime || Date.now() - touchStartTime < 400) {
-				this._elementClicked(virtualRow.entity, e)
+				virtualRow.entity && this._elementClicked(virtualRow.entity, e)
 			}
 		}
 		let timeoutId: ?TimeoutID
 		let touchStartCoords: ?{x: number, y: number}
-		const dom: any = domElement
-		dom.ontouchstart = (e) => {
+
+		domElement.addEventListener("touchstart", (e: TouchEvent) => {
 			touchStartTime = Date.now()
 			if (this._config.multiSelectionAllowed) {
 				// Activate multi selection after pause
@@ -290,11 +290,14 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				}, 400)
 				touchStartCoords = {x: e.touches[0].pageX, y: e.touches[0].pageY}
 			}
-		}
-		dom.ontouchend = dom.ontouchcancel = () => {
+		})
+		const touchEnd = () => {
 			timeoutId && clearTimeout(timeoutId)
 		}
-		dom.ontouchmove = (e) => {
+
+		domElement.addEventListener("touchend", touchEnd)
+		domElement.addEventListener("touchcancel", touchEnd)
+		domElement.addEventListener("touchmove", (e: TouchEvent) => {
 			// If the user moved the finger too much by any axis, don't count it as a long press
 			const maxDistance = 30
 			const touch = e.touches[0]
@@ -304,7 +307,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 					|| Math.abs(touch.pageY - touchStartCoords.y) > maxDistance)) {
 				clearTimeout(timeoutId)
 			}
-		}
+		})
 		applySafeAreaInsetMarginLR(domElement)
 	}
 
@@ -324,7 +327,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	 * If shift is pressed, all items beginning from the nearest selected item to the clicked item are additionally selected.
 	 * If neither ctrl nor shift are pressed only the clicked item is selected.
 	 */
-	_elementClicked(clickedEntity: T, event: MouseEvent) {
+	_elementClicked(clickedEntity: T, event: TouchEvent | MouseEvent) {
 		let selectionChanged = false
 		let multiSelect = false
 		if (this._config.multiSelectionAllowed
@@ -505,7 +508,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	_loadMore(): Promise<*> {
-		let start = this._loadedEntities.length
 		let startId
 		if (this._loadedEntities.length === 0) {
 			startId = GENERATED_MAX_ID
@@ -563,16 +565,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		})
 	}
 
-	_cancelRenderCallback() {
-		if (this._renderCallback) {
-			if (this._renderCallback.type === 'timeout') {
-				clearTimeout(this._renderCallback.id)
-			} else {
-				cancelAnimationFrame(this._renderCallback.id)
-			}
-		}
-	}
-
 	_setDomList(domElement: HTMLElement) {
 		this._domList = domElement
 	}
@@ -591,7 +583,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		// make sure no scrolling is done if the virtualList was already cleared when unloading this list. on Safari this would lead to an error.
 		if (this._virtualList.length === 0) return
 
-		let up = this.currentPosition < this.lastPosition ? true : false
+		let up = this.currentPosition < this.lastPosition
 		let scrollDiff = up ? this.lastPosition - this.currentPosition : this.currentPosition - this.lastPosition
 
 		let now = window.performance.now()
@@ -616,7 +608,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this.updateStatus(status)
 
-		let start = timer(Cat.info)
 		this.lastPosition = this.currentPosition
 		if (this.updateLater) {
 			// only happens for non desktop devices
@@ -647,8 +638,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				} else {
 					topElement.top = nextPosition
 					if (topElement.domElement) {
-						topElement.domElement.style.transform = "translateY(" + topElement.top
-							+ "px)"
+						topElement.domElement.style.transform = `translateY(${topElement.top}px)`
 					}
 					let pos = topElement.top / rowHeight
 					let entity = this._loadedEntities[pos]
@@ -667,8 +657,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				} else {
 					bottomElement.top = nextPosition
 					if (bottomElement.domElement) {
-						bottomElement.domElement.style.transform = "translateY("
-							+ bottomElement.top + "px)"
+						bottomElement.domElement.style.transform = `translateY(${bottomElement.top}px)`
 					}
 					let pos = bottomElement.top / rowHeight
 					let entity = this._loadedEntities[pos]
@@ -742,16 +731,18 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 	_updateVirtualRow(row: VirtualRow<T>, entity: ?T, odd: boolean) {
 		row.entity = entity
-		if (odd) {
-			row.domElement.classList.remove('odd-row')
-		} else {
-			row.domElement.classList.add('odd-row')
-		}
-		if (entity) {
-			row.domElement.style.display = 'list-item'
-			row.update(entity, this.isEntitySelected(getLetId(entity)[1]))
-		} else {
-			row.domElement.style.display = 'none'
+		if (row.domElement) {
+			if (odd) {
+				row.domElement.classList.remove('odd-row')
+			} else {
+				row.domElement.classList.add('odd-row')
+			}
+			if (entity) {
+				row.domElement.style.display = 'list-item'
+				row.update(entity, this.isEntitySelected(getLetId(entity)[1]))
+			} else {
+				row.domElement.style.display = 'none'
+			}
 		}
 	}
 
@@ -945,9 +936,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 export const ActionDistance = 150
 
-class ListSwipeHandler extends SwipeHandler {
-	virtualElement: ?VirtualRow<*>;
-	list: List<*, *>;
+class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
+	virtualElement: ?VirtualRow<T>;
+	list: List<T, R>;
 	xoffset: number;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
@@ -967,14 +958,16 @@ class ListSwipeHandler extends SwipeHandler {
 			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ActionDistance) : Math.min(xDelta, ActionDistance)
 			if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
 				ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
-				this.list._domSwipeSpacerLeft.style.transform = `translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
-				this.list._domSwipeSpacerRight.style.transform = `translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
+				this.list._domSwipeSpacerLeft.style.transform =
+					`translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
+				this.list._domSwipeSpacerRight.style.transform = `
+				translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
 			}
 		})
 
 	}
 
-	onHorizontalGestureCompleted(delta): Promise<void> {
+	onHorizontalGestureCompleted(delta: {x: number, y: number}): Promise<void> {
 		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance) {
 			// Gesture is completed
 			let entity = this.virtualElement.entity
@@ -984,61 +977,71 @@ class ListSwipeHandler extends SwipeHandler {
 			} else {
 				swipePromise = this.list._config.swipe.swipeRight(entity)
 			}
-			return this.finish(entity._id, swipePromise)
+			return this.finish(getElementId(entity), swipePromise, delta)
 		} else {
-			return this.reset()
+			return this.reset(delta)
 		}
 	}
 
-	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
+	finish(id: Id, swipeActionPromise: Promise<any>, delta: {x: number, y: number}): Promise<void> {
 		if (this.xoffset !== 0) {
 			let ve = neverNull(this.virtualElement)
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
-			swipeActionPromise = swipeActionPromise.then(() => true).catch(e => {
-				return false
-			})
-			return Promise.all([
-				// animate swipe action to full width
-				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, listTargetPosition)
-					.chain(transform.type.translateY, ve.top, ve.top), {
-					easing: ease.inOut,
-					duration: DefaultAnimationTime * 2
-				}),
-				animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset
-					- this.list._width), listTargetPosition - this.list._width)
-					.chain(transform.type.translateY, ve.top, ve.top), {
-					easing: ease.inOut,
-					duration: DefaultAnimationTime * 2
-				}),
-				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset
-					+ this.list._width), listTargetPosition + this.list._width)
-					.chain(transform.type.translateY, ve.top, ve.top), {
-					easing: ease.inOut,
-					duration: DefaultAnimationTime * 2
-				}),
-			]).then(() => this.xoffset = listTargetPosition)
-			              .then(() => swipeActionPromise).then((success) => {
+			swipeActionPromise = swipeActionPromise
+				.then(() => true)
+				.catch(() => false)
+			return Promise
+				.all([
+					// animate swipe action to full width
+					ve.domElement && animations.add(ve.domElement,
+						transform(transform.type.translateX, this.xoffset,
+							listTargetPosition)
+							.chain(transform.type.translateY, ve.top, ve.top),
+						{
+							easing: ease.inOut,
+							duration: DefaultAnimationTime * 2
+						}),
+					animations.add(this.list._domSwipeSpacerLeft,
+						transform(transform.type.translateX, (this.xoffset - this.list._width),
+							listTargetPosition - this.list._width)
+							.chain(transform.type.translateY, ve.top, ve.top),
+						{
+							easing: ease.inOut,
+							duration: DefaultAnimationTime * 2
+						}),
+					animations.add(this.list._domSwipeSpacerRight,
+						transform(transform.type.translateX, (this.xoffset + this.list._width),
+							listTargetPosition + this.list._width)
+							.chain(transform.type.translateY, ve.top, ve.top),
+						{
+							easing: ease.inOut,
+							duration: DefaultAnimationTime * 2
+						}),
+				])
+				.then(() => this.xoffset = listTargetPosition)
+				.then(() => swipeActionPromise).then((success) => {
 					if (success) {
 						return this.list._deleteLoadedEntity(id).then(() => {
 							// fade out element
 							this.xoffset = 0
-							ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top
-								+ 'px)'
+							if (ve.domElement) {
+								ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
+							}
 							return Promise.all([
 								animations.add(this.list._domSwipeSpacerLeft, opacity(1, 0, true)),
 								animations.add(this.list._domSwipeSpacerRight, opacity(1, 0, true))
 							])
 						}).then(() => {
 							// set swipe element to initial configuration
-							this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset
-								- this.list._width) + 'px) translateY(' + ve.top + 'px)'
-							this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset
-								+ this.list._width) + 'px) translateY(' + ve.top + 'px)'
+							this.list._domSwipeSpacerLeft.style.transform =
+								`translateX(${this.xoffset - this.list._width}px) translateY(${ve.top}px)`
+							this.list._domSwipeSpacerRight.style.transform =
+								`translateX(${this.xoffset + this.list._width}px) translateY(${ve.top}px)`
 							this.list._domSwipeSpacerRight.style.opacity = ''
 							this.list._domSwipeSpacerLeft.style.opacity = ''
 						})
 					} else {
-						return this.reset()
+						return this.reset(delta)
 					}
 				}).finally(() => {
 					this.virtualElement = null
@@ -1062,15 +1065,15 @@ class ListSwipeHandler extends SwipeHandler {
 	updateWidth() {
 		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
 		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
-		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
-		this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.list._width) + 'px) translateY(0px)'
+		this.list._domSwipeSpacerLeft.style.transform = `translateX(${-this.list._width}px) translateY(0px)`
+		this.list._domSwipeSpacerRight.style.transform = `translateX(${this.list._width}px) translateY(0px)`
 		this.list._virtualList.forEach((element) => {
-			applySafeAreaInsetMarginLR(element.domElement)
+			element.domElement && applySafeAreaInsetMarginLR(element.domElement)
 		})
 	}
 
 
-	reset(): Promise<any> {
+	reset(delta: {x: number, y: number}): Promise<any> {
 		try {
 			if (this.xoffset !== 0) {
 				let ve = this.virtualElement
@@ -1078,12 +1081,12 @@ class ListSwipeHandler extends SwipeHandler {
 					return Promise.all([
 						animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, 0)
 							.chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut}),
-						animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset
-							- this.list._width), -this.list._width)
-							.chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut}),
-						animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset
-							+ this.list._width), this.list._width)
-							.chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
+						animations.add(this.list._domSwipeSpacerLeft,
+							transform(transform.type.translateX, (this.xoffset - this.list._width), -this.list._width)
+								.chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut}),
+						animations.add(this.list._domSwipeSpacerRight,
+							transform(transform.type.translateX, (this.xoffset + this.list._width), this.list._width)
+								.chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
 					])
 				}
 				this.xoffset = 0

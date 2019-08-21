@@ -175,7 +175,7 @@ export class MailListView implements Component {
 
 export class MailRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?Mail;
 	_domSubject: HTMLElement;
 	_domSender: HTMLElement;
@@ -203,6 +203,9 @@ export class MailRow {
 	}
 
 	update(mail: Mail, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 			this._iconsDom.classList.add("secondary")

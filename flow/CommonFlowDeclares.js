@@ -136,7 +136,7 @@ declare interface VirtualRow<T> {
 
 	entity: ?T;
 	top: number;
-	domElement: HTMLElement;
+	domElement: ?HTMLElement;
 }
 
 declare function stream<T>(value: ?T): T

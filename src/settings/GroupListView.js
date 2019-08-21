@@ -191,7 +191,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 export class GroupRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?GroupInfo;
 	_domName: HTMLElement;
 	_domAddress: HTMLElement;
@@ -205,6 +205,9 @@ export class GroupRow {
 	}
 
 	update(groupInfo: GroupInfo, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 		} else {
