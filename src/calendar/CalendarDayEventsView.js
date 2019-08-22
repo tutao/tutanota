@@ -106,7 +106,6 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			},
 		}, m(CalendarEventBubble, {
 			text: getEventText(ev, isAllDayEvent(ev) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME),
-			secondLineText: ev.location,
 			color: getEventColor(ev, attrs.groupColors),
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2,
