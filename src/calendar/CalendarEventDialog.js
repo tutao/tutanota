@@ -212,7 +212,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			if (parsedStartTime.minutes < 30) {
 				endTime(timeStringFromParts(parsedStartTime.hours, parsedStartTime.minutes + 30, amPmFormat))
 			} else {
-				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes, amPmFormat))
+				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes - 30, amPmFormat))
 			}
 			m.redraw()
 		}
