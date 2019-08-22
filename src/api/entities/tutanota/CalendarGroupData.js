@@ -81,7 +81,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createCalendarGroupData(values?: $Shape<$Exact<CalendarGroupData>>): CalendarGroupData {

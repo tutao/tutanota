@@ -26,7 +26,7 @@ type Attrs = {
 	 * maps start of day timestamp to events on that day
 	 */
 	eventsForDays: Map<number, Array<CalendarEvent>>,
-	onEventClicked: (ev: CalendarEvent) => mixed,
+	onEventClicked: (ev: CalendarEvent, domEvent: Event) => mixed,
 	groupColors: {[Id]: string},
 	hiddenCalendars: Set<Id>,
 	onDateSelected: (date: Date) => mixed,
@@ -109,7 +109,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 										secondLineText: ev.location,
 										color: getEventColor(ev, attrs.groupColors),
 										hasAlarm: !startsBefore && hasAlarmsForTheUser(ev),
-										click: () => attrs.onEventClicked(ev),
+										click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 										height: 38,
 										verticalPadding: 2
 									}))

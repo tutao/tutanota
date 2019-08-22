@@ -85,7 +85,7 @@ class Builder {
 		let targetFile = path.join(this.destDir, path.relative(this.baseDir, srcFile))
 
 		let start = process.hrtime()
-		return this._translate(srcFile, targetFile).then(result => {
+		return this._translate(srcFile, targetFile).then(() => {
 			this._buildCache.update(srcFile)
 			let end = process.hrtime(start);
 			console.log(` > ${path.relative(this.baseDir, targetFile)} ${end[0] * 1000 + (end[1] / 1000000)}ms`)
@@ -124,7 +124,10 @@ class Builder {
 
 	_runFlow() {
 		if (this._ready) {
-			spawn(flow, [], {stdio: [process.stdin, process.stdout, process.stderr]})
+			// This prevents multiple Flow clients from printing at the same one. It doesn't actually stop the previoous check (flow does
+			// it by itself).
+			this._runningFlow && this._runningFlow.kill()
+			this._runningFlow = spawn(flow, [], {stdio: [process.stdin, process.stdout, process.stderr]})
 		}
 	}
 }

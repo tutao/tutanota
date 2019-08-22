@@ -2,6 +2,7 @@
 
 import {lang} from "../../misc/LanguageViewModel"
 import {AlarmInterval, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
 import {last} from "../../api/common/utils/ArrayUtils"
 import type {DesktopNotifier} from "../DesktopNotifier"
@@ -11,7 +12,6 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import {downcast} from "../../api/common/utils/Utils"
 import {getAllDayDateLocal, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 
 export type TimeoutData = {
 	id: TimeoutID,

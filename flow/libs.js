@@ -13,6 +13,25 @@ declare type RouteResolverRender = {
 
 declare type RouteResolver = (RouteResolverMatch & RouteResolverRender) | RouteResolverMatch | RouteResolverRender
 
+interface Lifecycle<Attrs> {
+	// The oninit hook is called before a vnode is touched by the virtual DOM engine.
+	+oninit?: (vnode: Vnode<Attrs>) => any;
+	// The oncreate hook is called after a DOM element is created and attached to the document.
+	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
+	// The onbeforeupdate hook is called before a vnode is diffed in a update. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
+	// Change to the correct return type after updating to Flow 0.85 or newer
+	// see https://github.com/facebook/flow/issues/6284
+	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => any;
+	// The onremove hook is called before a DOM element is removed from the document.
+	+onremove?: (vnode: VnodeDOM<Attrs>) => any;
+	// The onbeforeremove hook is called before a DOM element is detached from the document.
+	+onbeforeupdate?: (vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
+	// The onupdate hook is called after a DOM element is updated, while attached to the document.
+	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
+}
+
+type LifecycleAttrs<T> = T & Lifecycle<T>
+
 declare module 'mithril' {
 	declare interface Router {
 		(root: HTMLElement, defaultRoute: string, routes: {[string]: Component | RouteResolver}): void;
@@ -32,22 +51,20 @@ declare module 'mithril' {
 	}
 
 	declare interface Mithril {
+		// We would like to write a definition which allows omitting Attrs if all keys are optional
+		(component: string | Component | MComponent<void> | Class<MComponent<void>>, children?: Children): Vnode<any>;
 
-		(selector: string | Component, children?: Children): Vnode<any>;
-
-		(selector: string | Component, attributes: {}, children?: Children): Vnode<any>;
-
-		<Attrs>(component: Class<MComponent<Attrs>>, children?: Children): Vnode<any>;
-
-		<Attrs>(component: Class<MComponent<Attrs>>, attributes: Attrs, children?: Children): Vnode<any>;
-
-		<Attrs>(component: MComponent<Attrs>, children?: Children): Vnode<any>;
-
-		<Attrs>(component: MComponent<Attrs>, attributes: Attrs, children?: Children): Vnode<any>;
+		<Attrs: $ReadOnly<{[?string]: any}>>(
+			component: string | Component | Class<MComponent<Attrs>> | MComponent<Attrs>,
+			attributes: Attrs,
+			children?: Children
+		): Vnode<any>;
 
 		route: Router;
 
 		redraw(): void;
+
+		fragment<Attrs: $ReadOnly<{[?string]: any}>>(attributes: Attrs, children?: Children): Vnode<any>;
 
 		trust(html: string): any;
 
@@ -101,8 +118,36 @@ type StreamModule = {
 declare module 'mithril/stream/stream.js' {
 	declare export default StreamModule;
 }
+
+type ComparisonDescriptor = (string) => void;
+type DoneFn = () => void;
+type TimeoutFn = (number) => void;
+
+interface Ospec {
+	<T>(T): {
+		equals: (T) => ComparisonDescriptor,
+		deepEquals: (T) => ComparisonDescriptor,
+		notEquals: (T) => ComparisonDescriptor,
+		notDeepEquals: (T) => ComparisonDescriptor,
+		// Throws can be used when function is passed but Flow can't distinguish them currently
+		throws: (Class<any>) => void
+	};
+
+	(string, (done: DoneFn, timeout: TimeoutFn) => mixed): void;
+
+	spec: (string, () => mixed) => void;
+	only: (string, (done: DoneFn, timeout: TimeoutFn) => mixed) => void;
+	before: ((DoneFn, TimeoutFn) => mixed) => void;
+	after: ((DoneFn, TimeoutFn) => mixed) => void;
+	beforeEach: ((DoneFn, TimeoutFn) => mixed) => void;
+	afterEach: ((DoneFn, TimeoutFn) => mixed) => void;
+	// stub
+	spy: (any) => any;
+	specTimeout: (number) => void;
+}
+
 declare module 'ospec/ospec.js' {
-	declare export default any;
+	declare export default Ospec;
 }
 
 declare module 'mockery' {
@@ -251,25 +296,6 @@ interface Attributes {
 
 	[key: string]: any;
 }
-
-interface Lifecycle<Attrs> {
-	// The oninit hook is called before a vnode is touched by the virtual DOM engine.
-	+oninit?: (vnode: Vnode<Attrs>) => any;
-	// The oncreate hook is called after a DOM element is created and attached to the document.
-	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onbeforeupdate hook is called before a vnode is diffed in a update. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
-	// Change to the correct return type after updating to Flow 0.85 or newer
-	// see https://github.com/facebook/flow/issues/6284
-	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onremove hook is called before a DOM element is removed from the document.
-	+onremove?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onbeforeremove hook is called before a DOM element is detached from the document.
-	+onbeforeupdate?: (vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
-	// The onupdate hook is called after a DOM element is updated, while attached to the document.
-	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;
-}
-
-type LifecycleAttrs<T> = T & Lifecycle<T>
 
 type $Attrs<T> = $ReadOnly<$Exact<T>>
 

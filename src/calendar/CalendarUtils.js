@@ -1,37 +1,49 @@
 //@flow
-import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {EventTextTimeOptionEnum, RepeatPeriodEnum, ShareCapabilityEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
+import type {
+	CalendarAttendeeStatusEnum,
+	EventTextTimeOptionEnum,
+	RepeatPeriodEnum,
+	ShareCapabilityEnum,
+	WeekStartEnum
+} from "../api/common/TutanotaConstants"
 import {
+	CalendarAttendeeStatus,
 	defaultCalendarColor,
 	EventTextTimeOption,
 	getWeekStart,
 	GroupType,
+	RepeatPeriod,
 	ShareCapability,
 	WeekStart
 } from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
+import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
-import {formatTime} from "../misc/Formatter"
+import {formatDateTime, formatDateWithMonth, formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {isSameId} from "../api/common/EntityFunctions"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import type {User} from "../api/entities/sys/User"
 import type {Group} from "../api/entities/sys/Group"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {isColorLight} from "../gui/Color"
+import type {CalendarInfo} from "./CalendarView"
+import {incrementByRepeatPeriod} from "./CalendarModel"
 
 assertMainOrNode()
 
 export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
+export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export type CalendarMonthTimeRange = {
 	start: Date,
@@ -47,8 +59,8 @@ export function eventEndsAfterDay(currentDate: Date, zone: string, event: Calend
 	return getEventEnd(event, zone).getTime() > getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
-export function generateUid(event: CalendarEvent, timestamp: number): string {
-	return `${neverNull(event._ownerGroup)}${timestamp}@tutanota.com`
+export function generateUid(groupId: Id, timestamp: number): string {
+	return `${groupId}${timestamp}@tutanota.com`
 }
 
 /**
@@ -88,10 +100,10 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	if (suffix) {
 		suffix = suffix.toUpperCase()
 	}
-	if (suffix === "PM" || suffix == "P.M.") {
+	if (suffix === "PM" || suffix === "P.M.") {
 		if (hours > 12) return null
 		if (hours !== 12) hours = hours + 12
-	} else if (suffix === "AM" || suffix == "A.M.") {
+	} else if (suffix === "AM" || suffix === "A.M.") {
 		if (hours > 12) return null
 		if (hours === 12) hours = 0
 	} else if (hours > 23) {
@@ -100,7 +112,11 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	return {hours, minutes}
 }
 
-export function filterInt(value: string) {
+/**
+ * Stricter version of parseInt() from MDN. parseInt() allows some arbitrary characters at the end of the string.
+ * Returns NaN in case there's anything non-number in the string.
+ */
+export function filterInt(value: string): number {
 	if (/^\d+$/.test(value)) {
 		return parseInt(value, 10);
 	} else {
@@ -111,6 +127,11 @@ export function filterInt(value: string) {
 
 export function timeString(date: Date, amPm: boolean): string {
 	return timeStringFromParts(date.getHours(), date.getMinutes(), amPm)
+}
+
+export function timeStringInZone(date: Date, amPm: boolean, zone: string): string {
+	const {hour, minute} = DateTime.fromJSDate(date, {zone})
+	return timeStringFromParts(hour, minute, amPm)
 }
 
 export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {
@@ -176,22 +197,10 @@ export function createRepeatRuleWithValues(frequency: RepeatPeriodEnum, interval
 	return rule
 }
 
-export function isColorLight(c: string) {
-	const rgb = parseInt(c, 16);   // convert rrggbb to decimal
-	const r = (rgb >> 16) & 0xff;  // extract red
-	const g = (rgb >> 8) & 0xff;  // extract green
-	const b = (rgb >> 0) & 0xff;  // extract blue
-
-	// Counting the perceptive luminance
-	// human eye favors green color...
-	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-	return (a < 0.5);
-}
 
 export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
 }
-
 
 export type CalendarDay = {
 	date: Date,
@@ -490,7 +499,7 @@ export function isLongEvent(event: CalendarEvent, zone: string): boolean {
 	return getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
 }
 
-export function createEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
+export function assignEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
 	const listId = event.repeatRule || isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
@@ -537,4 +546,66 @@ export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean 
 export function hasAlarmsForTheUser(event: CalendarEvent): boolean {
 	const useAlarmList = neverNull(logins.getUserController().user.alarmInfoList).alarms
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
+}
+
+export function formatEventDuration(event: CalendarEvent, zone: string, includeTimezone: boolean) {
+	if (isAllDayEvent(event)) {
+		const startTime = getEventStart(event, zone)
+		const startString = formatDateWithMonth(startTime)
+		const endTime = incrementByRepeatPeriod(getEventEnd(event, zone), RepeatPeriod.DAILY, -1, zone)
+		if (isSameDayOfDate(startTime, endTime)) {
+			return `${lang.get("allDay_label")}, ${startString}`
+		} else {
+			return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
+		}
+	} else {
+		const startString = formatDateTime(event.startTime)
+		let endString
+		if (isSameDay(event.startTime, event.endTime)) {
+			endString = formatTime(event.endTime)
+		} else {
+			endString = formatDateTime(event.endTime)
+		}
+		return `${startString} - ${endString} ${includeTimezone ? getTimeZone() : ""}`
+	}
+}
+
+export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatusEnum): string {
+	switch (status) {
+		case CalendarAttendeeStatus.ADDED:
+		case CalendarAttendeeStatus.NEEDS_ACTION:
+			return ""
+		case CalendarAttendeeStatus.TENTATIVE:
+			return "?"
+		case CalendarAttendeeStatus.ACCEPTED:
+			return "✓"
+		case CalendarAttendeeStatus.DECLINED:
+			return "❌"
+		default:
+			throw new Error("Unknown calendar attendee status: " + status)
+	}
+}
+
+export function incrementSequence(sequence: string): string {
+	const current = filterInt(sequence) || 0
+	return String(current + 1)
+}
+
+export function getNextHalfHour() {
+	let date: Date = new Date()
+	if (date.getMinutes() > 30) {
+		date.setHours(date.getHours() + 1, 0)
+	} else {
+		date.setMinutes(30)
+	}
+	return date
+}
+
+export function findPrivateCalendar(calendarInfo: Map<Id, CalendarInfo>): ?CalendarInfo {
+	for (const calendar of calendarInfo.values()) {
+		if (!calendar.shared) {
+			return calendar
+		}
+	}
+	return null
 }

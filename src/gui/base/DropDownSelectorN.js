@@ -3,18 +3,22 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../../api/Env"
 import {TextFieldN} from "./TextFieldN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
-import {Icons} from "./icons/Icons"
 import type {AllIconsEnum} from "./Icon"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {BootIcons} from "./icons/BootIcons"
+import {noOp} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
+export type SelectorItem<T> = {name: string, value: T, selectable?: boolean, icon?: AllIconsEnum}
+export type SelectorItemList<T> = $ReadOnlyArray<SelectorItem<T>>
+
 export type DropDownSelectorAttrs<T> = {
 	label: TranslationKey | lazy<string>,
-	items: {name: string, value: T}[],
+	items: SelectorItemList<T>,
 	selectedValue: Stream<?T>,
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
@@ -25,6 +29,7 @@ export type DropDownSelectorAttrs<T> = {
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,
 	disabled?: boolean,
+	class?: string,
 }
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
@@ -36,33 +41,38 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 			value: stream(this.valueToText(a, a.selectedValue()) || ""),
 			helpLabel: a.helpLabel,
 			disabled: true,
+			onclick: a.disabled ? noOp : this.createDropdown(a),
+			class: "click " + (a.class == null ? "pt" : a.class),
 			injectionsRight: () => a.disabled
 				? null
 				: m(ButtonN, {
 					label: a.label,
-					icon: () => a.icon ? a.icon : Icons.Edit,
-					click: this.createDropdown(a),
+					icon: () => a.icon ? a.icon : BootIcons.Expand,
+					click: noOp,
+					colors: ButtonColors.DrawerNav
 				})
 		})
 	}
 
 	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
 		return createDropdown(() => {
-			return a.items.map(item => {
-				return {
-					label: () => item.name,
-					click: () => {
-						if (a.selectionChangedHandler) {
-							a.selectionChangedHandler(item.value)
-						} else {
-							a.selectedValue(item.value)
-							m.redraw()
-						}
-					},
-					type: ButtonType.Dropdown,
-					isSelected: () => a.selectedValue() === item.value
-				}
-			})
+			return a.items
+			        .filter((item) => item.selectable !== false)
+			        .map(item => {
+				        return {
+					        label: () => item.name,
+					        click: () => {
+						        if (a.selectionChangedHandler) {
+							        a.selectionChangedHandler(item.value)
+						        } else {
+							        a.selectedValue(item.value)
+							        m.redraw()
+						        }
+					        },
+					        type: ButtonType.Dropdown,
+					        isSelected: () => a.selectedValue() === item.value
+				        }
+			        })
 		}, a.dropdownWidth)
 	}
 

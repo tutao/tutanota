@@ -1,6 +1,6 @@
 // @flow
 import {autoUpdater} from 'electron-updater'
-import {app} from 'electron'
+import {app} from "electron"
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
@@ -59,6 +59,7 @@ export class ElectronUpdater {
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
 		}).on('error', e => {
+			const ee: any = e
 			this._stopPolling()
 			this._errorCount += 1
 			const messageEvent: {message: string} = downcast(e)

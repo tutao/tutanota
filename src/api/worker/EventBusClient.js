@@ -29,6 +29,7 @@ import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/Websoc
 import {CancelledError} from "../common/error/CancelledError"
 import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
+import type {EntityRestInterface} from "./rest/EntityRestClient"
 
 assertWorkerOrNode()
 

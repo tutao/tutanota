@@ -28,10 +28,9 @@ import {createRestriction, getFreeSearchStartDate, getRestriction, getSearchUrl,
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import {load} from "../api/main/Entity"
-import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
+import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "./SearchUtils"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
@@ -140,7 +139,7 @@ export class SearchView implements CurrentView {
 		})
 		this._doNotUpdateQuery = false
 
-		mailModel.mailboxDetails.map(mailboxes => {
+		locator.mailModel.mailboxDetails.map(mailboxes => {
 			let mailFolders = [
 				{name: lang.get("all_label"), value: null}
 			]
@@ -246,7 +245,7 @@ export class SearchView implements CurrentView {
 			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(ButtonN, {
 					click: () => {
-						mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
 					},
 					label: "newMail_action",
 					type: ButtonType.Action,
@@ -398,7 +397,7 @@ export class SearchView implements CurrentView {
 				exec: () => {
 					const restriction = getRestriction(m.route.get()).type
 					if (isSameTypeRef(restriction, MailTypeRef)) {
-						mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
 						LazyContactListId.getAsync().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
@@ -539,7 +538,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
-					mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+					locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
 				},
 				label: "newMail_action",
 			}

@@ -139,6 +139,7 @@ type WorkerRequestType = 'setup'
 	| 'rejectGroupInvitation'
 	| 'editSpamRule'
 	| 'checkMailForPhishing'
+	| 'getEventByUid'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -294,17 +295,7 @@ declare function browser(f: Function): Function
 
 declare function node(f: Function): Function
 
-type RecipientInfoTypeEnum = 'unknown' | 'internal' | 'external'
 
-type RecipientInfoName = 'RecipientInfo'
-type RecipientInfo = {
-	_type: RecipientInfoName,
-	type: RecipientInfoTypeEnum,
-	mailAddress: string,
-	name: string, // empty string if no name is available
-	contact: ?Contact, // The resolved contact or a new contact instance with the given email address and name. A new contact is used to store a shared password if applicable. Null if no contact shall be resolved.
-	resolveContactPromise: ?Promise<?Contact> // Null if resolving contact is finished
-}
 
 type DataFile = {
 	+_type: 'DataFile',

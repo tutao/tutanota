@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CalendarEventIndexRef} from "./CalendarEventIndexRef"
 
 export const CalendarGroupRootTypeRef: TypeRef<CalendarGroupRoot> = new TypeRef("tutanota", "CalendarGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -60,6 +61,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"index": {
+			"name": "index",
+			"id": 1103,
+			"since": 42,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "CalendarEventIndexRef",
+			"final": true
+		},
 		"longEvents": {
 			"name": "longEvents",
 			"id": 955,
@@ -82,7 +92,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createCalendarGroupRoot(values?: $Shape<$Exact<CalendarGroupRoot>>): CalendarGroupRoot {
@@ -99,6 +109,7 @@ export type CalendarGroupRoot = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 
+	index: ?CalendarEventIndexRef;
 	longEvents: Id;
 	shortEvents: Id;
 }

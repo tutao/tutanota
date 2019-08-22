@@ -11,6 +11,7 @@ import {Mode} from "../api/Env"
 import {findRecipients} from "../native/ContactApp"
 import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
+import type {RecipientInfo} from "../api/common/RecipientInfo"
 
 
 type BubbleFactory = {

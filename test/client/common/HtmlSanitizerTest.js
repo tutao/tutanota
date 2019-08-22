@@ -33,7 +33,8 @@ o.spec("HtmlSanitizerTest", browser(function () {
 
 	o("custom classes", function () {
 		//var sanitizer = DOMPurify.sanitize("");
-		o(htmlSanitizer.sanitize("<div class=\"custom1 custom2\">test</div>", true).text).equals('<div class=\"\">test</div>')
+		o(htmlSanitizer.sanitize("<div class=\"custom1 tutanota_quote custom2\">test</div>", true).text)
+			.equals('<div class=\"tutanota_quote\">test</div>')
 	})
 
 	o("leading text node", function () {

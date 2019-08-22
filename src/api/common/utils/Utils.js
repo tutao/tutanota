@@ -73,6 +73,13 @@ export function neverNull<T>(object: ?T): T {
 	return (object: any)
 }
 
+export function assertNotNull<T>(object: ?T): T {
+	if (object == null) {
+		throw new Error("Assertion failed: null")
+	}
+	return object
+}
+
 export function downcast<R>(object: *): R {
 	return (object: any)
 }

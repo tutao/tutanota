@@ -14,7 +14,7 @@ import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
 import type {MailBody} from "../api/entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import type {InboxRuleTypeEnum, MailReportTypeEnum} from "../api/common/TutanotaConstants"
+import type {CalendarMethodEnum, InboxRuleTypeEnum, MailReportTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	FeatureType,
@@ -22,6 +22,8 @@ import {
 	Keys,
 	MailAuthenticationStatus,
 	MailFolderType,
+	MailMethod,
+	mailMethodToCalendarMethod,
 	MailPhishingStatus,
 	MailReportType,
 	MailState,
@@ -39,7 +41,6 @@ import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, downcast, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
-import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
 import {Request} from "../api/common/WorkerProtocol.js"
@@ -81,7 +82,6 @@ import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {mailModel} from "./MailModel"
 import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -100,6 +100,7 @@ import type {ButtonAttrs, ButtonColorEnum} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
+import {CALENDAR_MIME_TYPE} from "../calendar/CalendarUtils"
 import {createAsyncDropdown, createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
@@ -112,6 +113,11 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel} from "../api/entities/tutanota/Mail"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import {locator} from "../api/main/MainLocator"
+import {EventBanner} from "./EventBanner"
+import {checkApprovalStatus} from "../misc/LoginUtils"
+import {getEventFromFile} from "../calendar/CalendarInvites"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 assertMainOrNode()
 
@@ -159,6 +165,7 @@ export class MailViewer {
 	_lastTouchStart: {x: number, y: number, time: number};
 	_domForScrolling: ?HTMLElement
 	_warningDismissed: boolean;
+	_calendarEventAttachment: ?{|event: CalendarEvent, method: CalendarMethodEnum, recipient: string|};
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -169,11 +176,11 @@ export class MailViewer {
 		this._filesExpanded = stream(false)
 		this._domBodyDeferred = defer()
 		if (showFolder) {
-			let folder = mailModel.getMailFolder(mail._id[0])
+			let folder = locator.mailModel.getMailFolder(mail._id[0])
 			if (folder) {
-				mailModel.getMailboxDetailsForMail(mail).then((mailboxDetails) => {
+				locator.mailModel.getMailboxDetailsForMail(mail).then((mailboxDetails) => {
 					this._folderText =
-						`${lang.get("location_label")}: ${getMailboxName(mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
+						`${lang.get("location_label")}: ${getMailboxName(logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
 					m.redraw()
 				})
 			}
@@ -279,8 +286,7 @@ export class MailViewer {
 									message: lang.get("phishingMessageBody_msg"),
 									icon: Icons.Warning,
 									helpLink: "https://tutanota.com/faq#phishing",
-									buttonText: lang.get("markAsNotPhishing_action"),
-									buttonClick: () => this._markAsNotPhishing(),
+									buttons: [{text: lang.get("markAsNotPhishing_action"), click: () => this._markAsNotPhishing()}]
 								})
 								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL
 								? m(Banner, {
@@ -289,8 +295,7 @@ export class MailViewer {
 									message: lang.get("mailAuthFailed_msg"),
 									icon: Icons.Warning,
 									helpLink: "https://tutanota.com/faq#mail-auth",
-									buttonText: lang.get("close_alt"),
-									buttonClick: () => this._warningDismissed = true
+									buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
 								})
 								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL
 									? m(Banner, {
@@ -299,10 +304,10 @@ export class MailViewer {
 										message: mail.differentEnvelopeSender ? lang.get("technicalSender_msg", {"{sender}": mail.differentEnvelopeSender}) : "",
 										icon: Icons.Warning,
 										helpLink: "https://tutanota.com/faq#mail-auth",
-										buttonText: lang.get("close_alt"),
-										buttonClick: () => this._warningDismissed = true,
+										buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
 									})
 									: null,
+							this._renderEventBanner(),
 							this._renderAttachments(),
 							m("hr.hr.mb.mt-s"),
 						]),
@@ -354,7 +359,7 @@ export class MailViewer {
 									progressIcon(),
 									m("small", lang.get("loading_msg"))
 								])
-								: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
+								: ((this._errorOccurred || this.mail._errors || (this._mailBody != null && this._mailBody._errors))
 									? m(ColumnEmptyMessageBox, {
 										message: "corrupted_msg",
 										icon: Icons.Warning,
@@ -369,6 +374,17 @@ export class MailViewer {
 
 		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+	}
+
+	_renderEventBanner(): Children {
+		return this._calendarEventAttachment
+			? m(EventBanner, {
+				event: this._calendarEventAttachment.event,
+				method: this._calendarEventAttachment.method,
+				recipient: this._calendarEventAttachment.recipient,
+				mail: this.mail,
+			})
+			: null
 	}
 
 	_createDetailsExpander(bubbleMenuWidth: number, mail: Mail, expanderStyle: {}) {
@@ -550,13 +566,13 @@ export class MailViewer {
 				label: "move_action",
 				icon: () => Icons.Folder,
 				colors,
-				click: createAsyncDropdown(() => mailModel.getMailboxFolders(this.mail).then((folders) => {
+				click: createAsyncDropdown(() => locator.mailModel.getMailboxFolders(this.mail).then((folders) => {
 						const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
 						const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
 						return targetFolders.map(f => {
 							return {
 								label: () => getFolderName(f),
-								click: () => mailModel.moveMails([mail], f),
+								click: () => locator.mailModel.moveMails([mail], f),
 								icon: getFolderIcon(f),
 								type: ButtonType.Dropdown,
 							}
@@ -570,7 +586,7 @@ export class MailViewer {
 			click: () => {
 				showDeleteConfirmationDialog([this.mail]).then((confirmed) => {
 					if (confirmed) {
-						mailModel.deleteMails([this.mail])
+						locator.mailModel.deleteMails([this.mail])
 					}
 				})
 			},
@@ -728,7 +744,7 @@ export class MailViewer {
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			this._suspicious = true
 		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
-			mailModel.checkMailForPhishing(mail, links).then((isSuspicious) => {
+			locator.mailModel.checkMailForPhishing(mail, links).then((isSuspicious) => {
 				if (isSuspicious) {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
@@ -839,7 +855,6 @@ export class MailViewer {
 		})
 	}
 
-
 	_loadAttachments(mail: Mail): Promise<InlineImages> {
 		if (mail.attachments.length === 0) {
 			this._loadingAttachments = false
@@ -848,6 +863,23 @@ export class MailViewer {
 			this._loadingAttachments = true
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
 			              .then(files => {
+				              const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
+				              if (calendarFile
+					              && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
+					              && mail.state === MailState.RECEIVED
+				              ) {
+					              Promise.all([
+						              getEventFromFile(calendarFile),
+						              this._getSenderOfResponseMail()
+					              ]).then(([event, recipient]) => {
+						              this._calendarEventAttachment = event && {
+							              event,
+							              method: mailMethodToCalendarMethod(downcast(mail.method)),
+							              recipient,
+						              }
+						              m.redraw()
+					              })
+				              }
 				              this._attachments = files
 				              return this._inlineFileIds.then((inlineCids) => {
 					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
@@ -1057,7 +1089,8 @@ export class MailViewer {
 							label: "createContact_action",
 							click: () => {
 								LazyContactListId.getAsync().then(contactListId => {
-									new ContactEditor(createNewContact(address.address, address.name), contactListId).show()
+									const contact = createNewContact(logins.getUserController().user, address.address, address.name)
+									new ContactEditor(contact, contactListId).show()
 								})
 							},
 							type: ButtonType.Secondary
@@ -1066,7 +1099,7 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+				return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					if (defaultInboxRuleField
 						&& !logins.getUserController().isOutlookAccount()
 						&& !logins.isEnabled(FeatureType.InternalCommunication)) {
@@ -1098,7 +1131,7 @@ export class MailViewer {
 	}
 
 	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: string) {
-		const folder = mailModel.getMailFolder(getListId(this.mail))
+		const folder = locator.mailModel.getMailFolder(getListId(this.mail))
 		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
 			? SpamRuleType.WHITELIST
 			: SpamRuleType.BLACKLIST
@@ -1138,19 +1171,19 @@ export class MailViewer {
 	_editDraft() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return mailModel.getMailboxDetailsForMail(this.mail)
-				                .then((mailboxDetails) => {
-					                let editor = new MailEditor(mailboxDetails)
-					                return editor.initFromDraft({
-						                draftMail: this.mail,
-						                attachments: this._attachments,
-						                bodyText: this._getMailBody(),
-						                blockExternalContent: this._contentBlocked,
-						                inlineImages: this._inlineImages
-					                }).then(() => {
-						                editor.show()
-					                })
-				                })
+				return locator.mailModel.getMailboxDetailsForMail(this.mail)
+				              .then((mailboxDetails) => {
+					              let editor: MailEditor = new MailEditor(mailboxDetails)
+					              return editor.initFromDraft({
+						              draftMail: this.mail,
+						              attachments: this._attachments,
+						              bodyText: this._getMailBody(),
+						              blockExternalContent: this._contentBlocked,
+						              inlineImages: this._inlineImages
+					              }).then(() => {
+						              editor.show()
+					              })
+				              })
 			}
 		})
 	}
@@ -1161,7 +1194,7 @@ export class MailViewer {
 		}
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+				return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					let prefix = "Re: "
 					let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
 						+ this.mail.subject
@@ -1195,7 +1228,7 @@ export class MailViewer {
 							addAll(bccRecipients, this.mail.bccRecipients)
 						}
 					}
-					let editor = new MailEditor(mailboxDetails)
+					const editor: MailEditor = new MailEditor(mailboxDetails)
 					return this._getSenderOfResponseMail().then((senderMailAddress) => {
 						return editor.initAsResponse({
 							previousMail: this.mail,
@@ -1255,9 +1288,9 @@ export class MailViewer {
 
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
-		return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+		return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 			return this._getSenderOfResponseMail().then((senderMailAddress) => {
-				let editor = new MailEditor(mailboxDetails)
+				const editor: MailEditor = new MailEditor(mailboxDetails)
 				return editor.initAsResponse({
 					previousMail: this.mail,
 					conversationType: ConversationType.FORWARD,
@@ -1306,13 +1339,13 @@ export class MailViewer {
 
 		this._createForwardingMailEditor([recipient], newReplyTos, false, false).then(editor => {
 			return editor.send()
-		}).then(() => mailModel.getMailboxFolders(this.mail)).then((folders) => {
-			mailModel.moveMails([this.mail], getArchiveFolder(folders))
+		}).then(() => locator.mailModel.getMailboxFolders(this.mail)).then((folders) => {
+			locator.mailModel.moveMails([this.mail], getArchiveFolder(folders))
 		})
 	}
 
 	_getSenderOfResponseMail(): Promise<string> {
-		return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+		return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 			let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
 			let addressesInMail = []
 			addAll(addressesInMail, this.mail.toRecipients)
@@ -1323,7 +1356,7 @@ export class MailViewer {
 			if (foundAddress) {
 				return foundAddress.address.toLowerCase()
 			} else {
-				return getDefaultSender(mailboxDetails)
+				return getDefaultSender(logins, mailboxDetails)
 			}
 		})
 	}
@@ -1335,7 +1368,7 @@ export class MailViewer {
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
 				event.preventDefault()
 				if (isNewMailActionAvailable()) { // disable new mails for external users.
-					mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+					locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 						let mailEditor = new MailEditor(mailboxDetails)
 						mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
 						          .then(() => {

@@ -1,14 +1,14 @@
 //@flow
 import m from "mithril"
 import {getInboxFolder} from "../mail/MailUtils"
-import {mailModel} from "../mail/MailModel"
 import {logins} from "../api/main/LoginController"
+import {locator} from "../api/main/MainLocator"
 
 
 export function openMailbox(userId: Id, mailAddress: string, requestedPath: ?string): void {
 	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
 		if (!requestedPath) {
-			mailModel.getMailboxDetails().then((mailboxDetails) =>
+			locator.mailModel.getMailboxDetails().then((mailboxDetails) =>
 				m.route.set("/mail/" + getInboxFolder(mailboxDetails[0].folders).mails))
 		} else {
 			m.route.set("/mail" + requestedPath)

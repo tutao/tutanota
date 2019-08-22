@@ -58,7 +58,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 		let login = Promise.resolve()
 		if (!logins.isUserLoggedIn()) {
-			login = worker.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
+			login = logins.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
 		}
 		login.then(() => {
 			if (!data.accountingInfo) {
@@ -142,7 +142,6 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	isEnabled(): boolean {
 		return this.data.type !== SubscriptionType.Free
 	}
-
 }
 
 export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean): Promise<boolean> {

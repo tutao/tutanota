@@ -24,7 +24,6 @@ import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAcc
 import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
-import type {PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
 
 assertWorkerOrNode()
 
@@ -334,10 +333,15 @@ export class WorkerImpl {
 			},
 			checkMailForPhishing: (message: Request) => {
 				return locator.mail.checkMailForPhishing(...message.args)
-			}
+			},
+			getEventByUid: (message: Request) => {
+				return locator.calendar.getEventByUid(...message.args)
+			},
 		})
 
-		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
+		Promise.onPossiblyUnhandledRejection(e => {
+			this.sendError(e)
+		})
 
 		if (workerScope) {
 			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {

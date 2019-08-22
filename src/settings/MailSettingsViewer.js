@@ -20,7 +20,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "../mail/MailModel"
-import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -59,7 +58,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_editAliasFormAttrs: EditAliasesFormAttrs;
 
 	constructor() {
-		this._defaultSender = stream(getDefaultSenderFromUser())
+		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
 		this._senderName = stream(logins.getUserController().userGroupInfo.name)
 		this._signature = stream(EditSignatureDialog.getSignatureType(logins.getUserController().props).name)
 		this._defaultUnconfidential = stream(logins.getUserController().props.defaultUnconfidential)
@@ -199,7 +198,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: ButtonAttrs = {
 			label: "addInboxRule_action",
-			click: () => mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
+			click: () => locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
 			icon: () => Icons.Add
 
 		}
@@ -261,7 +260,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {
-		mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			this._inboxRulesTableLines(props.inboxRules.map((rule, index) => {
 				return {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],

@@ -24,7 +24,6 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
@@ -36,6 +35,7 @@ import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import type {Mail} from "../api/entities/tutanota/Mail"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -86,7 +86,7 @@ export class MailListView implements Component {
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
 					if (confirmed === true) {
 						this.list.selectNone()
-						mailModel.deleteMails([listElement])
+						locator.mailModel.deleteMails([listElement])
 					} else {
 						return Promise.resolve()
 					}
@@ -96,12 +96,12 @@ export class MailListView implements Component {
 						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
-						return mailModel.getMailboxFolders(listElement)
-						                .then((folders) => mailModel.moveMails([listElement], getInboxFolder(folders)))
+						return locator.mailModel.getMailboxFolders(listElement)
+						                .then((folders) => locator.mailModel.moveMails([listElement], getInboxFolder(folders)))
 					} else {
 						this.list.selectNone()
-						return mailModel.getMailboxFolders(listElement)
-						                .then((folders) => mailModel.moveMails([listElement], getArchiveFolder(folders)))
+						return locator.mailModel.getMailboxFolders(listElement)
+						                .then((folders) => locator.mailModel.moveMails([listElement], getArchiveFolder(folders)))
 					}
 				},
 				enabled: true
@@ -130,9 +130,9 @@ export class MailListView implements Component {
 			}
 			return acc
 		}, 0)
-		mailModel.getCounterValue(this.listId).then((counterValue) => {
+		locator.mailModel.getCounterValue(this.listId).then((counterValue) => {
 			if (counterValue != null && counterValue !== unreadMails) {
-				mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetails) => {
+				locator.mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetails) => {
 					const data = createWriteCounterData({
 						counterType: CounterType_UnreadMails,
 						row: mailboxDetails.mailGroup._id,
@@ -198,7 +198,7 @@ export class MailListView implements Component {
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
 		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
-			return mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetail) => {
+			return locator.mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetail) => {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return Promise.filter(mails, (mail) => {
@@ -287,7 +287,7 @@ export class MailRow {
 	_iconsText(mail: Mail): string {
 		let iconText = "";
 		if (this._showFolderIcon) {
-			let folder = mailModel.getMailFolder(mail._id[0])
+			let folder = locator.mailModel.getMailFolder(mail._id[0])
 			iconText += folder ? this._getFolderIcon(getMailFolderType(folder)) : ""
 		}
 		iconText += mail._errors ? FontIcons.Warning : "";

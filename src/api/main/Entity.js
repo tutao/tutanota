@@ -12,7 +12,6 @@ import {
 	_updateEntity,
 	_verifyType,
 	CUSTOM_MIN_ID,
-	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getEtId,
 	getFirstIdIsBiggerFnForType,
@@ -30,6 +29,7 @@ import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
 import EC from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
+import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -38,27 +38,37 @@ assertMainOrNode()
 
 // TODO write testcases
 
-export function setup<T>(listId: ?Id, instance: T): Promise<Id> {
+type SomeEntity = Element | ListElement
+
+export function setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {
 	return _setupEntity(listId, instance, worker)
 }
 
-export function update<T>(instance: T): Promise<void> {
+export function update<T: SomeEntity>(instance: T): Promise<void> {
 	return _updateEntity(instance, worker)
 }
 
-export function erase<T>(instance: T): Promise<void> {
+export function erase<T: SomeEntity>(instance: T): Promise<void> {
 	return _eraseEntity(instance, worker)
 }
 
-export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
+export function load<T: SomeEntity>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
 /**
  * load multiple does not guarantee order or completeness of returned elements.
  */
-export function loadMultiple<T: (ListElement | Element)>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
+export function loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
+}
+
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
+export function loadMultipleList<T: ListElement>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
+): Promise<T[]> {
+	return _loadMultipleEntities(typeRef, listId, elementIds, restInterface)
 }
 
 export function loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
@@ -111,7 +121,7 @@ export function loadVersion<T>(instance: T, version: Id): Promise<T> {
 	})
 }
 
-export function loadVersionInfo<T: (Element | ListElement)>(instance: T): Promise<VersionReturn> {
+export function loadVersionInfo<T: SomeEntity>(instance: T): Promise<VersionReturn> {
 	return resolveTypeReference((instance: any)._type).then(typeModel => {
 		if (!typeModel.versioned) throw new Error("unversioned instance: can't load version info")
 		_verifyType(typeModel)
@@ -128,7 +138,7 @@ export function loadVersionInfo<T: (Element | ListElement)>(instance: T): Promis
 	})
 }
 
-export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
+export function loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		let rootId = [groupId, typeModel.rootId];
 		return load(RootInstanceTypeRef, rootId).then((root: RootInstance) => {
@@ -137,10 +147,14 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	})
 }
 
-export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
+type Service = SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum
+
+export function serviceRequest<T>(service: Service, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>,
+                                  queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<T> {
 	return worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
+export function serviceRequestVoid<T>(service: Service, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params,
+                                      sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
 	return worker.serviceRequest(service, method, requestEntity, null, queryParams, sk, extraHeaders)
 }

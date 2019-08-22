@@ -49,6 +49,7 @@ import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
+import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
@@ -94,7 +95,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			{name: lang.get("yes_label"), value: true},
 			{name: lang.get("no_label"), value: false}
 		], saveIpAddress, 250).setSelectionChangedHandler(v => {
-			update(Object.assign({}, this._props(), {saveEncryptedIpAddressInSession: v}))
+			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {saveEncryptedIpAddressInSession: v})
+			update(newProps)
 		})
 
 		let requirePasswordUpdateAfterReset = stream(false)
@@ -103,7 +105,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			{name: lang.get("yes_label"), value: true},
 			{name: lang.get("no_label"), value: false}
 		], requirePasswordUpdateAfterReset, 250).setSelectionChangedHandler(v => {
-			update(Object.assign({}, this._props(), {requirePasswordUpdateAfterReset: v}))
+			const newProps: CustomerServerProperties = Object.assign({}, this._props(), {requirePasswordUpdateAfterReset: v})
+			update(newProps)
 		})
 
 		this.view = () => {
@@ -532,7 +535,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 }
 
-export function getSpamRuleTypeNameMapping(): {value: SpamRuleTypeEnum, name: string}[] {
+export function getSpamRuleTypeNameMapping(): SelectorItemList<SpamRuleTypeEnum> {
 	return [
 		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
@@ -549,7 +552,7 @@ function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
 	}
 }
 
-export function getSpamRuleFieldMapping(): Array<{value: SpamRuleFieldTypeEnum, name: string}> {
+export function getSpamRuleFieldMapping(): SelectorItemList<SpamRuleFieldTypeEnum> {
 	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({value, name}))
 }
 

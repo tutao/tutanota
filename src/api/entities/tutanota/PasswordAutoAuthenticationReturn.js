@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createPasswordAutoAuthenticationReturn(values?: $Shape<$Exact<PasswordAutoAuthenticationReturn>>): PasswordAutoAuthenticationReturn {

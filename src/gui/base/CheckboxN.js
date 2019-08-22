@@ -23,7 +23,7 @@ export class _Checkbox {
 
 	view(vnode: Vnode<CheckboxAttrs>) {
 		const a = vnode.attrs
-		return m(".checkbox.click.pt", {
+		return m(".checkbox.click", {
 			onclick: (e: MouseEvent) => {
 				if (e.target !== this._domInput) {
 					this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()

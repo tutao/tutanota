@@ -15,12 +15,11 @@ import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../api/comm
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
@@ -28,7 +27,7 @@ import {
 	getCalendarName,
 	getCapabilityText,
 	getEventStart,
-	getMonth,
+	getMonth, getNextHalfHour,
 	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeZone,
@@ -36,11 +35,11 @@ import {
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
 } from "./CalendarUtils"
-import {showCalendarEventDialog} from "./CalendarEventDialog"
+import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../api/main/WorkerClient"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
+import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent, calendarModel} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
@@ -70,7 +69,6 @@ import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import type {Group} from "../api/entities/sys/Group"
-import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {getDisplayText} from "../mail/MailUtils"
@@ -80,10 +78,9 @@ import {loadGroupMembers} from "./CalendarSharingUtils"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {SysService} from "../api/entities/sys/Services"
-import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import {CalendarEventPopup} from "./CalendarEventPopup"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6
@@ -181,7 +178,7 @@ export class CalendarView implements CurrentView {
 					case CalendarViewType.MONTH:
 						return m(CalendarMonthView, {
 							eventsForDays: this._eventsForDays,
-							onEventClicked: (event) => this._onEventSelected(event),
+							onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent),
 							onNewEvent: (date) => {
 								this._newEvent(date)
 							},
@@ -199,7 +196,7 @@ export class CalendarView implements CurrentView {
 					case CalendarViewType.DAY:
 						return m(CalendarDayView, {
 							eventsForDays: this._eventsForDays,
-							onEventClicked: (event) => this._onEventSelected(event),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
 							onNewEvent: (date) => {
 								this._newEvent(date)
 							},
@@ -215,7 +212,7 @@ export class CalendarView implements CurrentView {
 					case CalendarViewType.WEEK:
 						return m(CalendarWeekView, {
 							eventsForDays: this._eventsForDays,
-							onEventClicked: (event) => this._onEventSelected(event),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
 							onNewEvent: (date) => {
 								this._newEvent(date)
 							},
@@ -232,7 +229,7 @@ export class CalendarView implements CurrentView {
 						return m(CalendarAgendaView, {
 							eventsForDays: this._eventsForDays,
 							amPmFormat: shouldDefaultToAmPmTimeFormat(),
-							onEventClicked: (event) => this._onEventSelected(event),
+							onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
 							onDateSelected: (date) => {
@@ -255,17 +252,8 @@ export class CalendarView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
-
-
 		// load all calendars. if there is no calendar yet, create one
-		this._calendarInfos = this._loadCalendarInfos().then(calendarInfos => {
-			if (calendarInfos.size === 0) {
-				return worker.addCalendar("").then(() => this._loadCalendarInfos())
-			} else {
-				return calendarInfos
-			}
-		})
-
+		this._calendarInfos = calendarModel.loadOrCreateCalendarInfo().tap(m.redraw)
 
 		this._calendarInvitations = []
 		this._updateCalendarInvitations()
@@ -652,22 +640,39 @@ export class CalendarView implements CurrentView {
 		}, "save_action")
 	}
 
-	_onEventSelected(event: CalendarEvent) {
-		this._calendarInfos.then((calendarInfos) => {
-			let p = Promise.resolve(event)
-			if (event.repeatRule) {
-				// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
-				p = load(CalendarEventTypeRef, event._id)
+	_onEventSelected(calendarEvent: CalendarEvent, domEvent: Event) {
+		const domTarget = domEvent.currentTarget
+		if (domTarget == null || !(domTarget instanceof HTMLElement)) {
+			return
+		}
+		Promise.all([
+			locator.mailModel.getUserMailboxDetails(),
+			this._calendarInfos
+		]).then(([mailboxDetails, calendarInfos]) => {
+				new CalendarEventPopup(
+					calendarEvent,
+					calendarInfos,
+					mailboxDetails,
+					domTarget.getBoundingClientRect(),
+					() => this._editEvent(calendarEvent)
+				).show()
 			}
-			p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, e))
-			 .catch(NotFoundError, () => {
-				 console.log("calendar event not found when clicking on the event")
-			 })
-		})
+		)
 	}
 
-	_getSelectedView(): CalendarViewTypeEnum {
-		return m.route.get().match("/calendar/month") ? CalendarViewType.MONTH : CalendarViewType.DAY
+	_editEvent(event: CalendarEvent) {
+		Promise.all([this._calendarInfos, locator.mailModel.getUserMailboxDetails()])
+		       .then(([calendarInfos, mailboxDetails]) => {
+			       let p = Promise.resolve(event)
+			       if (event.repeatRule) {
+				       // in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
+				       p = load(CalendarEventTypeRef, event._id)
+			       }
+			       p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, mailboxDetails, e))
+			        .catch(NotFoundError, () => {
+				        console.log("calendar event not found when clicking on the event")
+			        })
+		       })
 	}
 
 	_loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
@@ -688,7 +693,7 @@ export class CalendarView implements CurrentView {
 		if (date == null) {
 			switch (this._currentViewType) {
 				case CalendarViewType.AGENDA:
-					dateToUse = this._getNextHalfHour()
+					dateToUse = getNextHalfHour()
 					break
 				case CalendarViewType.MONTH:
 					// use the current day if it is visible in the displayed month, otherwise use the start of the month
@@ -710,8 +715,10 @@ export class CalendarView implements CurrentView {
 		} else {
 			dateToUse = date
 		}
-		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
-		p.then(calendars => showCalendarEventDialog(dateToUse, calendars))
+		Promise.all([
+			this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos),
+			locator.mailModel.getUserMailboxDetails()
+		]).then(([calendars, mailboxDetails]) => showCalendarEventDialog(dateToUse, calendars, mailboxDetails))
 	}
 
 	/**
@@ -724,23 +731,13 @@ export class CalendarView implements CurrentView {
 	 */
 	_getNewEventStartDate(currentDayStartOfView: Date, visibleStartOfView: Date): Date {
 		if (isSameDay(currentDayStartOfView, visibleStartOfView)) {
-			let nextHalfHour = this._getNextHalfHour()
+			let nextHalfHour = getNextHalfHour()
 			// only use the next half hour if it is not already on the next day, i.e. the current time is <= 23:30
 			if (isSameDay(nextHalfHour, new Date())) {
 				return nextHalfHour
 			}
 		}
 		return getHourOfDay(visibleStartOfView, DEFAULT_HOUR_OF_DAY)
-	}
-
-	_getNextHalfHour() {
-		let date: Date = new Date()
-		if (date.getMinutes() > 30) {
-			date.setHours(date.getHours() + 1, 0)
-		} else {
-			date.setMinutes(30)
-		}
-		return date
 	}
 
 	view() {
@@ -820,49 +817,6 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	_loadCalendarInfos(): Promise<Map<Id, CalendarInfo>> {
-		const userId = logins.getUserController().user._id
-		return load(UserTypeRef, userId)
-			.then(user => {
-				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-				const notFoundMemberships = []
-				return Promise
-					.map(calendarMemberships, (membership) => Promise
-						.all([
-							load(CalendarGroupRootTypeRef, membership.group),
-							load(GroupInfoTypeRef, membership.groupInfo),
-							load(GroupTypeRef, membership.group)
-						])
-						.catch(NotFoundError, () => {
-							notFoundMemberships.push(membership)
-							return null
-						})
-					)
-					.then((groupInstances) => {
-						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupInstances.filter(Boolean)
-						              .forEach(([groupRoot, groupInfo, group]) => {
-							              calendarInfos.set(groupRoot._id, {
-								              groupRoot,
-								              groupInfo,
-								              shortEvents: [],
-								              longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
-								              group: group,
-								              shared: !isSameId(group.user, userId)
-							              })
-						              })
-
-						// cleanup inconsistent memberships
-						Promise.each(notFoundMemberships, (notFoundMembership) => {
-							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
-							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
-						})
-						return calendarInfos
-					})
-			})
-			.tap(() => m.redraw())
-	}
-
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
 		this._calendarInfos.then((calendarEvents) => {
 			updates.forEach(update => {
@@ -898,7 +852,7 @@ export class CalendarView implements CurrentView {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
-								this._calendarInfos = this._loadCalendarInfos()
+								this._calendarInfos = calendarModel.loadCalendarInfos()
 								this._calendarInfos.then(() => {
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)
@@ -909,7 +863,7 @@ export class CalendarView implements CurrentView {
 									this._loadMonthIfNeeded(selectedDate)
 									    .then(() => this._loadMonthIfNeeded(nextMonthDate))
 									    .then(() => this._loadMonthIfNeeded(previousMonthDate))
-								})
+								}).tap(() => m.redraw())
 							}
 						})
 					}

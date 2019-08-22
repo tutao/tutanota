@@ -21,6 +21,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {show} from "./RecoverLoginDialog"
 import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
+import type {ILoginViewController} from "./LoginViewController"
 
 assertMainOrNode()
 

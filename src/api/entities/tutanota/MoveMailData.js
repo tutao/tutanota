@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createMoveMailData(values?: $Shape<$Exact<MoveMailData>>): MoveMailData {

@@ -115,6 +115,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
+		"method": {
+			"name": "method",
+			"id": 1120,
+			"since": 42,
+			"type": "Number",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": true
+		},
 		"movedTime": {
 			"name": "movedTime",
 			"id": 896,
@@ -294,7 +303,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {
@@ -316,6 +325,7 @@ export type Mail = {
 	confidential: boolean;
 	differentEnvelopeSender: ?string;
 	listUnsubscribe: boolean;
+	method: NumberString;
 	movedTime: ?Date;
 	phishingStatus: NumberString;
 	receivedDate: Date;

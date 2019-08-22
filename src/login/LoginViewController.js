@@ -19,7 +19,6 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {lang} from "../misc/LanguageViewModel"
-import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {windowFacade} from "../misc/WindowFacade"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {logins} from "../api/main/LoginController"
@@ -29,7 +28,6 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {mailModel} from "../mail/MailModel"
 import {themeId} from "../gui/theme"
 import {changeColorTheme} from "../native/SystemApp"
 import {CancelledError} from "../api/common/error/CancelledError"
@@ -41,10 +39,24 @@ import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfo
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {formatPrice} from "../subscription/SubscriptionUtils"
+import {locator} from "../api/main/MainLocator"
+import {checkApprovalStatus} from "../misc/LoginUtils"
 import {calendarModel} from "../calendar/CalendarModel"
 import {getHourCycle} from "../misc/Formatter"
 
 assertMainOrNode()
+
+export interface ILoginViewController {
+	formLogin(): void;
+
+	autologin(credentials: Credentials): void;
+
+	deleteCredentialsNotLoggedIn(credentials: Credentials): Promise<void>;
+
+	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
+
+	loadSignupWizard(): Promise<{+show: Function}>;
+}
 
 export class LoginViewController implements ILoginViewController {
 	view: LoginView;
@@ -67,7 +79,7 @@ export class LoginViewController implements ILoginViewController {
 	autologin(credentials: Credentials): void {
 		if (this._loginPromise.isPending()) return
 		this._loginPromise = showProgressDialog("login_msg", worker.initialized.then(() => {
-			return this._handleSession(worker.resumeSession(credentials), () => {
+			return this._handleSession(logins.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
 			})
 		}))
@@ -79,7 +91,7 @@ export class LoginViewController implements ILoginViewController {
 			return worker.decryptUserPassword(c.userId, c.deviceToken, c.encryptedPassword)
 			             .then(userPw => {
 				             if (isMailAddress(c.mailAddress, true)) { // do not migrate credentials of external users
-					             return worker.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
+					             return logins.createSession(c.mailAddress, userPw, client.getIdentifier(), true, false)
 					                          .then(newCredentials => {
 						                          deviceConfig.set(newCredentials)
 					                          })
@@ -103,7 +115,7 @@ export class LoginViewController implements ILoginViewController {
 			this.view.helpText = lang.get('login_msg')
 			this.view.invalidCredentials = false
 			let persistentSession = this.view.savePassword.checked()
-			this._loginPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
+			this._loginPromise = logins.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 			                           .then(newCredentials => {
 				                           let storedCredentials = deviceConfig.get(mailAddress)
 				                           if (persistentSession) {
@@ -214,30 +226,37 @@ export class LoginViewController implements ILoginViewController {
 		}
 
 		// do not return the promise. loading of dialogs can be executed in parallel
-		checkApprovalStatus(true).then(() => {
-			return this._showUpgradeReminder()
-		}).then(() => {
-			return this._checkStorageWarningLimit()
-		}).then(() => {
-			secondFactorHandler.setupAcceptOtherClientLoginListener()
-		}).then(() => {
-			if (!isAdminClient()) {
-				return mailModel.init()
-			}
-		}).then(() => logins.loginComplete()).then(() => {
+		checkApprovalStatus(true)
+			.then(() => {
+				return this._showUpgradeReminder()
+			})
+			.then(() => {
+				return this._checkStorageWarningLimit()
+			})
+			.then(() => {
+				secondFactorHandler.setupAcceptOtherClientLoginListener()
+			})
+			.then(() => {
+				if (!isAdminClient()) {
+					return locator.mailModel.init()
+				}
+			})
+			.then(() => logins.loginComplete()).then(() => {
 			// don't wait for it, just invoke
 			if (isApp()) {
 				fileApp.clearFileData()
 				       .catch((e) => console.log("Failed to clean file data", e))
 			}
-		}).then(() => {
-			if (logins.isGlobalAdminUserLoggedIn()) {
-				let receiveInfoData = createReceiveInfoServiceData()
-				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
-			}
-		}).then(() => {
-			return calendarModel.scheduleAlarmsLocally()
-		}).then(() => {
+		})
+			.then(() => {
+				if (logins.isGlobalAdminUserLoggedIn()) {
+					let receiveInfoData = createReceiveInfoServiceData()
+					return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
+				}
+			})
+			.then(() => {
+				return calendarModel.init()
+			}).then(() => {
 			lang.updateFormats({
 				hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
 			})

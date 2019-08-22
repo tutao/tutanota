@@ -21,7 +21,6 @@ export class Socketeer {
 
 		app.on('will-quit', () => {
 			if (this._server || this._connection) {
-				console.log("cleaning up socket...")
 				if (this._connection) {
 					this._connection.end()
 				}

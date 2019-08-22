@@ -1,6 +1,4 @@
 //@flow
-
-
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {serviceRequest} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
@@ -9,11 +7,11 @@ import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {uint8ArrayToHex} from "../../common/utils/Encoding"
 import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
+import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
-import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
-
+import type {RecipientInfo} from "../../common/RecipientInfo"
 
 export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientInfo: RecipientInfo, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {
 	let keyData = createPublicKeyData()

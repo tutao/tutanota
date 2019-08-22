@@ -6,20 +6,23 @@ import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
-import {LockedError, PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
-import {getTrashFolder, isFinalDelete} from "./MailUtils"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
+import type {MailBox} from "../api/entities/tutanota/MailBox"
 import {MailBoxTypeRef} from "../api/entities/tutanota/MailBox"
+import type {MailboxGroupRoot} from "../api/entities/tutanota/MailboxGroupRoot"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {FeatureType, GroupType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
-import {module as replaced} from "@hot"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {locator} from "../api/main/MainLocator"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -28,19 +31,19 @@ import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {worker} from "../api/main/WorkerClient"
-import type {Mail} from "../api/entities/tutanota/Mail"
 import type {WebsocketCounterData} from "../api/entities/sys/WebsocketCounterData"
-import type {MailBox} from "../api/entities/tutanota/MailBox"
-import type {MailFolder} from "../api/entities/tutanota/MailFolder"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {Group} from "../api/entities/sys/Group"
+import {SysService} from "../api/entities/sys/Services"
+import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
+import type {PublicKeyReturn} from "../api/entities/sys/PublicKeyReturn"
+import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
+import type {WorkerClient} from "../api/main/WorkerClient"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
 	folders: MailFolder[],
 	mailGroupInfo: GroupInfo,
-	mailGroup: Group
+	mailGroup: Group,
+	mailboxGroupRoot: MailboxGroupRoot,
 }
 
 export type MailboxCounters = {
@@ -58,13 +61,15 @@ export class MailModel {
 	_initialization: ?Promise<void>
 	_notifications: Notifications
 	_eventController: EventController
+	_worker: WorkerClient
 
-	constructor(notifications: Notifications, eventController: EventController) {
+	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient) {
 		this.mailboxDetails = stream()
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
 		this._eventController = eventController
+		this._worker = worker
 	}
 
 	init(): Promise<void> {
@@ -82,22 +87,26 @@ export class MailModel {
 	_init(): Promise<void> {
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
 		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
-			return Promise.all([
-				load(MailboxGroupRootTypeRef, mailGroupMembership.group)
-					.then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)),
-				load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
-				load(GroupTypeRef, mailGroupMembership.group)
-			]).spread((mailbox, mailGroupInfo, mailGroup) => {
-				return this._loadFolders(neverNull(mailbox.systemFolders).folders, true).then(folders => {
-					return {
-						mailbox,
-						folders,
-						mailGroupInfo,
-						mailGroup
-					}
+				return Promise.all([
+					load(MailboxGroupRootTypeRef, mailGroupMembership.group),
+					load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
+					load(GroupTypeRef, mailGroupMembership.group)
+				]).spread((mailboxGroupRoot, mailGroupInfo, mailGroup) => {
+					return load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then((mailbox) => {
+						return this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
+						           .then((folders) => {
+							           return {
+								           mailbox,
+								           folders,
+								           mailGroupInfo,
+								           mailGroup,
+								           mailboxGroupRoot
+							           }
+						           })
+					})
 				})
 			})
-		})).then(details => {
+		).then(details => {
 			this.mailboxDetails(details)
 		}).return()
 		return this._initialization
@@ -190,10 +199,10 @@ export class MailModel {
 	deleteMails(mails: Mail[]): Promise<void> {
 		const moveMap: Map<IdTuple, Mail[]> = new Map()
 		let mailBuckets = mails.reduce((buckets, mail) => {
-			const folder = mailModel.getMailFolder(mail._id[0])
+			const folder = this.getMailFolder(mail._id[0])
 			if (!folder) {
 				throw new ProgrammingError("tried to delete mail without folder")
-			} else if (isFinalDelete(folder)) {
+			} else if (this.isFinalDelete(folder)) {
 				buckets.trash.push(mail)
 			} else {
 				getFromMap(buckets.move, folder._id, () => []).push(mail)
@@ -212,7 +221,7 @@ export class MailModel {
 		}
 		if (mailBuckets.move.size > 0) {
 			for (const [folderId, mails] of mailBuckets.move) {
-				promises.push(mailModel.getMailboxFolders(mails[0]).then(folders => mailModel.moveMails(mails, getTrashFolder(folders))))
+				promises.push(this.getMailboxFolders(mails[0]).then(folders => this.moveMails(mails, this.getTrashFolder(folders))))
 			}
 		}
 		return Promise.all(promises).return()
@@ -245,9 +254,9 @@ export class MailModel {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation
 					const mailId = [update.instanceListId, update.instanceId]
 					load(MailTypeRef, mailId)
-						.then((mail) => mailModel.getMailboxDetailsForMailListId(update.instanceListId)
-						                         .then(mailboxDetail => findAndApplyMatchingRule(mailboxDetail, mail))
-						                         .then((newId) => this._showNotification(newId || mailId)))
+						.then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
+						                    .then(mailboxDetail => findAndApplyMatchingRule(mailboxDetail, mail))
+						                    .then((newId) => this._showNotification(newId || mailId)))
 						.catch(noOp)
 				}
 			}
@@ -280,16 +289,24 @@ export class MailModel {
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
-		return worker.checkMailForPhishing(mail, links)
+		return this._worker.checkMailForPhishing(mail, links)
+	}
+
+	getTrashFolder(folders: MailFolder[]): MailFolder {
+		return (folders.find(f => f.folderType === MailFolderType.TRASH): any)
+	}
+
+	isFinalDelete(folder: ?MailFolder): boolean {
+		return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
+	}
+
+	getRecipientKeyData(mailAddress: string): Promise<?PublicKeyReturn> {
+		return this._worker.serviceRequest(
+			SysService.PublicKeyService,
+			HttpMethod.GET,
+			createPublicKeyData({mailAddress}),
+			PublicKeyReturnTypeRef
+		).catch(NotFoundError, () => null)
 	}
 }
-
-export const mailModel = new MailModel(new Notifications(), locator.eventController)
-
-if (replaced) {
-	Object.assign(mailModel, replaced.mailModel)
-}
-
-
-
 

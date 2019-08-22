@@ -34,6 +34,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"calendarMethod": {
+			"name": "calendarMethod",
+			"id": 1117,
+			"since": 42,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"language": {
 			"name": "language",
 			"id": 549,
@@ -111,7 +120,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createSendDraftData(values?: $Shape<$Exact<SendDraftData>>): SendDraftData {
@@ -123,6 +132,7 @@ export type SendDraftData = {
 
 	_format: NumberString;
 	bucketEncMailSessionKey: ?Uint8Array;
+	calendarMethod: boolean;
 	language: string;
 	mailSessionKey: ?Uint8Array;
 	plaintext: boolean;

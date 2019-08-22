@@ -1,4 +1,5 @@
 //@flow
+import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import {lang, languages} from "../misc/LanguageViewModel"
@@ -13,13 +14,13 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CustomerProperties} from "../api/entities/sys/CustomerProperties"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
+import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
@@ -42,11 +43,15 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 	const previewSegment = {name: lang.get("preview_label"), value: "preview"}
 	const selectedTab = stream(editSegment.value)
 
-	const sortedLanguages: {name: string, value: string}[] = languages.slice()
-	                                                                  .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-	                                                                  .map(language => {
-		                                                                  return {name: lang.get(language.textId), value: language.code}
-	                                                                  })
+	const sortedLanguages: SelectorItemList<string> =
+		languages.slice()
+		         .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		         .map(language => {
+			         return {
+				         name: lang.get(language.textId),
+				         value: language.code
+			         }
+		         })
 	const selectedLanguage = sortedLanguages.find(({value}) => value === template.language)
 	const selectedLanguageStream: Stream<string> = stream(selectedLanguage && selectedLanguage.value)
 	const subject = stream(template.subject)

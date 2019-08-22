@@ -1,44 +1,52 @@
 //@flow
 
-import {erase, serviceRequest, setup, update} from "../EntityWorker"
+import {erase, load, loadAll, serviceRequest, serviceRequestVoid, setup, update} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
+import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
-import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
-import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
+import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/EntityFunctions"
+import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
 import {SysService} from "../../entities/sys/Services"
 import {aes128RandomKey} from "../crypto/Aes"
+import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
+import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
+import type {RepeatRule} from "../../entities/sys/RepeatRule"
 import {createRepeatRule} from "../../entities/sys/RepeatRule"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
 import {createCalendarPostData} from "../../entities/tutanota/CalendarPostData"
 import {UserManagementFacade} from "./UserManagementFacade"
 import {TutanotaService} from "../../entities/tutanota/Services"
+import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
+import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
 import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
+import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
-import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
-import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
-import type {User} from "../../entities/sys/User"
-import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
-import type {Group} from "../../entities/sys/Group"
-import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
+import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
+import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
+import {hash} from "../crypto/Sha256"
+import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
-import type {RepeatRule} from "../../entities/sys/RepeatRule"
-import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
 
 assertWorkerOrNode()
+
+function hashUid(uid: string): Uint8Array {
+	return hash(stringToUtf8Uint8Array(uid))
+}
+
 
 export class CalendarFacade {
 
@@ -54,31 +62,39 @@ export class CalendarFacade {
 
 	createCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
-		let p = Promise.resolve()
-		// delete old calendar event
-		if (oldEvent) {
-			p = erase(oldEvent)
-				.catch(NotFoundError, noOp)
-				.catch(LockedError, noOp)
-		}
-
-		return p.then(() => this._createAlarms(user, event, alarmInfos))
-		        .then(userAlarmIdsWithAlarmNotifications => {
-			        event.alarmInfos.length = 0
-			        userAlarmIdsWithAlarmNotifications.forEach(([id]) => {
-				        event.alarmInfos.push(id)
-			        })
-
-			        return setup(listIdPart(event._id), event)
-				        .then(() => {
-					        const alarmNotifications = userAlarmIdsWithAlarmNotifications
-						        .map(([_id, alarmNotification]) => alarmNotification)
-					        if (alarmNotifications.length > 0) {
-						        return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-							        .then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
-					        }
-				        })
-		        })
+		return Promise
+			.resolve()
+			.then(() => {
+				if (event._id == null) throw new Error("No id set on the event")
+				if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
+				if (event.uid == null) throw new Error("no uid set on the event")
+				event.hashedUid = hashUid(event.uid)
+				if (oldEvent) {
+					return erase(oldEvent)
+						.catch(NotFoundError, noOp)
+						.catch(LockedError, noOp)
+				}
+			})
+			.then(() =>
+				this._createAlarms(user, event, alarmInfos)
+				    .then(userAlarmIdsWithAlarmNotifications => {
+					    event.alarmInfos.length = 0
+					    userAlarmIdsWithAlarmNotifications.forEach(([id]) => {
+						    event.alarmInfos.push(id)
+					    })
+					    return setup(getListId(event), event)
+						    .then(() => {
+							    if (userAlarmIdsWithAlarmNotifications.length > 0) {
+								    const alarmNotifications = userAlarmIdsWithAlarmNotifications
+									    .map(([_, alarm]) => alarm)
+								    return loadAll(
+									    PushIdentifierTypeRef,
+									    neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list
+								    ).then((pushIdentifierList) =>
+									    this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+							    }
+						    })
+				    }))
 	}
 
 	updateCalendarEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
@@ -92,11 +108,11 @@ export class CalendarFacade {
 			.then(userAlarmIdsWithAlarmNotifications => {
 				const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 				// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
+				// Server takes care of the removed alarms,
 				newEvent.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
 				if (userAlarmIdsWithAlarmNotifications) {
 					newEvent.alarmInfos.push(...userAlarmIdsWithAlarmNotifications.map(([id]) => id))
 				}
-
 				return update(newEvent)
 					.then(() => {
 						if (userAlarmIdsWithAlarmNotifications) {
@@ -125,7 +141,6 @@ export class CalendarFacade {
 				const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
 				return setup(userAlarmInfoListId, newAlarm).then((id) => ([[userAlarmInfoListId, id], alarmNotification]))
 			})
-
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -228,6 +243,34 @@ export class CalendarFacade {
 			console.warn("No alarmInfo list on user")
 			return Promise.resolve([])
 		}
+	}
+
+	/**
+	 * Queries the event using the uid index. The index is stored per calendar so we have to go through all calendars to find matching event.
+	 * We currently only need this for calendar event updates and for that we don't want to look into shared calendars.
+	 */
+	getEventByUid(uid: string): Promise<?CalendarEvent> {
+		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships
+		                                .filter(m => m.groupType === GroupType.Calendar && m.capability == null)
+		return Promise
+			.reduce(calendarMemberships, (acc, membership) => {
+				// short-circuit if we've already found the event
+				if (acc) {
+					return acc
+				}
+				return load(CalendarGroupRootTypeRef, membership.group)
+					.then((groupRoot) =>
+						groupRoot.index && load(CalendarEventUidIndexTypeRef, [
+							groupRoot.index.list,
+							uint8arrayToCustomId(hashUid(uid))
+						]))
+					.catch(NotFoundError, () => null)
+			}, null)
+			.then((indexEntry) => {
+				if (indexEntry) {
+					return load(CalendarEventTypeRef, indexEntry.calendarEvent)
+				}
+			})
 	}
 }
 

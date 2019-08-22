@@ -71,7 +71,6 @@ export function disableAutoLaunch(): Promise<void> {
 
 export function runIntegration(): Promise<void> {
 	if (executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
-	console.log(`checking for ${desktopFilePath} ...`)
 	return isIntegrated().then(integrated => {
 		if (integrated) {
 			console.log(`desktop file exists, checking version...`)
@@ -158,14 +157,10 @@ TryExec=${packagePath}`
 }
 
 function copyIcons(): Promise<void> {
-	console.log("create icon directory:", iconTargetDir64)
-	console.log("create icon directory:", iconTargetDir512)
 	return Promise.all([
 		fs.mkdir(iconTargetDir64, {recursive: true}),
 		fs.mkdir(iconTargetDir512, {recursive: true})
 	]).then(() => {
-		console.log("copy icons:", iconSourcePath64, "->", iconTargetPath64)
-		console.log("copy icons:", iconSourcePath512, "->", iconTargetPath512)
 		return Promise.all([
 			fs.copyFile(iconSourcePath64, iconTargetPath64),
 			fs.copyFile(iconSourcePath512, iconTargetPath512)

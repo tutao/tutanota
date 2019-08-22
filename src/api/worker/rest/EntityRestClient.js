@@ -24,6 +24,30 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 
 export type AuthHeadersProvider = () => Params
 
+/**
+ * The EntityRestInterface provides a convenient interface for invoking server side REST services.
+ */
+export interface EntityRestInterface {
+
+	/**
+	 * Creates, reads, updates or deletes (CRUD) data on/from the server. Provided entities are encrypted before they are
+	 * sent to the server and decrypted before they are returned.
+	 * @param typeRef
+	 * @param method
+	 * @param id
+	 * @param entity
+	 * @param queryParams
+	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
+	 */
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id>;
+
+	/**
+	 * Must be called when entity events are received.
+	 * @param data The entity events that were received.
+	 * @return Similar to the events in the data parementer, but reduced by the events which are obsolete.
+	 */
+	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>>;
+}
 
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.

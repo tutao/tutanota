@@ -21,10 +21,12 @@ import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
+import type {SelectorItemList} from "./DropDownSelectorN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
 import {showProgressDialog} from "./ProgressDialog"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -82,7 +84,8 @@ export class Dialog {
 			},
 		]
 		this.view = (): VirtualElement => {
-			let mobileMargin = px(size.hpad)
+			let marginPx = px(size.hpad)
+			const sidesMargin = styles.isSingleColumnLayout() && dialogType === DialogType.EditLarge ? "4px" : marginPx
 			return m(this._getDialogWrapperStyle(dialogType), {
 					style: {
 						paddingTop: requiresStatusBarHack() ? '20px' : 'env(safe-area-inset-top)'
@@ -92,12 +95,12 @@ export class Dialog {
 				m(".flex.justify-center.align-self-stretch.rel.overflow-hidden"
 					+ (dialogType === DialogType.EditLarge ? ".flex-grow" : ".transition-margin"), {  // controls horizontal alignment
 						style: {
-							'margin-top': mobileMargin,
-							'margin-left': mobileMargin,
-							'margin-right': mobileMargin,
+							marginTop: marginPx,
+							marginLeft: sidesMargin,
+							marginRight: sidesMargin,
 							'margin-bottom': (Dialog._keyboardHeight > 0)
 								? px(Dialog._keyboardHeight)
-								: dialogType === DialogType.EditLarge ? 0 : mobileMargin,
+								: dialogType === DialogType.EditLarge ? 0 : marginPx,
 						},
 					}, m(this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"), {
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
@@ -335,38 +338,61 @@ export class Dialog {
 	}
 
 
+	/**
+	 * Simpler version of {@link Dialog#confirmMultiple} with just two options: no and yes (or another confirmation).
+	 * @return Promise, which is resolved with user selection - true for confirm, false for cancel.
+	 */
 	static confirm(messageIdOrMessageFunction: TranslationKey | lazy<string>, confirmId: TranslationKey = "ok_action"): Promise<boolean> {
 		return new Promise(resolve => {
-			let dialog: Dialog
 			const closeAction = conf => {
 				dialog.close()
 				setTimeout(() => resolve(conf), DefaultAnimationTime)
 			}
 			const buttonAttrs: Array<ButtonAttrs> = [
 				{label: "cancel_action", click: () => closeAction(false), type: ButtonType.Secondary},
-				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary}
+				{label: confirmId, click: () => closeAction(true), type: ButtonType.Primary},
 			]
-
-			dialog = new Dialog(DialogType.Alert, {
-				view: () => [
-					m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
-						lang.getMaybeLazy(messageIdOrMessageFunction)),
-					m(".flex-center.dialog-buttons", buttonAttrs.map(a => m(ButtonN, a)))
-				]
-			}).setCloseHandler(
-				() => closeAction(false)
-			).addShortcut({
-				key: Keys.ESC,
-				shift: false,
-				exec: () => closeAction(false),
-				help: "cancel_action"
-			}).addShortcut({
-				key: Keys.RETURN,
-				shift: false,
-				exec: () => closeAction(true),
-				help: neverNull(confirmId) //ok?
-			}).show()
+			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve)
 		})
+	}
+
+	/**
+	 * Show a dialog with multiple selection options below the message.
+	 * @param messageIdOrMessageFunction which displayed in the body
+	 * @param buttons which are displayed below
+	 * @param onclose which is called on shortcut or when dialog is closed any other way (e.g. back navigation). Not called when pressing
+	 * one of the buttons.
+	 */
+	static confirmMultiple(messageIdOrMessageFunction: TranslationKey | lazy<string>, buttons: $ReadOnlyArray<ButtonAttrs>,
+	                       onclose?: (positive: boolean) => mixed
+	): Dialog {
+		let dialog: Dialog
+		const closeAction = (positive) => {
+			dialog.close()
+			setTimeout(() => onclose && onclose(positive), DefaultAnimationTime)
+		}
+
+		dialog = new Dialog(DialogType.Alert, {
+			view: () => [
+				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
+					lang.getMaybeLazy(messageIdOrMessageFunction)),
+				m(".flex-center.dialog-buttons", buttons.map(a => m(ButtonN, a)))
+			]
+		}).setCloseHandler(() => closeAction(false))
+		  .addShortcut({
+			  key: Keys.ESC,
+			  shift: false,
+			  exec: () => closeAction(false),
+			  help: "cancel_action"
+		  })
+		  .addShortcut({
+			  key: Keys.RETURN,
+			  shift: false,
+			  exec: () => closeAction(true),
+			  help: "ok_action",
+		  })
+		  .show()
+		return dialog
 	}
 
 	// used in admin client
@@ -590,7 +616,9 @@ export class Dialog {
 	 * @param dropdownWidth width of the dropdown
 	 * @returns A promise resolving to the selected item. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showDropDownSelectionDialog<T>(titleId: TranslationKey, label: TranslationKey, infoMsgId: ?TranslationKey, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: TranslationKey, label: TranslationKey, infoMsgId: ?TranslationKey,
+	                                      items: SelectorItemList<T>, selectedValue: Stream<T>, dropdownWidth: ?number
+	): Promise<T> {
 		return new Promise(resolve => {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),

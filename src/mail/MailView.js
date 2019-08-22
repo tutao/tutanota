@@ -2,6 +2,7 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -19,6 +20,7 @@ import {CurrentView} from "../gui/base/Header"
 import {getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
@@ -46,7 +48,6 @@ import {
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
-import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {ActionBar} from "../gui/base/ActionBar";
@@ -63,8 +64,6 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import type {Mail} from "../api/entities/tutanota/Mail"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 
 assertMainOrNode()
@@ -164,8 +163,8 @@ export class MailView implements CurrentView {
 							Promise.join(
 								this._newMail(),
 								fileController.readLocalFiles(ev.dataTransfer.files),
-								(ed, dataFiles) => {
-									ed.attachFiles((dataFiles: any))
+								(editor, dataFiles) => {
+									editor.attachFiles((dataFiles: any))
 									m.redraw()
 								}).catch(PermissionError, noOp)
 						}
@@ -368,7 +367,7 @@ export class MailView implements CurrentView {
 		]
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
-		mailModel.mailboxDetails.map(mailboxDetails => {
+		locator.mailModel.mailboxDetails.map(mailboxDetails => {
 			mailboxDetails.forEach(newMailboxDetail => {
 				if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
 					this.createMailboxExpander(newMailboxDetail)
@@ -384,7 +383,7 @@ export class MailView implements CurrentView {
 
 			if (this.selectedFolder) {
 				// find the folder in the new folder list that was previously selected
-				let currentlySelectedFolder = mailModel.getMailFolder(this.selectedFolder.mails)
+				let currentlySelectedFolder = locator.mailModel.getMailFolder(this.selectedFolder.mails)
 				if (currentlySelectedFolder) {
 					this.selectedFolder = currentlySelectedFolder
 				} else {
@@ -400,7 +399,7 @@ export class MailView implements CurrentView {
 
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
-			this._countersStream = mailModel.mailboxCounters.map(m.redraw)
+			this._countersStream = locator.mailModel.mailboxCounters.map(m.redraw)
 		}
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
@@ -413,7 +412,7 @@ export class MailView implements CurrentView {
 		if (selectedMails.length === 0) {
 			return false
 		}
-		mailModel.getMailboxFolders(selectedMails[0]).then((folders) => {
+		locator.mailModel.getMailboxFolders(selectedMails[0]).then((folders) => {
 			let dropdown = new DropdownN(() => {
 				const mailList = getListId(selectedMails[0])
 				if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
@@ -424,7 +423,7 @@ export class MailView implements CurrentView {
 				const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
 				return targetFolders.map(f => ({
 					label: () => getFolderName(f),
-					click: () => mailModel.moveMails(selectedMails, f),
+					click: () => locator.mailModel.moveMails(selectedMails, f),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}))
@@ -461,9 +460,9 @@ export class MailView implements CurrentView {
 
 	createMailBoxExpanderButton(mailboxDetails: MailboxDetail): ExpanderButton {
 		const mailGroupId = mailboxDetails.mailGroup._id
-		const mailboxExpander = new ExpanderButton(() => getMailboxName(mailboxDetails), new ExpanderPanel({
+		const mailboxExpander = new ExpanderButton(() => getMailboxName(logins, mailboxDetails), new ExpanderPanel({
 			view: () => {
-				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
+				const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
 				return m(".folders",
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
 					                                   .map(({id, button}) => {
@@ -513,8 +512,8 @@ export class MailView implements CurrentView {
 			if (location.hash.length > 5) {
 				let url = location.hash.substring(5)
 				let decodedUrl = decodeURIComponent(url)
-				mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-					let editor = new MailEditor(mailboxDetails)
+				locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+					let editor: MailEditor = new MailEditor(mailboxDetails)
 					editor.initWithMailtoUrl(decodedUrl, false)
 					editor.show()
 					history.pushState("", document.title, window.location.pathname) // remove # from url
@@ -549,7 +548,7 @@ export class MailView implements CurrentView {
 				this.viewSlider.focus(this.viewSlider.columns[1])
 			}
 		} else if (!this.isInitialized()) {
-			mailModel.getMailboxDetails().then((mailboxDetails) => {
+			locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
 				if (typeof args.listId === 'undefined') {
 					this._setUrl(this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]])
 				} else {
@@ -585,7 +584,7 @@ export class MailView implements CurrentView {
 	 */
 	_showList(mailListId: Id, mailElementId: ? Id): boolean {
 		this.mailList = new MailListView(mailListId, (this: any))
-		let folder = mailModel.getMailFolder(mailListId)
+		let folder = locator.mailModel.getMailFolder(mailListId)
 		if (folder) {
 			this.selectedFolder = folder
 			navButtonRoutes.mailUrl = this._folderToUrl[folder._id[1]]
@@ -612,11 +611,11 @@ export class MailView implements CurrentView {
 				dropHandler: (droppedMailId) => {
 					// the dropped mail is among the selected mails, move all selected mails
 					if (this.mailList.list.isEntitySelected(droppedMailId)) {
-						mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
+						locator.mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
 					} else {
 						let entity = this.mailList.list.getEntity(droppedMailId)
 						if (entity) {
-							mailModel.moveMails([entity], folder)
+							locator.mailModel.moveMails([entity], folder)
 						}
 					}
 				}
@@ -631,11 +630,11 @@ export class MailView implements CurrentView {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
 			             .then((name) =>
-				             mailModel.getMailboxDetailsForMailGroup(mailGroupId)
-				                      .then((mailboxDetails) =>
-					                      worker.createMailFolder(name,
-						                      getInboxFolder(mailboxDetails.folders)._id,
-						                      mailGroupId)))
+				             locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+				                    .then((mailboxDetails) =>
+					                    worker.createMailFolder(name,
+						                    getInboxFolder(mailboxDetails.folders)._id,
+						                    mailGroupId)))
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -653,7 +652,7 @@ export class MailView implements CurrentView {
 					return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
 						getFolderName(folder), (name) => this._checkFolderName(name, mailGroupId))
 					             .then((newName) => {
-						             let renamedFolder = Object.assign({}, folder, {name: newName})
+						             const renamedFolder: MailFolder = Object.assign({}, folder, {name: newName})
 						             return update(renamedFolder)
 					             })
 				}
@@ -681,21 +680,21 @@ export class MailView implements CurrentView {
 
 	_getMailboxDetails(): Promise<MailboxDetail> {
 		return this.selectedFolder
-			? mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails)
-			: mailModel.getUserMailboxDetails()
+			? locator.mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails)
+			: locator.mailModel.getUserMailboxDetails()
 	}
 
 	_checkFolderName(name: string, mailGroupId: Id): Promise<?TranslationKey> {
-		return mailModel.getMailboxDetailsForMailGroup(mailGroupId)
-		                .then((mailboxDetails) => {
-			                if (name.trim() === "") {
-				                return "folderNameNeutral_msg"
-			                } else if (mailboxDetails.folders.find(f => f.name === name)) {
-				                return "folderNameInvalidExisting_msg"
-			                } else {
-				                return null
-			                }
-		                })
+		return locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+		              .then((mailboxDetails) => {
+			              if (name.trim() === "") {
+				              return "folderNameNeutral_msg"
+			              } else if (mailboxDetails.folders.find(f => f.name === name)) {
+				              return "folderNameInvalidExisting_msg"
+			              } else {
+				              return null
+			              }
+		              })
 	}
 
 	_finallyDeleteCustomMailFolder(folder: MailFolder) {
@@ -758,7 +757,7 @@ export class MailView implements CurrentView {
 	deleteMails(mails: Mail[]): Promise<void> {
 		return showDeleteConfirmationDialog(mails).then((confirmed) => {
 			if (confirmed) {
-				mailModel.deleteMails(mails)
+				locator.mailModel.deleteMails(mails)
 			} else {
 				return Promise.resolve()
 			}

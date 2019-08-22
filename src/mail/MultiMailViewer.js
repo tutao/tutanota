@@ -17,13 +17,13 @@ import {
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
-import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
 import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
 import type {Mail} from "../api/entities/tutanota/Mail"
+import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
 
 assertMainOrNode()
@@ -88,7 +88,7 @@ export class MultiMailViewer {
 
 		actions.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
 			return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
-				return mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
+				return locator.mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
 					if (set.indexOf(mailBox) < 0) {
 						set.push(mailBox)
 					}
@@ -102,7 +102,7 @@ export class MultiMailViewer {
 						.filter(f => f !== this._mailView.selectedFolder)
 						.map(f => {
 							return new Button(() => getFolderName(f),
-								this._actionBarAction((mails) => mailModel.moveMails(mails, f)),
+								this._actionBarAction((mails) => locator.mailModel.moveMails(mails, f)),
 								getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})
@@ -114,7 +114,7 @@ export class MultiMailViewer {
 				showDeleteConfirmationDialog(mails).then((confirmed) => {
 					if (confirmed) {
 						this._mailView.mailList.list.selectNone()
-						mailModel.deleteMails(mails)
+						locator.mailModel.deleteMails(mails)
 					}
 				})
 			}, () => Icons.Trash

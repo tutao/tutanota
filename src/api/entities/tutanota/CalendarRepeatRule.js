@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createCalendarRepeatRule(values?: $Shape<$Exact<CalendarRepeatRule>>): CalendarRepeatRule {

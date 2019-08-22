@@ -1,26 +1,25 @@
 //@flow
-
-
 import type {Recipients} from "../mail/MailEditor"
 import {MailEditor} from "../mail/MailEditor"
-import {mailModel} from "../mail/MailModel"
 import {getDefaultSender, getEnabledMailAddresses} from "../mail/MailUtils"
 import {getCalendarName} from "./CalendarUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadAll} from "../api/main/Entity"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {GroupMember} from "../api/entities/sys/GroupMember"
+import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import type {Group} from "../api/entities/sys/Group"
 import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
-
+import {locator} from "../api/main/MainLocator"
+import type {RecipientInfo} from "../api/common/RecipientInfo"
+import {logins} from "../api/main/LoginController"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
-	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-		const senderMailAddress = getDefaultSender(mailboxDetails)
+	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		const senderMailAddress = getDefaultSender(logins, mailboxDetails)
 		const replacements = {
 			// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
 			"{inviter}": senderMailAddress,
@@ -59,11 +58,11 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation)
 
 function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey, body: TranslationKey, senderMailAddress: string,
                                 replacements: {[string]: string}) {
-	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-		const editor = new MailEditor(mailboxDetails)
+	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		const editor: MailEditor = new MailEditor(mailboxDetails)
 		const sender = getEnabledMailAddresses(mailboxDetails).includes(senderMailAddress)
 			? senderMailAddress
-			: getDefaultSender(mailboxDetails)
+			: getDefaultSender(logins, mailboxDetails)
 		const subjectString = lang.get(subject)
 		const bodyString = lang.get(body, replacements)
 		editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)

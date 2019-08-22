@@ -12,7 +12,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
-import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
+import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -42,6 +42,7 @@ import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
+import type {RecipientInfo} from "../api/common/RecipientInfo"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
@@ -226,7 +227,9 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({
 		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
-			let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
+			let recipientInfo = createRecipientInfo(mailAddress, name, contact)
+			recipientInfo.resolveContactPromise =
+				resolveRecipientInfoContact(recipientInfo, locator.contactModel, logins.getUserController().user)
 			let bubbleWrapper = {}
 			bubbleWrapper.buttonAttrs = attachDropdown({
 				label: () => getDisplayText(recipientInfo.name, mailAddress, false),
@@ -298,7 +301,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 					.then(invitedMailAddresses => {
 							if (invitedMailAddresses.length > 0) {
 								dialog.close()
-								sendShareNotificationEmail(sharedGroupInfo, invitedMailAddresses.map(ma => createRecipientInfo(ma.address, null, null, true)))
+								sendShareNotificationEmail(sharedGroupInfo, invitedMailAddresses.map(ma => createRecipientInfo(ma.address, null, null)))
 							}
 						}
 					)

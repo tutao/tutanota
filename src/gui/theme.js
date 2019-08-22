@@ -57,7 +57,7 @@ if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations 
 }
 
 export let theme: Theme = getTheme()
-export let defaultTheme: Theme = getLightTheme()
+export const defaultTheme: Theme = getLightTheme()
 
 themeId.map(() => {
 	// Always overwrite light theme so that optional things are not kept when switching

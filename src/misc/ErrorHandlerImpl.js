@@ -16,7 +16,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
-import {AccountType, ApprovalStatus, ConversationType} from "../api/common/TutanotaConstants"
+import {AccountType, ApprovalStatus, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
@@ -29,7 +29,6 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {windowFacade} from "./WindowFacade"
-import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -39,6 +38,7 @@ import {locator} from "../api/main/MainLocator"
 import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
+import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 
 assertMainOrNode()
 
@@ -104,7 +104,7 @@ export function handleUncaughtError(e: Error) {
 			Dialog.showRequestPasswordDialog(errorMessage, {allowCancel: false})
 			      .map(pw => {
 					      showProgressDialog("pleaseWait_msg",
-						      worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
+						      logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress),
 							      pw, client.getIdentifier(), false, true))
 						      .then(() => {
 							      errorMessage("")
@@ -298,7 +298,7 @@ export function clientInfoString(timestamp: Date, loggedIn: bool): {message: str
 
 
 export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
-	const recipient = createRecipientInfo("support@tutao.de", "", null, true)
+	const recipient = createRecipientInfo("support@tutao.de", "", null)
 	return worker.createMailDraft(
 		content.subject,
 		content.message.split("\n").join("<br>"),
@@ -311,7 +311,8 @@ export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 		null,
 		[],
 		true,
-		[]
+		[],
+		MailMethod.NONE,
 	).then(draft => {
 		return worker.sendMailDraft(draft, [recipient], "de")
 	})

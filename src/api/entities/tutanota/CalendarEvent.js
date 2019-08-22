@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CalendarEventAttendee} from "./CalendarEventAttendee"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress"
 import type {CalendarRepeatRule} from "./CalendarRepeatRule"
 
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
@@ -77,11 +79,38 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
+		"hashedUid": {
+			"name": "hashedUid",
+			"id": 1088,
+			"since": 42,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"invitedConfidentially": {
+			"name": "invitedConfidentially",
+			"id": 1090,
+			"since": 42,
+			"type": "Boolean",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
 		"location": {
 			"name": "location",
 			"id": 944,
 			"since": 33,
 			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"sequence": {
+			"name": "sequence",
+			"id": 1089,
+			"since": 42,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
@@ -115,6 +144,24 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"attendees": {
+			"name": "attendees",
+			"id": 1091,
+			"since": 42,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "CalendarEventAttendee",
+			"final": false
+		},
+		"organizer": {
+			"name": "organizer",
+			"id": 1092,
+			"since": 42,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "EncryptedMailAddress",
+			"final": false
+		},
 		"repeatRule": {
 			"name": "repeatRule",
 			"id": 945,
@@ -136,7 +183,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createCalendarEvent(values?: $Shape<$Exact<CalendarEvent>>): CalendarEvent {
@@ -154,11 +201,16 @@ export type CalendarEvent = {
 	_permissions: Id;
 	description: string;
 	endTime: Date;
+	hashedUid: ?Uint8Array;
+	invitedConfidentially: ?boolean;
 	location: string;
+	sequence: NumberString;
 	startTime: Date;
 	summary: string;
 	uid: ?string;
 
+	attendees: CalendarEventAttendee[];
+	organizer: ?EncryptedMailAddress;
 	repeatRule: ?CalendarRepeatRule;
 	alarmInfos: IdTuple[];
 }

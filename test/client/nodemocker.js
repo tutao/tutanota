@@ -20,7 +20,6 @@ function startGroup(opts: {
 	beforeEach?: () => void
 }) {
 	const {group, allowables, cleanupFunctions, timeout, beforeEach} = Object.assign({}, {cleanupFunctions: [], allowables: []}, opts)
-	o.before(() => announce(group))
 	o.beforeEach(() => {
 		enable(allowables)
 		beforeEach && beforeEach()
@@ -30,7 +29,6 @@ function startGroup(opts: {
 }
 
 function enable(allowables: Array<string>) {
-	console.log(chalk.green(`--- NODE TEST ${testcount} ---`))
 	testcount = testcount + 1
 	exit = setProperty(process, 'exit', o.spy(code => {
 		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
@@ -145,10 +143,6 @@ function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
 	classCache.push(cls)
 	cls.mockedInstances = []
 	return downcast(cls)
-}
-
-function announce(file: string) {
-	console.log(chalk.bold.blue(`--- ${path.basename(file)} ---`))
 }
 
 function setPlatform(newPlatform: string) {

@@ -1,3 +1,4 @@
+
 //@flow
 
 import {identity, neverNull} from "./Utils"
@@ -129,6 +130,13 @@ export function lastThrow<T>(array: $ReadOnlyArray<T>): T {
 		throw new RangeError("Array is empty")
 	}
 	return neverNull(last(array))
+}
+
+export function firstThrow<T>(array: $ReadOnlyArray<T>): T {
+	if (isEmpty(array)) {
+		throw new RangeError("Array is empty")
+	}
+	return array[0]
 }
 
 export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {

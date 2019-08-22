@@ -83,7 +83,7 @@ export class ExternalLoginView {
 		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {
-			return m("p.center", m(MessageBoxN, this._errorMessageId && lang.get(this._errorMessageId)))
+			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.get(this._errorMessageId)))
 		} else {
 			return [
 				this._phoneNumbers.length > 0 ? [
@@ -154,7 +154,7 @@ export class ExternalLoginView {
 	_autologin(credentials: Credentials): void {
 		this._autologinInProgress = true
 		showProgressDialog("login_msg", worker.initialized.then(() => {
-			return this._handleSession(worker.resumeSession(credentials, this._salt), () => {
+			return this._handleSession(logins.resumeSession(credentials, this._salt), () => {
 				this._autologinInProgress = false
 			})
 		}))
@@ -168,7 +168,7 @@ export class ExternalLoginView {
 			this._helpText = 'login_msg'
 			let clientIdentifier = client.browser + " " + client.device
 			let persistentSession = this._savePassword()
-			let createSessionPromise = worker.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
+			let createSessionPromise = logins.createExternalSession(this._userId, pw, this._salt, clientIdentifier, this._savePassword())
 			                                 .then(newCredentials => {
 				                                 this._password("")
 				                                 let storedCredentials = deviceConfig.get(this._userId)

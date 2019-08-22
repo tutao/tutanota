@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {px, size} from "../size"
-import {animations, fontSize, transform} from "./../animation/Animations"
+import {animations, fontSize, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
@@ -26,6 +26,7 @@ export type TextFieldAttrs = {
 	class?: string,
 	disabled?: boolean,
 	oninput?: (value: string, input: HTMLInputElement) => mixed,
+	onclick?: clickHandler,
 }
 
 export const Type = Object.freeze({
@@ -50,6 +51,7 @@ export class _TextField {
 	_domWrapper: HTMLElement;
 	_domLabel: HTMLElement;
 	_domInput: HTMLInputElement;
+	_domInputWrapper: HTMLElement;
 
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
@@ -58,11 +60,11 @@ export class _TextField {
 
 	view(vnode: Vnode<TextFieldAttrs>) {
 		const a = vnode.attrs
-		return m(".text-field.rel.overflow-hidden.text", {
+		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
-			onclick: (e) => this.focus(e, a),
-			class: a.class != null ? a.class : "pt"
+			onclick: (e) => a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a),
+			class: a.class != null ? a.class : "text pt"
 		}, [
 			m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 				class: this.active ? "content-accent-fg" : "",
@@ -86,7 +88,10 @@ export class _TextField {
 					},
 				}, [
 					a.injectionsLeft ? a.injectionsLeft() : null,
-					m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
+					// additional wrapper element for bubble input field. input field should always be in one line with right injections
+					m(".inputWrapper.flex-space-between.items-end", {
+						oncreate: (vnode) => this._domInputWrapper = vnode.dom
+					}, [
 						a.type !== Type.Area ? this._getInputField(a) : this._getTextArea(a),
 						a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null
 					])
@@ -232,7 +237,7 @@ export class _TextField {
 				onupdate: () => {
 					if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 						this._domInput.value = a.value()
-						if(a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
+						if (a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
 							this.animate(true)
 						}
 					}

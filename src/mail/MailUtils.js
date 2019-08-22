@@ -1,52 +1,60 @@
 // @flow
 import m from "mithril"
-import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientInfo"
+import type {RecipientInfo} from "../api/common/RecipientInfo"
+import {isTutanotaMailAddress, RecipientInfoType} from "../api/common/RecipientInfo"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
 	EmailSignatureType as TutanotaConstants,
 	getMailFolderType,
 	GroupType,
 	MailFolderType,
-	MailState,
-	MAX_BASE64_IMAGE_SIZE
+	MailState
 } from "../api/common/TutanotaConstants"
-import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, getMailBodyText, neverNull, noOp} from "../api/common/utils/Utils"
+import {
+	assertNotNull,
+	getEnabledMailAddressesForGroupInfo,
+	getGroupInfoDisplayName,
+	getMailBodyText,
+	neverNull,
+	noOp
+} from "../api/common/utils/Utils"
 import {assertMainOrNode, isApp, isDesktop} from "../api/Env"
-import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
-import {load, serviceRequest, update} from "../api/main/Entity"
-import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
+import {load, update} from "../api/main/Entity"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {contains} from "../api/common/utils/ArrayUtils"
+import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {lang} from "../misc/LanguageViewModel"
-import type {MailAddress} from "../api/entities/tutanota/MailAddress"
-import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {Icons} from "../gui/base/icons/Icons"
-import type {MailboxDetail} from "./MailModel"
-import {mailModel} from "./MailModel"
-import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
+import type {MailboxDetail, MailModel} from "./MailModel"
+import {getContactDisplayName} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
-import {fileController} from "../file/FileController"
-import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import type {InlineImages} from "./MailViewer"
-import type {Mail} from "../api/entities/tutanota/Mail"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {mailToEmlFile} from "./Exporter"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import {locator} from "../api/main/MainLocator"
+import type {IUserController} from "../api/main/UserController"
+import type {InlineImages} from "./MailViewer"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {ContactModel} from "../contacts/ContactModel"
+import type {User} from "../api/entities/sys/User"
+import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
+import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
+import {fileController} from "../file/FileController"
+import type {MailAddress} from "../api/entities/tutanota/MailAddress"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
 assertMainOrNode()
 
@@ -55,41 +63,48 @@ assertMainOrNode()
  * @param mailAddress
  * @param name Null if the name shall be taken from the contact found with the email address.
  * @param contact
- * @param doNotResolveContact
  * @returns {{_type: string, type: string, mailAddress: string, name: ?string, contact: *}}
  */
-export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact, doNotResolveContact: boolean): RecipientInfo {
-	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
-	let recipientInfo: RecipientInfo = {
-		_type: 'RecipientInfo',
+export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact): RecipientInfo {
+	let type = isTutanotaMailAddress(mailAddress) ? RecipientInfoType.INTERNAL : RecipientInfoType.UNKNOWN
+	const usedName = name != null
+		? name
+		: contact != null ? getContactDisplayName(contact) : ""
+	return {
 		type,
 		mailAddress,
-		name: name || "", // "" will be replaced as soon as a contact is found
+		name: usedName,
 		contact: contact,
 		resolveContactPromise: null
 	}
-	if (!contact && !doNotResolveContact && logins.getUserController() && logins.getUserController().isInternalUser()) {
-		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
+}
+
+export function resolveRecipientInfoContact(recipientInfo: RecipientInfo, contactModel: ContactModel, user: User): Promise<?Contact> {
+	if (!recipientInfo.contact) {
+		const p = contactModel.searchForContact(recipientInfo.mailAddress).then(contact => {
 			if (contact) {
-				if (!name) {
+				if (!recipientInfo.name) {
 					recipientInfo.name = getContactDisplayName(contact)
 				}
 				recipientInfo.contact = contact
 			} else {
-				recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+				recipientInfo.contact = createNewContact(user, recipientInfo.mailAddress, recipientInfo.name)
 			}
 			recipientInfo.resolveContactPromise = null
 			m.redraw()
 			return recipientInfo.contact
 		}).catch(e => {
 			console.log("error resolving contact", e)
-			recipientInfo.contact = createNewContact(mailAddress, recipientInfo.name)
+			recipientInfo.contact = createNewContact(user, recipientInfo.mailAddress, recipientInfo.name)
 			recipientInfo.resolveContactPromise = null
 			m.redraw()
 			return recipientInfo.contact
 		})
+		recipientInfo.resolveContactPromise = p
+		return p
+	} else {
+		return Promise.resolve(recipientInfo.contact)
 	}
-	return recipientInfo
 }
 
 /**
@@ -98,18 +113,14 @@ export function createRecipientInfo(mailAddress: string, name: ?string, contact:
  * @param name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
  * @return The contact.
  */
-export function createNewContact(mailAddress: string, name: string): Contact {
+export function createNewContact(user: User, mailAddress: string, name: string): Contact {
 	// prepare some contact information. it is only saved if the mail is sent securely
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
-	let firstAndLastName = name.trim()
-	!== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
+	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 
 	let contact = createContact()
-	contact._owner = logins.getUserController().user._id
-	contact._ownerGroup = neverNull(logins.getUserController()
-	                                      .user
-	                                      .memberships
-	                                      .find(m => m.groupType === GroupType.Contact)).group
+	contact._owner = user._id
+	contact._ownerGroup = assertNotNull(user.memberships.find(m => m.groupType === GroupType.Contact)).group
 	contact.firstName = firstAndLastName.firstName
 	contact.lastName = firstAndLastName.lastName
 
@@ -125,21 +136,15 @@ export function createNewContact(mailAddress: string, name: string): Contact {
 /**
  * @throws TooManyRequestsError if the recipient could not be resolved because of too many requests.
  */
-export function resolveRecipientInfo(recipientInfo: RecipientInfo): Promise<RecipientInfo> {
-	if (recipientInfo.type !== recipientInfoType.unknown) {
+export function resolveRecipientInfo(mailModel: MailModel, recipientInfo: RecipientInfo): Promise<RecipientInfo> {
+	if (recipientInfo.type !== RecipientInfoType.UNKNOWN) {
 		return Promise.resolve(recipientInfo)
 	} else {
-		let keyData = createPublicKeyData()
-		keyData.mailAddress = recipientInfo.mailAddress
-		return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
-			.then(publicKeyData => {
-				recipientInfo.type = recipientInfoType.internal
-				return recipientInfo
-			})
-			.catch(NotFoundError, e => {
-				recipientInfo.type = recipientInfoType.external
-				return recipientInfo
-			})
+		return mailModel.getRecipientKeyData(recipientInfo.mailAddress)
+		                .then((keyData) => {
+			                recipientInfo.type = keyData == null ? RecipientInfoType.EXTERNAL : RecipientInfoType.INTERNAL
+			                return recipientInfo
+		                })
 	}
 }
 
@@ -190,10 +195,11 @@ export function isExcludedMailAddress(mailAddress: string) {
 /**
  * @return {string} default mail address
  */
-export function getDefaultSenderFromUser(): string {
-	let props = logins.getUserController().props
+export function getDefaultSenderFromUser({props, userGroupInfo}: IUserController): string {
 	return (props.defaultSender
-		&& contains(getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
+		&& contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender))
+		? props.defaultSender
+		: neverNull(userGroupInfo.mailAddress)
 }
 
 export function getDefaultSignature() {
@@ -327,11 +333,6 @@ export function getFolderIcon(folder: MailFolder): lazyIcon {
 }
 
 
-export function getTrashFolder(folders: MailFolder[]): MailFolder {
-	return (folders.find(f => f.folderType === MailFolderType.TRASH): any)
-}
-
-
 export function getInboxFolder(folders: MailFolder[]): MailFolder {
 	return getFolder(folders, MailFolderType.INBOX)
 }
@@ -364,12 +365,18 @@ export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
 	})
 }
 
-
+/**
+ * @deprecated Avoid grabbing singleton dependencies, use {@link getEnabledMailAddressesWithUser} instead to explicitly show dependencies.
+ */
 export function getEnabledMailAddresses(mailboxDetails: MailboxDetail): string[] {
-	if (isUserMailbox(mailboxDetails)) {
-		return getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
+	return getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo)
+}
+
+export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
+	if (isUserMailbox(mailboxDetail)) {
+		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
 	} else {
-		return getEnabledMailAddressesForGroupInfo(mailboxDetails.mailGroupInfo)
+		return getEnabledMailAddressesForGroupInfo(mailboxDetail.mailGroupInfo)
 	}
 }
 
@@ -378,23 +385,21 @@ export function isUserMailbox(mailboxDetails: MailboxDetail) {
 }
 
 
-export function getDefaultSender(mailboxDetails: MailboxDetail): string {
+export function getDefaultSender(logins: LoginController, mailboxDetails: MailboxDetail): string {
 	if (isUserMailbox(mailboxDetails)) {
 		let props = logins.getUserController().props
 		return (props.defaultSender
-			&& contains(getEnabledMailAddresses(mailboxDetails), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
+			&& contains(getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo), props.defaultSender))
+			? props.defaultSender
+			: neverNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
 		return neverNull(mailboxDetails.mailGroupInfo.mailAddress)
 	}
 }
 
-export function isFinalDelete(folder: ?MailFolder): boolean {
-	return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
-}
-
 export function showDeleteConfirmationDialog(mails: Mail[]): Promise<boolean> {
 	let groupedMails = mails.reduce((all, mail) => {
-		isFinalDelete(mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
+		locator.mailModel.isFinalDelete(locator.mailModel.getMailFolder(mail._id[0])) ? all.trash.push(mail) : all.move.push(mail)
 		return all
 	}, {trash: [], move: []})
 
@@ -413,10 +418,16 @@ export function showDeleteConfirmationDialog(mails: Mail[]): Promise<boolean> {
 	}
 }
 
+
+/** @deprecated use {@link getSenderNameForUser} instead */
 export function getSenderName(mailboxDetails: MailboxDetail): string {
+	return getSenderNameForUser(mailboxDetails, logins.getUserController())
+}
+
+export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: IUserController): string {
 	if (isUserMailbox(mailboxDetails)) {
 		// external users do not have access to the user group info
-		return logins.getUserController().userGroupInfo.name
+		return userController.userGroupInfo.name
 	} else {
 		return mailboxDetails.mailGroupInfo ? mailboxDetails.mailGroupInfo.name : ""
 	}
@@ -435,7 +446,7 @@ export function getEmailSignature(): string {
 }
 
 
-export function getMailboxName(mailboxDetails: MailboxDetail): string {
+export function getMailboxName(logins: LoginController, mailboxDetails: MailboxDetail): string {
 	if (!logins.isInternalUserLoggedIn()) {
 		return lang.get("mailbox_label")
 	} else if (isUserMailbox(mailboxDetails)) {
@@ -446,7 +457,7 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 }
 
 export function getMailFolderIcon(mail: Mail): AllIconsEnum {
-	let folder = mailModel.getMailFolder(mail._id[0])
+	let folder = locator.mailModel.getMailFolder(mail._id[0])
 	if (folder) {
 		return getFolderIcon(folder)()
 	} else {
@@ -458,25 +469,6 @@ export function getMailFolderIcon(mail: Mail): AllIconsEnum {
 export interface ImageHandler {
 	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement
 }
-
-export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
-		const tooBig = []
-		for (let file of files) {
-			if (file.size > MAX_BASE64_IMAGE_SIZE) {
-				tooBig.push(file)
-			} else {
-				const b64 = uint8ArrayToBase64(file.data)
-				const dataUrlString = `data:${file.mimeType};base64,${b64}`
-				handler.insertImage(dataUrlString, {style: "max-width: 100%"})
-			}
-		}
-		if (tooBig.length > 0) {
-			Dialog.error(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
-		}
-	})
-}
-
 
 export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,
                                             onContext: (TutanotaFile, Event, HTMLElement) => mixed): Array<HTMLElement> {
@@ -543,8 +535,8 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 export function archiveMails(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return mailModel.getMailboxFolders(mails[0])
-		                .then((folders) => mailModel.moveMails(mails, getArchiveFolder(folders)))
+		return locator.mailModel.getMailboxFolders(mails[0])
+		              .then((folders) => locator.mailModel.moveMails(mails, getArchiveFolder(folders)))
 	} else {
 		return Promise.resolve()
 	}
@@ -553,8 +545,8 @@ export function archiveMails(mails: Mail[]): Promise<*> {
 export function moveToInbox(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return mailModel.getMailboxFolders(mails[0])
-		                .then((folders) => mailModel.moveMails(mails, getInboxFolder(folders)))
+		return locator.mailModel.getMailboxFolders(mails[0])
+		              .then((folders) => locator.mailModel.moveMails(mails, getInboxFolder(folders)))
 	} else {
 		return Promise.resolve()
 	}
@@ -580,4 +572,8 @@ export function markMails(mails: Mail[], unread: boolean): Promise<void> {
 			return Promise.resolve()
 		}
 	})).return()
+}
+
+export function copyMailAddress({address, name}: EncryptedMailAddress): EncryptedMailAddress {
+	return createEncryptedMailAddress({address, name})
 }

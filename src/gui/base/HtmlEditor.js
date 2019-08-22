@@ -7,6 +7,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import type {Options as ToolbarOptions} from "./RichTextToolbar"
 import {RichTextToolbar} from "./RichTextToolbar"
 
 export const Mode = Object.freeze({
@@ -15,7 +16,7 @@ export const Mode = Object.freeze({
 })
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
-type RichToolbarOptions = {|enabled: boolean, imageButtonClickHandler?: (ev: Event, editor: Editor) => mixed|}
+type RichToolbarOptions = {enabled: boolean} & ToolbarOptions
 
 export class HtmlEditor {
 	_editor: Editor;
@@ -34,7 +35,8 @@ export class HtmlEditor {
 	_htmlMonospace: boolean;
 	_richToolbarOptions: RichToolbarOptions;
 
-	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false}) {
+	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false},
+	            injections?: () => Children) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -103,10 +105,10 @@ export class HtmlEditor {
 		const label = labelIdOrLabelFunction
 
 
-		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions.imageButtonClickHandler)
+		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions)
 
 		this.view = () => {
-			return m(".html-editor", [
+			return m(".html-editor" + (this._mode() === Mode.WYSIWYG ? ".text-break" : ""), [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
 				(label)
 					? m(".small.mt-form", lang.getMaybeLazy(label))
@@ -116,7 +118,11 @@ export class HtmlEditor {
 				}, [
 					getPlaceholder(),
 					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						(this._editor.isEnabled() && this._richToolbarOptions.enabled) ? m(toolbar) : null,
+						m(".flex-end.mr-negative-s.sticky.pb-2", [
+							(this._editor.isEnabled() && this._richToolbarOptions.enabled) ? m(toolbar) : null,
+							this._editor.isEnabled() && injections ? injections() : null,
+						]),
+						this._editor.isEnabled() ? m("hr.hr.mb-s") : null,
 						m(this._editor)
 					]) : null,
 					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {

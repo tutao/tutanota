@@ -1,18 +1,16 @@
 // @flow
 import m from "mithril"
 import {modal} from "./Modal"
-import {animations, DefaultAnimationTime, height, width} from "./../animation/Animations"
-import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import {Button} from "./Button"
 import {mod} from "../../misc/MathUtils"
-import {client} from "../../misc/ClientDetector"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
+import {showDropdown} from "./DropdownN"
 
 assertMainOrNodeBoot()
 
@@ -92,7 +90,7 @@ export class Dropdown {
 
 		this.resizeListener = (width, height) => {
 			if (this._domContents) {
-				this.show(this._domContents, false)
+				this.show(this._domContents)
 			}
 		}
 		this.oncreate = (vnode) => {
@@ -167,9 +165,10 @@ export class Dropdown {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix", {
+			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow", {
 					oncreate: (vnode) => {
 						this._domDropdown = vnode.dom
+						vnode.dom.style.opacity = 0
 					},
 					onkeypress: e => {
 						if (this._domInput) {
@@ -298,64 +297,17 @@ export class Dropdown {
 		this.close()
 	}
 
-	show(domElement: HTMLElement, animate: boolean = true) {
+	show(domElement: HTMLElement) {
 		this._domContents = domElement
-		if (this.origin) {
-			let left = this.origin.left
-			let right = window.innerWidth - this.origin.right
-			if (left < right) {
-				this._domDropdown.style.left = left + "px"
-				this._domDropdown.style.right = ''
-			} else {
-				this._domDropdown.style.left = ''
-				this._domDropdown.style.right = right + "px"
-			}
-			let top = this.origin.top + this.origin.height
-			let bottom = window.innerHeight - (this.origin.bottom - this.origin.height)
-			if (top < bottom) {
-				this._domDropdown.style.top = top + "px"
-				this._domDropdown.style.bottom = ''
-			} else {
-				this._domDropdown.style.top = ''
-				this._domDropdown.style.bottom = bottom + "px"
-			}
 
+		const origin = this.origin
+		if (origin) {
 			const contentsHeight = this._visibleItems()
 			                           .reduce((previous: number, current) =>
 				                           previous + ((typeof current === "string")
 				                           ? size.button_height
 				                           : current.getHeight()), 0) + size.vpad_small * 2
-
-			this.maxHeight = Math.min(
-				contentsHeight + this._getFilterHeight(),
-				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
-			)
-
-			this._focusedBeforeShown = document.activeElement
-			return (animate
-				// We would prefer to cancel current animation but we don't have infrastructure for this yet
-				? animations.add(this._domDropdown, [
-					width(0, this._width),
-					height(0, this.maxHeight)
-				], {easing: ease.out, duration: DefaultAnimationTime})
-				            .then(() => {
-					            // Only do it on the "real" show, which is with animation, don't do it for resizes
-					            if (this._domInput && !client.isMobileDevice()) {
-						            this._domInput.focus()
-					            } else {
-						            const button = this._domDropdown.querySelector("button")
-						            button && button.focus()
-					            }
-				            })
-				: Promise.resolve())
-				.then(() => {
-					this._domDropdown.style.height = px(this.maxHeight)
-					if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
-						// do not show the scrollbar during the animation.
-						this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
-						this._domContents.style.overflowY = client.overflowAuto
-					}
-				})
+			showDropdown(origin, this._domDropdown, contentsHeight, this._width)
 		}
 	}
 
@@ -364,14 +316,7 @@ export class Dropdown {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
-		if (!this._domContents || !this._domDropdown) {
-			return Promise.resolve()
-		}
-		this._domContents.style.overflowY = 'hidden'
-		return animations.add(this._domDropdown, [
-			width(this._width, 0),
-			height(this.maxHeight, 0)
-		], {easing: ease.out})
+		return Promise.resolve()
 	}
 
 	_visibleItems(): Array<string | Button> {

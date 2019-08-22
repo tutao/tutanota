@@ -80,7 +80,10 @@ export const size = {
 	third_col_max_width: 2400,
 	get desktop_layout_width() {
 		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
-	}
+	},
+	get two_column_layout_width() {
+		return this.second_col_min_width + this.third_col_min_width
+	},
 }
 
 export const inputLineHeight = size.font_size_base + 8

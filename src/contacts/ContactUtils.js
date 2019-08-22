@@ -5,21 +5,21 @@ import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../
 import {assertMainOrNode} from "../api/Env"
 import {createRestriction} from "../search/SearchUtils"
 import {load, loadAll, loadRoot} from "../api/main/Entity"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {ContactList} from "../api/entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import type {Birthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {DbError} from "../api/common/error/DbError"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
-import type {ContactList} from "../api/entities/tutanota/ContactList"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {Birthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 
@@ -164,6 +164,8 @@ export function searchForContacts(query: string, field: string, minSuggestionCou
 		             }).filter(contact => contact != null)
 	             })
 }
+
+
 
 /**
  * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.

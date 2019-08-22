@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
 
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -51,6 +52,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"calendarEventUpdates": {
+			"name": "calendarEventUpdates",
+			"id": 1119,
+			"since": 42,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "CalendarEventUpdateList",
+			"final": true
+		},
 		"contactFormUserContactForm": {
 			"name": "contactFormUserContactForm",
 			"id": 748,
@@ -113,7 +123,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
@@ -128,6 +138,7 @@ export type MailboxGroupRoot = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 
+	calendarEventUpdates: ?CalendarEventUpdateList;
 	contactFormUserContactForm: ?IdTuple;
 	mailbox: Id;
 	participatingContactForms: IdTuple[];

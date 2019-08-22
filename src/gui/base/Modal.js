@@ -11,7 +11,7 @@ import {windowFacade} from "../../misc/WindowFacade"
 assertMainOrNodeBoot()
 
 class Modal {
-	components: {key: number, component: ModalComponent}[];
+	components: {key: number, component: ModalComponent, needsBg: boolean}[];
 	_uniqueComponent: ?ModalComponent;
 	_domModal: HTMLElement;
 	view: Function;
@@ -45,19 +45,29 @@ class Modal {
 								// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
 								this.visible = true
 								m.redraw()
-								this.addAnimation(vnode.dom, true)
+								if (wrapper.needsBg) this.addAnimation(vnode.dom, true)
 							},
 							style: {
 								zIndex: 100 + i,
 							},
-							onbeforeremove: vnode => Promise.all([
-								this.addAnimation(vnode.dom, false).then(() => {
+							onbeforeremove: vnode => {
+								if (wrapper.needsBg) {
+									return Promise.all([
+										this.addAnimation(vnode.dom, false).then(() => {
+											if (this.components.length === 0) {
+												this.visible = false
+											}
+										}),
+										wrapper.component.hideAnimation()
+									]).then(() => m.redraw())
+								} else {
 									if (this.components.length === 0) {
 										this.visible = false
 									}
-								}),
-								wrapper.component.hideAnimation()
-							]).then(() => m.redraw()),
+									return wrapper.component.hideAnimation()
+									              .then(() => m.redraw())
+								}
+							}
 						},
 						[
 							m(wrapper.component)
@@ -68,11 +78,11 @@ class Modal {
 		}
 	}
 
-	display(component: ModalComponent) {
+	display(component: ModalComponent, needsBg: boolean = true) {
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
-		this.components.push({key: this.currentKey++, component: component})
+		this.components.push({key: this.currentKey++, component: component, needsBg})
 		m.redraw()
 		keyManager.registerModalShortcuts(component.shortcuts())
 	}
@@ -112,11 +122,11 @@ class Modal {
 	 * multiple calls will be ignored if the first component is still visible
 	 * @param component
 	 */
-	displayUnique(component: ModalComponent) {
+	displayUnique(component: ModalComponent, needsBg: boolean = true) {
 		if (this._uniqueComponent) {
 			return
 		}
-		this.display(component)
+		this.display(component, needsBg)
 		this._uniqueComponent = component
 	}
 
@@ -166,7 +176,7 @@ if (replaced && replaced.components) {
 	replaced.components.map(wrapper => replaced.remove(wrapper.component))
 }
 
-interface ModalComponent {
+export interface ModalComponent {
 	hideAnimation(): Promise<void>;
 
 	onClose(): void;

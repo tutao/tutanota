@@ -1,9 +1,9 @@
 //@flow
 import m from "mithril"
 import type {DomMutation} from "../animation/Animations"
-import {animations, hexToRgb} from "../animation/Animations"
-import {theme} from "../theme"
+import {animations} from "../animation/Animations"
 import {requiresStatusBarHack} from "../main-styles"
+import {ease} from "../animation/Easing"
 
 export type PositionRect = {
 	top?: ?string,
@@ -24,10 +24,6 @@ type OverlayAttrs = {
 }
 
 const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
-const boxShadow = (() => {
-	const {r, g, b} = hexToRgb(theme.modal_bg)
-	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
-})()
 let key = 0
 
 export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimationProvider,
@@ -42,7 +38,12 @@ export function displayOverlay(position: PositionRect, component: Component, cre
 	overlays.push(pair)
 	return () => {
 		const dom = pair[1];
-		(newAttrs.closeAnimation && dom ? animations.add(dom, newAttrs.closeAnimation(dom)) : Promise.resolve())
+		(newAttrs.closeAnimation && dom
+			? animations.add(dom, newAttrs.closeAnimation(dom), {
+				duration: 100,
+				easing: ease.in
+			})
+			: Promise.resolve())
 			.then(() => {
 				overlays.splice(overlays.indexOf(pair), 1)
 				m.redraw()
@@ -58,7 +59,7 @@ export const overlay = {
 		"aria-hidden": overlays.length === 0
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
-		return m(".abs.elevated-bg", {
+		return m(".abs.elevated-bg.dropdown-shadow", {
 			key,
 			style: {
 				width: attrs.position.width,
@@ -68,7 +69,6 @@ export const overlay = {
 				left: attrs.position.left,
 				height: attrs.position.height,
 				'z-index': 200,
-				'box-shadow': boxShadow,
 				'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X
 			},
 			oncreate: (vnode: Vnode<any>) => {

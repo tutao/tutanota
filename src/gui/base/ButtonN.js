@@ -22,7 +22,6 @@ export const ButtonType = Object.freeze({
 	Bubble: 'bubble',
 	TextBubble: 'textBubble',
 	Toggle: 'toggle',
-	Accent: 'accent',
 	PrimaryBorder: 'primaryBorder',
 })
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
@@ -91,7 +90,7 @@ export type ButtonAttrs = {
 	label: TranslationKey | lazy<string>,
 	title?: TranslationKey | lazy<string>,
 	click: clickHandler,
-	icon?: lazyIcon,
+	icon?: ?lazyIcon,
 	type?: ButtonTypeEnum,
 	colors?: ButtonColorEnum,
 	isVisible?: lazy<boolean>,

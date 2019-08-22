@@ -140,7 +140,6 @@ export class DesktopDownloadManager {
 
 		item.on('done', (event, state) => {
 			if (state === 'completed') {
-				console.log("download complete:", item.getFilename())
 				fileManagerLock()
 			}
 			if (state === 'interrupted') {

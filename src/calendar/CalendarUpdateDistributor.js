@@ -1,0 +1,208 @@
+//@flow
+import {lang} from "../misc/LanguageViewModel"
+import {makeInvitationCalendarFile} from "./CalendarImporter"
+import type {CalendarAttendeeStatusEnum, MailMethodEnum} from "../api/common/TutanotaConstants"
+import {CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod} from "../api/common/TutanotaConstants"
+import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {theme} from "../gui/theme"
+import {assertNotNull, noOp} from "../api/common/utils/Utils"
+import {SendMailModel} from "../mail/SendMailModel"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import {windowFacade} from "../misc/WindowFacade"
+import type {MailAddress} from "../api/entities/tutanota/MailAddress"
+import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
+import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
+import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
+
+export interface CalendarUpdateDistributor {
+	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
+
+	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
+
+	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
+
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: ?Mail, status: CalendarAttendeeStatusEnum
+	): Promise<void>;
+}
+
+export class CalendarMailDistributor implements CalendarUpdateDistributor {
+	/** Used for knowing how many emails are in the process of being sent. */
+	_countDownLatch: number;
+
+	constructor() {
+		this._countDownLatch = 0
+	}
+
+	sendInvite(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+		const message = lang.get("eventInviteMail_msg", {"{event}": event.summary})
+		return this._sendCalendarFile({
+			sendMailModel,
+			method: MailMethod.ICAL_REQUEST,
+			subject: message,
+			body: makeInviteEmailBody(event, message),
+			event,
+			sender: assertOrganizer(event).address
+		})
+	}
+
+	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+		const message = lang.get("eventUpdated_msg", {"{event}": event.summary})
+		return this._sendCalendarFile({
+			sendMailModel,
+			method: MailMethod.ICAL_REQUEST,
+			subject: message,
+			body: makeInviteEmailBody(event, message),
+			event,
+			sender: assertOrganizer(event).address
+		})
+	}
+
+	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+		const message = lang.get("eventCancelled_msg", {"{event}": event.summary})
+		return this._sendCalendarFile({
+			sendMailModel,
+			method: MailMethod.ICAL_CANCEL,
+			subject: message,
+			body: makeInviteEmailBody(event, message),
+			event,
+			sender: assertOrganizer(event).address
+		})
+	}
+
+	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: ?Mail, status: CalendarAttendeeStatusEnum
+	): Promise<void> {
+		const message = lang.get("repliedToEventInvite_msg", {"{sender}": sendAs, "{event}": event.summary})
+		const body = makeInviteEmailBody(event, message)
+		const organizer = assertOrganizer(event)
+		if (responseTo) {
+			return Promise.resolve()
+			              .then(() => {
+				              this._sendStart()
+				              return sendMailModel.initAsResponse({
+					              previousMail: responseTo,
+					              conversationType: ConversationType.REPLY,
+					              senderMailAddress: sendAs,
+					              recipients: {to: [{name: organizer.name, address: organizer.address}]},
+					              attachments: [],
+					              bodyText: body,
+					              subject: message,
+					              addSignature: false,
+					              blockExternalContent: false,
+					              replyTos: [],
+				              })
+			              })
+			              .then(() => {
+				              sendMailModel.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
+				              return sendMailModel.send(body, MailMethod.ICAL_REPLY)
+			              })
+			              .finally(() => this._sendEnd())
+		} else {
+			return this._sendCalendarFile({sendMailModel, method: MailMethod.ICAL_REPLY, subject: message, body, event, sender: sendAs})
+		}
+	}
+
+	_sendCalendarFile({sendMailModel, method, subject, event, body, sender}: {
+		sendMailModel: SendMailModel,
+		method: MailMethodEnum,
+		subject: string,
+		event: CalendarEvent,
+		body: string,
+		sender: string
+	}): Promise<void> {
+		const inviteFile = makeInvitationCalendarFile(event, mailMethodToCalendarMethod(method), new Date(), getTimeZone())
+		sendMailModel.selectSender(sender)
+		sendMailModel.attachFiles([inviteFile])
+		sendMailModel.setSubject(subject)
+		this._sendStart()
+		return sendMailModel.send(body, method)
+		                    .finally(() => this._sendEnd())
+	}
+
+	_windowUnsubscribe: ?(() => void)
+
+	_sendStart() {
+		this._countDownLatch++
+		if (this._countDownLatch === 1) {
+			this._windowUnsubscribe = windowFacade.addWindowCloseListener(noOp)
+		}
+	}
+
+	_sendEnd() {
+		this._countDownLatch--
+		if (this._countDownLatch === 0 && this._windowUnsubscribe) {
+			this._windowUnsubscribe()
+			this._windowUnsubscribe = null
+		}
+	}
+}
+
+function summaryLine(event: CalendarEvent): string {
+	return newLine(lang.get('name_label'), event.summary)
+}
+
+function whenLine(event: CalendarEvent): string {
+	const duration = formatEventDuration(event, getTimeZone(), true)
+	return newLine(lang.get("when_label"), duration)
+}
+
+function organizerLabel(organizer: EncryptedMailAddress, a: CalendarEventAttendee) {
+	return organizer.address === a.address.address ? `(${lang.get("organizer_label")})` : ""
+}
+
+function newLine(label: string, content: string): string {
+	return `<div style="display: flex; margin-top: 8px"><div style="min-width: 120px"><b style="float:right; margin-right:16px">${label}:</b></div>${content}</div>`
+}
+
+function attendeesLine(event: CalendarEvent): string {
+	const {organizer} = event
+	var attendees = ""
+	// If organizer is already in the attendees, we don't have to add them separately.
+	if (organizer && !event.attendees.find((a) => a.address.address === organizer.address)) {
+		attendees = makeAttendee(organizer, createCalendarEventAttendee({address: organizer}))
+	}
+	attendees += event.attendees.map(a => makeAttendee(assertNotNull(organizer), a)).join("\n");
+	return newLine(lang.get("who_label"), `<div>${attendees}</div>`)
+}
+
+function makeAttendee(organizer: EncryptedMailAddress, attendee: CalendarEventAttendee): string {
+	return `<div>
+${attendee.address.name || ""} ${attendee.address.address}
+${(organizerLabel(organizer, attendee))}
+${calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}</div>`
+}
+
+function locationLine(event: CalendarEvent): string {
+	return event.location ? newLine(lang.get("location_label"), event.location) : ""
+}
+
+function descriptionLine(event: CalendarEvent): string {
+	return event.description ? newLine(lang.get("description_label"), `<div>${event.description}</div>`) : ""
+}
+
+function makeInviteEmailBody(event: CalendarEvent, message: string) {
+	return `<div style="max-width: 685px; margin: 0 auto">
+  <h2 style="text-align: center">${message}</h2>
+  <div style="margin: 0 auto">
+  	${summaryLine(event)}
+    ${whenLine(event)}
+    ${locationLine(event)}
+    ${attendeesLine(event)}
+    ${descriptionLine(event)}
+  </div>
+  <hr style="border: 0; height: 1px; background-color: #ddd">
+  <img style="max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
+  		src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(theme.logo))}"
+  		alt="logo"/>
+</div>`
+}
+
+function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
+	if (event.organizer == null) {
+		throw new Error("Cannot send event update without organizer")
+	}
+	return event.organizer
+}
+
+export const calendarUpdateDistributor: CalendarUpdateDistributor = new CalendarMailDistributor()

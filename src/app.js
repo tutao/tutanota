@@ -57,6 +57,7 @@ window.tutao = {
 	Const,
 	locator: window.tutao ? window.tutao.locator : null // locator is not restored on hot reload otherwise
 }
+setupExceptionHandling()
 
 function _asyncImport(path: string) {
 	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
@@ -65,7 +66,6 @@ function _asyncImport(path: string) {
 
 client.init(navigator.userAgent, navigator.platform)
 
-_asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
 if (client.isIE()) {
 	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
 		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
@@ -247,12 +247,11 @@ let initialized = lang.init(en).then(() => {
 
 	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
 		.then(module => module.worker)
-	workerPromise.then(() => {
+	workerPromise.then((worker) => {
 		_asyncImport("src/gui/InfoMessageHandler.js")
 	})
 
 
-	setupExceptionHandling()
 })
 
 function forceLogin(args: {[string]: string}, requestedPath: string) {

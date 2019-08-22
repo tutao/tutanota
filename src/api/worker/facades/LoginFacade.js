@@ -81,6 +81,8 @@ assertWorkerOrNode()
 
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
+export type NewSessionData = {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}
+
 export class LoginFacade {
 	_user: ?User;
 	_userGroupInfo: ?GroupInfo;
@@ -126,7 +128,8 @@ export class LoginFacade {
 	/**
 	 * @param permanentLogin True if a user logs in normally, false if this is just a temporary login like for sending a contact form request. If false does not connect the websocket and indexer.
 	 */
-	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean
+	): Promise<NewSessionData> {
 		if (this._user) {
 			console.log("session already exists, reuse data")
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
@@ -236,7 +239,8 @@ export class LoginFacade {
 			})
 	}
 
-	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
+	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	): Promise<NewSessionData> {
 		if (this._user) {
 			throw new Error("user already logged in")
 		}

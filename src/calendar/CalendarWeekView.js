@@ -38,7 +38,7 @@ export type Attrs = {
 	selectedDate: Date,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
-	onEventClicked: (event: CalendarEvent) => void,
+	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
 	groupColors: {[Id]: string},
 	hiddenCalendars: Set<Id>,
 	startOfTheWeek: WeekStartEnum,

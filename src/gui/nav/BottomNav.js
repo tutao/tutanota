@@ -8,7 +8,7 @@ import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 
-type Attrs = {width: number}
+type Attrs = void
 
 const fontSize = size.font_size_small
 

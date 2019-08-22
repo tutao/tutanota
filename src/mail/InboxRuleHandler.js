@@ -16,11 +16,12 @@ import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common
 import type {Mail} from "../api/entities/tutanota/Mail"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
+import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
 
-export function getInboxRuleTypeNameMapping(): {value: string, name: string}[] {
+export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{value: InboxRuleType.FROM_EQUALS, name: lang.get("inboxRuleSenderEquals_action")},
 		{value: InboxRuleType.RECIPIENT_TO_EQUALS, name: lang.get("inboxRuleToRecipientEquals_action")},

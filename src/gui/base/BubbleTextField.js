@@ -71,13 +71,14 @@ export class BubbleTextField<T> {
 
 	_domSuggestions: HTMLElement;
 
-	constructor(label: string, bubbleHandler: BubbleHandler<T, any>) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, bubbleHandler: BubbleHandler<T, any>,
+	            suggestionStyle: {[string]: any} = {}) {
 		this.loading = null
 		this.suggestions = []
 		this.selectedSuggestion = null
 		this.suggestionAnimation = Promise.resolve()
 		this.previousQuery = ""
-		this.textField = new TextField(label)
+		this.textField = new TextField(labelIdOrLabelTextFunction)
 		this.textField.value.map(value => {
 			this._updateSuggestions()
 		})
@@ -94,7 +95,7 @@ export class BubbleTextField<T> {
 			])
 		})
 		this.textField._injectionsRight = () => {
-			return this.loading != null ? m(".align-right", progressIcon()) : null
+			return this.loading != null ? m(".align-right.mr-s", progressIcon()) : null
 		}
 		this.originalIsEmpty = this.textField.isEmpty.bind(this.textField)
 		this.textField.isEmpty = () => this.originalIsEmpty() && this.bubbles.length === 0
@@ -123,6 +124,7 @@ export class BubbleTextField<T> {
 				m(".suggestions.text-ellipsis.ml-negative-l", {
 					oncreate: vnode => this._domSuggestions = vnode.dom,
 					onmousedown: e => this.textField.skipNextBlur = true,
+					style: suggestionStyle,
 				}, this.suggestions.map(s => m(s, {
 					mouseDownHandler: e => {
 						this.selectedSuggestion = s

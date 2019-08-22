@@ -186,7 +186,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			return Promise.all([
 				load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
 				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef)
-					.then((response) => response.certificateInfo)
+					.then((response) => neverNull(response.certificateInfo))
 			]).then(([whitelabelConfig, certificateInfo]) => ({whitelabelConfig, certificateInfo}))
 		} else {
 			return Promise.resolve(null)
@@ -269,7 +269,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							lang.get("customLogoInfo_msg"))
 							.setValue(lang.get(customLogoDefined ? "activated_label" : "deactivated_label"))
 							.setDisabled()
-						if (customJsonTheme) {
+						if (whitelabelConfig && customJsonTheme) {
 							let deleteCustomLogo
 							if (customLogoDefined) {
 								deleteCustomLogo = new Button("deactivate_action", () => {
@@ -300,7 +300,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 												+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
 										}
 										neverNull(customJsonTheme).logo = imageData
-										neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+										whitelabelConfig.jsonTheme = JSON.stringify(customJsonTheme)
 										update(whitelabelConfig)
 										updateCustomTheme(customJsonTheme)
 										this._customLogoField.setValue(lang.get("activated_label"))
@@ -317,7 +317,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
 						this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                   .setDisabled()
-						if (customJsonTheme) {
+						if (whitelabelConfig && customJsonTheme) {
 							let deactivateColorTheme
 							if (customColorsDefined) {
 								deactivateColorTheme = new Button("deactivate_action", () => {
@@ -328,7 +328,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 													delete neverNull(customJsonTheme)[key]
 												}
 											})
-											neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+											whitelabelConfig.jsonTheme = JSON.stringify(customJsonTheme)
 											update(whitelabelConfig)
 											updateCustomTheme(customJsonTheme)
 										}

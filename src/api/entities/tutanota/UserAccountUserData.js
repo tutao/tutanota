@@ -214,7 +214,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "41"
+	"version": "42"
 }
 
 export function createUserAccountUserData(values?: $Shape<$Exact<UserAccountUserData>>): UserAccountUserData {

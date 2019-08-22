@@ -20,7 +20,7 @@ export type CalendarDayViewAttrs = {
 	onDateSelected: (date: Date) => mixed,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
-	onEventClicked: (event: CalendarEvent) => mixed,
+	onEventClicked: (event: CalendarEvent, domEvent: Event) => mixed,
 	groupColors: {[Id]: string},
 	hiddenCalendars: Set<Id>,
 }
@@ -114,7 +114,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						startsBefore: eventStartsBefore(date, zone, e),
 						endsAfter: eventEndsAfterDay(date, zone, e),
 						color: getEventColor(e, vnode.attrs.groupColors),
-						onEventClicked: () => vnode.attrs.onEventClicked(e),
+						onEventClicked: (_, domEvent) => vnode.attrs.onEventClicked(e, domEvent),
 						showTime: EventTextTimeOption.NO_TIME,
 					})
 				})),
@@ -123,7 +123,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					startsBefore: eventStartsBefore(date, zone, e),
 					endsAfter: eventEndsAfterDay(date, zone, e),
 					color: getEventColor(e, vnode.attrs.groupColors),
-					onEventClicked: () => vnode.attrs.onEventClicked(e),
+					onEventClicked: (_, domEvent) => vnode.attrs.onEventClicked(e, domEvent),
 					showTime: EventTextTimeOption.START_TIME,
 				}))),
 				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0

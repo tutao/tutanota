@@ -85,6 +85,10 @@ class Styles {
 		return this.bodyWidth >= size.desktop_layout_width;
 	}
 
+	isSingleColumnLayout(): boolean {
+		return this.bodyWidth < size.two_column_layout_width;
+	}
+
 	isUsingBottomNavigation() {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}

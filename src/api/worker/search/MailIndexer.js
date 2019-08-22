@@ -40,6 +40,7 @@ import type {User} from "../../entities/sys/User"
 import type {MailBox} from "../../entities/tutanota/MailBox"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {MailFolder} from "../../entities/tutanota/MailFolder"
+import type {EntityRestInterface} from "../rest/EntityRestClient"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -433,7 +434,7 @@ export class MailIndexer {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
 		const bodies = indexLoader.loadMailBodies(mails)
 		const files = indexLoader.loadAttachments(mails)
-		return promises.all(bodies, files)
+		return Promise.all([bodies, files])
 		               .then(([bodies, files]) => mails
 			               .map(mail => {
 				               const body = bodies.find(b => isSameId(b._id, mail.body))

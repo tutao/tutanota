@@ -1,8 +1,9 @@
 //@flow
 import {LoginFacade} from "./facades/LoginFacade"
-import {WorkerImpl} from "./WorkerImpl"
+import type {WorkerImpl} from "./WorkerImpl"
 import {module as replaced} from "@hot"
 import {Indexer} from "./search/Indexer"
+import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityRestClient} from "./rest/EntityRestClient"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {EntityRestCache} from "./rest/EntityRestCache"

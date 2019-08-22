@@ -21,7 +21,7 @@ type Styles = {
 
 export class Editor implements ImageHandler {
 	_squire: Squire;
-	view: Function;
+	view: (vnode: Vnode<any>) => VirtualElement | VirtualElement[];
 	onbeforeupdate: Function;
 	onremove: Function;
 	initialized: DeferredObject<void>;

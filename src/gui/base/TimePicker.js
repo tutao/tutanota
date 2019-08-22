@@ -8,7 +8,7 @@ import {parseTime, timeStringFromParts} from "../../calendar/CalendarUtils"
 import {client} from "../../misc/ClientDetector"
 
 export type Attrs = {
-	value: Stream<string>,
+	value: string,
 	onselected: (string) => mixed,
 	amPmFormat: boolean,
 	disabled?: boolean
@@ -20,9 +20,11 @@ export class TimePicker implements MComponent<Attrs> {
 	_previousSelectedIndex: number;
 	_selectedIndex: number;
 	_oldValue: string;
+	_value: Stream<string>;
 
 	constructor({attrs}: Vnode<Attrs>) {
 		this._focused = false
+		this._value = stream("")
 		const times = []
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
@@ -34,22 +36,29 @@ export class TimePicker implements MComponent<Attrs> {
 
 
 	view({attrs}: Vnode<Attrs>) {
-		const parsedTime = parseTime(attrs.value())
+		const parsedTime = parseTime(attrs.value)
 		if (parsedTime) {
 			this._previousSelectedIndex = this._selectedIndex
 			this._selectedIndex = this._values.indexOf(timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat))
+			if (!this._focused) {
+				this._value(attrs.value)
+			}
 		}
 		if (client.isMobileDevice()) {
-			if (this._oldValue !== attrs.value()) {
+			if (this._oldValue !== attrs.value) {
 				this._onSelected(attrs)
 			}
-			this._oldValue = attrs.value()
+			this._oldValue = attrs.value
+			this._value(parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, false) || "")
 			return m(TextFieldN, {
 				label: "emptyString_msg",
 				// input[type=time] wants value in 24h format, no matter what is actually displayed. Otherwise it will be empty.
-				value: stream(parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, false) || ""),
+				value: this._value,
 				type: TextFieldType.Time,
-				oninput: (value) => attrs.value(value),
+				oninput: (value) => {
+					this._value(value)
+					attrs.onselected(value)
+				},
 				disabled: attrs.disabled
 			})
 		}
@@ -57,7 +66,7 @@ export class TimePicker implements MComponent<Attrs> {
 		return [
 			m(TextFieldN, {
 				label: "emptyString_msg",
-				value: attrs.value,
+				value: this._value,
 				disabled: attrs.disabled,
 				onfocus: (dom, input) => {
 					this._focused = true
@@ -78,7 +87,7 @@ export class TimePicker implements MComponent<Attrs> {
 				},
 			}),
 			this._focused
-				? m(".fixed.flex.col.mt-s", {
+				? m(".fixed.flex.col.mt-s.menu-shadow", {
 					oncreate: (vnode) => this._setScrollTop(attrs, vnode),
 					onupdate: (vnode) => this._setScrollTop(attrs, vnode),
 					style: {
@@ -87,7 +96,7 @@ export class TimePicker implements MComponent<Attrs> {
 						"z-index": "3",
 						background: theme.content_bg,
 						overflow: "auto",
-						"box-shadow": "0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14)"
+
 					},
 				}, this._values.map((t, i) => m("pr-s.pl-s.darker-hover", {
 					key: t,
@@ -108,9 +117,10 @@ export class TimePicker implements MComponent<Attrs> {
 
 	_onSelected(attrs: Attrs) {
 		this._focused = false
-		const parsedTime = parseTime(attrs.value())
+		const value = this._value()
+		const parsedTime = parseTime(value)
 		const timeString = parsedTime && timeStringFromParts(parsedTime.hours, parsedTime.minutes, attrs.amPmFormat)
-		attrs.onselected(timeString || attrs.value())
+		attrs.onselected(timeString || value)
 	}
 
 	_setScrollTop(attrs: Attrs, vnode: VnodeDOM<Attrs>) {

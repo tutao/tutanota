@@ -1,13 +1,13 @@
 //@flow
 import {getInboxFolder} from "../mail/MailUtils"
 import m from "mithril"
-import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
 import {LoginView} from "../login/LoginView"
 import {header} from "../gui/base/Header";
 import {modal} from "../gui/base/Modal";
 import {last} from "../api/common/utils/ArrayUtils";
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../misc/RouteChange"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -50,7 +50,7 @@ export function handleBackPress(): Promise<boolean> {
 					const parts = m.route.get().split("/").filter(part => part !== "")
 					if (parts.length > 1) {
 						const selectedMailListId = parts[1]
-						return mailModel.getMailboxDetails().then((mailboxDetails) => {
+						return locator.mailModel.getMailboxDetails().then((mailboxDetails) => {
 							const inboxMailListId = getInboxFolder(mailboxDetails[0].folders).mails
 							if (inboxMailListId !== selectedMailListId) {
 								m.route.set(MAIL_PREFIX + "/" + inboxMailListId)

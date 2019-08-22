@@ -637,7 +637,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sseResponse = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
-		await Promise.delay(1)
+		await Promise.delay(8)
 
 		netMock.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")

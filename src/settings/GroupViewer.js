@@ -75,7 +75,7 @@ export class GroupViewer {
 					return null
 				}
 			}).then(newName => {
-				let newGroupInfo = Object.assign({}, this.groupInfo)
+				const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
 				newGroupInfo.name = newName
 				update(newGroupInfo)
 			})

@@ -5,7 +5,7 @@ import {Button, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
-import {ConversationType, InputFieldType, Keys, MAX_ATTACHMENT_SIZE, PushServiceType} from "../api/common/TutanotaConstants"
+import {ConversationType, InputFieldType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../api/common/TutanotaConstants"
 import {animations, height} from "../gui/animation/Animations"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
@@ -33,6 +33,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
 
@@ -284,7 +285,7 @@ export class ContactFormRequestDialog {
 				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
 				                        .then(contactFormResult => {
 					                        let userEmailAddress = contactFormResult.responseMailAddress
-					                        return worker.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
+					                        return logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
 					                                     .then(() => {
 						                                     let p = Promise.resolve()
 						                                     if (cleanedNotificationMailAddress) {
@@ -303,14 +304,15 @@ export class ContactFormRequestDialog {
 						                                     }
 
 						                                     let recipientInfo =
-							                                     createRecipientInfo(contactFormResult.requestMailAddress, "", null, true)
-						                                     return p.then(() => resolveRecipientInfo(recipientInfo)
+							                                     createRecipientInfo(contactFormResult.requestMailAddress, "", null)
+
+						                                     return p.then(() => resolveRecipientInfo(locator.mailModel, recipientInfo)
 							                                     .then(r => {
 								                                     let recipientInfos = [r]
 								                                     return worker.createMailDraft(this._subject.value(),
 									                                     this._editor.getValue(), userEmailAddress, "",
 									                                     recipientInfos, [], [], ConversationType.NEW,
-									                                     null, this._attachments, true, [])
+									                                     null, this._attachments, true, [], MailMethod.NONE)
 								                                                  .then(draft => {
 									                                                  return worker.sendMailDraft(draft, recipientInfos, lang.code)
 								                                                  })

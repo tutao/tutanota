@@ -10,6 +10,7 @@ import {
 import EC from "./EntityConstants"
 import {asyncImport} from "./utils/Utils"
 import {last} from "./utils/ArrayUtils"
+import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -54,7 +55,9 @@ export const LOAD_MULTIPLE_LIMIT = 100
 export const READ_ONLY_HEADER = "read-only"
 
 /**
- * Attention: TypeRef must be defined as class and not as Flow type. Flow does not respect flow types with generics when checking return values of the generic class. See https://github.com/facebook/flow/issues/3348
+ * Attention: TypeRef must be defined as class and not as Flow type because object types use structural typing and TypeRef does not
+ * reference T. See https://github.com/facebook/flow/issues/3348
+ * T should be bound to entities but we have no type to define them yet.
  */
 export class TypeRef<T> {
 	+app: string;

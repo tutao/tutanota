@@ -1,39 +1,40 @@
 //@flow
 
+import type {AlarmIntervalEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from "../api/common/TutanotaConstants"
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
 import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
-import {createEventId, generateUid, getTimeZone} from "./CalendarUtils"
+import {assignEventId, CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {loadAll, loadMultiple} from "../api/main/Entity"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
-import type {AlarmIntervalEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType, SECOND_MS} from "../api/common/TutanotaConstants"
-import {downcast, neverNull, ProgressMonitor} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull, ProgressMonitor} from "../api/common/utils/Utils"
 import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import stream from "mithril/stream/stream.js"
 import {ParserError} from "../misc/parsing"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {incrementDate} from "../api/common/utils/DateUtils"
+import {flat} from "../api/common/utils/ArrayUtils"
 import {DateTime} from "luxon"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
-import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
 	              .then((dataFiles) => {
-		              const parsedEvents = dataFiles.map(parseFile)
+		              const parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
 
 		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
 		              const progress = stream(0)
@@ -54,7 +55,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 								              return
 							              }
 							              const repeatRule = event.repeatRule
-							              createEventId(event, zone, calendarGroupRoot)
+							              assignEventId(event, zone, calendarGroupRoot)
 							              event._ownerGroup = calendarGroupRoot._id
 
 							              if (repeatRule && repeatRule.timeZone === "") {
@@ -64,7 +65,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              for (let alarmInfo of alarms) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
-							              createEventId(event, zone, calendarGroupRoot)
+							              assignEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
@@ -81,7 +82,9 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 }
 
-function parseFile(file: DataFile) {
+export type ParsedCalendarData = {method: string, contents: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>}
+
+export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
 		return parseCalendarStringData(stringData, getTimeZone())
@@ -95,7 +98,7 @@ function parseFile(file: DataFile) {
 
 }
 
-export function parseCalendarStringData(value: string, zone: string) {
+export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree, zone)
 }
@@ -140,31 +143,49 @@ function exportCalendarEvents(
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
-	tmpFile.mimeType = "text/calendar"
+	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
 	return fileController.open(createDataFile(tmpFile, data))
+}
+
+export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
+	const eventSerialized = serializeEvent(event, [], now, zone)
+	return wrapIntoCalendar(versionNumber, method, eventSerialized)
+}
+
+
+export function makeInvitationCalendarFile(event: CalendarEvent, method: CalendarMethodEnum, now: Date, zone: string): DataFile {
+	const stringValue = makeInvitationCalendar(env.versionNumber, event, method, now, zone)
+	const data = stringToUtf8Uint8Array(stringValue)
+	const tmpFile = createFile()
+	const date = new Date()
+	tmpFile.name = `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`
+	tmpFile.mimeType = CALENDAR_MIME_TYPE
+	tmpFile.size = String(data.byteLength)
+	return createDataFile(tmpFile, data)
+}
+
+function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {
+	let value = [
+		"BEGIN:VCALENDAR",
+		`PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`,
+		"VERSION:2.0",
+		"CALSCALE:GREGORIAN",
+		`METHOD:${method}`,
+	]
+	value.push(...contents)
+	value.push("END:VCALENDAR")
+
+	return value.join("\r\n")
 }
 
 export function serializeCalendar(
 	versionNumber: string,
 	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
 	now: Date,
-	zone: string
+	zone: string,
 ): string {
-	let value = [
-		"BEGIN:VCALENDAR",
-		`PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`,
-		"VERSION:2.0",
-		"CALSCALE:GREGORIAN",
-		"METHOD:PUBLISH",
-	]
-
-	for (let {event, alarms} of events) {
-		value.push(...serializeEvent(event, alarms, now, zone))
-	}
-	value.push(...["END:VCALENDAR"])
-
-	return value.join("\r\n")
+	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({event, alarms}) => serializeEvent(event, alarms, now, zone))))
 }
 
 function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean, localTimeZone: string) {
@@ -264,14 +285,35 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		dateStart,
 		dateEnd,
 		`DTSTAMP:${formatDateTimeUTC(now)}`,
-		`UID:${event.uid ? event.uid : generateUid(event, now.getTime())}`, // legacy: only generate uid for older calendar events.
+		`UID:${event.uid ? event.uid : generateUid(assertNotNull(event._ownerGroup), now.getTime())}`, // legacy: only generate uid for older calendar events.
+		`SEQUENCE:${event.sequence}`,
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
 		.concat(serializeRepeatRule(repeatRule, isAllDay, timeZone))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
+		.concat(serializeParticipants(event))
 		.concat("END:VEVENT")
+}
+
+function serializeParticipants(event: CalendarEvent): Array<string> {
+	const {organizer, attendees} = event
+	if (attendees.length === 0 && organizer == null) {
+		return []
+	}
+
+	const lines = []
+	if (organizer) {
+		const namePart = organizer.name ? `;CN=${organizer.name}` : ""
+		lines.push(`ORGANIZER${namePart}:mailto:${organizer.address}`)
+	}
+	const attendeesProperties = attendees.map(({address, status}) => {
+		const namePart = address.name ? `;CN=${address.name}` : ""
+		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${calendarAttendeeStatusToParstat[status]}`
+			+ `;RSVP=TRUE${namePart}:mailto:${address.address}`
+	})
+	return lines.concat(attendeesProperties)
 }
 
 function escapeSemicolons(value: string): string {
@@ -298,3 +340,13 @@ export function formatDate(date: Date, timeZone: string): string {
 	const dateTime = DateTime.fromJSDate(date, {zone: timeZone})
 	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }
+
+const calendarAttendeeStatusToParstat = {
+	// WE map ADDED to NEEDS-ACTION for sending out invites
+	[CalendarAttendeeStatus.ADDED]: "NEEDS-ACTION",
+	[CalendarAttendeeStatus.NEEDS_ACTION]: "NEEDS-ACTION",
+	[CalendarAttendeeStatus.ACCEPTED]: "ACCEPTED",
+	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
+	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
+}
+export const parstatToCalendarAttendeeStatus = reverse(calendarAttendeeStatusToParstat)

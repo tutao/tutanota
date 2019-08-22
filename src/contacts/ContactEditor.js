@@ -186,6 +186,7 @@ export class ContactEditor {
 					m(".mail.mt-xl", [
 						m(".h4", lang.get('email_label')),
 						m(".aggregateEditors", [
+
 							this.mailAddressEditors.map(editor => m(editor, {key: editor.id})),
 						])
 					]),

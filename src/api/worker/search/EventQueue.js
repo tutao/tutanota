@@ -3,7 +3,7 @@
 import {OperationType} from "../../common/TutanotaConstants"
 import {containsEventOfType} from "../../common/utils/Utils"
 import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
-import {WorkerImpl} from "../WorkerImpl"
+import type {WorkerImpl} from "../WorkerImpl"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 
 export type QueuedBatch = {

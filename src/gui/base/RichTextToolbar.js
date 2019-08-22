@@ -14,15 +14,21 @@ import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
 import {BrowserType} from "../../misc/ClientConstants"
 
+export type Options = {
+	imageButtonClickHandler?: ?((ev: Event, editor: Editor) => mixed),
+	alignmentEnabled?: boolean,
+	fontSizeEnabled?: boolean,
+}
+
 export class RichTextToolbar {
 	view: Function;
 	selectedSize: Stream<number>;
 
-	constructor(editor: Editor, attachFileHandler?: ?((ev: Event, editor: Editor) => mixed)) {
+	constructor(editor: Editor, options: Options) {
 
 		this.selectedSize = stream(size.font_size_base)
 
-		const styleToggleAttrs = [
+		const styleToggleAttrs: Array<ButtonAttrs> = [
 			{style: 'b', title: () => lang.get("formatTextBold_msg") + " (Ctrl + B)", icon: Icons.Bold},
 			{style: 'i', title: () => lang.get("formatTextItalic_msg") + " (Ctrl + I)", icon: Icons.Italic},
 			{style: 'u', title: () => lang.get("formatTextUnderline_msg") + " (Ctrl + U)", icon: Icons.Underline},
@@ -97,7 +103,7 @@ export class RichTextToolbar {
 			isSelected: () => editor.styles.listing === 'ol',
 			colors: ButtonColors.Elevated,
 		})
-		const attachHandler = attachFileHandler
+		const attachHandler = options.imageButtonClickHandler
 		if (attachHandler) {
 			styleToggleAttrs.unshift({
 				label: "emptyString_msg",
@@ -108,7 +114,6 @@ export class RichTextToolbar {
 				colors: ButtonColors.Elevated,
 			})
 		}
-
 		const alignDropdownAttrs = attachDropdown({
 			label: () => "▼",
 			title: "formatTextAlignment_msg",
@@ -132,7 +137,7 @@ export class RichTextToolbar {
 		const removeFormattingButtonAttrs = {
 			label: "emptyString_msg",
 			title: "removeFormatting_action",
-			icon: () => Icons.Close,
+			icon: () => Icons.Cancel,
 			type: ButtonType.Toggle,
 			click: () => editor._squire.removeAllFormatting(),
 			noBubble: true,
@@ -160,6 +165,15 @@ export class RichTextToolbar {
 			}
 		}))
 
+		const allButtonAttrs: Array<ButtonAttrs> = styleToggleAttrs
+		if (options.alignmentEnabled == null || options.alignmentEnabled) {
+			allButtonAttrs.push(alignDropdownAttrs)
+		}
+		if (options.fontSizeEnabled == null || options.fontSizeEnabled) {
+			allButtonAttrs.push(sizeButtonAttrs)
+		}
+		allButtonAttrs.push(removeFormattingButtonAttrs)
+
 		this.view = (): ?VirtualElement => {
 			try {
 				this.selectedSize(parseInt(editor._squire.getFontInfo().size.slice(0, -2)))
@@ -167,7 +181,7 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".elevated-bg.overflow-hidden.pb-2", {
+			return m(".elevated-bg.overflow-hidden", {
 					style: {
 						"top": '0px',
 						"position": client.browser === BrowserType.SAFARI
@@ -177,9 +191,7 @@ export class RichTextToolbar {
 							: "sticky" // normal browsers
 					}
 				}, [
-					m(".flex-end.wrap", styleToggleAttrs.concat(alignDropdownAttrs, sizeButtonAttrs, removeFormattingButtonAttrs)
-					                                    .map((t: ButtonAttrs) => m(ButtonN, t))),
-					m("hr.hr")
+					m(".flex-end.wrap", allButtonAttrs.map((t) => m(ButtonN, t)))
 				]
 			)
 		}
@@ -187,25 +199,25 @@ export class RichTextToolbar {
 
 	oncreate(vnode: Vnode<any>) {
 		vnode.dom.style.height = "0"
-		this._animate(vnode, true)
+		this._animate(vnode.dom, true)
 	}
 
 	onbeforeremove(vnode: Vnode<any>) {
-		return this._animate(vnode, false)
+		return this._animate(vnode.dom, false)
 	}
 
-	_animate(vnode: Vnode<any>, appear: boolean): Promise<*> {
-		let childHeight = Array.from(vnode.dom.children)
+	_animate(dom: HTMLElement, appear: boolean): Promise<*> {
+		let childHeight = Array.from(dom.children)
 		                       .map((domElement: HTMLElement) => domElement.offsetHeight)
 		                       .reduce((current: number, previous: number) => Math.max(current, previous), 0)
 		return animations
-			.add(vnode.dom, [
+			.add(dom, [
 				height(appear ? 0 : childHeight, appear ? childHeight : 0),
 				appear ? opacity(0, 1, false) : opacity(1, 0, false)
 			])
 			.then(() => {
 				if (appear) {
-					vnode.dom.style.height = ''
+					dom.style.height = ''
 				}
 			})
 	}

@@ -5,6 +5,7 @@ import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {Request} from "../../../src/api/common/WorkerProtocol"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
+import {logins} from "../../../src/api/main/LoginController"
 
 o.spec("WorkerTest request / response", node(function () {
 
@@ -22,7 +23,7 @@ o.spec("WorkerTest request / response", node(function () {
 
 	o("login", function (done, timeout) {
 		timeout(5000)
-		worker.createSession("map-free@tutanota.de", "map", "Linux Firefox", false, true)
+		logins.createSession("map-free@tutanota.de", "map", "Linux Firefox", false, true)
 			.finally(done)
 	})
 

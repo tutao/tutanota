@@ -129,3 +129,7 @@ export function makeTimeoutMock() {
 	return timeoutMock
 }
 
+/** Catch error and return either value or error */
+export async function asResult<T>(p: Promise<T>): Promise<T | Error> {
+	return p.catch((e) => e)
+}

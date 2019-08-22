@@ -1,20 +1,23 @@
 // @flow
-import {client} from "../../misc/ClientDetector"
 import {ease} from "./Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {downcast} from "../../api/common/utils/Utils"
+import {hexToRgb} from "../Color"
 
 assertMainOrNodeBoot()
 
 declare type EasingFunction = (percent: number) => number;
 
-export type DomMutation = {
+export interface DomMutation {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
+
+	willChange(): string;
 }
-type DomTransform = {
-	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
+
+interface DomTransform extends DomMutation {
 	chain(type: TransformEnum, begin: number, end: number): DomTransform;
 }
+
 type AlphaEnum = 'backgroundColor' | 'color'
 type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ' | 'scale'
 type TransformValues = {
@@ -65,29 +68,27 @@ class Animations {
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
 	add(targets: HTMLElement | HTMLElement[] | HTMLCollection<HTMLElement>, mutations: DomMutation | DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?: number}): AnimationPromise {
-		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
-		let targetArrayOrCollection = target['length'] != null
-		if (!target || targetArrayOrCollection && target.length === 0) {
-			return Promise.reject(new Error('tried to animate a non existing element'))
-		}
-		let mutation: DomMutation[]
+		const targetsArray: Array<HTMLElement> = targets instanceof HTMLElement ? [targets] : Array.from(targets)
+		let targetMutations: DomMutation[]
 		if (!(mutations instanceof Array)) {
-			mutation = [mutations]
+			targetMutations = [mutations]
 		} else {
-			mutation = mutations
+			targetMutations = mutations
 		}
 		let verifiedOptions = Animations.verifiyOptions(options)
-		if (!targetArrayOrCollection) target = [target]
+
+		const willChange = targetMutations.map(mutation => mutation.willChange()).filter(willChange => willChange.length).join(" ")
+		targetsArray.forEach((t) => t.style.willChange = willChange)
 		const animations = []
 		const promise = new Promise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
-			for (let i = 0; i < target.length; i++) {
+			for (let i = 0; i < targetsArray.length; i++) {
 				let delay = verifiedOptions.delay
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				const animation = new Animation(target[i], mutation,
-					i === target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration)
+				const animation = new Animation(targetsArray[i], targetMutations,
+					i === targetsArray.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration)
 
 				animations.push(animation)
 				this.activeAnimations.push(animation)
@@ -155,11 +156,12 @@ export function transform(type: TransformEnum, begin: number, end: number): DomT
 	let updateDom = function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 		target.style.transform = buildTransformString(values, percent, easing)
 	}
+	const willChange = () => "transform"
 	let chain = function (type: TransformEnum, begin: number, end: number) {
 		values[type] = {begin, end}
-		return {updateDom, chain}
+		return {updateDom, chain, willChange}
 	}
-	return {updateDom, chain}
+	return {updateDom, chain, willChange}
 }
 
 transform.type = {
@@ -174,7 +176,8 @@ export function scroll(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			target.scrollTop = calculateValue(percent, begin, end, easing)
-		}
+		},
+		willChange: () => "",
 	}
 }
 
@@ -195,34 +198,9 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
 			transform.push(type + '(' + value + TransformUnits[type] + ')')
 		}
 	}
-	if (client.isMobileDevice()) {
-		transform.push('translate3d(0,0,0)') // use gpu on mobile devices
-	}
 	return transform.join(' ')
 }
 
-/**
- * We use the alpha channel instead of using opacity for fading colors. Opacity changes are slow on mobile devices as they
- * effect the whole tree of the dom element with changing opacity.
- *
- * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
- */
-export function hexToRgb(hexColor: string): {r: number, g: number, b: number} {
-	hexColor = hexColor.substring(1)
-	let split = hexColor.match(/.{1,2}/g)
-	if (split && split.length === 3) {
-		return {
-			r: parseInt(split[0], 16),
-			g: parseInt(split[1], 16),
-			b: parseInt(split[2], 16)
-		}
-	}
-	throw new Error("illegal color definition")
-}
-
-export function rgbToHex(color: {r: number, g: number, b: number}) {
-	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1);
-}
 
 export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: number): DomMutation {
 	let color = hexToRgb(colorHex)
@@ -235,7 +213,8 @@ export function alpha(type: AlphaEnum, colorHex: string, begin: number, end: num
 			} else if (type === alpha.type.color) {
 				target.style.color = `rgba(${color.r}, ${color.g}, ${color.b}, ${alphaChannel})`
 			}
-		}
+		},
+		willChange: () => "alpha",
 	}
 }
 
@@ -261,8 +240,8 @@ export function opacity(begin: number, end: number, keepValue: boolean): DomMuta
 			} else {
 				target.style.opacity = opacity + ''
 			}
-
-		}
+		},
+		willChange: () => "opacity",
 	}
 }
 
@@ -270,7 +249,8 @@ export function height(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			target.style.height = calculateValue(percent, begin, end, easing) + 'px'
-		}
+		},
+		willChange: () => "height",
 	}
 }
 
@@ -278,7 +258,8 @@ export function width(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			target.style.width = calculateValue(percent, begin, end, easing) + 'px'
-		}
+		},
+		willChange: () => "width",
 	}
 }
 
@@ -286,7 +267,8 @@ export function fontSize(begin: number, end: number): DomMutation {
 	return {
 		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 			target.style.fontSize = calculateValue(percent, begin, end, easing) + 'px'
-		}
+		},
+		willChange: () => "",
 	}
 }
 

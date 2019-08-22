@@ -1,21 +1,23 @@
 //@flow
 import stream from "mithril/stream/stream.js"
-import {worker} from "../api/main/WorkerClient"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {DbError} from "../api/common/error/DbError"
+import type {WorkerClient} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
 export class SearchModel {
+	_worker: WorkerClient;
 	result: Stream<?SearchResult>;
 	indexState: Stream<SearchIndexStateInfo>;
 	lastQuery: Stream<?string>;
 	indexingSupported: boolean;
 
-	constructor() {
+	constructor(worker: WorkerClient) {
+		this._worker = worker
 		this.result = stream()
 		this.lastQuery = stream("")
 		this.indexingSupported = true
@@ -55,7 +57,7 @@ export class SearchModel {
 			this.result(result)
 			return Promise.resolve(result)
 		} else {
-			return worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+			return this._worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
 			}).catch(DbError, (e) => {

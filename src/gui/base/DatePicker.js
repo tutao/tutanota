@@ -3,12 +3,10 @@ import {TextField} from "./TextField"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
-import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
-import {Dialog} from "./Dialog"
 import {theme} from "../theme"
 import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
@@ -31,20 +29,23 @@ export class DatePicker implements Component {
 	input: TextField;
 	invalidDate: boolean;
 	date: Stream<?Date>;
-	_forceCompact: boolean;
-	_startOfTheWeekOffset: number
+	_startOfTheWeekOffset: number;
+	_showingDropdown: boolean;
+	_disabled: boolean;
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false, disabled: boolean = false) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false) {
 		this.date = stream(null)
-		this._forceCompact = forceCompact
 		this._startOfTheWeekOffset = startOfTheWeekOffset
+		this._showingDropdown = false
+		this._disabled = disabled
 
-		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
 		let inputDate: ?Date
 
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
-			if (this.invalidDate) {
+			if (this._showingDropdown) {
+				return null
+			} else if (this.invalidDate) {
 				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 			} else if (this.date() != null) {
 				return formatDateWithMonth(neverNull(inputDate))
@@ -55,7 +56,6 @@ export class DatePicker implements Component {
 		if (disabled) {
 			this.input.setDisabled()
 		}
-		this.input._injectionsRight = () => (forceCompact || client.isMobileDevice()) && !disabled ? [m(pickerButton)] : null
 		this.input.onUpdate(value => {
 			try {
 				if (value.trim().length > 0) {
@@ -81,40 +81,64 @@ export class DatePicker implements Component {
 		})
 	}
 
-	view = (vnode: Vnode<void>) => {
-		return m("", [
-			m(this.input),
-			(this._forceCompact || client.isMobileDevice()
-				? null
-				: m(VisualDatePicker, {
+	_documentClickListener: ?MouseEventListener;
+
+	view = () => {
+		const date = this.date()
+		return m(".rel", [
+			m("div", {
+				onclick: () => {
+					if (!this._disabled) {
+						this._showingDropdown = true
+					}
+				},
+			}, m(this.input)),
+			this._showingDropdown
+				? m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
+					style: {width: "280px"},
+					onblur: () => this._showingDropdown = false,
+					oncreate: (vnode) => {
+						const listener: MouseEventListener = (e) => {
+							if (!vnode.dom.contains(e.target)) {
+								this._showingDropdown = false
+								m.redraw()
+							}
+						}
+						this._documentClickListener = listener
+						document.addEventListener("click", listener, true)
+					},
+					onremove: (vnode) => {
+						this._documentClickListener && document.removeEventListener("click", this._documentClickListener, true)
+					}
+				}, m(VisualDatePicker, {
 					selectedDate: this.date(),
-					onDateSelected: (newDate) => this.setDate(newDate),
+					onDateSelected: (newDate, dayClick) => {
+						this.setDate(newDate)
+						if (dayClick) { // Do not close dropdown on changing a month
+							this._showingDropdown = false
+						}
+					},
 					wide: false,
 					startOfTheWeekOffset: this._startOfTheWeekOffset
 				}))
-		])
-	}
-
-	_showPickerDialog = () => {
-		let date: ?Date
-		const dialog = Dialog.showActionDialog({
-			title: "",
-			child: {
-				view: () => m(VisualDatePicker, {
-					selectedDate: date || this.date(),
-					onDateSelected: (newDate, dayClick) => {
-						if (dayClick) {
-							this.setDate(newDate)
-							dialog.close()
-						}
+				: null,
+			// For mobile devices we render a native date picker, it's easier to use and more accessible.
+			// We render invisible input which opens native picker on interaction.
+			client.isMobileDevice()
+				? m("input.fill-absolute", {
+					type: "date",
+					style: {
+						opacity: 0,
+						// This overrides platform-specific width setting, we want to cover the whole field
+						minWidth: "100%",
+						minHeight: "100%"
 					},
-					wide: true,
-					startOfTheWeekOffset: this._startOfTheWeekOffset
-				}),
-			},
-			okAction: null,
-			allowCancel: true
-		})
+					// format as ISO date format, JS Date only supports full format.
+					value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
+					oninput: (event) => this.setDate(new Date(event.target.valueAsDate)),
+				})
+				: null,
+		])
 	}
 
 	setDate(date: ?Date) {

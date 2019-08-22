@@ -8,6 +8,7 @@ import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElement"
 import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
+import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 
 export const reverse = (objectMap: Object) => Object.keys(objectMap)
                                                     .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
@@ -655,3 +656,89 @@ export type DnsRecordValidationTypeEnum = $Values<typeof DnsRecordValidation>;
 
 
 export type MailReportTypeEnum = $Values<typeof MailReportType>
+export const CalendarAttendeeStatus = Object.freeze({
+	/** invite is not sent yet */
+	ADDED: "0",
+	/** already invited but did not respond */
+	NEEDS_ACTION: "1",
+	ACCEPTED: "2",
+	DECLINED: "3",
+	TENTATIVE: "4"
+})
+
+export type CalendarAttendeeStatusEnum = $Values<typeof CalendarAttendeeStatus>
+
+export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatusEnum {
+	return downcast(attendee.status)
+}
+
+export const CalendarMethod = Object.freeze({
+	PUBLISH: "PUBLISH",
+	REQUEST: "REQUEST",
+	REPLY: "REPLY",
+	ADD: "ADD",
+	CANCEL: "CANCEL",
+	REFRESH: "REFRESH",
+	COUNTER: "COUNTER",
+	DECLINECOUNTER: "DECLINECOUNTER"
+})
+
+export type CalendarMethodEnum = $Values<typeof CalendarMethod>
+
+export const MailMethod = Object.freeze({
+	NONE: "0",
+	ICAL_PUBLISH: "1",
+	ICAL_REQUEST: "2",
+	ICAL_REPLY: "3",
+	ICAL_ADD: "4",
+	ICAL_CANCEL: "5",
+	ICAL_REFRESH: "6",
+	ICAL_COUNTER: "7",
+	ICAL_DECLINECOUNTER: "8"
+})
+
+const icalToMailMethodMapping = {
+	PUBLISH: MailMethod.ICAL_PUBLISH,
+	REQUEST: MailMethod.ICAL_REQUEST,
+	REPLY: MailMethod.ICAL_REPLY,
+	ADD: MailMethod.ICAL_ADD,
+	CANCEL: MailMethod.ICAL_CANCEL,
+	REFRESH: MailMethod.ICAL_REFRESH,
+	COUNTER: MailMethod.ICAL_COUNTER,
+	DECLINECOUNTER: MailMethod.ICAL_COUNTER
+}
+const mailMethodToIcalMapping = reverse(icalToMailMethodMapping)
+
+export function mailMethodToCalendarMethod(mailMethod: MailMethodEnum): CalendarMethodEnum {
+	const calendarMethod = mailMethodToIcalMapping[mailMethod]
+	if (calendarMethod == null) {
+		throw new Error(`No conversion to calendar method from ${mailMethod}`)
+	}
+	return calendarMethod
+}
+
+export function calendarMethodToMailMethod(calendarMethod: CalendarMethodEnum): MailMethodEnum {
+	const mapping = {
+		PUBLISH: MailMethod.ICAL_PUBLISH,
+		REQUEST: MailMethod.ICAL_REQUEST,
+		REPLY: MailMethod.ICAL_REPLY,
+		ADD: MailMethod.ICAL_ADD,
+		CANCEL: MailMethod.ICAL_CANCEL,
+		REFRESH: MailMethod.ICAL_REFRESH,
+		COUNTER: MailMethod.ICAL_COUNTER,
+		DECLINECOUNTER: MailMethod.ICAL_COUNTER
+	}
+	return mapping[calendarMethod]
+}
+
+export type MailMethodEnum = $Values<typeof MailMethod>
+
+export function getAsEnumValue<K, V>(enumValues: {[K]: V}, value: string): ?V {
+	for (const key of Object.getOwnPropertyNames(enumValues)) {
+		const enumValue = enumValues[key]
+		if (enumValue === value) {
+			return enumValue
+		}
+	}
+	return null
+}
