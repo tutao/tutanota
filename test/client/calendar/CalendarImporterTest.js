@@ -251,6 +251,41 @@ o.spec("CalendarImporterTest", function () {
 		][0])
 	})
 
+	o("parse calendar with alarm in the future", function () {
+		o(parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:test@tutanota.com`,
+				"SUMMARY:Word \\\\ \\; \\n",
+				"BEGIN:VALARM",
+				"ACTION:DISPLAY",
+				"TRIGGER:P1D",
+				"END:VALARM",
+				"END:VEVENT",
+				"END:VCALENDAR"
+			].join("\r\n"))[0]
+		).deepEquals([
+			{
+				event: createCalendarEvent({
+					summary: "Word \\ ; \n",
+					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					uid: "test@tutanota.com",
+					repeatRule: null,
+				}),
+				alarms: []
+			},
+
+		][0])
+	})
+
 	o("roundtrip export -> import", function () {
 		const alarmOne = createUserAlarmInfo({
 			alarmInfo: createAlarmInfo({
