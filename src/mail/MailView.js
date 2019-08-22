@@ -371,11 +371,12 @@ export class MailView implements CurrentView {
 							                                   count: count,
 							                                   button,
 							                                   rightButton: null,
+							                                   key: id,
 						                                   })
 					                                   })
 					                                   .concat(logins.isInternalUserLoggedIn()
 						                                   ? [
-							                                   m(".folder-row.flex-space-between.plr-l", [
+							                                   m(".folder-row.flex-space-between.plr-l", {key: "yourFolders"}, [
 								                                   m("small.b.align-self-center.ml-negative-xs",
 									                                   {style: {color: theme.navigation_button}},
 									                                   lang.get("yourFolders_action").toLocaleUpperCase()),
