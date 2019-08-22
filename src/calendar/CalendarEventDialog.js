@@ -128,7 +128,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatIntervalPickerAttrs.selectedValue(Number(existingRule.interval))
 			endTypePickerAttrs.selectedValue(downcast(existingRule.endType))
 			endCountPickerAttrs.selectedValue(existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1)
-			repeatEndDatePicker.setDate(existingRule.endType === EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
+			repeatEndDatePicker.setDate(existingRule.endType
+			=== EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
 		} else {
 			repeatPickerAttrs.selectedValue(null)
 		}
@@ -208,7 +209,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			return
 		}
 		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes) {
-			if (parsedStartTime.minutes <= 30) {
+			if (parsedStartTime.minutes < 30) {
 				endTime(timeStringFromParts(parsedStartTime.hours, parsedStartTime.minutes + 30, amPmFormat))
 			} else {
 				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes, amPmFormat))
@@ -273,7 +274,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}),
 			m(".flex", [
 				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
-				m(".flex-grow.ml-s" + (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
+				m(".flex-grow.ml-s"
+					+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
 			]),
 			repeatPickerAttrs.selectedValue()
 				? m(".flex", [
