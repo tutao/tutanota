@@ -341,7 +341,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				endDate.setMinutes(parsedEndTime.minutes)
 			}
 
-			if (endDate.getTime() < startDate.getTime()) {
+			if (endDate.getTime() <= startDate.getTime()) {
 				Dialog.error('startAfterEnd_label')
 				return
 			}
