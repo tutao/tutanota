@@ -23,6 +23,7 @@ o.spec("CalendarImporterTest", function () {
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
 					uid: "test@tutanota.com",
+					location: "Some location",
 				}), [], now)
 			).deepEquals([
 				"BEGIN:VEVENT",
@@ -32,6 +33,7 @@ o.spec("CalendarImporterTest", function () {
 				"UID:test@tutanota.com",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
+				"LOCATION:Some location",
 				"END:VEVENT"
 			])
 		})
