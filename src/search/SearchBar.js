@@ -11,8 +11,6 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {PositionRect} from "../gui/base/Overlay"
 import {displayOverlay} from "../gui/base/Overlay"
-import {NavButton} from "../gui/base/NavButton"
-import {Dropdown} from "../gui/base/Dropdown"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -78,7 +76,6 @@ export class SearchBar implements Component {
 	_domWrapper: HTMLElement;
 	focused: boolean;
 	expanded: boolean;
-	dropdown: Dropdown;
 	skipNextBlur: Stream<boolean>;
 	_state: Stream<SearchBarState>
 	oncreate: Function;
@@ -118,8 +115,6 @@ export class SearchBar implements Component {
 			}
 		}
 
-		const navBtn = new NavButton('search_label', () => BootIcons.Mail, () => "/search", "/search")
-		this.dropdown = new Dropdown(() => [navBtn], 250)
 		let indexStateStream
 		let routeChangeStream
 		let lastQueryStream

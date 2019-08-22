@@ -33,6 +33,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRecoverCode(): RecoverCode {
-	return create(_TypeModel, RecoverCodeTypeRef)
+export function createRecoverCode(values?: $Shape<$Exact<RecoverCode>>): RecoverCode {
+	return Object.assign(create(_TypeModel, RecoverCodeTypeRef), values)
 }

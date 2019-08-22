@@ -43,6 +43,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createExternalUserReference(): ExternalUserReference {
-	return create(_TypeModel, ExternalUserReferenceTypeRef)
+export function createExternalUserReference(values?: $Shape<$Exact<ExternalUserReference>>): ExternalUserReference {
+	return Object.assign(create(_TypeModel, ExternalUserReferenceTypeRef), values)
 }

@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCalendarEventRef(): CalendarEventRef {
-	return create(_TypeModel, CalendarEventRefTypeRef)
+export function createCalendarEventRef(values?: $Shape<$Exact<CalendarEventRef>>): CalendarEventRef {
+	return Object.assign(create(_TypeModel, CalendarEventRefTypeRef), values)
 }

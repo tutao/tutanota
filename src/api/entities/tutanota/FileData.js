@@ -21,9 +21,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {"blocks": {"name": "blocks", "id": 10, "since": 1, "type": "AGGREGATION", "cardinality": "Any", "refType": "DataBlock", "final": false}},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createFileData(): FileData {
-	return create(_TypeModel, FileDataTypeRef)
+export function createFileData(values?: $Shape<$Exact<FileData>>): FileData {
+	return Object.assign(create(_TypeModel, FileDataTypeRef), values)
 }

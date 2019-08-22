@@ -58,16 +58,13 @@ class WindowFacade {
 	addWindowCloseListener(listener: () => void): Function {
 		this._windowCloseListeners.add(listener)
 		this._checkWindowClosing(this._windowCloseListeners.size > 0)
-		console.log("added win close listener:", this._windowCloseListeners.size, listener)
 		return () => {
 			this._windowCloseListeners.delete(listener)
-			console.log("removed win close listener:", this._windowCloseListeners.size, listener)
 			this._checkWindowClosing(this._windowCloseListeners.size > 0)
 		}
 	}
 
 	_notifyCloseListeners(e: Event) {
-		console.log("notifycloselisteners")
 		this._windowCloseListeners.forEach(f => f(e))
 	}
 

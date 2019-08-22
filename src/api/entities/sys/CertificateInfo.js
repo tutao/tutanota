@@ -33,6 +33,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCertificateInfo(): CertificateInfo {
-	return create(_TypeModel, CertificateInfoTypeRef)
+export function createCertificateInfo(values?: $Shape<$Exact<CertificateInfo>>): CertificateInfo {
+	return Object.assign(create(_TypeModel, CertificateInfoTypeRef), values)
 }

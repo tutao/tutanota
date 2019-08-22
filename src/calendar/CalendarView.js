@@ -45,6 +45,10 @@ import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteD
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
+import {Dialog} from "../gui/base/Dialog"
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {isApp} from "../api/Env"
 
 
 export type CalendarInfo = {
@@ -112,7 +116,7 @@ export class CalendarView implements CurrentView {
 					]),
 					m(".folder-row.plr-l", calendarViewValues.map(viewType => {
 						return m(NavButtonN, {
-							label: viewType.name,
+							label: () => viewType.name,
 							icon: () => viewType.icon,
 							href: m.route.get(),
 							isSelectedPrefix: viewType.href,
@@ -131,7 +135,7 @@ export class CalendarView implements CurrentView {
 							m("small.b.align-self-center.ml-negative-xs",
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
-								label: () => "add calendar",
+								label: "addCalendar_action",
 								click: () => this._onPressedAddCalendar(),
 								icon: () => Icons.Add
 							})
@@ -252,8 +256,8 @@ export class CalendarView implements CurrentView {
 			nextMonthDate.setMonth(d.getMonth() + 1)
 
 			this._loadMonthIfNeeded(d)
-				.then(() => this._loadMonthIfNeeded(nextMonthDate))
-				.then(() => this._loadMonthIfNeeded(previousMonthDate))
+			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
+			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
@@ -279,23 +283,35 @@ export class CalendarView implements CurrentView {
 	}
 
 	_onPressedAddCalendar() {
-		if (logins.getUserController().isFreeAccount()) {
+		if (logins.getUserController().getCalendarMemberships().length === 0) {
+			this._showCreateCalendarDialog()
+		} else if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)
 		} else {
-			showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, (dialog, properties) => {
-				dialog.close()
-				worker.addCalendar(properties.name)
-					  .then((group) => {
-						  const {userSettingsGroupRoot} = logins.getUserController()
-						  const newGroupColor = Object.assign(createGroupColor(), {
-							  group: group._id,
-							  color: properties.color
-						  })
-						  userSettingsGroupRoot.groupColors.push(newGroupColor)
-						  update(userSettingsGroupRoot)
-					  })
+			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+				if (customer.canceledPremiumAccount) {
+					return Dialog.error("subscriptionCancelledMessage_msg")
+				} else {
+					this._showCreateCalendarDialog()
+				}
 			})
 		}
+	}
+
+	_showCreateCalendarDialog() {
+		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, false, (dialog, properties) => {
+			dialog.close()
+			worker.addCalendar(properties.name)
+			      .then((group) => {
+				      const {userSettingsGroupRoot} = logins.getUserController()
+				      const newGroupColor = Object.assign(createGroupColor(), {
+					      group: group._id,
+					      color: properties.color
+				      })
+				      userSettingsGroupRoot.groupColors.push(newGroupColor)
+				      update(userSettingsGroupRoot)
+			      })
+		})
 	}
 
 	_renderCalendars(): Children {
@@ -322,27 +338,52 @@ export class CalendarView implements CurrentView {
 							m(".pl-m.b", getCalendarName(groupInfo.name))
 						]),
 						m(ButtonN, attachDropdown({
-							label: "more_label",
-							click: noOp,
-							icon: () => Icons.More
-						}, () => [
-							{
-								label: "edit_action",
-								icon: () => Icons.Edit,
-								click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
-								type: ButtonType.Dropdown,
-							},
-							{
-								label: "delete_action",
-								icon: () => Icons.Trash,
-								click: () => {
-									serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, Object.assign(createCalendarDeleteData(), {
-										groupRootId: groupRoot._id
-									}))
+								label: "more_label",
+								click: noOp,
+								icon: () => Icons.More
+							}, () => [
+								{
+									label: "edit_action",
+									icon: () => Icons.Edit,
+									click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
+									type: ButtonType.Dropdown,
 								},
-								type: ButtonType.Dropdown,
-							}
-						])),
+								isApp()
+									? null
+									: {
+										label: "import_action",
+										icon: () => Icons.Import,
+										click: () => showCalendarImportDialog(groupRoot),
+										type: ButtonType.Dropdown,
+									},
+								isApp()
+									? null
+									: {
+										label: "export_action",
+										icon: () => Icons.Export,
+										click: () => {
+											const alarmInfoList = logins.getUserController().user.alarmInfoList
+											alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
+										},
+										type: ButtonType.Dropdown,
+									},
+								{
+									label: "delete_action",
+									icon: () => Icons.Trash,
+									click: () => {
+										Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": groupInfo.name}))
+										      .then((confirmed) => {
+											      if (confirmed) {
+												      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
+													      groupRootId: groupRoot._id
+												      }))
+											      }
+										      })
+									},
+									type: ButtonType.Dropdown,
+								},
+							].filter(Boolean)
+						)),
 					])
 			})
 			: null
@@ -352,7 +393,7 @@ export class CalendarView implements CurrentView {
 		showEditCalendarDialog({
 			name: getCalendarName(groupInfo.name),
 			color: colorValue.substring(1)
-		}, (dialog, properties) => {
+		}, true, (dialog, properties) => {
 			groupInfo.name = properties.name
 			update(groupInfo)
 			// color always set for existing calendar
@@ -448,8 +489,8 @@ export class CalendarView implements CurrentView {
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements
-									 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
-									 .forEach((e) => this._addDaysForEvent(e, month))
+					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+					                 .forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {
 							this._addDaysForRecurringEvent(e, month)
@@ -532,6 +573,11 @@ export class CalendarView implements CurrentView {
 			const eventListId = getListId(event);
 			const eventMonth = getMonth(getEventStart(event))
 			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
+				// If the month is not loaded, we don't want to put it into events.
+				// We will put it there when we load the month
+				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
+					return
+				}
 				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {

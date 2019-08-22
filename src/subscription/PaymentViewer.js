@@ -240,7 +240,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							return "paymentProviderNotAvailableError_msg"
 						}).catch(TooManyRequestsError, error => {
 							return "tooManyAttempts_msg"
-						}), false)
+						}))
 				}
 			})
 			.then(errorId => {

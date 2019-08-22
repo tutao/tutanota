@@ -1,20 +1,22 @@
 // @flow
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
-import {createDropDownNavButton, NavButton, NavButtonColors} from "./NavButton"
 import {assertMainOrNodeBoot, isAdminClient} from "../../api/Env"
 import {size} from "../size"
 import {styles} from "../styles"
-import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import {asyncImport} from "../../api/common/utils/Utils"
 import {logins} from "../../api/main/LoginController"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import {lang} from "../../misc/LanguageViewModel"
+import type {NavButtonAttrs} from "./NavButtonN"
+import {NavButtonColors, NavButtonN} from "./NavButtonN"
+import {createDropdown} from "./DropdownN"
+import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNodeBoot()
 
-type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width: number, hideLabelDefault: boolean}
+type ButtonWrapper = {id: number, priority: number; button: NavButtonAttrs, prefixComponent?: Component, width: number, hideLabelDefault: boolean}
 
 type SortedButtons = {visible: ButtonWrapper[], hidden: ButtonWrapper[]}
 
@@ -50,16 +52,24 @@ export class NavBar {
 		this.more = {
 			id: Number.MAX_VALUE,
 			priority: MAX_PRIO,
-			button: createDropDownNavButton("more_label", () => BootIcons.MoreVertical, () => {
-				return this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
-			}),
+			button: {
+				label: () => lang.get("more_label"),
+				click: (e, dom) => {
+					const dropdownFn = createDropdown(() => this.getVisibleButtons().hidden.map(wrapper => wrapper.button))
+					dropdownFn(e, dom)
+				},
+				href: () => m.route.get(),
+				icon: () => BootIcons.MoreVertical,
+				colors: NavButtonColors.Header,
+				hideLabel: true,
+				isSelectedPrefix: false,
+			},
 			prefixComponent: styles.isDesktopLayout() ? {
 				view: () => m(".nav-bar-spacer"),
 			} : undefined,
 			width: size.button_height + styles.isDesktopLayout() ? 4 : 0, // spacer width is 4px
 			hideLabelDefault: true
 		}
-		this.more.button.setColors(NavButtonColors.Header)
 
 		if (!isAdminClient()) {
 			asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
@@ -80,20 +90,21 @@ export class NavBar {
 			return this
 		}
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			let buttons = this.getVisibleButtons()
 			return m("nav.nav-bar.flex-end", {
-				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
-			}, [this._searchBar()].concat(buttons.visible.map((wrapper: ButtonWrapper) =>
-				[
-					wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
-					key: wrapper.id,
-					oncreate: vnode => {
-						wrapper.width = vnode.dom.getBoundingClientRect().width
-					},
-					style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
-				}, m(wrapper.button))
-				])))
+					oncreate: (vnode) => this._setDomNavBar(vnode.dom)
+				},
+				[this._searchBar()].concat(buttons.visible.map((wrapper: ButtonWrapper) =>
+					[
+						wrapper.prefixComponent ? m(wrapper.prefixComponent) : null,
+						m(".plr-nav-button", {
+							oncreate: vnode => {
+								wrapper.width = vnode.dom.getBoundingClientRect().width
+							},
+							style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
+						}, m(NavButtonN, wrapper.button))
+					])))
 		}
 	}
 
@@ -146,7 +157,7 @@ export class NavBar {
 	 * @param priority The higher the value the higher the priority. Values from 0 to MAX_PRIO are allowed.
 	 * @param moreOnly this button should only be visible, when the more button dropdown is visible
 	 */
-	addButton(button: NavButton, priority: number = 0, moreOnly: boolean = false): NavBar {
+	addButton(button: NavButtonAttrs, priority: number = 0, moreOnly: boolean = false): NavBar {
 		if (priority > MAX_PRIO) {
 			throw new Error("prio > " + MAX_PRIO);
 		}
@@ -155,7 +166,7 @@ export class NavBar {
 			priority,
 			button,
 			width: 0,
-			hideLabelDefault: button._hideLabel,
+			hideLabelDefault: button.hideLabel || false,
 			prefixComponent: undefined
 		}
 		if (moreOnly) {
@@ -182,8 +193,8 @@ export class NavBar {
 	}
 
 	getVisibleButtons(): SortedButtons {
-		let visible = this.buttons.filter((b: ButtonWrapper) => b.button.isVisible())
-		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.button.isVisible())
+		let visible = this.buttons.filter((b: ButtonWrapper) => b.button.isVisible ? b.button.isVisible() : true)
+		let hidden = this.moreButtons.filter((b: ButtonWrapper) => b.button.isVisible ? b.button.isVisible() : true)
 		let remainingSpace = this.maxWidth
 
 		if (this._searchBarVisible()) {
@@ -212,8 +223,14 @@ export class NavBar {
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
-		buttons.hidden.forEach(b => b.button.setColors(NavButtonColors.Content).setHideLabel(false))
-		buttons.visible.forEach(b => b.button.setColors(NavButtonColors.Header).setHideLabel(b.hideLabelDefault))
+		buttons.hidden.forEach(b => {
+			b.button.colors = NavButtonColors.Content
+			b.button.hideLabel = false
+		})
+		buttons.visible.forEach(b => {
+			b.button.colors = NavButtonColors.Header
+			b.button.hideLabel = b.hideLabelDefault
+		})
 		return buttons
 	}
 

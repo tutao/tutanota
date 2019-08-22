@@ -18,10 +18,12 @@ function getUrls(env) {
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
 module.exports.renderHtml = function (scripts, env) {
-	global.window = require("mithril/test-utils/browserMock")()
+	global.window = require("mithril/test-utils/browserMock")(global)
+	global.requestAnimationFrame = setTimeout
 	const m = require('mithril')
 	const render = require('mithril-node-render')
-	let html = '<!DOCTYPE html>\n' + render(
+
+	return render(
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),
@@ -64,9 +66,10 @@ module.exports.renderHtml = function (scripts, env) {
 			m("body", m("noscript",
 				"Tutanota requires javascript to be enabled. Please, activate it in the settings of your browser."))
 		])
-	)
-	global.window = undefined // we have to reset the window stream as it leads to problems with system js builder, otherwise
-	return html
+	).then((html) => {
+		delete global.window
+		return '<!DOCTYPE html>\n' + html
+	})
 }
 
 const csp = (m, env) => {
@@ -80,11 +83,13 @@ const csp = (m, env) => {
 	}
 }
 
-module.exports.renderTestHtml = function (scripts) {
+module.exports.renderTestHtml = async function (scripts) {
 	global.window = require("mithril/test-utils/browserMock")()
+	global.requestAnimationFrame = setTimeout
 	const m = require('mithril')
 	const render = require('mithril-node-render')
-	let html = '<!DOCTYPE html>\n' + render(
+
+	let html = '<!DOCTYPE html>\n' + await render(
 		m("html", [
 			m("head", [
 				m("meta[charset=utf-8]"),

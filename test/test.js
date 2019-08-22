@@ -80,7 +80,8 @@ function createUnitTestHtml() {
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('test/${project}/bootstrapBrowser.js') })`,
 		].join("\n")),
-		_writeFile(`../build/test-${project}.html`, LaunchHtml.renderTestHtml(SystemConfig.baseDevDependencies.concat([`test-${project}.js`])))
+		LaunchHtml.renderTestHtml(SystemConfig.baseDevDependencies.concat([`test-${project}.js`]))
+		          .then((html) => _writeFile(`../build/test-${project}.html`, html))
 	])
 }
 

@@ -23,6 +23,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createLogin(): Login {
-	return create(_TypeModel, LoginTypeRef)
+export function createLogin(values?: $Shape<$Exact<Login>>): Login {
+	return Object.assign(create(_TypeModel, LoginTypeRef), values)
 }

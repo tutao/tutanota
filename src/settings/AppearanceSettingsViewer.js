@@ -22,7 +22,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			label: "language_label",
 			items: languages.map(language => {
 				return {name: lang.get(language.textId), value: language.code}
-			}).concat({name: lang.get("noSelection_msg"), value: null}),
+			}).concat({name: lang.get("automatic_label"), value: null}),
 			selectedValue: stream(deviceConfig.getLanguage()),
 			selectionChangedHandler: (value) => {
 				deviceConfig.setLanguage(value)
@@ -73,8 +73,10 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
+			m(".h4.mt-l", lang.get('settingsForDevice_label')),
 			m(DropDownSelectorN, languageDropDownAttrs),
 			themeId() === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
+			m(".h4.mt-l", lang.get('userSettings_label')),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
 		])

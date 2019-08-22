@@ -33,6 +33,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createResetPasswordData(): ResetPasswordData {
-	return create(_TypeModel, ResetPasswordDataTypeRef)
+export function createResetPasswordData(values?: $Shape<$Exact<ResetPasswordData>>): ResetPasswordData {
+	return Object.assign(create(_TypeModel, ResetPasswordDataTypeRef), values)
 }

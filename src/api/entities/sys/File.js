@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createFile(): SysFile {
-	return create(_TypeModel, FileTypeRef)
+export function createFile(values?: $Shape<$Exact<SysFile>>): SysFile {
+	return Object.assign(create(_TypeModel, FileTypeRef), values)
 }

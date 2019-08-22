@@ -126,6 +126,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createCustomerInfo(): CustomerInfo {
-	return create(_TypeModel, CustomerInfoTypeRef)
+export function createCustomerInfo(values?: $Shape<$Exact<CustomerInfo>>): CustomerInfo {
+	return Object.assign(create(_TypeModel, CustomerInfoTypeRef), values)
 }

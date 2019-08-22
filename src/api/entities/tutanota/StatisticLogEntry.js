@@ -49,9 +49,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createStatisticLogEntry(): StatisticLogEntry {
-	return create(_TypeModel, StatisticLogEntryTypeRef)
+export function createStatisticLogEntry(values?: $Shape<$Exact<StatisticLogEntry>>): StatisticLogEntry {
+	return Object.assign(create(_TypeModel, StatisticLogEntryTypeRef), values)
 }

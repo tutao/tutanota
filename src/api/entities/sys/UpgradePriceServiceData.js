@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createUpgradePriceServiceData(): UpgradePriceServiceData {
-	return create(_TypeModel, UpgradePriceServiceDataTypeRef)
+export function createUpgradePriceServiceData(values?: $Shape<$Exact<UpgradePriceServiceData>>): UpgradePriceServiceData {
+	return Object.assign(create(_TypeModel, UpgradePriceServiceDataTypeRef), values)
 }

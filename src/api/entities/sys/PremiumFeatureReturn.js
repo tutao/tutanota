@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPremiumFeatureReturn(): PremiumFeatureReturn {
-	return create(_TypeModel, PremiumFeatureReturnTypeRef)
+export function createPremiumFeatureReturn(values?: $Shape<$Exact<PremiumFeatureReturn>>): PremiumFeatureReturn {
+	return Object.assign(create(_TypeModel, PremiumFeatureReturnTypeRef), values)
 }

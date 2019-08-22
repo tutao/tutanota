@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPublicKeyReturn(): PublicKeyReturn {
-	return create(_TypeModel, PublicKeyReturnTypeRef)
+export function createPublicKeyReturn(values?: $Shape<$Exact<PublicKeyReturn>>): PublicKeyReturn {
+	return Object.assign(create(_TypeModel, PublicKeyReturnTypeRef), values)
 }

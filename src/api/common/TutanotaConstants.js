@@ -411,7 +411,9 @@ export type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 export const EventTextTimeOption = Object.freeze({
 	NO_TIME: "noTime",
 	START_TIME: "startTime",
-	START_END_TIME: "startAndEndTime"
+	END_TIME: "endTime",
+	START_END_TIME: "startAndEndTime",
+	ALL_DAY: "allDay"
 })
 export type EventTextTimeOptionEnum = $Values<typeof EventTextTimeOption>;
 

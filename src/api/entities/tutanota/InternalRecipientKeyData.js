@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createInternalRecipientKeyData(): InternalRecipientKeyData {
-	return create(_TypeModel, InternalRecipientKeyDataTypeRef)
+export function createInternalRecipientKeyData(values?: $Shape<$Exact<InternalRecipientKeyData>>): InternalRecipientKeyData {
+	return Object.assign(create(_TypeModel, InternalRecipientKeyDataTypeRef), values)
 }

@@ -24,6 +24,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createEntityUpdate(): EntityUpdate {
-	return create(_TypeModel, EntityUpdateTypeRef)
+export function createEntityUpdate(values?: $Shape<$Exact<EntityUpdate>>): EntityUpdate {
+	return Object.assign(create(_TypeModel, EntityUpdateTypeRef), values)
 }

@@ -1013,6 +1013,14 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
+		"importCalendar_label": "Kalender wird importiert",
+		"addCalendar_action": "Kalender hinzufügen",
+		"import_action": "Import",
+		"deleteCalendarConfirm_msg": "Möchten Sie wirklich den Kalender \"{calendar}\" mit allen Ereignissen darin löschen?",
+		"automatic_label": "Automatisch",
+		"settingsForDevice_label": "Einstellungen für dieses Gerät",
+		"showingEventsUntil_msg": "Zeigt alle Ereignisse bis {untilDay} an."
 	}
 }

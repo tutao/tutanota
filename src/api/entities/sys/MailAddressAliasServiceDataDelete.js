@@ -32,6 +32,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createMailAddressAliasServiceDataDelete(): MailAddressAliasServiceDataDelete {
-	return create(_TypeModel, MailAddressAliasServiceDataDeleteTypeRef)
+export function createMailAddressAliasServiceDataDelete(values?: $Shape<$Exact<MailAddressAliasServiceDataDelete>>): MailAddressAliasServiceDataDelete {
+	return Object.assign(create(_TypeModel, MailAddressAliasServiceDataDeleteTypeRef), values)
 }

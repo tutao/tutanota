@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createSubfiles(): Subfiles {
-	return create(_TypeModel, SubfilesTypeRef)
+export function createSubfiles(values?: $Shape<$Exact<Subfiles>>): Subfiles {
+	return Object.assign(create(_TypeModel, SubfilesTypeRef), values)
 }

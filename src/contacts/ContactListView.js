@@ -75,7 +75,7 @@ export class ContactListView {
 
 export class ContactRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?Contact;
 	_domName: HTMLElement;
 	_domAddress: HTMLElement;
@@ -86,6 +86,9 @@ export class ContactRow {
 	}
 
 	update(contact: Contact, selected: boolean): void {
+		if (!this.domElement) {
+			return
+		}
 		if (selected) {
 			this.domElement.classList.add("row-selected")
 		} else {

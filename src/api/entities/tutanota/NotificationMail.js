@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createNotificationMail(): NotificationMail {
-	return create(_TypeModel, NotificationMailTypeRef)
+export function createNotificationMail(values?: $Shape<$Exact<NotificationMail>>): NotificationMail {
+	return Object.assign(create(_TypeModel, NotificationMailTypeRef), values)
 }

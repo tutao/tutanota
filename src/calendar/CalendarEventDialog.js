@@ -25,7 +25,16 @@ import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import {createRepeatRuleWithValues, getAllDayDateUTC, getCalendarName, parseTime, timeString, timeStringFromParts} from "./CalendarUtils"
+import {
+	createRepeatRuleWithValues,
+	generateUid,
+	getAllDayDateUTC,
+	getCalendarName,
+	getDiffInDays,
+	parseTime,
+	timeString,
+	timeStringFromParts
+} from "./CalendarUtils"
 import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -138,7 +147,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	} else {
 		const endTimeDate = new Date(date)
-		endTimeDate.setHours(endTimeDate.getHours() + 1)
+		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
 		endDatePicker.setDate(date)
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
@@ -152,21 +161,58 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	})
 
+	stream.scan((oldStartDate, startDate) => {
+		const endDate = endDatePicker.date()
+		if (startDate && endDate) {
+			if (endDate < startDate) {
+				const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
+				endDatePicker.setDate(DateTime.fromJSDate(startDate).minus({days: diff}).toJSDate())
+			} else if (endDate.getTime() === startDate.getTime()) {
+				fixTime()
+			}
+		}
+		return startDate
+	}, startDatePicker.date(), startDatePicker.date)
+
+
+	stream.scan((oldEndDate, endDate) => {
+		const startDate = startDatePicker.date()
+		if (endDate && startDate) {
+			if (endDate < startDate) {
+				const diff = oldEndDate ? getDiffInDays(startDate, oldEndDate) : 1
+				startDatePicker.setDate(DateTime.fromJSDate(endDate).minus({days: diff}).toJSDate())
+			} else if (endDate.getTime() === startDate.getTime()) {
+				fixTime()
+			}
+		}
+
+		return endDate
+	}, endDatePicker.date(), endDatePicker.date)
 
 	function onStartTimeSelected(value) {
 		startTime(value)
 		let startDate = neverNull(startDatePicker.date())
 		let endDate = neverNull(endDatePicker.date())
-		if (startDate.getTime() !== endDate.getTime()) {
-			return
+		if (startDate.getTime() === endDate.getTime()) {
+			fixTime()
 		}
+	}
+
+	/**
+	 * Check if the start time is after the end time and fix that
+	 */
+	function fixTime() {
 		const parsedStartTime = parseTime(startTime())
 		const parsedEndTime = parseTime(endTime())
 		if (!parsedStartTime || !parsedEndTime) {
 			return
 		}
-		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes && parsedStartTime.hours < 23) {
-			endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedEndTime.minutes, amPmFormat))
+		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes) {
+			if (parsedStartTime.minutes <= 30) {
+				endTime(timeStringFromParts(parsedStartTime.hours, parsedStartTime.minutes + 30, amPmFormat))
+			} else {
+				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes, amPmFormat))
+			}
 			m.redraw()
 		}
 	}
@@ -304,6 +350,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			newEvent.endTime = endDate
 			const groupRoot = selectedCalendar().groupRoot
 			newEvent._ownerGroup = selectedCalendar().groupRoot._id
+			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
 			const repeatFrequency = repeatPickerAttrs.selectedValue()
 			if (repeatFrequency == null) {
 				newEvent.repeatRule = null

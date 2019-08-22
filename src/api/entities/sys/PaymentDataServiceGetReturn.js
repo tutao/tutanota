@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createPaymentDataServiceGetReturn(): PaymentDataServiceGetReturn {
-	return create(_TypeModel, PaymentDataServiceGetReturnTypeRef)
+export function createPaymentDataServiceGetReturn(values?: $Shape<$Exact<PaymentDataServiceGetReturn>>): PaymentDataServiceGetReturn {
+	return Object.assign(create(_TypeModel, PaymentDataServiceGetReturnTypeRef), values)
 }

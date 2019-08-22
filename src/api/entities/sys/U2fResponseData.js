@@ -22,6 +22,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createU2fResponseData(): U2fResponseData {
-	return create(_TypeModel, U2fResponseDataTypeRef)
+export function createU2fResponseData(values?: $Shape<$Exact<U2fResponseData>>): U2fResponseData {
+	return Object.assign(create(_TypeModel, U2fResponseDataTypeRef), values)
 }

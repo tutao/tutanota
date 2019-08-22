@@ -40,9 +40,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createUserSettingsGroupRoot(): UserSettingsGroupRoot {
-	return create(_TypeModel, UserSettingsGroupRootTypeRef)
+export function createUserSettingsGroupRoot(values?: $Shape<$Exact<UserSettingsGroupRoot>>): UserSettingsGroupRoot {
+	return Object.assign(create(_TypeModel, UserSettingsGroupRootTypeRef), values)
 }

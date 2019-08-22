@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createDraftRecipient(): DraftRecipient {
-	return create(_TypeModel, DraftRecipientTypeRef)
+export function createDraftRecipient(values?: $Shape<$Exact<DraftRecipient>>): DraftRecipient {
+	return Object.assign(create(_TypeModel, DraftRecipientTypeRef), values)
 }

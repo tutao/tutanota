@@ -53,6 +53,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSystemKeysReturn(): SystemKeysReturn {
-	return create(_TypeModel, SystemKeysReturnTypeRef)
+export function createSystemKeysReturn(values?: $Shape<$Exact<SystemKeysReturn>>): SystemKeysReturn {
+	return Object.assign(create(_TypeModel, SystemKeysReturnTypeRef), values)
 }

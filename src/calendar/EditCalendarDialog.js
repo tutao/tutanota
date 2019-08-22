@@ -8,12 +8,13 @@ import {lang} from "../misc/LanguageViewModel"
 
 type CalendarProperties = {name: string, color: string}
 
-export function showEditCalendarDialog({name, color}: CalendarProperties, okAction: ((Dialog, CalendarProperties) => mixed)) {
+export function showEditCalendarDialog({name, color}: CalendarProperties, edit: boolean, okAction: ((Dialog, CalendarProperties) => mixed)) {
 	const nameStream = stream(name)
 	let colorPickerDom: ?HTMLInputElement
+	const colorStream = stream("#" + color)
 
 	Dialog.showActionDialog({
-		title: () => lang.get("edit_action"),
+		title: () => lang.get(edit ? "edit_action" : "add_action"),
 		child: {
 			view: () => m(".flex.col", [
 				m(TextFieldN, {
@@ -24,12 +25,15 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, okActi
 				m("input", {
 					oncreate: ({dom}) => colorPickerDom = dom,
 					type: "color",
-					value: "#" + color
+					value: colorStream(),
+					oninput: (inputEvent) => {
+						colorStream(inputEvent.target.value)
+					}
 				}),
 			])
 		},
 		okAction: (dialog) => {
-			okAction(dialog, {name: nameStream(), color: colorPickerDom ? colorPickerDom.value.substring(1) : color})
+			okAction(dialog, {name: nameStream(), color: colorStream().substring(1)})
 		}
 	})
 }

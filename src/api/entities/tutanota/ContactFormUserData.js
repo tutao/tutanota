@@ -57,9 +57,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createContactFormUserData(): ContactFormUserData {
-	return create(_TypeModel, ContactFormUserDataTypeRef)
+export function createContactFormUserData(values?: $Shape<$Exact<ContactFormUserData>>): ContactFormUserData {
+	return Object.assign(create(_TypeModel, ContactFormUserDataTypeRef), values)
 }

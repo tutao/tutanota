@@ -27,6 +27,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createAlarmServicePost(): AlarmServicePost {
-	return create(_TypeModel, AlarmServicePostTypeRef)
+export function createAlarmServicePost(values?: $Shape<$Exact<AlarmServicePost>>): AlarmServicePost {
+	return Object.assign(create(_TypeModel, AlarmServicePostTypeRef), values)
 }

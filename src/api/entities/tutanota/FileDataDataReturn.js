@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createFileDataDataReturn(): FileDataDataReturn {
-	return create(_TypeModel, FileDataDataReturnTypeRef)
+export function createFileDataDataReturn(values?: $Shape<$Exact<FileDataDataReturn>>): FileDataDataReturn {
+	return Object.assign(create(_TypeModel, FileDataDataReturnTypeRef), values)
 }

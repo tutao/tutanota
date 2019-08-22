@@ -50,7 +50,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._isDefaultMailtoHandler,
 			selectionChangedHandler: v => {
-				showProgressDialog("pleaseWait_msg", this._updateDefaultMailtoHandler(v), false)
+				showProgressDialog("pleaseWait_msg", this._updateDefaultMailtoHandler(v))
 					.then(() => {
 						this._isDefaultMailtoHandler(v)
 						m.redraw()
@@ -83,7 +83,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					nativeApp.invokeNative(new Request(v
 						? 'enableAutoLaunch'
 						: 'disableAutoLaunch', [])),
-					false).then(() => {
+					).then(() => {
 					this._runOnStartup(v)
 					m.redraw()
 				})

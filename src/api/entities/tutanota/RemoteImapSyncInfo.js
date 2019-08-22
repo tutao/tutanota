@@ -31,9 +31,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createRemoteImapSyncInfo(): RemoteImapSyncInfo {
-	return create(_TypeModel, RemoteImapSyncInfoTypeRef)
+export function createRemoteImapSyncInfo(values?: $Shape<$Exact<RemoteImapSyncInfo>>): RemoteImapSyncInfo {
+	return Object.assign(create(_TypeModel, RemoteImapSyncInfoTypeRef), values)
 }

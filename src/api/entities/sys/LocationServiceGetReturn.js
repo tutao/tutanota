@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createLocationServiceGetReturn(): LocationServiceGetReturn {
-	return create(_TypeModel, LocationServiceGetReturnTypeRef)
+export function createLocationServiceGetReturn(values?: $Shape<$Exact<LocationServiceGetReturn>>): LocationServiceGetReturn {
+	return Object.assign(create(_TypeModel, LocationServiceGetReturnTypeRef), values)
 }

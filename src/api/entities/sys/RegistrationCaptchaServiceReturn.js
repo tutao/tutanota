@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createRegistrationCaptchaServiceReturn(): RegistrationCaptchaServiceReturn {
-	return create(_TypeModel, RegistrationCaptchaServiceReturnTypeRef)
+export function createRegistrationCaptchaServiceReturn(values?: $Shape<$Exact<RegistrationCaptchaServiceReturn>>): RegistrationCaptchaServiceReturn {
+	return Object.assign(create(_TypeModel, RegistrationCaptchaServiceReturnTypeRef), values)
 }

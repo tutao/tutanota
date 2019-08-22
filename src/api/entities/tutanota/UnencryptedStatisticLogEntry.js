@@ -21,9 +21,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "34"
+	"version": "36"
 }
 
-export function createUnencryptedStatisticLogEntry(): UnencryptedStatisticLogEntry {
-	return create(_TypeModel, UnencryptedStatisticLogEntryTypeRef)
+export function createUnencryptedStatisticLogEntry(values?: $Shape<$Exact<UnencryptedStatisticLogEntry>>): UnencryptedStatisticLogEntry {
+	return Object.assign(create(_TypeModel, UnencryptedStatisticLogEntryTypeRef), values)
 }

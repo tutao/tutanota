@@ -61,7 +61,7 @@ export class MultiContactViewer {
 			.setIsVisibleHandler(() => this._contactView._contactList.list.getSelectedEntities().length === 2))
 		actions.add(new Button("exportSelectedAsVCard_action", () => {
 			exportContacts(this._contactView._contactList.list.getSelectedEntities())
-		}, () => Icons.Download))
+		}, () => Icons.Export))
 		return actions
 	}
 }

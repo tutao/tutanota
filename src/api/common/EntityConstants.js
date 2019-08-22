@@ -28,7 +28,8 @@ var ValueType = {
 	Date: "Date",
 	Boolean: "Boolean",
 	GeneratedId: "GeneratedId",
-	CustomId: "CustomId"
+	CustomId: "CustomId",
+	CompressedString: "CompressedString",
 }
 
 var ResourceType = {
@@ -43,7 +44,8 @@ var ValueToFlowTypes = {
 	Date: "Date",
 	Boolean: "boolean",
 	GeneratedId: "Id",
-	CustomId: "Id"
+	CustomId: "Id",
+	CompressedString: "string",
 }
 
 module.exports = {

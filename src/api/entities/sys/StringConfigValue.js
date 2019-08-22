@@ -21,6 +21,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createStringConfigValue(): StringConfigValue {
-	return create(_TypeModel, StringConfigValueTypeRef)
+export function createStringConfigValue(values?: $Shape<$Exact<StringConfigValue>>): StringConfigValue {
+	return Object.assign(create(_TypeModel, StringConfigValueTypeRef), values)
 }

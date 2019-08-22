@@ -23,6 +23,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createSendRegistrationCodeData(): SendRegistrationCodeData {
-	return create(_TypeModel, SendRegistrationCodeDataTypeRef)
+export function createSendRegistrationCodeData(values?: $Shape<$Exact<SendRegistrationCodeData>>): SendRegistrationCodeData {
+	return Object.assign(create(_TypeModel, SendRegistrationCodeDataTypeRef), values)
 }

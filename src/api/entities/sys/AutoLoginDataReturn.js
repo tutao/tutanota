@@ -20,6 +20,6 @@ export const _TypeModel: TypeModel = {
 	"version": "49"
 }
 
-export function createAutoLoginDataReturn(): AutoLoginDataReturn {
-	return create(_TypeModel, AutoLoginDataReturnTypeRef)
+export function createAutoLoginDataReturn(values?: $Shape<$Exact<AutoLoginDataReturn>>): AutoLoginDataReturn {
+	return Object.assign(create(_TypeModel, AutoLoginDataReturnTypeRef), values)
 }
