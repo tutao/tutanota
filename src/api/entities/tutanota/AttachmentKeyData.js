@@ -22,7 +22,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"fileSessionKey": {"name": "fileSessionKey", "id": 545, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
+		"fileSessionKey": {
+			"name": "fileSessionKey",
+			"id": 545,
+			"since": 11,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"file": {
@@ -37,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createAttachmentKeyData(values?: $Shape<$Exact<AttachmentKeyData>>): AttachmentKeyData {

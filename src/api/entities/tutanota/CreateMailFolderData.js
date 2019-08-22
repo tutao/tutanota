@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 451, "since": 7, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"folderName": {"name": "folderName", "id": 453, "since": 7, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"ownerEncSessionKey": {"name": "ownerEncSessionKey", "id": 454, "since": 7, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 451,
+			"since": 7,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"folderName": {
+			"name": "folderName",
+			"id": 453,
+			"since": 7,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": true
+		},
+		"ownerEncSessionKey": {
+			"name": "ownerEncSessionKey",
+			"id": 454,
+			"since": 7,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"parentFolder": {
@@ -29,7 +53,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createCreateMailFolderData(values?: $Shape<$Exact<CreateMailFolderData>>): CreateMailFolderData {

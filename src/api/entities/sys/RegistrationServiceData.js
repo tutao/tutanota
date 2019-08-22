@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 317, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"starterDomain": {"name": "starterDomain", "id": 322, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"source": {"name": "source", "id": 874, "since": 9, "type": "Number", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 317,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"starterDomain": {
+			"name": "starterDomain",
+			"id": 322,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"source": {
+			"name": "source",
+			"id": 874,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"state": {"name": "state", "id": 325, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},

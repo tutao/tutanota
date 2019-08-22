@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1470, "since": 39, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"business": {"name": "business", "id": 1472, "since": 39, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
-		"messageTextId": {"name": "messageTextId", "id": 1471, "since": 39, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1470,
+			"since": 39,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"business": {
+			"name": "business",
+			"id": 1472,
+			"since": 39,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"messageTextId": {
+			"name": "messageTextId",
+			"id": 1471,
+			"since": 39,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"premiumPrices": {
@@ -25,7 +49,16 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"refType": "PlanPrices",
 			"final": false
-		}, "proPrices": {"name": "proPrices", "id": 1474, "since": 39, "type": "AGGREGATION", "cardinality": "One", "refType": "PlanPrices", "final": false}
+		},
+		"proPrices": {
+			"name": "proPrices",
+			"id": 1474,
+			"since": 39,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "PlanPrices",
+			"final": false
+		}
 	},
 	"app": "sys",
 	"version": "49"

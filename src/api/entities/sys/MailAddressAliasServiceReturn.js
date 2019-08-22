@@ -12,11 +12,51 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 693, "since": 8, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"enabledAliases": {"name": "enabledAliases", "id": 1071, "since": 18, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"nbrOfFreeAliases": {"name": "nbrOfFreeAliases", "id": 694, "since": 8, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"totalAliases": {"name": "totalAliases", "id": 1069, "since": 18, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"usedAliases": {"name": "usedAliases", "id": 1070, "since": 18, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 693,
+			"since": 8,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"enabledAliases": {
+			"name": "enabledAliases",
+			"id": 1071,
+			"since": 18,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"nbrOfFreeAliases": {
+			"name": "nbrOfFreeAliases",
+			"id": 694,
+			"since": 8,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"totalAliases": {
+			"name": "totalAliases",
+			"id": 1069,
+			"since": 18,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"usedAliases": {
+			"name": "usedAliases",
+			"id": 1070,
+			"since": 18,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",

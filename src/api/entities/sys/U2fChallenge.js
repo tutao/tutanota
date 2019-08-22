@@ -13,9 +13,27 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1184, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"challenge": {"name": "challenge", "id": 1185, "since": 23, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
+		"challenge": {
+			"name": "challenge",
+			"id": 1185,
+			"since": 23,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
-	"associations": {"keys": {"name": "keys", "id": 1186, "since": 23, "type": "AGGREGATION", "cardinality": "Any", "refType": "U2fKey", "final": true}},
+	"associations": {
+		"keys": {
+			"name": "keys",
+			"id": 1186,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "U2fKey",
+			"final": true
+		}
+	},
 	"app": "sys",
 	"version": "49"
 }

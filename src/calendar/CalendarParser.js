@@ -20,6 +20,7 @@ import {
 	StringIterator
 } from "../misc/parsing"
 import WindowsZones from "./WindowsZones"
+import type {ParsedCalendarData} from "./CalendarImporter"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -346,10 +347,15 @@ function getTzId(prop: Property): ?string {
 	return tzId
 }
 
-export function parseCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
+export function parseCalendarEvents(icalObject: ICalObject): ParsedCalendarData {
+	const methodProp = icalObject.properties.find((prop) => prop.name === "METHOD")
+	if (!methodProp) {
+		throw new ParserError("METHOD is not defined on the calendar")
+	}
+	const method = methodProp.value
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
-	return eventObjects.map((eventObj) => {
+	const contents = eventObjects.map((eventObj) => {
 		const event = createCalendarEvent()
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
@@ -404,6 +410,7 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 		event.uid = getPropStringValue(eventObj, "UID")
 		return {event, alarms}
 	})
+	return {method, contents}
 }
 
 type Duration = {

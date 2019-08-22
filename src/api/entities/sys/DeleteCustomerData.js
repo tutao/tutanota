@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 642, "since": 5, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"authVerifier": {"name": "authVerifier", "id": 1325, "since": 30, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 642,
+			"since": 5,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"authVerifier": {
+			"name": "authVerifier",
+			"id": 1325,
+			"since": 30,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"reason": {"name": "reason", "id": 644, "since": 5, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"takeoverMailAddress": {
 			"name": "takeoverMailAddress",

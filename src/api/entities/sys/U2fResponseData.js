@@ -13,9 +13,33 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1226, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"clientData": {"name": "clientData", "id": 1228, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"keyHandle": {"name": "keyHandle", "id": 1227, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"signatureData": {"name": "signatureData", "id": 1229, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
+		"clientData": {
+			"name": "clientData",
+			"id": 1228,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"keyHandle": {
+			"name": "keyHandle",
+			"id": 1227,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"signatureData": {
+			"name": "signatureData",
+			"id": 1229,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",

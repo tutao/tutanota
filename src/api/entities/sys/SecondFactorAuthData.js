@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 542, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"otpCode": {"name": "otpCode", "id": 1243, "since": 24, "type": "Number", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 542,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"otpCode": {
+			"name": "otpCode",
+			"id": 1243,
+			"since": 24,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"type": {"name": "type", "id": 1230, "since": 23, "type": "Number", "cardinality": "ZeroOrOne", "final": true, "encrypted": false}
 	},
 	"associations": {

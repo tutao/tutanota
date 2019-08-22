@@ -14,13 +14,69 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 152, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 150, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1011, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 151, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"activationTime": {"name": "activationTime", "id": 157, "since": 1, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"company": {"name": "company", "id": 153, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"creationTime": {"name": "creationTime", "id": 155, "since": 1, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
-		"deletionReason": {"name": "deletionReason", "id": 640, "since": 5, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"deletionTime": {"name": "deletionTime", "id": 639, "since": 5, "type": "Date", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1011,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 151,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"activationTime": {
+			"name": "activationTime",
+			"id": 157,
+			"since": 1,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"company": {
+			"name": "company",
+			"id": 153,
+			"since": 1,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"creationTime": {
+			"name": "creationTime",
+			"id": 155,
+			"since": 1,
+			"type": "Date",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"deletionReason": {
+			"name": "deletionReason",
+			"id": 640,
+			"since": 5,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"deletionTime": {
+			"name": "deletionTime",
+			"id": 639,
+			"since": 5,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"domain": {"name": "domain", "id": 154, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
 		"erased": {"name": "erased", "id": 1381, "since": 32, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
 		"includedEmailAliases": {
@@ -69,7 +125,15 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"source": {"name": "source", "id": 725, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"testEndTime": {"name": "testEndTime", "id": 156, "since": 1, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"testEndTime": {
+			"name": "testEndTime",
+			"id": 156,
+			"since": 1,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"usedSharedEmailAliases": {
 			"name": "usedSharedEmailAliases",
 			"id": 977,
@@ -90,7 +154,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "BookingsRef",
 			"final": true
 		},
-		"domainInfos": {"name": "domainInfos", "id": 726, "since": 9, "type": "AGGREGATION", "cardinality": "Any", "refType": "DomainInfo", "final": true},
+		"domainInfos": {
+			"name": "domainInfos",
+			"id": 726,
+			"since": 9,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "DomainInfo",
+			"final": true
+		},
 		"accountingInfo": {
 			"name": "accountingInfo",
 			"id": 159,

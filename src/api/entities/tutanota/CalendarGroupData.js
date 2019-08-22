@@ -31,7 +31,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"groupInfoEncName": {"name": "groupInfoEncName", "id": 962, "since": 33, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"groupInfoEncName": {
+			"name": "groupInfoEncName",
+			"id": 962,
+			"since": 33,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"ownerEncGroupInfoSessionKey": {
 			"name": "ownerEncGroupInfoSessionKey",
 			"id": 960,
@@ -41,7 +49,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncGroupKey": {"name": "userEncGroupKey", "id": 961, "since": 33, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
+		"userEncGroupKey": {
+			"name": "userEncGroupKey",
+			"id": 961,
+			"since": 33,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"adminGroup": {
@@ -56,7 +72,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createCalendarGroupData(values?: $Shape<$Exact<CalendarGroupData>>): CalendarGroupData {

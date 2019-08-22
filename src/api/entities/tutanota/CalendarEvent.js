@@ -23,9 +23,33 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 938, "since": 33, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 936, "since": 33, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"description": {"name": "description", "id": 941, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 938,
+			"since": 33,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 936,
+			"since": 33,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"description": {
+			"name": "description",
+			"id": 941,
+			"since": 33,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"endTime": {"name": "endTime", "id": 943, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
 		"location": {"name": "location", "id": 944, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"startTime": {"name": "startTime", "id": 942, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
@@ -33,6 +57,15 @@ export const _TypeModel: TypeModel = {
 		"uid": {"name": "uid", "id": 988, "since": 35, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
 	},
 	"associations": {
+		"attendees": {
+			"name": "attendees",
+			"id": 991,
+			"since": 37,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "MailAddress",
+			"final": false
+		},
 		"repeatRule": {
 			"name": "repeatRule",
 			"id": 945,
@@ -54,7 +87,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createCalendarEvent(values?: $Shape<$Exact<CalendarEvent>>): CalendarEvent {

@@ -69,6 +69,7 @@ declare class Promise<+R> {
 	filter<T>(iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 
 	isFulfilled(): boolean;
+	isRejected(): boolean;
 	isPending(): boolean;
 	value(): R;
 

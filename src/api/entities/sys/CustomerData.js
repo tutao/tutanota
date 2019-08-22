@@ -31,7 +31,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"authToken": {"name": "authToken", "id": 376, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"authToken": {
+			"name": "authToken",
+			"id": 376,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"company": {"name": "company", "id": 377, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"date": {"name": "date", "id": 877, "since": 9, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"domain": {"name": "domain", "id": 378, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
@@ -63,7 +71,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncClientKey": {"name": "userEncClientKey", "id": 384, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {
+			"name": "userEncClientKey",
+			"id": 384,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"verifier": {"name": "verifier", "id": 389, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {

@@ -6,7 +6,14 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -80,6 +87,12 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
+import {parseCalendarFile} from "../calendar/CalendarImporter"
+import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {isSameDay} from "../api/common/utils/DateUtils"
+import {loadCalendarInfo} from "../calendar/CalendarModel"
+import {attachDropdown} from "../gui/base/DropdownN"
+import {getCalendarName} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -113,6 +126,7 @@ export class MailViewer {
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
+	_calendarEvent: ?CalendarEvent;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -333,6 +347,7 @@ export class MailViewer {
 							]),
 							this._renderAttachments(),
 							m("hr.hr.mt"),
+							this._renderCalendarEvent()
 						]),
 
 						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links.margin-are-inset-lr"
@@ -369,6 +384,68 @@ export class MailViewer {
 
 		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+	}
+
+	_renderCalendarEvent() {
+		const event = this._calendarEvent
+
+		function formatEventDuration(event: CalendarEvent) {
+			if (isAllDayEvent(event)) {
+				return lang.get("allDay_label")
+			} else {
+				const startTime = getEventStart(event)
+				const endTime = getEventEnd(event)
+				const startString = formatDateTime(getEventStart(event))
+				let endString
+				if (isSameDay(startTime, endTime)) {
+					endString = formatTime(endTime)
+				} else {
+					endString = formatDateTime(endTime)
+				}
+				return `${startString} - ${endString}`
+			}
+		}
+
+		return event
+			? m(".flex.mt-s", {
+				style: {
+					"box-shadow": `0 1px 2px 1px ${theme.header_box_shadow_bg}`,
+					padding: px(size.vpad_small),
+					paddingBottom: "0",
+					borderRadius: px(4)
+				}
+			}, [
+				m(Icon, {
+					icon: BootIcons.Calendar,
+					class: "icon-xl",
+				}),
+				m(".flex.col.mb-s.flex-grow", [
+					m(".ml-s.b", event.summary),
+					m(".flex", [m(".calendar-invite-field.ml-s", "When:"), m(".ml-s", formatEventDuration(event))]),
+					event.location ? m(".flex", [m(".calendar-invite-field.ml-s", "Where:"), m(".ml-s", event.location)]) : null,
+					m(".align-self-end",
+						m(ButtonN, attachDropdown({
+								label: () => "Add to the calendar",
+								type: ButtonType.Secondary,
+							},
+							() => loadCalendarInfo()
+								.then((calendarInfo) => {
+									return Array.from(calendarInfo.values()).map(({groupRoot, groupInfo}) => {
+										return {
+											label: () => getCalendarName(groupInfo.name),
+											click: () => {
+												event._ownerGroup = groupRoot._id
+												worker.createCalendarEvent(groupRoot, event, [], null)
+											},
+											type: ButtonType.Dropdown,
+										}
+									})
+								})
+								.tap(() => console.log("finished with loading buttons"))
+						))),
+				]),
+			])
+			: null
 	}
 
 	_createAssignActionButton(mail: Mail): Button {
@@ -464,6 +541,24 @@ export class MailViewer {
 				              this._attachmentButtons = this._createAttachmentsButtons(files)
 				              this._loadingAttachments = false
 				              m.redraw()
+
+				              const icsFiles = files.filter(f => f.name.endsWith(".ics"))
+				              Promise.each(icsFiles, (file) => {
+					              return !this._calendarEvent
+						              && worker.downloadFileContent(file)
+						                       .then((dataFile) => {
+							                       try {
+								                       const parsedCalendarData = parseCalendarFile(dataFile)
+								                       if (parsedCalendarData.contents.length > 0) {
+									                       this._calendarEvent = parsedCalendarData.contents[0].event
+									                       m.redraw()
+								                       }
+							                       } catch (e) {
+							                       }
+
+						                       })
+				              })
+
 				              return inlineFileIds.then((inlineFileIds) => {
 					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
 					              const inlineImages: InlineImages = {}
@@ -635,11 +730,13 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				if (defaultInboxRuleField && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+				if (defaultInboxRuleField && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim()
+				                                                                              .toLowerCase(), defaultInboxRuleField)
 					&& !logins.getUserController().isOutlookAccount()
 					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addInboxRule_action", () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim()
+						                                                                                                         .toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
@@ -928,10 +1025,12 @@ export class MailViewer {
 					() => Icons.Attachment,
 					() => [
 						new Button("open_action",
-							() => fileController.downloadAndOpen(file, true).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, true)
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown),
 						new Button("download_action",
-							() => fileController.downloadAndOpen(file, false).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, false)
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default

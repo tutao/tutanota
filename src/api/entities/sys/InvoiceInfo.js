@@ -14,9 +14,33 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 756, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 754, "since": 9, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1008, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 755, "since": 9, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"publishInvoices": {"name": "publishInvoices", "id": 759, "since": 9, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1008,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 755,
+			"since": 9,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"publishInvoices": {
+			"name": "publishInvoices",
+			"id": 759,
+			"since": 9,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"specialPriceBrandingPerUser": {
 			"name": "specialPriceBrandingPerUser",
 			"id": 1282,

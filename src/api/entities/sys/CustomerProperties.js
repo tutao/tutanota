@@ -12,10 +12,34 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 660, "since": 6, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 660,
+			"since": 6,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 658, "since": 6, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 985, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 659, "since": 6, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 985,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 659,
+			"since": 6,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"externalUserWelcomeMessage": {
 			"name": "externalUserWelcomeMessage",
 			"id": 661,
@@ -54,7 +78,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "NotificationMailTemplate",
 			"final": false
 		},
-		"smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
+		"smallLogo": {
+			"name": "smallLogo",
+			"id": 922,
+			"since": 11,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "File",
+			"final": false
+		}
 	},
 	"app": "sys",
 	"version": "49"

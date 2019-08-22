@@ -12,11 +12,43 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1298, "since": 27, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 1298,
+			"since": 27,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 1296, "since": 27, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1299, "since": 27, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 1297, "since": 27, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"groupType": {"name": "groupType", "id": 1300, "since": 27, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1299,
+			"since": 27,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 1297,
+			"since": 27,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"groupType": {
+			"name": "groupType",
+			"id": 1300,
+			"since": 27,
+			"type": "Number",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"groupInfo": {

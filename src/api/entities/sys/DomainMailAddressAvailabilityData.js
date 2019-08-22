@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 600, "since": 2, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 601, "since": 2, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 600,
+			"since": 2,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 601,
+			"since": 2,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",

@@ -22,12 +22,13 @@ import {ParserError} from "../misc/parsing"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {incrementDate} from "../api/common/utils/DateUtils"
+import {flat} from "../api/common/utils/ArrayUtils"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
 	              .then((dataFiles) => {
-		              const parsedEvents = dataFiles.map(parseFile)
+		              const parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
 
 		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
 		              const progress = stream(0)
@@ -78,7 +79,9 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 }
 
-function parseFile(file: DataFile) {
+export type ParsedCalendarData = {method: string, contents: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>}
+
+export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
 		return parseCalendarStringData(stringData)
@@ -92,7 +95,7 @@ function parseFile(file: DataFile) {
 
 }
 
-export function parseCalendarStringData(value: string) {
+export function parseCalendarStringData(value: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree)
 }
@@ -131,21 +134,44 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	return fileController.open(createDataFile(tmpFile, data))
 }
 
-export function serializeCalendar(versionNumber: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>, now: Date = new Date()): string {
+export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, thisUser: string, attendees: Array<string>,
+                                       now: Date = new Date()): string {
+	const eventSerialized = serializeEvent(event,
+		[],
+		now,
+		{
+			organizer: thisUser,
+			attendees: [{address: thisUser, accepted: true}].concat(attendees.map((address) => ({address, accepted: false})))
+		})
+	return wrapIntoCalendar(versionNumber, "REQUEST", eventSerialized)
+}
+
+export function makeInvitationCalendarFile(event: CalendarEvent, thisUser: string, attendees: Array<string>): DataFile {
+	const stringValue = makeInvitationCalendar(env.versionNumber, event, thisUser, attendees)
+	const data = stringToUtf8Uint8Array(stringValue)
+	const tmpFile = createFile()
+	tmpFile.name = "invite.ics"
+	tmpFile.mimeType = "text/calendar"
+	tmpFile.size = String(data.byteLength)
+	return createDataFile(tmpFile, data)
+}
+
+function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {
 	let value = [
 		"BEGIN:VCALENDAR",
 		`PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`,
 		"VERSION:2.0",
 		"CALSCALE:GREGORIAN",
-		"METHOD:PUBLISH",
+		`METHOD:${method}`,
 	]
-
-	for (let {event, alarms} of events) {
-		value.push(...serializeEvent(event, alarms, now))
-	}
-	value.push(...["END:VCALENDAR"])
+	value.push(...contents)
+	value.push("END:VCALENDAR")
 
 	return value.join("\r\n")
+}
+
+export function serializeCalendar(versionNumber: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>, now: Date = new Date()): string {
+	return wrapIntoCalendar(versionNumber, "PUBLISH", flat(events.map(({event, alarms}) => serializeEvent(event, alarms, now))))
 }
 
 function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean) {
@@ -224,7 +250,13 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 	]
 }
 
-export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date()): Array<string> {
+type Participants = {
+	organizer: string,
+	attendees: Array<{address: string, accepted: boolean}>,
+}
+
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date(),
+                               participants: ?Participants = null): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	let dateStart, dateEnd
@@ -250,7 +282,21 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(serializeRepeatRule(repeatRule, isAllDay))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
+		.concat(serializeParticipants(participants))
 		.concat("END:VEVENT")
+}
+
+function serializeParticipants(participants: ?Participants): Array<string> {
+	if (!participants) {
+		return []
+	}
+	const {organizer, attendees} = participants
+
+	const organizerProperty = `ORGANIZER;CN=${organizer}:mailto:${organizer}`
+	const attendeesProperties = attendees.map(({address, accepted}) =>
+		`ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARSTAT=${accepted ? "ACCEPTED" : "NEEDS-ACTION"}`
+		+ `;RSVP=TRUE;CN=${address}:mailto:${address}`)
+	return [organizerProperty, ...attendeesProperties]
 }
 
 function escapeSemicolons(value: string): string {

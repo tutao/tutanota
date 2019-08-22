@@ -13,7 +13,15 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 78, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"authUpdateCounter": {"name": "authUpdateCounter", "id": 82, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"authUpdateCounter": {
+			"name": "authUpdateCounter",
+			"id": 82,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"autoAuthenticationId": {
 			"name": "autoAuthenticationId",
 			"id": 79,
@@ -32,7 +40,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"latestSaltHash": {"name": "latestSaltHash", "id": 80, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"latestSaltHash": {
+			"name": "latestSaltHash",
+			"id": 80,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"variableAuthInfo": {

@@ -12,8 +12,15 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 664, "since": 16, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"date": {"name": "date", "id": 665, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 664,
+			"since": 16,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}, "date": {"name": "date", "id": 665, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"userData": {
@@ -36,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createUserAccountCreateData(values?: $Shape<$Exact<UserAccountCreateData>>): UserAccountCreateData {

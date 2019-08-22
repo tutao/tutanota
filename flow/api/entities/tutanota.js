@@ -1018,6 +1018,7 @@ type CalendarEvent = {
 	summary: string;
 	uid: ?string;
 
+	attendees: MailAddress[];
 	repeatRule: ?CalendarRepeatRule;
 	alarmInfos: IdTuple[];
 }

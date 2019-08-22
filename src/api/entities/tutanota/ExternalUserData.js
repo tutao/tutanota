@@ -85,7 +85,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncClientKey": {"name": "userEncClientKey", "id": 147, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {
+			"name": "userEncClientKey",
+			"id": 147,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"verifier": {"name": "verifier", "id": 149, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
@@ -100,7 +108,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {

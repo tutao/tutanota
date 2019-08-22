@@ -22,7 +22,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"mailAddress": {"name": "mailAddress", "id": 141, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 141,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"externalPwEncUserGroupKey": {
 			"name": "externalPwEncUserGroupKey",
 			"id": 142,
@@ -35,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createCreateExternalUserGroupData(values?: $Shape<$Exact<CreateExternalUserGroupData>>): CreateExternalUserGroupData {

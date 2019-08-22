@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 652, "since": 6, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"activationCode": {"name": "activationCode", "id": 654, "since": 6, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"featureName": {"name": "featureName", "id": 653, "since": 6, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 652,
+			"since": 6,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"activationCode": {
+			"name": "activationCode",
+			"id": 654,
+			"since": 6,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"featureName": {
+			"name": "featureName",
+			"id": 653,
+			"since": 6,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",

@@ -6,9 +6,16 @@ import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {
+	getAllDayDateLocal,
+	getEventEnd,
+	getEventStart,
+	isAllDayEvent,
+	isAllDayEventByTimes,
+	isLongEvent
+} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -26,6 +33,10 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
+import {UserTypeRef} from "../api/entities/sys/User"
+import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {CalendarInfo} from "./CalendarView"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -179,7 +190,8 @@ export function iterateEventOccurrences(
 		: null
 
 	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
-		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrences, isAllDayEvent ? localTimeZone : timeZone);
+		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval
+			* occurrences, isAllDayEvent ? localTimeZone : timeZone);
 
 		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
 			break;
@@ -242,6 +254,25 @@ function getValidTimeZone(zone: string, fallback: ?string): string {
 		}
 	}
 }
+
+export function loadCalendarInfo(): Promise<Map<Id, CalendarInfo>> {
+	return load(UserTypeRef, logins.getUserController().user._id)
+		.then(user => {
+			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+			return Promise
+				.map(calendarMemberships, (membership) => Promise.all([
+					load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
+				]))
+				.then((groupRoots) => {
+					const calendarInfos: Map<Id, CalendarInfo> = new Map()
+					groupRoots.forEach(([groupRoot, groupInfo]) => {
+						calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})
+					})
+					return calendarInfos
+				})
+		})
+}
+
 
 class CalendarModel {
 	_notifications: Notifications;

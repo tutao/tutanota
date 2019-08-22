@@ -14,8 +14,24 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 122, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 120, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1000, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 121, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1000,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 121,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"ownerEncBucketKey": {
 			"name": "ownerEncBucketKey",
 			"id": 1001,
@@ -25,9 +41,33 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"pubEncBucketKey": {"name": "pubEncBucketKey", "id": 125, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"pubKeyVersion": {"name": "pubKeyVersion", "id": 126, "since": 1, "type": "Number", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"symEncBucketKey": {"name": "symEncBucketKey", "id": 124, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"pubEncBucketKey": {
+			"name": "pubEncBucketKey",
+			"id": 125,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"pubKeyVersion": {
+			"name": "pubKeyVersion",
+			"id": 126,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"symEncBucketKey": {
+			"name": "symEncBucketKey",
+			"id": 124,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"type": {"name": "type", "id": 123, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {

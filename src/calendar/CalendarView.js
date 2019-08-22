@@ -23,7 +23,7 @@ import {getCalendarName, getMonth, shouldDefaultToAmPmTimeFormat} from "./Calend
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
+import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent, loadCalendarInfo} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
@@ -513,21 +513,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_loadGroupRoots(): Promise<Map<Id, CalendarInfo>> {
-		return load(UserTypeRef, logins.getUserController().user._id)
-			.then(user => {
-				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-				return Promise
-					.map(calendarMemberships, (membership) => Promise.all([
-						load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
-					]))
-					.then((groupRoots) => {
-						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupRoots.forEach(([groupRoot, groupInfo]) => {
-							calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})
-						})
-						return calendarInfos
-					})
-			})
+		return loadCalendarInfo()
 			.tap(() => m.redraw())
 	}
 

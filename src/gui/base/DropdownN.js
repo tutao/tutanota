@@ -323,14 +323,17 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
 		let buttonPromise = lazyButtons()
+		let loadingPromise
 		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+			loadingPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
 				.then(module => {
 					return module.showProgressDialog("loading_msg", buttonPromise)
 				})
+		} else {
+			loadingPromise = buttonPromise
 		}
-		buttonPromise.then(buttons => {
+		loadingPromise.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)
 			dropdown.setOrigin(dom.getBoundingClientRect())
 			modal.displayUnique(dropdown)

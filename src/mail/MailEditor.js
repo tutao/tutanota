@@ -100,6 +100,11 @@ import {getTimeZone} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
+type MailEditorHooks = {
+	beforeSent?: (editor: MailEditor, recipients: Array<RecipientInfo>) => mixed,
+	afterSent?: (editor: MailEditor) => mixed,
+}
+
 export class MailEditor {
 	dialog: Dialog;
 	draft: ?Mail;
@@ -128,6 +133,7 @@ export class MailEditor {
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
+	hooks: MailEditorHooks
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -149,6 +155,7 @@ export class MailEditor {
 		this._showToolbar = false
 		this._objectURLs = []
 		this._blockExternalContent = true
+		this.hooks = {}
 
 		let props = logins.getUserController().props
 
@@ -836,9 +843,11 @@ export class MailEditor {
 				if (confirmed) {
 					let send = this
 						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
-						.then((recipients) =>
-							this.saveDraft(true, false)
-							    .return(recipients))
+						.then((recipients) => {
+							this.hooks.beforeSent && this.hooks.beforeSent(this, recipients)
+							return this.saveDraft(true, false)
+							           .return(recipients)
+						})
 						.then(resolvedRecipients => {
 							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
 							if (this._confidentialButtonState && externalRecipients.length > 0
@@ -857,12 +866,11 @@ export class MailEditor {
 							return sendMail.then(ok => {
 								if (ok) {
 									return this._updateContacts(resolvedRecipients)
-									           .then(() => worker.sendMailDraft(
-										           neverNull(this.draft),
-										           resolvedRecipients,
+									           .then(() => worker.sendMailDraft(neverNull(this.draft), resolvedRecipients,
 										           this._selectedNotificationLanguage()))
 									           .then(() => this._updatePreviousMail())
 									           .then(() => this._updateExternalLanguage())
+									           .then(() => this.hooks.afterSent && this.hooks.afterSent(this))
 									           .then(() => this._close())
 								}
 							})

@@ -13,12 +13,20 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 483, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 485, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 485,
+			"since": 11,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"name": {"name": "name", "id": 484, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createDraftRecipient(values?: $Shape<$Exact<DraftRecipient>>): DraftRecipient {

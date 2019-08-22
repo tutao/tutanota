@@ -13,9 +13,25 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 191, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"lastseenuid": {"name": "lastseenuid", "id": 193, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"lastseenuid": {
+			"name": "lastseenuid",
+			"id": 193,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"name": {"name": "name", "id": 192, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"uidvalidity": {"name": "uidvalidity", "id": 194, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"uidvalidity": {
+			"name": "uidvalidity",
+			"id": 194,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"syncInfo": {
@@ -30,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createImapFolder(values?: $Shape<$Exact<ImapFolder>>): ImapFolder {

@@ -422,7 +422,7 @@ END:VCALENDAR`
 
 		const versionNumber = "3.57.6"
 		const parsed = parseCalendarStringData(text)
-		const serialized = serializeCalendar(versionNumber, parsed.map(({event, alarms}) => {
+		const serialized = serializeCalendar(versionNumber, parsed.contents.map(({event, alarms}) => {
 			return {
 				event: Object.assign({}, event, {_id: ["123", "456"]}),
 				alarms: alarms.map(alarmInfo => createUserAlarmInfo({alarmInfo}))

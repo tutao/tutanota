@@ -41,6 +41,8 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
+import {showCalendarInviteDialog} from "./CalendarInviteDialog"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -49,7 +51,7 @@ import {windowFacade} from "../misc/WindowFacade"
 // {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
 // We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
 // interpret it as full day in Europe/Berlin, not in the UTC.
-export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent ?: CalendarEvent) {
+export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent?: CalendarEvent) {
 	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
@@ -105,8 +107,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	alarmPickerAttrs.push(createAlarmPicker())
 
-	let loadedUserAlarmInfo: ?UserAlarmInfo = null
 	const user = logins.getUserController().user
+	const exisingAlarms = []
 
 	if (existingEvent) {
 		summary(existingEvent.summary)
@@ -139,7 +141,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		for (let alarmInfoId of existingEvent.alarmInfos) {
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
-					loadedUserAlarmInfo = userAlarmInfo
+					exisingAlarms.push(userAlarmInfo.alarmInfo)
 					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
@@ -233,6 +235,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	let windowCloseUnsubscribe
 	const now = Date.now()
 
+	const attendeesExpanded = stream(false)
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
@@ -301,21 +305,45 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				value: notesValue,
 				type: Type.Area
 			}),
-			existingEvent ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
-				label: "delete_action",
-				type: ButtonType.Primary,
-				click: () => {
-					let p = neverNull(existingEvent).repeatRule
-						? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
-						: Promise.resolve(true)
-					p.then((answer) => {
-						if (answer) {
-							erase(existingEvent).catch(NotFoundError, noOp)
-							dialog.close()
-						}
-					})
-				}
-			})) : null,
+			existingEvent ?
+				[
+					m(ExpanderButtonN, {
+						label: () => "attendees",
+						expanded: attendeesExpanded,
+					}),
+					m(ExpanderPanelN, {
+						expanded: attendeesExpanded,
+						class: ".flex.col",
+					}, existingEvent.attendees.map(a => m("", a.address))),
+					m(".mr-negative-s.float-right.flex-end-on-child", [
+						m(ButtonN, {
+							label: "delete_action",
+							type: ButtonType.Primary,
+							click: () => {
+								let p = neverNull(existingEvent).repeatRule
+									? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
+									: Promise.resolve(true)
+								p.then((answer) => {
+									if (answer) {
+										erase(existingEvent).catch(NotFoundError, noOp)
+										dialog.close()
+									}
+								})
+							}
+						}),
+						m(ButtonN, {
+							label: () => "invite",
+							type: ButtonType.Primary,
+							click: () => {
+								const safeExistingEvent = neverNull(existingEvent)
+								const {groupRoot} = neverNull(calendars.get(neverNull(safeExistingEvent._ownerGroup)))
+								showCalendarInviteDialog(groupRoot, safeExistingEvent, exisingAlarms)
+							}
+						}),
+					])
+				]
+				: null
+			,
 		]),
 		okAction: () => {
 			const newEvent = createCalendarEvent()
