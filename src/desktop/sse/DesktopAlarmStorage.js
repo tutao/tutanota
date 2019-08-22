@@ -1,7 +1,7 @@
 // @flow
 import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer} from "../../api/common/utils/Utils"
+import {defer, downcast} from "../../api/common/utils/Utils"
 import crypto from 'crypto'
 import {CryptoError} from '../../api/common/error/CryptoError'
 import {DesktopConfigHandler} from "../DesktopConfigHandler"
@@ -16,27 +16,33 @@ type EncryptedKey = {
 }
 
 /**
- * manages storage for alarm notifications/reminders
+ * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
  */
 export class DesktopAlarmStorage {
 	_initialized: DeferredObject<string>;
 	_conf: DesktopConfigHandler;
+	_sessionKeysB64: {[string]: string};
 
 	constructor(conf: DesktopConfigHandler) {
 		this._conf = conf
 		this._initialized = defer()
+		this._sessionKeysB64 = {}
 	}
 
+	/**
+	 * needs to be called before using any of the public methods.
+	 * ensures there is a device key in the local secure storage
+	 */
 	init(): Promise<void> {
 		return keytar.findPassword(SERVICE_NAME)
 		             .then(pw => pw
 			             ? Promise.resolve(pw)
-			             : this.generateAndStoreDeviceKey()
+			             : this._generateAndStoreDeviceKey()
 		             )
 		             .then(pw => this._initialized.resolve(pw))
 	}
 
-	generateAndStoreDeviceKey(): Promise<string> {
+	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
 		const key = crypto.randomBytes(32).toString('base64')
 		return keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, key)
@@ -52,49 +58,70 @@ export class DesktopAlarmStorage {
 	/**
 	 * encrypts a key with the device key using aes-256-cbc
 	 * @param keyToEncrypt B64 encoded key to encrypt
+	 * @param deviceKeyB64 key used to encrypt
 	 * @returns Promise<EncryptedKey> the B64 encoded encrypted key and its iv
+	 * @private
 	 */
-	encryptKey(keyToEncrypt: string): Promise<EncryptedKey> {
-		return keytar.findPassword(SERVICE_NAME)
-		             .then(deviceKeyB64 => {
-				             const ivBuffer = crypto.randomBytes(16)
-				             const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
-				             const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, ivBuffer)
-				             let encryptedKeyB64 = cipher.update(keyToEncrypt, 'base64', 'base64')
-				             encryptedKeyB64 += cipher.final('base64')
-				             return {
-					             encKeyB64: encryptedKeyB64, ivB64: ivBuffer.toString('base64')
-				             }
-			             }
-		             )
+	_encryptKey(keyToEncrypt: string, deviceKeyB64: string): EncryptedKey {
+		const ivBuffer = crypto.randomBytes(16)
+		const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
+		const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, ivBuffer)
+		let encryptedKeyB64 = cipher.update(Buffer.from(keyToEncrypt, 'base64'), 'latin1' /* ignored! */, 'base64')
+		encryptedKeyB64 += cipher.final('base64')
+		return {
+			encKeyB64: encryptedKeyB64, ivB64: ivBuffer.toString('base64')
+		}
 	}
 
 	/**
 	 * decrypts an encrypted key with the device key using aes-256-cbc
 	 * @param keyToDecrypt encrypted key and iv
+	 * @param deviceKeyB64 the key used for decryption
 	 * @returns Promise<string> B64 representation of the decrypted key
+	 * @private
 	 */
-	decryptKey(keyToDecrypt: EncryptedKey): Promise<string> {
-		return keytar.findPassword(SERVICE_NAME)
-		             .then(deviceKeyB64 => {
-			             const ivBuffer = Buffer.from(keyToDecrypt.ivB64, 'base64')
-			             const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
-			             const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, ivBuffer)
-			             let decryptedKeyB64 = decipher.update(keyToDecrypt.encKeyB64, 'base64', 'base64')
-			             decryptedKeyB64 += decipher.final('base64')
-			             return decryptedKeyB64
-		             })
+	_decryptKey(keyToDecrypt: EncryptedKey, deviceKeyB64: string): string {
+		const ivBuffer = Buffer.from(keyToDecrypt.ivB64, 'base64')
+		const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
+		const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, ivBuffer)
+		let decryptedKeyB64 = decipher.update(Buffer.from(keyToDecrypt.encKeyB64, 'base64'), downcast('base64'))
+		decryptedKeyB64 += decipher.final(downcast('base64'))
+		return decryptedKeyB64
 	}
 
+	/**
+	 * encrypt & store a session key to disk
+	 * @param pushIdentifierId pushIdentifier the key belongs to
+	 * @param pushIdentifierSessionKeyB64 unencrypted B64 encoded key to store
+	 * @returns {*}
+	 */
 	storeSessionKey(pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
 		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
 		if (!keys[pushIdentifierId]) {
-			return this.encryptKey(pushIdentifierSessionKeyB64)
-			           .then(pushEncSessionKey => {
-				           keys[pushIdentifierId] = pushEncSessionKey
+			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
+			return this._initialized.promise
+			           .then(pw => {
+				           keys[pushIdentifierId] = DesktopAlarmStorage._encryptKey(pushIdentifierSessionKeyB64, pw)
 				           return this._conf.setDesktopConfig('pushEncSessionKeys', keys)
 			           })
 		}
 		return Promise.resolve()
+	}
+
+	/**
+	 * get a B64 encoded sessionKey from memory or decrypt it from disk storage
+	 * @param pushIdentifierId pushIdentifier that identifies the correct key
+	 * @returns {*}
+	 */
+	resolveSessionKey(pushIdentifierId: string): Promise<string> {
+		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
+		return this._sessionKeysB64[pushIdentifierId]
+			? Promise.resolve(this._sessionKeysB64[pushIdentifierId])
+			: this._initialized.promise
+			      .then(pw => {
+				      const decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
+				      this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
+				      return decryptedKeyB64
+			      })
 	}
 }

@@ -32,10 +32,10 @@ const notifier = new DesktopNotifier()
 const alarmStorage = new DesktopAlarmStorage(conf)
 alarmStorage.init()
             .then(() => {
-	            console.log("secureStorage initialized")
+	            console.log("alarm storage initialized")
             })
-            .catch(() => {
-	            console.warn("secureStorage failed to initialize")
+            .catch(e => {
+	            console.warn("alarm storage failed to initialize:", e)
             })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)

@@ -67,7 +67,7 @@ export class DesktopSseClient {
 		this._reschedule(1)
 	}
 
-	storePushIdentifier(identifier: string, userId: string, sseOrigin: string, pushIdentifierElementId: string, skB64: string): Promise<void> {
+	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
 		console.log("storing push identifier", identifier.substring(0, 3))
 		let userIds
 		if (!this._connectedSseInfo) {
