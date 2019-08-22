@@ -12,11 +12,18 @@ import {hash} from "./Sha256"
 import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode, Mode} from "../../Env"
+// $FlowIgnore[untyped-import]
 import JSBN from "./lib/crypto-jsbn-2012-08-09_1"
 import {rsaApp} from "../../../native/RsaApp" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const RSAKey = JSBN.RSAKey
 const parseBigInt = JSBN.parseBigInt
-const BigInteger = JSBN.BigInteger
+const BigInteger: Class<BigIntegerType> = JSBN.BigInteger
+
+type BigIntegerType = {
+	toByteArray(): Uint8Array;
+	toString(radix: number): string;
+	bitLength(): number;
+}
 
 assertWorkerOrNode()
 
@@ -316,7 +323,7 @@ export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
  *    32           32    keyLen-2*32-2  1  value.length
  * The label is the hash of an empty string like defined in PKCS#1 v2.1
  */
-export function _getPSBlock(value: Uint8Array, keyLength: number) {
+export function _getPSBlock(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
 	let blockLength = keyLength / 8 - 1 // the leading byte shall be 0 to make the resulting value in any case smaller than the modulus, so we just leave the byte off
 	let block = new Uint8Array(blockLength)

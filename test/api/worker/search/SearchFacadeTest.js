@@ -12,7 +12,12 @@ import {
 	encryptSearchIndexEntry,
 	typeRefToTypeInfo
 } from "../../../../src/api/worker/search/IndexUtils"
-import type {ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
+import type {
+	ElementDataDbRow,
+	SearchIndexEntry,
+	SearchIndexMetaDataRow,
+	SearchRestriction
+} from "../../../../src/api/worker/search/SearchTypes"
 import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/EntityFunctions"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"

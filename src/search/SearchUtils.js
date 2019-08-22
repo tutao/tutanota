@@ -11,6 +11,7 @@ import {logins} from "../api/main/LoginController"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {throttleRoute} from "../misc/RouteChange"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {SearchRestriction} from "../api/worker/search/SearchTypes"
 
 assertMainOrNode()
 
@@ -25,18 +26,18 @@ export const SEARCH_CATEGORIES = [
 
 export const SEARCH_MAIL_FIELDS = [
 	{textId: "all_label", field: null, attributeIds: null},
-	{textId: "subject_label", field: "subject", attributeIds: [MailModel.values["subject"].id]},
-	{textId: "mailBody_label", field: "body", attributeIds: [MailModel.associations["body"].id]},
-	{textId: "from_label", field: "from", attributeIds: [MailModel.associations["sender"].id]},
+	{textId: "subject_label", field: "subject", attributeIds: [(MailModel.values["subject"].id: number)]},
+	{textId: "mailBody_label", field: "body", attributeIds: [(MailModel.associations["body"].id: number)]},
+	{textId: "from_label", field: "from", attributeIds: [(MailModel.associations["sender"].id: number)]},
 	{
 		textId: "to_label",
 		field: "to",
 		attributeIds: [
-			MailModel.associations["toRecipients"].id, MailModel.associations["ccRecipients"].id,
-			MailModel.associations["bccRecipients"].id
+			(MailModel.associations["toRecipients"].id: number), (MailModel.associations["ccRecipients"].id: number),
+			(MailModel.associations["bccRecipients"].id: number)
 		]
 	},
-	{textId: "attachmentName_label", field: "attachment", attributeIds: [MailModel.associations["attachments"].id]}
+	{textId: "attachmentName_label", field: "attachment", attributeIds: [(MailModel.associations["attachments"].id: number)]}
 ]
 
 const routeSetThrottled = throttleRoute()
@@ -171,7 +172,7 @@ function getValueFromRoute(route: string, name: string): ?string {
 	}
 }
 
-export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo) {
+export function isAdministratedGroup(localAdminGroupIds: Id[], gi: GroupInfo): boolean {
 	if (gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
 		return true // group is administrated by local admin group of this user
 	} else if (localAdminGroupIds.indexOf(gi.group) !== -1) {

@@ -67,7 +67,7 @@ export class MultiMailViewer {
 		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
 	}
 
-	_getMailSelectionMessage(mailView: MailView) {
+	_getMailSelectionMessage(mailView: MailView): string {
 		let nbrOfSelectedMails = (mailView.mailList) ? mailView.mailList.list.getSelectedEntities().length : 0
 		if (nbrOfSelectedMails === 0) {
 			return lang.get("noMail_msg")

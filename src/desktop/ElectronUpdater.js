@@ -31,10 +31,10 @@ export class ElectronUpdater {
 	_checkUpdateSignature: boolean;
 	_errorCount: number;
 	_fallbackPollInterval: number = 15 * 60 * 1000;
-	_updateInfo = null;
+	_updateInfo: ?UpdateInfo = null;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void};
 
-	get updateInfo() {
+	get updateInfo(): ?UpdateInfo {
 		return this._updateInfo
 	}
 
@@ -76,7 +76,7 @@ export class ElectronUpdater {
 		}).on("download-progress", (prg: DownloadProgressInfo) => {
 			console.log('update dl progress:', prg)
 		}).on('update-downloaded', info => {
-			this._updateInfo = {version: info.version}
+			this._updateInfo = downcast({version: info.version})
 			this._logger.info("update-downloaded")
 			this._stopPolling()
 			this._notifyAndInstall(downcast(info))
@@ -118,7 +118,7 @@ export class ElectronUpdater {
 		})
 	}
 
-	+_enableAutoUpdateListener = () => this.start()
+	+_enableAutoUpdateListener: (() => void) = () => this.start()
 
 	start() {
 		try {

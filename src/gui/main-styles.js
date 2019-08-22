@@ -11,7 +11,7 @@ import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconB
 
 assertMainOrNodeBoot()
 
-export function requiresStatusBarHack() {
+export function requiresStatusBarHack(): boolean {
 	return isApp() && client.device === "iPhone" && client.browserVersion < 11
 }
 

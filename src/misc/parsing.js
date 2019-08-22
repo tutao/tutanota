@@ -121,7 +121,7 @@ export const numberParser: Parser<number> = mapParser(makeOneOrMoreParser(makeOn
 
 export class StringIterator {
 	iteratee: string
-	position = -1
+	position: number = -1
 
 	constructor(iteratee: string) {
 		this.iteratee = iteratee

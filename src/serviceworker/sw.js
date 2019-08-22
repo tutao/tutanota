@@ -14,8 +14,8 @@ const urlWithoutQuery = (urlString) => {
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
 }
 
-
-class ServiceWorker {
+// Only exported for tests
+export class ServiceWorker {
 	_caches: CacheStorage
 	_cacheName: string
 	_selfLocation: string
@@ -170,9 +170,7 @@ const init = (sw: ServiceWorker) => {
 }
 
 // do not add listeners for Node tests
-if (typeof env !== "undefined" && env.mode === "Test") {
-	module.exports = {ServiceWorker}
-} else {
+if (typeof env !== "undefined" && env.mode !== "Test") {
 	const cacheName = "CODE_CACHE-v" + version()
 	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 	const exclusions = customDomainCacheExclusions()

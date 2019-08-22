@@ -70,7 +70,7 @@ class Styles {
 		this._getDomStyleSheet(id).textContent = toCss(styleCreator())
 	}
 
-	_getDomStyleSheet(id: string) {
+	_getDomStyleSheet(id: string): HTMLElement {
 		let styleDomElement = document.getElementById('css-' + id)
 		if (!styleDomElement) {
 			styleDomElement = document.createElement('style');
@@ -89,7 +89,7 @@ class Styles {
 		return this.bodyWidth < size.two_column_layout_width;
 	}
 
-	isUsingBottomNavigation() {
+	isUsingBottomNavigation(): boolean {
 		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 }

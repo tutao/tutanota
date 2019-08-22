@@ -2,16 +2,16 @@
 
 import {downcast} from "../api/common/utils/Utils"
 
-export function applySafeAreaInsetMarginLR(element: HTMLElement){
+export function applySafeAreaInsetMarginLR(element: HTMLElement) {
 	element.style.marginRight = 'env(safe-area-inset-right)'
 	element.style.marginLeft = 'env(safe-area-inset-left)'
 }
 
-export function getSafeAreaInsetLeft(){
+export function getSafeAreaInsetLeft(): string {
 	return window.orientation === 90 ? 'env(safe-area-inset-left)' : ""
 }
 
-export function getSafeAreaInsetRight(){
+export function getSafeAreaInsetRight(): string {
 	return window.orientation === -90 ? 'env(safe-area-inset-right)' : ""
 }
 

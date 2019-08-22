@@ -56,7 +56,7 @@ type ActionDialogProps = {|
 |}
 
 export class Dialog {
-	static _keyboardHeight = 0;
+	static _keyboardHeight: number = 0;
 	_domDialog: HTMLElement;
 	_shortcuts: Shortcut[];
 	view: Function;
@@ -155,7 +155,7 @@ export class Dialog {
 		this._focusOnLoadFunction = callback
 	}
 
-	_getDialogWrapperStyle(dialogType: DialogTypeEnum) {
+	_getDialogWrapperStyle(dialogType: DialogTypeEnum): string {
 		// change direction of axis to handle resize of dialogs (iOS keyboard open changes size)
 		let dialogWrapperStyle = ".fill-absolute.flex.items-stretch.flex-column"
 		if (dialogType === DialogType.EditLarge) {
@@ -166,7 +166,7 @@ export class Dialog {
 		return dialogWrapperStyle
 	}
 
-	_getDialogStyle(dialogType: DialogTypeEnum) {
+	_getDialogStyle(dialogType: DialogTypeEnum): string {
 		let dialogStyle = ".dialog.elevated-bg.flex-grow"
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress"
@@ -198,7 +198,7 @@ export class Dialog {
 		return this
 	}
 
-	shortcuts() {
+	shortcuts(): Shortcut[] {
 		return this._shortcuts
 	}
 
@@ -473,7 +473,7 @@ export class Dialog {
 		return dialog.show()
 	}
 
-	static createActionDialog(props: ActionDialogProps) {
+	static createActionDialog(props: ActionDialogProps): Dialog {
 		let dialog: Dialog
 		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
 			Object.assign({}, {

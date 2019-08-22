@@ -1,6 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import {
 	formatDate,

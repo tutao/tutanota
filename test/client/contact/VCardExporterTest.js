@@ -16,6 +16,7 @@ import {
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {neverNull} from "../../../src/api/common/utils/Utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
+import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 
 let idCounter = 0
 
@@ -389,7 +390,7 @@ BEGIN:VCARD\nVERSION:3.0\nFN:Mr. Ant Ste\nN:Ste;Ant;;Mr.;\nNICKNAME:Buffalo\nADR
 })
 
 
-export function createFilledContact(firstName: string, lastName: string, comment: string, company: string, title: string, nickname: string, emailAddresses: ?string[], phoneNumbers: ?string[], socialIds: ?string[], addresses: ?string[], birthdayIso: ?string) {
+export function createFilledContact(firstName: string, lastName: string, comment: string, company: string, title: string, nickname: string, emailAddresses: ?string[], phoneNumbers: ?string[], socialIds: ?string[], addresses: ?string[], birthdayIso: ?string): Contact {
 	let c = createContact()
 	c._id = ["0", String(idCounter++)]
 	c.firstName = firstName

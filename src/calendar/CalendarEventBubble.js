@@ -33,7 +33,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 					color: colorForBg(attrs.color),
 					minHeight: px(defaultBubbleHeight),
 					height: px(attrs.height ? attrs.height : defaultBubbleHeight),
-					"padding-top": px(attrs.verticalPadding),
+					"padding-top": px(attrs.verticalPadding || 0),
 				},
 				onclick: (e) => {
 					e.stopPropagation()

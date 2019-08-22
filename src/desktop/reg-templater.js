@@ -63,7 +63,7 @@ module.exports.registerKeys = (execPath: string): string => {
  * produce a tmp windows registry script to unregister tutanota as a mailto handler
  * @returns {*} registry script
  */
-module.exports.unregisterKeys = () => {
+module.exports.unregisterKeys = (): string => {
 	return `Windows Registry Editor Version 5.00
 
 [-HKEY_CLASSES_ROOT\\tutanota.Mailto]

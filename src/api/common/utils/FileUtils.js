@@ -1,3 +1,4 @@
+// @flow
 /**
  * removes invalid characters from the given filename
  * by replacing them with underscores (non-platform-specific)

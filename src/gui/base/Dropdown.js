@@ -11,6 +11,7 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {showDropdown} from "./DropdownN"
+import type {Shortcut} from "../../misc/KeyManager"
 
 assertMainOrNodeBoot()
 
@@ -192,7 +193,7 @@ export class Dropdown {
 		return this._isFilterable ? size.button_height + size.vpad_xs : 0
 	}
 
-	_createShortcuts() {
+	_createShortcuts(): Array<Shortcut> {
 		const next = () => {
 			let visibleElements = this._visibleItems().filter(b => (typeof b !== "string"))
 			visibleElements = ((visibleElements: any): Array<Button>).map(b => b._domButton)
@@ -297,7 +298,7 @@ export class Dropdown {
 		this.close()
 	}
 
-	show(domElement: HTMLElement) {
+	show(domElement: HTMLElement): Promise<void> {
 		this._domContents = domElement
 
 		const origin = this.origin
@@ -307,8 +308,9 @@ export class Dropdown {
 				                           previous + ((typeof current === "string")
 				                           ? size.button_height
 				                           : current.getHeight()), 0) + size.vpad_small * 2
-			showDropdown(origin, this._domDropdown, contentsHeight, this._width)
+			return showDropdown(origin, this._domDropdown, contentsHeight, this._width)
 		}
+		return Promise.resolve()
 	}
 
 	/**

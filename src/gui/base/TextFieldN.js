@@ -40,7 +40,7 @@ export const Type = Object.freeze({
 })
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
-export const inputLineHeight = size.font_size_base + 8
+export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 export const baseLabelPosition = size.text_field_label_top
 
@@ -58,7 +58,7 @@ export class _TextField {
 		this.webkitAutofill = false
 	}
 
-	view(vnode: Vnode<TextFieldAttrs>) {
+	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
@@ -200,7 +200,7 @@ export class _TextField {
 		}
 	}
 
-	_shouldShowPasswordOverlay(a: TextFieldAttrs) {
+	_shouldShowPasswordOverlay(a: TextFieldAttrs): boolean {
 		return a.type === Type.ExternalPassword && !this.active
 	}
 
@@ -282,7 +282,7 @@ export class _TextField {
 		return value === ''
 	}
 
-	animate(fadeIn: boolean) {
+	animate(fadeIn: boolean): Promise<void> {
 		let fontSizes = [size.font_size_base, size.font_size_small]
 		let top = [baseLabelPosition, 0]
 		if (!fadeIn) {

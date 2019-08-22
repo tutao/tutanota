@@ -42,7 +42,7 @@ import {incrementByRepeatPeriod} from "./CalendarModel"
 
 assertMainOrNode()
 
-export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
+export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export type CalendarMonthTimeRange = {
@@ -548,7 +548,7 @@ export function hasAlarmsForTheUser(event: CalendarEvent): boolean {
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
-export function formatEventDuration(event: CalendarEvent, zone: string, includeTimezone: boolean) {
+export function formatEventDuration(event: CalendarEvent, zone: string, includeTimezone: boolean): string {
 	if (isAllDayEvent(event)) {
 		const startTime = getEventStart(event, zone)
 		const startString = formatDateWithMonth(startTime)
@@ -591,7 +591,7 @@ export function incrementSequence(sequence: string): string {
 	return String(current + 1)
 }
 
-export function getNextHalfHour() {
+export function getNextHalfHour(): Date {
 	let date: Date = new Date()
 	if (date.getMinutes() > 30) {
 		date.setHours(date.getHours() + 1, 0)

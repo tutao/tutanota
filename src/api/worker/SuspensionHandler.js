@@ -1,5 +1,8 @@
+// @flow
+
 import type {DeferredObject} from "../common/utils/Utils"
 import {defer} from "../common/utils/Utils"
+import {WorkerImpl} from "./WorkerImpl"
 
 export class SuspensionHandler {
 	_isSuspended: boolean;
@@ -47,13 +50,13 @@ export class SuspensionHandler {
 			}, suspensionDurationSeconds * this._suspensionTimeFactor)
 
 			if (!this._hasSentInfoMessage) {
-				this._worker.infoMessage({translationKey: "clientSuspensionWait_label", args: []})
+				this._worker.infoMessage({translationKey: "clientSuspensionWait_label", args: {}})
 				this._hasSentInfoMessage = true
 			}
 		}
 	}
 
-	isSuspended() {
+	isSuspended(): boolean {
 		return this._isSuspended
 	}
 

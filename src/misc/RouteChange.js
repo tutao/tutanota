@@ -6,7 +6,7 @@ export type RouteChangeEvent = {args: Object, requestedPath: string, currentPath
 
 export const routeChange: Stream<RouteChangeEvent> = stream()
 
-export function throttleRoute() {
+export function throttleRoute(): ((url: string) => void) {
 	const limit = 200
 	let lastCall = 0
 	return function (url: string) {

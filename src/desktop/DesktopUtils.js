@@ -7,7 +7,7 @@ import fs from "fs-extra"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
 
 export default class DesktopUtils {
@@ -46,23 +46,23 @@ export default class DesktopUtils {
 		} else { // there are clashing file names or the file name is reserved
 			const ext = path.extname(filename)
 			const basename = path.basename(filename, ext)
-			const clashNumbers = files
+			const clashNumbers: Array<number> = files
 				.filter(f => f.startsWith(`${basename}-`))
 				.map(f => f.slice(0, f.length - ext.length))
 				.map(f => f.slice(basename.length + 1, f.length))
 				.map(f => !f.startsWith('0') ? parseInt(f, 10) : 0)
 				.filter(n => !isNaN(n) && n > 0)
-			const clashNumbersSet = new Set(clashNumbers)
+			const clashNumbersSet: Set<number> = new Set(clashNumbers)
 			clashNumbersSet.add(0)
 
 			// if a number is bigger than its index, there is room somewhere before that number
-			const firstGap = Array
+			const firstGapMinusOne = Array
 				.from(clashNumbersSet)
 				.sort((a, b) => a - b)
-				.find((n, i, a) => a[i + 1] > i + 1) + 1
+				.find((n, i, a) => a[i + 1] > i + 1)
 
-			return !isNaN(firstGap)
-				? `${basename}-${firstGap}${ext}`
+			return !isNaN(firstGapMinusOne)
+				? `${basename}-${neverNull(firstGapMinusOne) + 1}${ext}`
 				: `${basename}-${clashNumbersSet.size}${ext}`
 		}
 	}

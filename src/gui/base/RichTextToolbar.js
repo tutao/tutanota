@@ -197,12 +197,12 @@ export class RichTextToolbar {
 		}
 	}
 
-	oncreate(vnode: Vnode<any>) {
+	oncreate(vnode: Vnode<any>): void {
 		vnode.dom.style.height = "0"
 		this._animate(vnode.dom, true)
 	}
 
-	onbeforeremove(vnode: Vnode<any>) {
+	onbeforeremove(vnode: Vnode<any>): Promise<void> {
 		return this._animate(vnode.dom, false)
 	}
 

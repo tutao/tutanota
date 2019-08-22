@@ -435,7 +435,7 @@ export class CalendarModelImpl implements CalendarModel {
 		return erase(event)
 	}
 
-	_loadAndProcessCalendarUpdates() {
+	_loadAndProcessCalendarUpdates(): Promise<void> {
 		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			const {calendarEventUpdates} = mailboxDetails.mailboxGroupRoot
 			if (calendarEventUpdates == null) return

@@ -1,6 +1,5 @@
 // @flow
-import {uint8ArrayToBase64, base64ToUint8Array} from "../api/common/utils/Encoding"
-import {CryptoError} from "../api/common/error/CryptoError"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 
@@ -11,7 +10,7 @@ export const rsaApp = {
 	rsaDecrypt,
 }
 
-function generateRsaKey(seed: Uint8Array) {
+function generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair> {
 	return nativeApp.invokeNative(new Request("generateRsaKey", [uint8ArrayToBase64(seed)]))
 }
 

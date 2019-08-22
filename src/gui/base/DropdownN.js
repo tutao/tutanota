@@ -4,6 +4,7 @@ import {modal} from "./Modal"
 import {animations, opacity, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
+import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
@@ -187,7 +188,7 @@ export class DropdownN {
 		}
 	}
 
-	_createShortcuts() {
+	_createShortcuts(): Array<Shortcut> {
 		return [
 			{
 				key: Keys.ESC,
@@ -241,7 +242,7 @@ export class DropdownN {
 		return true
 	}
 
-	chooseMatch = () => {
+	chooseMatch: (() => boolean) = () => {
 		const filterString = this._filterString().toLowerCase()
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
 		let matchingButton = visibleElements.length === 1
@@ -288,6 +289,8 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAtt
 	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
 }
 
+const importBase = typeof module !== "undefined" ? module.id : __moduleName
+
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
@@ -299,8 +302,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 					originalButtons,
 					Promise.all([
 						Promise.delay(100),
-						asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-							`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+						asyncImport(importBase, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {
 							return module.showProgressDialog("loading_msg", originalButtons)
@@ -353,7 +355,7 @@ export function attachDropdown(
 
 export const DROPDOWN_MARGIN = 4
 
-export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number) {
+export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number): Promise<void> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
 	// |      |-------|   |    |  |-------|       |    |  |-----------|   |    |  |-----------|   |
@@ -434,7 +436,7 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 	domDropdown.style.width = px(width)
 	domDropdown.style.height = px(maxHeight)
 	domDropdown.style.transformOrigin = transformOrigin
-	
+
 	return animations.add(domDropdown, [
 		opacity(0, 1, true),
 		transform("scale", 0.5, 1)

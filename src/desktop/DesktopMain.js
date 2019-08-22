@@ -14,6 +14,7 @@ import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
 import en from "../translations/en"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"

@@ -40,7 +40,7 @@ export class Logger {
 		}
 	}
 
-	formatLogEntry(date: Date, level: string, ...rest: Array<any>) {
+	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
 		const formattedArgs = rest.map((obj) => {
 			return (obj instanceof Error ? errorToString(obj) : JSON.stringify(obj))
 		})

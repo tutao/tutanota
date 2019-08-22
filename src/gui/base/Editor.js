@@ -171,9 +171,9 @@ export class Editor implements ImageHandler {
 		(state ? this._styleActions[style][0] : this._styleActions[style][1])()
 	}
 
-	hasStyle = (style: Style): boolean => this._squire ? this._styleActions[style][2]() : false
+	hasStyle: (Style) => boolean = (style) => this._squire ? this._styleActions[style][2]() : false
 
-	getStylesAtPath = (): void => {
+	getStylesAtPath: () => void = () => {
 		if (!this._squire) {
 			return
 		}
@@ -257,16 +257,16 @@ export class Editor implements ImageHandler {
 		return this._squire.getRoot()
 	}
 
-	focus() {
+	focus(): void {
 		this._squire.focus()
 		this.getStylesAtPath()
 	}
 
-	isAttached() {
+	isAttached(): boolean {
 		return this._squire != null
 	}
 
-	removeAllFormatting() {
+	removeAllFormatting(): void {
 		// Create a range which contains the whole editor
 		const range = document.createRange()
 		range.selectNode(this._squire.getRoot())

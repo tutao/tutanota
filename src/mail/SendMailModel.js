@@ -720,7 +720,7 @@ export class SendMailModel {
 			// catch all of the badness
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
 			.catch(RecipientsNotFoundError, (e) => {
-				let invalidRecipients = e.message.join("\n")
+						let invalidRecipients = e.message
 				throw new UserError(() => lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
 			})
 			.catch(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)})
@@ -791,7 +791,7 @@ export class SendMailModel {
 		return blockingWaitHandler("save_msg", savePromise)
 	}
 
-	_sendApprovalMail(body: string): Promise<*> {
+	_sendApprovalMail(body: string): Promise<void> {
 		const listId = "---------c--";
 		const m = createApprovalMail({
 			_id: [listId, stringToCustomId(this._senderAddress)],
@@ -892,7 +892,7 @@ export class SendMailModel {
 				}
 			})
 		})).catch(TooManyRequestsError, () => {
-			throw new RecipientNotResolvedError()
+			throw new RecipientNotResolvedError("")
 		})
 	}
 

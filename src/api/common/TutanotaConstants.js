@@ -10,8 +10,8 @@ import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 
-export const reverse = (objectMap: Object) => Object.keys(objectMap)
-                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+export const reverse = (objectMap: Object): {} => Object.keys(objectMap)
+                                                        .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 
@@ -28,7 +28,7 @@ export const GroupType = Object.freeze({
 	Calendar: "9"
 })
 export type GroupTypeEnum = $Values<typeof GroupType>;
-export const getMembershipGroupType = (membership: GroupMembership) => downcast(membership.groupType)
+export const getMembershipGroupType = (membership: GroupMembership): GroupTypeEnum => downcast(membership.groupType)
 
 export const PermissionType = Object.freeze({
 	Public: "0",
@@ -134,7 +134,7 @@ export const BookingItemFeatureType = Object.freeze({
 	Sharing: '9'
 })
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
-export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
+export const BookingItemFeatureByCode: {} = reverse(BookingItemFeatureType)
 
 
 export const PaymentMethodType = Object.freeze({
@@ -146,7 +146,7 @@ export const PaymentMethodType = Object.freeze({
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodTypeEnum => downcast(accountingInfo.paymentMethod)
 
-export const ValueToPaymentMethodType = reverse(PaymentMethodType)
+export const ValueToPaymentMethodType: {} = reverse(PaymentMethodType)
 
 
 export const Const = {
@@ -331,7 +331,7 @@ export const FeatureType = Object.freeze({
 	DisableCalendar: "9",
 })
 export type FeatureTypeEnum = $Values<typeof FeatureType>;
-export const ValueToFeatureType = reverse(FeatureType)
+export const ValueToFeatureType: {} = reverse(FeatureType)
 
 export const BootstrapFeatureType = Object.freeze({
 	DisableSavePassword: "0",
@@ -394,7 +394,7 @@ export const InvoiceStatus = Object.freeze({
 	SECONDREMINDER: "11"
 })
 export type InvoiceStatusEnum = $Values<typeof InvoiceStatus>;
-export const ValueToInvoiceStatus = reverse(FeatureType)
+export const ValueToInvoiceStatus: {} = reverse(FeatureType)
 
 export const CloseEventBusOption = Object.freeze({
 	Terminate: "terminate",
@@ -454,7 +454,7 @@ export const AlarmInterval = Object.freeze({
 	ONE_WEEK: "1W",
 })
 export type AlarmIntervalEnum = $Values<typeof AlarmInterval>
-
+export const AlarmIntervalByCode: {} = reverse(AlarmInterval)
 
 export const EventTextTimeOption = Object.freeze({
 	NO_TIME: "noTime",
@@ -669,6 +669,7 @@ export const CalendarAttendeeStatus = Object.freeze({
 })
 
 export type CalendarAttendeeStatusEnum = $Values<typeof CalendarAttendeeStatus>
+export const attendeeStatusByCode: {} = reverse(CalendarAttendeeStatus)
 
 export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatusEnum {
 	return downcast(attendee.status)
@@ -699,7 +700,7 @@ export const MailMethod = Object.freeze({
 	ICAL_DECLINECOUNTER: "8"
 })
 
-const icalToMailMethodMapping = {
+const icalToMailMethodMapping = Object.freeze({
 	PUBLISH: MailMethod.ICAL_PUBLISH,
 	REQUEST: MailMethod.ICAL_REQUEST,
 	REPLY: MailMethod.ICAL_REPLY,
@@ -708,8 +709,9 @@ const icalToMailMethodMapping = {
 	REFRESH: MailMethod.ICAL_REFRESH,
 	COUNTER: MailMethod.ICAL_COUNTER,
 	DECLINECOUNTER: MailMethod.ICAL_COUNTER
-}
-const mailMethodToIcalMapping = reverse(icalToMailMethodMapping)
+})
+
+const mailMethodToIcalMapping: {[$ElementType<typeof icalToMailMethodMapping, $Keys<typeof icalToMailMethodMapping>>]: $Keys<typeof icalToMailMethodMapping>} = reverse(icalToMailMethodMapping)
 
 export function mailMethodToCalendarMethod(mailMethod: MailMethodEnum): CalendarMethodEnum {
 	const calendarMethod = mailMethodToIcalMapping[mailMethod]

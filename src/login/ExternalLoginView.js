@@ -79,7 +79,7 @@ export class ExternalLoginView {
 		}
 	}
 
-	_getView() {
+	_getView(): Children {
 		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {

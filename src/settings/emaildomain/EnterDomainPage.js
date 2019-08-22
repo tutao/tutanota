@@ -15,7 +15,7 @@ assertMainOrNode()
 
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
 
-	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		const a = vnode.attrs
 		return m("", [
 			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
@@ -66,7 +66,7 @@ export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
 		this.data = domainData
 	}
 
-	headerTitle() {
+	headerTitle(): string {
 		return lang.get("domainSetup_title")
 	}
 

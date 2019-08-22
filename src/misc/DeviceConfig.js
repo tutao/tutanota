@@ -163,4 +163,4 @@ class DeviceConfig {
 }
 
 
-export const deviceConfig = new DeviceConfig()
+export const deviceConfig: DeviceConfig = new DeviceConfig()

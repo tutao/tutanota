@@ -338,7 +338,7 @@ export class ViewColumnN {
 		return this.title ? this.title() : ""
 	}
 
-	getOffsetForeground(foregroundState: boolean) {
+	getOffsetForeground(foregroundState: boolean): number {
 		return foregroundState ? this.width : 0;
 	}
 }

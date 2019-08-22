@@ -253,7 +253,7 @@ export class LoginView {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
-	rengerLoginForm() {
+	rengerLoginForm(): Children {
 		return m("form", {
 			onsubmit: (e) => {
 				// do not post the form, the form is just here to enable browser auto-fill
@@ -460,7 +460,7 @@ export function getPrivacyStatementLink(): ?string {
 }
 
 
-export function renderPrivacyAndImprintLinks() {
+export function renderPrivacyAndImprintLinks(): Children {
 	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl", [
 		(getPrivacyStatementLink()) ? m("a.plr", {
 			href: getPrivacyStatementLink(),

@@ -113,7 +113,7 @@ export class MailListView implements Component {
 	}
 
 	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
-	_fixCounterIfNeeded = debounce(2000, (listId: Id, listLength: number) => {
+	_fixCounterIfNeeded: ((listId: Id, listLength: number) => void) = debounce(2000, (listId: Id, listLength: number) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
 		if (this.listId !== listId || worker.wsConnection()() !== "connected") {
@@ -177,7 +177,7 @@ export class MailListView implements Component {
 			: m(this.list)
 	}
 
-	targetInbox() {
+	targetInbox(): boolean {
 		if (this.mailView.selectedFolder) {
 			return this.mailView.selectedFolder.folderType === MailFolderType.ARCHIVE
 				|| this.mailView.selectedFolder.folderType === MailFolderType.TRASH
@@ -239,15 +239,6 @@ export class MailRow {
 		this.entity = null
 		this._showFolderIcon = showFolderIcon
 		this._domFolderIcons = {}
-	}
-
-	stringToPicto(s: string) {
-		let color = (s.charCodeAt(0) + s.charCodeAt(s.length - 1) + s.length) % 36
-		s = s.trim()
-		return {
-			capitalLetter: s.charAt(0).toUpperCase(),
-			color: colors['alt_' + color]
-		}
 	}
 
 	update(mail: Mail, selected: boolean): void {

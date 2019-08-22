@@ -188,6 +188,6 @@ function _checkEmailAddresses(mailAddresses: MailAddress[], inboxRule: InboxRule
 	}
 }
 
-export function isInboxList(mailboxDetail: MailboxDetail, listId: Id) {
+export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
 	return isSameId(listId, getInboxFolder(mailboxDetail.folders).mails)
 }

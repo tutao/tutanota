@@ -53,7 +53,7 @@ class LocalAdminGroupInfoModel {
 	}
 }
 
-export const localAdminGroupInfoModel = new LocalAdminGroupInfoModel()
+export const localAdminGroupInfoModel: LocalAdminGroupInfoModel = new LocalAdminGroupInfoModel()
 
 if (replaced) {
 	Object.assign(localAdminGroupInfoModel, replaced.localAdminGroupInfoModel)

@@ -107,4 +107,4 @@ export class FaqModel {
 }
 
 
-export const faq = new FaqModel()
+export const faq: FaqModel = new FaqModel()

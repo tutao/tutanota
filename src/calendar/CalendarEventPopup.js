@@ -43,7 +43,7 @@ export class CalendarEventPopup implements ModalComponent {
 		modal.displayUnique(this, false)
 	}
 
-	view(vnode: Vnode<any>) {
+	view(vnode: Vnode<any>): Children {
 		return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
 				style: {
 					width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)), // minus margin, need to apply it now to not overflow later
@@ -100,7 +100,7 @@ export class CalendarEventPopup implements ModalComponent {
 		modal.remove(this)
 	}
 
-	hideAnimation() {
+	hideAnimation(): Promise<void> {
 		return Promise.resolve()
 	}
 

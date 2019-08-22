@@ -17,6 +17,7 @@ import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSetting
 import {incrementDate} from "../api/common/utils/DateUtils"
 import {changeSystemLanguage} from "../native/SystemApp"
 import {getHourCycle} from "../misc/Formatter"
+import type {EntityUpdateData} from "../api/main/EventController"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {

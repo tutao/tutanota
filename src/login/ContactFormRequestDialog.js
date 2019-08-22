@@ -182,7 +182,7 @@ export class ContactFormRequestDialog {
 		return "newMail_action"
 	}
 
-	animate(domElement: HTMLElement, fadein: boolean) {
+	animate(domElement: HTMLElement, fadein: boolean): Promise<void> {
 		let childHeight = domElement.offsetHeight
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
 		                 .then(() => {
@@ -198,7 +198,7 @@ export class ContactFormRequestDialog {
 		this._dialog.close()
 	}
 
-	_showFileChooserForAttachments() {
+	_showFileChooserForAttachments(): Promise<void> {
 		return fileController.showFileChooser(true).then(files => {
 			this._attachFiles((files: any))
 			m.redraw()
@@ -248,7 +248,7 @@ export class ContactFormRequestDialog {
 	}
 
 
-	getConfidentialStateMessage() {
+	getConfidentialStateMessage(): string {
 		return lang.get('confidentialStatus_msg')
 	}
 

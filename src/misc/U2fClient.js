@@ -5,6 +5,7 @@ import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
+// $FlowIgnore[untyped-import]
 import u2fApi from "./u2f-api"
 import {SECOND_MS} from "../api/common/TutanotaConstants"
 import {BrowserType} from "./ClientConstants"
@@ -53,7 +54,7 @@ export class U2fClient {
 			.catch(() => false)
 	}
 
-	checkVersionWithTimeout() {
+	checkVersionWithTimeout(): Promise<boolean> {
 		return Promise.race([
 			new Promise((resolve) => {
 				console.log("u2fApi.getApiVersion")

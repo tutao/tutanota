@@ -3,10 +3,10 @@ import {ease} from "./Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {downcast} from "../../api/common/utils/Utils"
 import {hexToRgb} from "../Color"
+import type {EasingFunction} from "./Easing"
 
 assertMainOrNodeBoot()
 
-declare type EasingFunction = (percent: number) => number;
 
 export interface DomMutation {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
@@ -34,7 +34,7 @@ const InitializedOptions = {
 	duration: DefaultAnimationTime
 }
 
-type AnimationPromise = {animations?: Array<Animation>} & Promise<void>
+export type AnimationPromise = {animations?: Array<Animation>} & Promise<void>
 
 class Animations {
 	activeAnimations: Animation[];
@@ -145,7 +145,7 @@ export class Animation {
 		}
 	}
 
-	isFinished() {
+	isFinished(): boolean {
 		return this.runTime != null && this.runTime >= this.duration
 	}
 }

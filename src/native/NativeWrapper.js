@@ -77,7 +77,7 @@ class NativeWrapper {
 	 * used by the preload script to save on encoding
 	 * @param msg
 	 */
-	handleMessageObject = (msg: any) => {
+	handleMessageObject: ((msg: any) => void) = (msg: any) => {
 		neverNull(this._nativeQueue)._handleMessage(msg)
 	}
 
@@ -90,7 +90,7 @@ class NativeWrapper {
 		this._nativeQueue = null
 	}
 
-	initialized() {
+	initialized(): Promise<void> {
 		return this._initialized.promise
 	}
 }
@@ -108,4 +108,4 @@ function _createConnectionErrorHandler(rejectFunction) {
 	}
 }
 
-export const nativeApp = new NativeWrapper()
+export const nativeApp: NativeWrapper = new NativeWrapper()

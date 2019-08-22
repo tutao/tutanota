@@ -5,7 +5,7 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfig} from "./config/DesktopConfig"
@@ -147,7 +147,7 @@ export class IPC {
 				// args: [data.name, uint8ArrayToBase64(data.data)]
 				const filename: string = downcast(args[0])
 				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
-				return this._dl.saveBlob(filename, data, this._wm.get(windowId))
+				return this._dl.saveBlob(filename, data, neverNull(this._wm.get(windowId)))
 			case "aesDecryptFile":
 				// key, path
 				return this._crypto.aesDecryptFile(...args.slice(0, 2))

@@ -2,6 +2,7 @@
 import {inputLineHeight, px, size} from "../size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -55,7 +56,7 @@ export class TextField {
 
 	isEmpty: Function;
 
-	constructor(labelIdOrLabelTextFunction: string | lazy<string>, helpLabel: ?lazy<Children>) {
+	constructor(labelIdOrLabelTextFunction: TranslationKey | lazy<string>, helpLabel: ?lazy<Children>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
 		this.webkitAutofill = false

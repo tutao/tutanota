@@ -5,6 +5,7 @@ import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {theme} from "../theme"
@@ -34,7 +35,7 @@ export class DatePicker implements Component {
 	_showingDropdown: boolean;
 	_disabled: boolean;
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false) {
 		this.date = stream(null)
 		this._startOfTheWeekOffset = startOfTheWeekOffset
 		this._showingDropdown = false
@@ -77,7 +78,7 @@ export class DatePicker implements Component {
 
 	_documentClickListener: ?MouseEventListener;
 
-	view = () => {
+	view: (() => Children) = () => {
 		const date = this.date()
 		return m(".rel", [
 			m("div", {
@@ -165,7 +166,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
 	}
 
-	view(vnode: Vnode<VisualDatePickerAttrs>) {
+	view(vnode: Vnode<VisualDatePickerAttrs>): Children {
 		const selectedDate = vnode.attrs.selectedDate
 		this._currentDate = getStartOfDay(new Date())
 		if (selectedDate && !isSameDayOfDate(this._lastSelectedDate, selectedDate)) {
@@ -197,7 +198,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		])
 	}
 
-	_switchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs) {
+	_switchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
 		const size = px(this._elWidth(attrs))
 		return m(".icon.flex.justify-center.items-center.click", {
 			onclick: forward ? () => this._onNextMonthSelected(attrs) : () => this._onPrevMonthSelected(attrs),
@@ -209,13 +210,13 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		}, m(Icon, {icon: forward ? Icons.ArrowForward : BootIcons.Back, style: {fill: theme.content_fg}}))
 	}
 
-	_onPrevMonthSelected = (attrs: VisualDatePickerAttrs) => {
+	_onPrevMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
 		const selectedDate = addMonth(this._lastSelectedDate || new Date(), -1)
 		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
 	}
 
-	_onNextMonthSelected = (attrs: VisualDatePickerAttrs) => {
+	_onNextMonthSelected: ((attrs: VisualDatePickerAttrs) => void) = (attrs: VisualDatePickerAttrs) => {
 		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
 		const selectedDate = addMonth(this._lastSelectedDate || new Date(), 1)
 		attrs.onDateSelected && attrs.onDateSelected(selectedDate, false)
@@ -234,7 +235,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		}, paddingDay ? null : day)
 	}
 
-	_elWidth(attrs: VisualDatePickerAttrs) {
+	_elWidth(attrs: VisualDatePickerAttrs): number {
 		return attrs.wide ? 40 : 24
 	}
 

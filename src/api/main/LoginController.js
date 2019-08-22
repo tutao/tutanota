@@ -55,7 +55,7 @@ export class LoginControllerImpl implements LoginController {
 			`${env.rootPathPrefix}src/api/main/WorkerClient.js`).then((workerModule) => workerModule.worker)
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean) {
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
 		return this._getWorker()
 		           .then((worker) => worker.createWorkerSession(username, password, clientIdentifier, persistentSession, permanentLogin))
 		           .tap(({user, credentials, sessionId, userGroupInfo}) => {
@@ -135,7 +135,7 @@ export class LoginControllerImpl implements LoginController {
 		this._userController = userController
 	}
 
-	isProdDisabled() {
+	isProdDisabled(): boolean {
 		// we enable certain features only for certain customers in prod
 		return getHttpOrigin().startsWith("https://mail.tutanota")
 			&& this._userController != null

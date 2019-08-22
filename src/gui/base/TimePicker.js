@@ -35,7 +35,7 @@ export class TimePicker implements MComponent<Attrs> {
 	}
 
 
-	view({attrs}: Vnode<Attrs>) {
+	view({attrs}: Vnode<Attrs>): Children {
 		const parsedTime = parseTime(attrs.value)
 		if (parsedTime) {
 			this._previousSelectedIndex = this._selectedIndex

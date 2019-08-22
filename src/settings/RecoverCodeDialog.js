@@ -58,7 +58,7 @@ export type RecoverCodeFieldAttrs = {
 }
 
 export class RecoverCodeField {
-	view(vnode: Vnode<RecoverCodeFieldAttrs>) {
+	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
 		const lnk = lang.getInfoLink("recoverCode_link")
 		return [
 			vnode.attrs.showMessage

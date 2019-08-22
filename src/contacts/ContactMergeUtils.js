@@ -163,7 +163,7 @@ export function _compareFullName(contact1: Contact, contact2: Contact): ContactC
  * Provides name1 if it is not empty, otherwise name2
  * Export for testing
  */
-export function _getMergedNameField(name1: string, name2: string) {
+export function _getMergedNameField(name1: string, name2: string): string {
 	if (name1) {
 		return name1
 	} else {

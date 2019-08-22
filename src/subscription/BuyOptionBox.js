@@ -24,7 +24,7 @@ export type BuyOptionBoxAttr = {|
 	showReferenceDiscount: boolean,
 |}
 
-export function getActiveSubscriptionActionButtonReplacement() {
+export function getActiveSubscriptionActionButtonReplacement(): {|view: () => Vnode<Children>|} {
 	return {
 		view: () => {
 			return m(".buyOptionBox.content-accent-fg.center-vertically.text-center", {

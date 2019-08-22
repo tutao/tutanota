@@ -26,7 +26,7 @@ export class ButtonWrapper {
 		this.width = width
 	}
 
-	setId(id: number) {
+	setId(id: number): this {
 		this.id = id
 		return this
 	}

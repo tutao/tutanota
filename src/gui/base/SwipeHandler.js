@@ -34,7 +34,8 @@ export class SwipeHandler {
 	move(e: TouchEvent) {
 		let {x, y} = this.getDelta(e)
 		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
-		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y) && Math.abs(x) > 14) {
+		if (this.directionLock === DirectionLock.Horizontal || this.directionLock !== DirectionLock.Vertical && Math.abs(x) > Math.abs(y)
+			&& Math.abs(x) > 14) {
 			this.directionLock = DirectionLock.Horizontal
 			// Do not scroll the list
 			e.preventDefault()
@@ -85,7 +86,7 @@ export class SwipeHandler {
 		return Promise.resolve()
 	}
 
-	getDelta(e: any) {
+	getDelta(e: any): {|x: number, y: number|} {
 		return {
 			x: e.changedTouches[0].clientX - this.startPos.x,
 			y: e.changedTouches[0].clientY - this.startPos.y

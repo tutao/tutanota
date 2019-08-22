@@ -161,7 +161,7 @@ function _createRequestId() {
 }
 
 // Serialize error stack traces, when they are sent via the websocket.
-export function errorToObj(error: Error) {
+export function errorToObj(error: Error): {|data: any, message: any, name: any, stack: any|} {
 	return {
 		name: (error: any)['name'],
 		message: (error: any)['message'],
@@ -170,7 +170,7 @@ export function errorToObj(error: Error) {
 	}
 }
 
-export function objToError(o: Object) {
+export function objToError(o: Object): Error {
 	let errorType = ErrorNameToType[o.name]
 	let e = (errorType != null ? new errorType(o.message) : new Error(o.message): any)
 	e.name = o.name

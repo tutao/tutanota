@@ -110,7 +110,7 @@ function download(sourceUrl: string, filename: string, headers: Object): Promise
 	return nativeApp.invokeNative(new Request("download", [sourceUrl, filename, headers]))
 }
 
-function clearFileData() {
+function clearFileData(): Promise<any> {
 	return nativeApp.invokeNative(new Request("clearFileData", []))
 }
 

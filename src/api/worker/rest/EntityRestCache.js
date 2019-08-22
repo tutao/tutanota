@@ -1,4 +1,5 @@
 // @flow
+import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
 import type {HttpMethodEnum, ListElement} from "../../common/EntityFunctions"
 import {
@@ -18,6 +19,7 @@ import {clone, containsEventOfType, downcast, getEventOfType, neverNull} from ".
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
+// $FlowIgnore[untyped-import]
 import EC from "../../common/EntityConstants"
 import {SessionTypeRef} from "../../entities/sys/Session"
 import {StatisticLogEntryTypeRef} from "../../entities/tutanota/StatisticLogEntry"
@@ -28,7 +30,6 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
-import type {EntityRestInterface} from "./EntityRestClient"
 
 const ValueType = EC.ValueType
 
@@ -152,15 +153,15 @@ export class EntityRestCache implements EntityRestInterface {
 		}
 	}
 
-	isRangeRequest(listId: ?Id, id: ?Id, queryParameter: ?Params) {
+	isRangeRequest(listId: ?Id, id: ?Id, queryParameter: ?Params): boolean {
 		// check for null and undefined because "" and 0 are als falsy
-		return listId && !id
-			&& queryParameter
+		return listId != null && !id
+			&& queryParameter != null
 			&& queryParameter["start"] !== null
 			&& queryParameter["start"] !== undefined
 			&& queryParameter["count"] !== null
 			&& queryParameter["count"] !== undefined
-			&& queryParameter["reverse"]
+			&& queryParameter["reverse"] != null
 	}
 
 	_loadMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,

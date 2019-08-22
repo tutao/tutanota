@@ -69,7 +69,7 @@ export class DbFacade {
 					let DBOpenRequest
 					try {
 
-						DBOpenRequest = indexedDB.open(this._id, DB_VERSION)
+						DBOpenRequest = self.indexedDB.open(this._id, DB_VERSION)
 						DBOpenRequest.onerror = (event) => {
 							// Copy all the keys from the error, including inheritent ones so we can get some info
 
@@ -162,7 +162,7 @@ export class DbFacade {
 			} else {
 				this._db.getLoaded().close()
 				return Promise.fromCallback(cb => {
-					let deleteRequest = indexedDB.deleteDatabase(this._db.getLoaded().name)
+					let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
 					deleteRequest.onerror = (event) => {
 						cb(new DbError(`could not delete database ${this._db.getLoaded().name}`, event))
 					}

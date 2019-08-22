@@ -15,7 +15,7 @@ export class InfoView {
 		this.content = content
 	}
 
-	view() {
+	view(): Children {
 		return m(".main-view.flex.items-center.justify-center.mlr" + landmarkAttrs(AriaLandmarks.Main), {
 			style: {
 				'max-height': px(450),

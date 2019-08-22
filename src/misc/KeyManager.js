@@ -38,7 +38,7 @@ export interface Shortcut {
 	help: TranslationKey;
 }
 
-export function focusPrevious(dom: HTMLElement) {
+export function focusPrevious(dom: HTMLElement): boolean {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
@@ -58,9 +58,10 @@ export function focusPrevious(dom: HTMLElement) {
 		tabbable[tabbable.length - 1].focus()
 		return false
 	}
+	return true
 }
 
-export function focusNext(dom: HTMLElement) {
+export function focusNext(dom: HTMLElement): boolean {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
@@ -80,6 +81,7 @@ export function focusNext(dom: HTMLElement) {
 		tabbable[0].focus()
 		return false
 	}
+	return true
 }
 
 class KeyManager {
@@ -142,32 +144,32 @@ class KeyManager {
 
 	openF1Help() {
 		asyncImport(typeof module
-			!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
-				.then(module => {
-					if (this._helpDialog && this._helpDialog.visible) {
-						return
+		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
+			.then(module => {
+				if (this._helpDialog && this._helpDialog.visible) {
+					return
+				}
+				let shortcuts = ((this._modalShortcuts.length
+					> 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
+				let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
+				                          .map(shortcut => {
+					                          return new TextField(() => this._getShortcutName(shortcut))
+						                          .setValue(lang.get(shortcut.help))
+						                          .setDisabled()
+				                          })
+				this._helpDialog = module.Dialog.largeDialog({
+					right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
+					middle: () => lang.get("keyboardShortcuts_title")
+				}, {
+					view: () => {
+						return m("div.pb", textFields.map(t => m(t)))
 					}
-					let shortcuts = ((this._modalShortcuts.length
-						> 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
-					let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-											  .map(shortcut => {
-												  return new TextField(() => this._getShortcutName(shortcut))
-													  .setValue(lang.get(shortcut.help))
-													  .setDisabled()
-											  })
-					this._helpDialog = module.Dialog.largeDialog({
-						right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
-						middle: () => lang.get("keyboardShortcuts_title")
-					}, {
-						view: () => {
-							return m("div.pb", textFields.map(t => m(t)))
-						}
-					}).addShortcut({
-						key: Keys.ESC,
-						exec: () => neverNull(this._helpDialog).close(),
-						help: "close_alt"
-					}).show()
-				})
+				}).addShortcut({
+					key: Keys.ESC,
+					exec: () => neverNull(this._helpDialog).close(),
+					help: "close_alt"
+				}).show()
+			})
 	}
 
 	registerShortcuts(shortcuts: Shortcut[]) {

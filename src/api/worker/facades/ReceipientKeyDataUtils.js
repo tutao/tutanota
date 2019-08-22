@@ -34,6 +34,6 @@ export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recip
 			notFoundRecipients.push(recipientInfo.mailAddress)
 		})
 		.catch(TooManyRequestsError, e => {
-			throw new RecipientNotResolvedError()
+			throw new RecipientNotResolvedError("")
 		})
 }

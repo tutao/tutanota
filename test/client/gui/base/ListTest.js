@@ -3,7 +3,7 @@ import o from "ospec/ospec.js"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List"
 import type {ListElement} from "../../../../src/api/common/EntityFunctions"
 import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
-import {noOp} from "../../../../src/api/common/utils/Utils"
+import {downcast, noOp} from "../../../../src/api/common/utils/Utils"
 import {createMail} from "../../../../src/api/entities/tutanota/Mail"
 
 function dummySort() {
@@ -95,14 +95,14 @@ o.spec("List", function () {
 				done()
 			})
 
-			list._domListContainer = {
+			list._domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 100,
 				addEventListener: function () {
 				}
-			}
-			list._domLoadingRow = {classList: {add: () => undefined, remove: () => undefined}, style: {}}
-			list._setDomList({style: {}})
+			})
+			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
+			list._setDomList(downcast({style: {}}))
 			list._init()
 			list._domInitialized.resolve()
 		})
@@ -137,12 +137,12 @@ o.spec("List", function () {
 				showStatus: false,
 				swipe: defaultSwipe,
 			})
-			list._domListContainer = {
+			list._domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 235,
 				addEventListener: function () {
 				}
-			}
+			})
 			list.loadInitial().then(() => {
 				list._init()
 				list._createVirtualElements()
@@ -152,8 +152,8 @@ o.spec("List", function () {
 			})
 
 			list._domInitialized.resolve()
-			list._domLoadingRow = {classList: {add: () => undefined, remove: () => undefined}, style: {}}
-			list._setDomList({style: {}})
+			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
+			list._setDomList(downcast({style: {}}))
 			list._init()
 		})
 	})

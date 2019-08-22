@@ -48,17 +48,17 @@ export class ViewSlider implements IViewSlider {
 
 
 	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
-	oncreate = () => {
+	oncreate: (() => void) = () => {
 		this._updateVisibleBackgroundColumns()
 		windowFacade.addResizeListener(this.resizeListener)
 	}
 
 	/** Removes the registered event listener as soon as this component is unloaded (invoked by mithril)*/
-	onremove = () => windowFacade.removeResizeListener(this.resizeListener)
+	onremove: (() => void) = () => windowFacade.removeResizeListener(this.resizeListener)
 
 	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
 
-	_getSideColDom = () => this.columns[0]._domColumn
+	_getSideColDom: (() => ?HTMLElement) = () => this.columns[0]._domColumn
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
@@ -116,7 +116,7 @@ export class ViewSlider implements IViewSlider {
 		return this._mainColumn === column ? AriaLandmarks.Main : AriaLandmarks.Region
 	}
 
-	getMainColumn() {
+	getMainColumn(): ViewColumn {
 		return this._mainColumn;
 	}
 
@@ -128,7 +128,7 @@ export class ViewSlider implements IViewSlider {
 		return this.columns.filter(c => c.columnType === ColumnType.Foreground && !c.visible)
 	}
 
-	_createModalBackground() {
+	_createModalBackground(): Children {
 		if (this._isModalBackgroundVisible) {
 			return [
 				m(".fill-absolute.z3.will-change-alpha", {
@@ -331,7 +331,7 @@ export class ViewSlider implements IViewSlider {
 		return 0 - column.offset
 	}
 
-	isFocusPreviousPossible() {
+	isFocusPreviousPossible(): boolean {
 		return this.getPreviousColumn() != null
 	}
 
@@ -356,12 +356,12 @@ export class ViewSlider implements IViewSlider {
 		return null
 	}
 
-	isFirstBackgroundColumnFocused() {
+	isFirstBackgroundColumnFocused(): boolean {
 		return this.columns.filter(column => column.columnType === ColumnType.Background)
 		           .indexOf(this.focusedColumn) === 0
 	}
 
-	isForegroundColumnFocused() {
+	isForegroundColumnFocused(): boolean {
 		return this.focusedColumn && this.focusedColumn.columnType === ColumnType.Foreground
 	}
 

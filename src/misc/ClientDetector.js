@@ -144,7 +144,7 @@ class ClientDetector {
 
 	indexedDb(): boolean {
 		try {
-			return indexedDB != null
+			return window.indexedDB != null
 		} catch (e) {
 			return false
 		}
@@ -330,16 +330,16 @@ class ClientDetector {
 		}
 	}
 
-	isTouchSupported() {
+	isTouchSupported(): boolean {
 		return 'ontouchstart' in window
 	}
 
-	isIos() {
+	isIos(): boolean {
 		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
 	}
 
 
-	cssPropertyValueSupported(prop: string, value: string) {
+	cssPropertyValueSupported(prop: string, value: string): boolean {
 		let d = (document.createElement('div'): any)
 		d.style[prop] = value
 		return d.style[prop] === value
@@ -361,7 +361,7 @@ class ClientDetector {
 	}
 
 
-	isIE() {
+	isIE(): boolean {
 		return this.browser === BrowserType.IE
 	}
 
@@ -369,13 +369,13 @@ class ClientDetector {
 		return this.notOldFirefox() && this.notOldChrome()
 	}
 
-	notOldFirefox() {
+	notOldFirefox(): boolean {
 		// issue only occurs for old Firefox browsers
 		// https://github.com/tutao/tutanota/issues/835
 		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
 	}
 
-	notOldChrome() {
+	notOldChrome(): boolean {
 		return this.browser !== BrowserType.CHROME || this.browserVersion > 37
 	}
 

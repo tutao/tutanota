@@ -35,6 +35,7 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
+import type {EntityUpdateData} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -61,7 +62,7 @@ export class EditSecondFactorsForm {
 		this._updateSecondFactors()
 	}
 
-	view() {
+	view(): Children {
 		const lnk = lang.getInfoLink('2FA_link')
 		const secondFactorTableAttrs: TableAttrs = {
 			columnHeading: ["name_label", "type_label"],

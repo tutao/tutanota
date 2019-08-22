@@ -345,7 +345,7 @@ function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Re
 					return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
 				}
 			}).catch(RecipientsNotFoundError, e => {
-				let invalidRecipients = e.message.join("\n")
+				let invalidRecipients = e.message
 				return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
 					+ invalidRecipients).return([])
 			})

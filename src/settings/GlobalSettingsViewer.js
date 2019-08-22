@@ -390,7 +390,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_getGroupInfoDisplayText(groupInfo: GroupInfo) {
+	_getGroupInfoDisplayText(groupInfo: GroupInfo): string {
 		if (groupInfo.name && groupInfo.mailAddress) {
 			return groupInfo.name + " <" + groupInfo.mailAddress + ">"
 		} else if (groupInfo.mailAddress) {

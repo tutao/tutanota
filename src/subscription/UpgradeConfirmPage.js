@@ -63,7 +63,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		this._paymentMethodField.setValue(getPaymentMethodName(data.paymentData.paymentMethod))
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const a = vnode.attrs
 		const newAccountData = a.data.newAccountData
 
@@ -173,11 +173,11 @@ export class UpgradeConfirmPageAttrs implements WizardPageAttrs<UpgradeSubscript
 		return Promise.resolve(true)
 	}
 
-	isSkipAvailable() {
+	isSkipAvailable(): boolean {
 		return false
 	}
 
-	isEnabled() {
+	isEnabled(): boolean {
 		return true
 	}
 }

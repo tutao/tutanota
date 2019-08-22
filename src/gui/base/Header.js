@@ -21,7 +21,7 @@ import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_P
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 const LogoutPath = '/login?noAutoLogin=true'
-export const LogoutUrl = location.hash.startsWith("#mail")
+export const LogoutUrl: string = location.hash.startsWith("#mail")
 	? "/ext?noAutoLogin=true" + location.hash
 	: isDesktop()
 		? '?r=' + encodeURIComponent(LogoutPath)
@@ -109,7 +109,7 @@ class Header {
 			})
 	}
 
-	_renderDesktopSearchBar() {
+	_renderDesktopSearchBar(): Children {
 		return this.searchBar && this._desktopSearchBarVisible()
 			? m(this.searchBar, {
 				spacer: true,

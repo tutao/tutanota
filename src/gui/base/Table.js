@@ -7,6 +7,7 @@ import {px, size} from "../size"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ColumnWidthEnum} from "./TableN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 assertMainOrNode()
 

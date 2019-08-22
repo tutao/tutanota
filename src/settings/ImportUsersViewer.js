@@ -19,7 +19,7 @@ type UserImportDetails = {
 	password: string
 }
 
-export function checkAndImportUserData(userDetailsInputCsv: string, availableDomains: string[]) {
+export function checkAndImportUserData(userDetailsInputCsv: string, availableDomains: string[]): boolean {
 	let userData = csvToUserDetails(userDetailsInputCsv)
 	if (!userData) {
 		Dialog.error(() => lang.get("wrongUserCsvFormat_msg", {

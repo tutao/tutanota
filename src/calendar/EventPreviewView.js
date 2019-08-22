@@ -9,6 +9,7 @@ import {memoized} from "../api/common/utils/Utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {iconForAttendeeStatus} from "./CalendarEventEditDialog"
 import {formatEventDuration, getTimeZone} from "./CalendarUtils"
+import {attendeeStatusByCode} from "../api/common/TutanotaConstants"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -18,7 +19,7 @@ export type Attrs = {
 export class EventPreviewView implements MComponent<Attrs> {
 	_sanitizedDescription: (string) => string = memoized((html) => htmlSanitizer.sanitize(html, true).text)
 
-	view({attrs: {event, limitDescriptionHeight}}: Vnode<Attrs>) {
+	view({attrs: {event, limitDescriptionHeight}}: Vnode<Attrs>): Children {
 		return m(".flex.col", [
 			m(".flex.col.smaller", [
 				m(".flex.pb-s.items-center", [renderSectionIndicator(BootIcons.Calendar), m(".h3", event.summary)]),
@@ -32,7 +33,11 @@ export class EventPreviewView implements MComponent<Attrs> {
 					? m(".flex.pb-s", [
 						renderSectionIndicator(BootIcons.Contacts),
 						m(".flex-wrap", event.attendees.map(a => m(".flex.items-center", [
-							m(Icon, {icon: iconForAttendeeStatus[a.status], style: {fill: theme.content_fg}, class: "mr-s"}),
+							m(Icon, {
+								icon: iconForAttendeeStatus[attendeeStatusByCode[a.status]],
+								style: {fill: theme.content_fg},
+								class: "mr-s"
+							}),
 							m(".span.line-break-anywhere", a.address.address),
 						]))),
 					])

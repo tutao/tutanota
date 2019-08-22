@@ -1,4 +1,4 @@
-// @ flow
+// @flow
 
 import {assertWorkerOrNode} from "../../Env"
 import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes"

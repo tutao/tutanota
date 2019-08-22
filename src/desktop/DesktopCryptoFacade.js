@@ -1,4 +1,4 @@
-// @ flow
+// @flow
 import fs from "fs-extra"
 import {uint8ArrayToBitArray} from "../api/worker/crypto/CryptoUtils"
 import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"

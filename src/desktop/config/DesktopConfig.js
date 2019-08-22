@@ -136,7 +136,7 @@ export class DesktopConfig {
 		return this
 	}
 
-	removeAllListeners(key?: DesktopConfigKeyEnum) {
+	removeAllListeners(key?: DesktopConfigKeyEnum): this {
 		if (key) {
 			this._onValueSetListeners[key] = []
 		} else {
@@ -146,7 +146,7 @@ export class DesktopConfig {
 		return this
 	}
 
-	removeListener(key: DesktopConfigKeyEnum, cb: (val: any)=>void) {
+	removeListener(key: DesktopConfigKeyEnum, cb: (val: any)=>void): this {
 		if (!this._onValueSetListeners[key]) return this
 		this._onValueSetListeners[key].splice(this._onValueSetListeners[key].indexOf(cb), 1)
 		return this

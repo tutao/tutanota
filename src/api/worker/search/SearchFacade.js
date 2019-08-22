@@ -17,7 +17,8 @@ import type {
 	SearchIndexEntry,
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
-	SearchIndexMetaDataRow
+	SearchIndexMetaDataRow,
+	SearchRestriction
 } from "./SearchTypes"
 import type {TypeInfo} from "./IndexUtils"
 import {
@@ -37,6 +38,7 @@ import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
 import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
+// $FlowIgnore[untyped-import]
 import EC from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"

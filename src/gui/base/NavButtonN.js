@@ -47,7 +47,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 	}
 
 
-	view(vnode: Vnode<NavButtonAttrs>) {
+	view(vnode: Vnode<NavButtonAttrs>): Children {
 		const a = vnode.attrs
 		// allow nav button without label for registration button on mobile devices
 		return m((this._isExternalUrl(a.href) ? navButtonSelector(vnode.attrs.vertical) : m.route.Link),
@@ -66,7 +66,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 		)
 	}
 
-	getLabel(label: TranslationKey | lazy<string>) {
+	getLabel(label: TranslationKey | lazy<string>): string {
 		return lang.getMaybeLazy(label)
 	}
 
@@ -74,7 +74,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 		return lazyStringValue(href)
 	}
 
-	_getIconClass(a: NavButtonAttrs) {
+	_getIconClass(a: NavButtonAttrs): string {
 		const isSelected = isNavButtonSelected(a)
 		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
 			return "flex-end items-center icon-xl" + (isSelected ? " selected" : "")
@@ -83,12 +83,12 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 		}
 	}
 
-	_isExternalUrl(href: string | lazy<string>) {
+	_isExternalUrl(href: string | lazy<string>): boolean {
 		let url = this._getUrl(href)
 		return url != null ? url.indexOf("http") === 0 : false
 	}
 
-	createButtonAttributes(a: NavButtonAttrs) {
+	createButtonAttributes(a: NavButtonAttrs): any {
 		let attr: any = {
 			role: "button", // role button for screen readers
 			href: this._getUrl(a.href),
@@ -96,7 +96,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 				color: (isNavButtonSelected(a) || this._draggedOver)
 					? getColors(a.colors).button_selected
 					: getColors(a.colors).button,
-				"font-size": px(a.fontSize),
+				"font-size": a.fontSize ? px(a.fontSize) : "",
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,

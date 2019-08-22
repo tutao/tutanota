@@ -172,13 +172,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_isWhitelabelRegistrationVisible() {
+	_isWhitelabelRegistrationVisible(): boolean {
 		return this._customer.isLoaded() &&
-			this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) &&
+			this._customer.getLoaded().customizations.find(c => c.feature === FeatureType.WhitelabelParent) != null &&
 			this._customerInfo.isLoaded() &&
-			getWhitelabelDomain(this._customerInfo.getLoaded()) &&
-			this._whitelabelCodeField &&
-			this._whitelabelRegistrationDomains
+			getWhitelabelDomain(this._customerInfo.getLoaded()) != null &&
+			this._whitelabelCodeField != null &&
+			this._whitelabelRegistrationDomains != null
 	}
 
 	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?{whitelabelConfig: WhitelabelConfig, certificateInfo: CertificateInfo}> {

@@ -148,5 +148,3 @@ type Status = {
 }
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
-
-declare var indexedDB: any;

@@ -88,7 +88,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
                                  includedStorage: number,
                                  includedAliases: number,
                                  currentlySharingOrdered: boolean,
-                                 currentlyWhitelabelOrdered: boolean) {
+                                 currentlyWhitelabelOrdered: boolean): Promise<void> {
 	let businessStream = stream(accountingInfo.business)
 	let paymentIntervalStream = stream(Number(accountingInfo.paymentInterval))
 

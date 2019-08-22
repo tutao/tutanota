@@ -34,7 +34,7 @@ export type DropDownSelectorAttrs<T> = {
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
 
-	view(vnode: Vnode<DropDownSelectorAttrs<T>>) {
+	view(vnode: Vnode<DropDownSelectorAttrs<T>>): Children {
 		const a = vnode.attrs
 		return m(TextFieldN, {
 			label: a.label,

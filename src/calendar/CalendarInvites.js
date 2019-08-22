@@ -33,7 +33,7 @@ function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event
 	}
 }
 
-export function showEventDetails(event: CalendarEvent, mail: ?Mail) {
+export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<void> {
 	return Promise.all([
 		locator.calendarModel.loadOrCreateCalendarInfo(),
 		locator.mailModel.getUserMailboxDetails(),

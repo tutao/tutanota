@@ -121,8 +121,8 @@ export class ContactView implements CurrentView {
 		})
 	}
 
-	createNewContact() {
-		return new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
+	createNewContact(): void {
+		new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 	}
 
 	headerRightView(): Children {
@@ -217,7 +217,7 @@ export class ContactView implements CurrentView {
 		return contactExpander
 	}
 
-	createFolderMoreButton() {
+	createFolderMoreButton(): Button {
 		return createDropDownButton("more_label", () => Icons.More, () => this._vcardButtons().concat([
 			new Button("merge_action", () => this._mergeAction(), () => Icons.People).setType(ButtonType.Dropdown)
 		]), 250).setColors(ButtonColors.Nav)

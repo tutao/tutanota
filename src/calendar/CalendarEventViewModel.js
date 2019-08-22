@@ -654,7 +654,7 @@ export class CalendarEventViewModel {
 	}
 
 	_sendNotificationAndSave(askInsecurePassword: () => Promise<boolean>, askForUpdates: () => Promise<"yes" | "no" | "cancel">,
-	                         showProgress: ShowProgressCallback, newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>) {
+	                         showProgress: ShowProgressCallback, newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<boolean> {
 		// ask for update
 		const askForUpdatesAwait = this._updateModel.bccRecipients().length
 			? askForUpdates()

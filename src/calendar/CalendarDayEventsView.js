@@ -31,7 +31,7 @@ const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
 export class CalendarDayEventsView implements MComponent<Attrs> {
 	_dayDom: ?HTMLElement;
 
-	view(vnode: Vnode<Attrs>) {
+	view(vnode: Vnode<Attrs>): Children {
 		return m(".col.rel",
 			{
 				oncreate: (vnode) => {

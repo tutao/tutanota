@@ -1,4 +1,6 @@
 // @flow
+
+// $FlowIgnore[untyped-import]
 import bCrypt from "./lib/bCrypt"
 import {random} from "./Randomizer"
 import {hash} from "./Sha256"

@@ -35,7 +35,14 @@ export const ButtonColors = Object.freeze({
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-export function getColors(buttonColors: ?ButtonColorEnum) {
+export function getColors(buttonColors: ?ButtonColorEnum): {|
+  border: string,
+  button: string,
+  button_icon_bg: string,
+  button_selected: string,
+  icon: string,
+  icon_selected: string,
+|} {
 	switch (buttonColors) {
 		case ButtonColors.Nav:
 			return {
@@ -319,10 +326,10 @@ class _Button {
 
 export const ButtonN: Class<MComponent<ButtonAttrs>> = _Button
 
-export function isVisible(a: NavButtonAttrs | ButtonAttrs) {
+export function isVisible(a: NavButtonAttrs | ButtonAttrs): boolean {
 	return (typeof a.isVisible !== "function") || a.isVisible()
 }
 
-export function isSelected(a: NavButtonAttrs | ButtonAttrs) {
+export function isSelected(a: NavButtonAttrs | ButtonAttrs): boolean {
 	return typeof a.isSelected === "function" ? a.isSelected() : false
 }

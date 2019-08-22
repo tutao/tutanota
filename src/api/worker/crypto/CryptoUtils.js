@@ -5,6 +5,7 @@ import {concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
+// $FlowIgnore[untyped-import]
 import sjcl from "../../worker/crypto/lib/crypto-sjcl-1.0.7"
 
 assertWorkerOrNode()
@@ -111,4 +112,4 @@ export function keyToUint8Array(key: BitArray): Uint8Array {
 	return base64ToUint8Array(keyToBase64(key))
 }
 
-export const fixedIv = hexToUint8Array('88888888888888888888888888888888')
+export const fixedIv: Uint8Array = hexToUint8Array('88888888888888888888888888888888')

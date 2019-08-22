@@ -6,6 +6,10 @@ import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingE
 assertMainOrNodeBoot()
 
 export function handleUncaughtError(e: Error) {
+
+	if (isTest()) {
+		throw e
+	}
 	if (e instanceof SecondFactorPendingError) {
 		// ignore
 	} else {

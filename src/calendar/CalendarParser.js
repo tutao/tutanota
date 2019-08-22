@@ -494,7 +494,7 @@ const icalToTutaFrequency = {
 	"MONTHLY": RepeatPeriod.MONTHLY,
 	"YEARLY": RepeatPeriod.ANNUALLY,
 }
-export const tutaToIcalFrequency = reverse(icalToTutaFrequency)
+export const tutaToIcalFrequency: {[RepeatPeriodEnum]: string} = reverse(icalToTutaFrequency)
 
 function parseFrequency(value: string): RepeatPeriodEnum {
 	return icalToTutaFrequency[value]

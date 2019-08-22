@@ -34,8 +34,8 @@ export class MultiSearchViewer {
 	view: Function;
 	_searchListView: SearchListView;
 	_isMailList: boolean;
-	_mobileMailActionBar = lazyMemoized(() => this.createMailActionBar(false))
-	_mobileContactActionBar = lazyMemoized(() => this.createContactActionBar(false))
+	_mobileMailActionBar: () => ActionBar = lazyMemoized(() => this.createMailActionBar(false))
+	_mobileContactActionBar: () => ActionBar = lazyMemoized(() => this.createContactActionBar(false))
 
 	constructor(searchListView: SearchListView) {
 		const mailActionBar = this.createMailActionBar(true)
@@ -73,7 +73,7 @@ export class MultiSearchViewer {
 		}
 	}
 
-	_getSearchSelectionMessage(searchListView: SearchListView) {
+	_getSearchSelectionMessage(searchListView: SearchListView): string {
 		let nbrOfSelectedSearchEntities = (searchListView.list) ? searchListView.list._selectedEntities.length : 0
 		if (this._isMailList) {
 			if (nbrOfSelectedSearchEntities === 0) {
@@ -244,7 +244,7 @@ export class MultiSearchViewer {
 		return this._viewingMails() ? this._mobileMailActionBar() : this._mobileContactActionBar()
 	}
 
-	_viewingMails() {
+	_viewingMails(): boolean {
 		return this._searchListView._lastType.type === "Mail"
 	}
 }

@@ -25,6 +25,7 @@ import {RecipientInfoBubbleHandler} from "../misc/RecipientInfoBubbleHandler"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
+import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CheckboxN} from "../gui/base/CheckboxN"
@@ -42,7 +43,7 @@ import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
-export const iconForAttendeeStatus = Object.freeze({
+export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
 	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,

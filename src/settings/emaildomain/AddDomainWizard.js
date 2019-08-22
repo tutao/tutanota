@@ -94,7 +94,7 @@ export type ValidatedDnSRecord =
 		helpInfo: string[]
 	}
 
-export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs) {
+export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs): Children {
 
 	return m(TableN, {
 		columnHeading: [
@@ -123,7 +123,7 @@ export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButt
 	})
 }
 
-export function createDnsRecordTable(records: DnsRecord[]) {
+export function createDnsRecordTable(records: DnsRecord[]): Children {
 	return m(TableN, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],

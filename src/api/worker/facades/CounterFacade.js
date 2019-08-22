@@ -14,7 +14,7 @@ export class CounterFacade {
 
 	}
 
-	readCounterValue(monitorValue: string, ownerId: Id) {
+	readCounterValue(monitorValue: string, ownerId: Id): Promise<?NumberString> {
 		let counterData = createReadCounterData()
 		counterData.monitor = monitorValue
 		counterData.owner = ownerId

@@ -516,7 +516,7 @@ export class LoginFacade {
 	}
 
 
-	isLoggedIn() {
+	isLoggedIn(): boolean {
 		return this._user != null
 	}
 
@@ -661,7 +661,7 @@ export class LoginFacade {
 		}
 	}
 
-	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string) {
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
 		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)

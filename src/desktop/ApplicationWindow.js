@@ -3,6 +3,7 @@ import type {ContextMenuParams, ElectronPermission, FindInPageResult} from 'elec
 import {app, BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
+// $FlowIgnore[untyped-import]
 import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
@@ -27,9 +28,9 @@ export class ApplicationWindow {
 
 	_userInfo: ?UserInfo;
 	_setBoundsTimeout: TimeoutID;
-	_findingInPage = false;
-	_skipNextSearchBarBlur = false;
-	_lastSearchRequest = null;
+	_findingInPage: boolean = false;
+	_skipNextSearchBarBlur: boolean = false;
+	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
 	_shortcuts: Array<Shortcut>;
 	id: number;
 
@@ -67,22 +68,22 @@ export class ApplicationWindow {
 	}
 
 	//expose browserwindow api
-	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
-	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
-	getTitle = () => this._browserWindow.webContents.getTitle()
+	on: ((m: BrowserWindowEvent, f: (Event) => void) => BrowserWindow) = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
+	once: ((m: BrowserWindowEvent, f: (Event) => void) => BrowserWindow) = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
+	getTitle: (() => string) = () => this._browserWindow.webContents.getTitle()
 	// windows that get their zoom factor set from the config file don't report that
 	// zoom factor back when queried via webContents.zoomFactor.
 	// we set it ourselves in the renderer thread the same way we handle mouse wheel zoom
-	setZoomFactor = (f: number) => this.sendMessageToWebContents('set-zoom-factor', f)
-	isFullScreen = () => this._browserWindow.isFullScreen()
-	isMinimized = () => this._browserWindow.isMinimized()
-	minimize = () => this._browserWindow.minimize()
-	hide = () => this._browserWindow.hide()
-	center = () => this._browserWindow.center()
-	showInactive = () => this._browserWindow.showInactive()
-	isFocused = () => this._browserWindow.isFocused()
+	setZoomFactor: ((f: number) => void) = (f: number) => this.sendMessageToWebContents('set-zoom-factor', f)
+	isFullScreen: (() => boolean) = () => this._browserWindow.isFullScreen()
+	isMinimized: (() => boolean) = () => this._browserWindow.isMinimized()
+	minimize: (() => void) = () => this._browserWindow.minimize()
+	hide: (() => void) = () => this._browserWindow.hide()
+	center: (() => void) = () => this._browserWindow.center()
+	showInactive: (() => void) = () => this._browserWindow.showInactive()
+	isFocused: (() => boolean) = () => this._browserWindow.isFocused()
 
-	get browserWindow() {
+	get browserWindow(): BrowserWindow {
 		return this._browserWindow
 	}
 
@@ -330,7 +331,7 @@ export class ApplicationWindow {
 		this._findingInPage = state
 	}
 
-	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {
+	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void): void {
 		return callback(false)
 	}
 

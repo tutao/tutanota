@@ -166,7 +166,7 @@ export class ContactViewer {
 		this._setupShortcuts()
 	}
 
-	getSocialUrl(element: ContactSocialId) {
+	getSocialUrl(element: ContactSocialId): string {
 		let socialUrlType = ""
 		let http = "https://"
 		let worldwidew = "www."
@@ -244,7 +244,7 @@ export class ContactViewer {
 
 	_formatBirthday(): string {
 		if (this._hasBirthday()) {
-			return formatBirthdayWithMonthName(isoDateToBirthday(this.contact.birthdayIso))
+			return formatBirthdayWithMonthName(isoDateToBirthday(neverNull(this.contact.birthdayIso)))
 		} else {
 			return ""
 		}

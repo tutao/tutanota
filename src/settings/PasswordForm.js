@@ -88,7 +88,7 @@ export class PasswordForm {
 		}
 	}
 
-	_getPasswordStrength() {
+	_getPasswordStrength(): number {
 		let reserved = []
 		if (logins.isUserLoggedIn()) {
 			reserved = getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)

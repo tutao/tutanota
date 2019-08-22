@@ -33,7 +33,7 @@ type Attrs = {
 }
 
 export class CalendarAgendaView implements MComponent<Attrs> {
-	view({attrs}: Vnode<Attrs>) {
+	view({attrs}: Vnode<Attrs>): Children {
 		const now = new Date()
 		const zone = getTimeZone()
 

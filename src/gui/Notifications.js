@@ -50,4 +50,4 @@ export class Notifications {
 	}
 }
 
-export const notifications = new Notifications()
+export const notifications: Notifications = new Notifications()

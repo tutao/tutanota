@@ -2,6 +2,7 @@
 import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+// $FlowIgnore[untyped-import]
 import en from "./translations/en"
 import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"

@@ -19,7 +19,7 @@ export type Attrs = {
 }
 
 export class FolderColumnView implements MComponent<Attrs> {
-	view({attrs}: Vnode<Attrs>) {
+	view({attrs}: Vnode<Attrs>): Children {
 		return m(".flex.height-100p", [
 			m(DrawerMenu),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col"

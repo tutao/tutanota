@@ -48,6 +48,8 @@ import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {NewSessionData} from "../worker/facades/LoginFacade"
 import {logins} from "./LoginController"
 import type {RecipientInfo} from "../common/RecipientInfo"
+import type {Country} from "../common/CountryList"
+import type {SearchRestriction} from "../worker/search/SearchTypes"
 
 assertMainOrNode()
 
@@ -256,7 +258,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('changeAdminFlag', arguments))
 	}
 
-	updateAdminship(groupId: Id, newAdminGroupId: Id) {
+	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
 		return this._postRequest(new Request('updateAdminship', arguments))
 	}
 
@@ -304,7 +306,7 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('getCurrentPrice', arguments))
 	}
 
-	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null) {
+	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null): Promise<void> {
 		return this._postRequest(new Request('tryReconnectEventBus', [closeIfOpen, enableAutomaticState, delay]))
 	}
 
@@ -449,11 +451,11 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}
 
-	entropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) {
+	entropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {
 		return this._postRequest(new Request('entropy', Array.from(arguments)))
 	}
 
-	_postRequest(msg: Request) {
+	_postRequest(msg: Request): Promise<any> {
 		if (!this.initialized.isFulfilled()) {
 			throw new Error("worker has not been initialized, request: " + JSON.stringify(msg))
 		}
@@ -511,19 +513,19 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
 	}
 
-	resetSession() {
+	resetSession(): Promise<void> {
 		return this._queue.postMessage(new Request("resetSession", []))
 	}
 
-	reset() {
+	reset(): Promise<void> {
 		return this._postRequest(new Request('reset', []))
 	}
 
-	createCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+	createCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
 		return this._queue.postMessage(new Request("createCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
-	updateCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: CalendarEvent) {
+	updateCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: CalendarEvent): Promise<void> {
 		return this._queue.postMessage(new Request("updateCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
@@ -579,4 +581,4 @@ export class WorkerClient implements EntityRestInterface {
 	}
 }
 
-export const worker = new WorkerClient()
+export const worker: WorkerClient = new WorkerClient()

@@ -26,7 +26,7 @@ export function numberRange(min: number, max: number): Array<number> {
  *
  * It is valid to compare Uint8Array to Array<T>, don't restrict it to be one type
  */
-export function arrayEquals<T, A: Uint8Array | Array<T>>(a1: A, a2: A) {
+export function arrayEquals<T, A: Uint8Array | Array<T>>(a1: A, a2: A): boolean {
 	if (a1.length === a2.length) {
 		for (let i = 0; i < a1.length; i++) {
 			if (a1[i] !== a2[i]) {

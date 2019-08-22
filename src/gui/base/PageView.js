@@ -17,7 +17,7 @@ export class PageView implements MComponent<Attrs> {
 	_swipeHandler: PageSwipeHandler;
 	_onChangePage: (boolean) => mixed;
 
-	view({attrs}: Vnode<Attrs>) {
+	view({attrs}: Vnode<Attrs>): Children {
 		this._onChangePage = (next) => attrs.onChangePage(next)
 		return m(".fill-absolute", {
 				oncreate: (vnode) => {
@@ -53,7 +53,7 @@ export class PageView implements MComponent<Attrs> {
 
 export class PageSwipeHandler extends SwipeHandler {
 	_onGestureCompleted: (next: boolean) => mixed;
-	_xoffset = 0
+	_xoffset: number = 0
 
 	constructor(touchArea: HTMLElement, onGestureCompleted: (next: boolean) => mixed) {
 		super(touchArea)

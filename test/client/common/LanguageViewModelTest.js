@@ -1,6 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang} from "../../../src/misc/LanguageViewModel"
+// $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 
 o.spec("LanguageViewModelTests", function () {

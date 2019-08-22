@@ -21,10 +21,10 @@ assertMainOrNode()
 export class SearchInPageOverlay {
 	_closeFunction: (() => void) | null;
 	_domInput: HTMLInputElement;
-	_matchCase = false;
+	_matchCase: boolean = false;
 	_numberOfMatches: number = 0;
 	_currentMatch: number = 0;
-	_skipNextBlur = false;
+	_skipNextBlur: boolean = false;
 
 	constructor() {
 		this._closeFunction = null
@@ -57,7 +57,14 @@ export class SearchInPageOverlay {
 		m.redraw()
 	}
 
-	_getRect() {
+	_getRect(): {|
+		bottom?: ?string,
+		height?: ?string,
+		left?: ?string,
+		right?: ?string,
+		top?: ?string,
+		width?: ?string,
+	|} {
 		return {
 			height: px(size.navbar_height_mobile),
 			bottom: px(0),
@@ -66,7 +73,7 @@ export class SearchInPageOverlay {
 		}
 	}
 
-	_inputField = (): VirtualElement | null => {
+	_inputField: (() => Children) = () => {
 		return m("input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper", {
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
@@ -94,7 +101,7 @@ export class SearchInPageOverlay {
 		)
 	}
 
-	_find = (forward: boolean, findNext: boolean) => {
+	_find: ((forward: boolean, findNext: boolean) => Promise<void>) = (forward, findNext) => {
 		console.log("finding next", this._domInput.value)
 		this._skipNextBlur = true
 		return nativeApp.invokeNative(new Request("findInPage", [
@@ -188,4 +195,4 @@ export class SearchInPageOverlay {
 	}
 }
 
-export const searchInPageOverlay = new SearchInPageOverlay()
+export const searchInPageOverlay: SearchInPageOverlay = new SearchInPageOverlay()

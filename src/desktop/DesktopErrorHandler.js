@@ -119,5 +119,5 @@ class DesktopErrorHandler {
 	}
 }
 
-export const err = new DesktopErrorHandler()
+export const err: DesktopErrorHandler = new DesktopErrorHandler()
 

@@ -18,6 +18,7 @@ import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {Contact} from "../api/entities/tutanota/Contact"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export class ContactMergeView {
 	view: Function;
@@ -273,7 +274,7 @@ export class ContactMergeView {
 		                    .setCloseHandler(cancelAction)
 	}
 
-	_createTextFields(value1: ? string, value2: ? string, labelTextId: string): ? TextField[] {
+	_createTextFields(value1: ? string, value2: ? string, labelTextId: TranslationKey): ? TextField[] {
 		if (value1 || value2) {
 			return [
 				new TextField(labelTextId).setValue(value1 ? value1 : "").setDisabled(),

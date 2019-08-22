@@ -1,3 +1,5 @@
+// @flow
+
 import {assertMainOrNodeBoot} from "../api/Env"
 
 assertMainOrNodeBoot()
@@ -37,7 +39,7 @@ export const size = {
 	button_height_bubble: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
-	get bubble_border_width() {
+	get bubble_border_width(): number {
 		return (this.button_height - this.button_height_bubble) / 2
 	},
 
@@ -62,7 +64,7 @@ export const size = {
 	line_height_m: 1.6,
 	line_height_l: 1.8,
 
-	get calendar_line_height() {
+	get calendar_line_height(): number {
 		return this.font_size_small + 6
 	},
 	calendar_hour_width: 80,
@@ -78,15 +80,15 @@ export const size = {
 	second_col_max_width: 350,
 	third_col_min_width: 600,
 	third_col_max_width: 2400,
-	get desktop_layout_width() {
+	get desktop_layout_width(): number {
 		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
 	},
-	get two_column_layout_width() {
+	get two_column_layout_width(): number {
 		return this.second_col_min_width + this.third_col_min_width
 	},
 }
 
-export const inputLineHeight = size.font_size_base + 8
+export const inputLineHeight: number = size.font_size_base + 8
 
 export function px(value: number): string {
 	return value + 'px'

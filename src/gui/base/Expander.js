@@ -100,7 +100,7 @@ export class ExpanderPanel {
 		])
 	}
 
-	_animate(fadeIn: boolean) {
+	_animate(fadeIn: boolean): Promise<void> {
 		animations.add(this._domPanel, fadeIn ? opacity(0, 1, true) : opacity(1, 0, true))
 		let childHeight = Array.from(this._domPanel.children)
 		                       .map((domElement: HTMLElement) => domElement.offsetHeight)

@@ -18,7 +18,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import type {ListElement} from "../api/common/EntityFunctions"
-import {getElementId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {getElementId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
@@ -44,15 +44,16 @@ import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
+import type {SearchRestriction} from "../api/worker/search/SearchTypes"
 
 assertMainOrNode()
 
-export type ShowMoreAction = {
+export type ShowMoreAction = {|
 	resultCount: number,
 	shownCount: number,
 	indexTimestamp: number,
 	allowShowMore: boolean
-}
+|}
 
 type SearchBarAttrs = {
 	classes?: string,
@@ -356,7 +357,7 @@ export class SearchBar implements Component {
 		const {query} = this._state()
 		if (result != null) {
 			this._domInput.blur()
-			let type: ?TypeRef = result._type ? result._type : null
+			let type: ?TypeRef<*> = result._type !== undefined ? result._type : null
 			if (!type) { // click on SHOW MORE button
 				if (result.allowShowMore) {
 					this._updateSearchUrl(query)
@@ -431,7 +432,7 @@ export class SearchBar implements Component {
 		}
 	}
 
-	_doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
+	_doSearch: ((query: string, restriction: SearchRestriction, cb: () => void) => void) = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
 		let useSuggestions = m.route.get().startsWith("/settings")
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
 		const limit = isSameTypeRef(MailTypeRef, restriction.type)

@@ -15,7 +15,7 @@ export type SegmentControlAttrs<T> = {|
 
 
 export class SegmentControl<T> implements MComponent<SegmentControlAttrs<T>> {
-	view(vnode: Vnode<SegmentControlAttrs<T>>) {
+	view(vnode: Vnode<SegmentControlAttrs<T>>): Children {
 		return [
 			m(".segmentControl.flex.center-horizontally.button-height", {
 				role: "tablist",

@@ -25,6 +25,7 @@ import type {ExpanderAttrs} from "../gui/base/ExpanderN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
+import type {EntityUpdateData} from "../api/main/EventController"
 
 assertMainOrNode()
 

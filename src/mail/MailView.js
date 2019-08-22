@@ -407,7 +407,7 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	_moveMails() {
+	_moveMails(): boolean {
 		const selectedMails = this.mailList.list.getSelectedEntities()
 		if (selectedMails.length === 0) {
 			return false
@@ -440,7 +440,7 @@ export class MailView implements CurrentView {
 		return false
 	}
 
-	switchToFolder(folderType: MailFolderTypeEnum) {
+	switchToFolder(folderType: MailFolderTypeEnum): Promise<void> {
 		return this._getMailboxDetails()
 		           .then((mailboxDetails) => {
 			           m.route.set(this._folderToUrl[getFolder(mailboxDetails.folders, folderType)._id[1]])
@@ -623,7 +623,7 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	createFolderAddButton(mailGroupId: Id) {
+	createFolderAddButton(mailGroupId: Id): Button {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
@@ -695,7 +695,7 @@ export class MailView implements CurrentView {
 		              })
 	}
 
-	_finallyDeleteCustomMailFolder(folder: MailFolder) {
+	_finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
 		if (folder.folderType !== MailFolderType.CUSTOM) {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
@@ -713,44 +713,45 @@ export class MailView implements CurrentView {
 		m.route.set("/")
 	}
 
-	elementSelected = (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => {
-		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
-			// set or update the visible mail
-			this.mailViewer = new MailViewer(mails[0], false)
-			let url = `/mail/${mails[0]._id.join("/")}`
-			if (this.selectedFolder) {
-				this._folderToUrl[this.selectedFolder._id[1]] = url
+	elementSelected: (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => void =
+		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
+			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
+				// set or update the visible mail
+				this.mailViewer = new MailViewer(mails[0], false)
+				let url = `/mail/${mails[0]._id.join("/")}`
+				if (this.selectedFolder) {
+					this._folderToUrl[this.selectedFolder._id[1]] = url
+				}
+				this._setUrl(url)
+				m.redraw()
+			} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewer) {
+				// remove the visible mail
+				this.mailViewer = null
+				let url = `/mail/${this.mailList.listId}`
+				if (this.selectedFolder) {
+					this._folderToUrl[this.selectedFolder._id[1]] = url
+				}
+				this._setUrl(url)
+				m.redraw()
+			} else if (selectionChanged) {
+				// update the multi mail viewer
+				m.redraw()
 			}
-			this._setUrl(url)
-			m.redraw()
-		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewer) {
-			// remove the visible mail
-			this.mailViewer = null
-			let url = `/mail/${this.mailList.listId}`
-			if (this.selectedFolder) {
-				this._folderToUrl[this.selectedFolder._id[1]] = url
+			if (this.mailViewer && !multiSelectOperation) {
+				if (mails[0].unread && !mails[0]._errors) {
+					mails[0].unread = false
+					update(mails[0])
+						.catch(NotFoundError,
+							e => console.log("could not set read flag as mail has been moved/deleted already", e))
+						.catch(LockedError, noOp)
+				}
+				if (elementClicked) {
+					this.mailList.list._loading.then(() => {
+						this.viewSlider.focus(this.mailColumn)
+					})
+				}
 			}
-			this._setUrl(url)
-			m.redraw()
-		} else if (selectionChanged) {
-			// update the multi mail viewer
-			m.redraw()
 		}
-		if (this.mailViewer && !multiSelectOperation) {
-			if (mails[0].unread && !mails[0]._errors) {
-				mails[0].unread = false
-				update(mails[0])
-					.catch(NotFoundError,
-						e => console.log("could not set read flag as mail has been moved/deleted already", e))
-					.catch(LockedError, noOp)
-			}
-			if (elementClicked) {
-				this.mailList.list._loading.then(() => {
-					this.viewSlider.focus(this.mailColumn)
-				})
-			}
-		}
-	}
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		return showDeleteConfirmationDialog(mails).then((confirmed) => {
@@ -762,7 +763,7 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder) {
+	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
 		if (folder.folderType !== MailFolderType.TRASH && folder.folderType !== MailFolderType.SPAM) {
 			throw new Error(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 		}
@@ -814,6 +815,6 @@ export class MailView implements CurrentView {
 	}
 }
 
-export function isNewMailActionAvailable() {
+export function isNewMailActionAvailable(): boolean {
 	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
 }

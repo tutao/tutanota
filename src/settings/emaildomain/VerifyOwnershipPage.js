@@ -24,7 +24,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 		})
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		const a = vnode.attrs
 		return [
 			m("h4.mt-l.text-center", lang.get("verifyDomainOwnership_title")),

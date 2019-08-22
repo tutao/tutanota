@@ -284,7 +284,7 @@ export class GroupViewer {
 		})
 	}
 
-	_isMailGroup() {
+	_isMailGroup(): boolean {
 		return this.groupInfo.groupType === GroupType.Mail
 	}
 

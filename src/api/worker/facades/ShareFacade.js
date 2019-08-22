@@ -64,7 +64,7 @@ export class ShareFacade {
 						}
 					})
 				}).then(() => {
-					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
+					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 					return serviceRequest(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData, GroupInvitationPostReturnTypeRef)
 				})
 			})

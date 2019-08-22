@@ -44,7 +44,7 @@ export class SelectMailAddressForm {
 		stream.merge([this._messageId, this.cleanMailAddress]).map(m.redraw)
 	}
 
-	view() {
+	view(): Children {
 		const domainChooserAttrs: ButtonAttrs = attachDropdown({
 			label: "domain_label",
 			icon: () => Icons.More,

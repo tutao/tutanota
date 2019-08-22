@@ -314,7 +314,7 @@ export class SearchListView {
 		}
 	}
 
-	isListAvailable() {
+	isListAvailable(): boolean {
 		return this.list != null && this.list.ready
 	}
 

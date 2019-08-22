@@ -19,7 +19,7 @@ import {aesDecryptFile, aesEncryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
 import {createDataFile} from "../../common/DataFile"
-import {SuspensionHandler} from "../SuspensionHandler"
+import type {SuspensionHandler} from "../SuspensionHandler"
 
 assertWorkerOrNode()
 
@@ -87,8 +87,8 @@ export class FileFacade {
 								size: file.size
 							}
 						})
-					} else if (isSuspensionResponse(statusCode, suspensionTime)) {
-						this._suspensionHandler.activateSuspensionIfInactive(suspensionTime)
+					} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
+						this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 						response = this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 					} else {
 						response = Promise.reject(handleRestError(statusCode, ` | GET ${url} failed to natively download attachment`, errorId, precondition))
@@ -140,8 +140,8 @@ export class FileFacade {
 						return fileApp.upload(encryptedFileInfo.uri, url, headers).then(({statusCode, uri, errorId, precondition, suspensionTime}) => {
 							if (statusCode === 200) {
 								return fileDataId;
-							} else if (isSuspensionResponse(statusCode, suspensionTime)) {
-								this._suspensionHandler.activateSuspensionIfInactive(suspensionTime)
+							} else if (suspensionTime && isSuspensionResponse(statusCode, suspensionTime)) {
+								this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 								return this._suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
 							} else {
 								throw handleRestError(statusCode, ` | PUT ${url} failed to natively upload attachment`, errorId, precondition)

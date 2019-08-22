@@ -1,4 +1,5 @@
 // @flow
+// $FlowIgnore[untyped-import]
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {random} from "./Randomizer"
 import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"

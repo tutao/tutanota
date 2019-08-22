@@ -83,7 +83,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		})
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const a = vnode.attrs
 		const newAccountData = a.data.newAccountData
 

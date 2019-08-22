@@ -6,6 +6,7 @@ import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {DbError} from "../api/common/error/DbError"
 import type {WorkerClient} from "../api/main/WorkerClient"
+import type {SearchRestriction} from "../api/worker/search/SearchTypes"
 
 assertMainOrNode()
 

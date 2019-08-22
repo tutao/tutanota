@@ -7,6 +7,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString
 } from "./utils/Encoding"
+// $FlowIgnore[untyped-import]
 import EC from "./EntityConstants"
 import {asyncImport} from "./utils/Utils"
 import {last} from "./utils/ArrayUtils"
@@ -230,7 +231,7 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
-export function firstCustomIdIsBigger(left: Id, right: Id) {
+export function firstCustomIdIsBigger(left: Id, right: Id): boolean {
 	return firstBiggerThanSecond(customIdToString(left), customIdToString(right))
 }
 
@@ -364,7 +365,7 @@ export function sortCompareById<T: ListElement>(entity1: T, entity2: T): number 
  * @param id2
  * @returns True if the ids are the same, false otherwise
  */
-export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple) {
+export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple): boolean {
 	if (id1 instanceof Array && id2 instanceof Array) {
 		return id1[0] === id2[0] && id1[1] === id2[1]
 	} else {
@@ -372,7 +373,7 @@ export function isSameId(id1: Id | IdTuple, id2: Id | IdTuple) {
 	}
 }
 
-export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple) {
+export function containsId(ids: Array<Id | IdTuple>, id: Id | IdTuple): boolean {
 	return ids.find(idInArray => isSameId(idInArray, id)) != null
 }
 
@@ -416,7 +417,7 @@ export function elementIdPart(id: IdTuple): Id {
 /**
  * Converts a string to a custom id. Attention: the custom id must be intended to be derived from a string.
  */
-export function stringToCustomId(string: string) {
+export function stringToCustomId(string: string): string {
 	return uint8arrayToCustomId(stringToUtf8Uint8Array(string))
 }
 
@@ -427,7 +428,7 @@ export function uint8arrayToCustomId(array: Uint8Array): string {
 /**
  * Converts a custom id to a string. Attention: the custom id must be intended to be derived from a string.
  */
-export function customIdToString(customId: string) {
+export function customIdToString(customId: string): string {
 	return utf8Uint8ArrayToString(base64ToUint8Array(base64UrlToBase64(customId)));
 }
 

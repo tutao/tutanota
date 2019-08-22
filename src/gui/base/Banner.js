@@ -30,7 +30,7 @@ export type Attrs = {
 }
 
 export class Banner implements MComponent<Attrs> {
-	view({attrs}: Vnode<Attrs>) {
+	view({attrs}: Vnode<Attrs>): Children {
 		const colors = getColors(attrs.type)
 		const isVertical = attrs.type === BannerType.Warning
 		return m(MessageBoxN, {

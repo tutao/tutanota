@@ -72,7 +72,7 @@ export class DesktopUpdateHelpLabel {
 			: null
 	}
 
-	view(vnode: Vnode<UpdateHelpLabelAttrs>) {
+	view(vnode: Vnode<UpdateHelpLabelAttrs>): Children {
 		const updateAvailable = vnode.attrs.updateAvailable
 		return m('.flex.items-center', [
 			this.getLabel(updateAvailable),

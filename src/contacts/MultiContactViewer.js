@@ -42,7 +42,7 @@ export class MultiContactViewer {
 		}
 	}
 
-	_getContactSelectionMessage(contactView: ContactView) {
+	_getContactSelectionMessage(contactView: ContactView): string {
 		var nbrOfSelectedContacts = (contactView._contactList) ? contactView._contactList.list.getSelectedEntities().length : 0
 		if (nbrOfSelectedContacts === 0) {
 			return lang.get("noContact_msg")

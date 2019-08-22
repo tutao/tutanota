@@ -106,7 +106,7 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true) {
+	init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true): Promise<void> {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,

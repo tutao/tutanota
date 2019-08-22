@@ -57,7 +57,7 @@ export class WindowManager {
 			windows.push(w)
 			this._tray.clearBadge()
 			this._notifier.resolveGroupedNotification(w.getUserId())
-		}).on('did-start-navigation', ()=>{
+		}).on('did-start-navigation', () => {
 			this._tray.clearBadge()
 		}).on('page-title-updated', ev => {
 			if (w.getTitle() === LOGIN_TITLE) {
@@ -119,11 +119,11 @@ export class WindowManager {
 		return w
 	}
 
-	openMailBox(info: UserInfo) {
+	openMailBox(info: UserInfo): Promise<void> {
 		return this.findWindowWithUserId(info.userId).openMailBox(info, null)
 	}
 
-	openCalendar(info: UserInfo) {
+	openCalendar(info: UserInfo): Promise<void> {
 		return this.findWindowWithUserId(info.userId).openCalendar(info)
 	}
 

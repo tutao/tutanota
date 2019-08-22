@@ -8,7 +8,7 @@ import Autolinker from "autolinker"
  * @returns {string} The text with html links.
  */
 
-export function urlify(text: string) {
+export function urlify(text: string): string {
 	return Autolinker.link(text, {
 		stripPrefix: false,
 		urls: true,

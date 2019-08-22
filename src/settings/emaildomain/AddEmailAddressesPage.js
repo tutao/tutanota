@@ -65,7 +65,7 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 		}
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		const a = vnode.attrs
 		const aliasesTableAttrs: TableAttrs = {
 			columnWidths: [ColumnWidth.Largest],
@@ -153,7 +153,7 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		this.data = domainData
 	}
 
-	headerTitle() {
+	headerTitle(): string {
 		return lang.get("domainSetup_title")
 	}
 

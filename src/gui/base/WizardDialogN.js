@@ -193,7 +193,7 @@ type WizardPagingButtonAttrs = {
 
 //exported for old-style WizardDialog.js
 export class WizardPagingButton {
-	view(vnode: Vnode<WizardPagingButtonAttrs>) {
+	view(vnode: Vnode<WizardPagingButtonAttrs>): Children {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
 		const filledBg = getContentButtonIconBackground()

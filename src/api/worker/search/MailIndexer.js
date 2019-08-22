@@ -135,7 +135,7 @@ export class MailIndexer {
 		           })
 	}
 
-	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
+	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
 			return transaction.get(ElementDataOS, encInstanceId).then(elementData => {
@@ -383,7 +383,7 @@ export class MailIndexer {
 		})
 	}
 
-	_updateIndexTimeStamp(mailGroupId: Id, indexTimestamp: number) {
+	_updateIndexTimeStamp(mailGroupId: Id, indexTimestamp: number): Promise<void> {
 		return this._db.dbFacade
 		           .createTransaction(false, [GroupDataOS])
 		           .then(t2 => {
@@ -479,7 +479,7 @@ export class MailIndexer {
 		})
 	}
 
-	_isExcluded(event: EntityUpdate) {
+	_isExcluded(event: EntityUpdate): boolean {
 		return this._excludedListIds.indexOf(event.instanceListId) !== -1
 	}
 

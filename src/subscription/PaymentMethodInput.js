@@ -93,7 +93,7 @@ export class PaymentMethodInput {
 		this.onremove = () => locator.eventController.removeEntityListener(accountingInfoListener)
 	}
 
-	isPaypalAssigned() {
+	isPaypalAssigned(): boolean {
 		return this._accountingInfo.paypalBillingAgreement != null
 	}
 

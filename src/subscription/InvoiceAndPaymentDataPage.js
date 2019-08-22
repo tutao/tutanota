@@ -25,6 +25,7 @@ import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import type {Country} from "../api/common/CountryList"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -81,7 +82,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		})
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const a = vnode.attrs
 		const onNextClick = () => {
 			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
@@ -135,7 +136,7 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 		return lang.get("adminPayment_action")
 	}
 
-	isSkipAvailable() {
+	isSkipAvailable(): boolean {
 		return false
 	}
 

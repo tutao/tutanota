@@ -1,6 +1,6 @@
-// @ flow
+// @flow
 import type {ElectronSession} from 'electron'
-import {app, dialog, shell} from "electron"
+import {app, dialog, DownloadItem, shell} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import DesktopUtils from "./DesktopUtils"
@@ -9,7 +9,7 @@ import {noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {EventEmitter} from 'events'
+import {ApplicationWindow} from "./ApplicationWindow"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
@@ -73,7 +73,8 @@ export class DesktopDownloadManager {
 				type: "warning",
 				buttons: [lang.get("yes_label"), lang.get("no_label")],
 				title: lang.get("executableOpen_label"),
-				message: lang.get("executableOpen_msg")
+				message: lang.get("executableOpen_msg"),
+				defaultId: 1, // default button
 			}).then(({response}) => {
 				if (response === 0) {
 					return tryOpen()
@@ -92,16 +93,16 @@ export class DesktopDownloadManager {
 			return Promise.reject('canceled')
 		}
 
-		const downloadItem = new EventEmitter()
-		downloadItem["savePath"] = null
-		downloadItem["getFilename"] = () => filename
-		this._handleDownloadItem("saveBlob", downloadItem)
+		const downloadItem = new DownloadItem()
+		downloadItem.getFilename = () => filename
+
+		this._handleDownloadItem(new Event("saveBlob"), downloadItem)
 		const writePromise = downloadItem.savePath
 			? write({canceled: false, filePath: downloadItem.savePath})
 			: dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(app.getPath('downloads'), filename)})
 			        .then(write)
 		return writePromise.then(() => downloadItem.emit('done', undefined, 'completed'))
-		                   .catch(e => downloadItem.emit('done', e, 'cancelled'))
+		                   .catch(e => {downloadItem.emit('done', e, 'cancelled')})
 	}
 
 

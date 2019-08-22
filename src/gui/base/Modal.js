@@ -188,7 +188,7 @@ export interface ModalComponent {
 
 	shortcuts(): Shortcut[];
 
-	view(vnode: Vnode<any>): Vnode<any>;
+	view(vnode: Vnode<any>): Children;
 
 	backgroundClick(e: MouseEvent): void;
 

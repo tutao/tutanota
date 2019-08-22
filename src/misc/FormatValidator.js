@@ -78,8 +78,8 @@ export function isDomainOrTopLevelDomain(value: string): boolean {
 
 /**
  * Checks if the value is a regular expression, with or without optional flags.
- * @param string The string to check
+ * @param value The string to check
  */
-export function isRegularExpression(value: string) {
+export function isRegularExpression(value: string): boolean {
 	return /^\/.*\/$/.test(value) || /^\/.*\/(?!.*(.)\1)[gimsuy]+$/.test(value)
 }

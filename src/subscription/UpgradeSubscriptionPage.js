@@ -13,7 +13,7 @@ import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const a = vnode.attrs
 		return m("#upgrade-account-dialog.pt", [
 				m(SubscriptionSelector, {
@@ -115,7 +115,7 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 		return Promise.resolve(true)
 	}
 
-	isSkipAvailable() {
+	isSkipAvailable(): boolean {
 		return false
 	}
 

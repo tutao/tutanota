@@ -1,10 +1,11 @@
 //@flow
+// $FlowIgnore[untyped-import]
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {hexToUint8Array} from "../../common/utils/Encoding"
 import {random} from "./Randomizer"
 
-export let DIGITS = 6;
+export let DIGITS: number = 6;
 const DIGITS_POWER
 	// 0   1   2    3    4      5       6        7         8
 	= [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000]

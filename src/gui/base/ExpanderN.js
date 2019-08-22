@@ -27,7 +27,7 @@ export type ExpanderPanelAttrs = {
 export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 	_domIcon: ?HTMLElement;
 
-	view(vnode: Vnode<ExpanderAttrs>) {
+	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
 		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.mr-s", {
@@ -74,7 +74,7 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 	_domPanel: HTMLElement;
 
-	view(vnode: Vnode<ExpanderPanelAttrs>) {
+	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
 		return m(".expander-panel.overflow-hidden", [
 			vnode.attrs.expanded()
 				? m("div", {
@@ -90,7 +90,7 @@ export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 		])
 	}
 
-	_animate(fadeIn: boolean) {
+	_animate(fadeIn: boolean): Promise<void> {
 		animations.add(this._domPanel, fadeIn ? opacity(0, 1, false) : opacity(1, 0, false))
 		let childHeight = Array.from(this._domPanel.children)
 		                       .map((domElement: HTMLElement) => domElement.offsetHeight)

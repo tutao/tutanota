@@ -2,6 +2,7 @@
 import type {DbFacade} from "./DbFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
+import {TypeRef} from "../../common/EntityFunctions"
 
 
 // db types
@@ -26,7 +27,7 @@ export type ElementDataDbRow = [
 	Id,  // first list id
 	Uint8Array,  // second is enc meta row keys encoded in binary format
 	Id // third is owner group id
-	]
+]
 
 export type EncryptedSearchIndexEntryWithHash = {
 	encEntry: EncryptedSearchIndexEntry,
@@ -127,3 +128,11 @@ export type MoreResultsIndexEntry = {
 	encId: Uint8Array
 }
 
+export type SearchRestriction = {
+	type: TypeRef<any>;
+	start: ?number; // timestamp
+	end: ?number; // timestamp
+	field: ?string; // must be kept in sync with attributeIds
+	attributeIds: ?number[]; // must be kept in sync with field
+	listId: ?Id;
+}

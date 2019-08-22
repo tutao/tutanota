@@ -1,6 +1,6 @@
 //@flow
 
-import type {AlarmIntervalEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from "../api/common/TutanotaConstants"
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -224,7 +224,7 @@ function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean, lo
 			endType = `;UNTIL=${value}`
 		}
 		return [
-			`RRULE:FREQ=${tutaToIcalFrequency[repeatRule.frequency]}` +
+			`RRULE:FREQ=${tutaToIcalFrequency[downcast(repeatRule.frequency)]}` +
 			`;INTERVAL=${repeatRule.interval}` +
 			endType
 		]
@@ -352,4 +352,4 @@ const calendarAttendeeStatusToParstat = {
 	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
 	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
 }
-export const parstatToCalendarAttendeeStatus = reverse(calendarAttendeeStatusToParstat)
+export const parstatToCalendarAttendeeStatus: {[string]: CalendarAttendeeStatusEnum} = reverse(calendarAttendeeStatusToParstat)

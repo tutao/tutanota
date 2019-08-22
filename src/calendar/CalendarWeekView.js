@@ -63,7 +63,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 	}
 
-	view(vnode: Vnode<Attrs>) {
+	view(vnode: Vnode<Attrs>): Children {
 		const previousWeek = getCalendarWeek(incrementDate(new Date(vnode.attrs.selectedDate), -7), vnode.attrs.startOfTheWeek)
 		const currentWeek = getCalendarWeek(vnode.attrs.selectedDate, vnode.attrs.startOfTheWeek)
 		const nextWeek = getCalendarWeek(incrementDate(new Date(vnode.attrs.selectedDate), +7), vnode.attrs.startOfTheWeek)
@@ -80,7 +80,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 		})
 	}
 
-	_renderWeek(attrs: Attrs, thisWeek: WeekEvents, mainWeek: WeekEvents) {
+	_renderWeek(attrs: Attrs, thisWeek: WeekEvents, mainWeek: WeekEvents): Children {
 		const firstDate = thisWeek.week[0]
 		const lastDate = lastThrow(thisWeek.week)
 		let title: string

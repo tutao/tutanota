@@ -29,6 +29,7 @@ import {fileController} from "../file/FileController"
 import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
+import type {EntityUpdateData} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -172,7 +173,7 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_getContactFormTitle(contactForm: ContactForm) {
+	_getContactFormTitle(contactForm: ContactForm): string {
 		let pageTitle = ""
 		let language = contactForm.languages.find(l => l.code === lang.code)
 		if (language) {

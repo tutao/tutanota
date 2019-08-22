@@ -1,5 +1,5 @@
 // @flow
-import {size} from "../gui/size"
+import {px, size} from "../gui/size"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
@@ -151,7 +151,7 @@ export class MailViewer {
 	_attachmentButtons: Button[];
 	_contentBlocked: boolean;
 	_domMailViewer: ?HTMLElement;
-	_bodyLineHeight: string;
+	_bodyLineHeight: number;
 	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -166,7 +166,7 @@ export class MailViewer {
 	_inlineImages: Promise<InlineImages>;
 	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
-	_lastBodyTouchEndTime = 0;
+	_lastBodyTouchEndTime: number = 0;
 	_lastTouchStart: {x: number, y: number, time: number};
 	_domForScrolling: ?HTMLElement
 	_warningDismissed: boolean;
@@ -354,7 +354,7 @@ export class MailViewer {
 									this._rescale(false)
 								},
 								onsubmit: (event: Event) => this._confirmSubmit(event),
-								style: {'line-height': this._bodyLineHeight, 'transform-origin': 'top left'},
+								style: {'line-height': px(this._bodyLineHeight), 'transform-origin': 'top left'},
 							}, (this._mailBody == null && !this._errorOccurred)
 								? m(".progress-panel.flex-v-center.items-center", {
 									style: {
@@ -392,7 +392,7 @@ export class MailViewer {
 			: null
 	}
 
-	_createDetailsExpander(bubbleMenuWidth: number, mail: Mail, expanderStyle: {}) {
+	_createDetailsExpander(bubbleMenuWidth: number, mail: Mail, expanderStyle: {}): ExpanderButton {
 		return new ExpanderButton("showMore_action", new ExpanderPanel({
 			view: () => {
 				const envelopeSender = this.mail.differentEnvelopeSender
@@ -489,7 +489,7 @@ export class MailViewer {
 		return dialog
 	}
 
-	_unsubscribe() {
+	_unsubscribe(): Promise<void> {
 		if (this.mail.headers) {
 			return showProgressDialog("pleaseWait_msg", load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
 				let headers = getMailHeaders(mailHeaders).split("\n").filter(headerLine =>
@@ -517,6 +517,7 @@ export class MailViewer {
 				return Dialog.error("unsubscribeFailed_msg")
 			})
 		}
+		return Promise.resolve()
 	}
 
 	actionButtons(): Children {
@@ -738,10 +739,10 @@ export class MailViewer {
 		showProgressDialog("pleaseWait_msg", exportPromise).then(df => fileController.open(df))
 	}
 
-	_markAsNotPhishing() {
+	_markAsNotPhishing(): Promise<void> {
 		const oldStatus = this.mail.phishingStatus
 		if (oldStatus === MailPhishingStatus.WHITELISTED) {
-			return
+			return Promise.resolve()
 		}
 
 		this.mail.phishingStatus = MailPhishingStatus.WHITELISTED
@@ -1178,7 +1179,7 @@ export class MailViewer {
 			.catch(NotFoundError, noOp)
 	}
 
-	_editDraft() {
+	_editDraft(): Promise<void> {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return locator.mailModel.getMailboxDetailsForMail(this.mail)
@@ -1190,9 +1191,9 @@ export class MailViewer {
 		})
 	}
 
-	_reply(replyAll: boolean) {
+	_reply(replyAll: boolean): Promise<void> {
 		if (this._isAnnouncement()) {
-			return
+			return Promise.resolve()
 		}
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
@@ -1251,7 +1252,7 @@ export class MailViewer {
 		})
 	}
 
-	_getMailBody() {
+	_getMailBody(): string {
 		if (this._mailBody) {
 			return getMailBodyText(this._mailBody)
 		} else {
@@ -1259,7 +1260,7 @@ export class MailViewer {
 		}
 	}
 
-	_forward() {
+	_forward(): Promise<void> {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return this._createResponseMailArgsForForwarding([], [], true).then(args => {

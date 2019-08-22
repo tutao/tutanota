@@ -150,7 +150,7 @@ export class HtmlEditor {
 	}
 
 
-	setModeSwitcher(label: TranslationKey | lazy<string>) {
+	setModeSwitcher(label: TranslationKey | lazy<string>): this {
 		this._modeSwitcher = new DropDownSelector(label, null, [
 			{name: lang.get("richText_label"), value: Mode.WYSIWYG},
 			{name: lang.get("htmlSourceCode_label"), value: Mode.HTML}
@@ -204,7 +204,7 @@ export class HtmlEditor {
 	}
 
 
-	isActive() {
+	isActive(): boolean {
 		return this._active
 	}
 

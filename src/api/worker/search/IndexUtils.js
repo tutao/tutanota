@@ -179,7 +179,7 @@ export function filterMailMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(m => m.groupType === GroupType.Mail)
 }
 
-export function byteLength(str: ?string) {
+export function byteLength(str: ?string): number {
 	if (str == null) return 0
 	// returns the byte length of an utf8 string
 	var s = str.length;
@@ -388,6 +388,6 @@ export function markEnd(name: string) {
 	}
 }
 
-export function shouldMeasure() {
+export function shouldMeasure(): boolean {
 	return !env.dist && !isTest()
 }

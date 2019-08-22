@@ -23,11 +23,11 @@ export class SettingsFolder {
 		this._isVisibleHandler = () => true
 	}
 
-	isActive() {
+	isActive(): boolean {
 		return isSelectedPrefix(this.url)
 	}
 
-	isVisible() {
+	isVisible(): boolean {
 		return this._isVisibleHandler()
 	}
 

@@ -1,7 +1,7 @@
+// @flow
 import {Icons} from "./icons/Icons"
 import m from "mithril"
 import {Button} from "./Button"
-import type {Vnode} from "../../../flow/libs"
 
 
 type MultiSelectionBarAttrs = {
@@ -11,7 +11,7 @@ type MultiSelectionBarAttrs = {
 }
 
 export class MultiSelectionBar {
-	view(vnode: Vnode<MultiSelectionBarAttrs>) {
+	view(vnode: Vnode<MultiSelectionBarAttrs>): Children {
 		const cancelButton = new Button("cancel_action", vnode.attrs.selectNoneHandler, () => Icons.Cancel)
 		return m(".flex.items-center.justify-between.pl-s.pr-s", {
 			style: {

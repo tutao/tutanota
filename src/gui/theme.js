@@ -103,11 +103,11 @@ export function getElevatedBackground(): string {
 	return theme.elevated_bg || theme.content_bg
 }
 
-export function getNavigationMenuBg() {
+export function getNavigationMenuBg(): string {
 	return theme.navigation_menu_bg || theme.navigation_bg
 }
 
-export function getNavigationMenuIcon() {
+export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 

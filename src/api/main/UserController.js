@@ -84,7 +84,7 @@ export class UserController implements IUserController {
 	 * Checks if the current user is an admin of the customer.
 	 * @return True if the user is an admin
 	 */
-	isGlobalAdmin() {
+	isGlobalAdmin(): boolean {
 		if (this.isInternalUser()) {
 			return this.user.memberships.find(m => m.groupType === GroupType.Admin) != null
 		} else {
@@ -92,7 +92,7 @@ export class UserController implements IUserController {
 		}
 	}
 
-	isGlobalOrLocalAdmin() {
+	isGlobalOrLocalAdmin(): boolean {
 		if (this.isInternalUser()) {
 			return this.user.memberships.find(m => m.groupType === GroupType.Admin || m.groupType
 				=== GroupType.LocalAdmin) != null

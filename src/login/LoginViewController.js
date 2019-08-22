@@ -199,7 +199,7 @@ export class LoginViewController implements ILoginViewController {
 		            })
 	}
 
-	_enforcePasswordChange() {
+	_enforcePasswordChange(): void {
 		if (logins.getUserController().user.requirePasswordUpdate) {
 			return PasswordForm.showChangeOwnPasswordDialog(false)
 		}

@@ -1,4 +1,5 @@
 // @flow
+// $FlowIgnore[untyped-import]
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"

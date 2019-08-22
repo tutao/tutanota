@@ -508,7 +508,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 	}
 
-	isEntitySelected(id: Id) {
+	isEntitySelected(id: Id): boolean {
 		return this._selectedEntities.find(entity => getLetId(entity)[1] === id) != null
 	}
 
@@ -567,7 +567,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 
-	_calculateListHeight() {
+	_calculateListHeight(): string {
 		return this._config.rowHeight * (this._loadedEntities.length + (this._loadedCompletely ? 0 : 1)) + "px"
 	}
 

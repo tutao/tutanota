@@ -1,6 +1,7 @@
 // @flow
 import {size} from "../size"
 import m from "mithril"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import type {PosRect} from "./Dropdown"
@@ -87,7 +88,7 @@ export class Button {
 		}
 	}
 
-	getIcon() {
+	getIcon(): Children {
 		return (this.icon instanceof Function && this.icon()) ? m(Icon, {
 			icon: this.icon(),
 			class: this.getIconClass(),
@@ -98,7 +99,7 @@ export class Button {
 		}) : null
 	}
 
-	getIconColor() {
+	getIconColor(): string {
 		if (this._type === ButtonType.Bubble) {
 			return theme.button_bubble_fg
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
@@ -108,7 +109,7 @@ export class Button {
 		}
 	}
 
-	getIconBackgroundColor() {
+	getIconBackgroundColor(): string {
 		if (this._type === ButtonType.Bubble) {
 			return 'initial'
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
@@ -120,7 +121,7 @@ export class Button {
 		}
 	}
 
-	getIconClass() {
+	getIconClass(): string {
 		if (this._type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
 		} else if (this._type === ButtonType.Floating) {
@@ -132,7 +133,7 @@ export class Button {
 		}
 	}
 
-	getButtonClasses() {
+	getButtonClasses(): Array<string> {
 		let buttonClasses = ["bg-transparent"]
 		if (this._type === ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
@@ -151,7 +152,7 @@ export class Button {
 		return buttonClasses
 	}
 
-	getWrapperClasses() {
+	getWrapperClasses(): Array<string> {
 		let wrapperClasses = ["button-content", "flex", "items-center", this._type]
 		if (this._type !== ButtonType.Floating && this._type !== ButtonType.TextBubble) {
 			wrapperClasses.push("plr-button")
@@ -164,7 +165,7 @@ export class Button {
 		return wrapperClasses
 	}
 
-	_getLabelElement() {
+	_getLabelElement(): Children {
 		let classes = ["text-ellipsis"]
 		if (this._type === ButtonType.Dropdown) {
 			classes.push("pl-m")
@@ -180,7 +181,7 @@ export class Button {
 		}
 	}
 
-	_getLabelStyle() {
+	_getLabelStyle(): {} {
 		let color
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
@@ -200,7 +201,7 @@ export class Button {
 	/**
 	 * This text is shown on the right of the main button label and never cut off (no ellipsis)
 	 */
-	setStaticRightText(text: string) {
+	setStaticRightText(text: string): this {
 		this._staticRightText = text
 		m.redraw()
 		return this
@@ -234,7 +235,7 @@ export class Button {
 		return this;
 	}
 
-	disableBubbling() {
+	disableBubbling(): this {
 		this.propagateClickEvents = false
 		return this
 	}
@@ -257,14 +258,14 @@ export class Button {
 	}
 }
 
-export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
+export function createDropDownButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: ?lazy<AllIconsEnum>,
                                      lazyButtons: lazy<$ReadOnlyArray<string | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)
 }
 
-export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
+export function createAsyncDropDownButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: ?lazyIcon,
                                           lazyButtons: lazyAsync<$ReadOnlyArray<string | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {

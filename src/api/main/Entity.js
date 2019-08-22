@@ -27,6 +27,7 @@ import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
 import type {VersionReturn} from "../entities/sys/VersionReturn"
 import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
+// $FlowIgnore[untyped-import]
 import EC from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"

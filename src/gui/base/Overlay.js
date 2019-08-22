@@ -52,7 +52,7 @@ export function displayOverlay(position: PositionRect, component: Component, cre
 }
 
 export const overlay = {
-	view: () => m("#overlay", {
+	view: (): Children => m("#overlay", {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
 		},

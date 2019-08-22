@@ -33,14 +33,7 @@ import {KeyLength} from "../crypto/CryptoConstants"
 import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {
-	containsId,
-	getLetId,
-	HttpMethod,
-	isSameId,
-	isSameTypeRefByAttr,
-	stringToCustomId
-} from "../../common/EntityFunctions"
+import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {addressDomain, defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
@@ -65,6 +58,7 @@ import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
+// $FlowIgnore[untyped-import]
 import murmurHash from "../crypto/lib/murmurhash3_32"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
@@ -89,7 +83,7 @@ export class MailFacade {
 		this._entity = entity
 	}
 
-	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id) {
+	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
 		let mailGroupKey = this._login.getGroupKey(ownerGroupId)
 		let sk = aes128RandomKey()
 		let newFolder = createCreateMailFolderData()
@@ -430,7 +424,7 @@ export class MailFacade {
 				}
 			})
 		).then(() => {
-			if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
+			if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		})
 	}
 
@@ -442,7 +436,7 @@ export class MailFacade {
 	 * @param verifier The external user's verifier, base64 encoded.
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
-	_getExternalGroupKey = function (recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
+	_getExternalGroupKey(recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
 		return this._entity.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
@@ -524,7 +518,7 @@ export class MailFacade {
 	}
 }
 
-export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: string) {
+export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: string): string {
 	return type + murmurHash(value.replace(/\s/g, ""))
 }
 

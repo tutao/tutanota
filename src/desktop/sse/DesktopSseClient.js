@@ -120,11 +120,11 @@ export class DesktopSseClient {
 		return this._conf.getVar(DesktopConfigKey.pushIdentifier)
 	}
 
-	connect() {
+	connect(): Promise<void> {
 		if (!this._connectedSseInfo) {
 			this._reschedule(10)
 			console.log("sse info not available, skip reconnect")
-			return
+			return Promise.resolve()
 		}
 		const sseInfo = this._connectedSseInfo
 		if (this.hasNotificationTTLExpired()) {
@@ -185,6 +185,8 @@ export class DesktopSseClient {
 		).on('connect', e => console.log('sse connect:', e.message)
 		).on('error', e => console.error('sse error:', e.message)
 		).end()
+
+		return Promise.resolve()
 	}
 
 	_processSseData(data: string): void {

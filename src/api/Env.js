@@ -3,12 +3,13 @@
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"
 
-export const Mode = {
+export const Mode: {[EnvMode]: EnvMode} = Object.freeze({
 	Browser: "Browser",
 	App: "App",
 	Test: "Test",
+	Playground: "Playground",
 	Desktop: "Desktop"
-}
+})
 
 export function getWebsocketOrigin(): string {
 	// replace "http" by "ws"

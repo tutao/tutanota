@@ -90,7 +90,7 @@ export function createInboxRuleTemplate(ruleType: ?string, value: ?string): Inbo
 	return template
 }
 
-export function getExistingRuleForType(cleanValue: string, type: string) {
+export function getExistingRuleForType(cleanValue: string, type: string): ?InboxRule {
 	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value))
 }
 

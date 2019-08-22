@@ -38,7 +38,7 @@ type AliasCount = {
 }
 
 export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
-	view(vnode: Vnode<LifecycleAttrs<EditAliasesFormAttrs>>) {
+	view(vnode: Vnode<LifecycleAttrs<EditAliasesFormAttrs>>): Children {
 		const a = vnode.attrs
 		const addAliasButtonAttrs: ButtonAttrs = {
 			label: "addEmailAlias_label",

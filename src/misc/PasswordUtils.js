@@ -37,7 +37,7 @@ const _BAD_STRINGS = [
  * @param badStrings Strings that reduce the strength of the password.
  * @return A number from 0 to 100.
  */
-export function getPasswordStrength(password: string, badStrings: string[]) {
+export function getPasswordStrength(password: string, badStrings: string[]): number {
 	if (password.length === 0) return 0
 
 	// calculate the characteristics of the password

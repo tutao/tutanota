@@ -30,7 +30,7 @@ type PageEvents = {shortEvents: Array<CalendarEvent>, longEvents: Array<Calendar
 export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 	_redrawIntervalId: ?IntervalID
 	_selectedDate: Date
-	_domElements = []
+	_domElements: Array<HTMLElement> = []
 	_scrollPosition: number
 
 
@@ -87,7 +87,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		return {shortEvents, longEvents, allDayEvents}
 	}
 
-	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents) {
+	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents): Children {
 		const {shortEvents, longEvents, allDayEvents} = thisPageEvents
 		const mainPageEventsCount = mainPageEvents.allDayEvents.length + mainPageEvents.longEvents.length
 		const zone = getTimeZone()

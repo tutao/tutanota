@@ -18,12 +18,18 @@ import {
 	getContactSocialTypeLabel,
 } from "./ContactUtils"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
+import type {AnimationPromise} from "../gui/animation/Animations"
 import {animations, DefaultAnimationTime, height, opacity} from "../gui/animation/Animations"
 import {setup, update} from "../api/main/Entity"
+import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {ContactMailAddressTypeRef, createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
+import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
 import {ContactPhoneNumberTypeRef, createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
+import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
 import {ContactAddressTypeRef, createContactAddress} from "../api/entities/tutanota/ContactAddress"
+import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {ContactSocialIdTypeRef, createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
@@ -37,11 +43,6 @@ import {NotFoundError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
-import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
-import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 
 
 assertMainOrNode()
@@ -380,7 +381,7 @@ class ContactAggregateEditor {
 		let value = ""
 		let onUpdate: handler<string> = () => {
 		}
-		let label = ""
+		let label = () => ""
 		let isCustom = (type) => false
 		let TypeToLabelMap = {}
 		if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef)
@@ -465,17 +466,15 @@ class ContactAggregateEditor {
 		this.view = () => m(".wrapper.child-grow", m(this.textfield))
 	}
 
-	animate(domElement: HTMLElement, fadein: boolean) {
+	animate(domElement: HTMLElement, fadein: boolean): Promise<Array<AnimationPromise>> {
 		let childHeight = domElement.offsetHeight
 		if (fadein) {
 			domElement.style.opacity = "0"
 		}
+
 		return Promise.all([
 			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
-			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
-			          .then(() => {
-				          domElement.style.height = ''
-			          })
+			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).tap(() => {domElement.style.height = ''})
 		])
 	}
 }

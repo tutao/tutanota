@@ -22,7 +22,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 		_updateDnsStatus(vnode.attrs.data)
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
+	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		const a = vnode.attrs
 		return [
 			m("h4.mt-l.text-center", lang.get("verifyDNSRecords_title")),
@@ -46,7 +46,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 		]
 	}
 
-	_finishDialog(data: AddDomainData, dom: ?HTMLElement) {
+	_finishDialog(data: AddDomainData, dom: ?HTMLElement): Promise<void> {
 		const leaveUnfinishedDialogAttrs = {
 			title: lang.get("quitSetup_title"),
 			child: {

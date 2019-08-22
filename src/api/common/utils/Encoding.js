@@ -131,7 +131,7 @@ export function timestampToGeneratedId(timestamp: number, serverId: number = 0):
  * @param base64Ext The id as base64Ext
  * @returns The timestamp of the GeneratedId
  */
-export function generatedIdToTimestamp(base64Ext: Id) {
+export function generatedIdToTimestamp(base64Ext: Id): number {
 	const base64 = base64ExtToBase64(base64Ext)
 	const decodedbB4 = atob(base64)
 	let numberResult = 0

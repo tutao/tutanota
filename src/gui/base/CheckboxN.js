@@ -21,7 +21,7 @@ export class _Checkbox {
 		this.focused = stream(false)
 	}
 
-	view(vnode: Vnode<CheckboxAttrs>) {
+	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
 		return m(".checkbox.click", {
 			onclick: (e: MouseEvent) => {

@@ -1,7 +1,8 @@
 // @flow
 
 import {lang} from "../../misc/LanguageViewModel"
-import {AlarmInterval, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
+import {AlarmInterval, AlarmIntervalByCode, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
 import {last} from "../../api/common/utils/ArrayUtils"
@@ -20,7 +21,7 @@ export type TimeoutData = {
 
 export const MAX_SAFE_DATE = 8640000000000000
 export const MAX_SAFE_DELAY = 2147483647
-export const TRIGGER_TIMES_IN_MS = {
+export const TRIGGER_TIMES_IN_MS: {[AlarmIntervalEnum]: number} = {
 	[AlarmInterval.FIVE_MINUTES]: 1000 * 60 * 5,
 	[AlarmInterval.TEN_MINUTES]: 1000 * 60 * 10,
 	[AlarmInterval.THIRTY_MINUTES]: 1000 * 60 * 30,
@@ -112,7 +113,7 @@ export class DesktopAlarmScheduler {
 		let mightNeedIntermediateSchedule = false
 
 		// fallback 5 minute alarm if invalid trigger
-		const trigger = TRIGGER_TIMES_IN_MS[decAn.alarmInfo.trigger] || TRIGGER_TIMES_IN_MS[AlarmInterval.FIVE_MINUTES]
+		const trigger = TRIGGER_TIMES_IN_MS[AlarmIntervalByCode[decAn.alarmInfo.trigger]] || TRIGGER_TIMES_IN_MS[AlarmInterval.FIVE_MINUTES]
 
 		decAn[Symbol.iterator] = occurrenceIterator
 		for (const occurrence of downcast(decAn)) {
@@ -172,7 +173,17 @@ export class DesktopAlarmScheduler {
 /**
  * yield event occurrences according to the repeatRule contained in the AlarmNotification
  */
-export function occurrenceIterator() {
+export function occurrenceIterator(): {|
+	firstOccurrence: Date,
+	lastOccurrenceDate: Date,
+	lastYieldedOccurrence: ?Date,
+	maxOccurrences: number,
+	next: () => {|done: boolean, value: Date|},
+	nextYieldedOccurrence: Date,
+	numYieldedOccurrences: number,
+	occurrenceIncrement: ?RepeatPeriodEnum,
+	occurrenceInterval: ?number,
+|} {
 	let maxOccurrences: number = 1
 	let lastOccurrenceDate: Date = new Date(MAX_SAFE_DATE)
 	let occurrenceIncrement = null

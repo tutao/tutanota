@@ -4,6 +4,7 @@ import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/ContactAddress"
 import {neverNull} from "../../../src/api/common/utils/Utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
+// $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/ContactMailAddress"
