@@ -39,13 +39,14 @@ export class DatePicker {
 		this._forceCompact = forceCompact
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
+		let inputDate: ?Date
 
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
 			if (this.invalidDate) {
 				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 			} else if (this.date() != null) {
-				return formatDateWithMonth(neverNull(this.date()))
+				return formatDateWithMonth(neverNull(inputDate))
 			} else {
 				return lang.get(nullSelectionTextId)
 			}
@@ -58,18 +59,21 @@ export class DatePicker {
 					if (isNaN(timestamp)) {
 						// always set invalidDate first to make sure that functions depending on the date stream can read the current invalidDate value
 						this.invalidDate = false
-						this.date(null)
+						inputDate = null
 					} else {
 						this.invalidDate = false
-						this.date(new Date(timestamp))
+						inputDate = new Date(timestamp)
 					}
 				} else {
 					this.invalidDate = false
-					this.date(null)
+					inputDate = null
 				}
 			} catch (e) {
 				this.invalidDate = true
 			}
+		})
+		this.input.onblur.map(() => {
+			this.date(inputDate)
 		})
 	}
 
