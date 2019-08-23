@@ -167,7 +167,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (startDate && endDate) {
 			if (endDate < startDate) {
 				const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
-				endDatePicker.setDate(DateTime.fromJSDate(startDate).minus({days: diff}).toJSDate())
+				endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
 			} else if (endDate.getTime() === startDate.getTime()) {
 				fixTime()
 			}
@@ -180,7 +180,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const startDate = startDatePicker.date()
 		if (endDate && startDate) {
 			if (endDate < startDate) {
-				const diff = oldEndDate ? getDiffInDays(startDate, oldEndDate) : 1
+				const diff = oldEndDate ? getDiffInDays(oldEndDate, startDate) : 1
 				startDatePicker.setDate(DateTime.fromJSDate(endDate).minus({days: diff}).toJSDate())
 			} else if (endDate.getTime() === startDate.getTime()) {
 				fixTime()
