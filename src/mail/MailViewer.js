@@ -88,11 +88,9 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
 import {parseCalendarFile} from "../calendar/CalendarImporter"
-import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {isSameDay} from "../api/common/utils/DateUtils"
 import {loadCalendarInfo} from "../calendar/CalendarModel"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {getCalendarName} from "../calendar/CalendarUtils"
+import {formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -389,30 +387,14 @@ export class MailViewer {
 	_renderCalendarEvent() {
 		const event = this._calendarEvent
 
-		function formatEventDuration(event: CalendarEvent) {
-			if (isAllDayEvent(event)) {
-				return lang.get("allDay_label")
-			} else {
-				const startTime = getEventStart(event)
-				const endTime = getEventEnd(event)
-				const startString = formatDateTime(getEventStart(event))
-				let endString
-				if (isSameDay(startTime, endTime)) {
-					endString = formatTime(endTime)
-				} else {
-					endString = formatDateTime(endTime)
-				}
-				return `${startString} - ${endString}`
-			}
-		}
-
 		return event
 			? m(".flex.mt-s", {
 				style: {
 					"box-shadow": `0 1px 2px 1px ${theme.header_box_shadow_bg}`,
 					padding: px(size.vpad_small),
 					paddingBottom: "0",
-					borderRadius: px(4)
+					borderRadius: px(4),
+					maxWidth: "800px",
 				}
 			}, [
 				m(Icon, {

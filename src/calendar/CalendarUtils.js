@@ -1,5 +1,5 @@
 //@flow
-import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
@@ -8,7 +8,7 @@ import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
-import {formatTime} from "../misc/Formatter"
+import {formatDate, formatDateTime, formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 
 export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
@@ -388,4 +388,27 @@ export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
 export function getWeekNumber(startOfTheWeek: Date): number {
 	// Currently it doesn't support US-based week numbering system with partial weeks.
 	return DateTime.fromJSDate(startOfTheWeek).weekNumber
+}
+
+export function formatEventDuration(event: CalendarEvent) {
+	const startTime = getEventStart(event)
+	const endTime = getEventEnd(event)
+	if (isAllDayEvent(event)) {
+		const startString = formatDate(getEventStart(event))
+		let endString
+		if (isSameDay(startTime, endTime)) {
+			return startString
+		} else {
+			return `${startString} - ${formatDate(endTime)}`
+		}
+	} else {
+		const startString = formatDateTime(getEventStart(event))
+		let endString
+		if (isSameDay(startTime, endTime)) {
+			endString = formatTime(endTime)
+		} else {
+			endString = formatDateTime(endTime)
+		}
+		return `${startString} - ${endString}`
+	}
 }
