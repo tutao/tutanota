@@ -54,7 +54,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
-	startDatePicker.setDate(date)
+	startDatePicker.setDate(new Date(date))
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
@@ -149,7 +149,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		endDatePicker.setDate(date)
+		endDatePicker.setDate(new Date(date))
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
@@ -235,15 +235,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const okAction = (dialog) => {
 		const newEvent = createCalendarEvent()
-		let startDate = neverNull(startDatePicker.date())
-		const parsedStartTime = parseTime(startTime())
-		const parsedEndTime = parseTime(endTime())
-		let endDate = neverNull(endDatePicker.date())
+		if (!startDatePicker.date() || !endDatePicker.date()) {
+			Dialog.error("timeFormatInvalid_msg")
+			return
+		}
+		let startDate = new Date(neverNull(startDatePicker.date()))
+		let endDate = new Date(neverNull(endDatePicker.date()))
 
 		if (allDay()) {
 			startDate = getAllDayDateUTC(startDate)
 			endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
 		} else {
+			const parsedStartTime = parseTime(startTime())
+			const parsedEndTime = parseTime(endTime())
 			if (!parsedStartTime || !parsedEndTime) {
 				Dialog.error("timeFormatInvalid_msg")
 				return
