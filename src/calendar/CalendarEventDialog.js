@@ -54,7 +54,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
-	startDatePicker.setDate(new Date(date))
+	startDatePicker.setDate(getStartOfDay(date))
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
@@ -149,7 +149,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		endDatePicker.setDate(new Date(date))
+		endDatePicker.setDate(getStartOfDay(date))
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
