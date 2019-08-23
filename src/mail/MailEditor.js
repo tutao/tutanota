@@ -101,7 +101,7 @@ import {getTimeZone} from "../calendar/CalendarUtils"
 assertMainOrNode()
 
 type MailEditorHooks = {
-	beforeSent?: (editor: MailEditor, recipients: Array<RecipientInfo>) => mixed,
+	beforeSent?: (editor: MailEditor, recipients: Array<RecipientInfo>, body: string) => string,
 	afterSent?: (editor: MailEditor) => mixed,
 }
 
@@ -844,7 +844,10 @@ export class MailEditor {
 					let send = this
 						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
 						.then((recipients) => {
-							this.hooks.beforeSent && this.hooks.beforeSent(this, recipients)
+							const beforeSentHook = this.hooks.beforeSent
+							if (beforeSentHook) {
+								this._editor.setHTML(beforeSentHook(this, recipients, this._editor.getHTML()))
+							}
 							return this.saveDraft(true, false)
 							           .return(recipients)
 						})

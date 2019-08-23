@@ -21,6 +21,9 @@ import {
 } from "../misc/parsing"
 import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
+import {parstatToCalendarAttendeeStatus} from "./CalendarImporter"
+import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -407,6 +410,29 @@ export function parseCalendarEvents(icalObject: ICalObject): ParsedCalendarData 
 				if (newAlarm) alarms.push(newAlarm)
 			}
 		})
+
+		let attendees = []
+		eventObj.properties.forEach((property) => {
+			if (property.name === "ATTENDEE") {
+				if (!property.value.startsWith("mailto:")) return
+				const status = parstatToCalendarAttendeeStatus[property.params["PARSTAT"]]
+				if (!status) return
+
+				attendees.push(createCalendarEventAttendee({
+					address: createMailAddress({
+						address: property.value.substring("mailto:".length),
+						name: property.params["CN"],
+					}),
+					status,
+				}))
+			}
+		})
+		event.attendees = attendees
+		const organizerProp = eventObj.properties.find(p => p.name === "ORGANIZER")
+		if (organizerProp && organizerProp.value.startsWith("mailto:")) {
+			event.organizer = organizerProp.value.substring("mailto:".length)
+		}
+
 		event.uid = getPropStringValue(eventObj, "UID")
 		return {event, alarms}
 	})

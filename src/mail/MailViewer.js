@@ -30,7 +30,7 @@ import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
+import {defer, downcast, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -90,7 +90,7 @@ import {worker} from "../api/main/WorkerClient"
 import {parseCalendarFile} from "../calendar/CalendarImporter"
 import {loadCalendarInfo} from "../calendar/CalendarModel"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
+import {calendarAttendeeStatusDescription, formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -405,6 +405,10 @@ export class MailViewer {
 					m(".ml-s.b", event.summary),
 					m(".flex", [m(".calendar-invite-field.ml-s", "When:"), m(".ml-s", formatEventDuration(event))]),
 					event.location ? m(".flex", [m(".calendar-invite-field.ml-s", "Where:"), m(".ml-s", event.location)]) : null,
+					m(".flex", m(".calendar-invite-field.ml-s", "Who:"),
+						event.organizer ? m(".ml-s", event.organizer + " (organizer)") : ""),
+					event.attendees.map(({address, status}) => m(".flex", m(".calendar-invite-field.ml-s",),
+						m(".ml-s", `${address.name} ${address.address} ${calendarAttendeeStatusDescription(downcast(status))}`))),
 					m(".align-self-end",
 						m(ButtonN, attachDropdown({
 								label: () => "Add to the calendar",

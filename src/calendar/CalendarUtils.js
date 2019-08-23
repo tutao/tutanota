@@ -1,8 +1,8 @@
 //@flow
 import {getStartOfDay, getStartOfNextDay, incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
+import type {CalendarAttendeeStatusEnum, EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -396,7 +396,7 @@ export function formatEventDuration(event: CalendarEvent) {
 	if (isAllDayEvent(event)) {
 		const startString = formatDate(getEventStart(event))
 		let endString
-		if (isSameDay(startTime, endTime)) {
+		if (getDiffInDays(endTime, startTime) === 1) {
 			return startString
 		} else {
 			return `${startString} - ${formatDate(endTime)}`
@@ -410,5 +410,20 @@ export function formatEventDuration(event: CalendarEvent) {
 			endString = formatDateTime(endTime)
 		}
 		return `${startString} - ${endString}`
+	}
+}
+
+export function calendarAttendeeStatusDescription(status: CalendarAttendeeStatusEnum): string {
+	switch (status) {
+		case CalendarAttendeeStatus.NEEDS_ACTION:
+			return "?"
+		case CalendarAttendeeStatus.TENTATIVE:
+			return "✓/❌"
+		case CalendarAttendeeStatus.ACCEPTED:
+			return "✓"
+		case CalendarAttendeeStatus.DECLINED:
+			return "❌"
+		default:
+			throw new Error("Unknown calendar attendee status: " + status)
 	}
 }

@@ -50,7 +50,7 @@ o.spec("CalendarImporterTest", function () {
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART:20190813`,
-				`DTEND:20190914`,
+				`DTEND:20190913`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",

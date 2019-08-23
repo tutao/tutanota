@@ -1014,11 +1014,12 @@ type CalendarEvent = {
 	description: string;
 	endTime: Date;
 	location: string;
+	organizer: ?string;
 	startTime: Date;
 	summary: string;
 	uid: ?string;
 
-	attendees: MailAddress[];
+	attendees: CalendarEventAttendee[];
 	repeatRule: ?CalendarRepeatRule;
 	alarmInfos: IdTuple[];
 }
@@ -1090,4 +1091,12 @@ type CalendarPostReturn = {
 	_format: NumberString;
 
 	group: Id;
+}
+
+type CalendarEventAttendee = {
+	_type: TypeRef<CalendarEventAttendee>;
+	_id: Id;
+	status: NumberString;
+
+	address: MailAddress;
 }

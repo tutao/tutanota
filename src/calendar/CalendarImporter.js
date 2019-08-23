@@ -1,5 +1,7 @@
 //@flow
 
+import type {AlarmIntervalEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from "../api/common/TutanotaConstants"
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
@@ -12,8 +14,6 @@ import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
-import type {AlarmIntervalEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, EndType, SECOND_MS} from "../api/common/TutanotaConstants"
 import {downcast, neverNull, ProgressMonitor} from "../api/common/utils/Utils"
 import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
@@ -134,20 +134,13 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	return fileController.open(createDataFile(tmpFile, data))
 }
 
-export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, thisUser: string, attendees: Array<string>,
-                                       now: Date = new Date()): string {
-	const eventSerialized = serializeEvent(event,
-		[],
-		now,
-		{
-			organizer: thisUser,
-			attendees: [{address: thisUser, accepted: true}].concat(attendees.map((address) => ({address, accepted: false})))
-		})
+export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, now: Date = new Date()): string {
+	const eventSerialized = serializeEvent(event, [], now)
 	return wrapIntoCalendar(versionNumber, "REQUEST", eventSerialized)
 }
 
-export function makeInvitationCalendarFile(event: CalendarEvent, thisUser: string, attendees: Array<string>): DataFile {
-	const stringValue = makeInvitationCalendar(env.versionNumber, event, thisUser, attendees)
+export function makeInvitationCalendarFile(event: CalendarEvent): DataFile {
+	const stringValue = makeInvitationCalendar(env.versionNumber, event)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = "invite.ics"
@@ -250,19 +243,13 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 	]
 }
 
-type Participants = {
-	organizer: string,
-	attendees: Array<{address: string, accepted: boolean}>,
-}
-
-export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date(),
-                               participants: ?Participants = null): Array<string> {
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date()): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	let dateStart, dateEnd
 	if (isAllDay) {
 		dateStart = `DTSTART:${formatDate(event.startTime)}`
-		dateEnd = `DTEND:${formatDate(event.endTime)}`
+		dateEnd = `DTEND:${formatDate(incrementDate(event.endTime, -1))}`
 	} else if (repeatRule) {
 		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime)}`
 		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime)}`
@@ -282,21 +269,22 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(serializeRepeatRule(repeatRule, isAllDay))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
-		.concat(serializeParticipants(participants))
+		.concat(serializeParticipants(event))
 		.concat("END:VEVENT")
 }
 
-function serializeParticipants(participants: ?Participants): Array<string> {
-	if (!participants) {
+function serializeParticipants(event: CalendarEvent): Array<string> {
+	const {organizer, attendees} = event
+	if (attendees.length === 0 && organizer == null) {
 		return []
 	}
-	const {organizer, attendees} = participants
 
-	const organizerProperty = `ORGANIZER;CN=${organizer}:mailto:${organizer}`
-	const attendeesProperties = attendees.map(({address, accepted}) =>
-		`ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARSTAT=${accepted ? "ACCEPTED" : "NEEDS-ACTION"}`
-		+ `;RSVP=TRUE;CN=${address}:mailto:${address}`)
-	return [organizerProperty, ...attendeesProperties]
+	const lines = []
+	organizer && lines.push(`ORGANIZER;CN=${organizer}:mailto:${organizer}`)
+	const attendeesProperties = attendees.map(({address, status}) =>
+		`ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARSTAT=${calendarAttendeeStatusToParstat[status]}`
+		+ `;RSVP=TRUE;CN=${address.name}:mailto:${address.address}`)
+	return lines.concat(attendeesProperties)
 }
 
 function escapeSemicolons(value: string): string {
@@ -320,3 +308,11 @@ export function formatDateTimeUTC(date: Date): string {
 export function formatDate(date: Date): string {
 	return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}`
 }
+
+const calendarAttendeeStatusToParstat = {
+	[CalendarAttendeeStatus.NEEDS_ACTION]: "NEEDS-ACTION",
+	[CalendarAttendeeStatus.ACCEPTED]: "ACCEPTED",
+	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
+	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
+}
+export const parstatToCalendarAttendeeStatus = reverse(calendarAttendeeStatusToParstat)

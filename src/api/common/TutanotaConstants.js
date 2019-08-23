@@ -431,3 +431,16 @@ export const WeekStart = Object.freeze({
 export type WeekStartEnum = $Values<typeof WeekStart>
 
 export const SECOND_MS = 1000
+
+export const CalendarAttendeeStatus = Object.freeze({
+	NEEDS_ACTION: "0",
+	ACCEPTED: "1",
+	DECLINED: "2",
+	TENTATIVE: "3"
+})
+
+export type CalendarAttendeeStatusEnum = $Values<typeof CalendarAttendeeStatus>
+
+export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatusEnum {
+	return downcast(attendee.status)
+}

@@ -1,4 +1,5 @@
 //@flow
+import {px, size} from "../gui/size"
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import stream from "mithril/stream/stream.js"
 import {DatePicker} from "../gui/base/DatePicker"
@@ -17,7 +18,7 @@ import {erase, load} from "../api/main/Entity"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
+import {EndType, getAttendeeStatus, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -26,6 +27,7 @@ import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {
+	calendarAttendeeStatusDescription,
 	createRepeatRuleWithValues,
 	generateUid,
 	getAllDayDateUTC,
@@ -307,14 +309,36 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}),
 			existingEvent ?
 				[
-					m(ExpanderButtonN, {
-						label: () => "attendees",
-						expanded: attendeesExpanded,
-					}),
-					m(ExpanderPanelN, {
-						expanded: attendeesExpanded,
-						class: ".flex.col",
-					}, existingEvent.attendees.map(a => m("", a.address))),
+					existingEvent.organizer
+						? m(".mt", "Organizer: " + existingEvent.organizer)
+						: null,
+					existingEvent.attendees.length > 0
+						? [
+							m(ExpanderButtonN, {
+								label: () => "attendees",
+								expanded: attendeesExpanded,
+							}),
+							m(ExpanderPanelN, {
+								expanded: attendeesExpanded,
+								class: ".flex.col",
+							}, existingEvent.attendees.map(a => m(".flex", [
+								m(".flex-grow", {
+										style: {
+											height: px(size.button_height),
+											"lineHeight": px(size.button_height),
+										},
+									},
+									`${a.address.name} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
+								m(ButtonN, {
+									label: "remove_action",
+									// TODO
+									click: noOp,
+									icon: () => Icons.Cancel,
+									type: ButtonType.Action,
+								}),
+							]))),
+						]
+						: null,
 					m(".mr-negative-s.float-right.flex-end-on-child", [
 						m(ButtonN, {
 							label: "delete_action",
