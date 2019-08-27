@@ -35,7 +35,7 @@ export class PageView implements MComponent<Attrs> {
 
 					},
 				}, attrs.previousPage.nodes),
-				m("..fill-absolute", {key: attrs.currentPage.key}, attrs.currentPage.nodes),
+				m(".fill-absolute", {key: attrs.currentPage.key}, attrs.currentPage.nodes),
 				m(".abs", {
 					key: attrs.nextPage.key,
 					style: this._viewDom && this._viewDom.offsetWidth > 0 && {
@@ -55,6 +55,9 @@ export class PageSwipeHandler extends SwipeHandler {
 
 	constructor(touchArea: HTMLElement, onGestureCompleted: (next: boolean) => mixed) {
 		super(touchArea)
+		// avoid flickering especially in day and week view when overflow-y is set on nested elements
+		touchArea.style.transformStyle = "preserve-3d"
+		touchArea.style.backfaceVisibility = "hidden"
 		this._onGestureCompleted = onGestureCompleted
 	}
 

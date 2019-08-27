@@ -106,7 +106,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 						onclick: () => attrs.onChangeWeek(true),
 					}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
 					m("h1", title),
-					m(".ml-m.content-message-bg..small", {style: {padding: "2px 4px"}}, lang.get("weekNumber_label", {"{week}": String(getWeekNumber(firstDate))}))
+					m(".ml-m.content-message-bg.small", {style: {padding: "2px 4px"}}, lang.get("weekNumber_label", {"{week}": String(getWeekNumber(firstDate))}))
 				]),
 				m(".flex", {
 					style: {
