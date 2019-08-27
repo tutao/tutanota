@@ -207,8 +207,6 @@ export class CalendarView implements CurrentView {
 							},
 							selectedDate: this.selectedDate(),
 							onDateSelected: (date) => {
-								this.selectedDate(date)
-								m.redraw()
 								this._setUrl(CalendarViewType.DAY, date)
 							},
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
@@ -217,6 +215,8 @@ export class CalendarView implements CurrentView {
 							onChangeWeek: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
 								newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+								this.selectedDate(newDate)
+								m.redraw()
 								this._setUrl(CalendarViewType.WEEK, newDate)
 							}
 						})
