@@ -103,7 +103,8 @@ export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoo
 			return Promise.map(allEvents, event => {
 				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length > 0) {
-					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart)).then(alarms => ({event, alarms}))
+					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
+						.then(alarms => ({event, alarms}))
 				} else {
 					return {event, alarms: []}
 				}
@@ -247,6 +248,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 	]
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
 		.concat(serializeRepeatRule(repeatRule, isAllDay))
+		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
 		.concat("END:VEVENT")
 }

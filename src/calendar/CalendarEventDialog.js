@@ -54,7 +54,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
 	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
-	startDatePicker.setDate(date)
+	startDatePicker.setDate(getStartOfDay(date))
 	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
@@ -128,7 +128,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatIntervalPickerAttrs.selectedValue(Number(existingRule.interval))
 			endTypePickerAttrs.selectedValue(downcast(existingRule.endType))
 			endCountPickerAttrs.selectedValue(existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1)
-			repeatEndDatePicker.setDate(existingRule.endType === EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
+			repeatEndDatePicker.setDate(existingRule.endType
+			=== EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
 		} else {
 			repeatPickerAttrs.selectedValue(null)
 		}
@@ -148,7 +149,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		endDatePicker.setDate(date)
+		endDatePicker.setDate(getStartOfDay(date))
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
@@ -166,7 +167,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (startDate && endDate) {
 			if (endDate < startDate) {
 				const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
-				endDatePicker.setDate(DateTime.fromJSDate(startDate).minus({days: diff}).toJSDate())
+				endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
 			} else if (endDate.getTime() === startDate.getTime()) {
 				fixTime()
 			}
@@ -179,7 +180,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		const startDate = startDatePicker.date()
 		if (endDate && startDate) {
 			if (endDate < startDate) {
-				const diff = oldEndDate ? getDiffInDays(startDate, oldEndDate) : 1
+				const diff = oldEndDate ? getDiffInDays(oldEndDate, startDate) : 1
 				startDatePicker.setDate(DateTime.fromJSDate(endDate).minus({days: diff}).toJSDate())
 			} else if (endDate.getTime() === startDate.getTime()) {
 				fixTime()
@@ -208,10 +209,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			return
 		}
 		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes) {
-			if (parsedStartTime.minutes <= 30) {
+			if (parsedStartTime.minutes < 30) {
 				endTime(timeStringFromParts(parsedStartTime.hours, parsedStartTime.minutes + 30, amPmFormat))
 			} else {
-				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes, amPmFormat))
+				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes - 30, amPmFormat))
 			}
 			m.redraw()
 		}
@@ -231,6 +232,90 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	let windowCloseUnsubscribe
 	const now = Date.now()
+
+	const okAction = (dialog) => {
+		const newEvent = createCalendarEvent()
+		if (!startDatePicker.date() || !endDatePicker.date()) {
+			Dialog.error("timeFormatInvalid_msg")
+			return
+		}
+		let startDate = new Date(neverNull(startDatePicker.date()))
+		let endDate = new Date(neverNull(endDatePicker.date()))
+
+		if (allDay()) {
+			startDate = getAllDayDateUTC(startDate)
+			endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
+		} else {
+			const parsedStartTime = parseTime(startTime())
+			const parsedEndTime = parseTime(endTime())
+			if (!parsedStartTime || !parsedEndTime) {
+				Dialog.error("timeFormatInvalid_msg")
+				return
+			}
+			startDate.setHours(parsedStartTime.hours)
+			startDate.setMinutes(parsedStartTime.minutes)
+
+			// End date is never actually included in the event. For the whole day event the next day
+			// is the boundary. For the timed one the end time is the boundary.
+			endDate.setHours(parsedEndTime.hours)
+			endDate.setMinutes(parsedEndTime.minutes)
+		}
+
+		if (endDate.getTime() <= startDate.getTime()) {
+			Dialog.error('startAfterEnd_label')
+			return
+		}
+		newEvent.startTime = startDate
+		newEvent.description = notesValue()
+		newEvent.summary = summary()
+		newEvent.location = locationValue()
+		newEvent.endTime = endDate
+		const groupRoot = selectedCalendar().groupRoot
+		newEvent._ownerGroup = selectedCalendar().groupRoot._id
+		newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
+		const repeatFrequency = repeatPickerAttrs.selectedValue()
+		if (repeatFrequency == null) {
+			newEvent.repeatRule = null
+		} else {
+			const interval = repeatIntervalPickerAttrs.selectedValue() || 1
+			const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
+			newEvent.repeatRule = repeatRule
+
+			const stopType = neverNull(endTypePickerAttrs.selectedValue())
+			repeatRule.endType = stopType
+			if (stopType === EndType.Count) {
+				let count = endCountPickerAttrs.selectedValue()
+				if (isNaN(count) || Number(count) < 1) {
+					repeatRule.endType = EndType.Never
+				} else {
+					repeatRule.endValue = String(count)
+				}
+			} else if (stopType === EndType.UntilDate) {
+				const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
+				if (repeatEndDate.getTime() < getEventStart(newEvent)) {
+					Dialog.error("startAfterEnd_label")
+					return
+				} else {
+					// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
+					// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
+					// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
+					// regular events it is just a timestamp.
+					repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
+				}
+			}
+		}
+		const newAlarms = []
+		for (let pickerAttrs of alarmPickerAttrs) {
+			const alarmValue = pickerAttrs.selectedValue()
+			if (alarmValue) {
+				const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+				newAlarms.push(newAlarm)
+			}
+		}
+		worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
+
+		dialog.close()
+	}
 
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
@@ -273,7 +358,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}),
 			m(".flex", [
 				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
-				m(".flex-grow.ml-s" + (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
+				m(".flex-grow.ml-s"
+					+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
 			]),
 			repeatPickerAttrs.selectedValue()
 				? m(".flex", [
@@ -315,85 +401,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}
 			})) : null,
 		]),
-		okAction: () => {
-			const newEvent = createCalendarEvent()
-			let startDate = neverNull(startDatePicker.date())
-			const parsedStartTime = parseTime(startTime())
-			const parsedEndTime = parseTime(endTime())
-			let endDate = neverNull(endDatePicker.date())
-
-			if (allDay()) {
-				startDate = getAllDayDateUTC(startDate)
-				endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
-			} else {
-				if (!parsedStartTime || !parsedEndTime) {
-					Dialog.error("timeFormatInvalid_msg")
-					return
-				}
-				startDate.setHours(parsedStartTime.hours)
-				startDate.setMinutes(parsedStartTime.minutes)
-
-				// End date is never actually included in the event. For the whole day event the next day
-				// is the boundary. For the timed one the end time is the boundary.
-				endDate.setHours(parsedEndTime.hours)
-				endDate.setMinutes(parsedEndTime.minutes)
-			}
-
-			if (endDate.getTime() < startDate.getTime()) {
-				Dialog.error('startAfterEnd_label')
-				return
-			}
-			newEvent.startTime = startDate
-			newEvent.description = notesValue()
-			newEvent.summary = summary()
-			newEvent.location = locationValue()
-			newEvent.endTime = endDate
-			const groupRoot = selectedCalendar().groupRoot
-			newEvent._ownerGroup = selectedCalendar().groupRoot._id
-			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
-			const repeatFrequency = repeatPickerAttrs.selectedValue()
-			if (repeatFrequency == null) {
-				newEvent.repeatRule = null
-			} else {
-				const interval = repeatIntervalPickerAttrs.selectedValue() || 1
-				const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
-				newEvent.repeatRule = repeatRule
-
-				const stopType = neverNull(endTypePickerAttrs.selectedValue())
-				repeatRule.endType = stopType
-				if (stopType === EndType.Count) {
-					let count = endCountPickerAttrs.selectedValue()
-					if (isNaN(count) || Number(count) < 1) {
-						repeatRule.endType = EndType.Never
-					} else {
-						repeatRule.endValue = String(count)
-					}
-				} else if (stopType === EndType.UntilDate) {
-					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
-					if (repeatEndDate.getTime() < getEventStart(newEvent)) {
-						Dialog.error("startAfterEnd_label")
-						return
-					} else {
-						// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
-						// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
-						// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
-						// regular events it is just a timestamp.
-						repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
-					}
-				}
-			}
-			const newAlarms = []
-			for (let pickerAttrs of alarmPickerAttrs) {
-				const alarmValue = pickerAttrs.selectedValue()
-				if (alarmValue) {
-					const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-					newAlarms.push(newAlarm)
-				}
-			}
-			worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
-
-			dialog.close()
-		}
+		okAction: (dialog) => requestAnimationFrame(() => okAction(dialog))
 	})
 }
 

@@ -186,12 +186,11 @@ function getColors(buttonColors: ?NavButtonColorEnum) {
 }
 
 export function isNavButtonSelected(a: NavButtonAttrs): boolean {
-	let current = m.route.get()
 	if (typeof a.isSelectedPrefix === "boolean") {
 		return a.isSelectedPrefix
 	}
 	const selectedPrefix = a.isSelectedPrefix || lazyStringValue(a.href)
-	return current === selectedPrefix || current.indexOf(selectedPrefix + "/") === 0
+	return isSelectedPrefix(selectedPrefix)
 }
 
 export function isSelectedPrefix(href: string): boolean {

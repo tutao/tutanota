@@ -244,7 +244,9 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 		}
 	} else {
 		const duration = parseDuration(triggerValue)
-		if (!duration.positive) {
+		if (duration.positive) {
+			return null
+		} else {
 			if (duration.week) {
 				trigger = AlarmInterval.ONE_WEEK
 			} else if (duration.day) {

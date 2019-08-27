@@ -143,7 +143,8 @@ export class CalendarView implements CurrentView {
 						this._renderCalendars()
 					])
 			])
-		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label"))
+		}, ColumnType.Foreground, 200, 300, () => this._currentViewType
+		=== CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label"))
 
 
 		this.contentColumn = new ViewColumn({
@@ -371,7 +372,7 @@ export class CalendarView implements CurrentView {
 									label: "delete_action",
 									icon: () => Icons.Trash,
 									click: () => {
-										Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": groupInfo.name}))
+										Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": getCalendarName(groupInfo.name)}))
 										      .then((confirmed) => {
 											      if (confirmed) {
 												      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
@@ -489,7 +490,8 @@ export class CalendarView implements CurrentView {
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
 					shortEventsResult.elements
-					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime() < month.end.getTime()) // only events for the loaded month
+					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime()
+						                 < month.end.getTime()) // only events for the loaded month
 					                 .forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {

@@ -8,7 +8,8 @@ import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, Opera
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {NavButtonColors} from "../gui/base/NavButtonN"
+import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import {isNavButtonSelected, NavButtonColors, NavButtonN} from "../gui/base/NavButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -39,8 +40,6 @@ import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
-import type {NavButtonAttrs} from "../gui/base/NavButtonN"
-import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 
 assertMainOrNode()
 
