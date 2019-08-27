@@ -189,6 +189,7 @@ export class ContactView implements CurrentView {
 							icon: () => BootIcons.Contacts,
 							href: () => m.route.get(),
 						}),
+						m(folderMoreButton),
 					])
 				])
 			}), false, {}, theme.navigation_button
