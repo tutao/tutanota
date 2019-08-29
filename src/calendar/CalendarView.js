@@ -170,6 +170,11 @@ export class CalendarView implements CurrentView {
 							onChangeMonth: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
 								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+								// set date explicitly here and trigger a redraw manually to avoid flickering of calendar events when using swipe gesture in android web view.
+								// There might be another animation frame in between setUrl and updateUrl in which the PageSwipeHandler resets the swipe
+								// transformation. If then the selected date is not updated the PageView shows the previous page for a short time.
+								this.selectedDate(newDate)
+								m.redraw()
 								this._setUrl(CalendarViewType.MONTH, newDate)
 							},
 							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
@@ -186,6 +191,8 @@ export class CalendarView implements CurrentView {
 							},
 							selectedDate: this.selectedDate(),
 							onDateSelected: (date) => {
+								this.selectedDate(date)
+								m.redraw()
 								this._setUrl(CalendarViewType.DAY, date)
 							},
 							groupColors,
@@ -208,6 +215,8 @@ export class CalendarView implements CurrentView {
 							onChangeWeek: (next) => {
 								let newDate = new Date(this.selectedDate().getTime())
 								newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+								this.selectedDate(newDate)
+								m.redraw()
 								this._setUrl(CalendarViewType.WEEK, newDate)
 							}
 						})
