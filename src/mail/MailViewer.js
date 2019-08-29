@@ -300,7 +300,7 @@ export class MailViewer {
 		this.view = () => {
 			return [
 				m("#mail-viewer.fill-absolute"
-					+ (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"),
+					+ (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
 					{
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
@@ -337,7 +337,7 @@ export class MailViewer {
 
 						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links.margin-are-inset-lr"
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
-							+ (client.isMobileDevice() ? "" : ".scroll"), {
+							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
 							oncreate: vnode => {
 								this._domBodyDeferred.resolve(vnode.dom)
 								this._updateLineHeight()
