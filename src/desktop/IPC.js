@@ -162,7 +162,7 @@ export class IPC {
 						args[1].toString(),
 						args[2].toString()
 					),
-					this._alarmStorage.storeSessionKey(
+					this._alarmStorage.storePushIdentifierSessionKey(
 						args[3].toString(),
 						args[4].toString()
 					)

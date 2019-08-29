@@ -485,13 +485,13 @@ o.spec("json type check test", function () {
 			confirmationId: {type: 'string'},
 			hasAlarmNotifications: {type: 'boolean'},
 			changeTime: {type: 'string'},
-			notificationInfos: [
+			notificationInfos:
 				{
 					address: {type: 'string', assert: v => isMailAddress(v, true)},
 					counter: {type: 'number', assert: v => v >= 0},
 					userId: {type: 'string'}
 				}
-			]
+
 		}
 
 		const testNotification1 = {

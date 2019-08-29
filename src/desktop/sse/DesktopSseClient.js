@@ -15,6 +15,7 @@ import DesktopUtils from "../DesktopUtils"
 import {NotificationResult} from "../DesktopNotifier"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
+import {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 
 export type SseInfo = {|
 	identifier: string,
@@ -30,6 +31,7 @@ export class DesktopSseClient {
 	_conf: DesktopConfigHandler
 	_wm: WindowManager
 	_notifier: DesktopNotifier
+	_alarmScheduler: DesktopAlarmScheduler;
 
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
@@ -39,10 +41,11 @@ export class DesktopSseClient {
 	_tryToReconnect: boolean;
 	_lastProcessedChangeTime: number;
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler) {
 		this._conf = conf
 		this._wm = wm
 		this._notifier = notifier
+		this._alarmScheduler = alarmScheduler
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
@@ -177,9 +180,7 @@ export class DesktopSseClient {
 				    this._reschedule()
 				    return
 			    }
-
 			    // it's a PushMessage
-			    console.log(dp)
 			    let pm: PushMessage
 			    try {
 				    pm = PushMessage.fromJSON(dp)
@@ -197,6 +198,7 @@ export class DesktopSseClient {
 	}
 
 	_handlePushMessage(pm: PushMessage, failedToConfirm: boolean = false): Promise<void> {
+		console.warn("handling push message:", JSON.stringify(pm, null, 2))
 		return new Promise(resolve => {
 			if (this._lastProcessedChangeTime >= parseInt(pm.changeTime)) {
 				console.warn("already processed notification, ignoring: " + this._lastProcessedChangeTime)
@@ -222,11 +224,11 @@ export class DesktopSseClient {
 			 .then(() => {
 				 this._lastProcessedChangeTime = parseInt(changeTime)
 				 notificationInfos.forEach(ni => this._handleNotificationInfo(pm.title, ni))
-				 alarmNotifications.forEach(an => this._handleAlarmNotification(an))
+				 alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			 })
 			 .catch(PreconditionFailedError, () => this._handlePushMessage(pm, true))
-			 .catch(FileNotFoundError, console.log)
-			resolve(p.then(() => {}))
+			 .catch(FileNotFoundError, e => console.log('404:', e))
+			resolve(downcast(p))
 		})
 	}
 
@@ -246,10 +248,6 @@ export class DesktopSseClient {
 				}
 			}
 		)
-	}
-
-	_handleAlarmNotification(an: AlarmNotification): void {
-		// schedule, save, etc etc
 	}
 
 	_sendConfirmation(confirmationId: string, changeTime: string): Promise<void> {
@@ -412,8 +410,6 @@ export class MissedNotification {
 		let obj
 		try {
 			obj = JSON.parse(json)
-			console.log(obj)
-			obj.alarmNotifications.forEach(an => an.notificationSessionKeys.forEach(nfsk => console.warn(nfsk)))
 			// DesktopUtils.checkDataFormat(obj, {
 			// 	_format: {type: 'string'},
 			// 	_id: [{type: 'string'}],

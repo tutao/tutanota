@@ -1,14 +1,13 @@
 // @flow
 import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer, downcast} from "../../api/common/utils/Utils"
+import {defer} from "../../api/common/utils/Utils"
 import crypto from 'crypto'
 import {CryptoError} from '../../api/common/error/CryptoError'
 import {DesktopConfigHandler} from "../DesktopConfigHandler"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
-
 const ALGORITHM = 'aes-256-cbc'
 type EncryptedKey = {
 	encKeyB64: string,
@@ -82,11 +81,12 @@ export class DesktopAlarmStorage {
 	 */
 	_decryptKey(keyToDecrypt: EncryptedKey, deviceKeyB64: string): string {
 		const ivBuffer = Buffer.from(keyToDecrypt.ivB64, 'base64')
-		const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
-		const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, ivBuffer)
-		let decryptedKeyB64 = decipher.update(Buffer.from(keyToDecrypt.encKeyB64, 'base64'), downcast('base64'))
-		decryptedKeyB64 += decipher.final(downcast('base64'))
-		return decryptedKeyB64
+		const deviceKeyBuffer = Buffer.from(deviceKeyB64, 'base64')
+		const decipher = crypto.createDecipheriv(ALGORITHM, deviceKeyBuffer, ivBuffer)
+		const keyToDecryptBuffer = Buffer.from(keyToDecrypt.encKeyB64, 'base64')
+		let decryptedKeyB64 = decipher.update(keyToDecryptBuffer)
+		decryptedKeyB64 = Buffer.concat([decryptedKeyB64, decipher.final()])
+		return decryptedKeyB64.toString('base64')
 	}
 
 	/**
@@ -95,13 +95,13 @@ export class DesktopAlarmStorage {
 	 * @param pushIdentifierSessionKeyB64 unencrypted B64 encoded key to store
 	 * @returns {*}
 	 */
-	storeSessionKey(pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
+	storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
 		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
 		if (!keys[pushIdentifierId]) {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
 			return this._initialized.promise
 			           .then(pw => {
-				           keys[pushIdentifierId] = DesktopAlarmStorage._encryptKey(pushIdentifierSessionKeyB64, pw)
+				           keys[pushIdentifierId] = this._encryptKey(pushIdentifierSessionKeyB64, pw)
 				           return this._conf.setDesktopConfig('pushEncSessionKeys', keys)
 			           })
 		}
@@ -113,7 +113,7 @@ export class DesktopAlarmStorage {
 	 * @param pushIdentifierId pushIdentifier that identifies the correct key
 	 * @returns {*}
 	 */
-	resolveSessionKey(pushIdentifierId: string): Promise<string> {
+	resolvePushIdentifierSessionKey(pushIdentifierId: string): Promise<string> {
 		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
 		return this._sessionKeysB64[pushIdentifierId]
 			? Promise.resolve(this._sessionKeysB64[pushIdentifierId])
@@ -123,5 +123,13 @@ export class DesktopAlarmStorage {
 				      this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
 				      return decryptedKeyB64
 			      })
+	}
+
+	storeScheduledAlarms(scheduledNotifications: {[string]: {timeout: TimeoutID, an: AlarmNotification}}): Promise<void> {
+		return this._conf.setDesktopConfig('scheduledAlarms', Object.values(scheduledNotifications).map(val => val.an))
+	}
+
+	getScheduledAlarms(): Array<AlarmNotification> {
+		return this._conf.getDesktopConfig('scheduledAlarms') || []
 	}
 }

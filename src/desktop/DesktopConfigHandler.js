@@ -13,6 +13,7 @@ export type DesktopConfigKey
 	| 'runAsTrayApp'
 	| 'lastBounds'
 	| 'pushEncSessionKeys'
+	| 'scheduledAlarms'
 
 export type BuildConfigKey
 	= "pubKeyUrl"
