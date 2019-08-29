@@ -54,7 +54,7 @@ export function showWorkerProgressDialog<T>(messageIdOrMessageFunction: Translat
 	const progress = stream(0)
 	worker.registerProgressUpdater(progress)
 
-	return showProgressDialog(messageIdOrMessageFunction, action)
+	return showProgressDialog(messageIdOrMessageFunction, action, progress)
 		.finally(() => {
 			worker.unregisterProgressUpdater(progress)
 		})
