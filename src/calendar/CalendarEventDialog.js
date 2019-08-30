@@ -361,7 +361,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 							click: () => {
 								const safeExistingEvent = neverNull(existingEvent)
 								const {groupRoot} = neverNull(calendars.get(neverNull(safeExistingEvent._ownerGroup)))
-								showCalendarInviteDialog(groupRoot, safeExistingEvent, exisingAlarms)
+								showCalendarInviteDialog(safeExistingEvent, exisingAlarms)
 							}
 						}),
 					])
@@ -444,7 +444,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					newAlarms.push(newAlarm)
 				}
 			}
-			worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
+			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
 
 			dialog.close()
 		}

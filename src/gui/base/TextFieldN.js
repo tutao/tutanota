@@ -1,16 +1,11 @@
 //@flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {px, size} from "../size"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {ButtonN} from "./ButtonN"
-import {Dialog} from "./Dialog"
-import {formatDate, parseDate} from "../../misc/Formatter"
-import {Icons} from "./icons/Icons"
 import {repeat} from "../../api/common/utils/StringUtils"
 
 export type TextFieldAttrs = {
@@ -291,75 +286,3 @@ export class _TextField {
 }
 
 export const TextFieldN: Class<MComponent<TextFieldAttrs>> = _TextField
-
-export function editableTextField(label: string, value: ?string, updateHandler: handler<string>, area: ?boolean = false) {
-	return m(TextFieldN, {
-		label: () => label,
-		value: stream(value || ""),
-		type: area ? Type.Area : Type.Text,
-		disabled: true,
-		injectionsRight: () => m(ButtonN, {
-			label: () => "update",
-			icon: () => Icons.Edit,
-			click: () => (area ? Dialog.showTextAreaInputDialog : Dialog.showTextInputDialog)("edit_action", () => label, null, value ? value : "")
-				.then(value => updateHandler(value).catch(e => {
-					Dialog.error(() => `Could not update "${label}" with value ${value}`)
-					console.log(e)
-				}))
-		})
-	})
-}
-
-export function editableDateField(label: string, value: ?Date, updateHandler: handler<Date>) {
-	return m(TextFieldN, {
-		label: () => label,
-		value: stream(value ? formatDate(value) : ""),
-		disabled: true,
-		injectionsRight: () => m(ButtonN, {
-			label: () => "update",
-			icon: () => Icons.Edit,
-			click: () => {
-				let invalidDate = false
-				let dateValue = stream(value ? formatDate(value) : "")
-				dateValue.map(newDate => {
-					try {
-						if (newDate.trim().length > 0) {
-							let timestamp = parseDate(newDate)
-							isNaN(timestamp) ? null : new Date(timestamp)
-						}
-						invalidDate = false
-					} catch (e) {
-						invalidDate = true
-					}
-				})
-				const helpText = () => invalidDate ? lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())}) : ""
-				let dialog = Dialog.showActionDialog({
-					title: lang.get("edit_action"),
-					child: {
-						view: () => m(TextFieldN, {
-							label: () => label,
-							value: dateValue,
-							helpLabel: helpText
-						})
-					},
-					okAction: () => {
-						try {
-							let date = null
-							if (dateValue().trim() !== "") {
-								date = new Date(parseDate(dateValue()))
-							}
-							updateHandler(date)
-								.then(() => dialog.close())
-								.catch(e => {
-									Dialog.error(() => `Could not update "${label}" with value ${dateValue()}`)
-									console.log(e)
-								})
-						} catch (e) {
-							Dialog.error(() => helpText())
-						}
-					}
-				})
-			}
-		})
-	})
-}

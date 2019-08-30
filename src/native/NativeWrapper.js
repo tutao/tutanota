@@ -1,6 +1,7 @@
 //@flow
 import {Queue, Request} from "../api/common/WorkerProtocol"
 import {ConnectionError} from "../api/common/error/RestError"
+import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"
 import {isMainOrNode, Mode} from "../api/Env"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -12,7 +13,7 @@ import {appCommands, desktopCommands} from './NativeWrapperCommands.js'
  */
 class NativeWrapper {
 
-	_initialized = defer();
+	_initialized: DeferredObject<void> = defer();
 
 	_workerQueue: ?Queue;
 	_nativeQueue: ?Queue;

@@ -4,6 +4,7 @@ import DesktopUtils from "../../../src/desktop/DesktopUtils.js"
 import path from 'path'
 import {isMailAddress} from "../../../src/misc/FormatValidator"
 import {JsonTypeError} from "../../../src/api/common/error/JsonTypeError"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 function setEnv(platform: string) {
 	let sep = ''
@@ -25,7 +26,7 @@ function setEnv(platform: string) {
 		enumerable: true
 	})
 
-	Object.defineProperty(path, 'sep', {
+	Object.defineProperty(downcast(path), 'sep', {
 		value: sep,
 		writable: false,
 		enumerable: true

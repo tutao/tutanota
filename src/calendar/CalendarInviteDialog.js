@@ -1,19 +1,19 @@
 //@flow
 
 import {getDefaultSender} from "../mail/MailUtils"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {mailModel} from "../mail/MailModel"
 import {makeInvitationCalendarFile} from "./CalendarImporter"
 import {MailEditor} from "../mail/MailEditor"
 import {worker} from "../api/main/WorkerClient"
-import {calendarAttendeeStatusDescription, formatEventDuration} from "./CalendarUtils"
+import {calendarAttendeeStatusDescription, copyEvent, formatEventDuration} from "./CalendarUtils"
 import {theme} from "../gui/theme"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {CalendarAttendeeStatus, getAttendeeStatus} from "../api/common/TutanotaConstants"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
-export function showCalendarInviteDialog(groupRoot: CalendarGroupRoot, existingEvent: CalendarEvent, alarms: Array<AlarmInfo>) {
+export function showCalendarInviteDialog(existingEvent: CalendarEvent, alarms: Array<AlarmInfo>) {
 	const sender = getDefaultSender(mailModel.getUserMailboxDetails())
 
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
@@ -33,21 +33,19 @@ export function showCalendarInviteDialog(groupRoot: CalendarGroupRoot, existingE
 					status: CalendarAttendeeStatus.NEEDS_ACTION
 				}))
 			// TODO: should send another id here, otherwise it's very buggy with entity updates
-			newEvent = downcast(Object.assign({}, existingEvent, {
+			newEvent = copyEvent(existingEvent, {
 				attendees: existingEvent.attendees.concat(newAttendees),
-				_ownerEncSessionKey: null,
-				_permissions: null,
 				organizer: existingEvent.organizer || sender,
-			}))
+			})
 
-			const inviteFile = makeInvitationCalendarFile(neverNull(newEvent))
+			const inviteFile = makeInvitationCalendarFile(neverNull(newEvent), "REQUEST")
 
 			inviteFile.mimeType = "text/calendar"
 			editor.attachFiles([inviteFile])
 			return makeInviteEmailBody(newEvent, html)
 		},
 		afterSent: () => {
-			worker.createCalendarEvent(groupRoot, newEvent, alarms, existingEvent)
+			worker.createCalendarEvent(newEvent, alarms, existingEvent)
 		}
 	}
 

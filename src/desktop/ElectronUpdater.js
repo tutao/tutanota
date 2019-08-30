@@ -1,6 +1,6 @@
 // @flow
 import {autoUpdater} from 'electron-updater'
-import {net} from 'electron'
+import {net} from "electron"
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopNotifier'
@@ -44,26 +44,27 @@ export class ElectronUpdater {
 			this._logger.info("update-available")
 			this._stopPolling()
 			this._foundKey.promise
-			    .then(() => this._verifySignature(updateInfo))
+			    .then(() => this._verifySignature(((updateInfo: any): UpdateInfo)))
 			    .then(() => this._downloadUpdate())
 		}).on('update-downloaded', info => {
 			this._logger.info("update-downloaded")
 			this._stopPolling()
-			this._notifyAndInstall(info)
+			this._notifyAndInstall(((info: any): UpdateInfo))
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
 		}).on('error', e => {
+			const ee: any = e
 			this._stopPolling()
 			this._errorCount += 1
 			if (this._errorCount >= 5) {
-				this._logger.error(`Auto Update Error ${this._errorCount}, shutting down updater:\n${e.message}`)
+				this._logger.error(`Auto Update Error ${this._errorCount}, shutting down updater:\n${ee.message}`)
 				autoUpdater.removeAllListeners('update-available')
 				autoUpdater.removeAllListeners('update-downloaded')
 				autoUpdater.removeAllListeners('checking-for-update')
 				autoUpdater.removeAllListeners('error')
-				throw new UpdateError(`Update failed multiple times. Last error:\n${e.message}`)
+				throw new UpdateError(`Update failed multiple times. Last error:\n${ee.message}`)
 			} else {
-				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${e.message}`)
+				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${ee.message}`)
 				this._notifyUpdateError()
 				setTimeout(() => this._startPolling(), this._fallbackPollInterval)
 			}
@@ -177,7 +178,8 @@ export class ElectronUpdater {
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
-			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || this._fallbackPollInterval)
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval")
+				|| this._fallbackPollInterval)
 			this._checkUpdate()
 		}
 	}

@@ -29,32 +29,32 @@ o.spec("PromiseUtils", function () {
 			})
 
 			o("value + promise = promise", async function () {
-				const value = new PromiseableWrapper("tuta").thenOrApply((v) => Promise.resolve(v + "nota")).value
+				const value: any = new PromiseableWrapper("tuta").thenOrApply((v) => Promise.resolve(v + "nota")).value
 				o(typeof value.then).equals("function")
 				o(await value).equals("tutanota")
 			})
 
 			o("promise + value = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta")).thenOrApply((v) => v + "nota").value
+				const value: any = new PromiseableWrapper(Promise.resolve("tuta")).thenOrApply((v) => v + "nota").value
 				o(typeof value.then).equals("function")
 				o(await value).equals("tutanota")
 			})
 
 			o("proimse + promise = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta")).thenOrApply((v) => Promise.resolve(v + "nota")).value
+				const value: any = new PromiseableWrapper(Promise.resolve("tuta")).thenOrApply((v) => Promise.resolve(v + "nota")).value
 				o(typeof value.then).equals("function")
 				o(await value).equals("tutanota")
 			})
 
 			o("promise + wrapper = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta"))
+				const value: any = new PromiseableWrapper(Promise.resolve("tuta"))
 					.thenOrApply((v) => new PromiseableWrapper(Promise.resolve(v + "nota"))).value
 				o(typeof value.then).equals("function")
 				o(await value).equals("tutanota")
 			})
 
 			o("promise + promised wrapper = promise", async function () {
-				const value = new PromiseableWrapper(Promise.resolve("tuta"))
+				const value: any = new PromiseableWrapper(Promise.resolve("tuta"))
 					.thenOrApply((v) => Promise.resolve(new PromiseableWrapper(v + "nota"))).value
 				o(typeof value.then).equals("function")
 				o(await value).equals("tutanota")

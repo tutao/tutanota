@@ -4,7 +4,7 @@ import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp} from "../api/Env"
 import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
@@ -103,7 +103,7 @@ export class FileController {
 		newFileInput.style.display = "none"
 
 		let promise = Promise.fromCallback(cb => {
-			newFileInput.addEventListener("change", e => {
+			newFileInput.addEventListener("change", (e: Event) => {
 				this.readLocalFiles((e.target: any).files).then(dataFiles => {
 					cb(null, dataFiles)
 				}).catch(e => {
@@ -131,9 +131,10 @@ export class FileController {
 		return Promise.map(nativeFiles, nativeFile => {
 			return Promise.fromCallback(cb => {
 				let reader = new FileReader()
-				reader.onloadend = function (evt) {
-					if (evt.target.readyState === (FileReader: any).DONE && evt.target.result) { // DONE == 2
-						cb(null, createDataFile(nativeFile, new Uint8Array(evt.target.result)))
+				reader.onloadend = function (evt: ProgressEvent) {
+					const target: any = evt.target
+					if (target.readyState === reader.DONE && target.result) { // DONE == 2
+						cb(null, createDataFile(nativeFile, new Uint8Array(target.result)))
 					} else {
 						cb(new Error("could not load file"))
 					}

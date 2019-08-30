@@ -189,8 +189,10 @@ export class SearchFacade {
 					let words = tokenize(entity[attributeName])
 					return Promise.resolve(words.find(w => w.startsWith(suggestionToken)) != null)
 				}
-			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
-				let aggregates = (model.associations[attributeName].cardinality === Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
+			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation
+				&& entity[attributeName]) {
+				let aggregates = (model.associations[attributeName].cardinality
+					=== Cardinality.Any) ? entity[attributeName] : [entity[attributeName]]
 				return resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType))
 					.then(refModel => {
 						return asyncFind(aggregates, aggregate => {
@@ -211,7 +213,7 @@ export class SearchFacade {
 			> getStartOfDay(getDayShifted(new Date(), 1))
 			&& this._mailIndexer.mailboxIndexingPromise.isFulfilled()) {
 			this._mailIndexer.extendIndexIfNeeded(this._loginFacade.getLoggedInUser(),
-				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)))
+				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime())
 		}
 
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>

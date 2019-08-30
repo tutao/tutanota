@@ -6,6 +6,7 @@ import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNode()
 
@@ -32,7 +33,7 @@ export class DropDownSelector<T> {
 				return ''
 			}
 		})
-		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
+		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => BootIcons.Expand, () => {
 			return items.map(item => new Button(() => item.name, () => {
 				if (this.selectedValue() !== item.value) {
 					if (this._changeHandler) {

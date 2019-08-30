@@ -142,7 +142,7 @@ export class EntityRestCache implements EntityRestInterface {
 				}
 			} else {
 				throw new Error("invalid request params: " + String(listId) + ", " + String(id) + ", "
-					+ JSON.stringify(queryParameter))
+					+ String(JSON.stringify(queryParameter)))
 			}
 		} else {
 			return this._entityRestClient.entityRequest(typeRef, method, listId, id, entity, queryParameter, extraHeaders)
@@ -150,10 +150,12 @@ export class EntityRestCache implements EntityRestInterface {
 	}
 
 	isRangeRequest(listId: ?Id, id: ?Id, queryParameter: ?Params) {
-		// check for null and undefined because "" and 0 are als falsy
-		return listId && !id
-			&& queryParameter && queryParameter["start"] !== null && queryParameter["start"] !== undefined && queryParameter["count"] !== null
-			&& queryParameter["count"] !== undefined && queryParameter["reverse"]
+		return listId
+			&& !id
+			&& queryParameter
+			&& queryParameter["start"] !== null
+			&& queryParameter["count"] !== null
+			&& queryParameter["reverse"]
 	}
 
 	_loadMultiple<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: Params,

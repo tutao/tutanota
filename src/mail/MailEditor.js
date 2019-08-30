@@ -191,7 +191,7 @@ export class MailEditor {
 
 		let attachFilesButtonAttrs = {
 			label: "attachFiles_action",
-			click: (ev, attrs) => this._showFileChooserForAttachments(ev.target.getBoundingClientRect()),
+			click: (ev, dom) => this._showFileChooserForAttachments(dom.getBoundingClientRect()),
 			icon: () => Icons.Attachment,
 			noBubble: true
 		}
@@ -269,7 +269,7 @@ export class MailEditor {
 			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => {
 					this._domElement = vnode.dom
-					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
+					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(new MouseEvent("click"), this._domCloseButton))
 				},
 				onremove: vnode => {
 					windowCloseUnsubscribe()
@@ -339,7 +339,9 @@ export class MailEditor {
 		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
-			                    exec: () => closeButtonAttrs.click(null, this._domCloseButton),
+			                    exec: () => {
+				                    closeButtonAttrs.click(new MouseEvent("click"), this._domCloseButton)
+			                    },
 			                    help: "close_alt"
 		                    })
 		                    .addShortcut({
@@ -384,7 +386,7 @@ export class MailEditor {
 				                    this.send()
 			                    },
 			                    help: "send_action"
-		                    }).setCloseHandler(() => closeButtonAttrs.click(null, this._domCloseButton))
+		                    }).setCloseHandler(() => closeButtonAttrs.click(new MouseEvent("click"), this._domCloseButton))
 		this._mailChanged = false
 	}
 
@@ -694,13 +696,14 @@ export class MailEditor {
 				label: "download_action",
 				type: ButtonType.Secondary,
 				click: () => {
+					// flow is unable to type check here, maybe because TypeRef can inherit from string too?
 					if (file._type === 'FileReference') {
-						return fileApp.open((file: FileReference))
+						return fileApp.open(downcast(file))
 						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					} else if (file._type === "DataFile") {
-						return fileController.open(file)
+						return fileController.open(downcast(file))
 					} else {
-						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+						fileController.downloadAndOpen(downcast(file), true)
 						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 					}
 
@@ -765,7 +768,8 @@ export class MailEditor {
 		// _tempBody is only set until the editor is initialized. It might not be the case when
 		// assigning a mail to another user because editor is not shown and we cannot
 		// wait for the editor to be initialized.
-		const body = this._tempBody || replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML
+		// Do not compare using || because empty string is falsy
+		const body = this._tempBody == null ? replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML : this._tempBody
 		let promise = null
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
@@ -965,7 +969,7 @@ export class MailEditor {
 		}))
 	}
 
-	_allRecipients() {
+	_allRecipients(): Array<RecipientInfo> {
 		return this.toRecipients.bubbles.map(b => b.entity)
 		           .concat(this.ccRecipients.bubbles.map(b => b.entity))
 		           .concat(this.bccRecipients.bubbles.map(b => b.entity))

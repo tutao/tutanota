@@ -129,7 +129,7 @@ class LanguageViewModel {
 		this.staticTranslations = {}
 	}
 
-	init(en): Promise<void> {
+	init(en: {}): Promise<void> {
 		this.translations = en
 		this.fallback = en // always load english as fallback
 		this.code = 'en'
@@ -354,11 +354,13 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 			language = languages.find(l => l.code === 'zh_tw')
 		} else {
 			let basePart = getBasePart(code)
-			language = languages.find(l => getBasePart(l.code) === basePart && (restrictions == null || restrictions.indexOf(l.code) !== -1))
+			language = languages.find(l => getBasePart(l.code) === basePart && (restrictions == null || restrictions.indexOf(l.code)
+				!== -1))
 		}
 	}
 	if (language) {
-		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations
+			&& whitelabelCustomizations.germanLanguageCode) {
 			return whitelabelCustomizations.germanLanguageCode
 		} else {
 			return language.code

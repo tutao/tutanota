@@ -17,7 +17,7 @@ import {worker} from "../api/main/WorkerClient"
 import {progressIcon} from "../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../mail/MailUtils"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
@@ -61,7 +61,7 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
+		this._attachFilesButton = new Button('attachFiles_action', () => {this._showFileChooserForAttachments()}, () => Icons.Attachment)
 		this._subject._injectionsRight = () => {
 			return [m(this._attachFilesButton)]
 		}
@@ -227,7 +227,7 @@ export class ContactFormRequestDialog {
 			let lazyButtons: Button[] = []
 			lazyButtons.push(new Button("download_action", () => {
 				if (file._type === "DataFile") {
-					return fileController.open(file)
+					fileController.open(downcast(file))
 				} else {
 					fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 				}
@@ -271,12 +271,10 @@ export class ContactFormRequestDialog {
 					return Dialog.error("mailAddressInvalid_msg")
 				}
 				let password = this._passwordForm.getNewPassword()
-				let statisticsFields = mapAndFilterNull(this._statisticFields, (field => {
-					if (field.value()) {
-						return {
-							name: field.name,
-							value: field.value()
-						}
+				let statisticsFields: Array<{name: string, value: string}> = mapAndFilterNull(this._statisticFields, (field => {
+					const value = field.value()
+					if (value) {
+						return {name: field.name, value: value}
 					} else {
 						return null
 					}

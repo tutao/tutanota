@@ -87,7 +87,7 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 	}
 }
 
-export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): Button {
+export function createNotAvailableForFreeButton(labelId: string, buyAction: () => mixed, icon: lazyIcon, isInPremiumIncluded: boolean): Button {
 	return new Button(labelId, () => {
 		if (logins.getUserController().isFreeAccount() || isIOSApp()) {
 			showNotAvailableForFreeDialog(isInPremiumIncluded)
@@ -97,7 +97,7 @@ export function createNotAvailableForFreeButton(labelId: string, buyAction: clic
 	}, icon)
 }
 
-export function createNotAvailableForFreeButtonAttrs(labelId: TranslationKey, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): ButtonAttrs {
+export function createNotAvailableForFreeButtonAttrs(labelId: TranslationKey, buyAction: () => mixed, icon: lazyIcon, isInPremiumIncluded: boolean): ButtonAttrs {
 	return {
 		label: labelId,
 		click: () => {

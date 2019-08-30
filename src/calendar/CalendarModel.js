@@ -37,6 +37,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {CalendarInfo} from "./CalendarView"
+import * as PromiseUtils from "../api/common/utils/PromiseUtils"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -260,10 +261,10 @@ export function loadCalendarInfo(): Promise<Map<Id, CalendarInfo>> {
 		.then(user => {
 			const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
 			return Promise
-				.map(calendarMemberships, (membership) => Promise.all([
+				.map(calendarMemberships, (membership) => PromiseUtils.all(
 					load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
-				]))
-				.then((groupRoots) => {
+				))
+				.then((groupRoots: Array<[CalendarGroupRoot, GroupInfo]>) => {
 					const calendarInfos: Map<Id, CalendarInfo> = new Map()
 					groupRoots.forEach(([groupRoot, groupInfo]) => {
 						calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})

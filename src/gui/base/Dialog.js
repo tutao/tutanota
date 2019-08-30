@@ -44,7 +44,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?(e: Event) => void;
+	_closeHandler: ?(e: Event) => mixed;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
@@ -169,7 +169,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: ?(e: Event) => void): Dialog {
+	setCloseHandler(closeHandler: ?(e: Event) => mixed): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -429,7 +429,12 @@ export class Dialog {
 	|}): Dialog {
 		let dialog: Dialog
 		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
+			Object.assign({}, {
+				allowCancel: true,
+				okActionTextId: "ok_action",
+				cancelActionTextId: "cancel_action",
+				type: DialogType.EditSmall
+			}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {
@@ -518,7 +523,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
 			const textFieldAttrs: TextFieldAttrs = {
@@ -531,7 +536,6 @@ export class Dialog {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {view: () => m(TextFieldN, textFieldAttrs)},
-				validator: (inputValidator) ? inputValidator(result()) : null,
 				okAction: dialog => {
 					resolve(result())
 					dialog.close()

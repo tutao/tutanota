@@ -222,16 +222,18 @@ export class Dropdown {
 		const chooseMatch = () => {
 			let visibleElements: Array<Button> = (this._visibleItems().filter(b => (typeof b !== "string")): any)
 			let matchingButton = visibleElements.find(b => b.getLabel().toLowerCase() === this._filterString().toLowerCase())
+			// Here we can't give click handlers any real arguments but they expect it so we create one
+			const clickEvent = new MouseEvent("click")
 			if (document.activeElement === this._domInput
 				&& matchingButton
 				&& matchingButton.clickHandler
 			) {
-				matchingButton.clickHandler()
+				matchingButton.clickHandler(clickEvent, matchingButton._domButton)
 				this.close()
 			} else {
 				let selected = visibleElements.find(b => document.activeElement === b._domButton)
 				if (selected && selected.clickHandler) {
-					selected.clickHandler()
+					selected.clickHandler(clickEvent, selected._domButton)
 					this.close()
 				}
 			}

@@ -1,6 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 o.spec("ApplicationWindow Test", () => {
 	n.startGroup(__filename, [
@@ -30,8 +31,9 @@ o.spec("ApplicationWindow Test", () => {
 				},
 				constructor: function (opts) {
 					this.opts = opts
-					this.id = electron.BrowserWindow.lastId
-					electron.BrowserWindow.lastId = electron.BrowserWindow.lastId + 1
+					const browserWindow = downcast(electron.BrowserWindow)
+					this.id = browserWindow.lastId
+					browserWindow.lastId = browserWindow.lastId + 1
 
 					this.webContents = n.spyify({
 						callbacks: {},
@@ -214,8 +216,9 @@ o.spec("ApplicationWindow Test", () => {
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
 
-		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const browserWindow = downcast(electronMock.BrowserWindow)
+		o(browserWindow.mockedInstances.length).equals(1)
+		const bwInstance = browserWindow.mockedInstances[0]
 		o(bwInstance.loadURL.callCount).equals(1)
 		o(bwInstance.loadURL.args[0]).equals('desktophtml')
 		o(bwInstance.opts).deepEquals({
@@ -252,7 +255,7 @@ o.spec("ApplicationWindow Test", () => {
 
 		// noAutoLogin=true
 		const w2 = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml', true)
-		const bwInstance2 = electronMock.BrowserWindow.mockedInstances[1]
+		const bwInstance2 = downcast(electronMock.BrowserWindow).mockedInstances[1]
 		o(bwInstance2.loadURL.callCount).equals(1)
 		o(bwInstance2.loadURL.args[0]).equals('desktophtml?noAutoLogin=true')
 		o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
@@ -338,7 +341,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(wmMock.ipc.sendRequest.callCount).equals(2)
 		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, 'print', []])
 
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const bwInstance = downcast(electronMock.BrowserWindow).mockedInstances[0]
 		electronLocalshortcutMock.callbacks["F12"]()
 		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
 		o(bwInstance.webContents.openDevTools.callCount).equals(1)
@@ -381,7 +384,7 @@ o.spec("ApplicationWindow Test", () => {
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const bwInstance = downcast(electronMock.BrowserWindow).mockedInstances[0]
 
 		const e = {preventDefault: o.spy()}
 		bwInstance.webContents.callbacks['did-start-navigation'](e, "evil.com", true)
@@ -413,7 +416,7 @@ o.spec("ApplicationWindow Test", () => {
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const bwInstance = downcast(electronMock.BrowserWindow).mockedInstances[0]
 
 		const e = {preventDefault: o.spy()}
 		bwInstance.webContents.callbacks['will-attach-webview'](e)

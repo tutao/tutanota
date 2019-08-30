@@ -514,7 +514,8 @@ o.spec("CalendarModel", function () {
 			const eventEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 3}).toJSDate())
 			const repeatEnd = getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 5, day: 4}).toJSDate())
 			const occurrences = []
-			iterateEventOccurrences(now, repeatRuleTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY, 1, EndType.UntilDate, repeatEnd, AlarmInterval.ONE_DAY,
+			iterateEventOccurrences(now, repeatRuleTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY, 1, EndType.UntilDate,
+				repeatEnd.getTime(), AlarmInterval.ONE_DAY,
 				timeZone,
 				(time) => {
 					occurrences.push(time)

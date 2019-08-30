@@ -39,9 +39,9 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 				},
 				oncreate: (vnode) => animations.add(vnode.dom, opacity(0, 1, true)),
 				onbeforeremove: (vnode) => animations.add(vnode.dom, opacity(1, 0, true)),
-				onclick: (e) => {
+				onclick: (e, dom) => {
 					e.stopPropagation()
-					attrs.onEventClicked(e)
+					attrs.onEventClicked(e, dom)
 				}
 			}, [
 				attrs.hasAlarm

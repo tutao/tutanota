@@ -78,7 +78,7 @@ class DesktopErrorHandler {
 				if (result === 1) { // clicked yes
 					if (restartNow) {
 						console.log('writing error log to', this._errorLogPath)
-						fs.writeFileSync(this._errorLogPath, JSON.stringify(this.lastErrorLog))
+						fs.writeFileSync(this._errorLogPath, (JSON.stringify(this.lastErrorLog): any))
 						app.relaunch({args: process.argv.slice(1)})
 						app.exit(0)
 					} else {

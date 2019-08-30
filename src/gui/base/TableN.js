@@ -37,7 +37,7 @@ export type TableAttrs = {
 export type CellTextData = {
 	main: string,
 	info: ?string,
-	click?: clickHandler
+	click?: ?clickHandler
 }
 
 export type TableLineAttrs = {
@@ -49,7 +49,7 @@ export type TableLineAttrs = {
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.
  * The table shows a loading spinner until updateEntries() is called the first time.
  */
-class _Table {
+export class TableN implements MComponent<TableAttrs> {
 
 	view(vnode: Vnode<LifecycleAttrs<TableAttrs>>): VirtualElement {
 		const a = vnode.attrs
@@ -83,9 +83,10 @@ class _Table {
 				m("td", [
 					m(".text-ellipsis.pr.pt-s" + columnWidths[index] + ((bold) ? ".b" : "") + (cellTextData.click ? ".click" : ""), {
 						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
-						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
-					}, cellTextData.main), m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
-						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, (event.target: any)) : null
+					}, cellTextData.main),
+					m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, (event.target: any)) : null
 					}, cellTextData.info)
 				]))
 		} else {
@@ -111,9 +112,6 @@ class _Table {
 		return m("tr.selectable", cells)
 	}
 }
-
-export const TableN: Class<MComponent<TableAttrs>> = _Table
-
 
 interface UpdateableInstanceWithArray<T> {
 	getArray: () => Array<T>,

@@ -228,7 +228,7 @@ export class DropdownN {
 		if (document.activeElement === this._domInput
 			&& matchingButton
 			&& matchingButton.click) {
-			matchingButton.click()
+			matchingButton.click(new MouseEvent("click"), this._domInput)
 			return false
 		}
 		return true
@@ -342,7 +342,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 }
 
 // We override type of click to be optional because we wrap it in our own
-export type DropdownButtonAttrs = {click?: (MouseEvent) => void} & ButtonAttrs
+export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
 
 /**
  *
@@ -366,7 +366,7 @@ export function attachDropdown(
 				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
 				dropDownFn(e, dom)
 			} else if (oldClick) {
-				oldClick(e)
+				oldClick(e, dom)
 			}
 		}
 	})

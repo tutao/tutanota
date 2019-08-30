@@ -58,13 +58,14 @@ export class PromisableWrapper<T> {
 
 	value: $Promisable<T>;
 
-	constructor(value: $Promisable<T>) {
+	constructor(value: $Promisable<PromisableWrapper<T> | T>) {
 		this.value = value instanceof Promise ? value.then(flatWrapper) : flatWrapper(value);
 	}
 
-	thenOrApply<R>(onFulfill: (T) => $Promisable<PromisableWrapper<R>> | $Promisable<R>, onReject?: (any) => $Promisable<R>): PromisableWrapper<R> {
+	thenOrApply<R>(onFulfill: (T) => $Promisable<PromisableWrapper<R> | R>, onReject?: (any) => $Promisable<R | PromisableWrapper<R>>): PromisableWrapper<R> {
 		if (this.value instanceof Promise) {
-			return new PromisableWrapper(this.value.then(onFulfill, onReject))
+			const v: Promise<PromisableWrapper<R> | R> = this.value.then(onFulfill, onReject)
+			return new PromisableWrapper(v)
 		} else {
 			try {
 				return new PromisableWrapper(onFulfill(this.value))

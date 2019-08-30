@@ -19,7 +19,7 @@ export type Attrs = {
 	onTimePressed: (hours: number, minutes: number) => mixed,
 }
 
-export const calendarDayTimes = numberRange(0, 23).map((n) => {
+export const calendarDayTimes: Array<Date> = numberRange(0, 23).map((n) => {
 	const d = new Date()
 	d.setHours(n, 0, 0, 0)
 	return d

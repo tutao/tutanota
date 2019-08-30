@@ -6,10 +6,10 @@ import {ButtonType} from "./Button"
 import {TextFieldN} from "./TextFieldN"
 import {ButtonN} from "./ButtonN"
 import {createDropdown} from "./DropdownN.js"
-import {Icons} from "./icons/Icons"
 import type {AllIconsEnum} from "./Icon"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNode()
 
@@ -38,7 +38,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 			disabled: true,
 			injectionsRight: () => m(ButtonN, {
 				label: a.label,
-				icon: () => a.icon ? a.icon : Icons.Edit,
+				icon: () => a.icon || BootIcons.Expand,
 				click: this.createDropdown(a)
 			})
 		})
@@ -69,7 +69,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 		if (selectedItem) {
 			return selectedItem.name
 		} else {
-			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
+			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${String(JSON.stringify(value))}`)
 			return null
 		}
 	}

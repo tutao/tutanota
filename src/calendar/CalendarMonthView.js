@@ -50,7 +50,7 @@ const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
 export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
-	_resizeListener: () => mixed;
+	_resizeListener: () => void;
 
 	constructor() {
 		this._resizeListener = m.redraw
