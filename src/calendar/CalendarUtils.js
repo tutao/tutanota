@@ -4,7 +4,7 @@ import {pad} from "../api/common/utils/StringUtils"
 import type {CalendarAttendeeStatusEnum, EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {CalendarAttendeeStatus, defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {clone, neverNull} from "../api/common/utils/Utils"
+import {clone, downcast, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
@@ -427,3 +427,11 @@ export function calendarAttendeeStatusDescription(status: CalendarAttendeeStatus
 			throw new Error("Unknown calendar attendee status: " + status)
 	}
 }
+
+export function copyEvent(event: CalendarEvent, updatedFields: $Shape<CalendarEvent>) {
+	const newEvent: CalendarEvent = Object.assign({}, event, updatedFields)
+	newEvent._ownerEncSessionKey = null
+	downcast(newEvent)._permissions = null
+	return newEvent
+}
+

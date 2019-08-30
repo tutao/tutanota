@@ -51,6 +51,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"index": {
+			"name": "index",
+			"id": 1008,
+			"since": 37,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "CalendarEventIndexRef",
+			"final": false
+		},
 		"longEvents": {
 			"name": "longEvents",
 			"id": 955,

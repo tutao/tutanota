@@ -1013,6 +1013,7 @@ type CalendarEvent = {
 	_permissions: Id;
 	description: string;
 	endTime: Date;
+	hashedUid: ?Uint8Array;
 	location: string;
 	organizer: ?string;
 	startTime: Date;
@@ -1033,6 +1034,7 @@ type CalendarGroupRoot = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 
+	index: ?CalendarEventIndexRef;
 	longEvents: Id;
 	shortEvents: Id;
 }
@@ -1099,4 +1101,21 @@ type CalendarEventAttendee = {
 	status: NumberString;
 
 	address: MailAddress;
+}
+
+type CalendarEventUidIndex = {
+	_type: TypeRef<CalendarEventUidIndex>;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	calendarEvent: IdTuple;
+}
+
+type CalendarEventIndexRef = {
+	_type: TypeRef<CalendarEventIndexRef>;
+	_id: Id;
+
+	list: Id;
 }

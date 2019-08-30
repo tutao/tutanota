@@ -531,6 +531,12 @@ export class WorkerClient {
 	getDomainValidationRecord(): Promise<string> {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
 	}
+
+	getEventByUid(uid: string): Promise<?CalendarEvent> {
+		console.log("getEventByUid")
+		return this._queue.postMessage(new Request("getEventByUid", [uid]))
+	}
+
 }
 
 export const worker = new WorkerClient()

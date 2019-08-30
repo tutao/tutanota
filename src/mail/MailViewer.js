@@ -21,7 +21,7 @@ import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
@@ -87,10 +87,12 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
-import {parseCalendarFile} from "../calendar/CalendarImporter"
+import {makeInvitationCalendarFile, parseCalendarFile} from "../calendar/CalendarImporter"
 import {loadCalendarInfo} from "../calendar/CalendarModel"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {calendarAttendeeStatusDescription, formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
+import {calendarAttendeeStatusDescription, copyEvent, formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 
 assertMainOrNode()
 
@@ -386,6 +388,10 @@ export class MailViewer {
 
 	_renderCalendarEvent() {
 		const event = this._calendarEvent
+		if (!event) return null
+
+		const mailAddreses = getEnabledMailAddresses(mailModel.getUserMailboxDetails())
+		const thisAttendee = event.attendees.find(a => mailAddreses.includes(a.address.address))
 
 		return event
 			? m(".flex.mt-s", {
@@ -394,7 +400,6 @@ export class MailViewer {
 					padding: px(size.vpad_small),
 					paddingBottom: "0",
 					borderRadius: px(4),
-					maxWidth: "800px",
 				}
 			}, [
 				m(Icon, {
@@ -409,26 +414,59 @@ export class MailViewer {
 						event.organizer ? m(".ml-s", event.organizer + " (organizer)") : ""),
 					event.attendees.map(({address, status}) => m(".flex", m(".calendar-invite-field.ml-s",),
 						m(".ml-s", `${address.name} ${address.address} ${calendarAttendeeStatusDescription(downcast(status))}`))),
-					m(".align-self-end",
-						m(ButtonN, attachDropdown({
-								label: () => "Add to the calendar",
-								type: ButtonType.Secondary,
-							},
-							() => loadCalendarInfo()
-								.then((calendarInfo) => {
-									return Array.from(calendarInfo.values()).map(({groupRoot, groupInfo}) => {
-										return {
-											label: () => getCalendarName(groupInfo.name),
-											click: () => {
-												event._ownerGroup = groupRoot._id
-												worker.createCalendarEvent(groupRoot, event, [], null)
-											},
-											type: ButtonType.Dropdown,
-										}
+					m(".align-self-end.flex.items-end",
+						[
+							thisAttendee
+								? m(".mlr", {style: {width: "200px"}}, m(DropDownSelectorN, {
+									label: () => "Your response",
+									items: [
+										{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
+										{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
+										{name: "No", value: CalendarAttendeeStatus.DECLINED}
+									],
+									selectedValue: stream(thisAttendee.status),
+									selectionChangedHandler: (selectedResponse) => {
+										const updatedAttendee = createCalendarEventAttendee({
+											address: thisAttendee.address,
+											status: selectedResponse
+										})
+										const newEvent = copyEvent(event, {
+											attendees: [updatedAttendee]
+										})
+										const mailEditor = new MailEditor(mailModel.getUserMailboxDetails())
+										mailEditor.initWithTemplate(null, event.organizer, "Accepted invitation for " + event.summary, "")
+										          .then(() => {
+											          mailEditor.attachFiles([makeInvitationCalendarFile(newEvent, "REPLY")])
+											          return mailEditor.send()
+										          })
+										          .then(loadCalendarInfo)
+										          .then((calendarInfo) => {
+											          // TODO: find existing event
+											          newEvent._ownerGroup = Array.from(calendarInfo.values())[0].groupInfo.group
+											          worker.createCalendarEvent(newEvent, [], null)
+										          })
+									}
+								}))
+								: null,
+							m(ButtonN, attachDropdown({
+									label: () => "Add to the calendar",
+									type: ButtonType.Secondary,
+								},
+								() => loadCalendarInfo()
+									.then((calendarInfo) => {
+										return Array.from(calendarInfo.values()).map(({groupRoot, groupInfo}) => {
+											return {
+												label: () => getCalendarName(groupInfo.name),
+												click: () => {
+													event._ownerGroup = groupRoot._id
+													worker.createCalendarEvent(event, [], null)
+												},
+												type: ButtonType.Dropdown,
+											}
+										})
 									})
-								})
-								.tap(() => console.log("finished with loading buttons"))
-						))),
+							))
+						]),
 				]),
 			])
 			: null
@@ -535,11 +573,35 @@ export class MailViewer {
 						                       .then((dataFile) => {
 							                       try {
 								                       const parsedCalendarData = parseCalendarFile(dataFile)
-								                       if (parsedCalendarData.contents.length > 0) {
-									                       this._calendarEvent = parsedCalendarData.contents[0].event
-									                       m.redraw()
+								                       switch (parsedCalendarData.method) {
+									                       case "PUBLISH":
+									                       case "REQUEST":
+										                       if (parsedCalendarData.contents.length > 0) {
+											                       this._calendarEvent = parsedCalendarData.contents[0].event
+											                       m.redraw()
+										                       }
+										                       break
+									                       case "REPLY":
+										                       if (parsedCalendarData.contents.length > 0) {
+											                       const replyEvent = parsedCalendarData.contents[0].event
+											                       worker.getEventByUid(neverNull(replyEvent.uid)).then((dbEvent) => {
+												                       const replyAttendee = replyEvent.attendees[0]
+												                       if (dbEvent && replyAttendee) {
+													                       const dbAttendee = dbEvent.attendees.find((a) =>
+														                       replyAttendee.address.address === a.address.address)
+													                       if (dbAttendee) {
+														                       dbAttendee.status = replyAttendee.status
+														                       copyEvent(dbEvent, {})
+														                       // TODO: alarms
+														                       worker.createCalendarEvent(dbEvent, [], dbEvent)
+													                       }
+												                       }
+											                       })
+										                       }
+										                       break
 								                       }
 							                       } catch (e) {
+								                       console.log(e)
 							                       }
 
 						                       })

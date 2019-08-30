@@ -51,10 +51,19 @@ export const _TypeModel: TypeModel = {
 			"encrypted": true
 		},
 		"endTime": {"name": "endTime", "id": 943, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
+		"hashedUid": {
+			"name": "hashedUid",
+			"id": 995,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"location": {"name": "location", "id": 944, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"organizer": {
 			"name": "organizer",
-			"id": 995,
+			"id": 996,
 			"since": 37,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
@@ -68,7 +77,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"attendees": {
 			"name": "attendees",
-			"id": 996,
+			"id": 997,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

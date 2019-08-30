@@ -293,7 +293,11 @@ export class WorkerImpl {
 			},
 			getDomainValidationRecord: (message: Request) => {
 				return locator.customer.getDomainValidationRecord(...message.args)
+			},
+			getEventByUid: (message: Request) => {
+				return locator.calendar.getEventByUid(...message.args)
 			}
+
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

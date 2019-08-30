@@ -63,7 +63,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              for (let alarmInfo of alarms) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
-							              return worker.createCalendarEvent(calendarGroupRoot, event, alarms, null)
+							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
 						              })
@@ -134,13 +134,14 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	return fileController.open(createDataFile(tmpFile, data))
 }
 
-export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, now: Date = new Date()): string {
+export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date = new Date()): string {
 	const eventSerialized = serializeEvent(event, [], now)
-	return wrapIntoCalendar(versionNumber, "REQUEST", eventSerialized)
+	return wrapIntoCalendar(versionNumber, method, eventSerialized)
 }
 
-export function makeInvitationCalendarFile(event: CalendarEvent): DataFile {
-	const stringValue = makeInvitationCalendar(env.versionNumber, event)
+
+export function makeInvitationCalendarFile(event: CalendarEvent, method: string): DataFile {
+	const stringValue = makeInvitationCalendar(env.versionNumber, event, method)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = "invite.ics"

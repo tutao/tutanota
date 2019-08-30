@@ -6,7 +6,7 @@ import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/User
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
-import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
+import {elementIdPart, HttpMethod, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/EntityFunctions"
 import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
 import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
@@ -30,6 +30,10 @@ import {EntityRestCache} from "../rest/EntityRestCache"
 import {NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
+import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
+import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
+import {hash} from "../crypto/Sha256"
+import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 
 assertWorkerOrNode()
 
@@ -45,45 +49,50 @@ export class CalendarFacade {
 		this._entityRestCache = entityRestCache
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
-		const user = this._loginFacade.getLoggedInUser()
-		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
-		let p = Promise.resolve()
-		const alarmNotifications: Array<AlarmNotification> = []
-		// delete old calendar event
-		if (oldEvent) {
-			p = erase(oldEvent).catch(NotFoundError, noOp)
-		}
-		const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
-		event._id = [listId, generateEventElementId(event.startTime.getTime())]
-
-		return p
-			.then(() => Promise.map(alarmInfos, (alarmInfo) => {
-					const newAlarm = createUserAlarmInfo()
-					newAlarm._ownerGroup = user.userGroup.group
-					newAlarm.alarmInfo = alarmInfo
-					newAlarm.alarmInfo.calendarRef = Object.assign(createCalendarEventRef(), {
-						listId,
-						elementId: elementIdPart(event._id)
-					})
-					const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
-					alarmNotifications.push(alarmNotification)
-					return setup(userAlarmInfoListId, newAlarm)
-				})
-			)
-			.then(newUserAlarmElementIds => {
-				findAllAndRemove(event.alarmInfos, (userAlarmInfoId) => isSameId(userAlarmInfoListId, listIdPart(userAlarmInfoId)))
-				newUserAlarmElementIds.forEach((id) => {
-					event.alarmInfos.push([userAlarmInfoListId, id])
-				})
-
-				return setup(listId, event)
-			})
+	createCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
+		return Promise
+			.resolve()
 			.then(() => {
-				if (alarmNotifications.length > 0) {
-					return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-						.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+				if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
+				if (event.uid == null) throw new Error("no uid set on the event")
+				if (oldEvent) {
+					return erase(oldEvent).catch(NotFoundError, noOp)
 				}
+			})
+			.then(() => load(CalendarGroupRootTypeRef, neverNull(event._ownerGroup)))
+			.then((groupRoot) => {
+				const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
+				event._id = [listId, generateEventElementId(event.startTime.getTime())]
+				const user = this._loginFacade.getLoggedInUser()
+				const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
+				const alarmNotifications: Array<AlarmNotification> = []
+				return Promise
+					.map(alarmInfos, (alarmInfo) => {
+						const newAlarm = createUserAlarmInfo()
+						newAlarm._ownerGroup = user.userGroup.group
+						newAlarm.alarmInfo = alarmInfo
+						newAlarm.alarmInfo.calendarRef = Object.assign(createCalendarEventRef(), {
+							listId,
+							elementId: elementIdPart(event._id)
+						})
+						const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
+						alarmNotifications.push(alarmNotification)
+						return setup(userAlarmInfoListId, newAlarm)
+					})
+					.then(newUserAlarmElementIds => {
+						findAllAndRemove(event.alarmInfos, (userAlarmInfoId) => isSameId(userAlarmInfoListId, listIdPart(userAlarmInfoId)))
+						newUserAlarmElementIds.forEach((id) => {
+							event.alarmInfos.push([userAlarmInfoListId, id])
+						})
+
+						return setup(listId, event)
+					})
+					.then(() => {
+						if (alarmNotifications.length > 0) {
+							return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+								.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+						}
+					})
 			})
 	}
 
@@ -165,7 +174,9 @@ export class CalendarFacade {
 				.then((userAlarmInfos) =>
 					Promise
 						.map(userAlarmInfos, (userAlarmInfo) =>
-							load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
+							load(CalendarEventTypeRef, [
+								userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId
+							])
 								.then((event) => {
 									return {event, userAlarmInfo}
 								})
@@ -180,6 +191,26 @@ export class CalendarFacade {
 			console.warn("No alarmInfo list on user")
 			return Promise.resolve([])
 		}
+	}
+
+	getEventByUid(uid: string): Promise<?CalendarEvent> {
+		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships.filter(m => m.groupType === GroupType.Calendar)
+		return Promise
+			.reduce(calendarMemberships, (acc, membership) => {
+				// short-circuit if we find the thing
+				return acc || load(CalendarGroupRootTypeRef, membership.group).then((groupRoot) => {
+					load(CalendarEventUidIndexTypeRef, [
+						neverNull(groupRoot.index).list,
+						uint8arrayToCustomId(hash(stringToUtf8Uint8Array(uid)))
+					]).catch(NotFoundError, () => null)
+				})
+			}, null)
+			.then((indexEntry) => {
+				if (indexEntry) {
+					return load(CalendarEventTypeRef, indexEntry.calendarEvent)
+				}
+			})
+
 	}
 }
 
@@ -223,3 +254,6 @@ function createRepeatRuleForCalendarRepeatRule(calendarRepeatRule: CalendarRepea
 		timeZone: calendarRepeatRule.timeZone
 	})
 }
+
+
+
