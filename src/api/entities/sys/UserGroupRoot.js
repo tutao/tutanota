@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", "UserGroupRoot")
 export const _TypeModel: TypeModel = {
 	"name": "UserGroupRoot",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createUserGroupRoot(values?: $Shape<$Exact<UserGroupRoot>>): UserGroupRoot {
 	return Object.assign(create(_TypeModel, UserGroupRootTypeRef), values)
+}
+
+export type UserGroupRoot = {
+	_type: TypeRef<UserGroupRoot>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	invitations: Id;
 }

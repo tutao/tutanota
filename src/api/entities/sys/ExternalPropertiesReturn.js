@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {File} from "./File"
+
 export const ExternalPropertiesReturnTypeRef: TypeRef<ExternalPropertiesReturn> = new TypeRef("sys", "ExternalPropertiesReturn")
 export const _TypeModel: TypeModel = {
 	"name": "ExternalPropertiesReturn",
@@ -66,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createExternalPropertiesReturn(values?: $Shape<$Exact<ExternalPropertiesReturn>>): ExternalPropertiesReturn {
 	return Object.assign(create(_TypeModel, ExternalPropertiesReturnTypeRef), values)
+}
+
+export type ExternalPropertiesReturn = {
+	_type: TypeRef<ExternalPropertiesReturn>;
+
+	_format: NumberString;
+	accountType: NumberString;
+	message: string;
+
+	bigLogo: ?File;
+	smallLogo: ?File;
 }

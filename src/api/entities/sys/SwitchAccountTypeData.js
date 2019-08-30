@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SwitchAccountTypeDataTypeRef: TypeRef<SwitchAccountTypeData> = new TypeRef("sys", "SwitchAccountTypeData")
 export const _TypeModel: TypeModel = {
 	"name": "SwitchAccountTypeData",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createSwitchAccountTypeData(values?: $Shape<$Exact<SwitchAccountTypeData>>): SwitchAccountTypeData {
 	return Object.assign(create(_TypeModel, SwitchAccountTypeDataTypeRef), values)
+}
+
+export type SwitchAccountTypeData = {
+	_type: TypeRef<SwitchAccountTypeData>;
+
+	_format: NumberString;
+	accountType: NumberString;
+	campaign: ?string;
+	date: ?Date;
+	subscriptionType: NumberString;
 }

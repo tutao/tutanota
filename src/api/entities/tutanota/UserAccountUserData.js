@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UserAccountUserDataTypeRef: TypeRef<UserAccountUserData> = new TypeRef("tutanota", "UserAccountUserData")
 export const _TypeModel: TypeModel = {
 	"name": "UserAccountUserData",
@@ -218,4 +219,31 @@ export const _TypeModel: TypeModel = {
 
 export function createUserAccountUserData(values?: $Shape<$Exact<UserAccountUserData>>): UserAccountUserData {
 	return Object.assign(create(_TypeModel, UserAccountUserDataTypeRef), values)
+}
+
+export type UserAccountUserData = {
+	_type: TypeRef<UserAccountUserData>;
+
+	_id: Id;
+	contactEncContactListSessionKey: Uint8Array;
+	customerEncContactGroupInfoSessionKey: Uint8Array;
+	customerEncFileGroupInfoSessionKey: Uint8Array;
+	customerEncMailGroupInfoSessionKey: Uint8Array;
+	encryptedName: Uint8Array;
+	fileEncFileSystemSessionKey: Uint8Array;
+	mailAddress: string;
+	mailEncMailBoxSessionKey: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	recoverCodeVerifier: Uint8Array;
+	salt: Uint8Array;
+	userEncClientKey: Uint8Array;
+	userEncContactGroupKey: Uint8Array;
+	userEncCustomerGroupKey: Uint8Array;
+	userEncEntropy: Uint8Array;
+	userEncFileGroupKey: Uint8Array;
+	userEncMailGroupKey: Uint8Array;
+	userEncRecoverCode: Uint8Array;
+	userEncTutanotaPropertiesSessionKey: Uint8Array;
+	verifier: Uint8Array;
 }

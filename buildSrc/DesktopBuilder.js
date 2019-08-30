@@ -120,8 +120,6 @@ function transpile(files, baseDir, distDir) {
 			nextFiles = nextFiles.filter((elem, i) => nextFiles.indexOf(elem === i))
 		}
 	}
-	console.log("transpiled files:")
-	console.log(transpiledFiles.map(p => path.relative(".", p)).join("\n"))
 	return Promise.resolve()
 }
 

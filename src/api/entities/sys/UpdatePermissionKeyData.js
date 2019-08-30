@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", "UpdatePermissionKeyData")
 export const _TypeModel: TypeModel = {
 	"name": "UpdatePermissionKeyData",
@@ -68,4 +69,15 @@ export const _TypeModel: TypeModel = {
 
 export function createUpdatePermissionKeyData(values?: $Shape<$Exact<UpdatePermissionKeyData>>): UpdatePermissionKeyData {
 	return Object.assign(create(_TypeModel, UpdatePermissionKeyDataTypeRef), values)
+}
+
+export type UpdatePermissionKeyData = {
+	_type: TypeRef<UpdatePermissionKeyData>;
+
+	_format: NumberString;
+	ownerEncSessionKey: ?Uint8Array;
+	symEncSessionKey: ?Uint8Array;
+
+	bucketPermission: IdTuple;
+	permission: IdTuple;
 }

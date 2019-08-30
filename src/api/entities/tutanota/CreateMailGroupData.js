@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {InternalGroupData} from "./InternalGroupData"
+
 export const CreateMailGroupDataTypeRef: TypeRef<CreateMailGroupData> = new TypeRef("tutanota", "CreateMailGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "CreateMailGroupData",
@@ -66,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createCreateMailGroupData(values?: $Shape<$Exact<CreateMailGroupData>>): CreateMailGroupData {
 	return Object.assign(create(_TypeModel, CreateMailGroupDataTypeRef), values)
+}
+
+export type CreateMailGroupData = {
+	_type: TypeRef<CreateMailGroupData>;
+
+	_format: NumberString;
+	encryptedName: Uint8Array;
+	mailAddress: string;
+	mailEncMailboxSessionKey: Uint8Array;
+
+	groupData: InternalGroupData;
 }

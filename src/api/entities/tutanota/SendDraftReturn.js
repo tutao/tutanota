@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {NotificationMail} from "./NotificationMail"
+
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", "SendDraftReturn")
 export const _TypeModel: TypeModel = {
 	"name": "SendDraftReturn",
@@ -67,4 +69,15 @@ export const _TypeModel: TypeModel = {
 
 export function createSendDraftReturn(values?: $Shape<$Exact<SendDraftReturn>>): SendDraftReturn {
 	return Object.assign(create(_TypeModel, SendDraftReturnTypeRef), values)
+}
+
+export type SendDraftReturn = {
+	_type: TypeRef<SendDraftReturn>;
+
+	_format: NumberString;
+	messageId: string;
+	sentDate: Date;
+
+	notifications: NotificationMail[];
+	sentMail: IdTuple;
 }

@@ -38,6 +38,10 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {windowFacade} from "../misc/WindowFacade"
 import {ButtonType} from "../gui/base/ButtonN"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {InputField} from "../api/entities/tutanota/InputField"
+import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 
 assertMainOrNode()
 

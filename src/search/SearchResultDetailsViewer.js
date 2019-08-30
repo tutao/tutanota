@@ -14,6 +14,8 @@ import {MultiSearchViewer} from "./MultiSearchViewer"
 import {ActionBar} from "../gui/base/ActionBar"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 

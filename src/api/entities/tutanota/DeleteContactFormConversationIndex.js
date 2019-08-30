@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DeleteContactFormConversationIndexTypeRef: TypeRef<DeleteContactFormConversationIndex> = new TypeRef("tutanota", "DeleteContactFormConversationIndex")
 export const _TypeModel: TypeModel = {
 	"name": "DeleteContactFormConversationIndex",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createDeleteContactFormConversationIndex(values?: $Shape<$Exact<DeleteContactFormConversationIndex>>): DeleteContactFormConversationIndex {
 	return Object.assign(create(_TypeModel, DeleteContactFormConversationIndexTypeRef), values)
+}
+
+export type DeleteContactFormConversationIndex = {
+	_type: TypeRef<DeleteContactFormConversationIndex>;
+
+	_id: Id;
+
+	items: Id;
 }

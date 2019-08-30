@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", "PushIdentifier")
 export const _TypeModel: TypeModel = {
 	"name": "PushIdentifier",
@@ -146,4 +147,24 @@ export const _TypeModel: TypeModel = {
 
 export function createPushIdentifier(values?: $Shape<$Exact<PushIdentifier>>): PushIdentifier {
 	return Object.assign(create(_TypeModel, PushIdentifierTypeRef), values)
+}
+
+export type PushIdentifier = {
+	_type: TypeRef<PushIdentifier>;
+	_errors: Object;
+
+	_area: NumberString;
+	_format: NumberString;
+	_id: IdTuple;
+	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	disabled: boolean;
+	displayName: string;
+	identifier: string;
+	language: string;
+	lastNotificationDate: ?Date;
+	lastUsageTime: Date;
+	pushServiceType: NumberString;
 }

@@ -10,6 +10,7 @@ import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {throttleRoute} from "../misc/RouteChange"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 
 assertMainOrNode()
 

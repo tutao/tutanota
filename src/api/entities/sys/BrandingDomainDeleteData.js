@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", "BrandingDomainDeleteData")
 export const _TypeModel: TypeModel = {
 	"name": "BrandingDomainDeleteData",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createBrandingDomainDeleteData(values?: $Shape<$Exact<BrandingDomainDeleteData>>): BrandingDomainDeleteData {
 	return Object.assign(create(_TypeModel, BrandingDomainDeleteDataTypeRef), values)
+}
+
+export type BrandingDomainDeleteData = {
+	_type: TypeRef<BrandingDomainDeleteData>;
+
+	_format: NumberString;
+	domain: string;
 }

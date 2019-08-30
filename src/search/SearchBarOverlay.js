@@ -23,6 +23,10 @@ import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/ContactUtils.js"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState,

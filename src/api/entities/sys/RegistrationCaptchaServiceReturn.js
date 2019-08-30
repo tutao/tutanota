@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", "RegistrationCaptchaServiceReturn")
 export const _TypeModel: TypeModel = {
 	"name": "RegistrationCaptchaServiceReturn",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createRegistrationCaptchaServiceReturn(values?: $Shape<$Exact<RegistrationCaptchaServiceReturn>>): RegistrationCaptchaServiceReturn {
 	return Object.assign(create(_TypeModel, RegistrationCaptchaServiceReturnTypeRef), values)
+}
+
+export type RegistrationCaptchaServiceReturn = {
+	_type: TypeRef<RegistrationCaptchaServiceReturn>;
+
+	_format: NumberString;
+	challenge: ?Uint8Array;
+	token: string;
 }

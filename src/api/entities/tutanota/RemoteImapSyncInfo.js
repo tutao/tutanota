@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RemoteImapSyncInfoTypeRef: TypeRef<RemoteImapSyncInfo> = new TypeRef("tutanota", "RemoteImapSyncInfo")
 export const _TypeModel: TypeModel = {
 	"name": "RemoteImapSyncInfo",
@@ -76,4 +77,16 @@ export const _TypeModel: TypeModel = {
 
 export function createRemoteImapSyncInfo(values?: $Shape<$Exact<RemoteImapSyncInfo>>): RemoteImapSyncInfo {
 	return Object.assign(create(_TypeModel, RemoteImapSyncInfoTypeRef), values)
+}
+
+export type RemoteImapSyncInfo = {
+	_type: TypeRef<RemoteImapSyncInfo>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	seen: boolean;
+
+	message: IdTuple;
 }

@@ -31,6 +31,8 @@ import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {Group} from "../api/entities/sys/Group"
 
 assertMainOrNode()
 

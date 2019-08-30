@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PdfInvoiceServiceReturnTypeRef: TypeRef<PdfInvoiceServiceReturn> = new TypeRef("sys", "PdfInvoiceServiceReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PdfInvoiceServiceReturn",
@@ -56,4 +57,14 @@ export const _TypeModel: TypeModel = {
 
 export function createPdfInvoiceServiceReturn(values?: $Shape<$Exact<PdfInvoiceServiceReturn>>): PdfInvoiceServiceReturn {
 	return Object.assign(create(_TypeModel, PdfInvoiceServiceReturnTypeRef), values)
+}
+
+export type PdfInvoiceServiceReturn = {
+	_type: TypeRef<PdfInvoiceServiceReturn>;
+	_errors: Object;
+
+	_format: NumberString;
+	_ownerGroup: ?Id;
+	_ownerPublicEncSessionKey: ?Uint8Array;
+	data: Uint8Array;
 }

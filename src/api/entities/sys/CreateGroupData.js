@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CreateGroupDataTypeRef: TypeRef<CreateGroupData> = new TypeRef("sys", "CreateGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "CreateGroupData",
@@ -101,4 +102,18 @@ export const _TypeModel: TypeModel = {
 
 export function createCreateGroupData(values?: $Shape<$Exact<CreateGroupData>>): CreateGroupData {
 	return Object.assign(create(_TypeModel, CreateGroupDataTypeRef), values)
+}
+
+export type CreateGroupData = {
+	_type: TypeRef<CreateGroupData>;
+
+	_id: Id;
+	adminEncGKey: Uint8Array;
+	customerEncUserGroupInfoSessionKey: ?Uint8Array;
+	encryptedName: Uint8Array;
+	listEncSessionKey: Uint8Array;
+	mailAddress: ?string;
+	pubKey: Uint8Array;
+	symEncGKey: Uint8Array;
+	symEncPrivKey: Uint8Array;
 }

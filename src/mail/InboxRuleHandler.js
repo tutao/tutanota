@@ -13,6 +13,9 @@ import {logins} from "../api/main/LoginController"
 import {getInboxFolder} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {InboxRule} from "../api/entities/tutanota/InboxRule"
+import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 
 assertMainOrNode()
 

@@ -11,7 +11,7 @@ export type CalendarEventBubbleAttrs = {
 	secondLineText?: string,
 	color: string,
 	hasAlarm: boolean,
-	onEventClicked: clickHandler,
+	click: clickHandler,
 	height?: number,
 	noBorderRight?: boolean,
 	noBorderLeft?: boolean,
@@ -37,7 +37,7 @@ export class CalendarEventBubble implements MComponent<CalendarEventBubbleAttrs>
 				},
 				onclick: (e) => {
 					e.stopPropagation()
-					attrs.onEventClicked(e)
+					attrs.click(e, e.target)
 				}
 			}, [
 				attrs.hasAlarm

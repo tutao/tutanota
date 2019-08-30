@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const GroupInvitationPutDataTypeRef: TypeRef<GroupInvitationPutData> = new TypeRef("tutanota", "GroupInvitationPutData")
 export const _TypeModel: TypeModel = {
 	"name": "GroupInvitationPutData",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupInvitationPutData(values?: $Shape<$Exact<GroupInvitationPutData>>): GroupInvitationPutData {
 	return Object.assign(create(_TypeModel, GroupInvitationPutDataTypeRef), values)
+}
+
+export type GroupInvitationPutData = {
+	_type: TypeRef<GroupInvitationPutData>;
+
+	_format: NumberString;
+	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
+	userGroupEncGroupKey: Uint8Array;
+
+	receivedInvitation: IdTuple;
 }

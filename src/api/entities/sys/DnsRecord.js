@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", "DnsRecord")
 export const _TypeModel: TypeModel = {
 	"name": "DnsRecord",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createDnsRecord(values?: $Shape<$Exact<DnsRecord>>): DnsRecord {
 	return Object.assign(create(_TypeModel, DnsRecordTypeRef), values)
+}
+
+export type DnsRecord = {
+	_type: TypeRef<DnsRecord>;
+
+	_id: Id;
+	subdomain: ?string;
+	type: NumberString;
+	value: string;
 }

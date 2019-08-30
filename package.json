@@ -18,12 +18,12 @@
 		"autolinker": "3.11.1",
 		"bluebird": "3.7.2",
 		"dompurify": "2.0.8",
+		"keytar": "5.2.0",
+		"luxon": "^1.22.0",
 		"mithril": "2.0.4",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
-		"systemjs": "0.20.19",
-		"luxon": "^1.22.0",
-		"keytar": "5.2.0"
+		"systemjs": "0.20.19"
 	},
 	"devDependencies": {
 		"babel-core": "6.26.3",
@@ -46,7 +46,7 @@
 		"electron-rebuild": "1.10.0",
 		"electron-updater": "4.3.1",
 		"express": "4.17.1",
-		"flow-bin": "0.81.0",
+		"flow-bin": "0.122.0",
 		"fs-extra": "8.1.0",
 		"glob": "7.1.6",
 		"js-yaml": "3.13.1",

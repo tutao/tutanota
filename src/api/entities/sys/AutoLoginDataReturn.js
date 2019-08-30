@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AutoLoginDataReturnTypeRef: TypeRef<AutoLoginDataReturn> = new TypeRef("sys", "AutoLoginDataReturn")
 export const _TypeModel: TypeModel = {
 	"name": "AutoLoginDataReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createAutoLoginDataReturn(values?: $Shape<$Exact<AutoLoginDataReturn>>): AutoLoginDataReturn {
 	return Object.assign(create(_TypeModel, AutoLoginDataReturnTypeRef), values)
+}
+
+export type AutoLoginDataReturn = {
+	_type: TypeRef<AutoLoginDataReturn>;
+
+	_format: NumberString;
+	deviceKey: Uint8Array;
 }

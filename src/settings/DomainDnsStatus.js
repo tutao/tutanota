@@ -8,6 +8,7 @@ import {CustomDomainCheckResult, DnsRecordType} from "../api/common/TutanotaCons
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
+import type {CustomDomainCheckReturn} from "../api/entities/sys/CustomDomainCheckReturn"
 
 assertMainOrNode()
 

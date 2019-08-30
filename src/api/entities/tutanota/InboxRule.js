@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const InboxRuleTypeRef: TypeRef<InboxRule> = new TypeRef("tutanota", "InboxRule")
 export const _TypeModel: TypeModel = {
 	"name": "InboxRule",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createInboxRule(values?: $Shape<$Exact<InboxRule>>): InboxRule {
 	return Object.assign(create(_TypeModel, InboxRuleTypeRef), values)
+}
+
+export type InboxRule = {
+	_type: TypeRef<InboxRule>;
+
+	_id: Id;
+	type: string;
+	value: string;
+
+	targetFolder: IdTuple;
 }

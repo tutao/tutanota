@@ -4,7 +4,7 @@ declare interface Component {
 }
 
 declare type RouteResolverMatch = {
-	onmatch(args: {[string]: string}, requestedPath: string): ?(Component | Promise<Component>);
+	onmatch(args: {[string]: string}, requestedPath: string): ?(Component | Promise<?Component>);
 }
 
 declare type RouteResolverRender = {
@@ -35,15 +35,15 @@ declare module 'mithril' {
 
 		(selector: string | Component, children?: Children): Vnode<any>;
 
-		(selector: string | Component, attributes?: Object, children?: Children): Vnode<any>;
+		(selector: string | Component, attributes: {}, children?: Children): Vnode<any>;
 
-		<Attrs>(component: Class<MComponent<Attrs>>, children?: Children): Vnode<Attrs>;
+		<Attrs>(component: Class<MComponent<Attrs>>, children?: Children): Vnode<any>;
 
-		<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
+		<Attrs>(component: Class<MComponent<Attrs>>, attributes: Attrs, children?: Children): Vnode<any>;
 
-		<Attrs>(component: MComponent<Attrs>, children?: Children): Vnode<Attrs>;
+		<Attrs>(component: MComponent<Attrs>, children?: Children): Vnode<any>;
 
-		<Attrs>(component: MComponent<Attrs>, attributes?: Attrs, children?: Children): Vnode<Attrs>;
+		<Attrs>(component: MComponent<Attrs>, attributes: Attrs, children?: Children): Vnode<any>;
 
 		route: Router;
 
@@ -224,7 +224,7 @@ declare module '@hot' { // hmr, access to previously loaded module
 	declare export var module: any;
 }
 declare module 'autolinker' {
-	declare export default function link(string, Object): any;
+	declare export default {link(string, Object): any}
 }
 declare module 'qrcode' {
 	declare export default any;
@@ -291,57 +291,4 @@ export interface Vnode<Attrs> extends Lifecycle<Attrs> {
 export interface VnodeDOM<Attrs> extends Vnode<Attrs> {
 	attrs: Attrs,
 	dom: HTMLElement,
-}
-
-
-// Notification backported from the future version of Flow
-// https://github.com/facebook/flow/commit/b67c4e9adf7239433222eaa0ddc52ab4dac5502f
-type NotificationPermission = 'default' | 'denied' | 'granted';
-type NotificationDirection = 'auto' | 'ltr' | 'rtl';
-type VibratePattern = number | Array<number>;
-type NotificationAction = {action: string, title: string, icon?: string};
-type NotificationOptions = {
-	dir?: NotificationDirection,
-	lang?: string,
-	body?: string,
-	tag?: string,
-	image?: string,
-	icon?: string,
-	badge?: string,
-	sound?: string,
-	vibrate?: VibratePattern,
-	timestamp?: number,
-	renotify?: boolean,
-	silent?: boolean,
-	requireInteraction?: boolean,
-	data?: ?any,
-	actions?: Array<NotificationAction>
-};
-
-declare class Notification extends EventTarget {
-	constructor(title: string, options?: NotificationOptions): void;
-	static permission: NotificationPermission;
-	static requestPermission(
-		callback?: (perm: NotificationPermission) => mixed
-	): Promise<NotificationPermission>;
-	static maxActions: number;
-	onclick: (evt: Event) => any;
-	onerror: (evt: Event) => any;
-	title: string;
-	dir: NotificationDirection;
-	lang: string;
-	body: string;
-	tag: string;
-	image: string;
-	icon: string;
-	badge: string;
-	sound: string;
-	vibrate: Array<number>;
-	timestamp: number;
-	renotify: boolean;
-	silent: boolean;
-	requireInteraction: boolean;
-	data: any;
-	actions: Array<NotificationAction>;
-	close(): void;
 }

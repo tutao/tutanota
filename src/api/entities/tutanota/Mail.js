@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {MailAddress} from "./MailAddress"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress"
+import type {MailRestriction} from "./MailRestriction"
+
 export const MailTypeRef: TypeRef<Mail> = new TypeRef("tutanota", "Mail")
 export const _TypeModel: TypeModel = {
 	"name": "Mail",
@@ -295,4 +299,41 @@ export const _TypeModel: TypeModel = {
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {
 	return Object.assign(create(_TypeModel, MailTypeRef), values)
+}
+
+export type Mail = {
+	_type: TypeRef<Mail>;
+	_errors: Object;
+
+	_area: NumberString;
+	_format: NumberString;
+	_id: IdTuple;
+	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	authStatus: NumberString;
+	confidential: boolean;
+	differentEnvelopeSender: ?string;
+	listUnsubscribe: boolean;
+	movedTime: ?Date;
+	phishingStatus: NumberString;
+	receivedDate: Date;
+	replyType: NumberString;
+	sentDate: Date;
+	state: NumberString;
+	subject: string;
+	trashed: boolean;
+	unread: boolean;
+
+	bccRecipients: MailAddress[];
+	ccRecipients: MailAddress[];
+	replyTos: EncryptedMailAddress[];
+	restrictions: ?MailRestriction;
+	sender: MailAddress;
+	toRecipients: MailAddress[];
+	attachments: IdTuple[];
+	body: Id;
+	conversationEntry: IdTuple;
+	headers: ?Id;
 }

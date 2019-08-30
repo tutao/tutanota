@@ -16,6 +16,7 @@ import stream from "mithril/stream/stream.js"
 import {asyncImport} from "../../api/common/utils/Utils"
 import type {PosRect} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
+import {newMouseEvent} from "../HtmlUtils"
 
 assertMainOrNodeBoot()
 
@@ -230,7 +231,8 @@ export class DropdownN {
 		if (document.activeElement === this._domInput
 			&& matchingButton
 			&& matchingButton.click) {
-			matchingButton.click()
+			const click = matchingButton.click
+			click(newMouseEvent(), this._domInput)
 			return false
 		}
 		return true
@@ -356,7 +358,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 }
 
 // We override type of click to be optional because we wrap it in our own
-export type DropdownButtonAttrs = {click?: (MouseEvent) => void} & ButtonAttrs
+export type DropdownButtonAttrs = $Rest<ButtonAttrs, {click?: clickHandler}>
 
 /**
  *
@@ -381,7 +383,7 @@ export function attachDropdown(
 				dropDownFn(e, dom)
 				e.stopPropagation()
 			} else if (oldClick) {
-				oldClick(e)
+				oldClick(e, dom)
 			}
 		}
 	})

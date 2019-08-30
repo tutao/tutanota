@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AuditLogRefTypeRef: TypeRef<AuditLogRef> = new TypeRef("sys", "AuditLogRef")
 export const _TypeModel: TypeModel = {
 	"name": "AuditLogRef",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createAuditLogRef(values?: $Shape<$Exact<AuditLogRef>>): AuditLogRef {
 	return Object.assign(create(_TypeModel, AuditLogRefTypeRef), values)
+}
+
+export type AuditLogRef = {
+	_type: TypeRef<AuditLogRef>;
+
+	_id: Id;
+
+	items: Id;
 }

@@ -3,6 +3,7 @@ import {TextField} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {createCreditCard} from "../api/entities/sys/CreditCard"
+import type {CreditCard} from "../api/entities/sys/CreditCard"
 
 
 export class CreditCardInput {

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", "LocationServiceGetReturn")
 export const _TypeModel: TypeModel = {
 	"name": "LocationServiceGetReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createLocationServiceGetReturn(values?: $Shape<$Exact<LocationServiceGetReturn>>): LocationServiceGetReturn {
 	return Object.assign(create(_TypeModel, LocationServiceGetReturnTypeRef), values)
+}
+
+export type LocationServiceGetReturn = {
+	_type: TypeRef<LocationServiceGetReturn>;
+
+	_format: NumberString;
+	country: string;
 }

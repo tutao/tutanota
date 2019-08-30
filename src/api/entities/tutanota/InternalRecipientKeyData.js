@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const InternalRecipientKeyDataTypeRef: TypeRef<InternalRecipientKeyData> = new TypeRef("tutanota", "InternalRecipientKeyData")
 export const _TypeModel: TypeModel = {
 	"name": "InternalRecipientKeyData",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createInternalRecipientKeyData(values?: $Shape<$Exact<InternalRecipientKeyData>>): InternalRecipientKeyData {
 	return Object.assign(create(_TypeModel, InternalRecipientKeyDataTypeRef), values)
+}
+
+export type InternalRecipientKeyData = {
+	_type: TypeRef<InternalRecipientKeyData>;
+
+	_id: Id;
+	mailAddress: string;
+	pubEncBucketKey: Uint8Array;
+	pubKeyVersion: NumberString;
 }

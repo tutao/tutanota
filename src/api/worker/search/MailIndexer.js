@@ -11,7 +11,14 @@ import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, getMailBodyText, neverNull, ProgressMonitor} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
-import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
+import {
+	_createNewIndexUpdate,
+	encryptIndexKeyBase64,
+	filterMailMemberships,
+	getPerformanceTimestamp,
+	htmlToText,
+	typeRefToTypeInfo
+} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -25,6 +32,14 @@ import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import type {DateProvider} from "../DateProvider"
+import type {Mail} from "../../entities/tutanota/Mail"
+import type {MailBody} from "../../entities/tutanota/MailBody"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {User} from "../../entities/sys/User"
+import type {MailBox} from "../../entities/tutanota/MailBox"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {MailFolder} from "../../entities/tutanota/MailFolder"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -99,21 +114,24 @@ export class MailIndexer {
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders()).then(mail => {
-			return Promise.all([
-				Promise.map(mail.attachments, attachmentId => this._defaultCachingClient.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
-				this._defaultCachingClient.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
-			]).spread((files, body) => {
-				let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
-				return {mail, keyToIndexEntries}
-			})
-		}).catch(NotFoundError, () => {
-			console.log("tried to index non existing mail")
-			return null
-		}).catch(NotAuthorizedError, () => {
-			console.log("tried to index contact without permission")
-			return null
-		})
+		return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+		           .then(mail => {
+			           return Promise.all([
+				           Promise.map(mail.attachments, attachmentId => this._defaultCachingClient.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
+				           this._defaultCachingClient.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
+			           ]).spread((files, body) => {
+				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
+				           return {mail, keyToIndexEntries}
+			           })
+		           })
+		           .catch(NotFoundError, () => {
+			           console.log("tried to index non existing mail")
+			           return null
+		           })
+		           .catch(NotAuthorizedError, () => {
+			           console.log("tried to index contact without permission")
+			           return null
+		           })
 	}
 
 	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate) {
@@ -233,7 +251,7 @@ export class MailIndexer {
 								           return null
 							           } else {
 								           const newestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-									           ? this._dateProvider.getStartOfDayShiftedBy(1)
+									           ? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
 									           : groupData.indexTimestamp
 								           if (newestTimestamp > oldestTimestamp) {
 									           return {mbox, newestTimestamp}
@@ -276,7 +294,8 @@ export class MailIndexer {
 						           progress: 0,
 						           currentMailIndexTimestamp: this.currentIndexTimestamp,
 						           indexedMailCount: this._core._stats.mailcount,
-						           failedIndexingUpTo: this._core.isStoppedProcessing() || e instanceof CancelledError ? null : oldestTimestamp
+						           failedIndexingUpTo: this._core.isStoppedProcessing() || e
+						           instanceof CancelledError ? null : oldestTimestamp
 					           })
 				           })
 			})
@@ -310,7 +329,8 @@ export class MailIndexer {
 					ownerGroup: neverNull(mBoxData.mbox._ownerGroup)
 				}
 			})
-		})).then((mailboxData) => this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
+		})).then((mailboxData) =>
+			this._indexMailListsInTimeBatches(mailboxData, [newestTimestamp, oldestTimestamp], indexUpdate, progress, indexLoader))
 	}
 
 	_processedEnough(indexUpdate: IndexUpdate): boolean {
@@ -540,23 +560,25 @@ export class MailIndexer {
 					return Promise.resolve()
 				}
 
-				return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders()).then(mail => {
-					if (mail.state === MailState.DRAFT) {
-						return Promise.all([
-							this._core._processDeleted(event, indexUpdate),
-							// only index updated draft if the draft has not been moved.
-							// the moved draft will be indexed in the move event.
-							!futureActions.moved.get(event.instanceId)
-								? this.processNewMail(event).then(result => {
-									if (result) {
-										this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
-											indexUpdate)
-									}
-								})
-								: Promise.resolve()
-						])
-					}
-				}).catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
+				return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+				           .then(mail => {
+					           if (mail.state === MailState.DRAFT) {
+						           return Promise.all([
+							           this._core._processDeleted(event, indexUpdate),
+							           // only index updated draft if the draft has not been moved.
+							           // the moved draft will be indexed in the move event.
+							           !futureActions.moved.get(event.instanceId)
+								           ? this.processNewMail(event).then(result => {
+									           if (result) {
+										           this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries,
+											           indexUpdate)
+									           }
+								           })
+								           : Promise.resolve()
+						           ])
+					           }
+				           })
+				           .catch(NotFoundError, () => console.log("tried to index update event for non existing mail"))
 			} else if (event.operation === OperationType.DELETE) {
 				const futureDeleteEvent = futureActions.deleted.get(event.instanceId)
 				if (futureDeleteEvent && isSameId(futureDeleteEvent._id, event._id)) {

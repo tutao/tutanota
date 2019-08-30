@@ -34,6 +34,8 @@ import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {header} from "../gui/base/Header"
+import type {PasswordChannelPhoneNumber} from "../api/entities/tutanota/PasswordChannelPhoneNumber"
+import type {PhoneNumber} from "../api/entities/sys/PhoneNumber"
 
 assertMainOrNode()
 

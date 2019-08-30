@@ -2,6 +2,12 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {AuditLogRef} from "./AuditLogRef"
+import type {UserAreaGroups} from "./UserAreaGroups"
+import type {Feature} from "./Feature"
+import type {WhitelabelChildrenRef} from "./WhitelabelChildrenRef"
+import type {WhitelabelParent} from "./WhitelabelParent"
+
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", "Customer")
 export const _TypeModel: TypeModel = {
 	"name": "Customer",
@@ -256,4 +262,35 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {
 	return Object.assign(create(_TypeModel, CustomerTypeRef), values)
+}
+
+export type Customer = {
+	_type: TypeRef<Customer>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	approvalStatus: NumberString;
+	canceledPremiumAccount: boolean;
+	orderProcessingAgreementNeeded: boolean;
+	type: NumberString;
+
+	auditLog: ?AuditLogRef;
+	contactFormUserAreaGroups: ?UserAreaGroups;
+	contactFormUserGroups: ?UserAreaGroups;
+	customizations: Feature[];
+	userAreaGroups: ?UserAreaGroups;
+	whitelabelChildren: ?WhitelabelChildrenRef;
+	whitelabelParent: ?WhitelabelParent;
+	adminGroup: Id;
+	adminGroups: Id;
+	customerGroup: Id;
+	customerGroups: Id;
+	customerInfo: IdTuple;
+	orderProcessingAgreement: ?IdTuple;
+	properties: ?Id;
+	serverProperties: ?Id;
+	teamGroups: Id;
+	userGroups: Id;
 }

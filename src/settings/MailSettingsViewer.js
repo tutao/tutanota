@@ -37,6 +37,7 @@ import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 
 assertMainOrNode()
 

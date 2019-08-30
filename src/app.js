@@ -93,7 +93,7 @@ let initialized = lang.init(en).then(() => {
 		if (isApp() && client.device === DeviceType.ANDROID) {
 
 			const androidVersion = Number(/Android (0-9)*\./.exec(client.userAgent))
-			m.render(document.body, m(new InfoView(
+			m.render(neverNull(document.body), m(new InfoView(
 				() => "Tutanota",
 				() => [
 					m("p", "Sorry! We detected that your WebView version is outdated. Please update your WebView version."),
@@ -106,7 +106,7 @@ let initialized = lang.init(en).then(() => {
 					]
 					: []))))
 		} else {
-			m.render(document.body, m(new InfoView(() => "Tutanota", () => [
+			m.render(neverNull(document.body), m(new InfoView(() => "Tutanota", () => [
 				m("p", lang.get("unsupportedBrowser_msg")),
 				m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
 				m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
@@ -205,7 +205,7 @@ let initialized = lang.init(en).then(() => {
 	m.route.prefix = neverNull(state.prefix)
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
-	m.route(document.body, start, {
+	m.route(neverNull(document.body), start, {
 		"/": {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},

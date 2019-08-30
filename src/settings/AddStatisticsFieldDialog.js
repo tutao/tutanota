@@ -3,6 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {InputFieldType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -17,6 +18,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {defer} from "../api/common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import {ColumnWidth} from "../gui/base/TableN"
+import type {InputField} from "../api/entities/tutanota/InputField"
 
 assertMainOrNode()
 
@@ -90,7 +92,7 @@ function _updateEnumTable(enumTable: Table, enumNames: string[]) {
 	}))
 }
 
-function _validate(name: string, type: NumberString, enumNames: string[]) {
+function _validate(name: string, type: NumberString, enumNames: string[]): ?TranslationKey {
 	if (name.trim() === "") {
 		return "enterName_msg"
 	} else if (type === InputFieldType.ENUM && enumNames.length < 2) {

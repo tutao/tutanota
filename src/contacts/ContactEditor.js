@@ -37,6 +37,11 @@ import {NotFoundError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
+import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
+import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
+import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 
 
 assertMainOrNode()
@@ -72,13 +77,13 @@ export class ContactEditor {
 		}
 		let firstName = new TextField("firstName_placeholder")
 			.setValue(this.contact.firstName)
-			.onUpdate(value => this.contact.firstName = value)
+			.onUpdate(value => {this.contact.firstName = value})
 		let nickname = new TextField("nickname_placeholder")
 			.setValue(this.contact.nickname)
-			.onUpdate(value => this.contact.nickname = value)
+			.onUpdate(value => {this.contact.nickname = value})
 		let lastName = new TextField("lastName_placeholder")
 			.setValue(this.contact.lastName)
-			.onUpdate(value => this.contact.lastName = value)
+			.onUpdate(value => {this.contact.lastName = value})
 		let name = stream.merge([firstName.value, lastName.value]).map(names => names.join(' '))
 
 		this.invalidBirthday = false
@@ -372,7 +377,7 @@ class ContactAggregateEditor {
 		this.id = aggregate._id || String(Date.now())
 
 		let value = ""
-		let onUpdate = () => {
+		let onUpdate: handler<string> = () => {
 		}
 		let label = ""
 		let isCustom = (type) => false

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const OtpChallengeTypeRef: TypeRef<OtpChallenge> = new TypeRef("sys", "OtpChallenge")
 export const _TypeModel: TypeModel = {
 	"name": "OtpChallenge",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createOtpChallenge(values?: $Shape<$Exact<OtpChallenge>>): OtpChallenge {
 	return Object.assign(create(_TypeModel, OtpChallengeTypeRef), values)
+}
+
+export type OtpChallenge = {
+	_type: TypeRef<OtpChallenge>;
+
+	_id: Id;
+
+	secondFactors: IdTuple[];
 }

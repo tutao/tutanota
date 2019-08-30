@@ -51,6 +51,9 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {windowFacade} from "../misc/WindowFacade"
 import {client} from "../misc/ClientDetector"
+import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 

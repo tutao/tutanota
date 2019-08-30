@@ -51,14 +51,11 @@ export class MultiContactViewer {
 		}
 	}
 
-	createActionBar(actionCallback: () => void = () => {
-	}, prependCancel: boolean = false): Component {
+	createActionBar(actionCallback: (() => void) = () => {}, prependCancel: boolean = false): Component {
 
 		const actions = new ActionBar()
 		if (prependCancel) {
-			actions.add(new Button("cancel_action", () =>
-					actionCallback
-				, () => Icons.Cancel))
+			actions.add(new Button("cancel_action", actionCallback, () => Icons.Cancel))
 		}
 		actions.add(new Button('delete_action',
 			() => this._contactView._deleteSelected().then(actionCallback), () => Icons.Trash))

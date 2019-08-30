@@ -17,6 +17,7 @@ import {Button} from "../gui/base/Button"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 

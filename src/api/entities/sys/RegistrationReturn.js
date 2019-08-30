@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RegistrationReturnTypeRef: TypeRef<RegistrationReturn> = new TypeRef("sys", "RegistrationReturn")
 export const _TypeModel: TypeModel = {
 	"name": "RegistrationReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createRegistrationReturn(values?: $Shape<$Exact<RegistrationReturn>>): RegistrationReturn {
 	return Object.assign(create(_TypeModel, RegistrationReturnTypeRef), values)
+}
+
+export type RegistrationReturn = {
+	_type: TypeRef<RegistrationReturn>;
+
+	_format: NumberString;
+	authToken: string;
 }

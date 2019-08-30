@@ -28,6 +28,26 @@ import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
 import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {NotFoundError} from "../common/error/RestError"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
+import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAccountReturn"
+import type {User} from "../entities/sys/User"
+import type {GroupInfo} from "../entities/sys/GroupInfo"
+import type {PasswordChannelReturn} from "../entities/tutanota/PasswordChannelReturn"
+import type {File as TutanotaFile} from "../entities/tutanota/File"
+import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
+import type {PriceServiceReturn} from "../entities/sys/PriceServiceReturn"
+import type {MailAddressAliasServiceReturn} from "../entities/sys/MailAddressAliasServiceReturn"
+import type {CustomerServerProperties} from "../entities/sys/CustomerServerProperties"
+import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElement"
+import type {Group} from "../entities/sys/Group"
+import type {ContactForm} from "../entities/tutanota/ContactForm"
+import type {CustomDomainReturn} from "../entities/sys/CustomDomainReturn"
+import type {EntityUpdate} from "../entities/sys/EntityUpdate"
+import type {CalendarEvent} from "../entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../entities/sys/AlarmInfo"
+import type {PushIdentifier} from "../entities/sys/PushIdentifier"
+import type {GroupInvitationPostReturn} from "../entities/tutanota/GroupInvitationPostReturn"
+import type {ReceivedGroupInvitation} from "../entities/sys/ReceivedGroupInvitation"
+import type {Mail} from "../entities/tutanota/Mail"
 
 assertMainOrNode()
 
@@ -69,8 +89,9 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			progress: (message: Message) => {
-				if (this._progressUpdater) {
-					this._progressUpdater(message.args[0])
+				const progressUpdater = this._progressUpdater
+				if (progressUpdater) {
+					progressUpdater(downcast(message.args[0]))
 				}
 				return Promise.resolve()
 			},

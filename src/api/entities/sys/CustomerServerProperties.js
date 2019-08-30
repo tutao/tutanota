@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {EmailSenderListElement} from "./EmailSenderListElement"
+import type {StringWrapper} from "./StringWrapper"
+import type {DomainsRef} from "./DomainsRef"
+
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", "CustomerServerProperties")
 export const _TypeModel: TypeModel = {
 	"name": "CustomerServerProperties",
@@ -120,4 +124,22 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomerServerProperties(values?: $Shape<$Exact<CustomerServerProperties>>): CustomerServerProperties {
 	return Object.assign(create(_TypeModel, CustomerServerPropertiesTypeRef), values)
+}
+
+export type CustomerServerProperties = {
+	_type: TypeRef<CustomerServerProperties>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	requirePasswordUpdateAfterReset: boolean;
+	saveEncryptedIpAddressInSession: boolean;
+	whitelabelCode: string;
+
+	emailSenderList: EmailSenderListElement[];
+	whitelabelRegistrationDomains: StringWrapper[];
+	whitelistedDomains: ?DomainsRef;
 }

@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {BootstrapFeature} from "./BootstrapFeature"
+import type {CertificateInfo} from "./CertificateInfo"
+import type {StringWrapper} from "./StringWrapper"
+
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", "WhitelabelConfig")
 export const _TypeModel: TypeModel = {
 	"name": "WhitelabelConfig",
@@ -138,4 +142,23 @@ export const _TypeModel: TypeModel = {
 
 export function createWhitelabelConfig(values?: $Shape<$Exact<WhitelabelConfig>>): WhitelabelConfig {
 	return Object.assign(create(_TypeModel, WhitelabelConfigTypeRef), values)
+}
+
+export type WhitelabelConfig = {
+	_type: TypeRef<WhitelabelConfig>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	germanLanguageCode: ?string;
+	imprintUrl: ?string;
+	jsonTheme: string;
+	metaTags: string;
+	privacyStatementUrl: ?string;
+	whitelabelCode: string;
+
+	bootstrapCustomizations: BootstrapFeature[];
+	certificateInfo: ?CertificateInfo;
+	whitelabelRegistrationDomains: StringWrapper[];
 }

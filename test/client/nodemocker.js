@@ -8,7 +8,7 @@ import {downcast, neverNull} from "../../src/api/common/utils/Utils"
 let exit = {value: undefined}
 let random = {value: undefined}
 const platform = process.platform
-let spyCache = []
+let spyCache: Array<any> = []
 let classCache = []
 let testcount = 0
 
@@ -73,26 +73,27 @@ function mock<T>(old: string, replacer: T): MockBuilder<T> {
 }
 
 function spyify<T>(obj: T): T {
+	const anyObj: any = obj
 	switch (typeof obj) {
 		case 'function':
-			if (typeof obj.spy !== 'function') {
-				obj.spy = o.spy(obj)
+			if (typeof anyObj.spy !== 'function') {
+				anyObj.spy = o.spy(obj)
 				spyCache.push(obj)
 			}
 
-			Object.keys(obj) // classes are functions
+			Object.keys(anyObj) // classes are functions
 			      .filter(k => !['args', 'callCount', 'spy'].includes(k))
-			      .forEach(k => (obj: any).spy[k] = spyify((obj: any)[k]))
+			      .forEach(k => anyObj.spy[k] = spyify(anyObj[k]))
 
-			return obj.spy
+			return anyObj.spy
 		case 'object':
-			if (Array.isArray(obj)) {
+			if (Array.isArray(anyObj)) {
 				// TODO: use proxy to sync spyified array?
-				return obj
+				return anyObj
 			} else {
-				return obj == null
-					? obj
-					: (Object.keys(obj).reduce((newObj, key) => {
+				return anyObj == null
+					? anyObj
+					: (Object.keys(anyObj).reduce((newObj, key) => {
 						(newObj: any)[key] = spyify((obj: any)[key])
 						return newObj
 					}, ({}: any)): T)
@@ -102,12 +103,16 @@ function spyify<T>(obj: T): T {
 	}
 }
 
+type Mocked<T> = Class<T> & {
+	mockedInstances: Array<any>;
+}
+
 /**
  * create a class-like structure from an object to be able to o.spy on method and constructor calls
  * @param template
  * @returns {cls}
  */
-function classify(template: {prototype: {}, statics: {}}): (?*, ?*)=>void {
+function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
 
 	const cls = function () {
 		cls.mockedInstances.push(this)
@@ -139,7 +144,7 @@ function classify(template: {prototype: {}, statics: {}}): (?*, ?*)=>void {
 
 	classCache.push(cls)
 	cls.mockedInstances = []
-	return cls
+	return downcast(cls)
 }
 
 function announce(file: string) {

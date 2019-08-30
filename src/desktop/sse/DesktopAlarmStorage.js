@@ -10,6 +10,7 @@ import {elementIdPart} from "../../api/common/EntityFunctions"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
+import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'

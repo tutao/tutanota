@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const LoginTypeRef: TypeRef<Login> = new TypeRef("sys", "Login")
 export const _TypeModel: TypeModel = {
 	"name": "Login",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createLogin(values?: $Shape<$Exact<Login>>): Login {
 	return Object.assign(create(_TypeModel, LoginTypeRef), values)
+}
+
+export type Login = {
+	_type: TypeRef<Login>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	time: Date;
 }

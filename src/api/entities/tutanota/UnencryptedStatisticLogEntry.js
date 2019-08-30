@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UnencryptedStatisticLogEntryTypeRef: TypeRef<UnencryptedStatisticLogEntry> = new TypeRef("tutanota", "UnencryptedStatisticLogEntry")
 export const _TypeModel: TypeModel = {
 	"name": "UnencryptedStatisticLogEntry",
@@ -74,4 +75,15 @@ export const _TypeModel: TypeModel = {
 
 export function createUnencryptedStatisticLogEntry(values?: $Shape<$Exact<UnencryptedStatisticLogEntry>>): UnencryptedStatisticLogEntry {
 	return Object.assign(create(_TypeModel, UnencryptedStatisticLogEntryTypeRef), values)
+}
+
+export type UnencryptedStatisticLogEntry = {
+	_type: TypeRef<UnencryptedStatisticLogEntry>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	contactFormPath: string;
+	date: Date;
 }

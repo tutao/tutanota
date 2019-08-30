@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PhotosRefTypeRef: TypeRef<PhotosRef> = new TypeRef("tutanota", "PhotosRef")
 export const _TypeModel: TypeModel = {
 	"name": "PhotosRef",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPhotosRef(values?: $Shape<$Exact<PhotosRef>>): PhotosRef {
 	return Object.assign(create(_TypeModel, PhotosRefTypeRef), values)
+}
+
+export type PhotosRef = {
+	_type: TypeRef<PhotosRef>;
+
+	_id: Id;
+
+	files: Id;
 }

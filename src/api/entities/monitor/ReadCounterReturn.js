@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ReadCounterReturnTypeRef: TypeRef<ReadCounterReturn> = new TypeRef("monitor", "ReadCounterReturn")
 export const _TypeModel: TypeModel = {
 	"name": "ReadCounterReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createReadCounterReturn(values?: $Shape<$Exact<ReadCounterReturn>>): ReadCounterReturn {
 	return Object.assign(create(_TypeModel, ReadCounterReturnTypeRef), values)
+}
+
+export type ReadCounterReturn = {
+	_type: TypeRef<ReadCounterReturn>;
+
+	_format: NumberString;
+	value: ?NumberString;
 }

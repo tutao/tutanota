@@ -25,6 +25,8 @@ import stream from "mithril/stream/stream.js"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {User} from "../api/entities/sys/User"
+import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 
 type IdentifierRowAttrs = {|
 	name: string,

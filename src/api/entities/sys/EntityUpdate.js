@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const EntityUpdateTypeRef: TypeRef<EntityUpdate> = new TypeRef("sys", "EntityUpdate")
 export const _TypeModel: TypeModel = {
 	"name": "EntityUpdate",
@@ -74,4 +75,15 @@ export const _TypeModel: TypeModel = {
 
 export function createEntityUpdate(values?: $Shape<$Exact<EntityUpdate>>): EntityUpdate {
 	return Object.assign(create(_TypeModel, EntityUpdateTypeRef), values)
+}
+
+export type EntityUpdate = {
+	_type: TypeRef<EntityUpdate>;
+
+	_id: Id;
+	application: string;
+	instanceId: string;
+	instanceListId: string;
+	operation: NumberString;
+	type: string;
 }

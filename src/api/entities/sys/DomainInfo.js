@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", "DomainInfo")
 export const _TypeModel: TypeModel = {
 	"name": "DomainInfo",
@@ -68,4 +69,15 @@ export const _TypeModel: TypeModel = {
 
 export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {
 	return Object.assign(create(_TypeModel, DomainInfoTypeRef), values)
+}
+
+export type DomainInfo = {
+	_type: TypeRef<DomainInfo>;
+
+	_id: Id;
+	domain: string;
+	validatedMxRecord: boolean;
+
+	catchAllMailGroup: ?Id;
+	whitelabelConfig: ?Id;
 }

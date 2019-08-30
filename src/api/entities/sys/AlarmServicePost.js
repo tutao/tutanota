@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {AlarmNotification} from "./AlarmNotification"
+
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", "AlarmServicePost")
 export const _TypeModel: TypeModel = {
 	"name": "AlarmServicePost",
@@ -39,4 +41,13 @@ export const _TypeModel: TypeModel = {
 
 export function createAlarmServicePost(values?: $Shape<$Exact<AlarmServicePost>>): AlarmServicePost {
 	return Object.assign(create(_TypeModel, AlarmServicePostTypeRef), values)
+}
+
+export type AlarmServicePost = {
+	_type: TypeRef<AlarmServicePost>;
+	_errors: Object;
+
+	_format: NumberString;
+
+	alarmNotifications: AlarmNotification[];
 }

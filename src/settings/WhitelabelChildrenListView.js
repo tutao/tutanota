@@ -20,6 +20,7 @@ import {formatDateWithMonth} from "../misc/Formatter"
 import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ReceiveInfoServiceDataTypeRef: TypeRef<ReceiveInfoServiceData> = new TypeRef("tutanota", "ReceiveInfoServiceData")
 export const _TypeModel: TypeModel = {
 	"name": "ReceiveInfoServiceData",
@@ -29,4 +30,10 @@ export const _TypeModel: TypeModel = {
 
 export function createReceiveInfoServiceData(values?: $Shape<$Exact<ReceiveInfoServiceData>>): ReceiveInfoServiceData {
 	return Object.assign(create(_TypeModel, ReceiveInfoServiceDataTypeRef), values)
+}
+
+export type ReceiveInfoServiceData = {
+	_type: TypeRef<ReceiveInfoServiceData>;
+
+	_format: NumberString;
 }

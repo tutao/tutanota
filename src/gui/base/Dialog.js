@@ -44,7 +44,7 @@ export type DialogTypeEnum = $Values<typeof DialogType>;
 type ActionDialogProps = {|
 	title: lazy<string> | string,
 	child: Component | lazy<Children>,
-	validator?: validator,
+	validator?: ?validator,
 	okAction: null | (Dialog) => mixed,
 	allowCancel?: boolean,
 	allowOkWithReturn?: boolean,
@@ -61,7 +61,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?() => void;
+	_closeHandler: ?() => mixed;
 	_focusedBeforeShown: ?HTMLElement
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
@@ -191,7 +191,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: ?() => void): Dialog {
+	setCloseHandler(closeHandler: ?() => mixed): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -559,7 +559,7 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextAreaInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
 			const textFieldAttrs: TextFieldAttrs = {
@@ -572,7 +572,6 @@ export class Dialog {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {view: () => m(TextFieldN, textFieldAttrs)},
-				validator: (inputValidator) ? inputValidator(result()) : null,
 				okAction: dialog => {
 					resolve(result())
 					dialog.close()

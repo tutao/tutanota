@@ -5,7 +5,7 @@ import {px, size} from "../size"
 
 export type Attrs = {
 	label: string,
-	click: (e: Event, dom: HTMLElement) => mixed,
+	click: clickHandler,
 	style?: {},
 }
 

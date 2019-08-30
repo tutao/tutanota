@@ -17,6 +17,7 @@ import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDat
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 
 /**
  * @returns {boolean} true if the payment data update was successful

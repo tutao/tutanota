@@ -43,6 +43,7 @@ import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
+import type {User} from "../api/entities/sys/User"
 
 assertMainOrNode()
 

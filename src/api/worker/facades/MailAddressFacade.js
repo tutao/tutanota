@@ -11,6 +11,7 @@ import {DomainMailAddressAvailabilityReturnTypeRef} from "../../entities/sys/Dom
 import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddressAvailabilityReturn"
 import {MailAddressAliasServiceReturnTypeRef} from "../../entities/sys/MailAddressAliasServiceReturn"
 import {SysService} from "../../entities/sys/Services"
+import type {MailAddressAliasServiceReturn} from "../../entities/sys/MailAddressAliasServiceReturn"
 
 assertWorkerOrNode()
 

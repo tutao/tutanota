@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", "MailAddressToGroup")
 export const _TypeModel: TypeModel = {
 	"name": "MailAddressToGroup",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createMailAddressToGroup(values?: $Shape<$Exact<MailAddressToGroup>>): MailAddressToGroup {
 	return Object.assign(create(_TypeModel, MailAddressToGroupTypeRef), values)
+}
+
+export type MailAddressToGroup = {
+	_type: TypeRef<MailAddressToGroup>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	internalGroup: ?Id;
 }

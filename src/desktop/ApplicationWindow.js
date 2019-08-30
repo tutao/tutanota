@@ -45,7 +45,7 @@ export class ApplicationWindow {
 			{key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
 			{key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
 			{key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
-			{key: Keys.F5, exec: () => this._browserWindow.loadURL(this._startFile), help: "reloadPage_action"},
+			{key: Keys.F5, exec: () => {this._browserWindow.loadURL(this._startFile)}, help: "reloadPage_action"},
 			{key: Keys.N, meta: isMac, ctrl: !isMac, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
 		].concat(isMac
 			? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]

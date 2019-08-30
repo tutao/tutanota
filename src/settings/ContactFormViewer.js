@@ -28,6 +28,7 @@ import {createDataFile} from "../api/common/DataFile"
 import {fileController} from "../file/FileController"
 import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 
 assertMainOrNode()
 

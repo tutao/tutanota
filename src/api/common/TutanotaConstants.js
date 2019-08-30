@@ -1,6 +1,13 @@
 // @flow
 
 import {downcast} from "./utils/Utils"
+import type {GroupMembership} from "../entities/sys/GroupMembership"
+import type {MailFolder} from "../entities/tutanota/MailFolder"
+import type {ContactSocialId} from "../entities/tutanota/ContactSocialId"
+import type {AccountingInfo} from "../entities/sys/AccountingInfo"
+import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElement"
+import type {CertificateInfo} from "../entities/sys/CertificateInfo"
+import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 
 export const reverse = (objectMap: Object) => Object.keys(objectMap)
                                                     .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})

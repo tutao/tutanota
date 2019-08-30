@@ -18,6 +18,7 @@ import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {browserDataStub} from "../../TestUtils"
+import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 
 
 const dbMock: any = {iv: fixedIv}

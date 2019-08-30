@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PasswordMessagingDataTypeRef: TypeRef<PasswordMessagingData> = new TypeRef("tutanota", "PasswordMessagingData")
 export const _TypeModel: TypeModel = {
 	"name": "PasswordMessagingData",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createPasswordMessagingData(values?: $Shape<$Exact<PasswordMessagingData>>): PasswordMessagingData {
 	return Object.assign(create(_TypeModel, PasswordMessagingDataTypeRef), values)
+}
+
+export type PasswordMessagingData = {
+	_type: TypeRef<PasswordMessagingData>;
+
+	_format: NumberString;
+	language: string;
+	numberId: Id;
+	symKeyForPasswordTransmission: Uint8Array;
 }

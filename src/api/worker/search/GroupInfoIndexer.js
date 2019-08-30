@@ -11,6 +11,9 @@ import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
+import type {GroupInfo} from "../../entities/sys/GroupInfo"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {User} from "../../entities/sys/User"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;

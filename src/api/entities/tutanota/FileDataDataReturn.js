@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const FileDataDataReturnTypeRef: TypeRef<FileDataDataReturn> = new TypeRef("tutanota", "FileDataDataReturn")
 export const _TypeModel: TypeModel = {
 	"name": "FileDataDataReturn",
@@ -38,4 +39,12 @@ export const _TypeModel: TypeModel = {
 
 export function createFileDataDataReturn(values?: $Shape<$Exact<FileDataDataReturn>>): FileDataDataReturn {
 	return Object.assign(create(_TypeModel, FileDataDataReturnTypeRef), values)
+}
+
+export type FileDataDataReturn = {
+	_type: TypeRef<FileDataDataReturn>;
+	_errors: Object;
+
+	_format: NumberString;
+	size: NumberString;
 }

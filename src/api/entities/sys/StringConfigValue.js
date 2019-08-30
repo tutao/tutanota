@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const StringConfigValueTypeRef: TypeRef<StringConfigValue> = new TypeRef("sys", "StringConfigValue")
 export const _TypeModel: TypeModel = {
 	"name": "StringConfigValue",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createStringConfigValue(values?: $Shape<$Exact<StringConfigValue>>): StringConfigValue {
 	return Object.assign(create(_TypeModel, StringConfigValueTypeRef), values)
+}
+
+export type StringConfigValue = {
+	_type: TypeRef<StringConfigValue>;
+
+	_id: Id;
+	name: string;
+	value: string;
 }

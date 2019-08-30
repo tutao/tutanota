@@ -1,20 +1,26 @@
 // @flow
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import {load, loadRoot} from "./Entity"
-import {neverNull} from "../common/utils/Utils"
+import {downcast, neverNull} from "../common/utils/Utils"
+import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
+import type {User} from "../entities/sys/User"
 import {UserTypeRef} from "../entities/sys/User"
 import {isSameId} from "../common/EntityFunctions"
+import type {GroupInfo} from "../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
+import type {TutanotaProperties} from "../entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
 import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
+import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {SysService} from "../entities/sys/Services"
 import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
 import {worker} from "./WorkerClient"
+import type {GroupMembership} from "../entities/sys/GroupMembership"
 
 assertMainOrNode()
 
@@ -151,7 +157,7 @@ export class UserController implements IUserController {
 						accessToken: this.accessToken,
 						sessionId: this.sessionId
 					})
-					delete requestObject["_type"] // Remove extra field which is not part of the data model
+					delete downcast(requestObject)["_type"] // Remove extra field which is not part of the data model
 					const queued = sendBeacon.call(navigator, path, JSON.stringify(requestObject))
 					console.log("queued closing session: ", queued)
 					resolve()

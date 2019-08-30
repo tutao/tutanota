@@ -2,7 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const FileTypeRef: TypeRef<SysFile> = new TypeRef("sys", "File")
+
+export const FileTypeRef: TypeRef<File> = new TypeRef("sys", "File")
 export const _TypeModel: TypeModel = {
 	"name": "File",
 	"since": 11,
@@ -54,6 +55,15 @@ export const _TypeModel: TypeModel = {
 	"version": "59"
 }
 
-export function createFile(values?: $Shape<$Exact<SysFile>>): SysFile {
+export function createFile(values?: $Shape<$Exact<File>>): File {
 	return Object.assign(create(_TypeModel, FileTypeRef), values)
+}
+
+export type File = {
+	_type: TypeRef<File>;
+
+	_id: Id;
+	data: Uint8Array;
+	mimeType: string;
+	name: string;
 }

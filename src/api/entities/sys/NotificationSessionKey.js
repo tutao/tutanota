@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const NotificationSessionKeyTypeRef: TypeRef<NotificationSessionKey> = new TypeRef("sys", "NotificationSessionKey")
 export const _TypeModel: TypeModel = {
 	"name": "NotificationSessionKey",
@@ -49,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createNotificationSessionKey(values?: $Shape<$Exact<NotificationSessionKey>>): NotificationSessionKey {
 	return Object.assign(create(_TypeModel, NotificationSessionKeyTypeRef), values)
+}
+
+export type NotificationSessionKey = {
+	_type: TypeRef<NotificationSessionKey>;
+
+	_id: Id;
+	pushIdentifierSessionEncSessionKey: Uint8Array;
+
+	pushIdentifier: IdTuple;
 }

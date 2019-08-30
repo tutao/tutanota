@@ -17,6 +17,9 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
+import type {CustomerProperties} from "../api/entities/sys/CustomerProperties"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate

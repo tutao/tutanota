@@ -20,6 +20,8 @@ import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
 import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
 import {TypeRef} from "../../common/EntityFunctions"
 import {isTest} from "../../Env"
+import type {User} from "../../entities/sys/User"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RecoverCodeTypeRef: TypeRef<RecoverCode> = new TypeRef("sys", "RecoverCode")
 export const _TypeModel: TypeModel = {
 	"name": "RecoverCode",
@@ -83,4 +84,16 @@ export const _TypeModel: TypeModel = {
 
 export function createRecoverCode(values?: $Shape<$Exact<RecoverCode>>): RecoverCode {
 	return Object.assign(create(_TypeModel, RecoverCodeTypeRef), values)
+}
+
+export type RecoverCode = {
+	_type: TypeRef<RecoverCode>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	userEncRecoverCode: Uint8Array;
+	verifier: Uint8Array;
 }

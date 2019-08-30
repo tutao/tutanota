@@ -21,6 +21,13 @@ import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {isSameId} from "../api/common/EntityFunctions"
 import {getFromMap} from "../api/common/utils/MapUtils"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
+import type {User} from "../api/entities/sys/User"
+import type {Group} from "../api/entities/sys/Group"
+import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 
 assertMainOrNode()
 

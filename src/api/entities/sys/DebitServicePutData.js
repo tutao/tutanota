@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DebitServicePutDataTypeRef: TypeRef<DebitServicePutData> = new TypeRef("sys", "DebitServicePutData")
 export const _TypeModel: TypeModel = {
 	"name": "DebitServicePutData",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createDebitServicePutData(values?: $Shape<$Exact<DebitServicePutData>>): DebitServicePutData {
 	return Object.assign(create(_TypeModel, DebitServicePutDataTypeRef), values)
+}
+
+export type DebitServicePutData = {
+	_type: TypeRef<DebitServicePutData>;
+
+	_format: NumberString;
+
+	invoice: ?IdTuple;
 }

@@ -8,6 +8,7 @@ import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtil
 import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {size} from "../gui/size"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,

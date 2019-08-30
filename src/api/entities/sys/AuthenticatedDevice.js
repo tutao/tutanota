@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", "AuthenticatedDevice")
 export const _TypeModel: TypeModel = {
 	"name": "AuthenticatedDevice",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createAuthenticatedDevice(values?: $Shape<$Exact<AuthenticatedDevice>>): AuthenticatedDevice {
 	return Object.assign(create(_TypeModel, AuthenticatedDeviceTypeRef), values)
+}
+
+export type AuthenticatedDevice = {
+	_type: TypeRef<AuthenticatedDevice>;
+
+	_id: Id;
+	authType: NumberString;
+	deviceKey: Uint8Array;
+	deviceToken: string;
 }

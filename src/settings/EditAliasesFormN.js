@@ -21,6 +21,8 @@ import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
 
 assertMainOrNode()
 

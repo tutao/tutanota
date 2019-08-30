@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {U2fResponseData} from "./U2fResponseData"
+
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", "SecondFactorAuthData")
 export const _TypeModel: TypeModel = {
 	"name": "SecondFactorAuthData",
@@ -67,4 +69,15 @@ export const _TypeModel: TypeModel = {
 
 export function createSecondFactorAuthData(values?: $Shape<$Exact<SecondFactorAuthData>>): SecondFactorAuthData {
 	return Object.assign(create(_TypeModel, SecondFactorAuthDataTypeRef), values)
+}
+
+export type SecondFactorAuthData = {
+	_type: TypeRef<SecondFactorAuthData>;
+
+	_format: NumberString;
+	otpCode: ?NumberString;
+	type: ?NumberString;
+
+	u2f: ?U2fResponseData;
+	session: ?IdTuple;
 }

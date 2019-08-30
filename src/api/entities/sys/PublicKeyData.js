@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PublicKeyDataTypeRef: TypeRef<PublicKeyData> = new TypeRef("sys", "PublicKeyData")
 export const _TypeModel: TypeModel = {
 	"name": "PublicKeyData",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createPublicKeyData(values?: $Shape<$Exact<PublicKeyData>>): PublicKeyData {
 	return Object.assign(create(_TypeModel, PublicKeyDataTypeRef), values)
+}
+
+export type PublicKeyData = {
+	_type: TypeRef<PublicKeyData>;
+
+	_format: NumberString;
+	mailAddress: string;
 }

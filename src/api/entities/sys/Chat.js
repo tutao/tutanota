@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ChatTypeRef: TypeRef<Chat> = new TypeRef("sys", "Chat")
 export const _TypeModel: TypeModel = {
 	"name": "Chat",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createChat(values?: $Shape<$Exact<Chat>>): Chat {
 	return Object.assign(create(_TypeModel, ChatTypeRef), values)
+}
+
+export type Chat = {
+	_type: TypeRef<Chat>;
+
+	_id: Id;
+	recipient: Id;
+	sender: Id;
+	text: string;
 }

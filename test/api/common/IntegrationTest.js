@@ -11,6 +11,8 @@ import {neverNull} from "../../../src/api/common/utils/Utils"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
 import {initLocator, locator} from "../../../src/api/worker/WorkerLocator"
 import {browserDataStub} from "../TestUtils"
+import type {MailFolder} from "../../../src/api/entities/tutanota/MailFolder"
+import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 
 function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 	return loadAll(MailFolderTypeRef, folderListId)

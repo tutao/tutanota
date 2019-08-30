@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {Challenge} from "./Challenge"
+
 export const SessionTypeRef: TypeRef<Session> = new TypeRef("sys", "Session")
 export const _TypeModel: TypeModel = {
 	"name": "Session",
@@ -139,4 +141,24 @@ export const _TypeModel: TypeModel = {
 
 export function createSession(values?: $Shape<$Exact<Session>>): Session {
 	return Object.assign(create(_TypeModel, SessionTypeRef), values)
+}
+
+export type Session = {
+	_type: TypeRef<Session>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	accessKey: ?Uint8Array;
+	clientIdentifier: string;
+	lastAccessTime: Date;
+	loginIpAddress: ?string;
+	loginTime: Date;
+	state: NumberString;
+
+	challenges: Challenge[];
+	user: Id;
 }

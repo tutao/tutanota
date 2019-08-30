@@ -17,6 +17,9 @@ import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvita
 import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
 import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvitationDeleteData"
 import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInvitationPostReturn"
+import type {GroupInfo} from "../../entities/sys/GroupInfo"
+import type {GroupInvitationPostReturn} from "../../entities/tutanota/GroupInvitationPostReturn"
+import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
 
 assertWorkerOrNode()
 

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const FileDataDataPostTypeRef: TypeRef<FileDataDataPost> = new TypeRef("tutanota", "FileDataDataPost")
 export const _TypeModel: TypeModel = {
 	"name": "FileDataDataPost",
@@ -47,4 +48,13 @@ export const _TypeModel: TypeModel = {
 
 export function createFileDataDataPost(values?: $Shape<$Exact<FileDataDataPost>>): FileDataDataPost {
 	return Object.assign(create(_TypeModel, FileDataDataPostTypeRef), values)
+}
+
+export type FileDataDataPost = {
+	_type: TypeRef<FileDataDataPost>;
+	_errors: Object;
+
+	_format: NumberString;
+	group: Id;
+	size: NumberString;
 }

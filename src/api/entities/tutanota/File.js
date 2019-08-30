@@ -2,7 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const FileTypeRef: TypeRef<TutanotaFile> = new TypeRef("tutanota", "File")
+import type {Subfiles} from "./Subfiles"
+
+export const FileTypeRef: TypeRef<File> = new TypeRef("tutanota", "File")
 export const _TypeModel: TypeModel = {
 	"name": "File",
 	"since": 1,
@@ -147,6 +149,27 @@ export const _TypeModel: TypeModel = {
 	"version": "41"
 }
 
-export function createFile(values?: $Shape<$Exact<TutanotaFile>>): TutanotaFile {
+export function createFile(values?: $Shape<$Exact<File>>): File {
 	return Object.assign(create(_TypeModel, FileTypeRef), values)
+}
+
+export type File = {
+	_type: TypeRef<File>;
+	_errors: Object;
+
+	_area: NumberString;
+	_format: NumberString;
+	_id: IdTuple;
+	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	cid: ?string;
+	mimeType: ?string;
+	name: string;
+	size: NumberString;
+
+	subFiles: ?Subfiles;
+	data: ?Id;
+	parent: ?IdTuple;
 }

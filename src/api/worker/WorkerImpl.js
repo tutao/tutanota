@@ -20,6 +20,11 @@ import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
 import {Logger, replaceNativeLogger} from "../common/Logger"
 import {downcast} from "../common/utils/Utils"
+import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAccountReturn"
+import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
+import type {EntityUpdate} from "../entities/sys/EntityUpdate"
+import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
+import type {PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
 
 assertWorkerOrNode()
 

@@ -2,6 +2,11 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ContactFormStatisticField} from "./ContactFormStatisticField"
+import type {ContactFormStatisticEntry} from "./ContactFormStatisticEntry"
+import type {ContactFormUserData} from "./ContactFormUserData"
+import type {InternalGroupData} from "./InternalGroupData"
+
 export const ContactFormAccountDataTypeRef: TypeRef<ContactFormAccountData> = new TypeRef("tutanota", "ContactFormAccountData")
 export const _TypeModel: TypeModel = {
 	"name": "ContactFormAccountData",
@@ -76,4 +81,16 @@ export const _TypeModel: TypeModel = {
 
 export function createContactFormAccountData(values?: $Shape<$Exact<ContactFormAccountData>>): ContactFormAccountData {
 	return Object.assign(create(_TypeModel, ContactFormAccountDataTypeRef), values)
+}
+
+export type ContactFormAccountData = {
+	_type: TypeRef<ContactFormAccountData>;
+
+	_format: NumberString;
+
+	statisticFields: ContactFormStatisticField[];
+	statistics: ?ContactFormStatisticEntry;
+	userData: ContactFormUserData;
+	userGroupData: InternalGroupData;
+	contactForm: IdTuple;
 }

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const WhitelabelChildTypeRef: TypeRef<WhitelabelChild> = new TypeRef("sys", "WhitelabelChild")
 export const _TypeModel: TypeModel = {
 	"name": "WhitelabelChild",
@@ -112,4 +113,21 @@ export const _TypeModel: TypeModel = {
 
 export function createWhitelabelChild(values?: $Shape<$Exact<WhitelabelChild>>): WhitelabelChild {
 	return Object.assign(create(_TypeModel, WhitelabelChildTypeRef), values)
+}
+
+export type WhitelabelChild = {
+	_type: TypeRef<WhitelabelChild>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	comment: string;
+	createdDate: Date;
+	deletedDate: ?Date;
+	mailAddress: string;
+
+	customer: Id;
 }

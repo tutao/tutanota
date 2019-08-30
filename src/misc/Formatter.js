@@ -5,6 +5,7 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {isMailAddress} from "./FormatValidator"
+import type {Birthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 

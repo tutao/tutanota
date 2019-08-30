@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {DnsRecord} from "./DnsRecord"
+
 export const CustomDomainCheckReturnTypeRef: TypeRef<CustomDomainCheckReturn> = new TypeRef("sys", "CustomDomainCheckReturn")
 export const _TypeModel: TypeModel = {
 	"name": "CustomDomainCheckReturn",
@@ -57,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomDomainCheckReturn(values?: $Shape<$Exact<CustomDomainCheckReturn>>): CustomDomainCheckReturn {
 	return Object.assign(create(_TypeModel, CustomDomainCheckReturnTypeRef), values)
+}
+
+export type CustomDomainCheckReturn = {
+	_type: TypeRef<CustomDomainCheckReturn>;
+
+	_format: NumberString;
+	checkResult: NumberString;
+
+	invalidRecords: DnsRecord[];
+	missingRecords: DnsRecord[];
 }

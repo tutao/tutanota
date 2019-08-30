@@ -12,6 +12,7 @@ import {ease} from "../gui/animation/Easing"
 import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
+import type {MailBody} from "../api/entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
@@ -28,6 +29,7 @@ import {
 	TabIndex
 } from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
+import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {lang} from "../misc/LanguageViewModel"
@@ -35,7 +37,7 @@ import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
+import {defer, downcast, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -70,7 +72,9 @@ import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -100,11 +104,13 @@ import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "./MailView"
 import {createReportPhishingPostData} from "../api/entities/tutanota/ReportPhishingPostData"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel} from "../api/entities/tutanota/Mail"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import {RecipientButton} from "../gui/base/RecipientButton"
 import {Banner, BannerType} from "../gui/base/Banner"
 import {copyToClipboard} from "../misc/ClipboardUtils"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 
 assertMainOrNode()
 
@@ -732,7 +738,7 @@ export class MailViewer {
 							},
 							type: ButtonType.Dropdown
 						}
-					])(event, dom)
+					])(downcast(event), dom)
 				})
 			})
 		})
@@ -1031,7 +1037,7 @@ export class MailViewer {
 		}
 	}
 
-	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: EncryptedMailAddress) {
+	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: EncryptedMailAddress | MailAddress) {
 		const folder = mailModel.getMailFolder(getListId(this.mail))
 		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
 			? SpamRuleType.WHITELIST

@@ -22,6 +22,8 @@ import {hasMoreResults} from "./SearchModel"
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 

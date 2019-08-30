@@ -24,6 +24,9 @@ import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../.
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 import {typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
 import {lastThrow} from "../../../src/api/common/utils/ArrayUtils"
+import type {MailBody} from "../../../src/api/entities/tutanota/MailBody"
+import type {Mail} from "../../../src/api/entities/tutanota/Mail"
+import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 
 o.spec("entity rest cache", function () {
 

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DataBlockTypeRef: TypeRef<DataBlock> = new TypeRef("tutanota", "DataBlock")
 export const _TypeModel: TypeModel = {
 	"name": "DataBlock",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createDataBlock(values?: $Shape<$Exact<DataBlock>>): DataBlock {
 	return Object.assign(create(_TypeModel, DataBlockTypeRef), values)
+}
+
+export type DataBlock = {
+	_type: TypeRef<DataBlock>;
+
+	_id: Id;
+	blockData: Id;
+	size: NumberString;
 }

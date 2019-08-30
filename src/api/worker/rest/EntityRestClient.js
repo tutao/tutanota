@@ -14,6 +14,7 @@ import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError} from "../../common/error/RestError"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 
 assertWorkerOrNode()
 

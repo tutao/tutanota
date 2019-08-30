@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SharedGroupDataTypeRef: TypeRef<SharedGroupData> = new TypeRef("tutanota", "SharedGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "SharedGroupData",
@@ -101,4 +102,18 @@ export const _TypeModel: TypeModel = {
 
 export function createSharedGroupData(values?: $Shape<$Exact<SharedGroupData>>): SharedGroupData {
 	return Object.assign(create(_TypeModel, SharedGroupDataTypeRef), values)
+}
+
+export type SharedGroupData = {
+	_type: TypeRef<SharedGroupData>;
+
+	_id: Id;
+	bucketEncInvitationSessionKey: Uint8Array;
+	capability: NumberString;
+	sessionEncInviterName: Uint8Array;
+	sessionEncSharedGroupKey: Uint8Array;
+	sessionEncSharedGroupName: Uint8Array;
+	sharedGroup: Id;
+	sharedGroupEncInviterGroupInfoKey: Uint8Array;
+	sharedGroupEncSharedGroupInfoKey: Uint8Array;
 }

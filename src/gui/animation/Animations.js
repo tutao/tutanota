@@ -150,7 +150,8 @@ export class Animation {
 }
 
 export function transform(type: TransformEnum, begin: number, end: number): DomTransform {
-	let values: TransformValues = {[type]: {begin, end}}
+	const values: TransformValues = {}
+	values[type] = {begin, end}
 	let updateDom = function (target: HTMLElement, percent: number, easing: EasingFunction): void {
 		target.style.transform = buildTransformString(values, percent, easing)
 	}

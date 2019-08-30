@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {EntityUpdate} from "./EntityUpdate"
+
 export const EntityEventBatchTypeRef: TypeRef<EntityEventBatch> = new TypeRef("sys", "EntityEventBatch")
 export const _TypeModel: TypeModel = {
 	"name": "EntityEventBatch",
@@ -66,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createEntityEventBatch(values?: $Shape<$Exact<EntityEventBatch>>): EntityEventBatch {
 	return Object.assign(create(_TypeModel, EntityEventBatchTypeRef), values)
+}
+
+export type EntityEventBatch = {
+	_type: TypeRef<EntityEventBatch>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	events: EntityUpdate[];
 }

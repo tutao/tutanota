@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailboxGroupRootTypeRef: TypeRef<MailboxGroupRoot> = new TypeRef("tutanota", "MailboxGroupRoot")
 export const _TypeModel: TypeModel = {
 	"name": "MailboxGroupRoot",
@@ -117,4 +118,20 @@ export const _TypeModel: TypeModel = {
 
 export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {
 	return Object.assign(create(_TypeModel, MailboxGroupRootTypeRef), values)
+}
+
+export type MailboxGroupRoot = {
+	_type: TypeRef<MailboxGroupRoot>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	contactFormUserContactForm: ?IdTuple;
+	mailbox: Id;
+	participatingContactForms: IdTuple[];
+	serverProperties: Id;
+	targetMailGroupContactForm: ?IdTuple;
+	whitelistRequests: Id;
 }

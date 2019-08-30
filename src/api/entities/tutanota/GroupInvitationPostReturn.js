@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {MailAddress} from "./MailAddress"
+
 export const GroupInvitationPostReturnTypeRef: TypeRef<GroupInvitationPostReturn> = new TypeRef("tutanota", "GroupInvitationPostReturn")
 export const _TypeModel: TypeModel = {
 	"name": "GroupInvitationPostReturn",
@@ -57,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupInvitationPostReturn(values?: $Shape<$Exact<GroupInvitationPostReturn>>): GroupInvitationPostReturn {
 	return Object.assign(create(_TypeModel, GroupInvitationPostReturnTypeRef), values)
+}
+
+export type GroupInvitationPostReturn = {
+	_type: TypeRef<GroupInvitationPostReturn>;
+
+	_format: NumberString;
+
+	existingMailAddresses: MailAddress[];
+	invalidMailAddresses: MailAddress[];
+	invitedMailAddresses: MailAddress[];
 }

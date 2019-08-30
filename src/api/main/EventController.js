@@ -7,6 +7,9 @@ import {PhishingMarkerStatus} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 import stream from "mithril/stream/stream.js"
 import {downcast, identity} from "../common/utils/Utils"
+import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
+import type {EntityUpdate} from "../entities/sys/EntityUpdate"
+import type {PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
 
 assertMainOrNode()
 

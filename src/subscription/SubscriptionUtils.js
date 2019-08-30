@@ -5,6 +5,10 @@ import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstan
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
+import type {PlanPrices} from "../api/entities/sys/PlanPrices"
+import type {Customer} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import type {Booking} from "../api/entities/sys/Booking"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,

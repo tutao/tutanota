@@ -19,6 +19,7 @@ import {worker} from "../api/main/WorkerClient"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import * as RecoverLoginDialog from "./RecoverLoginDialog"
 import {progressIcon} from "../gui/base/Icon"
+import type {Challenge} from "../api/entities/sys/Challenge"
 
 assertMainOrNode()
 

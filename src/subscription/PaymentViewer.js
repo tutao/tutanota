@@ -39,6 +39,9 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {CustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
+import type {InvoiceInfo} from "../api/entities/sys/InvoiceInfo"
 
 assertMainOrNode()
 

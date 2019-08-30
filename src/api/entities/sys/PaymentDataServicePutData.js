@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CreditCard} from "./CreditCard"
+
 export const PaymentDataServicePutDataTypeRef: TypeRef<PaymentDataServicePutData> = new TypeRef("sys", "PaymentDataServicePutData")
 export const _TypeModel: TypeModel = {
 	"name": "PaymentDataServicePutData",
@@ -129,4 +131,23 @@ export const _TypeModel: TypeModel = {
 
 export function createPaymentDataServicePutData(values?: $Shape<$Exact<PaymentDataServicePutData>>): PaymentDataServicePutData {
 	return Object.assign(create(_TypeModel, PaymentDataServicePutDataTypeRef), values)
+}
+
+export type PaymentDataServicePutData = {
+	_type: TypeRef<PaymentDataServicePutData>;
+	_errors: Object;
+
+	_format: NumberString;
+	business: boolean;
+	confirmedCountry: ?string;
+	invoiceAddress: string;
+	invoiceCountry: string;
+	invoiceName: string;
+	invoiceVatIdNo: string;
+	paymentInterval: NumberString;
+	paymentMethod: NumberString;
+	paymentMethodInfo: ?string;
+	paymentToken: ?string;
+
+	creditCard: ?CreditCard;
 }

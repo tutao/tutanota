@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SignOrderProcessingAgreementDataTypeRef: TypeRef<SignOrderProcessingAgreementData> = new TypeRef("sys", "SignOrderProcessingAgreementData")
 export const _TypeModel: TypeModel = {
 	"name": "SignOrderProcessingAgreementData",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createSignOrderProcessingAgreementData(values?: $Shape<$Exact<SignOrderProcessingAgreementData>>): SignOrderProcessingAgreementData {
 	return Object.assign(create(_TypeModel, SignOrderProcessingAgreementDataTypeRef), values)
+}
+
+export type SignOrderProcessingAgreementData = {
+	_type: TypeRef<SignOrderProcessingAgreementData>;
+
+	_format: NumberString;
+	customerAddress: string;
+	version: string;
 }

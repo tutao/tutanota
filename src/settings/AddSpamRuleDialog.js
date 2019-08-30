@@ -18,6 +18,7 @@ import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 
 assertMainOrNode()
 

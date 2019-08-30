@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PremiumFeatureDataTypeRef: TypeRef<PremiumFeatureData> = new TypeRef("sys", "PremiumFeatureData")
 export const _TypeModel: TypeModel = {
 	"name": "PremiumFeatureData",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPremiumFeatureData(values?: $Shape<$Exact<PremiumFeatureData>>): PremiumFeatureData {
 	return Object.assign(create(_TypeModel, PremiumFeatureDataTypeRef), values)
+}
+
+export type PremiumFeatureData = {
+	_type: TypeRef<PremiumFeatureData>;
+
+	_format: NumberString;
+	activationCode: string;
+	featureName: string;
 }

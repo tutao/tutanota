@@ -10,6 +10,7 @@ import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 export type Attrs = {
 	onEventClicked: (event: CalendarEvent) => mixed,
@@ -20,7 +21,7 @@ export type Attrs = {
 	onTimeContextPressed: (hours: number, minutes: number) => mixed,
 }
 
-export const calendarDayTimes = numberRange(0, 23).map((n) => {
+export const calendarDayTimes: Array<Date> = numberRange(0, 23).map((n) => {
 	const d = new Date()
 	d.setHours(n, 0, 0, 0)
 	return d
@@ -111,7 +112,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 		}, m(CalendarEventBubble, {
 			text: getEventText(ev, isAllDayEvent(ev) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME),
 			color: getEventColor(ev, attrs.groupColors),
-			onEventClicked: () => attrs.onEventClicked(ev),
+			click: () => attrs.onEventClicked(ev),
 			height: height - 2,
 			hasAlarm: hasAlarmsForTheUser(ev),
 			verticalPadding: 2

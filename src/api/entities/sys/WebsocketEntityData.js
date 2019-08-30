@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {EntityUpdate} from "./EntityUpdate"
+
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", "WebsocketEntityData")
 export const _TypeModel: TypeModel = {
 	"name": "WebsocketEntityData",
@@ -57,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createWebsocketEntityData(values?: $Shape<$Exact<WebsocketEntityData>>): WebsocketEntityData {
 	return Object.assign(create(_TypeModel, WebsocketEntityDataTypeRef), values)
+}
+
+export type WebsocketEntityData = {
+	_type: TypeRef<WebsocketEntityData>;
+
+	_format: NumberString;
+	eventBatchId: Id;
+	eventBatchOwner: Id;
+
+	eventBatch: EntityUpdate[];
 }

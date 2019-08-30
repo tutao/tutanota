@@ -17,6 +17,7 @@ import {_service} from "./rest/ServiceRestClient"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
 import {assertWorkerOrNode} from "../Env"
 import {locator} from "./WorkerLocator"
+import type {RootInstance} from "../entities/sys/RootInstance"
 
 assertWorkerOrNode()
 

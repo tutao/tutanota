@@ -307,7 +307,7 @@ type RecipientInfo = {
 }
 
 type DataFile = {
-	_type: 'DataFile',
+	+_type: 'DataFile',
 	name: string,
 	mimeType: string,
 	data: Uint8Array,
@@ -317,7 +317,7 @@ type DataFile = {
 }
 
 type FileReference = {
-	_type: 'FileReference',
+	+_type: 'FileReference',
 	name: string,
 	mimeType: string,
 	location: string,

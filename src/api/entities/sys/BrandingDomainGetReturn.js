@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CertificateInfo} from "./CertificateInfo"
+
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", "BrandingDomainGetReturn")
 export const _TypeModel: TypeModel = {
 	"name": "BrandingDomainGetReturn",
@@ -39,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createBrandingDomainGetReturn(values?: $Shape<$Exact<BrandingDomainGetReturn>>): BrandingDomainGetReturn {
 	return Object.assign(create(_TypeModel, BrandingDomainGetReturnTypeRef), values)
+}
+
+export type BrandingDomainGetReturn = {
+	_type: TypeRef<BrandingDomainGetReturn>;
+
+	_format: NumberString;
+
+	certificateInfo: ?CertificateInfo;
 }

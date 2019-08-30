@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailAddressAliasServiceDataDeleteTypeRef: TypeRef<MailAddressAliasServiceDataDelete> = new TypeRef("sys", "MailAddressAliasServiceDataDelete")
 export const _TypeModel: TypeModel = {
 	"name": "MailAddressAliasServiceDataDelete",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createMailAddressAliasServiceDataDelete(values?: $Shape<$Exact<MailAddressAliasServiceDataDelete>>): MailAddressAliasServiceDataDelete {
 	return Object.assign(create(_TypeModel, MailAddressAliasServiceDataDeleteTypeRef), values)
+}
+
+export type MailAddressAliasServiceDataDelete = {
+	_type: TypeRef<MailAddressAliasServiceDataDelete>;
+
+	_format: NumberString;
+	mailAddress: string;
+	restore: boolean;
+
+	group: Id;
 }

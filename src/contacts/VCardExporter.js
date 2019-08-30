@@ -1,4 +1,5 @@
 // @flow
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -10,6 +11,10 @@ import {createFile} from "../api/entities/tutanota/File"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {fileController} from "../file/FileController"
 import {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
+import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
+import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
+import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
+import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 
 assertMainOrNode()
 

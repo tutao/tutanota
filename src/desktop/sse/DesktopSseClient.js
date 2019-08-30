@@ -15,6 +15,7 @@ import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
+import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 
 export type SseInfo = {|
 	identifier: string,
@@ -298,7 +299,7 @@ export class DesktopSseClient {
 
 	_downloadMissedNotification(): Promise<any> {
 		return new Promise((resolve, reject) => {
-			const fail = (req: ClientRequest, res: ?http$IncomingMessage, e: ?Error | ?string) => {
+			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?Error | ?string) => {
 				if (res) {
 					res.destroy()
 				}

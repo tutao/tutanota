@@ -52,7 +52,7 @@ export function init() {
 	if (serviceWorker) {
 		if (env.dist && !isApp() && !isDesktop()) {
 			console.log("Registering ServiceWorker")
-			let location = window.location.pathname.endsWith("/") || window.location.pathname.indexOf("contactform/") != -1
+			let location = window.location.pathname.endsWith("/") || window.location.pathname.indexOf("contactform/") !== -1
 				? "../sw.js"
 				: "sw.js"
 			serviceWorker.register(location)
@@ -65,11 +65,11 @@ export function init() {
 				             })
 				             const active = registration.active // Upon registration, check if we had an sw.
 				             let refreshing = false // Prevent infinite reloading with devtools
-				             serviceWorker.addEventListener("controllerchange", (e) => {
+				             serviceWorker.addEventListener("controllerchange", (e: Event) => {
 					             console.log("controllerchange")
 					             if (!active || refreshing) {
 						             // If we didn't have an sw, there's no need to reload, it's "installation" and not "update"
-						             console.log(`Skip refreshing: active: ${active} refreshing: ${String(refreshing)}`)
+						             console.log(`Skip refreshing: active: ${String(active)} refreshing: ${String(refreshing)}`)
 						             return
 					             }
 
@@ -78,7 +78,11 @@ export function init() {
 					             windowFacade.reload({})
 				             })
 
-				             serviceWorker.addEventListener("message", (event) => {
+				             serviceWorker.addEventListener("message", (event: MessageEvent) => {
+						             if (event.data == null || typeof event.data !== "object") {
+							             console.error("Got strange message from sw", event.data)
+							             return
+						             }
 						             if (event.data.type === "error") {
 							             const unserializedError = objToError(event.data.value)
 							             handleUncaughtError(unserializedError)

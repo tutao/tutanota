@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailRestrictionTypeRef: TypeRef<MailRestriction> = new TypeRef("tutanota", "MailRestriction")
 export const _TypeModel: TypeModel = {
 	"name": "MailRestriction",
@@ -50,4 +51,13 @@ export const _TypeModel: TypeModel = {
 
 export function createMailRestriction(values?: $Shape<$Exact<MailRestriction>>): MailRestriction {
 	return Object.assign(create(_TypeModel, MailRestrictionTypeRef), values)
+}
+
+export type MailRestriction = {
+	_type: TypeRef<MailRestriction>;
+
+	_id: Id;
+
+	delegationGroups_removed: Id[];
+	participantGroupInfos: IdTuple[];
 }

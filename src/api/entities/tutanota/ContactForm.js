@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ContactFormLanguage} from "./ContactFormLanguage"
+import type {InputField} from "./InputField"
+import type {StatisticLogRef} from "./StatisticLogRef"
+
 export const ContactFormTypeRef: TypeRef<ContactForm> = new TypeRef("tutanota", "ContactForm")
 export const _TypeModel: TypeModel = {
 	"name": "ContactForm",
@@ -133,4 +137,22 @@ export const _TypeModel: TypeModel = {
 
 export function createContactForm(values?: $Shape<$Exact<ContactForm>>): ContactForm {
 	return Object.assign(create(_TypeModel, ContactFormTypeRef), values)
+}
+
+export type ContactForm = {
+	_type: TypeRef<ContactForm>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	path: string;
+
+	languages: ContactFormLanguage[];
+	statisticsFields_removed: InputField[];
+	statisticsLog: ?StatisticLogRef;
+	delegationGroups_removed: Id[];
+	participantGroupInfos: IdTuple[];
+	targetGroup: Id;
+	targetGroupInfo: ?IdTuple;
 }

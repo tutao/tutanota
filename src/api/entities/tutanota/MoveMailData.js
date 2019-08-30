@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MoveMailDataTypeRef: TypeRef<MoveMailData> = new TypeRef("tutanota", "MoveMailData")
 export const _TypeModel: TypeModel = {
 	"name": "MoveMailData",
@@ -50,4 +51,13 @@ export const _TypeModel: TypeModel = {
 
 export function createMoveMailData(values?: $Shape<$Exact<MoveMailData>>): MoveMailData {
 	return Object.assign(create(_TypeModel, MoveMailDataTypeRef), values)
+}
+
+export type MoveMailData = {
+	_type: TypeRef<MoveMailData>;
+
+	_format: NumberString;
+
+	mails: IdTuple[];
+	targetFolder: IdTuple;
 }

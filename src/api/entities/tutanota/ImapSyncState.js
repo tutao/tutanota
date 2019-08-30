@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ImapFolder} from "./ImapFolder"
+
 export const ImapSyncStateTypeRef: TypeRef<ImapSyncState> = new TypeRef("tutanota", "ImapSyncState")
 export const _TypeModel: TypeModel = {
 	"name": "ImapSyncState",
@@ -66,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createImapSyncState(values?: $Shape<$Exact<ImapSyncState>>): ImapSyncState {
 	return Object.assign(create(_TypeModel, ImapSyncStateTypeRef), values)
+}
+
+export type ImapSyncState = {
+	_type: TypeRef<ImapSyncState>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	folders: ImapFolder[];
 }

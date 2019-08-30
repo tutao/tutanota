@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CustomDomainCheckDataTypeRef: TypeRef<CustomDomainCheckData> = new TypeRef("sys", "CustomDomainCheckData")
 export const _TypeModel: TypeModel = {
 	"name": "CustomDomainCheckData",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomDomainCheckData(values?: $Shape<$Exact<CustomDomainCheckData>>): CustomDomainCheckData {
 	return Object.assign(create(_TypeModel, CustomDomainCheckDataTypeRef), values)
+}
+
+export type CustomDomainCheckData = {
+	_type: TypeRef<CustomDomainCheckData>;
+
+	_format: NumberString;
+	domain: string;
 }

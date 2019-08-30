@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {DraftAttachment} from "./DraftAttachment"
+import type {DraftRecipient} from "./DraftRecipient"
+import type {EncryptedMailAddress} from "./EncryptedMailAddress"
+
 export const DraftDataTypeRef: TypeRef<DraftData> = new TypeRef("tutanota", "DraftData")
 export const _TypeModel: TypeModel = {
 	"name": "DraftData",
@@ -130,4 +134,22 @@ export const _TypeModel: TypeModel = {
 
 export function createDraftData(values?: $Shape<$Exact<DraftData>>): DraftData {
 	return Object.assign(create(_TypeModel, DraftDataTypeRef), values)
+}
+
+export type DraftData = {
+	_type: TypeRef<DraftData>;
+
+	_id: Id;
+	bodyText: string;
+	confidential: boolean;
+	senderMailAddress: string;
+	senderName: string;
+	subject: string;
+
+	addedAttachments: DraftAttachment[];
+	bccRecipients: DraftRecipient[];
+	ccRecipients: DraftRecipient[];
+	replyTos: EncryptedMailAddress[];
+	toRecipients: DraftRecipient[];
+	removedAttachments: IdTuple[];
 }

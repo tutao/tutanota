@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ExternalUserReferenceTypeRef: TypeRef<ExternalUserReference> = new TypeRef("sys", "ExternalUserReference")
 export const _TypeModel: TypeModel = {
 	"name": "ExternalUserReference",
@@ -77,4 +78,16 @@ export const _TypeModel: TypeModel = {
 
 export function createExternalUserReference(values?: $Shape<$Exact<ExternalUserReference>>): ExternalUserReference {
 	return Object.assign(create(_TypeModel, ExternalUserReferenceTypeRef), values)
+}
+
+export type ExternalUserReference = {
+	_type: TypeRef<ExternalUserReference>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	user: Id;
+	userGroup: Id;
 }

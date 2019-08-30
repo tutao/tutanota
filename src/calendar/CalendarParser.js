@@ -20,6 +20,9 @@ import {
 	StringIterator
 } from "../misc/parsing"
 import WindowsZones from "./WindowsZones"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
+import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))

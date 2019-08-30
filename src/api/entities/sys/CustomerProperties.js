@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {File} from "./File"
+import type {NotificationMailTemplate} from "./NotificationMailTemplate"
+
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", "CustomerProperties")
 export const _TypeModel: TypeModel = {
 	"name": "CustomerProperties",
@@ -102,4 +105,19 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomerProperties(values?: $Shape<$Exact<CustomerProperties>>): CustomerProperties {
 	return Object.assign(create(_TypeModel, CustomerPropertiesTypeRef), values)
+}
+
+export type CustomerProperties = {
+	_type: TypeRef<CustomerProperties>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	externalUserWelcomeMessage: string;
+	lastUpgradeReminder: ?Date;
+
+	bigLogo: ?File;
+	notificationMailTemplates: NotificationMailTemplate[];
+	smallLogo: ?File;
 }

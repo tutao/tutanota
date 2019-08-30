@@ -25,6 +25,11 @@ import {SysService} from "../api/entities/sys/Services"
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {PlanPrices} from "../api/entities/sys/PlanPrices"
+import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceServiceReturn"
+import type {Customer} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 

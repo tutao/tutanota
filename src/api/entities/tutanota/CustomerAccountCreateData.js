@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {InternalGroupData} from "./InternalGroupData"
+import type {UserAccountUserData} from "./UserAccountUserData"
+
 export const CustomerAccountCreateDataTypeRef: TypeRef<CustomerAccountCreateData> = new TypeRef("tutanota", "CustomerAccountCreateData")
 export const _TypeModel: TypeModel = {
 	"name": "CustomerAccountCreateData",
@@ -147,4 +150,24 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomerAccountCreateData(values?: $Shape<$Exact<CustomerAccountCreateData>>): CustomerAccountCreateData {
 	return Object.assign(create(_TypeModel, CustomerAccountCreateDataTypeRef), values)
+}
+
+export type CustomerAccountCreateData = {
+	_type: TypeRef<CustomerAccountCreateData>;
+
+	_format: NumberString;
+	adminEncAccountingInfoSessionKey: Uint8Array;
+	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
+	authToken: string;
+	code: string;
+	date: ?Date;
+	lang: string;
+	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
+	userEncAccountGroupKey: Uint8Array;
+	userEncAdminGroupKey: Uint8Array;
+
+	adminGroupData: InternalGroupData;
+	customerGroupData: InternalGroupData;
+	userData: UserAccountUserData;
+	userGroupData: InternalGroupData;
 }

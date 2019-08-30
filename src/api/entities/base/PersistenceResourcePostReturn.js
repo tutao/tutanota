@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PersistenceResourcePostReturnTypeRef: TypeRef<PersistenceResourcePostReturn> = new TypeRef("base", "PersistenceResourcePostReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PersistenceResourcePostReturn",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPersistenceResourcePostReturn(values?: $Shape<$Exact<PersistenceResourcePostReturn>>): PersistenceResourcePostReturn {
 	return Object.assign(create(_TypeModel, PersistenceResourcePostReturnTypeRef), values)
+}
+
+export type PersistenceResourcePostReturn = {
+	_type: TypeRef<PersistenceResourcePostReturn>;
+
+	_format: NumberString;
+	generatedId: ?Id;
+	permissionListId: Id;
 }

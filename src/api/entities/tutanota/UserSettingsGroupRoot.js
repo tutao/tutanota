@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {GroupSettings} from "./GroupSettings"
+
 export const UserSettingsGroupRootTypeRef: TypeRef<UserSettingsGroupRoot> = new TypeRef("tutanota", "UserSettingsGroupRoot")
 export const _TypeModel: TypeModel = {
 	"name": "UserSettingsGroupRoot",
@@ -93,4 +95,19 @@ export const _TypeModel: TypeModel = {
 
 export function createUserSettingsGroupRoot(values?: $Shape<$Exact<UserSettingsGroupRoot>>): UserSettingsGroupRoot {
 	return Object.assign(create(_TypeModel, UserSettingsGroupRootTypeRef), values)
+}
+
+export type UserSettingsGroupRoot = {
+	_type: TypeRef<UserSettingsGroupRoot>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	startOfTheWeek: NumberString;
+	timeFormat: NumberString;
+
+	groupSettings: GroupSettings[];
 }

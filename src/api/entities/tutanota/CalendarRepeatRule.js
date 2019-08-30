@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CalendarRepeatRuleTypeRef: TypeRef<CalendarRepeatRule> = new TypeRef("tutanota", "CalendarRepeatRule")
 export const _TypeModel: TypeModel = {
 	"name": "CalendarRepeatRule",
@@ -74,4 +75,15 @@ export const _TypeModel: TypeModel = {
 
 export function createCalendarRepeatRule(values?: $Shape<$Exact<CalendarRepeatRule>>): CalendarRepeatRule {
 	return Object.assign(create(_TypeModel, CalendarRepeatRuleTypeRef), values)
+}
+
+export type CalendarRepeatRule = {
+	_type: TypeRef<CalendarRepeatRule>;
+
+	_id: Id;
+	endType: NumberString;
+	endValue: ?NumberString;
+	frequency: NumberString;
+	interval: NumberString;
+	timeZone: string;
 }

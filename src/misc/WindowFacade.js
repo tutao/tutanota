@@ -17,7 +17,7 @@ class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?AnimationFrameID | ?TimeoutID;
 	windowCloseConfirmation: boolean;
-	_windowCloseListeners: Set<(e: Event) => void>;
+	_windowCloseListeners: Set<(e: Event) => mixed>;
 	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
 	_worker: WorkerClient;
 	// following two properties are for the iOS
@@ -55,7 +55,7 @@ class WindowFacade {
 		}
 	}
 
-	addWindowCloseListener(listener: () => void): Function {
+	addWindowCloseListener(listener: () => mixed): Function {
 		this._windowCloseListeners.add(listener)
 		this._checkWindowClosing(this._windowCloseListeners.size > 0)
 		return () => {

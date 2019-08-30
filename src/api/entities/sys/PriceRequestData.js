@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PriceRequestDataTypeRef: TypeRef<PriceRequestData> = new TypeRef("sys", "PriceRequestData")
 export const _TypeModel: TypeModel = {
 	"name": "PriceRequestData",
@@ -83,4 +84,16 @@ export const _TypeModel: TypeModel = {
 
 export function createPriceRequestData(values?: $Shape<$Exact<PriceRequestData>>): PriceRequestData {
 	return Object.assign(create(_TypeModel, PriceRequestDataTypeRef), values)
+}
+
+export type PriceRequestData = {
+	_type: TypeRef<PriceRequestData>;
+
+	_id: Id;
+	accountType: ?NumberString;
+	business: ?boolean;
+	count: NumberString;
+	featureType: NumberString;
+	paymentInterval: ?NumberString;
+	reactivate: boolean;
 }

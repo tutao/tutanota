@@ -129,7 +129,7 @@ class LanguageViewModel {
 		this.staticTranslations = {}
 	}
 
-	init(en): Promise<void> {
+	init(en: {}): Promise<void> {
 		this.translations = en
 		this.fallback = en // always load english as fallback
 		this.code = 'en'

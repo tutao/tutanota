@@ -56,7 +56,8 @@ o.spec("Index Utils", () => {
 
 		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, fixedIv)
 		o(JSON.stringify(decrypted.encId)).deepEquals(JSON.stringify(encId))
-		delete decrypted.encId
+		const withoutEncId: any = decrypted
+		delete withoutEncId.encId
 		o(JSON.stringify(decrypted)).deepEquals(JSON.stringify(entry))
 	})
 

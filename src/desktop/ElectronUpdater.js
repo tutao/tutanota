@@ -6,7 +6,7 @@ import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfigHandler} from './config/DesktopConfigHandler'
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
 import fs from 'fs-extra'
@@ -44,7 +44,7 @@ export class ElectronUpdater {
 			this._logger.info("update-available")
 			this._stopPolling()
 			Promise
-				.any(this._conf.get("pubKeys").map(pk => this._verifySignature(pk, updateInfo)))
+				.any(this._conf.get("pubKeys").map(pk => this._verifySignature(pk, downcast(updateInfo))))
 				.then(() => this._downloadUpdate())
 				.catch(UpdateError, e => {
 					this._logger.warn("invalid signature, could not update", e)
@@ -55,21 +55,22 @@ export class ElectronUpdater {
 			this._logger.info("update-downloaded")
 			this._stopPolling()
 			this._installOnQuit = true
-			this._notifyAndInstall(info)
+			this._notifyAndInstall(downcast(info))
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
 		}).on('error', e => {
 			this._stopPolling()
 			this._errorCount += 1
+			const messageEvent: {message: string} = downcast(e)
 			if (this._errorCount >= 5) {
-				this._logger.error(`Auto Update Error ${this._errorCount}, shutting down updater:\n${e.message}`)
+				this._logger.error(`Auto Update Error ${this._errorCount}, shutting down updater:\n${messageEvent.message}`)
 				autoUpdater.removeAllListeners('update-available')
 				autoUpdater.removeAllListeners('update-downloaded')
 				autoUpdater.removeAllListeners('checking-for-update')
 				autoUpdater.removeAllListeners('error')
-				throw new UpdateError(`Update failed multiple times. Last error:\n${e.message}`)
+				throw new UpdateError(`Update failed multiple times. Last error:\n${messageEvent.message}`)
 			} else {
-				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${e.message}`)
+				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${messageEvent.message}`)
 				this._notifyUpdateError()
 				setTimeout(() => this._startPolling(), this._fallbackPollInterval)
 			}

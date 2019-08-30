@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {DraftData} from "./DraftData"
+
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", "DraftCreateData")
 export const _TypeModel: TypeModel = {
 	"name": "DraftCreateData",
@@ -75,4 +77,17 @@ export const _TypeModel: TypeModel = {
 
 export function createDraftCreateData(values?: $Shape<$Exact<DraftCreateData>>): DraftCreateData {
 	return Object.assign(create(_TypeModel, DraftCreateDataTypeRef), values)
+}
+
+export type DraftCreateData = {
+	_type: TypeRef<DraftCreateData>;
+	_errors: Object;
+
+	_format: NumberString;
+	conversationType: NumberString;
+	ownerEncSessionKey: Uint8Array;
+	previousMessageId: ?string;
+	symEncSessionKey: Uint8Array;
+
+	draftData: DraftData;
 }

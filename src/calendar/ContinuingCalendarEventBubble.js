@@ -4,13 +4,14 @@ import m from "mithril"
 import {getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
 import type {EventTextTimeOptionEnum} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 type ContinuingCalendarEventBubbleAttrs = {|
 	event: CalendarEvent,
 	startsBefore: boolean,
 	endsAfter: boolean,
 	color: string,
-	onEventClicked: clickHandler,
+	onEventClicked: (event: CalendarEvent) => mixed,
 	showTime: EventTextTimeOptionEnum,
 |}
 
@@ -31,7 +32,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 				m(CalendarEventBubble, {
 					text: getEventText(attrs.event, attrs.showTime),
 					color: attrs.color,
-					onEventClicked: () => attrs.onEventClicked(attrs.event),
+					click: () => attrs.onEventClicked(attrs.event),
 					noBorderLeft: attrs.startsBefore,
 					noBorderRight: attrs.endsAfter,
 					hasAlarm: hasAlarmsForTheUser(attrs.event)

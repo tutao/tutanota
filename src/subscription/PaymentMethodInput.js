@@ -17,6 +17,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.

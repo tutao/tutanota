@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", "NotificationInfo")
 export const _TypeModel: TypeModel = {
 	"name": "NotificationInfo",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createNotificationInfo(values?: $Shape<$Exact<NotificationInfo>>): NotificationInfo {
 	return Object.assign(create(_TypeModel, NotificationInfoTypeRef), values)
+}
+
+export type NotificationInfo = {
+	_type: TypeRef<NotificationInfo>;
+
+	_id: Id;
+	counter: NumberString;
+	mailAddress: string;
+	userId: Id;
 }

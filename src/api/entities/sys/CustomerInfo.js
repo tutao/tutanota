@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {BookingsRef} from "./BookingsRef"
+import type {DomainInfo} from "./DomainInfo"
+
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", "CustomerInfo")
 export const _TypeModel: TypeModel = {
 	"name": "CustomerInfo",
@@ -240,4 +243,34 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomerInfo(values?: $Shape<$Exact<CustomerInfo>>): CustomerInfo {
 	return Object.assign(create(_TypeModel, CustomerInfoTypeRef), values)
+}
+
+export type CustomerInfo = {
+	_type: TypeRef<CustomerInfo>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	activationTime: ?Date;
+	company: ?string;
+	creationTime: Date;
+	deletionReason: ?string;
+	deletionTime: ?Date;
+	domain: string;
+	erased: boolean;
+	includedEmailAliases: NumberString;
+	includedStorageCapacity: NumberString;
+	promotionEmailAliases: NumberString;
+	promotionStorageCapacity: NumberString;
+	registrationMailAddress: string;
+	source: string;
+	testEndTime: ?Date;
+	usedSharedEmailAliases: NumberString;
+
+	bookings: ?BookingsRef;
+	domainInfos: DomainInfo[];
+	accountingInfo: Id;
+	customer: Id;
+	takeoverCustomer: ?Id;
 }

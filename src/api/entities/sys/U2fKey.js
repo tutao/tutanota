@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const U2fKeyTypeRef: TypeRef<U2fKey> = new TypeRef("sys", "U2fKey")
 export const _TypeModel: TypeModel = {
 	"name": "U2fKey",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createU2fKey(values?: $Shape<$Exact<U2fKey>>): U2fKey {
 	return Object.assign(create(_TypeModel, U2fKeyTypeRef), values)
+}
+
+export type U2fKey = {
+	_type: TypeRef<U2fKey>;
+
+	_id: Id;
+	appId: string;
+	keyHandle: Uint8Array;
+
+	secondFactor: IdTuple;
 }

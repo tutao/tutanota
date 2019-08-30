@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ApprovalMailTypeRef: TypeRef<ApprovalMail> = new TypeRef("monitor", "ApprovalMail")
 export const _TypeModel: TypeModel = {
 	"name": "ApprovalMail",
@@ -94,4 +95,18 @@ export const _TypeModel: TypeModel = {
 
 export function createApprovalMail(values?: $Shape<$Exact<ApprovalMail>>): ApprovalMail {
 	return Object.assign(create(_TypeModel, ApprovalMailTypeRef), values)
+}
+
+export type ApprovalMail = {
+	_type: TypeRef<ApprovalMail>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	date: ?Date;
+	range: ?string;
+	text: string;
+
+	customer: ?Id;
 }

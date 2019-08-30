@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PaymentDataServicePutReturnTypeRef: TypeRef<PaymentDataServicePutReturn> = new TypeRef("sys", "PaymentDataServicePutReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PaymentDataServicePutReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createPaymentDataServicePutReturn(values?: $Shape<$Exact<PaymentDataServicePutReturn>>): PaymentDataServicePutReturn {
 	return Object.assign(create(_TypeModel, PaymentDataServicePutReturnTypeRef), values)
+}
+
+export type PaymentDataServicePutReturn = {
+	_type: TypeRef<PaymentDataServicePutReturn>;
+
+	_format: NumberString;
+	result: NumberString;
 }

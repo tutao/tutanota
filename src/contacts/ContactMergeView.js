@@ -17,6 +17,7 @@ import {
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 export class ContactMergeView {
 	view: Function;

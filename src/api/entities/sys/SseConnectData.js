@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {GeneratedIdWrapper} from "./GeneratedIdWrapper"
+
 export const SseConnectDataTypeRef: TypeRef<SseConnectData> = new TypeRef("sys", "SseConnectData")
 export const _TypeModel: TypeModel = {
 	"name": "SseConnectData",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createSseConnectData(values?: $Shape<$Exact<SseConnectData>>): SseConnectData {
 	return Object.assign(create(_TypeModel, SseConnectDataTypeRef), values)
+}
+
+export type SseConnectData = {
+	_type: TypeRef<SseConnectData>;
+
+	_format: NumberString;
+	identifier: string;
+
+	userIds: GeneratedIdWrapper[];
 }

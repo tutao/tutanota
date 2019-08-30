@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
 export const _TypeModel: TypeModel = {
 	"name": "AttachmentKeyData",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createAttachmentKeyData(values?: $Shape<$Exact<AttachmentKeyData>>): AttachmentKeyData {
 	return Object.assign(create(_TypeModel, AttachmentKeyDataTypeRef), values)
+}
+
+export type AttachmentKeyData = {
+	_type: TypeRef<AttachmentKeyData>;
+
+	_id: Id;
+	bucketEncFileSessionKey: ?Uint8Array;
+	fileSessionKey: ?Uint8Array;
+
+	file: IdTuple;
 }

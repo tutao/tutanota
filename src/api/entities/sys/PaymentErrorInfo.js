@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", "PaymentErrorInfo")
 export const _TypeModel: TypeModel = {
 	"name": "PaymentErrorInfo",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createPaymentErrorInfo(values?: $Shape<$Exact<PaymentErrorInfo>>): PaymentErrorInfo {
 	return Object.assign(create(_TypeModel, PaymentErrorInfoTypeRef), values)
+}
+
+export type PaymentErrorInfo = {
+	_type: TypeRef<PaymentErrorInfo>;
+
+	_id: Id;
+	errorCode: string;
+	errorTime: Date;
+	thirdPartyErrorId: string;
 }

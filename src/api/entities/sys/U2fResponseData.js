@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const U2fResponseDataTypeRef: TypeRef<U2fResponseData> = new TypeRef("sys", "U2fResponseData")
 export const _TypeModel: TypeModel = {
 	"name": "U2fResponseData",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createU2fResponseData(values?: $Shape<$Exact<U2fResponseData>>): U2fResponseData {
 	return Object.assign(create(_TypeModel, U2fResponseDataTypeRef), values)
+}
+
+export type U2fResponseData = {
+	_type: TypeRef<U2fResponseData>;
+
+	_id: Id;
+	clientData: string;
+	keyHandle: string;
+	signatureData: string;
 }

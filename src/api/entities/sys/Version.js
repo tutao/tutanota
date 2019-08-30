@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", "Version")
 export const _TypeModel: TypeModel = {
 	"name": "Version",
@@ -77,4 +78,16 @@ export const _TypeModel: TypeModel = {
 
 export function createVersion(values?: $Shape<$Exact<Version>>): Version {
 	return Object.assign(create(_TypeModel, VersionTypeRef), values)
+}
+
+export type Version = {
+	_type: TypeRef<Version>;
+
+	_id: Id;
+	operation: string;
+	timestamp: Date;
+	version: Id;
+
+	author: Id;
+	authorGroupInfo: IdTuple;
 }

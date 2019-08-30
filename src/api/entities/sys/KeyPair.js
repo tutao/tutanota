@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", "KeyPair")
 export const _TypeModel: TypeModel = {
 	"name": "KeyPair",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createKeyPair(values?: $Shape<$Exact<KeyPair>>): KeyPair {
 	return Object.assign(create(_TypeModel, KeyPairTypeRef), values)
+}
+
+export type KeyPair = {
+	_type: TypeRef<KeyPair>;
+
+	_id: Id;
+	pubKey: Uint8Array;
+	symEncPrivKey: Uint8Array;
+	version: NumberString;
 }

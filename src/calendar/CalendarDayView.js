@@ -2,7 +2,6 @@
 
 import m from "mithril"
 import {formatTime} from "../misc/Formatter"
-import {getFromMap} from "../api/common/utils/MapUtils"
 import {incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -14,6 +13,7 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {PageView} from "../gui/base/PageView"
 import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,

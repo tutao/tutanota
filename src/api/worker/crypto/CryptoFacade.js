@@ -9,8 +9,11 @@ import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, Ty
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
+import type {BucketPermission} from "../../entities/sys/BucketPermission"
 import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
+import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
+import type {Permission} from "../../entities/sys/Permission"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {assertWorkerOrNode} from "../../Env"
 import {downcast, neverNull} from "../../common/utils/Utils"
@@ -28,7 +31,6 @@ import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
 import {update} from "./../EntityWorker"
-
 import {
 	aes256DecryptKey,
 	aes256EncryptKey,
@@ -41,6 +43,8 @@ import {
 } from "./KeyCryptoUtils.js"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {Contact} from "../../entities/tutanota/Contact"
 
 assertWorkerOrNode()
 

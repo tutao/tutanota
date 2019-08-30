@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const WriteCounterDataTypeRef: TypeRef<WriteCounterData> = new TypeRef("monitor", "WriteCounterData")
 export const _TypeModel: TypeModel = {
 	"name": "WriteCounterData",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createWriteCounterData(values?: $Shape<$Exact<WriteCounterData>>): WriteCounterData {
 	return Object.assign(create(_TypeModel, WriteCounterDataTypeRef), values)
+}
+
+export type WriteCounterData = {
+	_type: TypeRef<WriteCounterData>;
+
+	_format: NumberString;
+	counterType: ?NumberString;
+	row: string;
+	column: Id;
+	value: NumberString;
 }

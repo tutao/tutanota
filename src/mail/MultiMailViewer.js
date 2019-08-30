@@ -22,6 +22,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
 import type {PosRect} from "../gui/base/Dropdown"
+import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 

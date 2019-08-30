@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {AlarmNotification} from "./AlarmNotification"
+import type {NotificationInfo} from "./NotificationInfo"
+
 export const MissedNotificationTypeRef: TypeRef<MissedNotification> = new TypeRef("sys", "MissedNotification")
 export const _TypeModel: TypeModel = {
 	"name": "MissedNotification",
@@ -111,4 +114,21 @@ export const _TypeModel: TypeModel = {
 
 export function createMissedNotification(values?: $Shape<$Exact<MissedNotification>>): MissedNotification {
 	return Object.assign(create(_TypeModel, MissedNotificationTypeRef), values)
+}
+
+export type MissedNotification = {
+	_type: TypeRef<MissedNotification>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	changeTime: Date;
+	confirmationId: Id;
+	lastProcessedNotificationId: ?Id;
+
+	alarmNotifications: AlarmNotification[];
+	notificationInfos: NotificationInfo[];
 }

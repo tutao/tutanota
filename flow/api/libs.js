@@ -49,7 +49,7 @@ type Bluebird$ConcurrencyOption = {
 	concurrency: number,
 };
 
-declare type $Promisable<T> = Promise<T> | T;
+declare type $Promisable<+T> = Promise<T> | T;
 
 declare class Promise<+R> {
 	constructor(callback: (resolve: (result: Promise<R> | R) => void,
@@ -90,7 +90,7 @@ declare class Promise<+R> {
 	static try<T>(fn: () => $Promisable<T>): Promise<T>;
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 	static fromCallback<T>(resolver: ((error?: ?any, value?: T) => void) => mixed): Promise<T>;
-	static map<T, U>(array: Promise<Iterable<T>> | Iterable<T>,
+	static map<T, U>(array: $Promisable<Iterable<T>>,
 	                 mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U,
 	                 options?: Bluebird$ConcurrencyOption): Promise<U[]>;
 	static each<T, U>(array: Promise<Iterable<T>> | Iterable<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;

@@ -7,7 +7,7 @@ import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, ButtonType, isVisible} from "./ButtonN"
-import {neverNull} from "../../api/common/utils/Utils"
+import {downcast, neverNull} from "../../api/common/utils/Utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
 
@@ -51,7 +51,7 @@ export type TableLineAttrs = {
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.
  * The table shows a loading spinner until updateEntries() is called the first time.
  */
-class _Table {
+export class TableN implements MComponent<TableAttrs> {
 
 	view(vnode: Vnode<LifecycleAttrs<TableAttrs>>): VirtualElement {
 		const a = vnode.attrs
@@ -92,10 +92,16 @@ class _Table {
 							+ (cellTextData.mainStyle ? cellTextData.mainStyle : ""))
 						+ (columnAlignments[index] ? ".right" : ""), {
 						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
-						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+						onclick: (event: MouseEvent) => {
+							const dom = downcast(event.target)
+							cellTextData.click ? cellTextData.click(event, dom) : null
+						}
 					}, cellTextData.main),
 					m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
-						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+						onclick: (event: MouseEvent) => {
+							const dom = downcast(event.target)
+							cellTextData.click ? cellTextData.click(event, dom) : null
+						}
 					}, cellTextData.info)
 				]))
 		} else {
@@ -124,9 +130,6 @@ class _Table {
 		return m("tr.selectable", cells)
 	}
 }
-
-export const TableN: Class<MComponent<TableAttrs>> = _Table
-
 
 interface UpdateableInstanceWithArray<T> {
 	getArray: () => Array<T>,

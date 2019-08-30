@@ -2,6 +2,7 @@
 import o from "ospec/ospec.js"
 import {_matchesRegularExpression} from "../../../src/mail/InboxRuleHandler"
 import {createInboxRule} from "../../../src/api/entities/tutanota/InboxRule"
+import type {InboxRule} from "../../../src/api/entities/tutanota/InboxRule"
 
 o.spec("InboxRuleHandlerTest", function () {
 	o(" check invalid regular expressions", function () {

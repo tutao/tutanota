@@ -83,7 +83,7 @@ class DesktopErrorHandler {
 			if (response === 1) { // clicked yes
 				if (checkboxChecked) {
 					console.log('writing error log to', this._errorLogPath)
-					fs.writeFileSync(this._errorLogPath, JSON.stringify(this.lastErrorLog))
+					fs.writeFileSync(this._errorLogPath, this.lastErrorLog ? JSON.stringify(this.lastErrorLog) : "")
 					app.relaunch({args: process.argv.slice(1)})
 					app.exit(0)
 				} else {

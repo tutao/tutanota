@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AutoLoginDataDeleteTypeRef: TypeRef<AutoLoginDataDelete> = new TypeRef("sys", "AutoLoginDataDelete")
 export const _TypeModel: TypeModel = {
 	"name": "AutoLoginDataDelete",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createAutoLoginDataDelete(values?: $Shape<$Exact<AutoLoginDataDelete>>): AutoLoginDataDelete {
 	return Object.assign(create(_TypeModel, AutoLoginDataDeleteTypeRef), values)
+}
+
+export type AutoLoginDataDelete = {
+	_type: TypeRef<AutoLoginDataDelete>;
+
+	_format: NumberString;
+	deviceToken: string;
 }

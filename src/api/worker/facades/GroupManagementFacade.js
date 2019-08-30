@@ -19,6 +19,9 @@ import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveDat
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
 import {SysService} from "../../entities/sys/Services"
+import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
+import type {User} from "../../entities/sys/User"
+import type {Group} from "../../entities/sys/Group"
 
 assertWorkerOrNode()
 

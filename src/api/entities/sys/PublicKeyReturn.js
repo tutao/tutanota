@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PublicKeyReturnTypeRef: TypeRef<PublicKeyReturn> = new TypeRef("sys", "PublicKeyReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PublicKeyReturn",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPublicKeyReturn(values?: $Shape<$Exact<PublicKeyReturn>>): PublicKeyReturn {
 	return Object.assign(create(_TypeModel, PublicKeyReturnTypeRef), values)
+}
+
+export type PublicKeyReturn = {
+	_type: TypeRef<PublicKeyReturn>;
+
+	_format: NumberString;
+	pubKey: Uint8Array;
+	pubKeyVersion: NumberString;
 }

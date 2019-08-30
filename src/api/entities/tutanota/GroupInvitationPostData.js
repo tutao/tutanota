@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
+import type {SharedGroupData} from "./SharedGroupData"
+
 export const GroupInvitationPostDataTypeRef: TypeRef<GroupInvitationPostData> = new TypeRef("tutanota", "GroupInvitationPostData")
 export const _TypeModel: TypeModel = {
 	"name": "GroupInvitationPostData",
@@ -48,4 +51,13 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupInvitationPostData(values?: $Shape<$Exact<GroupInvitationPostData>>): GroupInvitationPostData {
 	return Object.assign(create(_TypeModel, GroupInvitationPostDataTypeRef), values)
+}
+
+export type GroupInvitationPostData = {
+	_type: TypeRef<GroupInvitationPostData>;
+
+	_format: NumberString;
+
+	internalKeyData: InternalRecipientKeyData[];
+	sharedGroupData: SharedGroupData;
 }

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const InvoiceItemTypeRef: TypeRef<InvoiceItem> = new TypeRef("sys", "InvoiceItem")
 export const _TypeModel: TypeModel = {
 	"name": "InvoiceItem",
@@ -92,4 +93,17 @@ export const _TypeModel: TypeModel = {
 
 export function createInvoiceItem(values?: $Shape<$Exact<InvoiceItem>>): InvoiceItem {
 	return Object.assign(create(_TypeModel, InvoiceItemTypeRef), values)
+}
+
+export type InvoiceItem = {
+	_type: TypeRef<InvoiceItem>;
+
+	_id: Id;
+	amount: NumberString;
+	endDate: ?Date;
+	singlePrice: ?NumberString;
+	singleType: boolean;
+	startDate: ?Date;
+	totalPrice: NumberString;
+	type: NumberString;
 }

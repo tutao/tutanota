@@ -83,7 +83,7 @@ o.spec("EventQueueTest", function () {
 
 		await lastProcess.promise
 
-		o(replaceAllMaps(processElement.invocations)).deepEquals(batches.map((b) => [b, expectedFutureActions]))
+		o(replaceAllMaps(downcast(processElement).invocations)).deepEquals(batches.map((b) => [b, expectedFutureActions]))
 		o(queue._processingActive).equals(false)
 		o(queue._eventQueue.length).equals(0)
 	})

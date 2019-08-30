@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {PhishingMarker} from "./PhishingMarker"
+
 export const PhishingMarkerWebsocketDataTypeRef: TypeRef<PhishingMarkerWebsocketData> = new TypeRef("tutanota", "PhishingMarkerWebsocketData")
 export const _TypeModel: TypeModel = {
 	"name": "PhishingMarkerWebsocketData",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createPhishingMarkerWebsocketData(values?: $Shape<$Exact<PhishingMarkerWebsocketData>>): PhishingMarkerWebsocketData {
 	return Object.assign(create(_TypeModel, PhishingMarkerWebsocketDataTypeRef), values)
+}
+
+export type PhishingMarkerWebsocketData = {
+	_type: TypeRef<PhishingMarkerWebsocketData>;
+
+	_format: NumberString;
+	lastId: Id;
+
+	markers: PhishingMarker[];
 }

@@ -33,6 +33,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {PageView} from "../gui/base/PageView"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -242,7 +243,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 					}, m(CalendarEventBubble, {
 						text: "+" + moreEventsCount,
 						color: isPadding ? theme.list_bg.substring(1) : theme.content_bg.substring(1),
-						onEventClicked: () => {
+						click: () => {
 							attrs.onDateSelected(day.date)
 						},
 						hasAlarm: false,

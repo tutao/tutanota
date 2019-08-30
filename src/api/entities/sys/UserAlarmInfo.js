@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {AlarmInfo} from "./AlarmInfo"
+
 export const UserAlarmInfoTypeRef: TypeRef<UserAlarmInfo> = new TypeRef("sys", "UserAlarmInfo")
 export const _TypeModel: TypeModel = {
 	"name": "UserAlarmInfo",
@@ -75,4 +77,17 @@ export const _TypeModel: TypeModel = {
 
 export function createUserAlarmInfo(values?: $Shape<$Exact<UserAlarmInfo>>): UserAlarmInfo {
 	return Object.assign(create(_TypeModel, UserAlarmInfoTypeRef), values)
+}
+
+export type UserAlarmInfo = {
+	_type: TypeRef<UserAlarmInfo>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	alarmInfo: AlarmInfo;
 }

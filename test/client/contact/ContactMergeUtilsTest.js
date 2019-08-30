@@ -1,5 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
+import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {
 	_areResidualContactFieldsEqual,
@@ -29,7 +30,7 @@ import {
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {createContactSocialId} from "../../../src/api/entities/tutanota/ContactSocialId"
 import {createFilledContact} from "./VCardExporterTest"
-import {neverNull} from "../../../src/api/common/utils/Utils"
+import {downcast, neverNull} from "../../../src/api/common/utils/Utils"
 import {_contactToVCard} from "../../../src/contacts/VCardExporter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {birthdayToIsoDate} from "../../../src/api/common/utils/BirthdayUtils"
@@ -685,18 +686,18 @@ o.spec("ContactMergeUtilsTest", function () {
 		allContacts[0].mailAddresses[0].address = "anton@mail.de"
 		allContacts[1].mailAddresses[0].address = "anton@mail.de"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Equal)
-		allContacts[0].mailAddresses[0]._type = "0"
-		allContacts[1].mailAddresses[0]._type = "1"
-		allContacts[0].phoneNumbers[0]._type = "1"
-		allContacts[1].phoneNumbers[0]._type = "0"
+		allContacts[0].mailAddresses[0].type = "0"
+		allContacts[1].mailAddresses[0].type = "1"
+		allContacts[0].phoneNumbers[0].type = "1"
+		allContacts[1].phoneNumbers[0].type = "0"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Equal)
-		allContacts[0].mailAddresses[0]._type = "1"
-		allContacts[1].mailAddresses[0]._type = "1"
+		allContacts[0].mailAddresses[0].type = "1"
+		allContacts[1].mailAddresses[0].type = "1"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Equal)
 		allContacts[1].mailAddresses[0].customTypeName = "FUN"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Equal)
-		allContacts[0].phoneNumbers[0]._type = "1"
-		allContacts[1].phoneNumbers[0]._type = "1"
+		allContacts[0].phoneNumbers[0].type = "1"
+		allContacts[1].phoneNumbers[0].type = "1"
 		o(_compareContactsForMerge(allContacts[0], allContacts[1])).equals(ContactComparisonResult.Equal)
 
 	})
@@ -716,8 +717,8 @@ o.spec("ContactMergeUtilsTest", function () {
 
 	function _testMerge(c1: Contact, c2: Contact, merged: Contact) {
 		mergeContacts(c1, c2)
-		delete c1._id
-		delete merged._id
+		delete downcast(c1)._id
+		delete downcast(merged)._id
 		o(c1).deepEquals(merged)
 	}
 

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", "EmailSenderListElement")
 export const _TypeModel: TypeModel = {
 	"name": "EmailSenderListElement",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {
 	return Object.assign(create(_TypeModel, EmailSenderListElementTypeRef), values)
+}
+
+export type EmailSenderListElement = {
+	_type: TypeRef<EmailSenderListElement>;
+
+	_id: Id;
+	field: NumberString;
+	hashedValue: string;
+	type: NumberString;
+	value: string;
 }

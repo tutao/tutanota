@@ -8,6 +8,7 @@ import {locator} from "../api/main/MainLocator"
 import {module as replaced} from "@hot"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;

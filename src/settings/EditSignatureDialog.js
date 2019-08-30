@@ -11,6 +11,7 @@ import {logins} from "../api/main/LoginController"
 import {getDefaultSignature, insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
+import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 
 assertMainOrNode()
 

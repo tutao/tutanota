@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const GroupInvitationDeleteDataTypeRef: TypeRef<GroupInvitationDeleteData> = new TypeRef("tutanota", "GroupInvitationDeleteData")
 export const _TypeModel: TypeModel = {
 	"name": "GroupInvitationDeleteData",
@@ -40,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupInvitationDeleteData(values?: $Shape<$Exact<GroupInvitationDeleteData>>): GroupInvitationDeleteData {
 	return Object.assign(create(_TypeModel, GroupInvitationDeleteDataTypeRef), values)
+}
+
+export type GroupInvitationDeleteData = {
+	_type: TypeRef<GroupInvitationDeleteData>;
+
+	_format: NumberString;
+
+	receivedInvitation: IdTuple;
 }

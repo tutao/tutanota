@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DraftRecipientTypeRef: TypeRef<DraftRecipient> = new TypeRef("tutanota", "DraftRecipient")
 export const _TypeModel: TypeModel = {
 	"name": "DraftRecipient",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createDraftRecipient(values?: $Shape<$Exact<DraftRecipient>>): DraftRecipient {
 	return Object.assign(create(_TypeModel, DraftRecipientTypeRef), values)
+}
+
+export type DraftRecipient = {
+	_type: TypeRef<DraftRecipient>;
+
+	_id: Id;
+	mailAddress: string;
+	name: string;
 }

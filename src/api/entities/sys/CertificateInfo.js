@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CertificateInfoTypeRef: TypeRef<CertificateInfo> = new TypeRef("sys", "CertificateInfo")
 export const _TypeModel: TypeModel = {
 	"name": "CertificateInfo",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createCertificateInfo(values?: $Shape<$Exact<CertificateInfo>>): CertificateInfo {
 	return Object.assign(create(_TypeModel, CertificateInfoTypeRef), values)
+}
+
+export type CertificateInfo = {
+	_type: TypeRef<CertificateInfo>;
+
+	_id: Id;
+	expiryDate: ?Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: ?Id;
 }

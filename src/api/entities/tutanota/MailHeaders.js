@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailHeadersTypeRef: TypeRef<MailHeaders> = new TypeRef("tutanota", "MailHeaders")
 export const _TypeModel: TypeModel = {
 	"name": "MailHeaders",
@@ -83,4 +84,17 @@ export const _TypeModel: TypeModel = {
 
 export function createMailHeaders(values?: $Shape<$Exact<MailHeaders>>): MailHeaders {
 	return Object.assign(create(_TypeModel, MailHeadersTypeRef), values)
+}
+
+export type MailHeaders = {
+	_type: TypeRef<MailHeaders>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	compressedHeaders: ?string;
+	headers: ?string;
 }

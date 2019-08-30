@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", "CalendarEventRef")
 export const _TypeModel: TypeModel = {
 	"name": "CalendarEventRef",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createCalendarEventRef(values?: $Shape<$Exact<CalendarEventRef>>): CalendarEventRef {
 	return Object.assign(create(_TypeModel, CalendarEventRefTypeRef), values)
+}
+
+export type CalendarEventRef = {
+	_type: TypeRef<CalendarEventRef>;
+
+	_id: Id;
+	elementId: Id;
+	listId: Id;
 }

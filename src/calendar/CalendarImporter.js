@@ -23,6 +23,11 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import {DateTime} from "luxon"
+import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
+import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
+import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 

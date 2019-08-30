@@ -17,6 +17,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull} from "../api/common/utils/Utils"
 import {isSameId} from "../api/common/EntityFunctions"
+import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 
 assertMainOrNode()
 

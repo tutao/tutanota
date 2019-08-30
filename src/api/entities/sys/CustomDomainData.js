@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CustomDomainDataTypeRef: TypeRef<CustomDomainData> = new TypeRef("sys", "CustomDomainData")
 export const _TypeModel: TypeModel = {
 	"name": "CustomDomainData",
@@ -49,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomDomainData(values?: $Shape<$Exact<CustomDomainData>>): CustomDomainData {
 	return Object.assign(create(_TypeModel, CustomDomainDataTypeRef), values)
+}
+
+export type CustomDomainData = {
+	_type: TypeRef<CustomDomainData>;
+
+	_format: NumberString;
+	domain: string;
+
+	catchAllMailGroup: ?Id;
 }

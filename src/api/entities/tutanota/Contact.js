@@ -2,6 +2,12 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ContactAddress} from "./ContactAddress"
+import type {ContactMailAddress} from "./ContactMailAddress"
+import type {Birthday} from "./Birthday"
+import type {ContactPhoneNumber} from "./ContactPhoneNumber"
+import type {ContactSocialId} from "./ContactSocialId"
+
 export const ContactTypeRef: TypeRef<Contact> = new TypeRef("tutanota", "Contact")
 export const _TypeModel: TypeModel = {
 	"name": "Contact",
@@ -238,4 +244,35 @@ export const _TypeModel: TypeModel = {
 
 export function createContact(values?: $Shape<$Exact<Contact>>): Contact {
 	return Object.assign(create(_TypeModel, ContactTypeRef), values)
+}
+
+export type Contact = {
+	_type: TypeRef<Contact>;
+	_errors: Object;
+
+	_area: NumberString;
+	_format: NumberString;
+	_id: IdTuple;
+	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	autoTransmitPassword: string;
+	birthdayIso: ?string;
+	comment: string;
+	company: string;
+	firstName: string;
+	lastName: string;
+	nickname: ?string;
+	oldBirthdayDate: ?Date;
+	presharedPassword: ?string;
+	role: string;
+	title: ?string;
+
+	addresses: ContactAddress[];
+	mailAddresses: ContactMailAddress[];
+	oldBirthdayAggregate: ?Birthday;
+	phoneNumbers: ContactPhoneNumber[];
+	socialIds: ContactSocialId[];
+	photo: ?IdTuple;
 }

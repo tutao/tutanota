@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SecondFactorAuthAllowedReturnTypeRef: TypeRef<SecondFactorAuthAllowedReturn> = new TypeRef("sys", "SecondFactorAuthAllowedReturn")
 export const _TypeModel: TypeModel = {
 	"name": "SecondFactorAuthAllowedReturn",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createSecondFactorAuthAllowedReturn(values?: $Shape<$Exact<SecondFactorAuthAllowedReturn>>): SecondFactorAuthAllowedReturn {
 	return Object.assign(create(_TypeModel, SecondFactorAuthAllowedReturnTypeRef), values)
+}
+
+export type SecondFactorAuthAllowedReturn = {
+	_type: TypeRef<SecondFactorAuthAllowedReturn>;
+
+	_format: NumberString;
+	allowed: boolean;
 }

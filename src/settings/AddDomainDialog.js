@@ -13,6 +13,8 @@ import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
 import {DomainDnsStatus} from "./DomainDnsStatus"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {createDnsRecord} from "../api/entities/sys/DnsRecord"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import type {DnsRecord} from "../api/entities/sys/DnsRecord"
 
 assertMainOrNode()
 

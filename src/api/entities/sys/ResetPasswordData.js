@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ResetPasswordDataTypeRef: TypeRef<ResetPasswordData> = new TypeRef("sys", "ResetPasswordData")
 export const _TypeModel: TypeModel = {
 	"name": "ResetPasswordData",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createResetPasswordData(values?: $Shape<$Exact<ResetPasswordData>>): ResetPasswordData {
 	return Object.assign(create(_TypeModel, ResetPasswordDataTypeRef), values)
+}
+
+export type ResetPasswordData = {
+	_type: TypeRef<ResetPasswordData>;
+
+	_format: NumberString;
+	pwEncUserGroupKey: Uint8Array;
+	salt: Uint8Array;
+	verifier: Uint8Array;
+
+	user: Id;
 }

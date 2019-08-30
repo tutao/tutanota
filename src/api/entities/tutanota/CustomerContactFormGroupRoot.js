@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex"
+import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef"
+
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {
 	"name": "CustomerContactFormGroupRoot",
@@ -95,4 +98,18 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomerContactFormGroupRoot(values?: $Shape<$Exact<CustomerContactFormGroupRoot>>): CustomerContactFormGroupRoot {
 	return Object.assign(create(_TypeModel, CustomerContactFormGroupRootTypeRef), values)
+}
+
+export type CustomerContactFormGroupRoot = {
+	_type: TypeRef<CustomerContactFormGroupRoot>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	contactFormConversations: ?DeleteContactFormConversationIndex;
+	statisticsLog: ?UnencryptedStatisticLogRef;
+	contactForms: Id;
+	statisticsLog_encrypted_removed: Id;
 }

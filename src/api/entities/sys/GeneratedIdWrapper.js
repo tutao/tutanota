@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const GeneratedIdWrapperTypeRef: TypeRef<GeneratedIdWrapper> = new TypeRef("sys", "GeneratedIdWrapper")
 export const _TypeModel: TypeModel = {
 	"name": "GeneratedIdWrapper",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createGeneratedIdWrapper(values?: $Shape<$Exact<GeneratedIdWrapper>>): GeneratedIdWrapper {
 	return Object.assign(create(_TypeModel, GeneratedIdWrapperTypeRef), values)
+}
+
+export type GeneratedIdWrapper = {
+	_type: TypeRef<GeneratedIdWrapper>;
+
+	_id: Id;
+	value: Id;
 }

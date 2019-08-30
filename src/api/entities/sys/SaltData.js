@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", "SaltData")
 export const _TypeModel: TypeModel = {
 	"name": "SaltData",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createSaltData(values?: $Shape<$Exact<SaltData>>): SaltData {
 	return Object.assign(create(_TypeModel, SaltDataTypeRef), values)
+}
+
+export type SaltData = {
+	_type: TypeRef<SaltData>;
+
+	_format: NumberString;
+	mailAddress: string;
 }

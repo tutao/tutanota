@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {U2fRegisteredDevice} from "./U2fRegisteredDevice"
+
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", "SecondFactor")
 export const _TypeModel: TypeModel = {
 	"name": "SecondFactor",
@@ -93,4 +95,18 @@ export const _TypeModel: TypeModel = {
 
 export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {
 	return Object.assign(create(_TypeModel, SecondFactorTypeRef), values)
+}
+
+export type SecondFactor = {
+	_type: TypeRef<SecondFactor>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	name: string;
+	otpSecret: ?Uint8Array;
+	type: NumberString;
+
+	u2f: ?U2fRegisteredDevice;
 }

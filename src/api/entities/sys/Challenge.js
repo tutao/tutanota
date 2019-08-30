@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {OtpChallenge} from "./OtpChallenge"
+import type {U2fChallenge} from "./U2fChallenge"
+
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", "Challenge")
 export const _TypeModel: TypeModel = {
 	"name": "Challenge",
@@ -57,4 +60,14 @@ export const _TypeModel: TypeModel = {
 
 export function createChallenge(values?: $Shape<$Exact<Challenge>>): Challenge {
 	return Object.assign(create(_TypeModel, ChallengeTypeRef), values)
+}
+
+export type Challenge = {
+	_type: TypeRef<Challenge>;
+
+	_id: Id;
+	type: NumberString;
+
+	otp: ?OtpChallenge;
+	u2f: ?U2fChallenge;
 }

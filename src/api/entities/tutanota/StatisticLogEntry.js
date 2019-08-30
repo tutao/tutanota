@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ContactFormEncryptedStatisticsField} from "./ContactFormEncryptedStatisticsField"
+
 export const StatisticLogEntryTypeRef: TypeRef<StatisticLogEntry> = new TypeRef("tutanota", "StatisticLogEntry")
 export const _TypeModel: TypeModel = {
 	"name": "StatisticLogEntry",
@@ -94,4 +96,19 @@ export const _TypeModel: TypeModel = {
 
 export function createStatisticLogEntry(values?: $Shape<$Exact<StatisticLogEntry>>): StatisticLogEntry {
 	return Object.assign(create(_TypeModel, StatisticLogEntryTypeRef), values)
+}
+
+export type StatisticLogEntry = {
+	_type: TypeRef<StatisticLogEntry>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	date: Date;
+
+	values: ContactFormEncryptedStatisticsField[];
+	contactForm: IdTuple;
 }

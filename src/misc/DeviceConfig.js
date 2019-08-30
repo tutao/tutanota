@@ -93,7 +93,7 @@ class DeviceConfig {
 		return this._language
 	}
 
-	setLanguage(language: string) {
+	setLanguage(language: ?string) {
 		this._language = language
 		this._store()
 	}

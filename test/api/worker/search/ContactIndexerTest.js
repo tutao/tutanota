@@ -17,6 +17,7 @@ import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {makeCore} from "../../TestUtils"
 import {downcast} from "../../../../src/api/common/utils/Utils"
+import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 
 
 const dbMock: any = {iv: fixedIv}

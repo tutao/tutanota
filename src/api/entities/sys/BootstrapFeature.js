@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const BootstrapFeatureTypeRef: TypeRef<BootstrapFeature> = new TypeRef("sys", "BootstrapFeature")
 export const _TypeModel: TypeModel = {
 	"name": "BootstrapFeature",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createBootstrapFeature(values?: $Shape<$Exact<BootstrapFeature>>): BootstrapFeature {
 	return Object.assign(create(_TypeModel, BootstrapFeatureTypeRef), values)
+}
+
+export type BootstrapFeature = {
+	_type: TypeRef<BootstrapFeature>;
+
+	_id: Id;
+	feature: NumberString;
 }

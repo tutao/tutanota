@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ImapFolderTypeRef: TypeRef<ImapFolder> = new TypeRef("tutanota", "ImapFolder")
 export const _TypeModel: TypeModel = {
 	"name": "ImapFolder",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createImapFolder(values?: $Shape<$Exact<ImapFolder>>): ImapFolder {
 	return Object.assign(create(_TypeModel, ImapFolderTypeRef), values)
+}
+
+export type ImapFolder = {
+	_type: TypeRef<ImapFolder>;
+
+	_id: Id;
+	lastseenuid: string;
+	name: string;
+	uidvalidity: string;
+
+	syncInfo: Id;
 }

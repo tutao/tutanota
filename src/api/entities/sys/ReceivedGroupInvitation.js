@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ReceivedGroupInvitationTypeRef: TypeRef<ReceivedGroupInvitation> = new TypeRef("sys", "ReceivedGroupInvitation")
 export const _TypeModel: TypeModel = {
 	"name": "ReceivedGroupInvitation",
@@ -140,4 +141,24 @@ export const _TypeModel: TypeModel = {
 
 export function createReceivedGroupInvitation(values?: $Shape<$Exact<ReceivedGroupInvitation>>): ReceivedGroupInvitation {
 	return Object.assign(create(_TypeModel, ReceivedGroupInvitationTypeRef), values)
+}
+
+export type ReceivedGroupInvitation = {
+	_type: TypeRef<ReceivedGroupInvitation>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	capability: NumberString;
+	inviteeMailAddress: string;
+	inviterMailAddress: string;
+	inviterName: string;
+	sharedGroupKey: Uint8Array;
+	sharedGroupName: string;
+
+	sentInvitation: IdTuple;
+	sharedGroup: Id;
 }

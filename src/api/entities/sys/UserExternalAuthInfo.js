@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UserExternalAuthInfoTypeRef: TypeRef<UserExternalAuthInfo> = new TypeRef("sys", "UserExternalAuthInfo")
 export const _TypeModel: TypeModel = {
 	"name": "UserExternalAuthInfo",
@@ -76,4 +77,16 @@ export const _TypeModel: TypeModel = {
 
 export function createUserExternalAuthInfo(values?: $Shape<$Exact<UserExternalAuthInfo>>): UserExternalAuthInfo {
 	return Object.assign(create(_TypeModel, UserExternalAuthInfoTypeRef), values)
+}
+
+export type UserExternalAuthInfo = {
+	_type: TypeRef<UserExternalAuthInfo>;
+
+	_id: Id;
+	authUpdateCounter: NumberString;
+	autoAuthenticationId: Id;
+	autoTransmitPassword: ?string;
+	latestSaltHash: ?Uint8Array;
+
+	variableAuthInfo: Id;
 }

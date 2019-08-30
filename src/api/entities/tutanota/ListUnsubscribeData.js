@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ListUnsubscribeDataTypeRef: TypeRef<ListUnsubscribeData> = new TypeRef("tutanota", "ListUnsubscribeData")
 export const _TypeModel: TypeModel = {
 	"name": "ListUnsubscribeData",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createListUnsubscribeData(values?: $Shape<$Exact<ListUnsubscribeData>>): ListUnsubscribeData {
 	return Object.assign(create(_TypeModel, ListUnsubscribeDataTypeRef), values)
+}
+
+export type ListUnsubscribeData = {
+	_type: TypeRef<ListUnsubscribeData>;
+
+	_format: NumberString;
+	headers: string;
+	recipient: string;
+
+	mail: IdTuple;
 }

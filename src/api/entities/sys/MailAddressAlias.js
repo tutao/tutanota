@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailAddressAliasTypeRef: TypeRef<MailAddressAlias> = new TypeRef("sys", "MailAddressAlias")
 export const _TypeModel: TypeModel = {
 	"name": "MailAddressAlias",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createMailAddressAlias(values?: $Shape<$Exact<MailAddressAlias>>): MailAddressAlias {
 	return Object.assign(create(_TypeModel, MailAddressAliasTypeRef), values)
+}
+
+export type MailAddressAlias = {
+	_type: TypeRef<MailAddressAlias>;
+
+	_id: Id;
+	enabled: boolean;
+	mailAddress: string;
 }

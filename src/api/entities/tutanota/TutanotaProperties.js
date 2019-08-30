@@ -2,6 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {ImapSyncConfiguration} from "./ImapSyncConfiguration"
+import type {InboxRule} from "./InboxRule"
+
 export const TutanotaPropertiesTypeRef: TypeRef<TutanotaProperties> = new TypeRef("tutanota", "TutanotaProperties")
 export const _TypeModel: TypeModel = {
 	"name": "TutanotaProperties",
@@ -175,4 +178,28 @@ export const _TypeModel: TypeModel = {
 
 export function createTutanotaProperties(values?: $Shape<$Exact<TutanotaProperties>>): TutanotaProperties {
 	return Object.assign(create(_TypeModel, TutanotaPropertiesTypeRef), values)
+}
+
+export type TutanotaProperties = {
+	_type: TypeRef<TutanotaProperties>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	customEmailSignature: string;
+	defaultSender: ?string;
+	defaultUnconfidential: boolean;
+	emailSignatureType: NumberString;
+	groupEncEntropy: ?Uint8Array;
+	lastSeenAnnouncement: NumberString;
+	noAutomaticContacts: boolean;
+	notificationMailLanguage: ?string;
+	sendPlaintextOnly: boolean;
+
+	imapSyncConfig: ImapSyncConfiguration[];
+	inboxRules: InboxRule[];
+	lastPushedMail: ?IdTuple;
 }

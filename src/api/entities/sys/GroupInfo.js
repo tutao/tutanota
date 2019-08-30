@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {MailAddressAlias} from "./MailAddressAlias"
+
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", "GroupInfo")
 export const _TypeModel: TypeModel = {
 	"name": "GroupInfo",
@@ -149,4 +151,25 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupInfo(values?: $Shape<$Exact<GroupInfo>>): GroupInfo {
 	return Object.assign(create(_TypeModel, GroupInfoTypeRef), values)
+}
+
+export type GroupInfo = {
+	_type: TypeRef<GroupInfo>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_listEncSessionKey: ?Uint8Array;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	created: Date;
+	deleted: ?Date;
+	groupType: ?NumberString;
+	mailAddress: ?string;
+	name: string;
+
+	mailAddressAliases: MailAddressAlias[];
+	group: Id;
+	localAdmin: ?Id;
 }

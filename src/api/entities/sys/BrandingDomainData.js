@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const BrandingDomainDataTypeRef: TypeRef<BrandingDomainData> = new TypeRef("sys", "BrandingDomainData")
 export const _TypeModel: TypeModel = {
 	"name": "BrandingDomainData",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createBrandingDomainData(values?: $Shape<$Exact<BrandingDomainData>>): BrandingDomainData {
 	return Object.assign(create(_TypeModel, BrandingDomainDataTypeRef), values)
+}
+
+export type BrandingDomainData = {
+	_type: TypeRef<BrandingDomainData>;
+
+	_format: NumberString;
+	domain: string;
+	sessionEncPemCertificateChain: ?Uint8Array;
+	sessionEncPemPrivateKey: ?Uint8Array;
+	systemAdminPubEncSessionKey: Uint8Array;
 }

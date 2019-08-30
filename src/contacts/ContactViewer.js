@@ -23,6 +23,8 @@ import {ContactSocialType, getContactSocialType, Keys} from "../api/common/Tutan
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 
 assertMainOrNode()
 

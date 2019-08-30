@@ -69,6 +69,13 @@ import {PasswordMessagingReturnTypeRef} from "../../entities/tutanota/PasswordMe
 import {createPasswordMessagingData} from "../../entities/tutanota/PasswordMessagingData"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDeleteData"
+import type {User} from "../../entities/sys/User"
+import type {GroupInfo} from "../../entities/sys/GroupInfo"
+import type {CreateSessionReturn} from "../../entities/sys/CreateSessionReturn"
+import type {PasswordChannelReturn} from "../../entities/tutanota/PasswordChannelReturn"
+import type {SaltReturn} from "../../entities/sys/SaltReturn"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 
 assertWorkerOrNode()
 

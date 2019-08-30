@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ConversationEntryTypeRef: TypeRef<ConversationEntry> = new TypeRef("tutanota", "ConversationEntry")
 export const _TypeModel: TypeModel = {
 	"name": "ConversationEntry",
@@ -95,4 +96,18 @@ export const _TypeModel: TypeModel = {
 
 export function createConversationEntry(values?: $Shape<$Exact<ConversationEntry>>): ConversationEntry {
 	return Object.assign(create(_TypeModel, ConversationEntryTypeRef), values)
+}
+
+export type ConversationEntry = {
+	_type: TypeRef<ConversationEntry>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	conversationType: NumberString;
+	messageId: string;
+
+	mail: ?IdTuple;
+	previous: ?IdTuple;
 }

@@ -18,6 +18,7 @@ import {aesDecryptFile, aesEncryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
 import {createDataFile} from "../../common/DataFile"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
 
 assertWorkerOrNode()
 

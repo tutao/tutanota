@@ -30,6 +30,9 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {neverNull} from "../api/common/utils/Utils"
 import {getPriceFromPriceData, getPriceItem} from "./PriceUtils"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {PlanPrices} from "../api/entities/sys/PlanPrices"
+import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 
 type SubscriptionConfig = {
 	nbrOfAliases: number,

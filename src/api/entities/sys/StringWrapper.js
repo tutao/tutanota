@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const StringWrapperTypeRef: TypeRef<StringWrapper> = new TypeRef("sys", "StringWrapper")
 export const _TypeModel: TypeModel = {
 	"name": "StringWrapper",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createStringWrapper(values?: $Shape<$Exact<StringWrapper>>): StringWrapper {
 	return Object.assign(create(_TypeModel, StringWrapperTypeRef), values)
+}
+
+export type StringWrapper = {
+	_type: TypeRef<StringWrapper>;
+
+	_id: Id;
+	value: string;
 }

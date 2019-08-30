@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", "SystemKeysReturn")
 export const _TypeModel: TypeModel = {
 	"name": "SystemKeysReturn",
@@ -95,4 +96,18 @@ export const _TypeModel: TypeModel = {
 
 export function createSystemKeysReturn(values?: $Shape<$Exact<SystemKeysReturn>>): SystemKeysReturn {
 	return Object.assign(create(_TypeModel, SystemKeysReturnTypeRef), values)
+}
+
+export type SystemKeysReturn = {
+	_type: TypeRef<SystemKeysReturn>;
+
+	_format: NumberString;
+	freeGroupKey: Uint8Array;
+	premiumGroupKey: Uint8Array;
+	starterGroupKey: Uint8Array;
+	systemAdminPubKey: Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
+
+	freeGroup: ?Id;
+	premiumGroup: ?Id;
 }

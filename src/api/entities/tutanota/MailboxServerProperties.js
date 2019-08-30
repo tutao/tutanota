@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const MailboxServerPropertiesTypeRef: TypeRef<MailboxServerProperties> = new TypeRef("tutanota", "MailboxServerProperties")
 export const _TypeModel: TypeModel = {
 	"name": "MailboxServerProperties",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createMailboxServerProperties(values?: $Shape<$Exact<MailboxServerProperties>>): MailboxServerProperties {
 	return Object.assign(create(_TypeModel, MailboxServerPropertiesTypeRef), values)
+}
+
+export type MailboxServerProperties = {
+	_type: TypeRef<MailboxServerProperties>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	whitelistProtectionEnabled: boolean;
 }

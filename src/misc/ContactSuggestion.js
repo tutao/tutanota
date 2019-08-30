@@ -2,6 +2,7 @@
 import type {Suggestion} from "../gui/base/BubbleTextField"
 import m from "mithril"
 import {px, size} from "../gui/size"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 export const ContactSuggestionHeight = 60
 

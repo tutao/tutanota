@@ -45,6 +45,13 @@ import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailA
 import {fileApp} from "../../../native/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 import murmurHash from "../crypto/lib/murmurhash3_32"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
+import type {Mail} from "../../entities/tutanota/Mail"
+import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
+import type {DraftAttachment} from "../../entities/tutanota/DraftAttachment"
+import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {User} from "../../entities/sys/User"
 
 assertWorkerOrNode()
 

@@ -27,6 +27,8 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import * as AddUserDialog from "./AddUserDialog"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 

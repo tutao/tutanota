@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ContactFormEncryptedStatisticsFieldTypeRef: TypeRef<ContactFormEncryptedStatisticsField> = new TypeRef("tutanota", "ContactFormEncryptedStatisticsField")
 export const _TypeModel: TypeModel = {
 	"name": "ContactFormEncryptedStatisticsField",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createContactFormEncryptedStatisticsField(values?: $Shape<$Exact<ContactFormEncryptedStatisticsField>>): ContactFormEncryptedStatisticsField {
 	return Object.assign(create(_TypeModel, ContactFormEncryptedStatisticsFieldTypeRef), values)
+}
+
+export type ContactFormEncryptedStatisticsField = {
+	_type: TypeRef<ContactFormEncryptedStatisticsField>;
+
+	_id: Id;
+	name: string;
+	value: string;
 }

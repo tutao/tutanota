@@ -176,7 +176,7 @@ o.spec("IndexerCore test", () => {
 		const aKey = encryptIndexKeyBase64(core.db.key, "a", core.db.iv)
 		let encEntriesA: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(aKey))
 		o(encEntriesA.length).equals(1)
-		let entry = decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv)
+		let entry: any = decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv)
 		delete entry.encId
 		o(entry).deepEquals({
 			id: elementIdPart(instanceId),
@@ -187,7 +187,7 @@ o.spec("IndexerCore test", () => {
 		const bKey = encryptIndexKeyBase64(core.db.key, "b", core.db.iv)
 		const encEntriesB: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(bKey))
 		o(encEntriesB.length).equals(1)
-		let entry2 = decryptSearchIndexEntry(core.db.key, encEntriesB[0].entry, core.db.iv)
+		let entry2: any = decryptSearchIndexEntry(core.db.key, encEntriesB[0].entry, core.db.iv)
 		delete entry2.encId
 		o(entry2).deepEquals({
 			id: elementIdPart(instanceId),
@@ -222,14 +222,14 @@ o.spec("IndexerCore test", () => {
 
 		encEntriesA = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a", core.db.iv)))
 		o(encEntriesA.length).equals(2)
-		entry = decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv)
+		entry = downcast(decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv))
 		delete entry.encId
 		o(entry).deepEquals({
 			id: elementIdPart(instanceId),
 			attribute: 5,
 			positions: [0],
 		})
-		let newEntry = decryptSearchIndexEntry(core.db.key, encEntriesA[1].entry, core.db.iv)
+		const newEntry: any = decryptSearchIndexEntry(core.db.key, encEntriesA[1].entry, core.db.iv)
 		delete newEntry.encId
 		o(newEntry).deepEquals({
 			id: elementIdPart(id2),

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UpdateAdminshipDataTypeRef: TypeRef<UpdateAdminshipData> = new TypeRef("sys", "UpdateAdminshipData")
 export const _TypeModel: TypeModel = {
 	"name": "UpdateAdminshipData",
@@ -59,4 +60,14 @@ export const _TypeModel: TypeModel = {
 
 export function createUpdateAdminshipData(values?: $Shape<$Exact<UpdateAdminshipData>>): UpdateAdminshipData {
 	return Object.assign(create(_TypeModel, UpdateAdminshipDataTypeRef), values)
+}
+
+export type UpdateAdminshipData = {
+	_type: TypeRef<UpdateAdminshipData>;
+
+	_format: NumberString;
+	newAdminGroupEncGKey: Uint8Array;
+
+	group: Id;
+	newAdminGroup: Id;
 }

@@ -29,6 +29,8 @@ import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 

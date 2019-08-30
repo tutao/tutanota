@@ -9,6 +9,9 @@ import u2fApi from "./u2f-api"
 import {SECOND_MS} from "../api/common/TutanotaConstants"
 import {BrowserType} from "./ClientConstants"
 import {client} from "./ClientDetector"
+import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
+import type {U2fChallenge} from "../api/entities/sys/U2fChallenge"
+import type {U2fResponseData} from "../api/entities/sys/U2fResponseData"
 
 assertMainOrNode()
 

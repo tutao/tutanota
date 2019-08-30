@@ -13,6 +13,7 @@ import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector.js"
 import {getElementId} from "../api/common/EntityFunctions"
 import {deviceConfig} from "../misc/DeviceConfig"
+import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 
 class PushServiceApp {
 	_pushNotification: ?Object;

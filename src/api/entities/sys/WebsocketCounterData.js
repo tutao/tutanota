@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {WebsocketCounterValue} from "./WebsocketCounterValue"
+
 export const WebsocketCounterDataTypeRef: TypeRef<WebsocketCounterData> = new TypeRef("sys", "WebsocketCounterData")
 export const _TypeModel: TypeModel = {
 	"name": "WebsocketCounterData",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createWebsocketCounterData(values?: $Shape<$Exact<WebsocketCounterData>>): WebsocketCounterData {
 	return Object.assign(create(_TypeModel, WebsocketCounterDataTypeRef), values)
+}
+
+export type WebsocketCounterData = {
+	_type: TypeRef<WebsocketCounterData>;
+
+	_format: NumberString;
+	mailGroup: Id;
+
+	counterValues: WebsocketCounterValue[];
 }

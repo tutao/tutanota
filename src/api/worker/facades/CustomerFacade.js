@@ -45,6 +45,13 @@ import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../.
 import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
 import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServiceReturn"
 import {AccountingService} from "../../entities/accounting/Services"
+import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
+import type {CustomDomainReturn} from "../../entities/sys/CustomDomainReturn"
+import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
+import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
+import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactFormAccountReturn"
+import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
+import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
 
 assertWorkerOrNode()
 

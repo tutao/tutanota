@@ -53,6 +53,11 @@ import {
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {Customer} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {Booking} from "../api/entities/sys/Booking"
+import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 
 assertMainOrNode()
 

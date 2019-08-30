@@ -42,6 +42,7 @@ import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import type {Shortcut} from "../misc/KeyManager"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 

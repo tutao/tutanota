@@ -12,6 +12,7 @@ import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Keys} from "../../api/common/TutanotaConstants"
+import {newMouseEvent} from "../HtmlUtils"
 
 assertMainOrNodeBoot()
 
@@ -223,16 +224,18 @@ export class Dropdown {
 		const chooseMatch = () => {
 			let visibleElements: Array<Button> = (this._visibleItems().filter(b => (typeof b !== "string")): any)
 			let matchingButton = visibleElements.find(b => b.getLabel().toLowerCase() === this._filterString().toLowerCase())
+			// Here we can't give click handlers any real arguments but they expect it so we create one
+			const clickEvent: MouseEvent = newMouseEvent()
 			if (document.activeElement === this._domInput
 				&& matchingButton
 				&& matchingButton.clickHandler
 			) {
-				matchingButton.clickHandler()
+				matchingButton.clickHandler(clickEvent, this._domInput)
 				this.close()
 			} else {
 				let selected = visibleElements.find(b => document.activeElement === b._domButton)
 				if (selected && selected.clickHandler) {
-					selected.clickHandler()
+					selected.clickHandler(clickEvent, this._domInput)
 					this.close()
 				}
 			}
@@ -336,7 +339,7 @@ export class Dropdown {
 					height(0, this.maxHeight)
 				], {easing: ease.out, duration: DefaultAnimationTime})
 				            .then(() => {
-				            	// Only do it on the "real" show, which is with animation, don't do it for resizes
+					            // Only do it on the "real" show, which is with animation, don't do it for resizes
 					            if (this._domInput && !client.isMobileDevice()) {
 						            this._domInput.focus()
 					            } else {

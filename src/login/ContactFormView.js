@@ -17,6 +17,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {header} from "../gui/base/Header"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 
 assertMainOrNode()
 

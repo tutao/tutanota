@@ -36,9 +36,10 @@ class HtmlSanitizer {
 				]
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
-					for (let i = cl.length; i > 0; i--) {
-						if (allowedClasses.indexOf(cl[0]) === -1) {
-							cl.remove(cl[0]);
+					for (let i = cl.length - 1; i >= 0; i--) {
+						const item = cl.item(0)
+						if (allowedClasses.indexOf(item) === -1) {
+							cl.remove(item);
 						}
 					}
 				}
@@ -96,7 +97,7 @@ class HtmlSanitizer {
 		}
 	}
 
-	_replaceAttributes(htmlNode) {
+	_replaceAttributes(htmlNode: HTMLElement) {
 		if (htmlNode.attributes) {
 			this._replaceAttributeValue(htmlNode);
 		}
@@ -129,7 +130,7 @@ class HtmlSanitizer {
 	}
 
 
-	_replaceAttributeValue(htmlNode) {
+	_replaceAttributeValue(htmlNode: HTMLElement) {
 		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
@@ -144,42 +145,41 @@ class HtmlSanitizer {
 					this._externalContent.push(attribute.value)
 					htmlNode.removeAttribute("srcset")
 					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
-					htmlNode.style["max-width"] = "100px"
+					htmlNode.style.maxWidth = "100px"
 				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
 					this._externalContent.push(attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.attributes.setNamedItem(attribute)
-					htmlNode.style["max-width"] = "100px"
+					htmlNode.style.maxWidth = "100px"
 				}
 			}
 		})
 
 	}
 
-	_removeStyleImage(htmlNode, styleAttributeName: string) {
-		let value = htmlNode.style[styleAttributeName]
+	_removeStyleImage(htmlNode: HTMLElement, styleAttributeName: string) {
+		let value = (htmlNode.style: any)[styleAttributeName]
 		if (value.match(/url\(/)) {
 			this._externalContent.push(value)
 			htmlNode.style.removeProperty(styleAttributeName)
 		}
 	}
 
-	_replaceStyleImage(htmlNode, styleAttributeName: string, limitWidth: boolean) {
-		let value = htmlNode.style[styleAttributeName]
+	_replaceStyleImage(htmlNode: HTMLElement, styleAttributeName: string, limitWidth: boolean) {
+		let value = (htmlNode.style: any)[styleAttributeName]
 		if (value.match(/^url\(/) && !value.match(/^url\(["']?data:/)) {
 			// remove surrounding url definition. url(<link>)
 			value = value.replace(/^url\("*/, "");
 			value = value.replace(/"*\)$/, "");
 			this._externalContent.push(value)
-			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
-			htmlNode.style[styleAttributeName] = newImage;
+			;(htmlNode.style: any)[styleAttributeName] = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")';
 			if (limitWidth) {
-				htmlNode.style["max-width"] = "100px"
+				htmlNode.style.maxWidth = "100px"
 			}
 		}
 	}
 
-	_processLink(currentNode: HTMLElement, config) {
+	_processLink(currentNode: HTMLElement, config: SanitizeConfig) {
 		// set target="_blank" for all links
 		// collect them
 		if (currentNode.tagName && (

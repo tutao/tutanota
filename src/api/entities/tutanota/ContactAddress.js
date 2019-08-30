@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ContactAddressTypeRef: TypeRef<ContactAddress> = new TypeRef("tutanota", "ContactAddress")
 export const _TypeModel: TypeModel = {
 	"name": "ContactAddress",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createContactAddress(values?: $Shape<$Exact<ContactAddress>>): ContactAddress {
 	return Object.assign(create(_TypeModel, ContactAddressTypeRef), values)
+}
+
+export type ContactAddress = {
+	_type: TypeRef<ContactAddress>;
+
+	_id: Id;
+	address: string;
+	customTypeName: string;
+	type: NumberString;
 }

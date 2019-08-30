@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")
 export const _TypeModel: TypeModel = {
 	"name": "NewDraftAttachment",
@@ -67,4 +68,15 @@ export const _TypeModel: TypeModel = {
 
 export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {
 	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), values)
+}
+
+export type NewDraftAttachment = {
+	_type: TypeRef<NewDraftAttachment>;
+
+	_id: Id;
+	encCid: ?Uint8Array;
+	encFileName: Uint8Array;
+	encMimeType: Uint8Array;
+
+	fileData: Id;
 }

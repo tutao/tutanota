@@ -48,6 +48,9 @@ import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {User} from "../../entities/sys/User"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",

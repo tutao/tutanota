@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RegistrationServiceDataTypeRef: TypeRef<RegistrationServiceData> = new TypeRef("sys", "RegistrationServiceData")
 export const _TypeModel: TypeModel = {
 	"name": "RegistrationServiceData",
@@ -56,4 +57,13 @@ export const _TypeModel: TypeModel = {
 
 export function createRegistrationServiceData(values?: $Shape<$Exact<RegistrationServiceData>>): RegistrationServiceData {
 	return Object.assign(create(_TypeModel, RegistrationServiceDataTypeRef), values)
+}
+
+export type RegistrationServiceData = {
+	_type: TypeRef<RegistrationServiceData>;
+
+	_format: NumberString;
+	starterDomain: string;
+	source: ?string;
+	state: NumberString;
 }

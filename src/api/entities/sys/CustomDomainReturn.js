@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {StringWrapper} from "./StringWrapper"
+
 export const CustomDomainReturnTypeRef: TypeRef<CustomDomainReturn> = new TypeRef("sys", "CustomDomainReturn")
 export const _TypeModel: TypeModel = {
 	"name": "CustomDomainReturn",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createCustomDomainReturn(values?: $Shape<$Exact<CustomDomainReturn>>): CustomDomainReturn {
 	return Object.assign(create(_TypeModel, CustomDomainReturnTypeRef), values)
+}
+
+export type CustomDomainReturn = {
+	_type: TypeRef<CustomDomainReturn>;
+
+	_format: NumberString;
+	validationResult: NumberString;
+
+	invalidDnsRecords: StringWrapper[];
 }

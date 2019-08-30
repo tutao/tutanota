@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", "CreateSessionData")
 export const _TypeModel: TypeModel = {
 	"name": "CreateSessionData",
@@ -94,4 +95,18 @@ export const _TypeModel: TypeModel = {
 
 export function createCreateSessionData(values?: $Shape<$Exact<CreateSessionData>>): CreateSessionData {
 	return Object.assign(create(_TypeModel, CreateSessionDataTypeRef), values)
+}
+
+export type CreateSessionData = {
+	_type: TypeRef<CreateSessionData>;
+
+	_format: NumberString;
+	accessKey: ?Uint8Array;
+	authToken: ?string;
+	authVerifier: ?string;
+	clientIdentifier: string;
+	mailAddress: ?string;
+	recoverCodeVerifier: ?string;
+
+	user: ?Id;
 }

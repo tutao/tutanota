@@ -11,6 +11,7 @@ import {fileController} from "../file/FileController"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {formatSortableDateTime} from "../api/common/utils/DateUtils"
+import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 

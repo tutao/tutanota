@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ExceptionTypeRef: TypeRef<Exception> = new TypeRef("sys", "Exception")
 export const _TypeModel: TypeModel = {
 	"name": "Exception",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createException(values?: $Shape<$Exact<Exception>>): Exception {
 	return Object.assign(create(_TypeModel, ExceptionTypeRef), values)
+}
+
+export type Exception = {
+	_type: TypeRef<Exception>;
+
+	_id: Id;
+	msg: string;
+	type: string;
 }

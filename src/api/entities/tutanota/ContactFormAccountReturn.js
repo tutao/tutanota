@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ContactFormAccountReturnTypeRef: TypeRef<ContactFormAccountReturn> = new TypeRef("tutanota", "ContactFormAccountReturn")
 export const _TypeModel: TypeModel = {
 	"name": "ContactFormAccountReturn",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createContactFormAccountReturn(values?: $Shape<$Exact<ContactFormAccountReturn>>): ContactFormAccountReturn {
 	return Object.assign(create(_TypeModel, ContactFormAccountReturnTypeRef), values)
+}
+
+export type ContactFormAccountReturn = {
+	_type: TypeRef<ContactFormAccountReturn>;
+
+	_format: NumberString;
+	requestMailAddress: string;
+	responseMailAddress: string;
 }

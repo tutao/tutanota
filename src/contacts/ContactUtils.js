@@ -17,6 +17,9 @@ import {formatDate, formatDateWithMonth} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {DbError} from "../api/common/error/DbError"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
+import type {ContactList} from "../api/entities/tutanota/ContactList"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {Birthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 

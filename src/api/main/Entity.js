@@ -26,6 +26,8 @@ import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
 import EC from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
+import type {VersionReturn} from "../entities/sys/VersionReturn"
+import type {RootInstance} from "../entities/sys/RootInstance"
 
 const Type = EC.Type
 const ValueType = EC.ValueType

@@ -11,6 +11,10 @@ import {createSignOrderProcessingAgreementData} from "../api/entities/sys/SignOr
 import {SysService} from "../api/entities/sys/Services"
 import {getDisplayText} from "../mail/MailUtils"
 import {neverNull} from "../api/common/utils/Utils"
+import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {Customer} from "../api/entities/sys/Customer"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 
 assertMainOrNode()
 

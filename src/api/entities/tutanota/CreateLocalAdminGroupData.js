@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {InternalGroupData} from "./InternalGroupData"
+
 export const CreateLocalAdminGroupDataTypeRef: TypeRef<CreateLocalAdminGroupData> = new TypeRef("tutanota", "CreateLocalAdminGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "CreateLocalAdminGroupData",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createCreateLocalAdminGroupData(values?: $Shape<$Exact<CreateLocalAdminGroupData>>): CreateLocalAdminGroupData {
 	return Object.assign(create(_TypeModel, CreateLocalAdminGroupDataTypeRef), values)
+}
+
+export type CreateLocalAdminGroupData = {
+	_type: TypeRef<CreateLocalAdminGroupData>;
+
+	_format: NumberString;
+	encryptedName: Uint8Array;
+
+	groupData: InternalGroupData;
 }

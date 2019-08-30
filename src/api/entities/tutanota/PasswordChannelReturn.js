@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {PasswordChannelPhoneNumber} from "./PasswordChannelPhoneNumber"
+
 export const PasswordChannelReturnTypeRef: TypeRef<PasswordChannelReturn> = new TypeRef("tutanota", "PasswordChannelReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PasswordChannelReturn",
@@ -39,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPasswordChannelReturn(values?: $Shape<$Exact<PasswordChannelReturn>>): PasswordChannelReturn {
 	return Object.assign(create(_TypeModel, PasswordChannelReturnTypeRef), values)
+}
+
+export type PasswordChannelReturn = {
+	_type: TypeRef<PasswordChannelReturn>;
+
+	_format: NumberString;
+
+	phoneNumberChannels: PasswordChannelPhoneNumber[];
 }

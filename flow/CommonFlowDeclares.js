@@ -1,27 +1,26 @@
 import type {EntityUpdateData} from "../src/api/main/EventController"
 import type {TranslationKey} from "../src/misc/LanguageViewModel"
 
-// FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
 declare type finder<T> = (T) => boolean
 
-declare function stringValidator(string): ?string;
+declare type stringValidator = (string) => ?TranslationKey | Promise<?TranslationKey>;
 
-declare function validator(): ?string | Promise<?string>;
+declare type validator = () => ?TranslationKey | Promise<?TranslationKey>;
 
-declare function progressUpdater(number): void;
+declare type progressUpdater = (number) => mixed;
 
 declare type lazy<T> = () => T;
 
 declare type lazyAsync<T> = () => Promise<T>;
 
-declare function action(): Promise<void>;
+declare type action = () => Promise<void>;
 
-declare function handler<T>(T): void;
+declare type handler<T> = (T) => mixed;
 
-declare function mapper<T, R>(T): ?R;
+declare type mapper<T, R> = (T) => ?R;
 
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
-declare function clickHandler(event: MouseEvent, dom: HTMLElement): void;
+declare type clickHandler = (event: MouseEvent, dom: HTMLElement) => mixed;
 
 declare type dropHandler = (dragData: string) => void;
 
@@ -116,9 +115,7 @@ declare interface VirtualRow<T> {
 	domElement: ?HTMLElement;
 }
 
-declare function stream<T>(value: ?T): T
-
-declare function windowSizeListener(width: number, height: number): void
+declare type windowSizeListener = (width: number, height: number) => mixed
 
 declare type VirtualElement = Object
 

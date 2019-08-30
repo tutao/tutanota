@@ -5,6 +5,7 @@ import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {ContactFormTypeRef} from "../../entities/tutanota/ContactForm"
 import {decryptAndMapToInstance} from "../crypto/CryptoFacade"
+import type {ContactForm} from "../../entities/tutanota/ContactForm"
 
 assertWorkerOrNode()
 

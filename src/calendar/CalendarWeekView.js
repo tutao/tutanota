@@ -32,12 +32,13 @@ import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {PageView} from "../gui/base/PageView"
 import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 export type Attrs = {
 	selectedDate: Date,
 	eventsForDays: Map<number, Array<CalendarEvent>>,
 	onNewEvent: (date: ?Date) => mixed,
-	onEventClicked: (event: CalendarEvent) => mixed,
+	onEventClicked: (event: CalendarEvent) => void,
 	groupColors: {[Id]: string},
 	hiddenCalendars: Set<Id>,
 	startOfTheWeek: WeekStartEnum,

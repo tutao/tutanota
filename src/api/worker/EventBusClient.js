@@ -27,6 +27,8 @@ import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConst
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
 import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
+import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
+import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 
 assertWorkerOrNode()
 

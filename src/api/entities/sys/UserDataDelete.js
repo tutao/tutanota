@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", "UserDataDelete")
 export const _TypeModel: TypeModel = {
 	"name": "UserDataDelete",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createUserDataDelete(values?: $Shape<$Exact<UserDataDelete>>): UserDataDelete {
 	return Object.assign(create(_TypeModel, UserDataDeleteTypeRef), values)
+}
+
+export type UserDataDelete = {
+	_type: TypeRef<UserDataDelete>;
+
+	_format: NumberString;
+	date: ?Date;
+	restore: boolean;
+
+	user: Id;
 }

@@ -29,6 +29,12 @@ import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import {worker} from "../api/main/WorkerClient"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {WebsocketCounterData} from "../api/entities/sys/WebsocketCounterData"
+import type {MailBox} from "../api/entities/tutanota/MailBox"
+import type {MailFolder} from "../api/entities/tutanota/MailFolder"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {Group} from "../api/entities/sys/Group"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -259,7 +265,7 @@ export class MailModel {
 	}
 
 	_showNotification(mailId: IdTuple) {
-		this._notifications.showNotification(lang.get("newMails_msg"), {}, (e) => {
+		this._notifications.showNotification(lang.get("newMails_msg"), {actions: []}, (e) => {
 			m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
 			window.focus()
 		})

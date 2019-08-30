@@ -11,6 +11,11 @@ import {lang} from "../misc/LanguageViewModel"
 import {load, loadAll} from "../api/main/Entity"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
+import type {GroupMember} from "../api/entities/sys/GroupMember"
+import type {Group} from "../api/entities/sys/Group"
+import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {

@@ -77,6 +77,13 @@ import {SysService} from "../api/entities/sys/Services"
 import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
+import type {GroupSettings} from "../api/entities/tutanota/GroupSettings"
+import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
+import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {Group} from "../api/entities/sys/Group"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6

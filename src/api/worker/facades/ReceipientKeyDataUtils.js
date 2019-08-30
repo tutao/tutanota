@@ -12,6 +12,7 @@ import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
+import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 
 
 export function encryptBucketKeyForInternalRecipient(bucketKey: Aes128Key, recipientInfo: RecipientInfo, notFoundRecipients: Array<string>): Promise<?InternalRecipientKeyData> {

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DeleteMailFolderDataTypeRef: TypeRef<DeleteMailFolderData> = new TypeRef("tutanota", "DeleteMailFolderData")
 export const _TypeModel: TypeModel = {
 	"name": "DeleteMailFolderData",
@@ -40,4 +41,13 @@ export const _TypeModel: TypeModel = {
 
 export function createDeleteMailFolderData(values?: $Shape<$Exact<DeleteMailFolderData>>): DeleteMailFolderData {
 	return Object.assign(create(_TypeModel, DeleteMailFolderDataTypeRef), values)
+}
+
+export type DeleteMailFolderData = {
+	_type: TypeRef<DeleteMailFolderData>;
+	_errors: Object;
+
+	_format: NumberString;
+
+	folders: IdTuple[];
 }

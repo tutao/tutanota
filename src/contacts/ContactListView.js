@@ -10,6 +10,7 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 

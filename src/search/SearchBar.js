@@ -40,6 +40,10 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
 import type {Shortcut} from "../misc/KeyManager"
+import type {Mail} from "../api/entities/tutanota/Mail"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 

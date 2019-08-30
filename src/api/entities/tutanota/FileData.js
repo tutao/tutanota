@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {DataBlock} from "./DataBlock"
+
 export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
 export const _TypeModel: TypeModel = {
 	"name": "FileData",
@@ -84,4 +86,17 @@ export const _TypeModel: TypeModel = {
 
 export function createFileData(values?: $Shape<$Exact<FileData>>): FileData {
 	return Object.assign(create(_TypeModel, FileDataTypeRef), values)
+}
+
+export type FileData = {
+	_type: TypeRef<FileData>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	size: NumberString;
+	unreferenced: boolean;
+
+	blocks: DataBlock[];
 }

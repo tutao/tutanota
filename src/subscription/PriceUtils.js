@@ -9,6 +9,10 @@ import {logins} from "../api/main/LoginController"
 import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {Dialog} from "../gui/base/Dialog"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {PriceData} from "../api/entities/sys/PriceData"
+import type {PriceItemData} from "../api/entities/sys/PriceItemData"
+import type {Booking} from "../api/entities/sys/Booking"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {

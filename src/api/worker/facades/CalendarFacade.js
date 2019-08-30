@@ -28,6 +28,15 @@ import {EntityRestCache} from "../rest/EntityRestCache"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
+import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
+import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
+import type {User} from "../../entities/sys/User"
+import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
+import type {Group} from "../../entities/sys/Group"
+import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
+import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
+import type {RepeatRule} from "../../entities/sys/RepeatRule"
+import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
 
 assertWorkerOrNode()
 

@@ -186,7 +186,7 @@ export class RichTextToolbar {
 	}
 
 	oncreate(vnode: Vnode<any>) {
-		vnode.dom.style.height = 0
+		vnode.dom.style.height = "0"
 		this._animate(vnode, true)
 	}
 

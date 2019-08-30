@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const EncryptedMailAddressTypeRef: TypeRef<EncryptedMailAddress> = new TypeRef("tutanota", "EncryptedMailAddress")
 export const _TypeModel: TypeModel = {
 	"name": "EncryptedMailAddress",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createEncryptedMailAddress(values?: $Shape<$Exact<EncryptedMailAddress>>): EncryptedMailAddress {
 	return Object.assign(create(_TypeModel, EncryptedMailAddressTypeRef), values)
+}
+
+export type EncryptedMailAddress = {
+	_type: TypeRef<EncryptedMailAddress>;
+
+	_id: Id;
+	address: string;
+	name: string;
 }

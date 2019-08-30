@@ -1170,7 +1170,7 @@ styles.registerStyle('main', () => {
 );`,
 			// WebKit based browsers initially implemented old specification, we cannot specify unprefixed value
 			// for them
-			[client.browser === BrowserType.SAFARI ? "-webkit-background-size" : "background-size"]: px(15),
+			[(client.browser === BrowserType.SAFARI ? "-webkit-background-size" : "background-size": string)]: px(15),
 			"width": "100%",
 			"height": px(3),
 			"animation": "move-stripes 2s linear infinite"

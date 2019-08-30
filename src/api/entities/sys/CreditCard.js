@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const CreditCardTypeRef: TypeRef<CreditCard> = new TypeRef("sys", "CreditCard")
 export const _TypeModel: TypeModel = {
 	"name": "CreditCard",
@@ -74,4 +75,15 @@ export const _TypeModel: TypeModel = {
 
 export function createCreditCard(values?: $Shape<$Exact<CreditCard>>): CreditCard {
 	return Object.assign(create(_TypeModel, CreditCardTypeRef), values)
+}
+
+export type CreditCard = {
+	_type: TypeRef<CreditCard>;
+
+	_id: Id;
+	cardHolderName: string;
+	cvv: string;
+	expirationMonth: string;
+	expirationYear: string;
+	number: string;
 }

@@ -19,6 +19,7 @@ import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {px, size} from "../gui/size"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 type Attrs = {
 	/**
@@ -108,7 +109,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 										secondLineText: ev.location,
 										color: getEventColor(ev, attrs.groupColors),
 										hasAlarm: !startsBefore && hasAlarmsForTheUser(ev),
-										onEventClicked: () => attrs.onEventClicked(ev),
+										click: () => attrs.onEventClicked(ev),
 										height: 38,
 										verticalPadding: 2
 									}))

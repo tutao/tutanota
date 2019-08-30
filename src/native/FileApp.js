@@ -97,7 +97,8 @@ function saveBlob(data: DataFile): Promise<void> {
 /**
  * Uploads the binary data of a file to tutadb
  */
-function upload(fileUrl: string, targetUrl: string, headers: Object): Promise<{statusCode: number, errorId: ?string, precondition: ?string}> {
+function upload(fileUrl: string, targetUrl: string,
+                headers: Object): Promise<{statusCode: number, errorId: ?string, precondition: ?string, uri: ?string}> {
 	return nativeApp.invokeNative(new Request("upload", [fileUrl, targetUrl, headers]))
 }
 

@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PasswordAutoAuthenticationReturnTypeRef: TypeRef<PasswordAutoAuthenticationReturn> = new TypeRef("tutanota", "PasswordAutoAuthenticationReturn")
 export const _TypeModel: TypeModel = {
 	"name": "PasswordAutoAuthenticationReturn",
@@ -29,4 +30,10 @@ export const _TypeModel: TypeModel = {
 
 export function createPasswordAutoAuthenticationReturn(values?: $Shape<$Exact<PasswordAutoAuthenticationReturn>>): PasswordAutoAuthenticationReturn {
 	return Object.assign(create(_TypeModel, PasswordAutoAuthenticationReturnTypeRef), values)
+}
+
+export type PasswordAutoAuthenticationReturn = {
+	_type: TypeRef<PasswordAutoAuthenticationReturn>;
+
+	_format: NumberString;
 }

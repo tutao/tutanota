@@ -10,6 +10,7 @@ import {defaultTheme, theme, updateCustomTheme} from "../gui/theme"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {update} from "../api/main/Entity"
 import {Keys} from "../api/common/TutanotaConstants"
+import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
 
 assertMainOrNode()
 

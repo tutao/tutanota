@@ -3,6 +3,7 @@ import o from "ospec/ospec.js"
 import {EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {spy} from "../TestUtils"
+import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 
 o.spec("EventBusClient test", () => {
 

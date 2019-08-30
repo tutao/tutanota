@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const InternalGroupDataTypeRef: TypeRef<InternalGroupData> = new TypeRef("tutanota", "InternalGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "InternalGroupData",
@@ -76,4 +77,16 @@ export const _TypeModel: TypeModel = {
 
 export function createInternalGroupData(values?: $Shape<$Exact<InternalGroupData>>): InternalGroupData {
 	return Object.assign(create(_TypeModel, InternalGroupDataTypeRef), values)
+}
+
+export type InternalGroupData = {
+	_type: TypeRef<InternalGroupData>;
+
+	_id: Id;
+	adminEncGroupKey: Uint8Array;
+	groupEncPrivateKey: Uint8Array;
+	ownerEncGroupInfoSessionKey: Uint8Array;
+	publicKey: Uint8Array;
+
+	adminGroup: ?Id;
 }

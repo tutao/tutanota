@@ -2,6 +2,10 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {AttachmentKeyData} from "./AttachmentKeyData"
+import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
+import type {SecureExternalRecipientKeyData} from "./SecureExternalRecipientKeyData"
+
 export const SendDraftDataTypeRef: TypeRef<SendDraftData> = new TypeRef("tutanota", "SendDraftData")
 export const _TypeModel: TypeModel = {
 	"name": "SendDraftData",
@@ -112,4 +116,20 @@ export const _TypeModel: TypeModel = {
 
 export function createSendDraftData(values?: $Shape<$Exact<SendDraftData>>): SendDraftData {
 	return Object.assign(create(_TypeModel, SendDraftDataTypeRef), values)
+}
+
+export type SendDraftData = {
+	_type: TypeRef<SendDraftData>;
+
+	_format: NumberString;
+	bucketEncMailSessionKey: ?Uint8Array;
+	language: string;
+	mailSessionKey: ?Uint8Array;
+	plaintext: boolean;
+	senderNameUnencrypted: ?string;
+
+	attachmentKeyData: AttachmentKeyData[];
+	internalRecipientKeyData: InternalRecipientKeyData[];
+	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
+	mail: IdTuple;
 }

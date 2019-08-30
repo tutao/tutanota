@@ -34,6 +34,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {User} from "../api/entities/sys/User"
 
 assertMainOrNode()
 

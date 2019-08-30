@@ -37,6 +37,11 @@ import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import type {Group} from "../api/entities/sys/Group"
+import type {Contact} from "../api/entities/tutanota/Contact"
+import type {MailAddress} from "../api/entities/tutanota/MailAddress"
+import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,

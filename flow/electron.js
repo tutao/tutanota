@@ -22,8 +22,8 @@ declare module 'electron' {
 	declare export var nativeImage: {
 		// https://electronjs.org/docs/api/native-image
 		createEmpty(): NativeImage;
-		createFromPath(String): NativeImage;
-		createFromBuffer(Buffer, opts?: {width: Number, height: Number, scaleFactor: Number}): NativeImage;
+		createFromPath(string): NativeImage;
+		createFromBuffer(Buffer, opts?: {width: number, height: number, scaleFactor: number}): NativeImage;
 	};
 	declare export var shell: {
 		// Open the given external protocol URL in the desktop's default manner.
@@ -194,7 +194,7 @@ declare module 'electron' {
 		// https://electronjs.org/docs/api/menu
 		constructor(): Menu;
 		items: MenuItem[];
-		popup(opts?: {window: BrowserWindow, x: Number, y: Number, positioningItem: Number, callback: Function}): void;
+		popup(opts?: {window: BrowserWindow, x: number, y: number, positioningItem: number, callback: Function}): void;
 		append(MenuItem): void;
 		static setApplicationMenu(Menu | null): void;
 		static getApplicationMenu(): Menu | null;
@@ -208,7 +208,7 @@ declare module 'electron' {
 		removeListener(AppEvent, Function): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
-		exit(code: Number): void,
+		exit(code: number): void,
 		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
 		isReady(): boolean,
@@ -255,7 +255,7 @@ declare module 'electron' {
 		showMessageBox(
 			parent: ?BrowserWindow,
 			options: MessageBoxOptions
-		): Promise<{response: number, checked: boolean}>,
+		): Promise<{response: number, checkboxChecked: boolean}>,
 		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions): Promise<{canceled: boolean, filePaths: string[]}>
 	}
 
@@ -271,20 +271,20 @@ declare module 'electron' {
 		// type of the message box
 		type: "none" | "info" | "error" | "question" | "warning",
 		// array of button labels
-		buttons: Array<String>,
+		buttons: Array<string>,
 		// Index of the button in the buttons array which will be selected by default when the message box opens.
 		defaultId: number,
 		// Title of the message box, some platforms will not show it.
-		title?: String,
+		title?: string,
 		// Content of the message box.
-		message: String,
+		message: string,
 		// Extra information of the message.
-		detail?: String,
+		detail?: string,
 		// If provided, the message box will include a checkbox with the given label.
 		// The checkbox state can be inspected only when using callback.
-		checkboxLabel?: String,
+		checkboxLabel?: string,
 		// Initial checked state of the checkbox. false by default.
-		checkboxChecked?: Boolean,
+		checkboxChecked?: boolean,
 		icon?: NativeImage,
 		// The index of the button to be used to cancel the dialog, via the Esc key.
 		// By default this is assigned to the first button with "cancel" or "no" as the label.
@@ -295,7 +295,7 @@ declare module 'electron' {
 		// buttons(like "Cancel" or "Yes"), and show the others as command links in the
 		// dialog. This can make the dialog appear in the style of modern Windows apps.
 		// If you don't like this behavior, you can set noLink to true.
-		noLink?: Boolean,
+		noLink?: boolean,
 		// Normalize the keyboard access keys across platforms. Default is false.
 		// Enabling this assumes & is used in the button labels for the placement
 		// of the keyboard shortcut access key and labels will be converted so
@@ -303,7 +303,7 @@ declare module 'electron' {
 		// macOS, converted to _ on Linux, and left untouched on Windows. For
 		// example, a button label of Vie&w will be converted to Vie_w on Linux
 		// and View on macOS and can be selected via Alt-W on Windows and Linux.
-		normalizeAccessKeys?: Boolean
+		normalizeAccessKeys?: boolean
 	}
 
 	declare export type Dock = {
@@ -348,21 +348,21 @@ declare module 'electron' {
 			menuItem?: MenuItem,
 			browserWindow?: BrowserWindow,
 			event?: Event,
-			role?: String,
-			type?: String,
-			label?: String,
-			sublabel?: String,
-			accelerator?: String,
-			icon?: NativeImage | String,
-			enabled?: Boolean,
-			visible?: Boolean,
-			checked?: Boolean,
-			registerAccelerator?: Boolean,
-			id?: String,
-			before?: String,
-			after?: String,
-			beforeGroupContaining?: String,
-			afterGroupContaining?: String,
+			role?: string,
+			type?: string,
+			label?: string,
+			sublabel?: string,
+			accelerator?: string,
+			icon?: NativeImage | string,
+			enabled?: boolean,
+			visible?: boolean,
+			checked?: boolean,
+			registerAccelerator?: boolean,
+			id?: string,
+			before?: string,
+			after?: string,
+			beforeGroupContaining?: string,
+			afterGroupContaining?: string,
 		}): MenuItem;
 	}
 
@@ -409,7 +409,7 @@ declare module 'electron' {
 		setPosition(x: number, y: number): void;
 		setMenu(menu: Menu | null): void;
 		webContents: WebContents;
-		id: Number;
+		id: number;
 
 		static fromId(number): BrowserWindow;
 	}
@@ -432,7 +432,7 @@ declare module 'electron' {
 			            subtitle?: string,
 			            body: string,
 			            silent?: boolean,
-			            icon?: string,
+			            icon?: string | NativeImage,
 			            hasReply?: boolean,
 			            replyPlaceholder?: string,
 			            sound?: string,
@@ -441,7 +441,9 @@ declare module 'electron' {
 		            |}): Notification;
 		on(DesktopNotificationEvent, (Event, ...Array<any>) => void): Notification;
 		show(): void;
+		close(): void;
 		static isSupported(): boolean;
+		removeAllListeners(event: DesktopNotificationEvent): Notification;
 	}
 
 	declare export class WebContents {
@@ -552,7 +554,7 @@ export type NotificationAction = {|
 
 export type UpdateCheckResult = {
 	updateInfo: UpdateInfo,
-	downloadPromise: Promise<Array<String>>,
+	downloadPromise: Promise<Array<string>>,
 	cancellationToken: CancellationToken
 }
 
@@ -564,15 +566,15 @@ export type UpdateInfo = {
 	releaseName: string,
 	releaseNotes: string,
 	releaseDate: string,
-	stagingPercentage: Number,
+	stagingPercentage: number,
 	signature: string
 }
 
 export type SemVer = {
 	raw: string,
-	major: Number,
-	minor: Number,
-	patch: Number,
+	major: number,
+	minor: number,
+	patch: number,
 	version: string
 }
 

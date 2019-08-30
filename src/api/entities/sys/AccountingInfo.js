@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", "AccountingInfo")
 export const _TypeModel: TypeModel = {
 	"name": "AccountingInfo",
@@ -211,4 +212,32 @@ export const _TypeModel: TypeModel = {
 
 export function createAccountingInfo(values?: $Shape<$Exact<AccountingInfo>>): AccountingInfo {
 	return Object.assign(create(_TypeModel, AccountingInfoTypeRef), values)
+}
+
+export type AccountingInfo = {
+	_type: TypeRef<AccountingInfo>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_modified: Date;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	business: boolean;
+	invoiceAddress: string;
+	invoiceCountry: ?string;
+	invoiceName: string;
+	invoiceVatIdNo: string;
+	lastInvoiceNbrOfSentSms: NumberString;
+	lastInvoiceTimestamp: ?Date;
+	paymentAccountIdentifier: ?string;
+	paymentInterval: NumberString;
+	paymentMethod: ?NumberString;
+	paymentMethodInfo: ?string;
+	paymentProviderCustomerId: ?string;
+	paypalBillingAgreement: ?string;
+	secondCountryInfo: NumberString;
+
+	invoiceInfo: ?Id;
 }

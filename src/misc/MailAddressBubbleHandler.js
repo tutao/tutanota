@@ -10,6 +10,7 @@ import {Mode} from "../api/Env"
 import {findRecipients} from "../native/ContactApp"
 import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 
 type BubbleFactory = {

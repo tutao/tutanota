@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DeleteGroupDataTypeRef: TypeRef<DeleteGroupData> = new TypeRef("tutanota", "DeleteGroupData")
 export const _TypeModel: TypeModel = {
 	"name": "DeleteGroupData",
@@ -49,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createDeleteGroupData(values?: $Shape<$Exact<DeleteGroupData>>): DeleteGroupData {
 	return Object.assign(create(_TypeModel, DeleteGroupDataTypeRef), values)
+}
+
+export type DeleteGroupData = {
+	_type: TypeRef<DeleteGroupData>;
+
+	_format: NumberString;
+	restore: boolean;
+
+	group: Id;
 }

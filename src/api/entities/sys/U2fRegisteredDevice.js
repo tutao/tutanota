@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const U2fRegisteredDeviceTypeRef: TypeRef<U2fRegisteredDevice> = new TypeRef("sys", "U2fRegisteredDevice")
 export const _TypeModel: TypeModel = {
 	"name": "U2fRegisteredDevice",
@@ -74,4 +75,15 @@ export const _TypeModel: TypeModel = {
 
 export function createU2fRegisteredDevice(values?: $Shape<$Exact<U2fRegisteredDevice>>): U2fRegisteredDevice {
 	return Object.assign(create(_TypeModel, U2fRegisteredDeviceTypeRef), values)
+}
+
+export type U2fRegisteredDevice = {
+	_type: TypeRef<U2fRegisteredDevice>;
+
+	_id: Id;
+	appId: string;
+	compromised: boolean;
+	counter: NumberString;
+	keyHandle: Uint8Array;
+	publicKey: Uint8Array;
 }

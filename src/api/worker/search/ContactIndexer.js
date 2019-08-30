@@ -11,6 +11,9 @@ import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
+import type {Contact} from "../../entities/tutanota/Contact"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {ContactList} from "../../entities/tutanota/ContactList"
 
 export class ContactIndexer {
 	_core: IndexerCore;

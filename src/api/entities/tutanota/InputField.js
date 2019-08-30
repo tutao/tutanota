@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {Name} from "./Name"
+
 export const InputFieldTypeRef: TypeRef<InputField> = new TypeRef("tutanota", "InputField")
 export const _TypeModel: TypeModel = {
 	"name": "InputField",
@@ -57,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {
 	return Object.assign(create(_TypeModel, InputFieldTypeRef), values)
+}
+
+export type InputField = {
+	_type: TypeRef<InputField>;
+
+	_id: Id;
+	name: string;
+	type: NumberString;
+
+	enumValues: Name[];
 }

@@ -13,6 +13,7 @@ import * as AddUserDialog from "./AddUserDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {logins} from "../api/main/LoginController"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 
@@ -69,7 +70,7 @@ export function show() {
 	}
 }
 
-function _validateAddGroupInput(type: string, name: string, mailAddressForm: SelectMailAddressForm): ?string {
+function _validateAddGroupInput(type: string, name: string, mailAddressForm: SelectMailAddressForm): ?TranslationKey {
 	if (type === GroupType.Mail) {
 		return mailAddressForm.getErrorMessageId()
 	} else if (type === GroupType.MailingList && name.trim() === "") {

@@ -18,6 +18,8 @@ import stream from "mithril/stream/stream.js"
 import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
 import {CertificateType, getCertificateType} from "../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
 
 assertMainOrNode()
 

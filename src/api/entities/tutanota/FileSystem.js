@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const FileSystemTypeRef: TypeRef<FileSystem> = new TypeRef("tutanota", "FileSystem")
 export const _TypeModel: TypeModel = {
 	"name": "FileSystem",
@@ -76,4 +77,17 @@ export const _TypeModel: TypeModel = {
 
 export function createFileSystem(values?: $Shape<$Exact<FileSystem>>): FileSystem {
 	return Object.assign(create(_TypeModel, FileSystemTypeRef), values)
+}
+
+export type FileSystem = {
+	_type: TypeRef<FileSystem>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	files: Id;
 }

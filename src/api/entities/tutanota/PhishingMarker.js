@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const PhishingMarkerTypeRef: TypeRef<PhishingMarker> = new TypeRef("tutanota", "PhishingMarker")
 export const _TypeModel: TypeModel = {
 	"name": "PhishingMarker",
@@ -47,4 +48,12 @@ export const _TypeModel: TypeModel = {
 
 export function createPhishingMarker(values?: $Shape<$Exact<PhishingMarker>>): PhishingMarker {
 	return Object.assign(create(_TypeModel, PhishingMarkerTypeRef), values)
+}
+
+export type PhishingMarker = {
+	_type: TypeRef<PhishingMarker>;
+
+	_id: Id;
+	marker: string;
+	status: NumberString;
 }

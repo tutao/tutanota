@@ -28,6 +28,11 @@ import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
 import {generateRsaKey} from "../crypto/Rsa"
 import {createCalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
+import type {User} from "../../entities/sys/User"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
+import type {CalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
+import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 
 assertWorkerOrNode()
 

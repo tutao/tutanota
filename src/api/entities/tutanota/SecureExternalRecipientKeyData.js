@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {PasswordChannelPhoneNumber} from "./PasswordChannelPhoneNumber"
+
 export const SecureExternalRecipientKeyDataTypeRef: TypeRef<SecureExternalRecipientKeyData> = new TypeRef("tutanota", "SecureExternalRecipientKeyData")
 export const _TypeModel: TypeModel = {
 	"name": "SecureExternalRecipientKeyData",
@@ -111,4 +113,20 @@ export const _TypeModel: TypeModel = {
 
 export function createSecureExternalRecipientKeyData(values?: $Shape<$Exact<SecureExternalRecipientKeyData>>): SecureExternalRecipientKeyData {
 	return Object.assign(create(_TypeModel, SecureExternalRecipientKeyDataTypeRef), values)
+}
+
+export type SecureExternalRecipientKeyData = {
+	_type: TypeRef<SecureExternalRecipientKeyData>;
+
+	_id: Id;
+	autoTransmitPassword: ?string;
+	mailAddress: string;
+	ownerEncBucketKey: ?Uint8Array;
+	passwordVerifier: Uint8Array;
+	pwEncCommunicationKey: ?Uint8Array;
+	salt: ?Uint8Array;
+	saltHash: ?Uint8Array;
+	symEncBucketKey: ?Uint8Array;
+
+	passwordChannelPhoneNumbers: PasswordChannelPhoneNumber[];
 }

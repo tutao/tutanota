@@ -9,6 +9,7 @@ import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {assertMainOrNode} from "../api/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
+import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 

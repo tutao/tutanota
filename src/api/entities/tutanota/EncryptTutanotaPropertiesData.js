@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const EncryptTutanotaPropertiesDataTypeRef: TypeRef<EncryptTutanotaPropertiesData> = new TypeRef("tutanota", "EncryptTutanotaPropertiesData")
 export const _TypeModel: TypeModel = {
 	"name": "EncryptTutanotaPropertiesData",
@@ -49,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createEncryptTutanotaPropertiesData(values?: $Shape<$Exact<EncryptTutanotaPropertiesData>>): EncryptTutanotaPropertiesData {
 	return Object.assign(create(_TypeModel, EncryptTutanotaPropertiesDataTypeRef), values)
+}
+
+export type EncryptTutanotaPropertiesData = {
+	_type: TypeRef<EncryptTutanotaPropertiesData>;
+
+	_format: NumberString;
+	symEncSessionKey: Uint8Array;
+
+	properties: Id;
 }

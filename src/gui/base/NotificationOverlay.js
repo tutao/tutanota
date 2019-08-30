@@ -72,8 +72,8 @@ function showNextNotification() {
 	// close the notification by default when pressing any button
 	allButtons.forEach(b => {
 		const originClickHandler = b.click
-		b.click = () => {
-			originClickHandler()
+		b.click = (e, dom) => {
+			originClickHandler(e, dom)
 			closeAndOpenNext()
 		}
 	})
@@ -84,8 +84,8 @@ function showNextNotification() {
 		click: closeAndOpenNext,
 		type: ButtonType.Secondary
 	}, closeButtonAttrs)
-	closeFinalAttrs.click = () => {
-		closeButtonAttrs.click && closeButtonAttrs.click()
+	closeFinalAttrs.click = (e, dom) => {
+		closeButtonAttrs.click && closeButtonAttrs.click(e, dom)
 		closeAndOpenNext()
 	}
 

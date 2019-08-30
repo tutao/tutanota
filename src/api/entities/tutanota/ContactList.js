@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {PhotosRef} from "./PhotosRef"
+
 export const ContactListTypeRef: TypeRef<ContactList> = new TypeRef("tutanota", "ContactList")
 export const _TypeModel: TypeModel = {
 	"name": "ContactList",
@@ -85,4 +87,18 @@ export const _TypeModel: TypeModel = {
 
 export function createContactList(values?: $Shape<$Exact<ContactList>>): ContactList {
 	return Object.assign(create(_TypeModel, ContactListTypeRef), values)
+}
+
+export type ContactList = {
+	_type: TypeRef<ContactList>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	photos: ?PhotosRef;
+	contacts: Id;
 }

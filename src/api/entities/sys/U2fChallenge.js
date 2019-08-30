@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {U2fKey} from "./U2fKey"
+
 export const U2fChallengeTypeRef: TypeRef<U2fChallenge> = new TypeRef("sys", "U2fChallenge")
 export const _TypeModel: TypeModel = {
 	"name": "U2fChallenge",
@@ -48,4 +50,13 @@ export const _TypeModel: TypeModel = {
 
 export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {
 	return Object.assign(create(_TypeModel, U2fChallengeTypeRef), values)
+}
+
+export type U2fChallenge = {
+	_type: TypeRef<U2fChallenge>;
+
+	_id: Id;
+	challenge: Uint8Array;
+
+	keys: U2fKey[];
 }

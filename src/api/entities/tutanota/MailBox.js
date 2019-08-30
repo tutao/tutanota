@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {MailFolderRef} from "./MailFolderRef"
+
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", "MailBox")
 export const _TypeModel: TypeModel = {
 	"name": "MailBox",
@@ -123,4 +125,22 @@ export const _TypeModel: TypeModel = {
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
 	return Object.assign(create(_TypeModel, MailBoxTypeRef), values)
+}
+
+export type MailBox = {
+	_type: TypeRef<MailBox>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	lastInfoDate: Date;
+	symEncShareBucketKey: ?Uint8Array;
+
+	systemFolders: ?MailFolderRef;
+	mails: Id;
+	receivedAttachments: Id;
+	sentAttachments: Id;
 }

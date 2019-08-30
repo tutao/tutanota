@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const DomainMailAddressAvailabilityDataTypeRef: TypeRef<DomainMailAddressAvailabilityData> = new TypeRef("sys", "DomainMailAddressAvailabilityData")
 export const _TypeModel: TypeModel = {
 	"name": "DomainMailAddressAvailabilityData",
@@ -38,4 +39,11 @@ export const _TypeModel: TypeModel = {
 
 export function createDomainMailAddressAvailabilityData(values?: $Shape<$Exact<DomainMailAddressAvailabilityData>>): DomainMailAddressAvailabilityData {
 	return Object.assign(create(_TypeModel, DomainMailAddressAvailabilityDataTypeRef), values)
+}
+
+export type DomainMailAddressAvailabilityData = {
+	_type: TypeRef<DomainMailAddressAvailabilityData>;
+
+	_format: NumberString;
+	mailAddress: string;
 }

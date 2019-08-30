@@ -55,6 +55,7 @@ import {
 	removeBinaryBlockRanges
 } from "./SearchIndexEncoding"
 import {random} from "../crypto/Randomizer"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

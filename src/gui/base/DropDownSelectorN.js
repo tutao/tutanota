@@ -71,7 +71,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 		if (selectedItem) {
 			return selectedItem.name
 		} else {
-			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${JSON.stringify(value)}`)
+			console.log(`Dropdown ${lazyStringValue(a.label)} couldn't find element for value: ${String(JSON.stringify(value))}`)
 			return null
 		}
 	}

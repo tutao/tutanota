@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CreateExternalUserGroupData} from "./CreateExternalUserGroupData"
+
 export const ExternalUserDataTypeRef: TypeRef<ExternalUserData> = new TypeRef("tutanota", "ExternalUserData")
 export const _TypeModel: TypeModel = {
 	"name": "ExternalUserData",
@@ -129,4 +131,22 @@ export const _TypeModel: TypeModel = {
 
 export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {
 	return Object.assign(create(_TypeModel, ExternalUserDataTypeRef), values)
+}
+
+export type ExternalUserData = {
+	_type: TypeRef<ExternalUserData>;
+
+	_format: NumberString;
+	externalMailEncMailBoxSessionKey: Uint8Array;
+	externalMailEncMailGroupInfoSessionKey: Uint8Array;
+	externalUserEncEntropy: Uint8Array;
+	externalUserEncMailGroupKey: Uint8Array;
+	externalUserEncTutanotaPropertiesSessionKey: Uint8Array;
+	externalUserEncUserGroupInfoSessionKey: Uint8Array;
+	internalMailEncMailGroupInfoSessionKey: Uint8Array;
+	internalMailEncUserGroupInfoSessionKey: Uint8Array;
+	userEncClientKey: Uint8Array;
+	verifier: Uint8Array;
+
+	userGroupData: CreateExternalUserGroupData;
 }

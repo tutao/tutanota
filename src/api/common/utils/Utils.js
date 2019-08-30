@@ -3,6 +3,14 @@ import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 import {TypeRef} from "../EntityFunctions"
 import type {EntityUpdateData} from "../../main/EventController"
+import type {GroupInfo} from "../../entities/sys/GroupInfo"
+import type {User} from "../../entities/sys/User"
+import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {MailBody} from "../../entities/tutanota/MailBody"
+import type {MailHeaders} from "../../entities/tutanota/MailHeaders"
+import type {DomainInfo} from "../../entities/sys/DomainInfo"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -80,7 +88,7 @@ export function clone<T>(instance: T): T {
 		return instance
 	} else if (instance instanceof Object) {
 		// Can only pass null or Object, cannot pass undefined
-		const copy = Object.create(instance.__proto__ || null)
+		const copy = Object.create(Object.getPrototypeOf(instance) || null)
 		Object.assign(copy, instance)
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
@@ -212,16 +220,16 @@ export function getEventOfType(events: $ReadOnlyArray<EntityUpdate>, type: Opera
  * Executes function with the last passed arguments
  * @return {Function}
  */
-export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+export function debounce<F: (...args: any) => void>(timeout: number, toThrottle: F): F {
 	let timeoutId
-	let toInvoke: (...args: A) => void;
-	return (...args: A) => {
+	let toInvoke: (...args: any) => void;
+	return downcast((...args) => {
 		if (timeoutId) {
 			clearTimeout(timeoutId)
 		}
 		toInvoke = toThrottle.bind(null, ...args)
 		timeoutId = setTimeout(toInvoke, timeout)
-	}
+	})
 }
 
 /**
@@ -231,10 +239,10 @@ export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => vo
  * So the first and the last invocations in a series of invocations always take place
  * but ones in the middle (which happen too often) are discarded.}
  */
-export function debounceStart<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
-	let timeoutId
+export function debounceStart<F: (...args: any) => void>(timeout: number, toThrottle: F): F {
+	let timeoutId: ?TimeoutID
 	let lastInvoked = 0
-	return (...args: A) => {
+	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
 			timeoutId && clearTimeout(timeoutId)
 			timeoutId = setTimeout(() => {
@@ -245,7 +253,7 @@ export function debounceStart<A: any>(timeout: number, toThrottle: (...args: A) 
 			toThrottle.apply(null, args)
 		}
 		lastInvoked = Date.now()
-	}
+	})
 }
 
 export function randomIntFromInterval(min: number, max: number): number {

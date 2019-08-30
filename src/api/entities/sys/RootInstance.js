@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const RootInstanceTypeRef: TypeRef<RootInstance> = new TypeRef("sys", "RootInstance")
 export const _TypeModel: TypeModel = {
 	"name": "RootInstance",
@@ -65,4 +66,14 @@ export const _TypeModel: TypeModel = {
 
 export function createRootInstance(values?: $Shape<$Exact<RootInstance>>): RootInstance {
 	return Object.assign(create(_TypeModel, RootInstanceTypeRef), values)
+}
+
+export type RootInstance = {
+	_type: TypeRef<RootInstance>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	reference: Id;
 }

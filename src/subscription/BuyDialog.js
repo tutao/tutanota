@@ -20,6 +20,8 @@ import {getPriceItem} from "./PriceUtils"
 import {formatPrice} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
+import type {PriceData} from "../api/entities/sys/PriceData"
 
 assertMainOrNode()
 

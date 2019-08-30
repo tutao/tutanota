@@ -2,6 +2,14 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {UserAlarmInfoListType} from "./UserAlarmInfoListType"
+import type {UserAuthentication} from "./UserAuthentication"
+import type {AuthenticatedDevice} from "./AuthenticatedDevice"
+import type {UserExternalAuthInfo} from "./UserExternalAuthInfo"
+import type {GroupMembership} from "./GroupMembership"
+import type {PhoneNumber} from "./PhoneNumber"
+import type {PushIdentifierList} from "./PushIdentifierList"
+
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", "User")
 export const _TypeModel: TypeModel = {
 	"name": "User",
@@ -223,4 +231,32 @@ export const _TypeModel: TypeModel = {
 
 export function createUser(values?: $Shape<$Exact<User>>): User {
 	return Object.assign(create(_TypeModel, UserTypeRef), values)
+}
+
+export type User = {
+	_type: TypeRef<User>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	accountType: NumberString;
+	enabled: boolean;
+	requirePasswordUpdate: boolean;
+	salt: ?Uint8Array;
+	userEncClientKey: Uint8Array;
+	verifier: Uint8Array;
+
+	alarmInfoList: ?UserAlarmInfoListType;
+	auth: ?UserAuthentication;
+	authenticatedDevices: AuthenticatedDevice[];
+	externalAuthInfo: ?UserExternalAuthInfo;
+	memberships: GroupMembership[];
+	phoneNumbers: PhoneNumber[];
+	pushIdentifierList: ?PushIdentifierList;
+	userGroup: GroupMembership;
+	customer: ?Id;
+	failedLogins: Id;
+	secondFactorAuthentications: Id;
+	successfulLogins: Id;
 }

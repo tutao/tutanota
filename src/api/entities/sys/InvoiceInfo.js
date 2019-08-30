@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {PaymentErrorInfo} from "./PaymentErrorInfo"
+
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", "InvoiceInfo")
 export const _TypeModel: TypeModel = {
 	"name": "InvoiceInfo",
@@ -166,4 +168,26 @@ export const _TypeModel: TypeModel = {
 
 export function createInvoiceInfo(values?: $Shape<$Exact<InvoiceInfo>>): InvoiceInfo {
 	return Object.assign(create(_TypeModel, InvoiceInfoTypeRef), values)
+}
+
+export type InvoiceInfo = {
+	_type: TypeRef<InvoiceInfo>;
+
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	extendedPeriodOfPaymentDays: NumberString;
+	persistentPaymentPeriodExtension: boolean;
+	publishInvoices: boolean;
+	reminderState: NumberString;
+	specialPriceBrandingPerUser: ?NumberString;
+	specialPriceContactFormSingle: ?NumberString;
+	specialPriceSharedGroupSingle: ?NumberString;
+	specialPriceSharingPerUser: ?NumberString;
+	specialPriceUserSingle: ?NumberString;
+	specialPriceUserTotal: ?NumberString;
+
+	paymentErrorInfo: ?PaymentErrorInfo;
+	invoices: Id;
 }

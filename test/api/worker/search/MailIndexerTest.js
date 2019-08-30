@@ -17,14 +17,19 @@ import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createUser} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {_getCurrentIndexTimestamp, INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "../../../../src/api/worker/search/MailIndexer"
+import type {Mail} from "../../../../src/api/entities/tutanota/Mail"
 import {_TypeModel as MailModel, createMail, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import type {MailBody} from "../../../../src/api/entities/tutanota/MailBody"
 import {createMailBody} from "../../../../src/api/entities/tutanota/MailBody"
+import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/File"
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
 import {getElementId, getListId} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
+import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
+import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {browserDataStub, makeCore, mock, replaceAllMaps, spy} from "../../TestUtils"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
@@ -33,6 +38,7 @@ import type {FutureBatchActions} from "../../../../src/api/worker/search/EventQu
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {getDayShifted, getStartOfDay} from "../../../../src/api/common/utils/DateUtils"
 import {createMailboxGroupRoot} from "../../../../src/api/entities/tutanota/MailboxGroupRoot"
+import type {MailBox} from "../../../../src/api/entities/tutanota/MailBox"
 import {createMailBox} from "../../../../src/api/entities/tutanota/MailBox"
 import {createSearchIndexDbStub} from "./DbStub"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
@@ -417,15 +423,23 @@ o.spec("MailIndexer test", () => {
 			folder1 = _addFolder(mailbox)
 			folder2 = _addFolder(mailbox)
 
-			;({mail: mail0, body: body0} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEndShifted2Days, 1)], entityMock.getNextId()))
-			;({mail: mail1, body: body1} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd - 1, 1)], entityMock.getNextId()))
-			;({mail: mail2, body: body2, files} = createMailInstances([folder1.mails, timestampToGeneratedId(rangeEnd + 1, 1)], entityMock.getNextId(),
+			;({mail: mail0, body: body0} = createMailInstances([
+				folder1.mails, timestampToGeneratedId(rangeEndShifted2Days, 1)
+			], entityMock.getNextId()))
+			;({mail: mail1, body: body1} = createMailInstances([
+				folder1.mails, timestampToGeneratedId(rangeEnd - 1, 1)
+			], entityMock.getNextId()))
+			;({mail: mail2, body: body2, files} = createMailInstances([
+					folder1.mails, timestampToGeneratedId(rangeEnd + 1, 1)
+				], entityMock.getNextId(),
 				["attachment-listId", entityMock.getNextId()],
 				["attachment-listId1", entityMock.getNextId()]))
 			;({mail: mail3, body: body3} = createMailInstances([
 				folder1.mails, timestampToGeneratedId(rangeEnd + 3 * 24 * 60 * 60 * 1000, 1)
 			], entityMock.getNextId()))
-			;({mail: mail4, body: body4} = createMailInstances([folder2.mails, timestampToGeneratedId(rangeEnd + 5, 1)], entityMock.getNextId()))
+			;({mail: mail4, body: body4} = createMailInstances([
+				folder2.mails, timestampToGeneratedId(rangeEnd + 5, 1)
+			], entityMock.getNextId()))
 
 			entityMock.addElementInstances(body0, body1, body2, body3, body4, mailbox)
 			entityMock.addListInstances(mail0, mail1, mail2, mail3, mail4, folder1, folder2, ...files)
@@ -873,7 +887,7 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 		o(indexer._indexMailLists.callCount).equals(1)
 		const [mailData, oldestTimestamp] = indexer._indexMailLists.args
 		const expectedNewestTimestamp = groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-			? getDayShifted(getStartOfDay(new Date()), 1)
+			? getDayShifted(getStartOfDay(new Date()), 1).getTime()
 			: groupData.indexTimestamp
 		o(mailData).deepEquals([
 			{

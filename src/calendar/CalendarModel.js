@@ -36,6 +36,8 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
+import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {

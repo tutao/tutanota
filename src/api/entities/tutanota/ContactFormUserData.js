@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const ContactFormUserDataTypeRef: TypeRef<ContactFormUserData> = new TypeRef("tutanota", "ContactFormUserData")
 export const _TypeModel: TypeModel = {
 	"name": "ContactFormUserData",
@@ -110,4 +111,19 @@ export const _TypeModel: TypeModel = {
 
 export function createContactFormUserData(values?: $Shape<$Exact<ContactFormUserData>>): ContactFormUserData {
 	return Object.assign(create(_TypeModel, ContactFormUserDataTypeRef), values)
+}
+
+export type ContactFormUserData = {
+	_type: TypeRef<ContactFormUserData>;
+
+	_id: Id;
+	mailEncMailBoxSessionKey: Uint8Array;
+	ownerEncMailGroupInfoSessionKey: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	salt: Uint8Array;
+	userEncClientKey: Uint8Array;
+	userEncEntropy: Uint8Array;
+	userEncMailGroupKey: Uint8Array;
+	userEncTutanotaPropertiesSessionKey: Uint8Array;
+	verifier: Uint8Array;
 }

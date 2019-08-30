@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {Version} from "./Version"
+
 export const VersionReturnTypeRef: TypeRef<VersionReturn> = new TypeRef("sys", "VersionReturn")
 export const _TypeModel: TypeModel = {
 	"name": "VersionReturn",
@@ -39,4 +41,12 @@ export const _TypeModel: TypeModel = {
 
 export function createVersionReturn(values?: $Shape<$Exact<VersionReturn>>): VersionReturn {
 	return Object.assign(create(_TypeModel, VersionReturnTypeRef), values)
+}
+
+export type VersionReturn = {
+	_type: TypeRef<VersionReturn>;
+
+	_format: NumberString;
+
+	versions: Version[];
 }

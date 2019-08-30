@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {CalendarRepeatRule} from "./CalendarRepeatRule"
+
 export const CalendarEventTypeRef: TypeRef<CalendarEvent> = new TypeRef("tutanota", "CalendarEvent")
 export const _TypeModel: TypeModel = {
 	"name": "CalendarEvent",
@@ -139,4 +141,24 @@ export const _TypeModel: TypeModel = {
 
 export function createCalendarEvent(values?: $Shape<$Exact<CalendarEvent>>): CalendarEvent {
 	return Object.assign(create(_TypeModel, CalendarEventTypeRef), values)
+}
+
+export type CalendarEvent = {
+	_type: TypeRef<CalendarEvent>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	description: string;
+	endTime: Date;
+	location: string;
+	startTime: Date;
+	summary: string;
+	uid: ?string;
+
+	repeatRule: ?CalendarRepeatRule;
+	alarmInfos: IdTuple[];
 }

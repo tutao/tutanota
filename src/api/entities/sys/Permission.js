@@ -2,6 +2,8 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+import type {Bucket} from "./Bucket"
+
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", "Permission")
 export const _TypeModel: TypeModel = {
 	"name": "Permission",
@@ -139,4 +141,23 @@ export const _TypeModel: TypeModel = {
 
 export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {
 	return Object.assign(create(_TypeModel, PermissionTypeRef), values)
+}
+
+export type Permission = {
+	_type: TypeRef<Permission>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	bucketEncSessionKey: ?Uint8Array;
+	listElementApplication: ?string;
+	listElementTypeId: ?NumberString;
+	ops: ?string;
+	symEncSessionKey: ?Uint8Array;
+	type: NumberString;
+
+	bucket: ?Bucket;
+	group: ?Id;
 }

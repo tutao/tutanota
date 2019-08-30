@@ -2,6 +2,7 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
+
 export const GroupSettingsTypeRef: TypeRef<GroupSettings> = new TypeRef("tutanota", "GroupSettings")
 export const _TypeModel: TypeModel = {
 	"name": "GroupSettings",
@@ -58,4 +59,14 @@ export const _TypeModel: TypeModel = {
 
 export function createGroupSettings(values?: $Shape<$Exact<GroupSettings>>): GroupSettings {
 	return Object.assign(create(_TypeModel, GroupSettingsTypeRef), values)
+}
+
+export type GroupSettings = {
+	_type: TypeRef<GroupSettings>;
+
+	_id: Id;
+	color: string;
+	name: ?string;
+
+	group: Id;
 }
