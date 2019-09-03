@@ -6,6 +6,7 @@ import {createInvitationPostData} from "../../entities/tutanota/InvitationPostDa
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
 import {_TypeModel as GroupInfoTypeModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {GroupTypeRef} from "../../entities/sys/Group"
+import {_TypeModel as GroupTypeModel, GroupTypeRef} from "../../entities/sys/Group"
 import {aes128RandomKey} from "../crypto/Aes"
 import type {ShareCapabilityEnum} from "../../common/TutanotaConstants"
 import {createSharedGroupData} from "../../entities/tutanota/SharedGroupData"

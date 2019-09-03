@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-08-13T15:13:21Z",
+	"updated_at": "2019-08-06T13:51:24Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
@@ -1017,6 +1017,16 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"about_label": "About",
 		"yourMessage_label": "Your message",
+		"color_label": "Color",
+		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
+		"importCalendar_label": "Importing calendar",
+		"addCalendar_action": "Add calendar",
+		"import_action": "Import",
+		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
+		"automatic_label": "Automatic",
+		"settingsForDevice_label": "Settings for this device",
+		"showingEventsUntil_msg": "Showing events until {untilDay}.",
+		"permissions_label": "Permissions"
 		"color_label": "Color",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importCalendar_label": "Importing calendar",

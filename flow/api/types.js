@@ -183,7 +183,7 @@ type NativeRequestType = 'init'
 	| 'getLog' // for desktop
 	| 'sendGroupInvitation'
 	| 'calendarInvitationProgress_msg'
-
+	| 'shareGroup'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

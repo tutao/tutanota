@@ -52,6 +52,7 @@ import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {IncomingInviteTypeRef} from "../api/entities/sys/IncomingInvite"
+import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 
 
 export type CalendarInfo = {
@@ -552,6 +553,7 @@ export class CalendarView implements CurrentView {
 			m(ButtonN, {
 				label: 'newEvent_action',
 				click: () => this._newEvent(),
+				icon: () => Icons.Add,
 				type: ButtonType.Floating
 			})
 		])
