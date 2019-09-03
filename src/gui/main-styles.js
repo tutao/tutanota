@@ -300,6 +300,9 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
 		},
+		'.scroll-no-overlay': {
+			'overflow-y': 'auto',
+		},
 		'.scroll-x': {
 			'overflow-x': 'auto',
 			'-webkit-overflow-scrolling': 'touch',
