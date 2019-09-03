@@ -183,11 +183,22 @@ o.spec("crypto facade", function () {
 		o("decrypt compressedString", () => {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
-			let value = base64ToUint8Array("eJwrSS0uAQAEXQHB")
+			let value = base64ToUint8Array("QHRlc3Q=")
 			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("test")
+		})
+
+		o("decrypt compressedString w resize", function () {
+			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
+			let sk = aes128RandomKey()
+			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
+			o(typeof decryptedValue === "string").equals(true)
+			o(decryptedValue)
+				.equals("text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text ")
 		})
 
 		o("decrypt empty compressedString", () => {
@@ -263,7 +274,7 @@ o.spec("crypto facade", function () {
 			let value = ""
 			o(decryptValue(createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("")
 
-			value = "eJwrSS0uAQAEXQHB"
+			value = "QHRlc3Q="
 			o(decryptValue(createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("test")
 		})
 	})
