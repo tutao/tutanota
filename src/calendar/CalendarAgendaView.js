@@ -2,7 +2,7 @@
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
-import {getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDate, formatDateWithWeekday} from "../misc/Formatter"
@@ -28,7 +28,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		const now = new Date()
 
 		const today = getStartOfDay(now)
-		const tomorrow = getDayShifted(new Date(today), 1).getTime()
+		const tomorrow = incrementDate(new Date(today), 1).getTime()
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)
 		let title: string

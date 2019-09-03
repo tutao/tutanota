@@ -1,7 +1,7 @@
 // @flow
 
 import m from "mithril"
-import {getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {formatTime} from "../misc/Formatter"
 import {
@@ -231,7 +231,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			maxColumns = Math.max(maxColumns, columns.length)
 			return columns.map((rows, c) =>
 				rows.map((event) => {
-					const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
+					const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event), -1) : event.endTime
 					const dayOfStartDateInWeek = getDiffInDays(getEventStart(event), firstDayOfWeek)
 					const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
 					const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * dayWidth
