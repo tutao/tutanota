@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createAlarmNotification(values?: $Shape<$Exact<AlarmNotification>>): AlarmNotification {

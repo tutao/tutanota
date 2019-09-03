@@ -9,7 +9,14 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {load, loadRoot, setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
+import type {
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum,
+	CloseEventBusOptionEnum,
+	ConversationTypeEnum,
+	EntropySrcEnum,
+	ShareCapabilityEnum
+} from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
@@ -523,6 +530,10 @@ export class WorkerClient {
 
 	getDomainValidationRecord(): Promise<string> {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
+	}
+
+	shareGroup(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+		return this._queue.postMessage(new Request("shareGroup", [groupId, recipients, shareCapability]))
 	}
 }
 

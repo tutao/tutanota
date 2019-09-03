@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createContactPhoneNumber(values?: $Shape<$Exact<ContactPhoneNumber>>): ContactPhoneNumber {

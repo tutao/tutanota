@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"loggedInVerifier": {"name": "loggedInVerifier", "id": 71, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"sentCount": {"name": "sentCount", "id": 74, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
-	}, "associations": {}, "app": "sys", "version": "49"
+	}, "associations": {}, "app": "sys", "version": "50"
 }
 
 export function createVariableExternalAuthInfo(values?: $Shape<$Exact<VariableExternalAuthInfo>>): VariableExternalAuthInfo {

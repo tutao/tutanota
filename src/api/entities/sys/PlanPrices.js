@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		}
-	}, "associations": {}, "app": "sys", "version": "49"
+	}, "associations": {}, "app": "sys", "version": "50"
 }
 
 export function createPlanPrices(values?: $Shape<$Exact<PlanPrices>>): PlanPrices {

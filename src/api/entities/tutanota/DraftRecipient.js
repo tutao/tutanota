@@ -18,7 +18,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createDraftRecipient(values?: $Shape<$Exact<DraftRecipient>>): DraftRecipient {

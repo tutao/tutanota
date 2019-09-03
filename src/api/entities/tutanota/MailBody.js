@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 			"encrypted": true
 		},
 		"text": {"name": "text", "id": 43, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true}
-	}, "associations": {}, "app": "tutanota", "version": "36"
+	}, "associations": {}, "app": "tutanota", "version": "37"
 }
 
 export function createMailBody(values?: $Shape<$Exact<MailBody>>): MailBody {

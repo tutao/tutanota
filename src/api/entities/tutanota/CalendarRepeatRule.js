@@ -21,7 +21,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createCalendarRepeatRule(values?: $Shape<$Exact<CalendarRepeatRule>>): CalendarRepeatRule {

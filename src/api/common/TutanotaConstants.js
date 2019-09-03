@@ -430,4 +430,13 @@ export const WeekStart = Object.freeze({
 
 export type WeekStartEnum = $Values<typeof WeekStart>
 
+export const ShareCapability = Object.freeze({
+	Invite: '0',
+	Write: '1',
+	Read: '2'
+})
+
+export type ShareCapabilityEnum = $Values<typeof ShareCapability>
+
+
 export const SECOND_MS = 1000

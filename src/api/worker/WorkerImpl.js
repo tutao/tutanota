@@ -293,6 +293,9 @@ export class WorkerImpl {
 			},
 			getDomainValidationRecord: (message: Request) => {
 				return locator.customer.getDomainValidationRecord(...message.args)
+			},
+			shareGroup: (message: Request) => {
+				return locator.share.shareGroup(...message.args)
 			}
 		})
 

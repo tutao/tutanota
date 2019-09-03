@@ -49,6 +49,7 @@ import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
+import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 
 
 export type CalendarInfo = {
@@ -356,6 +357,12 @@ export class CalendarView implements CurrentView {
 									label: "edit_action",
 									icon: () => Icons.Edit,
 									click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot),
+									type: ButtonType.Dropdown,
+								},
+								{
+									label: () => "Sharing",
+									icon: () => Icons.ContactImport,
+									click: () => showCalendarSharingDialog(groupInfo),
 									type: ButtonType.Dropdown,
 								},
 								isApp()

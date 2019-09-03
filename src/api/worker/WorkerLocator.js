@@ -18,6 +18,7 @@ import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
+import {ShareFacade} from "./facades/ShareFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -37,6 +38,7 @@ type WorkerLocatorType = {
 	_indexedDbSupported: boolean;
 	_browserData: BrowserData;
 	Const: Object;
+	share: ShareFacade;
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -68,6 +70,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
+	locator.share = new ShareFacade()
 }
 
 export function resetLocator(): Promise<void> {

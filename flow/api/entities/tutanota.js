@@ -1090,3 +1090,21 @@ type CalendarPostReturn = {
 
 	group: Id;
 }
+
+type SharedGroupData = {
+	_type: TypeRef<SharedGroupData>;
+	_id: Id;
+	bucketEncGInfoKey: Uint8Array;
+	bucketEncGKey: Uint8Array;
+	capability: NumberString;
+	group: Id;
+
+}
+
+type InvitationPostData = {
+	_type: TypeRef<InvitationPostData>;
+	_format: NumberString;
+
+	internalKeyData: InternalRecipientKeyData[];
+	sharedGroupData: SharedGroupData;
+}

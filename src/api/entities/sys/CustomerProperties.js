@@ -57,7 +57,7 @@ export const _TypeModel: TypeModel = {
 		"smallLogo": {"name": "smallLogo", "id": 922, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createCustomerProperties(values?: $Shape<$Exact<CustomerProperties>>): CustomerProperties {

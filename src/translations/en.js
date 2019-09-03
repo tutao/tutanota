@@ -1015,6 +1015,7 @@ module.exports = {
 		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
 		"automatic_label": "Automatic",
 		"settingsForDevice_label": "Settings for this device",
-		"showingEventsUntil_msg": "Showing events until {untilDay}."
+		"showingEventsUntil_msg": "Showing events until {untilDay}.",
+		"permissions_label": "Permissions"
 	}
 }
