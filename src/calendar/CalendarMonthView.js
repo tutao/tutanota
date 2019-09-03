@@ -18,7 +18,7 @@ import {
 	getWeekNumber,
 	layOutEvents
 } from "./CalendarUtils"
-import {getDateIndicator, getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
+import {getDateIndicator, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -228,7 +228,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight
 
 		const eventStart = getEventStart(event)
-		const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
+		const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event), -1) : event.endTime
 
 		const dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
