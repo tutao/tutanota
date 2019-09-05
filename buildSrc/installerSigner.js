@@ -9,7 +9,7 @@
  * once we switch to dmg this won't be necessary anymore, but:
  * https://github.com/electron-userland/electron-builder/issues/2199
  *
- * The installer signatures are provided as separate files:
+ * The installer signatures are created in the following files:
  * https://mail.tutanota.com/desktop/tutanota-desktop-win-sig.bin (for Windows)
  * https://mail.tutanota.com/desktop/tutanota-desktop-mac-sig.bin (for Mac)
  * https://mail.tutanota.com/desktop/tutanota-desktop-linux-sig.bin (for Linux)
@@ -17,9 +17,9 @@
  * They allow verifying the initial download via
  *
  *      # get public key from github
- *      wget https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem
+ *      wget https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem
  *          or
- *      curl https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem > tutao-pub.pem
+ *      curl https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem > tutao-pub.pem
  *      # validate the signature against public key
  *      openssl dgst -sha512 -verify tutao-pub.pem -signature signature.bin tutanota.installer.ext
  *
@@ -37,63 +37,44 @@
  * openssl x509 -pubkey -noout -in tutao-cert.pem > tutao-pub.pem
  * */
 
-const forge = require('node-forge')
 const Promise = require('bluebird')
 const fs = Promise.promisifyAll(require('fs-extra'))
 const path = require('path')
+const spawnSync = require('child_process').spawnSync
+const jsyaml = require('js-yaml')
 
 /**
- *
- * @param args.filePath path to the file to sign
- * @param args.privateKeyPath path to private key file in PEM format
- * @param args.passPhrase pass phrase to the private key
- *
- * @return object with paths to the generated files
+ * Creates a signature on the given application file, writes it to signatureFileName and adds the signature to the yaml file.
+ * Requires environment variable HSM_USER_PIN to be set to the HSM user pin.
+ * @param filePath The application file to sign. Needs to be the full path to the file.
+ * @param signatureFileName The signature will be written to that file. Must not contain any path.
+ * @param ymlFileName This yaml file will be adapted to include the signature. Must not contain any path.
  */
-function signer(filePath, target) {
+function signer(filePath, signatureFileName, ymlFileName) {
 	console.log("Signing", path.basename(filePath), '...')
-	if (!['win', 'linux', 'mac'].includes(target)) {
-		throw new Error('invalid signing target: ' + target)
-	}
 	const dir = path.dirname(filePath)
-	let filename = path.basename(filePath).split('.')
-	filename.splice(-1, 1)
-	filename = filename.join('.')
-	try {
-		const fileData = fs.readFileSync(filePath) //binary format
-		const sigOutPath = path.join(dir, filename + '-sig.bin')
-		const lnk = process.env[target.toUpperCase() + "_CSC_LINK"]
-		const pass = process.env[target.toUpperCase() + "_CSC_KEY_PASSWORD"]
-		const privateKey = getPrivateKey(lnk, pass)
-		const md = forge.md.sha512.create()
-		md.update(fileData.toString('binary'))
-		const sig = Buffer.from(privateKey.sign(md), 'binary')
-		fs.writeFileSync(sigOutPath, sig, null)
-	} catch (e) {
-		console.log('Error:', e.message)
+	const sigOutPath = path.join(dir, signatureFileName)
+	const result = spawnSync("/usr/bin/pkcs11-tool", [
+		"-s",
+		"-m", "SHA512-RSA-PKCS",
+		"--id", "10",
+		"--pin", "env:HSM_USER_PIN",
+		"-i", path.basename(filePath),
+		"-o", signatureFileName
+	], {
+		cwd: dir,
+		stdio: [process.stdin, process.stdout, process.stderr]
+	})
+	if (result.status !== 0) {
+		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 
-}
-
-function getPrivateKey(lnk, pass) {
-	if (!lnk || !pass) {
-		throw new Error("can't sign client, missing [TARGET]_CSC_LINK or [TARGET]_CSC_KEY_PASSWORD env vars")
-	}
-	const p12b64 = fs.readFileSync(lnk).toString('base64')
-	const p12Der = forge.util.decode64(p12b64)
-	const p12Asn1 = forge.asn1.fromDer(p12Der)
-	const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, pass)
-	/**
-	 * localKeyId was found by exporting the certificate via
-	 *      openssl pkcs12 -in comodo-codesign.pfx -clcerts -nokeys -out tutao-cert.pem
-	 *  and inspecting the resulting file.
-	 *  could use friendlyName as a key as well:
-	 *      p12.getBags({friendlyName: 'yada yada'})["friendlyName"]
-	 *  but that one contains funny characters.
-	 *  TODO: revise on cert renewal
-	 */
-	const bag = p12.getBags({localKeyIdHex: '6FEFEE4A93634B95DD82977143D69665CA9180D2'})["localKeyId"]
-	return bag[0].key
+	console.log(`attaching signature to yml...`)
+	const ymlPath = path.join(dir, ymlFileName)
+	let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
+	const signatureContent = fs.readFileSync(sigOutPath)
+	yml.signature = signatureContent.toString('base64')
+	fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
 }
 
 module.exports = signer
