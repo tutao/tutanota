@@ -36,7 +36,7 @@ o.spec('desktop config handler test', function () {
 
 	const packageJson = {
 		"tutao-config": {
-			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
+			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
 			"pollingInterval": 10000,
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",
@@ -148,7 +148,7 @@ o.spec('desktop config handler test', function () {
 		o(conf.get("pollingInterval")).equals(10000)
 		o(conf.getDesktopConfig("heartbeatTimeoutInSeconds")).equals(240)
 		o(conf.get()).deepEquals({
-			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
+			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
 			"pollingInterval": 10000,
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",

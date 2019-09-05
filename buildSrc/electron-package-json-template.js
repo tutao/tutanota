@@ -17,18 +17,9 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"start": "electron ."
 		},
 		"tutao-config": {
-			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/electron-client/tutao-pub.pem",
-			"pubKeys": [
-				"-----BEGIN PUBLIC KEY-----\n"
-				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1eQA3vZyVSSMUbFZrSxB\n"
-				+ "va/OErAiT7HrVKF1m8ZLpsTu652SFLKelrFlUWz+ZcWx7yxNzpj8hpB4SDwJxQeO\n"
-				+ "9UD5q6IozwhNSV10h6G19lls3+3x3rzuQTOPXzNLv7SG1mdQUwfsf91gzv3Yg2Qd\n"
-				+ "Wd8gpKYLmG8rKo95FFAAXiafISs/3Xi8B+9dBp8cjgO4Nq/oTdLeYGBWfe+oDzPv\n"
-				+ "JPL4IDQa+SR5eI6jEMoVBRC7LihkP+fCwdhrlyOD+ei7s1YVoNU+qpWeLZ6wCYLP\n"
-				+ "Xbt7N3L2t3TiXEWmz+pjCz/HG3m/PuGamlGHDy/P8WlnvsbIEI6doDU8gAHUkpNS\n"
-				+ "HwIDAQAB\n"
-				+ "-----END PUBLIC KEY-----"
-			],
+			"pubKeyUrl": nameSuffix === '-test'
+				? "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub-test.pem"
+				: "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",
@@ -56,7 +47,6 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"winreg": "1.2.4"
 		},
 		"build": {
-			"afterAllArtifactBuild": "./buildSrc/afterAllArtifactBuild.js",
 			"electronVersion": "4.1.4",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
