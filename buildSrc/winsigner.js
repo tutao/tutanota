@@ -5,7 +5,7 @@ const fs = Promise.promisifyAll(require("fs-extra"))
 const spawn = require('child_process').spawn
 
 function signer(args) {
-	const certificateFile = process.env["WIN_CSC_LINK"]
+	const certificateFile = process.env["WIN_CSC_FILE"]
 	const hsmPin = process.env["HSM_USER_PIN"]
 	const extension = "." + args.path.split(".").pop()
 	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
@@ -22,6 +22,13 @@ function signer(args) {
 	//  http://timestamp.comodoca.com/authenticode
 	//  http://www.startssl.com/timestamp
 
+	if (!(certificateFile && hsmPin && fs.existsSync(command))) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• install osslsigncode")
+		console.log("\t• set WIN_CSC_FILE and HSM_USER_PIN env vars")
+		return Promise.reject(args.path)
+	}
+
 	const commandArguments = [
 		"-in", unsignedFileName,
 		"-out", args.path,
@@ -35,12 +42,6 @@ function signer(args) {
 		"-n", "tutanota-desktop"
 	]
 
-	if (!(certificateFile && hsmPin && fs.existsSync(command))) {
-		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
-		console.log("\t• install osslsigncode")
-		console.log("\t• set WIN_CSC_LINK and HSM_USER_PIN env vars")
-		return Promise.resolve(args.path)
-	}
 	fs.renameSync(args.path, unsignedFileName)
 	console.log(`spawning "${command}"`)
 	// only for testing, would print certificate password to logs, otherwise

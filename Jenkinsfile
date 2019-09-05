@@ -50,7 +50,7 @@ pipeline {
 						    sh '''
 						    export JENKINS=TRUE;
 						    export HSM_USER_PIN=${PW};
-						    export WIN_CSC_LINK="/opt/etc/codesign.crt";
+						    export WIN_CSC_FILE="/opt/etc/codesign.crt";
 						    node dist -ew '''
 						}
 						dir('build') {
