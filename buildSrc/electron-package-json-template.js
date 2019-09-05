@@ -63,6 +63,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 					"role": "Editor"
 				}
 			],
+			"forceCodeSigning": sign || !!process.env.JENKINS,
 			"publish": {
 				"provider": "generic",
 				"url": targetUrl,
