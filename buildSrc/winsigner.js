@@ -47,7 +47,7 @@ function signer(args) {
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
 		"-key", "10",
-		"-pass", "${HSM_USER_PIN}", //hsmPin,
+		"-pass", hsmPin,
 		"-h", args.hash ? args.hash : "sha256",
 		"-t", "http://timestamp.comodoca.com/authenticode",
 		"-n", "tutanota-desktop"
