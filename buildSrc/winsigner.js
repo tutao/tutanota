@@ -22,11 +22,22 @@ function signer(args) {
 	//  http://timestamp.comodoca.com/authenticode
 	//  http://www.startssl.com/timestamp
 
-	if (!(certificateFile && hsmPin && fs.existsSync(command))) {
+	if (!certificateFile) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• set WIN_CSC_FILE env var")
+		return Promise.reject(new Error(args.path))
+	}
+
+	if (!hsmPin) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• set  HSM_USER_PIN env var")
+		return Promise.reject(new Error(args.path))
+	}
+
+	if (!fs.existsSync(command)) {
 		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• install osslsigncode")
-		console.log("\t• set WIN_CSC_FILE and HSM_USER_PIN env vars")
-		return Promise.reject(args.path)
+		return Promise.reject(new Error(args.path))
 	}
 
 	const commandArguments = [
