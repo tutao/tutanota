@@ -7,7 +7,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {erase, load, loadAll, setup} from "../api/main/Entity"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {U2fClient, U2fError} from "../misc/U2fClient"
+import {U2fClient} from "../misc/U2fClient"
 import {SecondFactorType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -38,14 +38,15 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 assertMainOrNode()
 
 const VerificationStatus = {
+	Initial: "Initial",
 	Progress: "Progress",
 	Failed: "Failed",
 	Success: "Success",
 }
 
 const SecondFactorTypeToNameTextId = {
+	[SecondFactorType.totp]: "totpAuthenticator_label",
 	[SecondFactorType.u2f]: "u2fSecurityKey_label",
-	[SecondFactorType.totp]: "totpAuthenticator_label"
 }
 
 export class EditSecondFactorsForm {
@@ -138,13 +139,15 @@ export class EditSecondFactorsForm {
 			.spread((totpKeys, u2fSupport, user) => {
 				console.log("u2fSupport", u2fSupport)
 				const nameValue: Stream<string> = stream("")
-				const selectedType: Stream<string> = stream(u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp)
+				const selectedType: Stream<string> = stream(SecondFactorType.totp)
 				const totpCode: Stream<string> = stream("")
 				let typeDropdownAttrs: DropDownSelectorAttrs<string> = {
 					label: "type_label",
 					selectedValue: selectedType,
 					items: Object.keys(SecondFactorTypeToNameTextId)
 					             .filter(k => (k !== SecondFactorType.u2f || u2fSupport))
+					             // Order them so that TOTP is the first
+					             .sort((a, b) => Number(b) - Number(a))
 					             .map(key => {
 						             return {
 							             name: lang.get(SecondFactorTypeToNameTextId[key]),
@@ -202,15 +205,11 @@ export class EditSecondFactorsForm {
 					type: ButtonType.Login
 				}
 
-				let verificationStatus = stream(VerificationStatus.Progress)
-				verificationStatus.map(() => m.redraw())
-				u2fRegistrationData.map(registrationData => {
-					if (registrationData) {
-						verificationStatus(VerificationStatus.Success)
-					} else {
-						verificationStatus(VerificationStatus.Progress)
-					}
+				let verificationStatus = stream()
+				selectedType.map((type) => {
+					verificationStatus(type === SecondFactorType.u2f ? VerificationStatus.Initial : VerificationStatus.Progress)
 				})
+				verificationStatus.map(() => m.redraw())
 
 				totpCode.map(v => {
 					let cleanedValue = v.replace(/ /g, "")
@@ -236,47 +235,68 @@ export class EditSecondFactorsForm {
 					}
 				})
 
-				function statusIcon() {
-					if (verificationStatus() === VerificationStatus.Progress) {
-						return progressIcon()
-					} else if (verificationStatus() === VerificationStatus.Success) {
-						return m(Icon, {
-							icon: Icons.Checkmark,
-							large: true,
-							style: {fill: theme.content_accent}
-						})
-					} else {
-						return m(Icon, {
-							icon: Icons.Cancel,
-							large: true,
-							style: {fill: theme.content_accent}
-						})
+				function statusIcon(): ?Vnode<any> {
+					switch (verificationStatus()) {
+						case VerificationStatus.Progress:
+							return progressIcon()
+						case VerificationStatus.Success:
+							return m(Icon, {
+								icon: Icons.Checkmark,
+								large: true,
+								style: {fill: theme.content_accent}
+							})
+						case VerificationStatus.Failed:
+							return m(Icon, {
+								icon: Icons.Cancel,
+								large: true,
+								style: {fill: theme.content_accent}
+							})
+						default:
+							return null
 					}
 				}
 
 				let saveAction = () => {
-					let sf = createSecondFactor()
-					sf._ownerGroup = user._ownerGroup
-					sf.name = nameValue()
-					sf.type = selectedType()
-					if (sf.type === SecondFactorType.u2f) {
-						if (verificationStatus() !== VerificationStatus.Success) {
-							Dialog.error("unrecognizedU2fDevice_msg")
-							return
-						} else {
-							sf.u2f = u2fRegistrationData()
-						}
-					} else if (sf.type === SecondFactorType.totp) {
-						if (verificationStatus() !== VerificationStatus.Success) {
-							Dialog.error("totpCodeEnter_msg")
-							return
-						} else {
-							sf.otpSecret = totpKeys.key
-						}
+					let p: Promise<void>
+					if (selectedType() === SecondFactorType.u2f) {
+						verificationStatus(VerificationStatus.Progress)
+						p = u2f.register()
+						       .then((result) => {
+							       u2fRegistrationData(result)
+							       verificationStatus(VerificationStatus.Success)
+						       })
+						       .catch(() => {
+							       u2fRegistrationData(null)
+							       verificationStatus(VerificationStatus.Failed)
+						       })
+					} else {
+						p = Promise.resolve()
 					}
-					showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf))
-						.then(() => dialog.close())
-						.then(() => this._showRecoveryInfoDialog(user))
+
+					return p.then(() => {
+						let sf = createSecondFactor()
+						sf._ownerGroup = user._ownerGroup
+						sf.name = nameValue()
+						sf.type = selectedType()
+						if (sf.type === SecondFactorType.u2f) {
+							if (verificationStatus() !== VerificationStatus.Success) {
+								Dialog.error("unrecognizedU2fDevice_msg")
+								return
+							} else {
+								sf.u2f = u2fRegistrationData()
+							}
+						} else if (sf.type === SecondFactorType.totp) {
+							if (verificationStatus() !== VerificationStatus.Success) {
+								Dialog.error("totpCodeEnter_msg")
+								return
+							} else {
+								sf.otpSecret = totpKeys.key
+							}
+						}
+						showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf))
+							.then(() => dialog.close())
+							.then(() => this._showRecoveryInfoDialog(user))
+					})
 				}
 
 				function statusMessage() {
@@ -310,31 +330,16 @@ export class EditSecondFactorsForm {
 									m(TextFieldN, totpCodeAttrs)
 								])
 								: null,
-							m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
+							// Only show progress for u2f because success/error will show another dialog
+							selectedType() === SecondFactorType.u2f && verificationStatus() !== VerificationStatus.Progress
+								? null
+								: m("p.flex.items-center", [m(".mr-s", statusIcon()), m("", statusMessage())]),
 						]
 					},
 					okAction: saveAction,
 					allowCancel: true,
 					okActionTextId: "save_action"
 				})
-
-				function registerResumeOnTimeout() {
-					u2f.register()
-					   .catch((e) => {
-						   if (e instanceof U2fError) {
-							   Dialog.error("u2fUnexpectedError_msg").then(() => {
-								   if (dialog.visible) {
-									   dialog.close()
-								   }
-							   })
-						   } else {
-							   registerResumeOnTimeout()
-						   }
-					   })
-					   .then(registrationData => u2fRegistrationData(registrationData))
-				}
-
-				if (u2fSupport) registerResumeOnTimeout()
 			})
 	}
 
