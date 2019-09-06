@@ -177,7 +177,7 @@ class ClientDetector {
 		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
 		var ieIndex = this.userAgent.indexOf("MSIE")
-		var edgeIndex = this.userAgent.indexOf("Edge")
+		var edgeIndex = this.userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 		var ie11Index = this.userAgent.indexOf("Trident/7.0")
 		var androidIndex = this.userAgent.indexOf("Android")
 		var blackBerryIndex = this.userAgent.indexOf("BB10")
@@ -405,7 +405,11 @@ class ClientDetector {
 	}
 
 	browserData(): BrowserData {
-		return {needsMicrotaskHack: this.needsMicrotaskHack(), needsExplicitIDBIds: this.needsExplicitIDBIds(), indexedDbSupported: this.indexedDBSupported()}
+		return {
+			needsMicrotaskHack: this.needsMicrotaskHack(),
+			needsExplicitIDBIds: this.needsExplicitIDBIds(),
+			indexedDbSupported: this.indexedDBSupported()
+		}
 	}
 }
 

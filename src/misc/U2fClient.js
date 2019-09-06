@@ -7,6 +7,8 @@ import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
 import u2fApi from "./u2f-api"
 import {SECOND_MS} from "../api/common/TutanotaConstants"
+import {BrowserType} from "./ClientConstants"
+import {client} from "./ClientDetector"
 
 assertMainOrNode()
 
@@ -41,7 +43,8 @@ export class U2fClient {
 	isSupported(): Promise<boolean> {
 		return Promise
 			.resolve(window.u2f && window.u2f.register
-				|| Promise.race([
+				// Explicitly disable old Edge so that it doesn't try to open Store for extension URL
+				|| client.browser !== BrowserType.EDGE && Promise.race([
 					new Promise((resolve) => {
 						console.log("u2fApi.getApiVersion")
 						u2fApi.getApiVersion((responseOrError) => {
