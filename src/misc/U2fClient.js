@@ -1,7 +1,7 @@
 //@flow
 import {TutanotaError} from "../api/common/error/TutanotaError"
 import {base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {assertMainOrNode, getHttpOrigin} from "../api/Env"
+import {assertMainOrNode, getHttpOrigin, isApp} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
@@ -42,20 +42,28 @@ export class U2fClient {
 	 */
 	isSupported(): Promise<boolean> {
 		return Promise
-			.resolve(window.u2f && window.u2f.register
-				// Explicitly disable old Edge so that it doesn't try to open Store for extension URL
-				|| client.browser !== BrowserType.EDGE && Promise.race([
-					new Promise((resolve) => {
-						console.log("u2fApi.getApiVersion")
-						u2fApi.getApiVersion((responseOrError) => {
-							console.log("u2fApi.getApiVersion response", responseOrError)
-							resolve(responseOrError['js_api_version'] != null)
-						}, 2)
-					}),
-					Promise.delay(SECOND_MS, false),
-				])
+			.resolve(
+				// Explicitly disable old Edge and apps so that they don'tt try to open Store for extension URL
+				!isApp() && client.browser !== BrowserType.EDGE
+				&& (
+					window.u2f && window.u2f.register
+					|| this.checkVersionWithTimeout()
+				)
 			)
 			.catch(() => false)
+	}
+
+	checkVersionWithTimeout() {
+		return Promise.race([
+			new Promise((resolve) => {
+				console.log("u2fApi.getApiVersion")
+				u2fApi.getApiVersion((responseOrError) => {
+					console.log("u2fApi.getApiVersion response", responseOrError)
+					resolve(responseOrError['js_api_version'] != null)
+				}, 2)
+			}),
+			Promise.delay(SECOND_MS, false),
+		])
 	}
 
 	register(): Promise<U2fRegisteredDevice> {

@@ -259,6 +259,10 @@ export class EditSecondFactorsForm {
 				let saveAction = () => {
 					let p: Promise<void>
 					if (selectedType() === SecondFactorType.u2f) {
+						// Prevent starting in parallel
+						if (verificationStatus() === VerificationStatus.Progress) {
+							return
+						}
 						verificationStatus(VerificationStatus.Progress)
 						p = u2f.register()
 						       .then((result) => {
