@@ -428,7 +428,7 @@ export class CalendarView implements CurrentView {
 									"cursor": "pointer",
 								}
 							}),
-							m(".pl-m.b", getCalendarName(groupInfo.name))
+							m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(groupInfo.name))
 						]),
 						m(ButtonN, attachDropdown({
 								label: "more_label",
