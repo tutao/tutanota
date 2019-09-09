@@ -159,6 +159,11 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						const newDate = new Date(vnode.attrs.selectedDate)
 						newDate.setHours(hours, minutes)
 						vnode.attrs.onNewEvent(newDate)
+					},
+					onTimeContextPressed: (hours, minutes) => {
+						const newDate = new Date(vnode.attrs.selectedDate)
+						newDate.setHours(hours, minutes)
+						vnode.attrs.onNewEvent(newDate)
 					}
 				})),
 			]),

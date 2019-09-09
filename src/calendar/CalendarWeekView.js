@@ -169,6 +169,11 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				)),
 				m(".flex.flex-grow", thisWeek.week.map((weekday, i) => {
 						const events = thisWeek.eventsPerDay[i]
+						const newEventHandler = (hours, minutes) => {
+							const eventDate = new Date(weekday)
+							eventDate.setHours(hours, minutes)
+							attrs.onNewEvent(eventDate)
+						}
 						return m(".flex-grow.calendar-column-border", {
 							style: {
 								height: px(calendarDayTimes.length * size.calendar_hour_height)
@@ -178,11 +183,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 							groupColors: attrs.groupColors,
 							events: events,
 							displayTimeIndicator: weekday.getTime() === todayTimestamp,
-							onTimePressed: (hours, minutes) => {
-								const eventDate = new Date(weekday)
-								eventDate.setHours(hours, minutes)
-								attrs.onNewEvent(eventDate)
-							}
+							onTimePressed: newEventHandler,
+							onTimeContextPressed: newEventHandler,
 						}))
 					})
 				)
