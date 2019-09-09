@@ -12,7 +12,7 @@ import {
 	parseDate,
 	stringToNameAndMailAddress
 } from "../../../src/misc/Formatter"
-import {isRegularExpression, isMailAddress} from "../../../src/misc/FormatValidator"
+import {isMailAddress, isRegularExpression} from "../../../src/misc/FormatValidator"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("FormatterTest", function () {
@@ -145,6 +145,9 @@ o.spec("FormatterTest", function () {
 		o(isMailAddress("asdf asdf@d.de", false)).equals(false)
 		o(isMailAddress("@@d.de", false)).equals(false)
 		o(isMailAddress("a@b@d.de", false)).equals(false)
+		o(isMailAddress("abc@döh.de", false)).equals(false) // no IDNA support
+		o(isMailAddress("a,b@d.de", false)).equals(false)
+		o(isMailAddress("a)b@d.de", false)).equals(false)
 	})
 
 	o("cleanedMailAddress", function () {

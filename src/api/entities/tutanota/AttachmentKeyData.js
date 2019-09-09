@@ -37,9 +37,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createAttachmentKeyData(): AttachmentKeyData {
-	return create(_TypeModel)
+export function createAttachmentKeyData(values?: $Shape<$Exact<AttachmentKeyData>>): AttachmentKeyData {
+	return Object.assign(create(_TypeModel, AttachmentKeyDataTypeRef), values)
 }

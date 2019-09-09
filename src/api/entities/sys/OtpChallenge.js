@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createOtpChallenge(): OtpChallenge {
-	return create(_TypeModel)
+export function createOtpChallenge(values?: $Shape<$Exact<OtpChallenge>>): OtpChallenge {
+	return Object.assign(create(_TypeModel, OtpChallengeTypeRef), values)
 }

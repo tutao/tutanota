@@ -14,7 +14,9 @@ const LocalStorageKey = 'tutanotaConfig'
 class DeviceConfig {
 	_version: number;
 	_credentials: Credentials[];
+	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
+	_language: ?string;
 
 	/**
 	 * @param config The config to copy from
@@ -32,6 +34,8 @@ class DeviceConfig {
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
+		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
+		this._language = loadedConfig && loadedConfig._language
 	}
 
 	getStoredAddresses(): string[] {
@@ -44,6 +48,26 @@ class DeviceConfig {
 
 	getByUserId(id: Id): ?Credentials {
 		return this._credentials.find(c => c.userId === id)
+	}
+
+	isScheduledForUser(userId: Id): boolean {
+		return this._scheduledAlarmUsers.includes(userId)
+	}
+
+	setScheduledForUser(userId: Id) {
+		if (!this.isScheduledForUser(userId)) {
+			this._scheduledAlarmUsers.push(userId)
+		}
+		this._store()
+	}
+
+	getLanguage(): ?string {
+		return this._language
+	}
+
+	setLanguage(language: string) {
+		this._language = language
+		this._store()
 	}
 
 	set(credentials: Credentials) {

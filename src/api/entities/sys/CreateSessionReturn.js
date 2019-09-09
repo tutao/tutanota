@@ -37,9 +37,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createCreateSessionReturn(): CreateSessionReturn {
-	return create(_TypeModel)
+export function createCreateSessionReturn(values?: $Shape<$Exact<CreateSessionReturn>>): CreateSessionReturn {
+	return Object.assign(create(_TypeModel, CreateSessionReturnTypeRef), values)
 }

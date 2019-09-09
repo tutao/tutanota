@@ -15,7 +15,8 @@ export const _TypeModel: TypeModel = {
 		"_format": {"name": "_format", "id": 220, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 218, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {"name": "_ownerGroup", "id": 1021, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 219, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
+		"_permissions": {"name": "_permissions", "id": 219, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"capability": {"name": "capability", "id": 1614, "since": 50, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {
 		"group": {
@@ -50,9 +51,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createGroupMember(): GroupMember {
-	return create(_TypeModel)
+export function createGroupMember(values?: $Shape<$Exact<GroupMember>>): GroupMember {
+	return Object.assign(create(_TypeModel, GroupMemberTypeRef), values)
 }

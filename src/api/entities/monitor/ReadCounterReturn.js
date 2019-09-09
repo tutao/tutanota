@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "8"
+	"version": "10"
 }
 
-export function createReadCounterReturn(): ReadCounterReturn {
-	return create(_TypeModel)
+export function createReadCounterReturn(values?: $Shape<$Exact<ReadCounterReturn>>): ReadCounterReturn {
+	return Object.assign(create(_TypeModel, ReadCounterReturnTypeRef), values)
 }

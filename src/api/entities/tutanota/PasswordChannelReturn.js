@@ -24,9 +24,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createPasswordChannelReturn(): PasswordChannelReturn {
-	return create(_TypeModel)
+export function createPasswordChannelReturn(values?: $Shape<$Exact<PasswordChannelReturn>>): PasswordChannelReturn {
+	return Object.assign(create(_TypeModel, PasswordChannelReturnTypeRef), values)
 }

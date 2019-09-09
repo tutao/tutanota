@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createFile(): SysFile {
-	return create(_TypeModel)
+export function createFile(values?: $Shape<$Exact<SysFile>>): SysFile {
+	return Object.assign(create(_TypeModel, FileTypeRef), values)
 }

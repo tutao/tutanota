@@ -20,3 +20,11 @@ export function openMailbox(userId: Id, mailAddress: string, requestedPath: ?str
 		}
 	}
 }
+
+export function openCalendar(userId: Id) {
+	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
+		m.route.set("/calendar/agenda")
+	} else {
+		m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent("/calendar/agenda")}`)
+	}
+}

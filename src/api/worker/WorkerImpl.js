@@ -16,6 +16,8 @@ import {loadContactForm} from "./facades/ContactFormFacade"
 import {keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
+import type {InfoMessage} from "../common/CommonTypes"
+import {resolveSessionKey} from "./crypto/CryptoFacade"
 
 assertWorkerOrNode()
 
@@ -25,7 +27,7 @@ export class WorkerImpl {
 	_newEntropy: number;
 	_lastEntropyUpdate: number;
 
-	constructor(self: ?DedicatedWorkerGlobalScope, indexedDbSupported: boolean, browserData: BrowserData) {
+	constructor(self: ?DedicatedWorkerGlobalScope, browserData: BrowserData) {
 		if (browserData == null) {
 			throw new ProgrammingError("Browserdata is not passed")
 		}
@@ -35,7 +37,7 @@ export class WorkerImpl {
 		this._newEntropy = -1
 		this._lastEntropyUpdate = new Date().getTime()
 
-		initLocator(this, indexedDbSupported, browserData);
+		initLocator(this, browserData);
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
@@ -117,6 +119,9 @@ export class WorkerImpl {
 			},
 			downloadFileContent: (message: Request) => {
 				return locator.file.downloadFileContent.apply(locator.file, message.args)
+			},
+			downloadFileContentNative: (message: Request) => {
+				return locator.file.downloadFileContentNative.apply(locator.file, message.args)
 			},
 			addMailAlias: (message: Request) => {
 				return locator.mailAddress.addMailAlias.apply(locator.mailAddress, message.args)
@@ -224,6 +229,10 @@ export class WorkerImpl {
 			disableMailIndexing: (message: Request) => {
 				return locator.indexer.disableMailIndexing()
 			},
+
+			extendMailIndex: (message: Request) => {
+				return locator.indexer.extendMailIndex.apply(locator.indexer, message.args)
+			},
 			cancelMailIndexing: (message: Request) => {
 				return locator.indexer.cancelMailIndexing()
 			},
@@ -265,10 +274,48 @@ export class WorkerImpl {
 			},
 			resetSecondFactors: (message: Request) => {
 				return locator.login.resetSecondFactors.apply(locator.login, message.args)
+			},
+			resetSession: () => locator.login.reset(),
+			createCalendarEvent: (message: Request) => {
+				return locator.calendar.createCalendarEvent.apply(locator.calendar, message.args)
+			},
+			resolveSessionKey: (message: Request) => {
+				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
+			},
+			addCalendar: (message: Request) => {
+				return locator.calendar.addCalendar.apply(locator.calendar, message.args)
+			},
+			scheduleAlarmsForNewDevice: (message: Request) => {
+				return locator.calendar.scheduleAlarmsForNewDevice(...message.args)
+			},
+			loadAlarmEvents: (message: Request) => {
+				return locator.calendar.loadAlarmEvents(...message.args)
+			},
+			getDomainValidationRecord: (message: Request) => {
+				return locator.customer.getDomainValidationRecord(...message.args)
+			},
+			sendGroupInvitation: (message: Request) => {
+				return locator.share.sendGroupInvitation(...message.args)
 			}
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
+
+		if (workerScope) {
+			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
+				console.error("workerImpl.onerror", e, source, lineno, colno, error)
+				if (error instanceof Error) {
+					this.sendError(error)
+				} else {
+					const err = new Error(e)
+					err.lineNumber = lineno
+					err.columnNumber = colno
+					err.fileName = source
+					this.sendError(err)
+				}
+				return true
+			}
+		}
 	}
 
 	getTotpVerifier(): Promise<TotpVerifier> {
@@ -294,8 +341,8 @@ export class WorkerImpl {
 		}
 	}
 
-	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
-		return this._queue.postMessage(new Request("entityEvent", [data]))
+	entityEventsReceived(data: EntityUpdate[], eventOwnerGroupId: Id): Promise<void> {
+		return this._queue.postMessage(new Request("entityEvent", [data, eventOwnerGroupId]))
 	}
 
 	sendError(e: Error): Promise<void> {
@@ -318,12 +365,16 @@ export class WorkerImpl {
 	}
 
 	updateWebSocketState(state: WsConnectionState): Promise<void> {
-		console.log("ws state: ", state)
+		console.log("ws displayed state: ", state)
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
 	}
 
 	updateCounter(update: WebsocketCounterData): Promise<void> {
 		return this._queue.postMessage(new Request("counterUpdate", [update]))
+	}
+
+	infoMessage(message: InfoMessage) {
+		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
 }
 

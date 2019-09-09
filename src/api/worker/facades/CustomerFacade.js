@@ -11,7 +11,7 @@ import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListEl
 import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
 import {hash} from "../crypto/Sha256"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
-import {neverNull} from "../../common/utils/Utils"
+import {getWhitelabelDomain, neverNull} from "../../common/utils/Utils"
 import {aes128RandomKey} from "../crypto/Aes"
 import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
@@ -65,6 +65,10 @@ export class CustomerFacade {
 		this._counters = counters
 	}
 
+	getDomainValidationRecord(): Promise<string> {
+		return Promise.resolve("t-verify=" + uint8ArrayToHex(hash(stringToUtf8Uint8Array(neverNull(this._login.getLoggedInUser().customer))).slice(0, 16)))
+	}
+
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
 		let data = createCustomDomainData()
 		data.domain = domainName.trim().toLowerCase()
@@ -84,11 +88,10 @@ export class CustomerFacade {
 		return serviceRequestVoid(SysService.CustomDomainService, HttpMethod.PUT, data)
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
 			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				let existingBrandingDomain = customerInfo.domainInfos.find(info => info.domain === domainName
-					&& info.certificate)
+				let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 					.then(keyData => {
 						let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
@@ -97,8 +100,12 @@ export class CustomerFacade {
 							.then(systemAdminPubEncAccountingInfoSessionKey => {
 								let data = createBrandingDomainData()
 								data.domain = domainName
-								data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
-								data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
+								if (pemCertificateChain) {
+									data.sessionEncPemCertificateChain = encryptString(sessionKey, pemCertificateChain)
+								}
+								if (pemPrivateKey) {
+									data.sessionEncPemPrivateKey = encryptString(sessionKey, pemPrivateKey)
+								}
 								data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
 								return serviceRequestVoid(SysService.BrandingDomainService,
 									(existingBrandingDomain) ? HttpMethod.PUT : HttpMethod.POST, data)

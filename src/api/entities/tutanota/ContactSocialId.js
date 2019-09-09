@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createContactSocialId(): ContactSocialId {
-	return create(_TypeModel)
+export function createContactSocialId(values?: $Shape<$Exact<ContactSocialId>>): ContactSocialId {
+	return Object.assign(create(_TypeModel, ContactSocialIdTypeRef), values)
 }

@@ -1,29 +1,42 @@
 // @flow
 import m from "mithril"
-import stream from 'mithril/stream/stream.js'
+import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
-import {Dialog} from "../gui/base/Dialog"
-import {CustomDomainStatusCode} from "../api/common/TutanotaConstants"
+import {Dialog, DialogType} from "../gui/base/Dialog"
+import {CustomDomainValidationResult, DnsRecordType, DnsRecordTypeToName} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {isDomainName} from "../misc/FormatValidator"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
+import {DomainDnsStatus} from "./DomainDnsStatus"
+import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {createDnsRecord} from "../api/entities/sys/DnsRecord"
 
 assertMainOrNode()
 
-export function show(customerInfo: CustomerInfo) {
+export function showAddDomainDialog(customerInfo: CustomerInfo, domainDnsStatus: {[key: string]: DomainDnsStatus}) {
 	const domainName: Stream<string> = stream("")
-	const domainNameAttrs: TextFieldAttrs = {
-		label: "adminCustomDomain_label",
-		value: domainName
-	}
+	let expectedValidationRecord = createDnsRecord();
+	expectedValidationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here
+	expectedValidationRecord.subdomain = null
+	expectedValidationRecord.value = "" // will be filled below very soon
+	worker.getDomainValidationRecord().then(recordValue => {
+		expectedValidationRecord.value = recordValue
+		m.redraw()
+	})
+
 	let dialog = Dialog.showActionDialog({
-		title: lang.get("addCustomDomain_action"),
+		type: DialogType.EditLarger,
+		title: () => lang.get("addCustomDomain_action"),
 		child: () => [
-			m(TextFieldN, domainNameAttrs),
-			m(".small", lang.get("adminCustomDomainInfo_msg")),
-			m(".small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))),
+			m(TextFieldN, {
+				label: "adminCustomDomain_label",
+				value: domainName,
+			}),
+			m(".mt-l", lang.get("addCustomDomainValidationRecord_msg")),
+			createDnsRecordTable([expectedValidationRecord])
 		],
 		okAction: () => {
 			let cleanDomainName = domainName().trim().toLowerCase()
@@ -32,30 +45,48 @@ export function show(customerInfo: CustomerInfo) {
 			} else if (customerInfo.domainInfos.find(info => info.domain === cleanDomainName)) {
 				Dialog.error("customDomainDomainAssigned_msg")
 			} else {
-				worker.addDomain(cleanDomainName).then(status => {
-					if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_OK) {
+				showProgressDialog("pleaseWait_msg", worker.addDomain(cleanDomainName).then(result => {
+					if (result.validationResult === CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_OK) {
 						dialog.close()
-					} else {
-						let errorMessageId
-						if (status.statusCode === CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED) {
-							errorMessageId = "customDomainErrorDnsLookupFailure_msg"
-						} else if (status.statusCode
-							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD) {
-							errorMessageId = "customDomainErrorInvalidDnsRecord_msg"
-						} else if (status.statusCode
-							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD) {
-							errorMessageId = "customDomainErrorMissingMxEntry_msg"
-						} else if (status.statusCode
-							=== CustomDomainStatusCode.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD) {
-							errorMessageId = "customDomainErrorMissingSpfEntry_msg"
-						} else {
-							errorMessageId = "customDomainErrorDomainNotAvailable_msg"
+						if (!domainDnsStatus[cleanDomainName]) {
+							domainDnsStatus[cleanDomainName] = new DomainDnsStatus(cleanDomainName)
+							return domainDnsStatus[cleanDomainName].loadCurrentStatus().then(() => {
+								if (!domainDnsStatus[cleanDomainName].areAllRecordsFine()) {
+									showDnsCheckDialog(domainDnsStatus[cleanDomainName])
+								}
+								return null
+							})
 						}
-						Dialog.error(() => lang.get(errorMessageId) + "\n"
-							+ status.invalidDnsRecords.map(r => r.value).join("\n"))
+						return null
+					} else {
+						let errorMessageMap = {}
+						errorMessageMap[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DNS_LOOKUP_FAILED] = "customDomainErrorDnsLookupFailure_msg"
+						errorMessageMap[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_FOUND] = "customDomainErrorDomainNotFound_msg"
+						errorMessageMap[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_NAMESERVER_NOT_FOUND] = "customDomainErrorNameserverNotFound_msg"
+						errorMessageMap[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_DOMAIN_NOT_AVAILABLE] = "customDomainErrorDomainNotAvailable_msg"
+						errorMessageMap[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_VALIDATION_FAILED] = "customDomainErrorValidationFailed_msg"
+						let errorMessage = () => lang.get(errorMessageMap[result.validationResult])
+							+ ((result.invalidDnsRecords.length > 0) ? " " + lang.get("customDomainErrorOtherTxtRecords_msg") + "\n"
+								+ result.invalidDnsRecords.map(r => r.value).join("\n") : "")
+						return errorMessage
+					}
+				})).then(message => {
+					if (message) {
+						Dialog.error(message)
 					}
 				})
 			}
-		}
+		},
+	}).setCloseHandler(() => {
+		dialog.close()
+	})
+}
+
+export function createDnsRecordTable(records: DnsRecord[]) {
+	return m(TableN, {
+		columnHeadingTextIds: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
+		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
+		showActionButtonColumn: false,
+		lines: records.map(r => ({cells: [DnsRecordTypeToName[r.type], (r.subdomain ? r.subdomain : "@"), r.value]}))
 	})
 }

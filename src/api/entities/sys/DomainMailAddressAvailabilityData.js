@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createDomainMailAddressAvailabilityData(): DomainMailAddressAvailabilityData {
-	return create(_TypeModel)
+export function createDomainMailAddressAvailabilityData(values?: $Shape<$Exact<DomainMailAddressAvailabilityData>>): DomainMailAddressAvailabilityData {
+	return Object.assign(create(_TypeModel, DomainMailAddressAvailabilityDataTypeRef), values)
 }

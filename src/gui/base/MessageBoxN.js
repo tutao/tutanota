@@ -11,7 +11,7 @@ export type MessageBoxAttrs = {|
 	label: TranslationKey | lazy<string>,
 	bgClass?: string,
 	marginTop?: number,
-	visible?: stream<boolean>
+	visible?: Stream<boolean>
 |}
 
 /**

@@ -4,7 +4,7 @@ import {assertMainOrNode, isIOSApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
@@ -48,7 +48,8 @@ import {
 	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
-	isWhitelabelActive, SubscriptionType
+	isWhitelabelActive,
+	SubscriptionType
 } from "./SubscriptionUtils"
 
 assertMainOrNode()
@@ -228,8 +229,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m(".h4.mt-l", lang.get('currentlyBooked_label')),
 				m(this._subscriptionField),
 				this._showPriceData() ? m(this._usageTypeField) : null,
-				((logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount())
-					&& this._accountingInfo && this._accountingInfo.business) ? m(this._orderAgreementField) : null,
+				this._showOrderAgreement() ? m(this._orderAgreementField) : null,
 				this._showPriceData() ? m(this._subscriptionIntervalField) : null,
 				this._showPriceData() ? m(this._currentPriceField) : null,
 				(this._showPriceData() && this._nextPeriodPriceVisible) ? m(this._nextPriceField) : null,
@@ -263,6 +263,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._subscriptionField.setValue(lang.get("loading_msg")).setDisabled()
 		this._updatePriceInfo()
 		this._updateBookings()
+	}
+
+	_showOrderAgreement(): boolean {
+		return (logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount())
+			&& (this._accountingInfo != null && this._accountingInfo.business
+				|| this._customer != null && (this._customer.orderProcessingAgreement != null || this._customer.orderProcessingAgreementNeeded))
 	}
 
 	_updateOrderProcessingAgreement(customer: Customer) {
@@ -339,8 +345,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateSubscriptionField(cancelled: boolean) {
 		let cancelledText = !cancelled ? "" : " "
 			+ lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)})
-		this._subscriptionField.setValue(_getAccountTypeName(logins.getUserController().user.accountType, this._isPro)
-			+ cancelledText).setDisabled()
+		const accountType: AccountTypeEnum = downcast(logins.getUserController().user.accountType)
+		this._subscriptionField.setValue(_getAccountTypeName(accountType, this._isPro) + cancelledText).setDisabled()
 	}
 
 	_updateBookings() {

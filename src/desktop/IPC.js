@@ -4,13 +4,13 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {neverNull} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
 import type {DesktopSseClient} from './DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
+import type {Socketeer} from "./Socketeer"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -20,16 +20,18 @@ export class IPC {
 	_sse: DesktopSseClient;
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
+	_sock: Socketeer;
 
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager, sock: Socketeer) {
 		this._conf = conf
 		this._sse = sse
 		this._wm = wm
 		this._notifier = notifier
+		this._sock = sock
 
 		this._initialized = []
 		this._queue = {}
@@ -49,10 +51,11 @@ export class IPC {
 				this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
 					if (w) {
-						w.findInPage(args)
+						w.findInPage(args).then(r => d.resolve(r))
+					} else {
+						d.resolve({numberOfMatches: 0, currentMatch: 0})
 					}
 				})
-				d.resolve()
 				break
 			case 'stopFindInPage':
 				this.initialized(windowId).then(() => {
@@ -133,7 +136,8 @@ export class IPC {
 				//first, send error report if there is one
 				err.sendErrorReport(windowId)
 				   .then(() => {
-					   const w = neverNull(this._wm.get(windowId))
+					   const w = this._wm.get(windowId)
+					   if (!w) return
 					   w.setUserInfo(uInfo)
 					   if (!w.isHidden()) {
 						   this._notifier.resolveGroupedNotification(uInfo.userId)
@@ -142,15 +146,27 @@ export class IPC {
 				   .then(() => d.resolve(this._sse.getPushIdentifier()))
 				break
 			case 'storePushIdentifierLocally':
-				this._sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString())
-				    .then(() => d.resolve())
+				this._sse.storePushIdentifier(
+					args[0].toString(),
+					args[1].toString(),
+					args[2].toString(),
+					args[3].toString(),
+					args[4].toString()
+				).then(() => d.resolve())
 				break
 			case 'initPushNotifications':
 				// no need to react, we start push service with node
 				d.resolve()
 				break
 			case 'closePushNotifications':
-				// TODO
+				// only gets called in the app
+				// the desktop client closes notifications on window focus
+				d.resolve()
+				break
+			case 'sendSocketMessage':
+				// for admin client integration
+				this._sock.sendSocketMessage(args[0])
+				d.resolve()
 				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))

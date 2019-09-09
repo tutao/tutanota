@@ -5,6 +5,7 @@ import {theme} from "../theme"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNodeBoot()
 
@@ -21,6 +22,9 @@ class Modal {
 		this.components = []
 		this.visible = false
 		this._uniqueComponent = null
+
+		// modal should never get removed, so not saving unsubscriber
+		windowFacade.addHistoryEventListener(e => this._popState(e))
 
 		this.view = (): VirtualElement => {
 			return m("#modal.fill-absolute", {
@@ -72,6 +76,35 @@ class Modal {
 		keyManager.registerModalShortcuts(component.shortcuts())
 	}
 
+	/**
+	 * notify components that a history state was popped. The Component Stack is notified from the top and the first
+	 * Component to return false will stop underlying components from receiving the notification.
+	 * Components that return true are expected to remove themselves from the Modal stack, eg dropdowns.
+	 * @param e: the DOM Event
+	 * @private
+	 */
+	_popState(e: Event): boolean {
+		console.log("modal popstate")
+		const len = this.components.length
+		if (len === 0) {
+			console.log("no modals")
+			return true // no modals to close
+		}
+		// get the keys because we're going to modify the component stack during iteration
+		const keys = this.components.map(c => c.key)
+		for (let i = len - 1; i >= 0; i--) {
+			const component = this._getComponentByKey(keys[i])
+			if (!component) {
+				console.log("component went AWOL, continuing");
+				continue
+			}
+			if (!component.popState(e)) {
+				console.log("component handled popstate")
+				return false
+			}
+		}
+		return true
+	}
 
 	/**
 	 * used for modal components that should only be opened once
@@ -84,6 +117,11 @@ class Modal {
 		}
 		this.display(component)
 		this._uniqueComponent = component
+	}
+
+	_getComponentByKey(key: number): ?ModalComponent {
+		const entry = this.components.find(c => c.key === key)
+		return entry && entry.component
 	}
 
 	remove(component: ModalComponent) {

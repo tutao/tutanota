@@ -6,10 +6,10 @@ import type {ApplicationWindow} from "./ApplicationWindow"
 import {neverNull} from "../api/common/utils/Utils"
 
 export type NotificationResultEnum = $Values<typeof NotificationResult>;
-export const NotificationResult = {
+export const NotificationResult = Object.freeze({
 	Click: 'click',
 	Close: 'close'
-}
+})
 
 export class DesktopNotifier {
 	_tray: DesktopTray;
@@ -22,7 +22,7 @@ export class DesktopNotifier {
 	 * signal that notifications can now be shown. also start showing notifications that came
 	 * in before this point
 	 */
-	start(tray: DesktopTray): void {
+	start(tray: DesktopTray, delay: number): void {
 		this._tray = tray
 
 		setTimeout(() => {
@@ -30,7 +30,7 @@ export class DesktopNotifier {
 			while (this.pendingNotifications.length > 0) {
 				(this.pendingNotifications.pop())()
 			}
-		}, 2000)
+		}, delay)
 	}
 
 	isAvailable(): boolean {
@@ -50,7 +50,7 @@ export class DesktopNotifier {
 		icon?: NativeImage
 	|}): Promise<NotificationResultEnum> {
 		if (!this.isAvailable()) {
-			return Promise.resolve()
+			return Promise.reject()
 		}
 		return this._canShow
 			? new Promise(resolve => this._makeNotification(props, res => resolve(res)))
@@ -62,13 +62,24 @@ export class DesktopNotifier {
 		if ('function' === typeof this._notificationCloseFunctions[id]) { // close previous notification for this id
 			this._notificationCloseFunctions[id]()
 		}
-		this._notificationCloseFunctions[id] = this._makeNotification({
-			title: title,
-			body: message,
-			icon: DesktopTray.getIcon(),
-		}, onClick)
 
-		this._tray.update()
+		const showIt = () => {
+			if (!this.isAvailable()) {
+				return
+			}
+			this._notificationCloseFunctions[id] = this._makeNotification({
+				title: title,
+				body: message,
+				icon: this._tray.getIcon(),
+			}, onClick)
+			this._tray.update()
+		}
+
+		if (this._canShow) {
+			showIt()
+		} else {
+			this.pendingNotifications.push(showIt)
+		}
 	}
 
 	resolveGroupedNotification(id: ?string) {
@@ -77,7 +88,6 @@ export class DesktopNotifier {
 			this._tray.update()
 		}
 		delete this._notificationCloseFunctions[id]
-
 	}
 
 	hasNotificationsForWindow(w: ApplicationWindow): boolean {

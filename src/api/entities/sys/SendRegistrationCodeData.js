@@ -20,9 +20,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createSendRegistrationCodeData(): SendRegistrationCodeData {
-	return create(_TypeModel)
+export function createSendRegistrationCodeData(values?: $Shape<$Exact<SendRegistrationCodeData>>): SendRegistrationCodeData {
+	return Object.assign(create(_TypeModel, SendRegistrationCodeDataTypeRef), values)
 }

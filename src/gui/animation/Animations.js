@@ -6,7 +6,7 @@ import {downcast} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
-declare function EasingFunction(percent: number): number;
+declare type EasingFunction = (percent: number) => number;
 
 export type DomMutation = {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void;
@@ -16,7 +16,7 @@ type DomTransform = {
 	chain(type: TransformEnum, begin: number, end: number): DomTransform;
 }
 type AlphaEnum = 'backgroundColor' | 'color'
-type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ'
+type TransformEnum = 'translateX' | 'translateY' | 'rotateY' | 'rotateZ' | 'scale'
 type TransformValues = {
 	[key: TransformEnum]: {begin: number, end: number}
 }
@@ -166,6 +166,7 @@ transform.type = {
 	translateY: 'translateY', // movement along Y-Axis
 	rotateY: 'rotateY', // rotates an element
 	rotateZ: 'rotateZ', // rotates an element
+	scale: 'scale'
 }
 
 export function scroll(begin: number, end: number): DomMutation {
@@ -181,6 +182,7 @@ const TransformUnits = {
 	[transform.type.translateY]: 'px',
 	[transform.type.rotateY]: 'deg',
 	[transform.type.rotateZ]: 'deg',
+	[transform.type.scale]: ''
 }
 
 function buildTransformString(values: TransformValues, percent: number, easing: EasingFunction) {

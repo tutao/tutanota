@@ -84,7 +84,6 @@ function prepareAssets() {
 
 function startDesktop() {
 	if (options.desktop) {
-		console.log("Building desktop client...")
 		console.log("Trying to start desktop client...")
 		const packageJSON = require('./buildSrc/electron-package-json-template.js')(
 			"",
@@ -129,9 +128,10 @@ function createHtml(env) {
 			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
-			`System.import("src/system-resolve.js").then(function() { System.import('src/bootstrapHotReload.js') })`
+			`System.import("src/system-resolve.js")`
+			+ (options.watch ? `.then(function() { System.import('src/bootstrapHotReload.js') })` : `;System.import('src/app.js')`)
 		].join("\n")),
-		_writeFile(`./build/${filenamePrefix}.html`, LaunchHtml.renderHtml(imports, env))
+		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/${filenamePrefix}.html`, content))
 	])
 }
 

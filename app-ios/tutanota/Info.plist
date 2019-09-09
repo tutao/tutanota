@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.47.2</string>
+	<string>3.59.9</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -32,7 +32,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.47.2</string>
+	<string>3.59.9</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -53,7 +53,7 @@
 	<key>NSRemindersUsageDescription</key>
 	<string>Shows notification when new email arrives.</string>
 	<key>TutanotaApplicationPath</key>
-	<string>build/</string>
+	<string>build/dist/</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ionicons.ttf</string>

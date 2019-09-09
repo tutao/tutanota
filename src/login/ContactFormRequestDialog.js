@@ -84,10 +84,14 @@ export class ContactFormRequestDialog {
 			.setValue(lang.get("optionalValues_label"))
 
 		worker.createContactFormUserGroupData()
-
+		let windowCloseUnsubscribe
 		this.view = () => {
 			return m("#mail-editor.text.pb", {
-				oncreate: vnode => this._domElement = vnode.dom,
+				oncreate: vnode => {
+					this._domElement = vnode.dom
+					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
+				},
+				onremove: vnode => windowCloseUnsubscribe(),
 				ondragover: (ev) => {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
@@ -185,11 +189,9 @@ export class ContactFormRequestDialog {
 
 	show() {
 		this._dialog.show()
-		windowFacade.checkWindowClosing(true)
 	}
 
 	_close() {
-		windowFacade.checkWindowClosing(false)
 		this._dialog.close()
 	}
 

@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createFeature(): Feature {
-	return create(_TypeModel)
+export function createFeature(values?: $Shape<$Exact<Feature>>): Feature {
+	return Object.assign(create(_TypeModel, FeatureTypeRef), values)
 }

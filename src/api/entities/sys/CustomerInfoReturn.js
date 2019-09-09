@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createCustomerInfoReturn(): CustomerInfoReturn {
-	return create(_TypeModel)
+export function createCustomerInfoReturn(values?: $Shape<$Exact<CustomerInfoReturn>>): CustomerInfoReturn {
+	return Object.assign(create(_TypeModel, CustomerInfoReturnTypeRef), values)
 }

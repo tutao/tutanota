@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createInboxRule(): InboxRule {
-	return create(_TypeModel)
+export function createInboxRule(values?: $Shape<$Exact<InboxRule>>): InboxRule {
+	return Object.assign(create(_TypeModel, InboxRuleTypeRef), values)
 }

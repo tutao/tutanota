@@ -34,6 +34,24 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"listElementApplication": {
+			"name": "listElementApplication",
+			"id": 1524,
+			"since": 46,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"listElementTypeId": {
+			"name": "listElementTypeId",
+			"id": 1523,
+			"since": 46,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"ops": {"name": "ops", "id": 140, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"symEncSessionKey": {
 			"name": "symEncSessionKey",
@@ -68,9 +86,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createPermission(): Permission {
-	return create(_TypeModel)
+export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {
+	return Object.assign(create(_TypeModel, PermissionTypeRef), values)
 }

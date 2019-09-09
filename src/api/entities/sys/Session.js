@@ -54,9 +54,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createSession(): Session {
-	return create(_TypeModel)
+export function createSession(values?: $Shape<$Exact<Session>>): Session {
+	return Object.assign(create(_TypeModel, SessionTypeRef), values)
 }

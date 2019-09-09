@@ -3,6 +3,7 @@ import m from "mithril"
 import type {DomMutation} from "../animation/Animations"
 import {animations, hexToRgb} from "../animation/Animations"
 import {theme} from "../theme"
+import {requiresStatusBarHack} from "../main-styles"
 
 export type PositionRect = {
 	top?: ?string,
@@ -22,11 +23,12 @@ type OverlayAttrs = {
 	closeAnimation?: AnimationProvider;
 }
 
-const overlays: Array<[OverlayAttrs, ?HTMLElement]> = []
+const overlays: Array<[OverlayAttrs, ?HTMLElement, number]> = []
 const boxShadow = (() => {
 	const {r, g, b} = hexToRgb(theme.modal_bg)
 	return `0 2px 12px rgba(${r}, ${g}, ${b}, 0.4), 0 10px 40px rgba(${r}, ${g}, ${b}, 0.3)`
 })()
+let key = 0
 
 export function displayOverlay(position: PositionRect, component: Component, createAnimation?: AnimationProvider,
                                closeAnimation?: AnimationProvider): () => void {
@@ -36,7 +38,7 @@ export function displayOverlay(position: PositionRect, component: Component, cre
 		createAnimation,
 		closeAnimation
 	}
-	const pair = [newAttrs, null]
+	const pair = [newAttrs, null, key++]
 	overlays.push(pair)
 	return () => {
 		const dom = pair[1];
@@ -53,9 +55,10 @@ export const overlay = {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
 		}
-	}, overlays.map((pair) => {
-		const [attrs] = pair
+	}, overlays.map((overlayAttrs) => {
+		const [attrs, dom, key] = overlayAttrs
 		return m(".abs.list-bg", {
+			key,
 			style: {
 				width: attrs.position.width,
 				top: attrs.position.top,
@@ -65,15 +68,16 @@ export const overlay = {
 				height: attrs.position.height,
 				'z-index': 200,
 				'box-shadow': boxShadow,
+				'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X
 			},
 			oncreate: (vnode: Vnode<any>) => {
-				pair[1] = vnode.dom
+				overlayAttrs[1] = vnode.dom
 				if (attrs.createAnimation) {
 					animations.add(vnode.dom, attrs.createAnimation(vnode.dom))
 				}
 			},
 			onremove: () => {
-				pair[1] = null
+				overlayAttrs[1] = null
 			}
 		}, m(attrs.component))
 	}))

@@ -1,6 +1,5 @@
 // @flow
 import {lang} from "./LanguageViewModel"
-import {pad} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
@@ -9,6 +8,14 @@ import {isMailAddress} from "./FormatValidator"
 
 assertMainOrNode()
 
+
+export function formatMonthWithYear(date: Date): string {
+	return lang.formats.monthWithYear.format(date)
+}
+
+export function formatMonthWithFullYear(date: Date): string {
+	return lang.formats.monthWithFullYear.format(date)
+}
 
 export function formatDate(date: Date): string {
 	return lang.formats.simpleDate.format(date)
@@ -37,7 +44,7 @@ export function formatDateTimeFromYesterdayOn(date: Date): string {
 	} else {
 		dateString = formatDateWithWeekday(date)
 	}
-	return (dateString + " " + pad(date.getHours(), 2) + ":" + pad(date.getMinutes(), 2)).trim()
+	return (dateString + " " + formatTime(date)).trim()
 }
 
 export function formatTime(date: Date): string {
@@ -46,6 +53,35 @@ export function formatTime(date: Date): string {
 
 export function formatDateTime(date: Date): string {
 	return lang.formats.dateTime.format(date)
+}
+
+export function formatDateTimeShort(date: Date): string {
+	return lang.formats.dateTimeShort.format(date)
+}
+
+export function formatDateWithWeekdayAndTime(date: Date): string {
+	return lang.formats.dateWithWeekdayAndTime.format(date)
+}
+
+export function formatDateWithTimeIfNotEven(date: Date): string {
+	if (date.getHours() === 0 && date.getMinutes() === 0 // If it's beginning of the day
+		|| date.getHours() === 23 && date.getMinutes() === 59 && date.getSeconds() === 59) { // or the end of the day
+		return formatDate(date)
+	} else {
+		return formatDateTimeShort(date)
+	}
+}
+
+export function formatWeekdayShort(date: Date): string {
+	return lang.formats.weekdayShort.format(date)
+}
+
+export function formatWeekdayNarrow(date: Date): string {
+	return lang.formats.weekdayNarrow.format(date)
+}
+
+export function dateWithWeekdayWoMonth(date: Date): string {
+	return lang.formats.dateWithWeekdayWoMonth.format(date)
 }
 
 /**
@@ -223,7 +259,6 @@ export function stringToNameAndMailAddress(string: string): ?{name: string, mail
 		return {name: name, mailAddress: cleanedMailAddress}
 	}
 }
-
 
 /**
  * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters

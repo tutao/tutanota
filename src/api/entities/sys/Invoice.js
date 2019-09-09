@@ -67,9 +67,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createInvoice(): Invoice {
-	return create(_TypeModel)
+export function createInvoice(values?: $Shape<$Exact<Invoice>>): Invoice {
+	return Object.assign(create(_TypeModel, InvoiceTypeRef), values)
 }

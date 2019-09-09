@@ -102,9 +102,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createGroup(): Group {
-	return create(_TypeModel)
+export function createGroup(values?: $Shape<$Exact<Group>>): Group {
+	return Object.assign(create(_TypeModel, GroupTypeRef), values)
 }

@@ -4,6 +4,7 @@ import m from "mithril"
 import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
 import {LoginView} from "../login/LoginView"
+import {ColumnType} from "../gui/base/ViewColumn"
 
 assertMainOrNode()
 
@@ -21,12 +22,22 @@ export function handleBackPress(): boolean {
 	} else { // otherwise try to navigate back in the current view
 		const viewSlider = window.tutao.header._getViewSlider()
 		const currentRoute = m.route.get()
-		if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back
-			viewSlider.focusPreviousColumn()
+		// If the sidebar is opened, close it
+		if (viewSlider && viewSlider.focusedColumn && viewSlider.focusedColumn.columnType === ColumnType.Foreground
+			&& viewSlider.focusedColumn === viewSlider.columns[0]) {
+			viewSlider.focusNextColumn()
+			return true
+		} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
 			return true
 		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
-			|| currentRoute.startsWith("/search")) {
+			|| currentRoute.startsWith("/search") || currentRoute.startsWith("/calendar")) { // go back to mail from other paths
 			m.route.set(window.tutao.header.mailNavButton._getUrl())
+			return true
+		} else if (viewSlider && viewSlider.columns.filter(column => column.columnType === ColumnType.Background).indexOf(viewSlider.focusedColumn) === 0) {
+			// If the first background column is visible, quit
+			return false
+		} else if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back
+			viewSlider.focusPreviousColumn()
 			return true
 		} else if (m.route.get().startsWith("/mail/")) {
 			const parts = m.route.get().split("/").filter(part => part !== "")

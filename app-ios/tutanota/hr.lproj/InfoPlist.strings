@@ -1,10 +1,13 @@
+NSCameraUsageDescription = "Snimite fotografiju ili videozapis za dodavanje kao privitak.";
 NSPhotoLibraryUsageDescription = "Dodajte sliku iz Vaše zbirke kao dodatak.";
-NSPhotoLibraryAddUsageDescription = "Dodajte sliku iz Vaše zbirke kao dodatak.";
+NSMicrophoneUsageDescription = "Dodajte sliku iz Vaše zbirke kao dodatak.";
 NSMicrophoneUsageDescription = "Koristi se prilikom snimanja video privitka.";
 NSContactsUsageDescription = "Nađi email adresu primatelja u kontaktima.";
 NSRemindersUsageDescription = "Prikaz obavijesti kad stigne novi email.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Slike";
 TutaoNoPermissionTitle = "Nema odobrenja";
+TutaoChangePermissionMsg = "Da biste odobrili pristup, morate izmijeniti dopuštenja za ovaj uređaj.";
 TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";
+TutaoCalendarAlarmTitle = "Podsjetnik";

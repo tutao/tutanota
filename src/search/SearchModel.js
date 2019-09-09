@@ -5,7 +5,6 @@ import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {NOTHING_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
-import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {DbError} from "../api/common/error/DbError"
 
 assertMainOrNode()
@@ -14,21 +13,19 @@ export class SearchModel {
 	result: Stream<?SearchResult>;
 	indexState: Stream<SearchIndexStateInfo>;
 	lastQuery: Stream<?string>;
+	indexingSupported: boolean;
 
 	constructor() {
 		this.result = stream()
 		this.lastQuery = stream("")
+		this.indexingSupported = true
 		this.indexState = stream({
 			initializing: true,
-			indexingSupported: true,
 			mailIndexEnabled: false,
 			progress: 0,
-			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP
-		})
-		this.indexState.map(state => {
-			if (state && !state.indexingSupported) {
-				throw new IndexingNotSupportedError()
-			}
+			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+			indexedMailCount: 0,
+			failedIndexingUpTo: null
 		})
 	}
 
@@ -45,12 +42,15 @@ export class SearchModel {
 		}
 		if (query.trim() === "") {
 			// if there was an empty query, just send empty result
-			const result = {
+			const result: SearchResult = {
 				query: query,
 				restriction: restriction,
 				results: [],
 				currentIndexTimestamp: this.indexState().currentMailIndexTimestamp,
-				moreResultsEntries: []
+				lastReadSearchIndexRow: [],
+				maxResults: 0,
+				matchWordOrder: false,
+				moreResults: []
 			}
 			this.result(result)
 			return Promise.resolve(result)
@@ -60,7 +60,6 @@ export class SearchModel {
 				return result
 			}).catch(DbError, (e) => {
 				console.log("DBError while search", e)
-				const lastQuery = this.lastQuery()
 				if (isSameTypeRef(MailTypeRef, restriction.type) && !this.indexState().mailIndexEnabled) {
 					console.log("Mail indexing was disabled, ignoring DBError")
 					this.result(null)
@@ -88,4 +87,9 @@ export class SearchModel {
 			|| restriction.field !== result.restriction.field
 			|| restriction.listId !== result.restriction.listId
 	}
+}
+
+export function hasMoreResults(searchResult: SearchResult): boolean {
+	return searchResult.moreResults.length > 0
+		|| searchResult.lastReadSearchIndexRow.length > 0 && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0)
 }

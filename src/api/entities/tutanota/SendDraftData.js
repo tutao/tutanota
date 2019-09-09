@@ -75,9 +75,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createSendDraftData(): SendDraftData {
-	return create(_TypeModel)
+export function createSendDraftData(values?: $Shape<$Exact<SendDraftData>>): SendDraftData {
+	return Object.assign(create(_TypeModel, SendDraftDataTypeRef), values)
 }

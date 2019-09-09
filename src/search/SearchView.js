@@ -8,7 +8,8 @@ import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, Opera
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
-import {NavButton, NavButtonColors} from "../gui/base/NavButton"
+import type {NavButtonAttrs} from "../gui/base/NavButtonN"
+import {isNavButtonSelected, NavButtonColors, NavButtonN} from "../gui/base/NavButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -25,7 +26,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
-import {formatDateWithMonth} from "../misc/Formatter"
+import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
@@ -37,6 +38,8 @@ import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {worker} from "../api/main/WorkerClient"
+import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
@@ -51,8 +54,8 @@ export class SearchView implements CurrentView {
 	oncreate: Function;
 	onbeforeremove: Function;
 
-	_mailFolder: NavButton;
-	_contactFolder: NavButton;
+	_mailFolder: NavButtonAttrs;
+	_contactFolder: NavButtonAttrs;
 	_time: TextField;
 	_endDate: ?Date; // null = today
 	_startDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
@@ -62,10 +65,19 @@ export class SearchView implements CurrentView {
 	_doNotUpdateQuery: boolean;
 
 	constructor() {
-		this._mailFolder = new NavButton('emails_label', () => BootIcons.Mail, () => this._getCurrentSearchUrl("mail", null), "/search/mail")
-			.setColors(NavButtonColors.Nav)
-		this._contactFolder = new NavButton('contacts_label', () => BootIcons.Contacts, () => "/search/contact", "/search/contact")
-			.setColors(NavButtonColors.Nav)
+		this._mailFolder = {
+			label: "emails_label",
+			icon: () => BootIcons.Mail,
+			href: () => this._getCurrentSearchUrl("mail", null),
+			isSelectedPrefix: "/search/mail",
+			colors: NavButtonColors.Nav,
+		}
+		this._contactFolder = {
+			label: "contacts_label",
+			icon: () => BootIcons.Contacts,
+			href: "/search/contact",
+			colors: NavButtonColors.Nav,
+		}
 
 		this._endDate = null
 		this._startDate = null
@@ -88,7 +100,6 @@ export class SearchView implements CurrentView {
 						} else {
 							this._startDate = dates.start
 						}
-
 						this._searchAgain()
 					})
 			}
@@ -148,26 +159,32 @@ export class SearchView implements CurrentView {
 		})
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+			view: () => m(".folder-column.scroll.overflow-x-hidden", {
+				style: {
+					paddingLeft: getSafeAreaInsetLeft()
+				}
+			}, [
 				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
 					m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
 						lang.get("search_label").toLocaleUpperCase())
 				]),
 				m(".folders", [
-					m(".folder-row.plr-l", {class: this._mailFolder.isSelected() ? "row-selected" : ""}, m(this._mailFolder)),
-					m(".folder-row.plr-l", {class: this._contactFolder.isSelected() ? "row-selected" : ""}, m(this._contactFolder)),
+					m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
+					m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
 				]),
-				this._mailFolder.isSelected() ? m("", [
-					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-							lang.get("filter_label").toLocaleUpperCase())
-					]),
-					m(".plr-l.mt-negative-s", [
-						m(this._getUpdatedTimeField()),
-						m(this._mailFieldSelection),
-						m(this._mailFolderSelection),
+				isNavButtonSelected(this._mailFolder)
+					? m("", [
+						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+								lang.get("filter_label").toLocaleUpperCase())
+						]),
+						m(".plr-l.mt-negative-s", [
+							m(this._getUpdatedTimeField()),
+							m(this._mailFieldSelection),
+							m(this._mailFolderSelection),
+						])
 					])
-				]) : null
+					: null
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
 
@@ -225,19 +242,19 @@ export class SearchView implements CurrentView {
 			start = formatDateWithMonth(getFreeSearchStartDate())
 		} else {
 			if (this._endDate) {
-				end = formatDateWithMonth(this._endDate)
+				end = formatDateWithTimeIfNotEven(this._endDate)
 			} else {
 				end = lang.get("today_label")
 			}
 			if (this._startDate) {
-				start = formatDateWithMonth(this._startDate)
+				start = formatDateWithTimeIfNotEven(this._startDate)
 			} else {
 				let currentIndexDate = this._getCurrentMailIndexDate()
 				if (currentIndexDate) {
 					if (isSameDay(currentIndexDate, new Date())) {
 						start = lang.get("today_label")
 					} else {
-						start = formatDateWithMonth(currentIndexDate)
+						start = formatDateWithTimeIfNotEven(currentIndexDate)
 					}
 				} else {
 					start = lang.get("unlimited_label")
@@ -254,10 +271,13 @@ export class SearchView implements CurrentView {
 	_searchAgain(): void {
 		// only run the seach if all stream observers are initialized
 		if (!this._doNotUpdateQuery) {
-			if (this._startDate && this._startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
+			const startDate = this._startDate
+			if (startDate && startDate.getTime() < locator.search.indexState().currentMailIndexTimestamp) {
 				Dialog.confirm("continueSearchMailbox_msg", "search_label").then(confirmed => {
 					if (confirmed) {
-						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						worker.extendMailIndex(startDate.getTime()).then(() => {
+							setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						})
 					}
 				})
 			} else {
@@ -285,7 +305,18 @@ export class SearchView implements CurrentView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.K,
+				exec: () => this._searchList.selectPrevious(false),
+				help: "selectPrevious_action"
+			},
+			{
 				key: Keys.UP,
+				shift: true,
+				exec: () => this._searchList.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
+				key: Keys.K,
 				shift: true,
 				exec: () => this._searchList.selectPrevious(true),
 				help: "addPrevious_action"
@@ -296,7 +327,18 @@ export class SearchView implements CurrentView {
 				help: "selectNext_action"
 			},
 			{
+				key: Keys.J,
+				exec: () => this._searchList.selectNext(false),
+				help: "selectNext_action"
+			},
+			{
 				key: Keys.DOWN,
+				shift: true,
+				exec: () => this._searchList.selectNext(true),
+				help: "addNext_action"
+			},
+			{
+				key: Keys.J,
 				shift: true,
 				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"

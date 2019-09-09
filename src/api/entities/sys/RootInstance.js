@@ -20,9 +20,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createRootInstance(): RootInstance {
-	return create(_TypeModel)
+export function createRootInstance(values?: $Shape<$Exact<RootInstance>>): RootInstance {
+	return Object.assign(create(_TypeModel, RootInstanceTypeRef), values)
 }

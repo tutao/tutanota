@@ -1,5 +1,8 @@
 //@flow
 
+import {identity, neverNull} from "./Utils"
+import {getFromMap} from "./MapUtils"
+
 export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
@@ -51,7 +54,7 @@ export function arrayHash(array: Uint8Array): number {
  * @param elementToRemove The element to remove from the array.
  * @return True if the element was removed, false otherwise.
  */
-export function remove(theArray: Array<any>, elementToRemove: any): boolean {
+export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 	let i = theArray.indexOf(elementToRemove)
 	if (i !== -1) {
 		theArray.splice(i, 1)
@@ -61,13 +64,30 @@ export function remove(theArray: Array<any>, elementToRemove: any): boolean {
 	}
 }
 
-export function findAndRemove(theArray: Array<any>, finder: finder): boolean {
-	let e = theArray.find(finder)
-	if (e) {
-		return remove(theArray, e)
+/**
+ * @param theArray
+ * @param finder
+ * @return {boolean} if the element was found
+ */
+export function findAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	const index = theArray.findIndex(finder)
+	if (index !== -1) {
+		theArray.splice(index, 1)
+		return true
 	} else {
 		return false
 	}
+}
+
+export function findAllAndRemove<T>(theArray: Array<T>, finder: finder<T>): boolean {
+	var removedElement = false
+	for (var i = theArray.length - 1; i >= 0; i--) {
+		if (finder(theArray[i])) {
+			theArray.splice(i, 1)
+			removedElement = true
+		}
+	}
+	return removedElement
 }
 
 export function replace(theArray: Array<any>, oldElement: any, newElement: any): boolean {
@@ -96,12 +116,36 @@ export function mapAndFilterNull<T, R>(theArray: Array<T>, mapper: mapper<T, R>)
  * @param theArray The array.
  * @return The last element of the array.
  */
-export function last(theArray: Array<any>): ?any {
-	if (theArray.length === 0) {
-		return null;
-	} else {
-		return theArray[theArray.length - 1];
+export function last<T>(theArray: $ReadOnlyArray<T>): ?T {
+	return theArray[theArray.length - 1];
+}
+
+export function isEmpty<T>(array: $ReadOnlyArray<T>): boolean {
+	return array.length === 0
+}
+
+export function lastThrow<T>(array: $ReadOnlyArray<T>): T {
+	if (isEmpty(array)) {
+		throw new RangeError("Array is empty")
 	}
+	return neverNull(last(array))
+}
+
+export function findLast<T>(array: Array<T>, predicate: (T) => boolean): ?T {
+	const index = findLastIndex(array, predicate)
+	if (index !== -1) {
+		return array[index]
+	}
+	return null
+}
+
+export function findLastIndex<T>(array: Array<T>, predicate: (T) => boolean): number {
+	for (let i = array.length - 1; i >= 0; i--) {
+		if (predicate(array[i])) {
+			return i
+		}
+	}
+	return -1
 }
 
 export function contains(theArray: Array<any>, elementToCheck: any): boolean {
@@ -118,15 +162,17 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
 	})
 }
 
-export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
+export function groupByAndMap<T, R, E>(iterable: Iterable<T>, separator: (T) => R, mapper: (T) => E): Map<R, Array<E>> {
 	const map = new Map()
 	for (let el of iterable) {
 		const key = separator(el)
-		const list = map.get(key) || []
-		list.push(el)
-		map.set(key, list)
+		getFromMap(map, key, () => []).push(mapper(el))
 	}
 	return map
+}
+
+export function groupBy<T, R>(iterable: Iterable<T>, separator: (T) => R): Map<R, Array<T>> {
+	return groupByAndMap(iterable, separator, identity)
 }
 
 export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Array<T>> {
@@ -150,4 +196,21 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 		acc.push(...val)
 		return acc
 	}, [])
+}
+
+export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator: (left: T, right: T) => number) {
+	if (array.length === 0) {
+		array.push(element)
+	} else if (comparator(element, lastThrow(array)) >= 0) {
+		array.push(element)
+	} else {
+		for (let i = 0; i < array.length; i++) {
+			const compareResult = comparator(element, array[i])
+			if (compareResult < 0) {
+				array.splice(i, 0, element)
+				return
+			}
+		}
+		array.push(element)
+	}
 }

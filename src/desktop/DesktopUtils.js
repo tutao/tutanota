@@ -7,6 +7,7 @@ import fs from "fs-extra"
 import crypto from 'crypto'
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
+import {JsonTypeError} from "../api/common/error/JsonTypeError"
 
 export default class DesktopUtils {
 
@@ -37,7 +38,7 @@ export default class DesktopUtils {
 	 * there are tests for this function.
 	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
-	static nonClobberingFileName(files: Array<string>, fileName: string): string {
+	static nonClobberingFilename(files: Array<string>, fileName: string): string {
 		const clashingFile = files.find(f => f === fileName)
 		if (typeof clashingFile !== "string") { // all is well
 			return fileName
@@ -115,6 +116,31 @@ export default class DesktopUtils {
 					: Promise.reject()
 			default:
 				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
+		}
+	}
+
+	// typecheck obj recursively
+	// arrays must contain elements of uniform type
+	// see DesktopUtilsTest.js for usage
+	static checkDataFormat(obj: any, pattern: any): void {
+		if (typeof pattern.type === 'string') { // pattern is type def
+			if (!["boolean", "string", "number"].includes(pattern.type)) throw new JsonTypeError("invalid type def")
+			if (
+				(!(pattern.optional && (typeof obj === "undefined" || obj === null)) && pattern.type !== typeof obj)
+				|| (pattern.assert && !pattern.assert(obj))
+
+			) {
+				throw new JsonTypeError(`invalid type or assertion failed`)
+			}
+		} else if (Array.isArray(pattern)) { // pattern defines array type
+			if (pattern.length === 1 && typeof pattern[0] === 'object') {
+				if (!Array.isArray(obj)) throw new JsonTypeError(`invalid type, is not array`)
+				obj.forEach(v => DesktopUtils.checkDataFormat(v, pattern[0]))
+			} else {
+				throw new JsonTypeError(`wrong number of element patterns`)
+			}
+		} else { // nested object, check keys recursively
+			Object.keys(pattern).forEach(k => DesktopUtils.checkDataFormat(obj[k], pattern[k]))
 		}
 	}
 }

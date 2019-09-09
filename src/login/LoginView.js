@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
@@ -42,6 +43,7 @@ export class LoginView {
 	onremove: Function;
 	permitAutoLogin: boolean;
 	_showingSignup: boolean;
+	_formsUpdateStream: ?Stream<*>;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -49,9 +51,11 @@ export class LoginView {
 
 		this.mailAddress = new TextField('mailAddress_label')
 			.setType(Type.Email)
+		this.mailAddress.autocomplete = "username"
 		this.helpText = lang.get('emptyString_msg')
 		this.password = new TextField("password_label")
 			.setType(Type.Password)
+		this.password.autocomplete = "password"
 		this.savePassword = new Checkbox(() => lang.get("storePassword_action"), () => lang.get("onlyPrivateComputer_msg"))
 		if (!client.localStorage()) {
 			this.savePassword.setDisabled("functionNotSupported_msg")
@@ -142,10 +146,25 @@ export class LoginView {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
+			// it only sends one input/change event for all fields so we didn't know if fields
+			// were updated. So we kindly ask our fields to update themselves with real DOM values.
+			this._formsUpdateStream = stream.combine(() => {
+				requestAnimationFrame(() => {
+					this.mailAddress.updateValue()
+					this.password.updateValue()
+				})
+			}, [this.mailAddress.value, this.password.value])
+		}
 		this.onremove = () => {
 			this.password.value("")
 			keyManager.unregisterShortcuts(shortcuts)
+
+			if (this._formsUpdateStream) {
+				this._formsUpdateStream.end(true)
+			}
 		}
 	}
 
@@ -287,7 +306,7 @@ export class LoginView {
 	_signup() {
 		if (!this._showingSignup) {
 			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard()), false).then(dialog => dialog.show())
+			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard())).then(dialog => dialog.show())
 		}
 	}
 
@@ -303,6 +322,8 @@ export class LoginView {
 
 		if (args.requestedPath) {
 			this._requestedPath = args.requestedPath
+		} else if (args.action) {
+			this._requestedPath = this.targetPath + `?action=${args.action}`
 		} else {
 			this._requestedPath = this.targetPath
 		}

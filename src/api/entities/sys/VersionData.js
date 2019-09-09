@@ -20,9 +20,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createVersionData(): VersionData {
-	return create(_TypeModel)
+export function createVersionData(values?: $Shape<$Exact<VersionData>>): VersionData {
+	return Object.assign(create(_TypeModel, VersionDataTypeRef), values)
 }

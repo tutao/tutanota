@@ -31,9 +31,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createContactFormLanguage(): ContactFormLanguage {
-	return create(_TypeModel)
+export function createContactFormLanguage(values?: $Shape<$Exact<ContactFormLanguage>>): ContactFormLanguage {
+	return Object.assign(create(_TypeModel, ContactFormLanguageTypeRef), values)
 }

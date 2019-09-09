@@ -85,8 +85,11 @@ export class WizardDialog<T> {
 			right: [nextButtonAttrs],
 			middle: () => this._currentPage.headerTitle()
 		}
-
-		this.view = () => m("#wizardDialogContent.pt", [
+		let windowCloseUnsubscribe
+		this.view = () => m("#wizardDialogContent.pt", {
+				oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+				onremove: vnode => windowCloseUnsubscribe(),
+			}, [
 				m("#wizard-paging.flex-space-around.border-top", {
 					style: {
 						height: "22px",
@@ -144,12 +147,10 @@ export class WizardDialog<T> {
 
 	show() {
 		this.dialog.show()
-		windowFacade.checkWindowClosing(true)
 	}
 
 	_close() {
 		this._closeAction().then(() => {
-			windowFacade.checkWindowClosing(false)
 			this.dialog.close()
 		})
 	}

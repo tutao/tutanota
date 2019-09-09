@@ -274,9 +274,8 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 
 		let encryptedFilePath = [encryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
 		let iv = [self generateIv];
-		let aesFacade = [TUTAes128Facade new];
 		let plainTextData = [NSData dataWithContentsOfFile:filePath];
-		let outputData = [aesFacade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
+		let outputData = [TUTAes128Facade encrypt:plainTextData withKey:keyData withIv:iv withMac:YES error:&error];
 		let resultDict = @{
 			@"uri": encryptedFilePath,
 			@"unencSize": [NSString stringWithFormat:@"%lu", (unsigned long)plainTextData.length]
@@ -316,8 +315,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 		let fileData = [[NSFileManager defaultManager] contentsAtPath:filePath];
 		let plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
 
-		TUTAes128Facade *aesFacade = [TUTAes128Facade new];
-		let plainTextData = [aesFacade decrypt:fileData withKey:key error:&error];
+		let plainTextData = [TUTAes128Facade decrypt:fileData withKey:key error:&error];
 		if (error) {
 			completion(nil, [TUTErrorFactory wrapCryptoErrorWithMessage:@"Failed to AES decrypt file" error:error]);
 			return;

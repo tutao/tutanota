@@ -24,6 +24,15 @@ export const _TypeModel: TypeModel = {
 		"userEncClientKey": {"name": "userEncClientKey", "id": 89, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
 		"verifier": {"name": "verifier", "id": 91, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	}, "associations": {
+		"alarmInfoList": {
+			"name": "alarmInfoList",
+			"id": 1552,
+			"since": 48,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "UserAlarmInfoListType",
+			"final": false
+		},
 		"auth": {"name": "auth", "id": 1210, "since": 23, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "UserAuthentication", "final": true},
 		"authenticatedDevices": {
 			"name": "authenticatedDevices",
@@ -95,9 +104,9 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "sys", "version": "43"
+	}, "app": "sys", "version": "50"
 }
 
-export function createUser(): User {
-	return create(_TypeModel)
+export function createUser(values?: $Shape<$Exact<User>>): User {
+	return Object.assign(create(_TypeModel, UserTypeRef), values)
 }

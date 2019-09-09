@@ -7,6 +7,7 @@ let version = require('./package.json').version
 const env = require('./buildSrc/env.js')
 const LaunchHtml = require('./buildSrc/LaunchHtml.js')
 const spawnSync = require('child_process').spawnSync
+const desktopSigner = require('./buildSrc/installerSigner.js')
 
 const glob = require('glob')
 const path = require("path")
@@ -46,7 +47,7 @@ options
 	.option('-w --win', 'Build desktop client for windows')
 	.option('-l --linux', 'Build desktop client for linux')
 	.option('-m --mac', 'Build desktop client for mac')
-	.option('-d, --deb', 'Build .deb package')
+	.option('-d, --deb', 'Build .deb package. Requires -wlm to be set or installers to be present')
 	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
 	.action((stage, host) => {
 		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
@@ -74,6 +75,7 @@ options
 Promise.resolve()
        .then(buildWebapp)
        .then(buildDesktopClient)
+       .then(signDesktopClients)
        .then(packageDeb)
        .then(publish)
        .then(() => {
@@ -178,9 +180,7 @@ function buildDesktopClient() {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", ""))
 				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop-test", "-test"))
-				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles))
-				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`, options.desktop, "https://next.tutao.de/desktop-snapshot", "-snapshot"))
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test"))
 		} else if (options.stage === "local") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
@@ -188,7 +188,7 @@ function buildDesktopClient() {
 		} else if (options.stage === "test") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop-test", "-test"))
+					options.desktop, "http://localhost:9000/desktop", "-test"))
 		} else if (options.stage === "prod") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
@@ -224,7 +224,7 @@ function bundleServiceWorker(bundles) {
 	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
 		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
-			.concat(fs.readdirSync(distLoc("images")).map(f => `images/${f}`))
+			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "delcare var"
 		const customDomainFileExclusions = ["index.html", "index.js"]
@@ -261,12 +261,12 @@ function createHtml(env) {
 			`System.config(env.systemConfig)`,
 			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,
 		].join("\n")),
-		_writeFile(`./build/dist/${filenamePrefix}.html`, LaunchHtml.renderHtml(imports, env))
+		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
 	])
 }
 
 function createLanguageBundles(bundles) {
-	const languageFiles = options.stage === 'release'
+	const languageFiles = options.stage === 'release' || options.stage === 'prod'
 		? glob.sync('src/translations/*.js')
 		: ['src/translations/en.js', 'src/translations/de.js', 'src/translations/de_sie.js', 'src/translations/ru.js']
 	return Promise.all(languageFiles.map(translation => {
@@ -289,28 +289,54 @@ function _writeFile(targetFile, content) {
 	return fs.mkdirsAsync(path.dirname(targetFile)).then(() => fs.writeFileAsync(targetFile, content, 'utf-8'))
 }
 
+function signDesktopClients() {
+	if (options.deb) {
+		if (options.stage === "release" || options.stage === "prod") {
+			desktopSigner('./build/desktop/tutanota-desktop-mac.zip', 'mac-sig.bin', 'latest-mac.yml')
+			desktopSigner('./build/desktop/tutanota-desktop-win.exe', 'win-sig.bin', 'latest.yml')
+			desktopSigner('./build/desktop/tutanota-desktop-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
+		}
+		if (options.stage === "release" || options.stage === "test") {
+			desktopSigner('./build/desktop-test/tutanota-desktop-test-mac.zip', 'mac-sig.bin', 'latest-mac.yml')
+			desktopSigner('./build/desktop-test/tutanota-desktop-test-win.exe', 'win-sig.bin', 'latest.yml')
+			desktopSigner('./build/desktop-test/tutanota-desktop-test-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
+		}
+	}
+}
 
-let debName = `tutanota-next-${version}_1_amd64.deb`
+let webAppDebName = `tutanota_${version}_amd64.deb`
+let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
+let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 
 function packageDeb() {
 	if (options.deb) {
-		// create a symlink to all desktop files that does not include the version to not change the download link
-		const target = `/opt/releases/tutanota-next-${version}`
-		let desktopPaths = ""
-		if (fs.existsSync('./build/desktop') && fs.existsSync('./build/desktop-test')) {
-			desktopPaths = ` desktop/=${target}/desktop desktop-test/=${target}/desktop-test`
-		}
-
-		console.log("create " + debName)
+		const target = `/opt/tutanota`
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
 			cwd: __dirname + '/build/dist',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-next-${version} -v 1 dist/=${target}${desktopPaths}`.split(" "), {
-			cwd: __dirname + '/build/',
+		console.log("create " + webAppDebName)
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota -v ${version} dist/=${target}`.split(" "), {
+			cwd: __dirname + '/build',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
+
+		if (options.stage === "release" || options.stage === "prod") {
+			console.log("create " + desktopDebName)
+			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
+				cwd: __dirname + '/build',
+				stdio: [process.stdin, process.stdout, process.stderr]
+			}))
+		}
+
+		if (options.stage === "release" || options.stage === "test") {
+			console.log("create " + desktopTestDebName)
+			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
+				cwd: __dirname + '/build',
+				stdio: [process.stdin, process.stdout, process.stderr]
+			}))
+		}
 	}
 }
 
@@ -325,13 +351,43 @@ function publish() {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		exitOnFail(spawnSync("/bin/cp", `-f build/${debName} /opt/repository/tutanota/`.split(" "), {
+		exitOnFail(spawnSync("/bin/cp", `-f build/${webAppDebName} /opt/repository/tutanota/`.split(" "), {
+			cwd: __dirname,
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+
+		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopDebName} /opt/repository/tutanota-desktop/`.split(" "), {
+			cwd: __dirname,
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopTestDebName} /opt/repository/tutanota-desktop-test/`.split(" "), {
+			cwd: __dirname,
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+
+		// copy appimage for dev_clients
+		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
 			cwd: __dirname,
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
 		// user puppet needs to read the deb file from jetty
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debName}`.split(" "), {
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${webAppDebName}`.split(" "), {
+			cwd: __dirname + '/build/',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop/${desktopDebName}`.split(" "), {
+			cwd: __dirname + '/build/',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${desktopTestDebName}`.split(" "), {
+			cwd: __dirname + '/build/',
+			stdio: [process.stdin, process.stdout, process.stderr]
+		}))
+		// in order to release this new version locally, execute:
+		// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
+		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))

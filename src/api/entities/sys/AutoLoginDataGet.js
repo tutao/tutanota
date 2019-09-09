@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createAutoLoginDataGet(): AutoLoginDataGet {
-	return create(_TypeModel)
+export function createAutoLoginDataGet(values?: $Shape<$Exact<AutoLoginDataGet>>): AutoLoginDataGet {
+	return Object.assign(create(_TypeModel, AutoLoginDataGetTypeRef), values)
 }

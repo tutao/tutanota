@@ -3,7 +3,6 @@ import {size} from "../size"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
-import {NavButton} from "./NavButton"
 import type {PosRect} from "./Dropdown"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
@@ -15,7 +14,7 @@ import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
-export const ButtonType = {
+export const ButtonType = Object.freeze({
 	Action: 'action',
 	ActionLarge: 'action-large', // action button with large icon
 	Primary: 'primary',
@@ -26,13 +25,13 @@ export const ButtonType = {
 	Floating: 'floating',
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
-}
+})
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = {
+export const ButtonColors = Object.freeze({
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 const TRUE_CLOSURE: lazy<boolean> = () => true
@@ -110,11 +109,13 @@ export class Button {
 						: "",
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
-						addFlash(vnode.dom)
 					},
 					onbeforeremove: (vnode) => removeFlash(vnode.dom)
 				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 					class: this.getWrapperClasses().join(' '),
+					oncreate: (vnode) => {
+						addFlash(vnode.dom)
+					}
 				}, [
 					this.getIcon(),
 					this._getLabelElement(),
@@ -173,6 +174,7 @@ export class Button {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
+			buttonClasses.push("floating")
 		} else if (this._type === ButtonType.Action || this._type === ButtonType.ActionLarge) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 			buttonClasses.push("button-height") // set the button height for firefox browser
@@ -300,14 +302,14 @@ export class Button {
 }
 
 export function createDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazy<AllIconsEnum>,
-                                     lazyButtons: lazy<$ReadOnlyArray<string | NavButton | Button>>, width: number = 200,
+                                     lazyButtons: lazy<$ReadOnlyArray<string | Button>>, width: number = 200,
                                      originOverride: ?(() => PosRect)): Button {
 	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
 		originOverride)
 }
 
 export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | lazy<string>, icon: ?lazyIcon,
-                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | NavButton | Button>>,
+                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | Button>>,
                                           width: number = 200, originOverride: ?(() => PosRect))
 	: Button {
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {

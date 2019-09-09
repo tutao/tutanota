@@ -35,9 +35,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createMailRestriction(): MailRestriction {
-	return create(_TypeModel)
+export function createMailRestriction(values?: $Shape<$Exact<MailRestriction>>): MailRestriction {
+	return Object.assign(create(_TypeModel, MailRestrictionTypeRef), values)
 }

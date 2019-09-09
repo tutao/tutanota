@@ -38,9 +38,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createDraftCreateData(): DraftCreateData {
-	return create(_TypeModel)
+export function createDraftCreateData(values?: $Shape<$Exact<DraftCreateData>>): DraftCreateData {
+	return Object.assign(create(_TypeModel, DraftCreateDataTypeRef), values)
 }

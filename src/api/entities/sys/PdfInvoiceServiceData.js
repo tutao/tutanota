@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createPdfInvoiceServiceData(): PdfInvoiceServiceData {
-	return create(_TypeModel)
+export function createPdfInvoiceServiceData(values?: $Shape<$Exact<PdfInvoiceServiceData>>): PdfInvoiceServiceData {
+	return Object.assign(create(_TypeModel, PdfInvoiceServiceDataTypeRef), values)
 }

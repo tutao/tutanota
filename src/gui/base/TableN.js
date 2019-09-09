@@ -6,15 +6,17 @@ import {px, size} from "../size"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN} from "./ButtonN"
+import {ButtonN, ButtonType} from "./ButtonN"
 import {neverNull} from "../../api/common/utils/Utils"
+import {createDropdown} from "./DropdownN"
+import {Icons} from "./icons/Icons"
 
 assertMainOrNode()
 
-export const ColumnWidth = {
+export const ColumnWidth = Object.freeze({
 	Small: 'column-width-small', // the column has a fixed small width
 	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
-}
+})
 export type ColumnWidthEnum = $Values<typeof ColumnWidth>
 
 /**
@@ -32,8 +34,14 @@ export type TableAttrs = {
 	lines: ?TableLineAttrs[]
 }
 
+export type CellTextData = {
+	main: string,
+	info: ?string,
+	click?: clickHandler
+}
+
 export type TableLineAttrs = {
-	cells: string[],
+	cells: string[] | () => CellTextData[],
 	actionButtonAttrs?: ?ButtonAttrs
 }
 
@@ -69,10 +77,23 @@ class _Table {
 	}
 
 	_createLine(lineAttrs: TableLineAttrs, showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
-		let cells = lineAttrs.cells.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index]
-			+ ((bold) ? ".b" : ""), {
-			title: text, // show the text as tooltip, so ellipsed lines can be shown
-		}, text))
+		let cells
+		if (typeof lineAttrs.cells == "function") {
+			cells = lineAttrs.cells().map((cellTextData, index) =>
+				m("td", [
+					m(".text-ellipsis.pr.pt-s" + columnWidths[index] + ((bold) ? ".b" : "") + (cellTextData.click ? ".click" : ""), {
+						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+					}, cellTextData.main), m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
+						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
+					}, cellTextData.info)
+				]))
+		} else {
+			cells = lineAttrs.cells.map((text, index) =>
+				m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + ((bold) ? ".b" : ""), {
+					title: text, // show the text as tooltip, so ellipsed lines can be shown
+				}, text))
+		}
 		if (showActionButtonColumn) {
 			cells.push(m("td", {
 				style: {
@@ -92,3 +113,72 @@ class _Table {
 }
 
 export const TableN: Class<MComponent<TableAttrs>> = _Table
+
+
+interface UpdateableInstanceWithArray<T> {
+	getArray: () => Array<T>,
+	updateInstance: () => Promise<void>;
+}
+
+export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement: T, indexOfElement: number): ButtonAttrs {
+	const elements = instance.getArray()
+	const dropDownActions: $ReadOnlyArray<ButtonAttrs> = [
+		{
+			label: "moveToTop_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement > 1,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				elements.unshift(currentElement)
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveUp_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement > 0,
+			click: () => {
+				let prev = elements[indexOfElement - 1]
+				elements[indexOfElement - 1] = currentElement
+				elements[indexOfElement] = prev
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveDown_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement < instance.getArray().length - 1,
+			click: () => {
+				let next = elements[indexOfElement + 1]
+				elements[indexOfElement + 1] = currentElement
+				elements[indexOfElement] = next
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "moveToBottom_action",
+			type: ButtonType.Dropdown,
+			isVisible: () => indexOfElement < instance.getArray().length - 2,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				elements.push(currentElement)
+				instance.updateInstance()
+			}
+		},
+		{
+			label: "delete_action",
+			type: ButtonType.Dropdown,
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				instance.updateInstance()
+			}
+		}
+	]
+
+	return {
+		label: "edit_action",
+		click: createDropdown(() => dropDownActions, 260),
+		icon: () => Icons.Edit
+	}
+}
+

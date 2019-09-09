@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createSaltData(): SaltData {
-	return create(_TypeModel)
+export function createSaltData(values?: $Shape<$Exact<SaltData>>): SaltData {
+	return Object.assign(create(_TypeModel, SaltDataTypeRef), values)
 }

@@ -4,8 +4,8 @@ import {load, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/FormatValidator"
-import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {HttpMethod, isSameId, getElementId} from "../api/common/EntityFunctions"
+import {getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
@@ -37,10 +37,10 @@ export function getInboxRuleTypeName(type: string): string {
  * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
  * @returns true if a rule matches otherwise false
  */
-export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
+export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<?IdTuple> {
 	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, mail._id[0])
 		|| !logins.getUserController().isPremiumAccount()) {
-		return Promise.resolve(false)
+		return Promise.resolve(null)
 	}
 	return _findMatchingRule(mail).then(inboxRule => {
 		if (inboxRule) {
@@ -53,12 +53,12 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
 				serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData).catch(PreconditionFailedError, e => {
 					// move mail operation may have been locked by other process
 				})
-				return true
+				return [targetFolder.mails, getElementId(mail)]
 			} else {
-				return false
+				return null
 			}
 		} else {
-			return false
+			return null
 		}
 	})
 }
@@ -90,7 +90,7 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 			if (mail.headers) {
 				return load(MailHeadersTypeRef, mail.headers)
 					.then(mailHeaders => {
-						return _checkContainsRule(mailHeaders.headers, inboxRule)
+						return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
 					})
 					.catch(NotFoundError, noOp)
 			} else {

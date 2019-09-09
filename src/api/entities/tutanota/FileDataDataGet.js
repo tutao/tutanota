@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createFileDataDataGet(): FileDataDataGet {
-	return create(_TypeModel)
+export function createFileDataDataGet(values?: $Shape<$Exact<FileDataDataGet>>): FileDataDataGet {
+	return Object.assign(create(_TypeModel, FileDataDataGetTypeRef), values)
 }

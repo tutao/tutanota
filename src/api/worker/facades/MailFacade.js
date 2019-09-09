@@ -20,13 +20,7 @@ import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundErro
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
-import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
-import {SysService} from "../../entities/sys/Services"
-import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
-import {uint8ArrayToHex} from "../../common/utils/Encoding"
-import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
-import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
-import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
+import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
@@ -48,8 +42,8 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import {fileApp} from "../../../native/FileApp"
+import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 
 assertWorkerOrNode()
 
@@ -251,6 +245,7 @@ export class MailFacade {
 		newAttachmentData.encFileName = encryptString(fileSessionKey, providedFile.name)
 		newAttachmentData.encMimeType = encryptString(fileSessionKey, providedFile.mimeType)
 		newAttachmentData.fileData = fileDataId
+		newAttachmentData.encCid = providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid)
 		attachment.newFile = newAttachmentData
 		attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, fileSessionKey)
 		return attachment
@@ -312,11 +307,11 @@ export class MailFacade {
 				// otherwise load the key information from the server
 				if (recipientInfo.type === recipientInfoType.external && recipientInfo.contact) {
 					let password = recipientInfo.contact.presharedPassword
-					let preshared = true
+
 					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
 						password = recipientInfo.contact.autoTransmitPassword
-						let preshared = false
 					}
+
 					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
 						notFoundRecipients.push(recipientInfo.mailAddress)
 						return Promise.resolve()
@@ -340,28 +335,11 @@ export class MailFacade {
 						           service.secureExternalRecipientKeyData.push(data)
 					           })
 				} else {
-					let keyData = createPublicKeyData()
-					keyData.mailAddress = recipientInfo.mailAddress
-					return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
-						.then(publicKeyData => {
-							let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
-							let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
-							if (notFoundRecipients.length === 0) {
-								return rsaEncrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
-									let data = createInternalRecipientKeyData()
-									data.mailAddress = recipientInfo.mailAddress
-									data.pubEncBucketKey = encrypted
-									data.pubKeyVersion = publicKeyData.pubKeyVersion
-									service.internalRecipientKeyData.push(data)
-								})
-							}
-						})
-						.catch(NotFoundError, e => {
-							notFoundRecipients.push(recipientInfo.mailAddress)
-						})
-						.catch(TooManyRequestsError, e => {
-							throw new RecipientNotResolvedError()
-						})
+					return encryptBucketKeyForInternalRecipient(bucketKey, recipientInfo, notFoundRecipients).then(keyData => {
+						if (keyData) {
+							service.internalRecipientKeyData.push(keyData)
+						}
+					})
 				}
 			})
 		).then(() => {

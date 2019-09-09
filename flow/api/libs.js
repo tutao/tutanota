@@ -38,12 +38,12 @@ declare function importScripts(...urls: string[]): void;
 
 declare var __moduleName: string;
 
-// see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
-declare class DedicatedWorkerGlobalScope {
-	onmessage: Function;
-	navigator: Navigator;
-	postMessage(message: Object): void;
-}
+// // see https://developer.mozilla.org/en-US/docs/Web/API/DedicatedWorkerGlobalScope
+// declare class DedicatedWorkerGlobalScope {
+// 	onmessage: Function;
+// 	navigator: Navigator;
+// 	postMessage(message: Object): void;
+// }
 
 type Bluebird$ConcurrencyOption = {
 	concurrency: number,
@@ -60,7 +60,7 @@ declare class Promise<+R> {
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
 	catch<U, ErrorT: Error>(err: Class<ErrorT>, onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
 
-	finally<U>(onDone?: () => mixed): Promise<U>;
+	finally<R>(onDone?: () => mixed): Promise<R>;
 
 	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
@@ -70,6 +70,7 @@ declare class Promise<+R> {
 
 	isFulfilled(): boolean;
 	isPending(): boolean;
+	value(): R;
 
 	return<T>(returnValue: T): Promise<T>;
 
@@ -81,7 +82,7 @@ declare class Promise<+R> {
 
 	tap(handler: (R => $Promisable<mixed>)): Promise<R>;
 
-	static resolve<T>(object?: Promise<T> | T): Promise<T>;
+	static resolve<T>(object: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;
 	static try<T>(fn: () => $Promisable<T>): Promise<T>;
@@ -105,4 +106,51 @@ declare class Promise<+R> {
 	static config(configuration: Object): void;
 
 	static onPossiblyUnhandledRejection(errorHandler: Function): void;
+}
+
+// declare module 'pako_deflate' {
+// 	declare type ZlibOptions = {level?: number, windowBits?: number, memLevel?: number, strategy?: any, dictionary?: any}
+// 	declare class Deflate {
+//
+// 		constructor(params?: ZlibOptions): Deflate;
+//
+// 		err: number;
+// 		msg: ?string;
+// 		result: Uint8Array | Array<number>;
+//
+// 		onData(chunk: Uint8Array | Array<number> | string): void;
+// 		onEnd(status: number): void;
+// 		push(data: Uint8Array | Array<number> | ArrayBuffer | string, mode?: number | boolean): boolean;
+// 	}
+//
+// 	declare function deflate<T: Uint8Array | Array<number> | string>(data: T, options?: ZlibOptions): T;
+//
+// 	declare function deflateRaw()
+//
+// 	declare function gzip()
+// }
+
+declare module 'pako_inflate' {
+	declare type ZlibInflateOptions = {windowBits?: number, dictionary?: any}
+
+	declare export class Inflate {
+		constructor(options?: ZlibInflateOptions): Inflate;
+		err: number;
+		msg: ?string;
+		result: Uint8Array | Array<number> | string;
+
+		onData(chunk: Uint8Array | Array<number> | string): void;
+		onEnd(status: number): void;
+		push(data: Uint8Array | Array<number> | ArrayBuffer | string, mode?: number | boolean): boolean;
+	}
+
+	declare type InflateType =
+		((data: Uint8Array, options?: {windowBits: number}) => Uint8Array) &
+		((data: Array<number>, options?: {windowBits: number}) => number) &
+		((data: string, options?: {windowBits: number}) => string)
+
+
+	declare export var inflate: InflateType;
+	declare export var inflateRaw: InflateType;
+	declare export var ungzip: InflateType;
 }

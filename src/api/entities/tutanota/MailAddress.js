@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createMailAddress(): MailAddress {
-	return create(_TypeModel)
+export function createMailAddress(values?: $Shape<$Exact<MailAddress>>): MailAddress {
+	return Object.assign(create(_TypeModel, MailAddressTypeRef), values)
 }

@@ -27,6 +27,7 @@ import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
 import {SysService} from "../../entities/sys/Services"
 import {generateRsaKey} from "../crypto/Rsa"
+import {createCalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
 
 assertWorkerOrNode()
 
@@ -164,14 +165,16 @@ export class UserManagementFacade {
 		if (adminGroupIds.length === 0) {
 			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
 		}
-		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
+
+		const adminGroupId = adminGroupIds[0]
+		const adminGroupKey = this._login.getGroupKey(adminGroupId)
 
 		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 
 		return generateRsaKey()
-			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupIds[0], adminGroupKey, customerGroupKey))
+			.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey))
 			.then(userGroupData => {
 				return this._worker.sendProgress((userIndex + 0.8) / overallNbrOfUsersToCreate * 100)
 				           .then(() => {
@@ -231,6 +234,27 @@ export class UserManagementFacade {
 		userData.recoverCodeEncUserGroupKey = recoverData.recoverCodeEncUserGroupKey
 		userData.recoverCodeVerifier = recoverData.recoveryCodeVerifier
 		return userData
+	}
+
+	/**
+	 *
+	 * @param adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
+	 * @param adminGroupKey Is not set when generating calendar as normal user
+	 */
+	generateCalendarGroupData(adminGroup: ?Id, adminGroupKey: ?Aes128Key, customerGroupKey: Aes128Key, userGroupKey: Aes128Key,
+	                          name: ?string): CalendarGroupData {
+		let calendarGroupRootSessionKey = aes128RandomKey()
+		let calendarGroupInfoSessionKey = aes128RandomKey()
+		let calendarGroupKey = aes128RandomKey()
+
+		const calendarData = createCalendarGroupData()
+		calendarData.calendarEncCalendarGroupRootSessionKey = encryptKey(calendarGroupKey, calendarGroupRootSessionKey)
+		calendarData.ownerEncGroupInfoSessionKey = encryptKey(customerGroupKey, calendarGroupInfoSessionKey)
+		calendarData.userEncGroupKey = encryptKey(userGroupKey, calendarGroupKey)
+		calendarData.groupInfoEncName = name && encryptString(calendarGroupInfoSessionKey, name) || new Uint8Array([])
+		calendarData.adminEncGroupKey = adminGroupKey ? encryptKey(adminGroupKey, calendarGroupKey) : null
+		calendarData.adminGroup = adminGroup
+		return calendarData
 	}
 
 	generateContactFormUserAccountData(userGroupKey: Aes128Key, password: string): ContactFormUserData {

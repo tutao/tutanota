@@ -72,9 +72,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createGroupInfo(): GroupInfo {
-	return create(_TypeModel)
+export function createGroupInfo(values?: $Shape<$Exact<GroupInfo>>): GroupInfo {
+	return Object.assign(create(_TypeModel, GroupInfoTypeRef), values)
 }

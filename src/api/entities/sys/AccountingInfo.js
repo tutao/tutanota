@@ -102,9 +102,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createAccountingInfo(): AccountingInfo {
-	return create(_TypeModel)
+export function createAccountingInfo(values?: $Shape<$Exact<AccountingInfo>>): AccountingInfo {
+	return Object.assign(create(_TypeModel, AccountingInfoTypeRef), values)
 }

@@ -81,7 +81,10 @@ export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePad
 	}
 
 	// take the iv from the front of the encrypted data
-	let iv = cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	const iv = cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	if (iv.length !== IV_BYTE_LENGTH) {
+		throw new CryptoError(`Invalid IV length in AES256Decrypt: ${iv.length} bytes, must be 16 bytes (128 bits)`)
+	}
 	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
 	try {
 		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
@@ -160,7 +163,10 @@ export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePad
 	}
 
 	// take the iv from the front of the encrypted data
-	let iv = cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	const iv = cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
+	if (iv.length !== IV_BYTE_LENGTH) {
+		throw new CryptoError(`Invalid IV length in AES128Decrypt: ${iv.length} bytes, must be 16 bytes (128 bits)`)
+	}
 	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
 	try {
 		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)

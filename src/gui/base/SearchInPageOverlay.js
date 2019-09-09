@@ -11,8 +11,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {transform} from "../animation/Animations"
 import {nativeApp} from "../../native/NativeWrapper.js"
 import {ButtonN, ButtonType} from "./ButtonN"
-import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -24,11 +22,11 @@ export class SearchInPageOverlay {
 	_closeFunction: (() => void) | null;
 	_domInput: HTMLInputElement;
 	_matchCase = false;
-	_ready: DeferredObject<void>;
+	_numberOfMatches: number = 0;
+	_currentMatch: number = 0;
 
 	constructor() {
 		this._closeFunction = null
-		this._ready = defer()
 	}
 
 	open() {
@@ -40,9 +38,12 @@ export class SearchInPageOverlay {
 					(dom) => transform(transform.type.translateY, dom.offsetHeight, 0),
 					(dom) => transform(transform.type.translateY, 0, dom.offsetHeight)
 				)
+			} else { //already open, refocus
+				console.log("refocusing")
+				this._domInput.focus()
+				this._domInput.select()
 			}
 			m.redraw()
-			this._ready.promise.then(() => this._domInput.focus())
 		}
 	}
 
@@ -69,27 +70,36 @@ export class SearchInPageOverlay {
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
-					this._ready.resolve()
-				},
-				oninput: e => {
-					nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {foward: true, matchCase: this._matchCase}]))
-				},
-				onchange: e => {
 					this._domInput.focus()
 				},
+				oninput: e => this._find(true).then(() => this._domInput.focus()),
+				onchange: e => this._domInput.focus(),
 				style: {
 					width: px(250),
 					top: 0,
 					height: px(size.button_height),
 					left: 0,
-				}
+				},
 			},
 			""
 		)
 	}
 
-	_getComponent(): VirtualElement {
+	_find = (forward: boolean) => {
+		console.log("finding next", this._domInput.value)
+		return nativeApp.invokeNative(new Request("findInPage", [
+			this._domInput.value, {
+				forward: forward,
+				matchCase: this._matchCase
+			}
+		])).then(r => {
+			this._numberOfMatches = r.numberOfMatches
+			this._currentMatch = r.currentMatch
+			m.redraw()
+		})
+	}
 
+	_getComponent(): VirtualElement {
 		let caseButtonAttrs = {
 			label: "matchCase_alt",
 			icon: () => Icons.MatchCase,
@@ -98,8 +108,7 @@ export class SearchInPageOverlay {
 			isSelected: () => this._matchCase,
 			click: () => {
 				this._matchCase = !this._matchCase
-				nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {forward: true, matchCase: this._matchCase}]))
-				this._domInput.focus()
+				this._find(true)
 			},
 		}
 
@@ -108,7 +117,7 @@ export class SearchInPageOverlay {
 			icon: () => Icons.ArrowForward,
 			type: ButtonType.Action,
 			noBubble: true,
-			click: () => nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {forward: true, matchCase: this._matchCase}])),
+			click: () => this._find(true),
 		}
 
 		let backwardButtonAttrs = {
@@ -116,7 +125,7 @@ export class SearchInPageOverlay {
 			icon: () => Icons.ArrowBackward,
 			type: ButtonType.Action,
 			noBubble: true,
-			click: () => nativeApp.invokeNative(new Request("findInPage", [this._domInput.value, {forward: false, matchCase: this._matchCase}])),
+			click: () => this._find(false),
 		}
 
 		let closeButtonAttrs = {
@@ -130,7 +139,7 @@ export class SearchInPageOverlay {
 			view: (vnode: Object) => {
 				return m(".flex.flex-space-between",
 					[
-						m(".flex-start",
+						m(".flex-start.center-vertically",
 							{
 								onkeydown: e => {
 									let keyCode = e.which
@@ -145,11 +154,16 @@ export class SearchInPageOverlay {
 								this._inputField(),
 								m(ButtonN, backwardButtonAttrs),
 								m(ButtonN, forwardButtonAttrs),
-								m(ButtonN, caseButtonAttrs)
+								m(ButtonN, caseButtonAttrs),
+								m("div.pl-m", this._numberOfMatches > 0
+									? `${this._currentMatch}/${this._numberOfMatches}`
+									: lang.get("searchNoResults_msg")
+								)
 							]),
 						m(ButtonN, closeButtonAttrs)
 					])
 			}
+
 		}
 	}
 }

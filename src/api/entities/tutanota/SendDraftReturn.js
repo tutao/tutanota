@@ -38,9 +38,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createSendDraftReturn(): SendDraftReturn {
-	return create(_TypeModel)
+export function createSendDraftReturn(values?: $Shape<$Exact<SendDraftReturn>>): SendDraftReturn {
+	return Object.assign(create(_TypeModel, SendDraftReturnTypeRef), values)
 }

@@ -14,13 +14,15 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
-import {defer, neverNull} from "../api/common/utils/Utils"
+import {defer, downcast, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
+import {hasMoreResults} from "./SearchModel"
 import {showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
+import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -95,7 +97,7 @@ export class SearchListView {
 	}
 
 	_loadInitial(list: List<*, *>) {
-		let selectedId = m.route.param()["id"]
+		let selectedId = m.route.param("id")
 		list.loadInitial(selectedId)
 	}
 
@@ -106,7 +108,7 @@ export class SearchListView {
 	}
 
 	_createList(): List<SearchResultListEntry, SearchResultListRow> {
-		this._lastType = m.route.param()['category'] === 'mail' ? MailTypeRef : ContactTypeRef
+		this._lastType = m.route.param("category") === 'mail' ? MailTypeRef : ContactTypeRef
 		return new List({
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -114,7 +116,7 @@ export class SearchListView {
 					// show spinner until the actual search index is initialized
 					return defer().promise
 				}
-				if (!this._searchResult || this._searchResult.results.length === 0 && this._searchResult.moreResultsEntries.length === 0) {
+				if (!this._searchResult || this._searchResult.results.length === 0 && !hasMoreResults(this._searchResult)) {
 					return Promise.resolve([])
 				}
 				return this._loadSearchResults(this._searchResult, startId !== GENERATED_MAX_ID, startId, count)
@@ -151,10 +153,10 @@ export class SearchListView {
 			elementSelected: (entities: SearchResultListEntry[], elementClicked, selectionChanged, multiSelectionActive) => {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
-			createVirtualRow: () => new SearchResultListRow(m.route.param()['category'] === 'mail' ?
+			createVirtualRow: () => new SearchResultListRow(m.route.param('category') === 'mail' ?
 				new MailRow(true) : new ContactRow()),
 			showStatus: false,
-			className: m.route.param()['category'] === 'mail' ? "mail-list" : "contact-list",
+			className: m.route.param('category') === 'mail' ? "mail-list" : "contact-list",
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
@@ -178,7 +180,7 @@ export class SearchListView {
 			return Promise.resolve([])
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
-		if (getMoreFromSearch && currentResult.moreResultsEntries.length > 0) {
+		if (getMoreFromSearch && hasMoreResults(currentResult)) {
 			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
@@ -195,7 +197,8 @@ export class SearchListView {
 							startIndex++ // the start index is already in the list of loaded elements load from the next element
 						}
 					}
-					let toLoad = moreResults.results.slice(startIndex, startIndex + count)
+					// Ignore count when slicing here because we would have to modify SearchResult too
+					let toLoad = moreResults.results.slice(startIndex)
 					return this._loadAndFilterInstances(currentResult.restriction.type, toLoad, moreResults, startIndex)
 				} else if (contact) {
 					// load all contacts to sort them by name afterwards
@@ -210,7 +213,7 @@ export class SearchListView {
 				}
 			})
 			.then(results => {
-				return results.length < count && neverNull(this._searchResult).moreResultsEntries.length > 0
+				return results.length < count && hasMoreResults(neverNull(this._searchResult))
 					// Recursively load more until we have enough or there are no more results.
 					// Otherwise List thinks that this is the end
 					? this._loadSearchResults(neverNull(this._searchResult), true, startId, count)
@@ -328,7 +331,7 @@ export class SearchListView {
 
 export class SearchResultListRow {
 	top: number;
-	domElement: HTMLElement; // set from List
+	domElement: ?HTMLElement; // set from List
 	entity: ?SearchResultListEntry;
 	_delegate: MailRow | ContactRow
 

@@ -1,9 +1,9 @@
 // @flow
 import m from "mithril"
-import {ViewColumn, ColumnType} from "./ViewColumn"
+import {ColumnType, ViewColumn} from "./ViewColumn"
 import {windowFacade} from "../../misc/WindowFacade"
 import {size} from "../size"
-import {animations, transform, alpha} from "../animation/Animations"
+import {alpha, animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
@@ -11,14 +11,19 @@ import {assertMainOrNode} from "../../api/Env"
 
 assertMainOrNode()
 
-type GestureInfo = {
+export type GestureInfo = {
 	x: number,
 	y: number,
 	time: number,
 	identifier: number
 }
 
-const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({x: touch.pageX, y: touch.pageY, time: Date.now(), identifier: touch.identifier})
+export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
+	x: touch.pageX,
+	y: touch.pageY,
+	time: performance.now(),
+	identifier: touch.identifier
+})
 
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
@@ -264,6 +269,13 @@ export class ViewSlider {
 	focusPreviousColumn() {
 		if (this.isFocusPreviousPossible()) {
 			this.focus(neverNull(this.getPreviousColumn()))
+		}
+	}
+
+	focusNextColumn() {
+		const indexOfCurrent = this.columns.indexOf(this.focusedColumn)
+		if (indexOfCurrent + 1 < this.columns.length) {
+			this.focus(this.columns[indexOfCurrent + 1])
 		}
 	}
 

@@ -22,10 +22,13 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {locator} from "../api/main/MainLocator"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
+import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {findAndApplyMatchingRule} from "./InboxRuleHandler"
+import {noOp} from "../api/common/utils/Utils"
+import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -47,27 +50,29 @@ export class MailModel {
 	mailboxCounters: Stream<MailboxCounters>
 	_initialization: ?Promise<void>
 	_notifications: Notifications
+	_eventController: EventController
 
-	constructor(notifications: Notifications) {
+	constructor(notifications: Notifications, eventController: EventController) {
 		this.mailboxDetails = stream([])
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
-
-		locator.eventController.addEntityListener((updates) => {
-			this.entityEventsReceived(updates)
-		})
-
-		locator.eventController.countersStream().map((update) => {
-			this._mailboxCountersUpdates(update)
-		})
+		this._eventController = eventController
 	}
 
 	init(): Promise<void> {
 		if (this._initialization) {
 			return this._initialization
 		}
+		this._eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 
+		this._eventController.countersStream().map((update) => {
+			this._mailboxCountersUpdates(update)
+		})
+		return this._init()
+	}
+
+	_init(): Promise<void> {
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
 		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
 			return Promise.all([
@@ -198,12 +203,10 @@ export class MailModel {
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
 		for (let update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				this._initialization = null
-				this.init().then(() => m.redraw())
+				this._init().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
-					this._initialization = null
-					this.init().then(() => m.redraw())
+					this._init().then(() => m.redraw())
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
@@ -212,8 +215,7 @@ export class MailModel {
 						                                .filter(membership => membership.groupType === GroupType.Mail)
 						let currentDetails = this.mailboxDetails()
 						if (newMemberships.length !== currentDetails.length) {
-							this._initialization = null
-							this.init().then(() => m.redraw())
+							this._init().then(() => m.redraw())
 						}
 					})
 				}
@@ -222,7 +224,14 @@ export class MailModel {
 				if (folder && folder.folderType === MailFolderType.INBOX
 					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation
-					this._showNotification(update)
+					const mailboxDetail = mailModel.getMailboxDetailsForMailListId(update.instanceListId)
+					const mailId = [update.instanceListId, update.instanceId]
+					load(MailTypeRef, mailId)
+						.then(mail => {
+							return findAndApplyMatchingRule(mailboxDetail, mail)
+								.then((newId) => this._showNotification(newId || mailId))
+						})
+						.catch(noOp)
 				}
 			}
 		}
@@ -238,16 +247,15 @@ export class MailModel {
 		this.mailboxCounters(normalized)
 	}
 
-	_showNotification(update: EntityUpdateData) {
+	_showNotification(mailId: IdTuple) {
 		this._notifications.showNotification(lang.get("newMails_msg"), {}, (e) => {
-			// TODO: handle the case where the mail has been moved to a different folder
-			m.route.set(`/mail/${update.instanceListId}/${update.instanceId}`)
+			m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
 			window.focus()
 		})
 	}
 }
 
-export const mailModel = new MailModel(new Notifications())
+export const mailModel = new MailModel(new Notifications(), locator.eventController)
 
 if (replaced) {
 	Object.assign(mailModel, replaced.mailModel)

@@ -94,9 +94,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createCustomerAccountCreateData(): CustomerAccountCreateData {
-	return create(_TypeModel)
+export function createCustomerAccountCreateData(values?: $Shape<$Exact<CustomerAccountCreateData>>): CustomerAccountCreateData {
+	return Object.assign(create(_TypeModel, CustomerAccountCreateDataTypeRef), values)
 }

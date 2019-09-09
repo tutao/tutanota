@@ -58,9 +58,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createSecureExternalRecipientKeyData(): SecureExternalRecipientKeyData {
-	return create(_TypeModel)
+export function createSecureExternalRecipientKeyData(values?: $Shape<$Exact<SecureExternalRecipientKeyData>>): SecureExternalRecipientKeyData {
+	return Object.assign(create(_TypeModel, SecureExternalRecipientKeyDataTypeRef), values)
 }

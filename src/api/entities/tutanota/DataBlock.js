@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createDataBlock(): DataBlock {
-	return create(_TypeModel)
+export function createDataBlock(values?: $Shape<$Exact<DataBlock>>): DataBlock {
+	return Object.assign(create(_TypeModel, DataBlockTypeRef), values)
 }

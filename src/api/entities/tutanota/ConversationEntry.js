@@ -42,9 +42,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createConversationEntry(): ConversationEntry {
-	return create(_TypeModel)
+export function createConversationEntry(values?: $Shape<$Exact<ConversationEntry>>): ConversationEntry {
+	return Object.assign(create(_TypeModel, ConversationEntryTypeRef), values)
 }

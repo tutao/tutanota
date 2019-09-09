@@ -7,12 +7,15 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
+import {RichTextToolbar} from "./RichTextToolbar"
 
-export const Mode = {
+export const Mode = Object.freeze({
 	HTML: "html",
 	WYSIWYG: "what you see is what you get",
-}
+})
 export type HtmlEditorModeEnum = $Values<typeof Mode>;
+
+type RichToolbarOptions = {|enabled: boolean, imageButtonClickHandler?: (ev: Event, editor: Editor) => mixed|}
 
 export class HtmlEditor {
 	_editor: Editor;
@@ -29,8 +32,9 @@ export class HtmlEditor {
 	_value: Stream<string>;
 	_modeSwitcher: ?DropDownSelector<HtmlEditorModeEnum>;
 	_htmlMonospace: boolean;
+	_richToolbarOptions: RichToolbarOptions;
 
-	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>)) {
+	constructor(labelIdOrLabelFunction: ?(TranslationKey | lazy<string>), richToolbarOptions: RichToolbarOptions = {enabled: false}) {
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, false).html)
 		this._mode = stream(Mode.WYSIWYG)
 		this._active = false
@@ -41,6 +45,7 @@ export class HtmlEditor {
 		this._value = stream("")
 		this._modeSwitcher = null
 		this._htmlMonospace = true
+		this._richToolbarOptions = richToolbarOptions;
 
 		this._mode.map(v => {
 			this.setValue(this._value())
@@ -56,6 +61,9 @@ export class HtmlEditor {
 			}
 
 			if (this._showBorders) {
+				if (this._modeSwitcher) {
+					this._borderDomElement.classList.remove("editor-no-top-border")
+				}
 				this._borderDomElement.classList.add("editor-border-active")
 				this._borderDomElement.classList.remove("editor-border")
 			}
@@ -72,6 +80,10 @@ export class HtmlEditor {
 			}
 
 			if (this._showBorders) {
+
+				if (this._modeSwitcher) {
+					this._borderDomElement.classList.add("editor-no-top-border")
+				}
 				this._borderDomElement.classList.remove("editor-border-active")
 				this._borderDomElement.classList.add("editor-border")
 			}
@@ -90,17 +102,23 @@ export class HtmlEditor {
 
 		const label = labelIdOrLabelFunction
 
+
+		const toolbar = new RichTextToolbar(this._editor, richToolbarOptions.imageButtonClickHandler)
+
 		this.view = () => {
 			return m(".html-editor", [
 				this._modeSwitcher ? m(this._modeSwitcher) : null,
 				(label)
 					? m(".small.mt-form", lang.getMaybeLazy(label))
 					: null,
-				m((this._showBorders ? ".editor-border" : ""), {
+				m((this._showBorders ? ".editor-border" : "") + (this._modeSwitcher ? ".editor-no-top-border" : ""), {
 					oncreate: vnode => this._borderDomElement = vnode.dom
 				}, [
 					getPlaceholder(),
-					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", m(this._editor)) : null,
+					this._mode() === Mode.WYSIWYG ? m(".wysiwyg.rel.overflow-hidden.selectable", [
+						(this._editor.isEnabled() && this._richToolbarOptions.enabled) ? m(toolbar) : null,
+						m(this._editor)
+					]) : null,
 					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {
 						oncreate: vnode => {
 							this._domTextArea = vnode.dom
@@ -206,5 +224,4 @@ export class HtmlEditor {
 		this._htmlMonospace = monospace
 		return this
 	}
-
 }

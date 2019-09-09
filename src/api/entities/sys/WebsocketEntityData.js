@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createWebsocketEntityData(): WebsocketEntityData {
-	return create(_TypeModel)
+export function createWebsocketEntityData(values?: $Shape<$Exact<WebsocketEntityData>>): WebsocketEntityData {
+	return Object.assign(create(_TypeModel, WebsocketEntityDataTypeRef), values)
 }

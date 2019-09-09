@@ -12,7 +12,7 @@ import {
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
-import {Announcement, CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, Const, TimeFormat} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -38,8 +38,8 @@ import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscr
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {formatPrice, SubscriptionType} from "../subscription/SubscriptionUtils"
-import {show} from "../gui/base/NotificationOverlay"
+import {formatPrice} from "../subscription/SubscriptionUtils"
+import {calendarModel} from "../calendar/CalendarModel"
 
 assertMainOrNode()
 
@@ -206,7 +206,6 @@ export class LoginViewController implements ILoginViewController {
 		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
 			pushServiceApp.register()
 		}
-		this._showStorageNotificationIfNeeded()
 
 		// do not return the promise. loading of dialogs can be executed in parallel
 		checkApprovalStatus(true).then(() => {
@@ -230,7 +229,10 @@ export class LoginViewController implements ILoginViewController {
 				let receiveInfoData = createReceiveInfoServiceData()
 				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
 			}
-		})
+		}).then(() => calendarModel.scheduleAlarmsLocally())
+		                         .then(() => lang.updateFormats({
+			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
+		                         }))
 	}
 
 	_showUpgradeReminder(): Promise<void> {
@@ -297,16 +299,5 @@ export class LoginViewController implements ILoginViewController {
 
 	loadSignupWizard(): Promise<{+show: () => any}> {
 		return worker.initialized.then(() => loadSignupWizard())
-	}
-
-	_showStorageNotificationIfNeeded() {
-		const userProps: TutanotaProperties = logins.getUserController().props
-		if (logins.getUserController().isGlobalOrLocalAdmin() && Number(userProps.lastSeenAnnouncement) < Number(Announcement.StorageDeletion)) {
-			userProps.lastSeenAnnouncement = Announcement.StorageDeletion
-			update(userProps)
-			show({
-				view: () => m("", lang.get("storageDeletionAnnouncement_msg"))
-			}, "close_alt", [])
-		}
 	}
 }

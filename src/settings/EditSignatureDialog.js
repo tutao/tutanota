@@ -1,14 +1,14 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {update} from "../api/main/Entity"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
-import {getDefaultSignature} from "../mail/MailUtils"
+import {getDefaultSignature, insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 
@@ -21,9 +21,11 @@ export function show(props: TutanotaProperties) {
 	}
 
 	let previousType = logins.getUserController().props.emailSignatureType
-	let editor = new HtmlEditor("preview_label").showBorders()
-	                                            .setMinHeight(200)
-	                                            .setValue(getSignature(previousType, currentCustomSignature))
+
+	const editor = new HtmlEditor("preview_label", {enabled: true, imageButtonClickHandler: insertInlineImageB64ClickHandler})
+		.showBorders()
+		.setMinHeight(200)
+		.setValue(getSignature(previousType, currentCustomSignature))
 
 	let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
 	typeField.selectedValue.map(type => {
@@ -55,6 +57,7 @@ export function show(props: TutanotaProperties) {
 	Dialog.showActionDialog({
 		title: lang.get("userEmailSignature_label"),
 		child: form,
+		type: DialogType.EditLarge,
 		okAction: editSignatureOkAction
 	})
 }

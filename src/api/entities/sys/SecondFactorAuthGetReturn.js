@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createSecondFactorAuthGetReturn(): SecondFactorAuthGetReturn {
-	return create(_TypeModel)
+export function createSecondFactorAuthGetReturn(values?: $Shape<$Exact<SecondFactorAuthGetReturn>>): SecondFactorAuthGetReturn {
+	return Object.assign(create(_TypeModel, SecondFactorAuthGetReturnTypeRef), values)
 }

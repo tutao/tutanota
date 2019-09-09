@@ -1,6 +1,9 @@
 pipeline {
-	environment {
-		PATH="${env.PATH}:/opt/node-v10.11.0-linux-x64/bin/"
+    environment {
+        NODE_PATH = "/opt/node-v10.11.0-linux-x64/bin"
+    }
+	options {
+		preserveStashes()
 	}
 
 	parameters {
@@ -13,12 +16,14 @@ pipeline {
 
     stages {
         stage('Build Webapp') {
+        	environment {
+        		PATH="${env.PATH}:${env.NODE_PATH}"
+        	}
             agent {
                 label 'linux'
             }
             steps {
-            	sh 'npm prune'
-            	sh 'npm install'
+            	sh 'npm ci'
 				sh 'node dist release'
 				stash includes: 'build/dist/**', excludes:'**/index.html, **/app.html, **/desktop.html, **/index.js, **/app.js, **/desktop.js', name: 'web_base'
 				stash includes: '**/dist/index.html, **/dist/index.js, **/dist/app.html, **/dist/app.js', name: 'web_add'
@@ -30,25 +35,27 @@ pipeline {
             parallel {
 
                 stage('desktop-win') {
+					environment {
+        		        PATH="${env.PATH}:${env.NODE_PATH}"
+					}
                     agent {
                         label 'win'
                     }
                     steps {
-						sh 'npm prune'
-						sh 'npm install'
+            			sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
+						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 						    sh '''
 						    export JENKINS=TRUE;
-						    export WIN_CSC_KEY_PASSWORD=${PW};
-						    export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12";
+						    export HSM_USER_PIN=${PW};
+						    export WIN_CSC_FILE="/opt/etc/codesign.crt";
 						    node dist -ew '''
 						}
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'win_installer_snapshot'
-							stash includes: 'desktop-test/*,desktop/*', name:'win_installer'
+							stash includes: 'desktop-test/*', name:'win_installer_test'
+							stash includes: 'desktop/*', name:'win_installer'
 						}
                 	}
                 }
@@ -58,45 +65,35 @@ pipeline {
                         label 'mac'
                     }
                     steps {
-						sh 'npm prune'
-						sh 'npm install'
+						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
-							sh '''
-							export JENKINS=TRUE;
-							export MAC_CSC_KEY_PASSWORD=${PW};
-							export MAC_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -em '''
-						}
+						sh 'node dist -em'
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'mac_installer_snapshot'
-							stash includes: 'desktop-test/*,desktop/*', name:'mac_installer'
+							stash includes: 'desktop-test/*', name:'mac_installer_test'
+                            stash includes: 'desktop/*', name:'mac_installer'
 						}
                     }
                 }
+
 
                 stage('desktop-linux'){
                     agent {
                         label 'linux'
                     }
+					environment {
+						PATH="${env.PATH}:${env.NODE_PATH}"
+					}
                     steps {
-						sh 'npm prune'
-						sh 'npm install'
+						sh 'npm ci'
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
-							sh '''
-							export JENKINS=TRUE;
-							export LINUX_CSC_KEY_PASSWORD=${PW};
-							export LINUX_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -el '''
-						}
+						sh 'node dist -el'
 						dir('build') {
-							stash includes: 'desktop-snapshot/*', name:'linux_installer_snapshot'
-							stash includes: 'desktop-test/*,desktop/*', name:'linux_installer'
+							stash includes: 'desktop-test/*', name:'linux_installer_test'
+							stash includes: 'desktop/*', name:'linux_installer'
 						}
                     }
                 }
@@ -107,12 +104,15 @@ pipeline {
 			agent {
 				label 'master'
 			}
+			when {
+				expression { !params.RELEASE }
+			}
 			steps {
-				sh 'rm -f /opt/desktop-snapshot/*'
-				dir('/opt') {
-					unstash 'linux_installer_snapshot'
-					unstash 'win_installer_snapshot'
-					unstash 'mac_installer_snapshot'
+				sh 'rm -rf /opt/desktop-snapshot/*'
+				dir('/opt/desktop-snapshot/') {
+					unstash 'linux_installer_test'
+					unstash 'win_installer_test'
+					unstash 'mac_installer_test'
 				}
 			}
 		}
@@ -124,9 +124,11 @@ pipeline {
             agent {
                 label 'linux'
             }
+			environment {
+				PATH="${env.PATH}:${env.NODE_PATH}"
+			}
             steps {
-            	sh 'npm prune'
-            	sh 'npm install'
+            	sh 'npm ci'
 				sh 'rm -rf ./build/*'
 				unstash 'web_base'
 				unstash 'web_add'
@@ -135,8 +137,15 @@ pipeline {
 					unstash 'linux_installer'
 					unstash 'mac_installer'
 					unstash 'win_installer'
+					unstash 'linux_installer_test'
+                    unstash 'mac_installer_test'
+                    unstash 'win_installer_test'
 				}
-				sh 'node dist -edp release'
+				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
+					sh '''
+					export HSM_USER_PIN=${PW};
+					node dist -edp release '''
+				}
             }
         }
     }

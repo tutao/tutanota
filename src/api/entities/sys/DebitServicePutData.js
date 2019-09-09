@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createDebitServicePutData(): DebitServicePutData {
-	return create(_TypeModel)
+export function createDebitServicePutData(values?: $Shape<$Exact<DebitServicePutData>>): DebitServicePutData {
+	return Object.assign(create(_TypeModel, DebitServicePutDataTypeRef), values)
 }

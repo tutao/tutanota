@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createMailboxServerProperties(): MailboxServerProperties {
-	return create(_TypeModel)
+export function createMailboxServerProperties(values?: $Shape<$Exact<MailboxServerProperties>>): MailboxServerProperties {
+	return Object.assign(create(_TypeModel, MailboxServerPropertiesTypeRef), values)
 }

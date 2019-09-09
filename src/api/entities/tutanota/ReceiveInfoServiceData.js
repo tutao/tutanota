@@ -14,9 +14,9 @@ export const _TypeModel: TypeModel = {
 	"values": {"_format": {"name": "_format", "id": 571, "since": 12, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createReceiveInfoServiceData(): ReceiveInfoServiceData {
-	return create(_TypeModel)
+export function createReceiveInfoServiceData(values?: $Shape<$Exact<ReceiveInfoServiceData>>): ReceiveInfoServiceData {
+	return Object.assign(create(_TypeModel, ReceiveInfoServiceDataTypeRef), values)
 }

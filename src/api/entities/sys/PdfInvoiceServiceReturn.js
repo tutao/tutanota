@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createPdfInvoiceServiceReturn(): PdfInvoiceServiceReturn {
-	return create(_TypeModel)
+export function createPdfInvoiceServiceReturn(values?: $Shape<$Exact<PdfInvoiceServiceReturn>>): PdfInvoiceServiceReturn {
+	return Object.assign(create(_TypeModel, PdfInvoiceServiceReturnTypeRef), values)
 }

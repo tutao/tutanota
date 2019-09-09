@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createBrandingDomainDeleteData(): BrandingDomainDeleteData {
-	return create(_TypeModel)
+export function createBrandingDomainDeleteData(values?: $Shape<$Exact<BrandingDomainDeleteData>>): BrandingDomainDeleteData {
+	return Object.assign(create(_TypeModel, BrandingDomainDeleteDataTypeRef), values)
 }

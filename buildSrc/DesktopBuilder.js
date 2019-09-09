@@ -2,7 +2,6 @@ const Promise = require('bluebird')
 const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
-const jsyaml = require('js-yaml')
 
 function build(dirname, version, targets, updateUrl, nameSuffix) {
 	const targetString = Object.keys(targets)
@@ -25,9 +24,7 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 
 	//prepare files
 	return writeConfig
-		.then(() => {
-			return fs.removeAsync(path.join(distDir, "..", updateSubDir))
-		})
+		.then(() => fs.removeAsync(path.join(distDir, "..", updateSubDir)))
 		.then(() => {
 			console.log("Tracing dependencies...")
 			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js'], dirname, distDir)
@@ -44,54 +41,6 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 				p: 'always',
 				project: distDir
 			})
-		})
-		.then(() => {
-			//linux sig to yml
-			const signatureFileName = fs.readdirSync(path.join(distDir, 'installers'))
-			                            .find((file => file.startsWith(content.name) && file.endsWith('linux-sig.bin')))
-			if (!signatureFileName) { // there is no linux signature
-				return Promise.resolve()
-			}
-			console.log("Attaching signature to latest-linux.yml...")
-			const ymlPath = path.join(distDir, 'installers', 'latest-linux.yml')
-			let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
-			const sigPath = path.join(distDir, 'installers', signatureFileName)
-			console.log("Writing signature to", sigPath)
-			const signatureContent = fs.readFileSync(sigPath)
-			yml.signature = signatureContent.toString('base64')
-			fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
-		})
-		.then(() => {
-			//win sig to yml
-			const signatureFileName = fs.readdirSync(path.join(distDir, 'installers'))
-			                            .find((file => file.startsWith(content.name) && file.endsWith('win-sig.bin')))
-			if (!signatureFileName) { // there is no win signature
-				return Promise.resolve()
-			}
-			console.log("Attaching signature to latest.yml...")
-			const ymlPath = path.join(distDir, 'installers', 'latest.yml')
-			let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
-			const sigPath = path.join(distDir, 'installers', signatureFileName)
-			console.log("Writing signature to", sigPath)
-			const signatureContent = fs.readFileSync(sigPath)
-			yml.signature = signatureContent.toString('base64')
-			fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
-		})
-		.then(() => {
-			//mac sig to yml
-			const signatureFileName = fs.readdirSync(path.join(distDir, 'installers'))
-			                            .find((file => file.startsWith(content.name) && file.endsWith('mac-sig.bin')))
-			if (!signatureFileName) { // there is no linux signature
-				return Promise.resolve()
-			}
-			console.log("Attaching signature to latest-mac.yml...")
-			const ymlPath = path.join(distDir, 'installers', 'latest-mac.yml')
-			let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
-			const sigPath = path.join(distDir, 'installers', signatureFileName)
-			console.log("Writing signature to", sigPath)
-			const signatureContent = fs.readFileSync(sigPath)
-			yml.signature = signatureContent.toString('base64')
-			fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
 		})
 		.then(() => {
 			console.log("Move output to /build/" + updateSubDir + "/...")
@@ -126,8 +75,7 @@ function transpile(files, baseDir, distDir) {
 	while (nextFiles.length !== 0) {
 		let currentPath = nextFiles.pop()
 		let sourcePath = path.join(baseDir, currentPath)
-		let targetPath = path.join(distDir, currentPath)
-		if (transpiledFiles.indexOf(sourcePath) === -1) {
+		if (!transpiledFiles.includes(sourcePath)) {
 			let {src, deps} = findDirectDepsAndTranspile(sourcePath)
 			fs.mkdirsSync(path.dirname(path.resolve(distDir, currentPath)))
 			fs.writeFileSync(path.join(distDir, currentPath), src, 'utf-8')
@@ -142,6 +90,7 @@ function transpile(files, baseDir, distDir) {
 	}
 	console.log("transpiled files:")
 	console.log(transpiledFiles.map(p => path.relative(".", p)).join("\n"))
+	return Promise.resolve()
 }
 
 /**
@@ -169,7 +118,7 @@ function findDirectDepsAndTranspile(filePath) {
 }
 
 function babelCompile(src, srcFile) {
-	let result = babel.transform(src, {
+	return babel.transform(src, {
 		"plugins": [
 			"transform-flow-strip-types",
 			"transform-class-properties",
@@ -184,7 +133,6 @@ function babelCompile(src, srcFile) {
 		sourceMaps: srcFile != null ? "inline" : false,
 		filename: srcFile,
 	})
-	return result
 }
 
 module.exports = {

@@ -31,10 +31,11 @@ type TutanotaFile = {
 	_area: NumberString;
 	_format: NumberString;
 	_id: IdTuple;
-	_ownerEncSessionKey: ?Uint8Array;
 	_owner: Id;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	cid: ?string;
 	mimeType: ?string;
 	name: string;
 	size: NumberString;
@@ -66,7 +67,8 @@ type MailBody = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	text: string;
+	compressedText: ?string;
+	text: ?string;
 
 }
 
@@ -504,6 +506,7 @@ type DraftRecipient = {
 type NewDraftAttachment = {
 	_type: TypeRef<NewDraftAttachment>;
 	_id: Id;
+	encCid: ?Uint8Array;
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 
@@ -653,7 +656,8 @@ type MailHeaders = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	headers: string;
+	compressedHeaders: ?string;
+	headers: ?string;
 
 }
 
@@ -986,4 +990,121 @@ type UnencryptedStatisticLogRef = {
 	_id: Id;
 
 	items: Id;
+}
+
+type CalendarRepeatRule = {
+	_type: TypeRef<CalendarRepeatRule>;
+	_id: Id;
+	endType: NumberString;
+	endValue: ?NumberString;
+	frequency: NumberString;
+	interval: NumberString;
+	timeZone: string;
+
+}
+
+type CalendarEvent = {
+	_type: TypeRef<CalendarEvent>;
+	_errors: Object;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	description: string;
+	endTime: Date;
+	location: string;
+	startTime: Date;
+	summary: string;
+	uid: ?string;
+
+	repeatRule: ?CalendarRepeatRule;
+	alarmInfos: IdTuple[];
+}
+
+type CalendarGroupRoot = {
+	_type: TypeRef<CalendarGroupRoot>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	longEvents: Id;
+	shortEvents: Id;
+}
+
+type CalendarGroupData = {
+	_type: TypeRef<CalendarGroupData>;
+	_id: Id;
+	adminEncGroupKey: ?Uint8Array;
+	calendarEncCalendarGroupRootSessionKey: Uint8Array;
+	groupInfoEncName: Uint8Array;
+	ownerEncGroupInfoSessionKey: Uint8Array;
+	userEncGroupKey: Uint8Array;
+
+	adminGroup: ?Id;
+}
+
+type CalendarPostData = {
+	_type: TypeRef<CalendarPostData>;
+	_format: NumberString;
+
+	calendarData: CalendarGroupData;
+}
+
+type GroupColor = {
+	_type: TypeRef<GroupColor>;
+	_id: Id;
+	color: string;
+
+	group: Id;
+}
+
+type UserSettingsGroupRoot = {
+	_type: TypeRef<UserSettingsGroupRoot>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	startOfTheWeek: NumberString;
+	timeFormat: NumberString;
+
+	groupColors: GroupColor[];
+}
+
+type CalendarDeleteData = {
+	_type: TypeRef<CalendarDeleteData>;
+	_format: NumberString;
+
+	groupRootId: Id;
+}
+
+type CalendarPostReturn = {
+	_type: TypeRef<CalendarPostReturn>;
+	_errors: Object;
+	_format: NumberString;
+
+	group: Id;
+}
+
+type SharedGroupData = {
+	_type: TypeRef<SharedGroupData>;
+	_id: Id;
+	bucketEncGInfoKey: Uint8Array;
+	bucketEncGKey: Uint8Array;
+	capability: NumberString;
+	group: Id;
+
+}
+
+type InvitationPostData = {
+	_type: TypeRef<InvitationPostData>;
+	_format: NumberString;
+
+	internalKeyData: InternalRecipientKeyData[];
+	sharedGroupData: SharedGroupData;
 }

@@ -7,8 +7,8 @@ android {
         applicationId "de.tutao.tutanota"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 347020
-        versionName "3.47.2"
+        versionCode 359080
+        versionName "3.59.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -55,6 +55,25 @@ android {
     packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/ASL2.0'
+    }
+}
+
+task copyResourcesToClasses(type: Copy) {
+    from "${projectDir}/src/main/assets/tutanota/test/AlarmCompatibilityTest.json"
+    into "${buildDir}/intermediates/classes/test/debug/resources"
+}
+
+preBuild.dependsOn copyResourcesToClasses
+
+//task unitTest(dependsOn: [copyResourcesToClasses, 'testDebugUnitTest']) {
+//
+//}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "started", "skipped", "passed", "failed"
+        showStandardStreams true
     }
 }
 

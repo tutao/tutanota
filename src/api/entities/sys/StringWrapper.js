@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createStringWrapper(): StringWrapper {
-	return create(_TypeModel)
+export function createStringWrapper(values?: $Shape<$Exact<StringWrapper>>): StringWrapper {
+	return Object.assign(create(_TypeModel, StringWrapperTypeRef), values)
 }

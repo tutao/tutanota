@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createDeleteContactFormConversationIndexEntry(): DeleteContactFormConversationIndexEntry {
-	return create(_TypeModel)
+export function createDeleteContactFormConversationIndexEntry(values?: $Shape<$Exact<DeleteContactFormConversationIndexEntry>>): DeleteContactFormConversationIndexEntry {
+	return Object.assign(create(_TypeModel, DeleteContactFormConversationIndexEntryTypeRef), values)
 }

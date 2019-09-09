@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "e0c6d0e30b75555ab7719fbbf7a18584",
 	"name": "id",
 	"code": "id",
@@ -12,7 +10,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2019-02-28T08:43:32Z",
+	"updated_at": "2019-03-08T12:02:57Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Silakan nonaktifkan semua pengguna tambahan sebelum berganti tipe langganan.",
@@ -27,7 +25,6 @@ const translation = {
 		"address_label": "Alamat",
 		"addUsers_action": "Tambah pengguna",
 		"add_action": "Tambah",
-		"adminCustomDomainInfo_msg": "Pastikan terlebih dahulu bahwa rekaman MX dan SPF Anda telah diatur dengan benar di dalam DNS Anda.",
 		"adminCustomDomain_label": "Domain khusus",
 		"adminDeleteAccount_action": "Hapus akun",
 		"adminEmailSettings_action": "Surel",
@@ -94,7 +91,7 @@ const translation = {
 		"corrupted_msg": "Elemen ini tidak bisa ditampilkan dengan benar.",
 		"couldNotAttachFile_msg": "Berkas tidak dapat dimuat.",
 		"createAccountInvalidCaptcha_msg": "Sayangnya, jawaban salah. Mohon coba lagi.",
-		"createAccountRunning_msg": "Akun sedang dibuat ...",
+		"createAccountRunning_msg": "Membuat akun...",
 		"createActionStatus_msg": "Membuat pengguna. Menyelesaikan {index} dari {count} akun ...",
 		"createContactForm_label": "Buat formulir kontak",
 		"createContactsForRecipients_action": "SImpan kontak semua penerima saat mengirim surel",
@@ -102,7 +99,6 @@ const translation = {
 		"createContact_action": "Buat kontak",
 		"createdUsersCount_msg": "{1} akun pengguna telah dibuat.",
 		"created_label": "Dibuat",
-		"createSearchIndex_msg": "Membuat indeks pencarian {progress}%.",
 		"creditCardCardHolderName_label": "Nama pemegang kartu",
 		"creditCardCardHolderName_msg": "Silahkan masukan nama dari pemegang kartu",
 		"creditCardCVVFormat_label": "Silakan masukkan 3 atau 4 digit kode keamanan.",
@@ -118,9 +114,6 @@ const translation = {
 		"customDomainDomainAssigned_msg": "Domain tersebut sudah ditetapkan untuk akun Anda.",
 		"customDomainErrorDnsLookupFailure_msg": "Pencarian DNS gagal.",
 		"customDomainErrorDomainNotAvailable_msg": "Domain tidak tersedia.",
-		"customDomainErrorInvalidDnsRecord_msg": "Rekaman DNS untuk domain ini mengandung nilai yang tidak valid.",
-		"customDomainErrorMissingMxEntry_msg": "Rekaman MX untuk domain ini tidak ditemukan.",
-		"customDomainErrorMissingSpfEntry_msg": "Rekaman SPF untuk domain ini tidak ditemukan.",
 		"customDomainNeutral_msg": "Silakan masukkan domain Anda.",
 		"customLogo_label": "Logo khusus",
 		"custom_label": "Ubahsuai",
@@ -519,5 +512,3 @@ const translation = {
 		"yes_label": "Ya"
 	}
 }
-export default translation
-export var __useDefault = translation

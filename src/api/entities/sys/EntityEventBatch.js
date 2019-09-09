@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "50"
 }
 
-export function createEntityEventBatch(): EntityEventBatch {
-	return create(_TypeModel)
+export function createEntityEventBatch(values?: $Shape<$Exact<EntityEventBatch>>): EntityEventBatch {
+	return Object.assign(create(_TypeModel, EntityEventBatchTypeRef), values)
 }

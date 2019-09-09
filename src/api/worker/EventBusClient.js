@@ -3,12 +3,11 @@ import type {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isIOSApp, isTest, Mode} from "../Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import type {EntityRestCache} from "./rest/EntityRestCache"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
-import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError} from "../common/error/RestError"
+import {ConnectionError, handleRestError, NotFoundError, ServiceUnavailableError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
@@ -17,24 +16,26 @@ import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType} from "../common/TutanotaConstants"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
+import {CancelledError} from "../common/error/CancelledError"
 
 assertWorkerOrNode()
 
 
-const EventBusState = {
+const EventBusState = Object.freeze({
 	Automatic: "automatic", // automatic reconnection is enabled
 	Suspended: "suspended", // automatic reconnection is suspended but can be enabled again
 	Terminated: "terminated" // automatic reconnection is disabled and websocket is closed but can be opened again by calling connect explicit
-}
+})
 
 type EventBusStateEnum = $Values<typeof EventBusState>;
 
+const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 
 export class EventBusClient {
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
 
 	_indexer: Indexer;
-	_cache: EntityRestCache;
+	_cache: EntityRestInterface;
 	_worker: WorkerImpl;
 	_mail: MailFacade;
 	_login: LoginFacade;
@@ -47,7 +48,15 @@ export class EventBusClient {
 
 	_websocketWrapperQueue: WebsocketEntityData[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
-	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestCache, mail: MailFacade, login: LoginFacade) {
+	_reconnectTimer: ?TimeoutID;
+	_connectTimer: ?TimeoutID;
+
+	/**
+	 * Represents a currently retried executing due to a ServiceUnavailableError
+	 */
+	_serviceUnavailableRetry: ?Promise<void>;
+
+	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
 		this._worker = worker
 		this._indexer = indexer
 		this._cache = cache
@@ -55,6 +64,8 @@ export class EventBusClient {
 		this._login = login
 		this._socket = null
 		this._state = EventBusState.Automatic
+		this._reconnectTimer = null
+		this._connectTimer = null
 		this._reset()
 
 		// we store the last 1000 event ids per group, so we know if an event was already processed.
@@ -68,6 +79,7 @@ export class EventBusClient {
 		this._lastEntityEventIds = {}
 		this._queueWebsocketEvents = false
 		this._websocketWrapperQueue = []
+		this._serviceUnavailableRetry = null
 	}
 
 	/**
@@ -82,8 +94,11 @@ export class EventBusClient {
 
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
 		this._websocketWrapperQueue = []
+		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
+		this._serviceUnavailableRetry = null
 		this._worker.updateWebSocketState("connecting")
 		this._state = EventBusState.Automatic
+		this._connectTimer = null
 
 		const authHeaders = this._login.createAuthHeaders()
 		// Native query building is not supported in old browser, mithril is not available in the worker
@@ -97,20 +112,46 @@ export class EventBusClient {
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
 			console.log("ws open: ", new Date(), "state:", this._state);
-			let p = ((reconnect) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
-			p.catch(ConnectionError, e => {
-				console.log("not connected in connect(), close websocket", e)
-				this.close(CloseEventBusOption.Reconnect)
-			})
-			 .catch(e => {
-				 this._worker.sendError(e)
-			 })
+			this._initEntityEvents(reconnect)
 			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
 		this._socket.onerror = (error: any) => this._error(error);
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
 	}
+
+	_initEntityEvents(reconnect: boolean) {
+		this._queueWebsocketEvents = true
+		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+		p.then(() => {
+			this._queueWebsocketEvents = false
+		}).catch(ConnectionError, e => {
+			console.log("not connected in connect(), close websocket", e)
+			this.close(CloseEventBusOption.Reconnect)
+		}).catch(CancelledError, e => {
+			// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
+			console.log("cancelled retry process entity events after reconnect")
+		}).catch(ServiceUnavailableError, e => {
+			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
+			this._lastEntityEventIds = {}
+			console.log("retry init entity events in 30s", e)
+			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+				// if we have a websocket reconnect we have to stop retrying
+				if (this._serviceUnavailableRetry === promise) {
+					console.log("retry initializing entity events")
+					return this._initEntityEvents(reconnect)
+				} else {
+					console.log("cancel initializing entity events")
+				}
+			})
+			this._serviceUnavailableRetry = promise
+			return promise
+		}).catch(e => {
+			this._queueWebsocketEvents = false
+			this._worker.sendError(e)
+		})
+	}
+
 
 	/**
 	 * Sends a close event to the server and finally closes the connection.
@@ -154,7 +195,7 @@ export class EventBusClient {
 	}
 
 	_message(message: MessageEvent): Promise<void> {
-		console.log("ws message: ", message.data);
+		//console.log("ws message: ", message.data);
 		const [type, value] = downcast(message.data).split(";")
 		if (type === "entityUpdate") {
 			return decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null)
@@ -169,13 +210,18 @@ export class EventBusClient {
 							if (this._websocketWrapperQueue.length > 0) {
 								return this._processQueuedEvents()
 							}
+						}).then(() => {
+							this._queueWebsocketEvents = false
 						}).catch(ConnectionError, e => {
+							this._queueWebsocketEvents = false
 							console.log("not connected in _message(), close websocket", e)
 							this.close(CloseEventBusOption.Reconnect)
+						}).catch(CancelledError, e => {
+							// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
+							console.log("cancelled retry process entity events after _message call")
 						}).catch(e => {
-							this._worker.sendError(e)
-						}).finally(() => {
 							this._queueWebsocketEvents = false
+							this._worker.sendError(e)
 						})
 					}
 				})
@@ -200,29 +246,40 @@ export class EventBusClient {
 		} else if (this._state === EventBusState.Automatic && this._login.isLoggedIn()) {
 			this._worker.updateWebSocketState("connecting")
 
-			if (this._immediateReconnect || isIOSApp()) {
+			if (this._immediateReconnect) {
 				this._immediateReconnect = false
-				// on ios devices the close event fires when the app comes back to foreground
-				// so try a reconnect immediately. The tryReconnect method is also triggered when
-				// the app  comes to foreground by the "resume" event, but the order in which these
-				// two events are executed is not defined so we need the tryReconnect in both situations.
 				this.tryReconnect(false, false);
+			} else {
+				this.tryReconnect(false, false, 1000 * randomIntFromInterval(30, 120))
 			}
-			setTimeout(() => this.tryReconnect(false, false), 1000 * randomIntFromInterval(10, 30));
+		}
+	}
+
+	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null) {
+		if (this._reconnectTimer) {
+			// prevent reconnect race-condition
+			clearTimeout(this._reconnectTimer)
+			this._reconnectTimer = null
+		}
+
+		if (!delay) {
+			this._reconnect(closeIfOpen, enableAutomaticState)
+		} else {
+			this._reconnectTimer = setTimeout(() => this._reconnect(false, false), delay);
 		}
 	}
 
 	/**
 	 * Tries to reconnect the websocket if it is not connected.
 	 */
-	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
-		console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
-			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state);
+	_reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
+		console.log("ws _reconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
+			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
+			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {
 			this._state = EventBusState.Automatic
 		}
 		if (closeIfOpen && this._socket && this._socket.readyState === WebSocket.OPEN) {
-			console.log("closing websocket connection before reconnect")
 			this._immediateReconnect = true
 			neverNull(this._socket).close();
 		} else if (
@@ -230,32 +287,37 @@ export class EventBusClient {
 				|| this._socket.readyState === WebSocket.CLOSING)
 			&& this._state !== EventBusState.Terminated
 			&& this._login.isLoggedIn()) {
-			this.connect(true);
+			// Don't try to connect right away because connection may not be actually there
+			// see #1165
+			if (this._connectTimer) {
+				clearTimeout(this._connectTimer)
+			}
+			this._connectTimer = setTimeout(() => this.connect(true), 100)
 		}
 	}
+
 
 	/**
 	 * stores the latest event batch ids for each of the users groups or min id if there is no event batch yet.
 	 * this is needed to know from where to start loading missed events after a reconnect
 	 */
 	_setLatestEntityEventIds(): Promise<void> {
-		this._queueWebsocketEvents = true
+		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
+		let lastIds: {[key: Id]: Id[]} = {}
 		return Promise.each(this._eventGroups(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				this._lastEntityEventIds[groupId] = [
+				lastIds[groupId] = [
 					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
 				]
 			})
 		}).then(() => {
+			this._lastEntityEventIds = lastIds
 			return this._processQueuedEvents()
-		}).finally(() => {
-			this._queueWebsocketEvents = false
 		})
 	}
 
 	_loadMissedEntityEvents(): Promise<void> {
 		if (this._login.isLoggedIn()) {
-			this._queueWebsocketEvents = true
 			return this._checkIfEntityEventsAreExpired().then(expired => {
 				if (expired) {
 					return this._worker.sendError(new OutOfSyncError())
@@ -269,8 +331,6 @@ export class EventBusClient {
 						return this._processQueuedEvents()
 					})
 				}
-			}).finally(() => {
-				this._queueWebsocketEvents = false
 			})
 		} else {
 			return Promise.resolve()
@@ -296,52 +356,55 @@ export class EventBusClient {
 	}
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		return Promise
-			.map(events, event => {
-				return this._executeIfNotTerminated(() => this._cache.entityEventReceived(event))
-				           .then(() => event)
-				           .catch(NotFoundError, e => {
-					           // skip this event. NotFoundError may occur if an entity is removed in parallel
-					           return null
+		return this._executeIfNotTerminated(() => {
+			return this._cache.entityEventsReceived(events)
+			           .then(filteredEvents => {
+				           return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
+				                      .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
+				                      .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents, groupId)))
+				                      .return(filteredEvents)
+			           })
+			           .then(filteredEvents => {
+				           if (!this._lastEntityEventIds[groupId]) {
+					           this._lastEntityEventIds[groupId] = []
+				           }
+				           this._lastEntityEventIds[groupId].push(batchId)
+				           // make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+				           this._lastEntityEventIds[groupId].sort((e1, e2) => {
+					           if (e1 === e2) {
+						           return 0
+					           } else {
+						           return firstBiggerThanSecond(e1, e2) ? 1 : -1
+					           }
 				           })
-				           .catch(NotAuthorizedError, e => {
-					           // skip this event. NotAuthorizedError may occur if the user was removed from the owner group
-					           return null
-				           })
-			})
-			.filter(event => event != null)
-			.then(filteredEvents => {
-				return this._executeIfNotTerminated(() => this._login.entityEventsReceived(filteredEvents))
-				           .then(() => this._executeIfNotTerminated(() => this._mail.entityEventsReceived(filteredEvents)))
-				           .then(() => this._executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents)))
-				           .return(filteredEvents)
-			}).then(filteredEvents => {
-				if (!this._lastEntityEventIds[groupId]) {
-					this._lastEntityEventIds[groupId] = []
+				           if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+					           this._lastEntityEventIds[groupId].shift()
+				           }
+
+				           // Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
+				           // shall not receive the event twice.
+				           if (!isTest() && !isAdminClient()) {
+					           this._executeIfNotTerminated(() => {
+						           this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
+						           console.log("_indexer.startProcessing from EventBusClient")
+						           this._indexer.startProcessing()
+					           })
+				           }
+			           })
+		}).catch(ServiceUnavailableError, e => {
+			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
+			console.log("retry processing event in 30s", e)
+			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+				// if we have a websocket reconnect we have to stop retrying
+				if (this._serviceUnavailableRetry === promise) {
+					return this._processEntityEvents(events, groupId, batchId)
+				} else {
+					throw new CancelledError("stop retry processing after service unavailable due to reconnect")
 				}
-				this._lastEntityEventIds[groupId].push(batchId)
-				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
-				this._lastEntityEventIds[groupId].sort((e1, e2) => {
-					if (e1 === e2) {
-						return 0
-					} else {
-						return firstBiggerThanSecond(e1, e2) ? 1 : -1
-					}
-				})
-				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
-					this._lastEntityEventIds[groupId].shift()
-				}
-				return filteredEvents
-			}).then(filteredEvents => {
-				// call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that shall not receive the event twice
-				this._executeIfNotTerminated(() => {
-					if (!isTest() && !isAdminClient()) {
-						this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-						this._indexer.startProcessing()
-					}
-				})
-				return filteredEvents
 			})
+			this._serviceUnavailableRetry = promise
+			return promise
+		})
 	}
 
 	/**

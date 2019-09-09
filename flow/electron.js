@@ -98,6 +98,7 @@ declare module 'electron' {
 		isDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		setAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
 		removeAsDefaultProtocolClient(protocol: string, path?: string, args?: [string]): boolean,
+		hide(): void,
 		dock: Dock,
 	}
 
@@ -240,6 +241,7 @@ declare module 'electron' {
 		setContentBounds(Rectangle): void;
 		center(): void;
 		setMenuBarVisibility(boolean): void;
+		setMinimumSize(width: number, height: number): void;
 		getPosition(): number[];
 		setPosition(x: number, y: number): void;
 		setMenu(menu: Menu | null): void;
@@ -292,9 +294,12 @@ declare module 'electron' {
 		isDevToolsOpened(): boolean;
 		isDestroyed(): boolean;
 		closeDevTools(): void;
+		goBack(): void;
+		goForward(): void;
 		print(): void;
 		toggleDevTools(): void;
 		reloadIgnoringCache(): void;
+		executeJavaScript(code: string): Promise<any>;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
 	}
@@ -358,6 +363,7 @@ declare module 'electron-localshortcut' {
 
 declare class AutoUpdater {
 	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => AutoUpdater;
+	removeAllListeners: (AutoUpdaterEvent) => AutoUpdater;
 	logger: ?{
 		info: (string) => void,
 		debug: (string) => void,

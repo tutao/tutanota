@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createContactFormStatisticField(): ContactFormStatisticField {
-	return create(_TypeModel)
+export function createContactFormStatisticField(values?: $Shape<$Exact<ContactFormStatisticField>>): ContactFormStatisticField {
+	return Object.assign(create(_TypeModel, ContactFormStatisticFieldTypeRef), values)
 }

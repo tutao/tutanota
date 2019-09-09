@@ -10,6 +10,8 @@ interface IViewSlider {
 	getPreviousColumn(): ?_ViewColumn;
 
 	focusPreviousColumn(): void;
+
+	focusNextColumn(): void;
 }
 
 interface IUserController {
@@ -18,6 +20,7 @@ interface IUserController {
 	props: TutanotaProperties;
 	sessionId: IdTuple;
 	accessToken: string;
+	+userSettingsGroupRoot: UserSettingsGroupRoot;
 
 	isGlobalAdmin(): boolean;
 
@@ -35,11 +38,13 @@ interface IUserController {
 
 	getMailGroupMemberships(): GroupMembership[];
 
+	getCalendarMemberships(): GroupMembership[];
+
 	getUserMailGroupMembership(): GroupMembership;
 
 	getLocalAdminGroupMemberships(): GroupMembership[];
 
-	entityEventsReceived($ReadOnlyArray<EntityUpdateData>): Promise<void>;
+	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
 	deleteSession(sync: boolean): Promise<void>;
 }

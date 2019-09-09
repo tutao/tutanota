@@ -78,9 +78,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "37"
 }
 
-export function createMailBox(): MailBox {
-	return create(_TypeModel)
+export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {
+	return Object.assign(create(_TypeModel, MailBoxTypeRef), values)
 }

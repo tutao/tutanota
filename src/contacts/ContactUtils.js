@@ -17,6 +17,7 @@ import {locator} from "../api/main/MainLocator"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth, formatSortableDate} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
+import {DbError} from "../api/common/error/DbError"
 
 assertMainOrNode()
 
@@ -159,29 +160,27 @@ export function searchForContacts(query: string, field: string, minSuggestionCou
  */
 export function searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
 	let cleanMailAddress = mailAddress.trim().toLowerCase()
-	if (locator.search.indexState().indexingSupported) {
-		return worker.search("\"" + cleanMailAddress + "\"",
-			createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
-			// the result is sorted from newest to oldest, but we want to return the oldest first like before
-			result.results.sort(compareOldestFirst)
-			return asyncFindAndMap(result.results, contactId => {
-				return load(ContactTypeRef, contactId).then(contact => {
-					// look for the exact match in the contacts
-					return (contact.mailAddresses.find(a => a.address.trim().toLowerCase()
-						=== cleanMailAddress)) ? contact : null
-				}).catch(NotFoundError, e => {
-					return null
-				}).catch(NotAuthorizedError, e => {
-					return null
-				})
+	return worker.search("\"" + cleanMailAddress + "\"",
+		createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
+		// the result is sorted from newest to oldest, but we want to return the oldest first like before
+		result.results.sort(compareOldestFirst)
+		return asyncFindAndMap(result.results, contactId => {
+			return load(ContactTypeRef, contactId).then(contact => {
+				// look for the exact match in the contacts
+				return (contact.mailAddresses.find(a => a.address.trim().toLowerCase()
+					=== cleanMailAddress)) ? contact : null
+			}).catch(NotFoundError, e => {
+				return null
+			}).catch(NotAuthorizedError, e => {
+				return null
 			})
 		})
-	} else {
+	}).catch(DbError, () => {
 		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId)).then(contacts => {
 			return contacts.find(contact => contact.mailAddresses.find(a =>
 				a.address.trim().toLowerCase() === cleanMailAddress) != null)
 		})
-	}
+	})
 }
 
 export function getContactDisplayName(contact: Contact): string {
