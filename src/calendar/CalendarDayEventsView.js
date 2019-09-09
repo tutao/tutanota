@@ -35,7 +35,6 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				oncreate: (vnode) => {
 					this._dayDom = vnode.dom
 					m.redraw()
-					vnode.dom.scrollTop = getTimeIndicatorPosition(new Date()) - 60
 				}
 			},
 			[

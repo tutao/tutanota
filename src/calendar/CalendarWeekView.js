@@ -143,7 +143,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			}),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+					vnode.dom.scrollTop = size.calendar_hour_height * 6
 					this._domElements.push(vnode.dom)
 				},
 				onscroll: (event) => {
