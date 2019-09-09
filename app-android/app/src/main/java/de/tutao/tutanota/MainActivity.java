@@ -5,7 +5,13 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.content.*;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.MailTo;
 import android.net.Uri;
@@ -29,8 +35,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-import de.tutao.tutanota.push.PushNotificationService;
-import de.tutao.tutanota.push.SseStorage;
+
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -40,10 +45,14 @@ import org.json.JSONException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.SseStorage;
 
 public class MainActivity extends Activity {
 
@@ -284,7 +293,7 @@ public class MainActivity extends Activity {
 		if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 			deferred.resolve(null);
 		} else {
-			deferred.reject(new SecurityException("Permission missing"));
+			deferred.reject(new SecurityException("Permission missing: " + Arrays.toString(permissions)));
 		}
 	}
 
