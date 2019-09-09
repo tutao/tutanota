@@ -1,11 +1,12 @@
 // @flow
 
-import type {Rectangle} from "electron"
+import type {NativeImage, Rectangle} from "electron"
 import {app, screen} from "electron"
+import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import type {DesktopTray} from "./DesktopTray"
+import {DesktopTray} from "./DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
@@ -40,11 +41,16 @@ export class WindowManager {
 		this.ipc = ipc
 	}
 
-	newWindow(showWhenReady: boolean): ApplicationWindow {
-		const w = new ApplicationWindow(this)
-		windows.push(w)
-
+	newWindow(showWhenReady: boolean, noAutoLogin?: boolean): ApplicationWindow {
+		const w = new ApplicationWindow(
+			this,
+			path.join(app.getAppPath(), this._conf.get("preloadjs")),
+			path.join(app.getAppPath(), this._conf.get("desktophtml")),
+			noAutoLogin
+		)
+		windows.unshift(w)
 		w.on('close', ev => {
+			// we don't want to actually close windows where someone is logged in, just hide them
 			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
 				ev.preventDefault()
 				w.hide()
@@ -80,6 +86,18 @@ export class WindowManager {
 		return w
 	}
 
+	hide() {
+		if (process.platform === 'darwin') {
+			app.hide() // hide all windows & give active app status to previous app
+		} else {
+			windows.forEach(w => w.hide())
+		}
+	}
+
+	getIcon(): NativeImage {
+		return DesktopTray.getIcon(this._conf.get('iconName'))
+	}
+
 	get(id: number): ?ApplicationWindow {
 		const w = windows.find(w => w.id === id)
 		return w
@@ -104,7 +122,7 @@ export class WindowManager {
 	openMailBox(info: UserInfo) {
 		let w = windows.find(w => w.getUserId() === info.userId)
 			|| windows.find(w => w.getUserInfo() === null)
-			|| this.newWindow(true)
+			|| this.newWindow(true, true)
 		w.openMailBox(info, null)
 	}
 
@@ -139,8 +157,8 @@ export class WindowManager {
 
 	saveBounds(w: ApplicationWindow): void {
 		const lastBounds = w.getBounds()
-		console.log("saving bounds:", lastBounds)
 		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
+			console.log("saving bounds:", lastBounds)
 			this._conf.setDesktopConfig('lastBounds', lastBounds)
 		}
 	}

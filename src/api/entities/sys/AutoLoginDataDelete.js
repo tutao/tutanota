@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createAutoLoginDataDelete(): AutoLoginDataDelete {
-	return create(_TypeModel)
+export function createAutoLoginDataDelete(values?: $Shape<$Exact<AutoLoginDataDelete>>): AutoLoginDataDelete {
+	return Object.assign(create(_TypeModel, AutoLoginDataDeleteTypeRef), values)
 }

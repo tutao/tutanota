@@ -185,9 +185,9 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "sys", "version": "43"
+	}, "app": "sys", "version": "49"
 }
 
-export function createCustomer(): Customer {
-	return create(_TypeModel)
+export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {
+	return Object.assign(create(_TypeModel, CustomerTypeRef), values)
 }

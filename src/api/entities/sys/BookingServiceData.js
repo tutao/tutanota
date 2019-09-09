@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createBookingServiceData(): BookingServiceData {
-	return create(_TypeModel)
+export function createBookingServiceData(values?: $Shape<$Exact<BookingServiceData>>): BookingServiceData {
+	return Object.assign(create(_TypeModel, BookingServiceDataTypeRef), values)
 }

@@ -43,6 +43,10 @@ execFileSync('node', [options.webclient, `${options.host}`], {
 	stdio: [null, process.stdout, process.stderr]
 })
 
+execFileSync('node', ["buildSrc/prepareMobileBuild.js", options.webclient], {
+	stdio: [null, process.stdout, process.stderr],
+})
+
 
 try {
 	execFileSync("rm", ["-r", "build/app-android"], {stdio: 'ignore'})
@@ -79,7 +83,7 @@ if (options.buildtype === 'release' || options.buildtype === 'releaseTest') {
 	// see https://developer.android.com/studio/publish/app-signing#signing-manually
 
 	// jarsigner must be run before zipalign
-	execFileSync('jarsigner', [
+	execFileSync('/opt/jdk1.8.0_112/bin/jarsigner', [
 		'-verbose',
 		'-strict',
 		'-keystore', keyStore,

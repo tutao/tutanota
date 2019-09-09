@@ -17,14 +17,19 @@
 #import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
 #import "TUTEncodingConverter.h"
+#import "TUTUserPreferenceFacade.h"
+#import "TUTAlarmManager.h"
+#import "Keychain/TUTKeychainManager.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
 #import <SafariServices/SafariServices.h>
-#import <UIkit/UIkit.h>
+#import <UIKit/UIKit.h>
 
 // Runtime magic
 #import <objc/message.h>
+
+#import "Alarms/TUTMissedNotification.h"
 
 typedef void(^VoidCallback)(void);
 
@@ -40,6 +45,7 @@ typedef void(^VoidCallback)(void);
 @property (nullable) NSString *pushTokenRequestId;
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
+@property (readonly, nonnull) TUTKeychainManager *keychainManager;
 @end
 
 @implementation TUTViewController
@@ -55,6 +61,7 @@ typedef void(^VoidCallback)(void);
 		_keyboardSize = 0;
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
+        _keychainManager = [TUTKeychainManager new];
 	}
 	return self;
 }
@@ -101,12 +108,19 @@ typedef void(^VoidCallback)(void);
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
 	[self loadMainPageWithParams:nil];
+    [self.appDelegate.alarmManager fetchMissedNotifications:nil :^(NSError *error) {
+        if (error) {
+            NSLog(@"Failed to fetch/process missed notifications: %@", error);
+        } else {
+            NSLog(@"Successfully processed missed notifications");
+        }
+    }];
+    [self.appDelegate.alarmManager rescheduleEvents];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
 	let jsonData = [[message body] dataUsingEncoding:NSUTF8StringEncoding];
 	NSDictionary *json = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:nil];
-	//NSLog(@"Message dict: %@", json);
 	NSString *type = json[@"type"];
 	NSString *requestId = json[@"id"];
 	NSArray *arguments = json[@"args"];
@@ -182,7 +196,18 @@ typedef void(^VoidCallback)(void);
 			}
 		}];
 	} else if ([@"getPushIdentifier" isEqualToString:type]) {
-		[((TUTAppDelegate *) UIApplication.sharedApplication.delegate) registerForPushNotificationsWithCallback:sendResponseBlock];
+        [self.appDelegate registerForPushNotificationsWithCallback:sendResponseBlock];
+    } else if ([@"storePushIdentifierLocally" isEqualToString:type]) {
+        // identifier, userid, origin, pushIdentifierElementId, pushIdentifierSessionKeyB64
+        [self.appDelegate.userPreferences storeSseInfoWithPushIdentifier:arguments[0] userId:arguments[1] sseOrign:arguments[2]];
+        let keyData = [TUTEncodingConverter base64ToBytes:arguments[4]];
+        NSError *error;
+        [self.keychainManager storeKey:keyData withId:arguments[3] error:&error];
+        if (error) {
+            [self sendErrorResponseWithId:requestId value:error];
+        } else {
+            [self sendResponseWithId:requestId value:NSNull.null];
+        }
 	} else if ([@"findSuggestions" isEqualToString:type]) {
 		[_contactsSource searchForContactsUsingQuery:arguments[0]
 										  completion:sendResponseBlock];
@@ -239,8 +264,14 @@ typedef void(^VoidCallback)(void);
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
 	var *message = @"";
-	if (value.userInfo) {
-		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value.userInfo options:0 error:nil]
+	if (value.userInfo && [value isKindOfClass:NSDictionary.class]) {
+		let dict = (NSDictionary *)value.userInfo;
+		let newDict = [NSMutableDictionary new];
+		foreach(key, dict) {
+			const NSObject *value = dict[key];
+			newDict[key] = value.description;
+		}
+		message = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:newDict options:0 error:nil]
 										encoding:NSUTF8StringEncoding];
 	}
 
@@ -281,8 +312,16 @@ typedef void(^VoidCallback)(void);
 }
 
 - (nonnull NSURL *)appUrl {
-	NSString *filePath = [NSString stringWithFormat:@"%@%@", NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"], @"app"];
-	let path = [NSBundle.mainBundle pathForResource:filePath ofType:@"html"];
+    NSDictionary *environment = [[NSProcessInfo processInfo] environment];
+    
+    NSString *pagePath;
+    if (environment[@"TUT_PAGE_PATH"]) {
+        pagePath = environment[@"TUT_PAGE_PATH"];
+    } else {
+        pagePath = NSBundle.mainBundle.infoDictionary[@"TutanotaApplicationPath"];
+    }
+    
+	let path = [NSBundle.mainBundle pathForResource:[NSString stringWithFormat:@"%@%@", pagePath, @"app"] ofType:@"html"];
 	// For running tests
 	if (path == nil) {
 		return NSBundle.mainBundle.resourceURL;
@@ -381,6 +420,10 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
 	// disable scrolling of the web view to avoid that the keyboard moves the body out of the screen
 	scrollView.contentOffset = CGPointZero;
+}
+
+- (TUTAppDelegate *)appDelegate {
+    return (TUTAppDelegate *) UIApplication.sharedApplication.delegate;
 }
 
 @end

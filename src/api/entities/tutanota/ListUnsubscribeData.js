@@ -29,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createListUnsubscribeData(): ListUnsubscribeData {
-	return create(_TypeModel)
+export function createListUnsubscribeData(values?: $Shape<$Exact<ListUnsubscribeData>>): ListUnsubscribeData {
+	return Object.assign(create(_TypeModel, ListUnsubscribeDataTypeRef), values)
 }

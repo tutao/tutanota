@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Prendre una foto o vídeo per afegir-la com a arxiu adjunt.";
 NSPhotoLibraryUsageDescription = "Afegiu una imatge de la biblioteca com a arxiu adjunt.";
-NSPhotoLibraryAddUsageDescription = "Afegiu una imatge de la biblioteca com a arxiu adjunt.";
+NSMicrophoneUsageDescription = "Afegiu una imatge de la biblioteca com a arxiu adjunt.";
 NSMicrophoneUsageDescription = "S'utilitza quan es grava un vídeo com a arxiu adjunt.";
 NSContactsUsageDescription = "Troba l'adreça de correu electrònic del destinatari en els contactes.";
 NSRemindersUsageDescription = "Mostra una notificació quan arribi un nou correu electrònic.";
@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Sense permís";
 TutaoChangePermissionMsg = "Per tenir-hi accés, heu de modificar els permisos d'aquest dispositiu.";
 TutaoCancelAction = "Cancel·la";
 TutaoSettingsAction = "Configuració";
+TutaoCalendarAlarmTitle = "Recordatori";

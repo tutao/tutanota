@@ -5,7 +5,16 @@ import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameA
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {ContactAddressType, EmailSignatureType as TutanotaConstants, GroupType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ContactAddressType,
+	EmailSignatureType as TutanotaConstants,
+	getMailFolderType,
+	GroupType,
+	MailFolderType,
+	MailState,
+	MAX_BASE64_IMAGE_SIZE
+} from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
@@ -25,8 +34,11 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {getContactDisplayName, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {Dialog} from "../gui/base/Dialog"
-import type {lazyIcon} from "../gui/base/Icon"
+import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
+import {fileController} from "../file/FileController"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -40,13 +52,13 @@ assertMainOrNode()
  */
 export function createRecipientInfo(mailAddress: string, name: ?string, contact: ?Contact, doNotResolveContact: boolean): RecipientInfo {
 	let type = isTutanotaMailAddress(mailAddress) ? recipientInfoType.internal : recipientInfoType.unknown
-	let recipientInfo = {
+	let recipientInfo: RecipientInfo = {
 		_type: 'RecipientInfo',
 		type,
 		mailAddress,
-		name: (name) ? name : "", // "" will be replaced as soon as a contact is found
+		name: name || "", // "" will be replaced as soon as a contact is found
 		contact: contact,
-		resolveContactPromise: neverNull(null) // strangely, flow does not allow null here
+		resolveContactPromise: null
 	}
 	if (!contact && !doNotResolveContact && logins.getUserController() && logins.getUserController().isInternalUser()) {
 		recipientInfo.resolveContactPromise = searchForContactByMailAddress(mailAddress).then(contact => {
@@ -300,7 +312,7 @@ export function getFolderIconByType(folderType: MailFolderTypeEnum): lazyIcon {
 }
 
 export function getFolderIcon(folder: MailFolder): lazyIcon {
-	return getFolderIconByType(folder.folderType)
+	return getFolderIconByType(getMailFolderType(folder))
 }
 
 
@@ -420,4 +432,62 @@ export function getMailboxName(mailboxDetails: MailboxDetail): string {
 	} else {
 		return getGroupInfoDisplayName(neverNull(mailboxDetails.mailGroupInfo))
 	}
+}
+
+export function getMailFolderIcon(mail: Mail): AllIconsEnum {
+	let folder = mailModel.getMailFolder(mail._id[0])
+	if (folder) {
+		return getFolderIcon(folder)()
+	} else {
+		return Icons.Folder
+	}
+}
+
+
+export interface ImageHandler {
+	insertImage(srcAttr: string, attrs?: {[string]: string}): HTMLElement
+}
+
+export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
+	fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then((files) => {
+		const tooBig = []
+		for (let file of files) {
+			if (file.size > MAX_BASE64_IMAGE_SIZE) {
+				tooBig.push(file)
+			} else {
+				const b64 = uint8ArrayToBase64(file.data)
+				const dataUrlString = `data:${file.mimeType};base64,${b64}`
+				handler.insertImage(dataUrlString, {style: "max-width: 100%"})
+			}
+		}
+		if (tooBig.length > 0) {
+			Dialog.error(() => lang.get("tooBigInlineImages_msg", {"{size}": MAX_BASE64_IMAGE_SIZE / 1024}))
+		}
+	})
+}
+
+
+export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages) {
+	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
+	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
+	imageElements.forEach((imageElement) => {
+		const cid = imageElement.getAttribute("cid")
+		if (cid) {
+			if (inlineImages[cid]) {
+				imageElement.setAttribute("src", inlineImages[cid].url)
+				imageElement.classList.remove("tutanota-placeholder")
+			}
+		}
+	})
+}
+
+export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
+	const domClone: HTMLElement = dom.cloneNode(true)
+	const inlineImages: Array<HTMLElement> = Array.from(domClone.querySelectorAll("img[cid]"))
+	inlineImages.forEach((inlineImage) => {
+		const cid = inlineImage.getAttribute("cid")
+		inlineImage.setAttribute("src", "cid:" + (cid || ""))
+		inlineImage.removeAttribute("cid")
+	})
+	return domClone
 }

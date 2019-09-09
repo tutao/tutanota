@@ -112,18 +112,17 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 }
 
 - (void)testAes128{
-	TUTAes128Facade *aesFacade = [[TUTAes128Facade alloc]init];
 	for	(NSDictionary *td in self.testData[@"aes128Tests"]){
 		NSData *iv = [TUTEncodingConverter base64ToBytes:td[@"ivBase64"]];
 		NSData *key = [TUTEncodingConverter hexToBytes:td[@"hexKey"]];
 		NSData *plainTextData = [TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]];
 		NSError *error = nil;
 		
-		NSData *encryptedData = [aesFacade encrypt:plainTextData withKey:key withIv:iv withMac:NO error:&error];
+		NSData *encryptedData = [TUTAes128Facade encrypt:plainTextData withKey:key withIv:iv withMac:NO error:&error];
 		XCTAssertNil(error);
         XCTAssertEqualObjects(td[@"cipherTextBase64"], [TUTEncodingConverter bytesToBase64:encryptedData]);
 		
-		NSData *decryptedData = [aesFacade decrypt:encryptedData withKey:key error:&error];
+		NSData *decryptedData = [TUTAes128Facade decrypt:encryptedData withKey:key error:&error];
 		XCTAssertNil(error);
 		NSString * plainTextAsHex = [TUTEncodingConverter bytesToHex:[TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]]];
 
@@ -134,18 +133,17 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 }
 
 - (void)testAes128WithMac{
-	TUTAes128Facade *aesFacade = [[TUTAes128Facade alloc]init];
 	for	(NSDictionary *td in self.testData[@"aes128MacTests"]){
 		NSData *iv = [TUTEncodingConverter base64ToBytes:td[@"ivBase64"]];
 		NSData *key = [TUTEncodingConverter hexToBytes:td[@"hexKey"]];
 		NSData *plainTextData = [TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]];
 		NSError *error = nil;
 
-		NSData *encryptedData = [aesFacade encrypt:plainTextData withKey:key withIv:iv withMac:YES error:&error];
+		NSData *encryptedData = [TUTAes128Facade encrypt:plainTextData withKey:key withIv:iv withMac:YES error:&error];
 		XCTAssertNil(error);
         XCTAssertEqualObjects(td[@"cipherTextBase64"], [TUTEncodingConverter bytesToBase64:encryptedData]);
 
-		NSData *decryptedData = [aesFacade decrypt:encryptedData withKey:key error:&error];
+		NSData *decryptedData = [TUTAes128Facade decrypt:encryptedData withKey:key error:&error];
 		XCTAssertNil(error);
 		NSString * plainTextAsHex = [TUTEncodingConverter bytesToHex:[TUTEncodingConverter base64ToBytes:td[@"plainTextBase64"]]];
 

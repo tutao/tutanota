@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createBootstrapFeature(): BootstrapFeature {
-	return create(_TypeModel)
+export function createBootstrapFeature(values?: $Shape<$Exact<BootstrapFeature>>): BootstrapFeature {
+	return Object.assign(create(_TypeModel, BootstrapFeatureTypeRef), values)
 }

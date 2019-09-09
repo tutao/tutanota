@@ -51,12 +51,14 @@ export class DropdownN {
 				if (typeof child === 'string') {
 					return child
 				}
-				child = ((child: any): ButtonAttrs)
-				return Object.assign(child, {
-					click: this.wrapClick(child.click),
-					isVisible: this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible,
-					noBubble: false
-				})
+				child = ((child: any): ButtonAttrs | NavButtonAttrs)
+				child.click = this.wrapClick(child.click ? child.click : () => null)
+				child.isVisible = this._isFilterable ? this.wrapVisible(child.isVisible, lang.getMaybeLazy(child.label)) : child.isVisible
+				if (typeof child.noBubble !== 'undefined') {
+					let buttonChild = ((child: any): ButtonAttrs)
+					buttonChild.noBubble = false
+				}
+				return child
 			})
 		}
 
@@ -212,6 +214,11 @@ export class DropdownN {
 		this.close()
 	}
 
+	popState(e: Event): boolean {
+		this.close()
+		return true
+	}
+
 	chooseMatch = () => {
 		const filterString = this._filterString().toLowerCase()
 		let visibleElements: Array<ButtonAttrs | NavButtonAttrs> = (this._visibleChildren().filter(b => (typeof b !== "string")): any)
@@ -313,7 +320,7 @@ export function createDropdown(lazyButtons: lazy<$ReadOnlyArray<DropDownChildAtt
 }
 
 export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDownChildAttrs>>, width: number = 200): clickHandler {
-	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument
+	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return ((e, dom) => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {

@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createUserAreaGroups(): UserAreaGroups {
-	return create(_TypeModel)
+export function createUserAreaGroups(values?: $Shape<$Exact<UserAreaGroups>>): UserAreaGroups {
+	return Object.assign(create(_TypeModel, UserAreaGroupsTypeRef), values)
 }

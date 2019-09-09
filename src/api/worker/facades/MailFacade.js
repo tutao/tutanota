@@ -251,6 +251,7 @@ export class MailFacade {
 		newAttachmentData.encFileName = encryptString(fileSessionKey, providedFile.name)
 		newAttachmentData.encMimeType = encryptString(fileSessionKey, providedFile.mimeType)
 		newAttachmentData.fileData = fileDataId
+		newAttachmentData.encCid = providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid)
 		attachment.newFile = newAttachmentData
 		attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, fileSessionKey)
 		return attachment
@@ -312,11 +313,11 @@ export class MailFacade {
 				// otherwise load the key information from the server
 				if (recipientInfo.type === recipientInfoType.external && recipientInfo.contact) {
 					let password = recipientInfo.contact.presharedPassword
-					let preshared = true
+
 					if (password == null && recipientInfo.contact.autoTransmitPassword !== "") {
 						password = recipientInfo.contact.autoTransmitPassword
-						let preshared = false
 					}
+
 					if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) { // no password given and prevent sending to secure externals from shared group
 						notFoundRecipients.push(recipientInfo.mailAddress)
 						return Promise.resolve()

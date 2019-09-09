@@ -19,18 +19,18 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
-const DownloadLocationStrategy = {
+const DownloadLocationStrategy = Object.freeze({
 	ALWAYS_ASK: 0,
 	CHOOSE_DIRECTORY: 1
-}
+})
 
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
 
-	_isDefaultMailtoHandler: stream<?boolean>;
-	_defaultDownloadPath: stream<string>;
-	_runAsTrayApp: stream<?boolean>;
-	_runOnStartup: stream<?boolean>;
+	_isDefaultMailtoHandler: Stream<?boolean>;
+	_defaultDownloadPath: Stream<string>;
+	_runAsTrayApp: Stream<?boolean>;
+	_runOnStartup: Stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -50,7 +50,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._isDefaultMailtoHandler,
 			selectionChangedHandler: v => {
-				showProgressDialog("pleaseWait_msg", this._updateDefaultMailtoHandler(v), false)
+				showProgressDialog("pleaseWait_msg", this._updateDefaultMailtoHandler(v))
 					.then(() => {
 						this._isDefaultMailtoHandler(v)
 						m.redraw()
@@ -83,7 +83,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					nativeApp.invokeNative(new Request(v
 						? 'enableAutoLaunch'
 						: 'disableAutoLaunch', [])),
-					false).then(() => {
+					).then(() => {
 					this._runOnStartup(v)
 					m.redraw()
 				})

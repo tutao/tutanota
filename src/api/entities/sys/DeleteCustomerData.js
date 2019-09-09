@@ -39,9 +39,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createDeleteCustomerData(): DeleteCustomerData {
-	return create(_TypeModel)
+export function createDeleteCustomerData(values?: $Shape<$Exact<DeleteCustomerData>>): DeleteCustomerData {
+	return Object.assign(create(_TypeModel, DeleteCustomerDataTypeRef), values)
 }

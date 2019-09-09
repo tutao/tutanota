@@ -27,9 +27,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createPasswordMessagingData(): PasswordMessagingData {
-	return create(_TypeModel)
+export function createPasswordMessagingData(values?: $Shape<$Exact<PasswordMessagingData>>): PasswordMessagingData {
+	return Object.assign(create(_TypeModel, PasswordMessagingDataTypeRef), values)
 }

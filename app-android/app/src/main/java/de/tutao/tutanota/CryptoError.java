@@ -1,6 +1,6 @@
 package de.tutao.tutanota;
 
-class CryptoError extends Exception {
+public class CryptoError extends Exception {
     public CryptoError(String message) {
         super(message);
     }

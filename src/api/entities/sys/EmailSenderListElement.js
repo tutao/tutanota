@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createEmailSenderListElement(): EmailSenderListElement {
-	return create(_TypeModel)
+export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {
+	return Object.assign(create(_TypeModel, EmailSenderListElementTypeRef), values)
 }

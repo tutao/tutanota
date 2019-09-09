@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createBirthday(): Birthday {
-	return create(_TypeModel)
+export function createBirthday(values?: $Shape<$Exact<Birthday>>): Birthday {
+	return Object.assign(create(_TypeModel, BirthdayTypeRef), values)
 }

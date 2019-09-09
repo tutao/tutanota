@@ -17,19 +17,20 @@ import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, isAdminClient} from "../Env"
 import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
-import {downcast} from "../common/utils/Utils"
+import {CalendarFacade} from "./facades/CalendarFacade"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
 	login: LoginFacade;
 	indexer: Indexer;
-	cache: EntityRestCache;
+	cache: EntityRestInterface;
 	search: SearchFacade;
 	groupManagement: GroupManagementFacade;
 	userManagement: UserManagementFacade;
 	customer: CustomerFacade;
 	file: FileFacade;
 	mail: MailFacade;
+	calendar: CalendarFacade;
 	mailAddress: MailAddressFacade;
 	counters: CounterFacade;
 	eventBusClient: EventBusClient;
@@ -40,26 +41,29 @@ type WorkerLocatorType = {
 
 export const locator: WorkerLocatorType = ({}: any)
 
-export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, browserData: BrowserData) {
+export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
 	const restClient = new EntityRestClient(getAuthHeaders)
 
 	locator._browserData = browserData
-	locator._indexedDbSupported = indexedDbSupported
-	locator.indexer = new Indexer(restClient, worker, indexedDbSupported, browserData)
-	locator.cache = isAdminClient() ? downcast(restClient) : new EntityRestCache(restClient) // we don't wont to cache within the admin area
+	let cache = new EntityRestCache(restClient)
+	locator.cache = isAdminClient() ? restClient : cache // we don't wont to cache within the admin area
+	locator.indexer = new Indexer(restClient, worker, browserData, locator.cache)
 	locator.login = new LoginFacade(worker)
-	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, [
-		locator.indexer._contact.suggestionFacade, locator.indexer._groupInfo.suggestionFacade,
+	const suggestionFacades = [
+		locator.indexer._contact.suggestionFacade,
+		locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade
-	])
+	]
+	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData)
 	locator.counters = new CounterFacade()
 	locator.groupManagement = new GroupManagementFacade(locator.login, locator.counters)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
 	locator.mail = new MailFacade(locator.login, locator.file)
+	locator.calendar = new CalendarFacade(locator.login, locator.userManagement, cache)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
 	locator.login.init(locator.indexer, locator.eventBusClient)
@@ -67,7 +71,7 @@ export function initLocator(worker: WorkerImpl, indexedDbSupported: boolean, bro
 }
 
 export function resetLocator(): Promise<void> {
-	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._indexedDbSupported, locator._browserData))
+	return locator.login.reset().then(() => initLocator(locator.login._worker, locator._browserData))
 }
 
 if (typeof self !== "undefined") {

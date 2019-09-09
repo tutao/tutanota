@@ -5,7 +5,7 @@ import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 import stream from "mithril/stream/stream.js"
-import {identity} from "../common/utils/Utils"
+import {downcast, identity} from "../common/utils/Utils"
 
 assertMainOrNode()
 
@@ -17,7 +17,7 @@ export type EntityUpdateData = {
 	operation: OperationTypeEnum
 }
 
-export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>) => mixed;
+export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => mixed;
 
 export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 
@@ -45,16 +45,17 @@ export class EventController {
 		return this._countersStream.map(identity)
 	}
 
-	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>) {
+	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>, eventOwnerGroupId: Id) {
 		let loginsUpdates = Promise.resolve()
 		if (this._logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates)
+			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
 
 		loginsUpdates.then(() => {
 			this._entityListeners.forEach(listener => {
-				listener(entityUpdates)
+				let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
+				listener(entityUpdatesData, eventOwnerGroupId)
 			})
 		})
 	}

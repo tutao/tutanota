@@ -21,8 +21,8 @@ export class LazyLoaded<T> {
 		this._loadedObject = defaultValue
 	}
 
-	isLoaded() {
-		return this._loadingPromise && this._loadingPromise.isFulfilled()
+	isLoaded(): boolean {
+		return this._loadingPromise != null && this._loadingPromise.isFulfilled()
 	}
 
 	/**
@@ -62,5 +62,15 @@ export class LazyLoaded<T> {
 	reset() {
 		this._loadingPromise = null
 		this._loadedObject = null
+	}
+
+	/**
+	 * Loads the object again and replaces the current one
+	 */
+	reload(): Promise<T> {
+		return this._loadFunction().then(result => {
+			this._loadedObject = result
+			return result
+		})
 	}
 }

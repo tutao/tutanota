@@ -38,9 +38,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createMembershipAddData(): MembershipAddData {
-	return create(_TypeModel)
+export function createMembershipAddData(values?: $Shape<$Exact<MembershipAddData>>): MembershipAddData {
+	return Object.assign(create(_TypeModel, MembershipAddDataTypeRef), values)
 }

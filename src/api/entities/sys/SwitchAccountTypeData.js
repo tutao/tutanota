@@ -20,9 +20,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createSwitchAccountTypeData(): SwitchAccountTypeData {
-	return create(_TypeModel)
+export function createSwitchAccountTypeData(values?: $Shape<$Exact<SwitchAccountTypeData>>): SwitchAccountTypeData {
+	return Object.assign(create(_TypeModel, SwitchAccountTypeDataTypeRef), values)
 }

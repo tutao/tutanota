@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createRegistrationCaptchaServiceGetData(): RegistrationCaptchaServiceGetData {
-	return create(_TypeModel)
+export function createRegistrationCaptchaServiceGetData(values?: $Shape<$Exact<RegistrationCaptchaServiceGetData>>): RegistrationCaptchaServiceGetData {
+	return Object.assign(create(_TypeModel, RegistrationCaptchaServiceGetDataTypeRef), values)
 }

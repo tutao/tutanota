@@ -14,13 +14,13 @@ const FALSE_CLOSURE = () => {
 	return false
 }
 
-export const Type = {
+export const Type = Object.freeze({
 	Text: "text",
 	Email: "email",
 	Password: "password",
 	Area: "area",
-	ExternalPassword: "externalpassword",
-}
+})
+
 export type TextFieldTypeEnum = $Values<typeof Type>;
 
 
@@ -47,9 +47,10 @@ export class TextField {
 	view: Function;
 	onblur: Stream<*>;
 	skipNextBlur: boolean;
-	_keyHandler: keyHandler; // interceptor used by the BubbleTextField to react on certain keys
+	_keyHandler: ?keyHandler; // interceptor used by the BubbleTextField to react on certain keys
 	_alignRight: boolean;
 	_preventAutofill: boolean;
+	autocomplete: string;
 
 	isEmpty: Function;
 
@@ -60,6 +61,7 @@ export class TextField {
 		this.disabled = false
 		this.helpLabel = helpLabel
 		this.value = stream("")
+		this.autocomplete = ""
 		this.value.map(v => {
 			if (this._domInput) {
 				const input = this._domInput
@@ -126,6 +128,20 @@ export class TextField {
 		}
 	}
 
+	updateValue() {
+		const input = this._domInput
+		if (input) {
+			const inputValue = input.value
+			if (this.value() !== inputValue) {
+				const oldValue = this.value()
+				this.value(inputValue)
+				if ((oldValue == null || oldValue === "") && inputValue !== "" && !this.active) {
+					this.animate() // animate in case of browser autocompletion (non-webkit)
+				}
+			}
+		}
+	}
+
 	_getInputField(): VirtualElement {
 		if (this.disabled) {
 			return m(".text-break.selectable" + (this._alignRight ? ".right" : ""), {
@@ -135,24 +151,24 @@ export class TextField {
 				}
 			}, this.value())
 		} else {
-			const typeAttr = (this.type === Type.ExternalPassword)
-				? Type.Password
-				: this.type
-			/**
-			 * due to modern browser's 'smart' password managers that try to autofill everything
-			 * that remotely resembles a password field, we prepend invisible inputs to password fields
-			 * that shouldn't be autofilled.
-			 * since the autofill algorithm looks at inputs that come before and after the password field we need
-			 * three dummies.
-			 */
+			const typeAttr = this.type
+			// Due to modern browser's 'smart' password managers that try to autofill everything
+			// that remotely resembles a password field, we prepend invisible inputs to password fields
+			// that shouldn't be autofilled.
+			// since the autofill algorithm looks at inputs that come before and after the password field we need
+			// three dummies.
+			//
+			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
+			// This is mostly done to prevent autofill which happens if the field type="password".
 			const autofillGuard = this._preventAutofill ? [
-				m("input", {style: {display: 'none'}, type: Type.Text}),
-				m("input", {style: {display: 'none'}, type: Type.Password}),
-				m("input", {style: {display: 'none'}, type: Type.Text})
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
 			] : []
 
 			return m('.flex-grow', autofillGuard.concat(
 				m("input.input" + (this._alignRight ? ".right" : ""), {
+					autocomplete: this._preventAutofill ? "off" : this.autocomplete,
 					type: typeAttr,
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
@@ -175,7 +191,7 @@ export class TextField {
 					onblur: e => this.blur(e),
 					onkeydown: e => {
 						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-						let key = {keyCode: e.which, ctrl: e.ctrlKey}
+						let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
 						const input = this._domInput
 						if (input && input.value !== this.value()) {
 							this.value(input.value) // password managers like CKPX set the value directly and only send a key event (oninput is not invoked), e.g. https://github.com/subdavis/Tusk/blob/9eecda720c1ecfe5d44af89fb96125cfd9921f2a/background/inject.js#L191

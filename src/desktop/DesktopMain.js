@@ -4,6 +4,7 @@ import {DesktopConfigHandler} from './DesktopConfigHandler'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {lang} from './DesktopLocalizationProvider.js'
+import chalk from 'chalk'
 import {IPC} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
 import {WindowManager} from "./DesktopWindowManager"
@@ -11,18 +12,29 @@ import {DesktopNotifier} from "./DesktopNotifier"
 import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./DesktopSseClient"
+import {Socketeer} from "./Socketeer"
+
+const oldLog = console.log
+const oldError = console.error
+const oldWarn = console.warn
+
+;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
+;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
+;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
 
 const conf = new DesktopConfigHandler()
+const sock = new Socketeer()
 const notifier = new DesktopNotifier()
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(conf, notifier, wm)
-const ipc = new IPC(conf, notifier, sse, wm)
+sse.start()
+const ipc = new IPC(conf, notifier, sse, wm, sock)
 wm.setIPC(ipc)
 
-PreloadImports.keep()
+PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
@@ -49,10 +61,10 @@ if (process.argv.indexOf("-r") !== -1) {
 	} else {
 		app.on('second-instance', (ev, args, cwd) => {
 			console.log("2nd instance args:", args)
-			if (!conf.getDesktopConfig('runAsTrayApp') && wm.getAll().length > 0) {
-				wm.getAll().forEach(w => w.show())
-			} else {
+			if (wm.getAll().length === 0) {
 				wm.newWindow(true)
+			} else {
+				wm.getAll().forEach(w => w.show())
 			}
 			handleArgv(args)
 		})
@@ -87,6 +99,9 @@ function onAppReady() {
 
 function main() {
 	tray.update()
+	if (process.argv.indexOf('-s') !== -1) {
+		sock.startServer()
+	}
 	console.log("Webapp ready")
 	app.on('activate', () => {
 		// MacOs
@@ -94,7 +109,7 @@ function main() {
 		// so set listener later to avoid the call on launch
 		wm.getLastFocused(true)
 	})
-	notifier.start(tray)
+	notifier.start(tray, 2000)
 	updater.start()
 	handleArgv(process.argv)
 }
@@ -114,3 +129,4 @@ function handleMailto(mailtoArg?: string) {
 		ipc.sendRequest(w.id, 'createMailEditor', [[], "", "", "", mailtoArg])
 	}
 }
+

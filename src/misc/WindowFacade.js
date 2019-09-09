@@ -7,6 +7,7 @@ import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
+import {client} from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -14,13 +15,15 @@ export type KeyboardSizeListener = (keyboardSize: number) => mixed;
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
-	resizeTimeout: ?TimeoutID;
+	resizeTimeout: ?AnimationFrameID | ?TimeoutID;
 	windowCloseConfirmation: boolean;
-	_windowCloseListeners: Set<() => void>;
+	_windowCloseListeners: Set<(e: Event) => void>;
+	_historyStateEventListeners: Array<(e: Event) => boolean> = [];
 	_worker: WorkerClient;
 	// following two properties are for the iOS
 	_keyboardSize = 0;
 	_keyboardSizeListeners: KeyboardSizeListener[] = [];
+	_ignoreNextPopstate: boolean = false;
 
 	constructor() {
 		this._windowSizeListeners = []
@@ -54,11 +57,15 @@ class WindowFacade {
 
 	addWindowCloseListener(listener: () => void): Function {
 		this._windowCloseListeners.add(listener)
-		return () => this._windowCloseListeners.delete(listener)
+		this._checkWindowClosing(this._windowCloseListeners.size > 0)
+		return () => {
+			this._windowCloseListeners.delete(listener)
+			this._checkWindowClosing(this._windowCloseListeners.size > 0)
+		}
 	}
 
-	notifyCloseListeners() {
-		this._windowCloseListeners.forEach(f => f())
+	_notifyCloseListeners(e: Event) {
+		this._windowCloseListeners.forEach(f => f(e))
 	}
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener) {
@@ -82,25 +89,27 @@ class WindowFacade {
 	}
 
 	init() {
-		window.onresize = (event) => {
+		window.onresize = () => {
 			// see https://developer.mozilla.org/en-US/docs/Web/Events/resize
-			// TODO (android >= 4.4) switch to requestAnimationFrame
 			if (!this.resizeTimeout) {
-				this.resizeTimeout = setTimeout(() => {
+				const cb = () => {
 					this.resizeTimeout = null
 					this._resize()
 					// The actualResizeHandler will execute at a rate of 15fps
-				}, 66)
+				}
+				// On mobile devices there's usaually no resize but when changing orientation it's to early to
+				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
+				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
 			}
 		}
 		if (window.addEventListener && !isApp()) {
 			window.addEventListener("beforeunload", e => this._beforeUnload(e))
+			window.addEventListener("popstate", e => this._popState(e))
 			window.addEventListener("unload", e => this._onUnload())
 		}
 	}
 
 	_resize() {
-		//console.log("resize")
 		try {
 			for (let listener of this._windowSizeListeners) {
 				listener(window.innerWidth, window.innerHeight)
@@ -110,18 +119,60 @@ class WindowFacade {
 		}
 	}
 
-	checkWindowClosing(enable: boolean) {
+	_checkWindowClosing(enable: boolean) {
 		this.windowCloseConfirmation = enable
 	}
 
 	_beforeUnload(e: any) { // BeforeUnloadEvent
-		this.notifyCloseListeners()
+		console.log("windowfacade._beforeUnload")
+		this._notifyCloseListeners(e)
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m
 			return m
 		} else {
 			this._worker.logout(true)
+		}
+	}
+
+	/**
+	 * add a function to call when onpopstate event occurs
+	 * @param listener: return true if this popstate may go ahead
+	 * @returns {Function}
+	 */
+	addHistoryEventListener(listener: (e: Event) => boolean): ()=>void {
+		this._historyStateEventListeners.push(listener)
+		console.log("added history state listener:", this._historyStateEventListeners.length)
+		return () => {
+			const index = this._historyStateEventListeners.indexOf(listener)
+			if (index !== -1) {
+				this._historyStateEventListeners.splice(index, 1)
+				console.log("removed history state listener:", this._historyStateEventListeners.length)
+			}
+		}
+	}
+
+	/**
+	 * calls the last history event listener that was added
+	 * and reverts the state change if it returns false
+	 * TODO: this also fires for forward-events and when the user jumps around in the history
+	 * TODO: by long-clicking the back/forward buttons.
+	 * TODO: solving this requires extensive bookkeeping because the events are indistinguishable by default
+	 * @param e: popstate DOM event
+	 * @private
+	 */
+	_popState(e: Event) {
+		const len = this._historyStateEventListeners.length
+		if (len === 0) return
+		if (this._ignoreNextPopstate) {
+			console.log("ignoring popstate")
+			this._ignoreNextPopstate = false
+			return
+		}
+		console.log("windowfacade._popState")
+		if (!this._historyStateEventListeners[len - 1](e)) {
+			this._ignoreNextPopstate = true
+			history.go(1)
 		}
 	}
 
@@ -169,18 +220,27 @@ class WindowFacade {
 	}
 
 	addPageInBackgroundListener() {
-		if (isAndroidApp()) {
+		if (isApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 				if (document.hidden) {
-					setTimeout(() => {
-						// if we're still in background after timeout, pause WebSocket
-						if (document.hidden) {
-							this._worker.closeEventBus(CloseEventBusOption.Pause)
-						}
-					}, 30 * 1000)
+					if (isAndroidApp()) {
+						setTimeout(() => {
+							// if we're still in background after timeout, pause WebSocket
+							if (document.hidden) {
+								this._worker.closeEventBus(CloseEventBusOption.Pause)
+							}
+						}, 30 * 1000)
+					}
 				} else {
-					this._worker.tryReconnectEventBus(false, true)
+					// On iOS devices the WebSocket close event fires when the app comes back to foreground
+					// so we try to reconnect with a delay to receive _close event first. Otherwise
+					// we may try to reconnect while we think that we're still connected
+					// (e.g. first reconnect and then receive close).
+					// We used to handle it in the EventBus and reconnect immediately but isIosApp()
+					// check does not work in the worker currently.
+					// Doing this for all apps just to be sure.
+					setTimeout(() => this._worker.tryReconnectEventBus(false, true), 100)
 				}
 			})
 		}

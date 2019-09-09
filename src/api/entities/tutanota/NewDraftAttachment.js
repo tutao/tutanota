@@ -13,6 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 487, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"encCid": {"name": "encCid", "id": 925, "since": 32, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
 		"encFileName": {"name": "encFileName", "id": 488, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
 		"encMimeType": {"name": "encMimeType", "id": 489, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
 	},
@@ -29,9 +30,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createNewDraftAttachment(): NewDraftAttachment {
-	return create(_TypeModel)
+export function createNewDraftAttachment(values?: $Shape<$Exact<NewDraftAttachment>>): NewDraftAttachment {
+	return Object.assign(create(_TypeModel, NewDraftAttachmentTypeRef), values)
 }

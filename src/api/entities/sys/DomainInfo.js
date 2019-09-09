@@ -58,9 +58,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createDomainInfo(): DomainInfo {
-	return create(_TypeModel)
+export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {
+	return Object.assign(create(_TypeModel, DomainInfoTypeRef), values)
 }

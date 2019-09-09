@@ -62,6 +62,12 @@ Module._cache['@hot'] = {exports: {module: undefined}}
 const resolveFilenameNode = Module._resolveFilename
 Module._resolveFilename = function (request, parent, isMain) {
 	if (request === '@hot') return request
+
+	// Hack because there's no such node module, it's just a file
+	if (request === "pako_inflate") {
+		const filePath = path.resolve(__dirname, "../../libs/pako_inflate.js")
+		return resolveFilenameNode(filePath)
+	}
 	return resolveFilenameNode(request, parent, isMain)
 }
 

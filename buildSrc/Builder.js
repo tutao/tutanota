@@ -130,21 +130,18 @@ class Builder {
 }
 
 function babelCompile(src, srcFile) {
-	let result = babel.transform(src, {
+	return babel.transform(src, {
 		"plugins": [
 			"transform-flow-strip-types",
 			"transform-class-properties",
 		],
-		"presets": [
-			"es2015"
-		],
+		"presets": ["es2015"],
 		comments: false,
 		babelrc: false,
 		retainLines: true,
 		sourceMaps: srcFile != null ? "inline" : false,
 		filename: srcFile,
 	})
-	return result
 }
 
 module.exports = {

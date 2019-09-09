@@ -8,7 +8,7 @@ import {isApp, isTutanotaDomain} from "../api/Env"
 import {client} from "../misc/ClientDetector"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {getUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {getUpgradePrice, SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
 import {Dialog} from "../gui/base/Dialog"
 
 export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionData> {
@@ -27,7 +27,7 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 					highlightPremium: true,
 					premiumPrices: upgradeData.premiumPrices,
 					proPrices: upgradeData.proPrices,
-					isInitialUpgrade: upgradeData.isInitialUpgrade,
+					isInitialUpgrade: upgradeData.upgradeType !== UpgradeType.Switch,
 					currentlyActive: currentSubscription,
 					freeActionButton: {
 						view: () => {

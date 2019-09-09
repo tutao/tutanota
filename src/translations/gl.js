@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "7c5abe41bb0368d1942aa01b24158d75",
 	"name": "gl",
 	"code": "gl",
@@ -16,7 +14,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2019-03-01T09:50:35Z",
+	"updated_at": "2019-07-22T13:52:52Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desactive todas as extensións e paquetes solicitados e desactive os alcumes de correo antees de cambiar a suscrición.",
@@ -46,7 +44,6 @@ const translation = {
 		"addUsers_action": "Engadir usuarios",
 		"addUserToGroup_label": "Engadir participante",
 		"add_action": "Engadir",
-		"adminCustomDomainInfo_msg": "Por favor asegúrese previamente de que os rexistros MX e SPF están correctamente configurados no seu DNS.",
 		"adminCustomDomain_label": "Dominio personalizado",
 		"adminDeleteAccount_action": "Eliminar conta",
 		"adminEmailSettings_action": "Correo",
@@ -173,7 +170,6 @@ const translation = {
 		"createContact_action": "Crear contacto",
 		"createdUsersCount_msg": "{1} usuaria(s) creada(s).",
 		"created_label": "Creada",
-		"createSearchIndex_msg": "Creando o índice da busca {progress}",
 		"creditCardCardHolderName_label": "Nome da persoa titular",
 		"creditCardCardHolderName_msg": "Por favor, introduza o nome do titular.",
 		"creditCardCVVFormat_label": "Por favor introduza o código de seguridade de 3 ou 4 díxitos.",
@@ -193,9 +189,6 @@ const translation = {
 		"customDomainDomainAssigned_msg": "Este dominio xa está asignado a súa conta.",
 		"customDomainErrorDnsLookupFailure_msg": "Fallo o descubrimento DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "O dominio non está dispoñible",
-		"customDomainErrorInvalidDnsRecord_msg": "O rexistro DNS para este dominio contén valores non válidos.",
-		"customDomainErrorMissingMxEntry_msg": "Falta o rexistro MX para este dominio.",
-		"customDomainErrorMissingSpfEntry_msg": "Falta o rexistro SPF de este dominio.",
 		"customDomainNeutral_msg": "Por favor, introduza o seu dominio.",
 		"customEmailDomains_label": "Dominios personalizados de correo",
 		"customLabel_label": "Etiqueta personalizada",
@@ -550,7 +543,6 @@ const translation = {
 		"notAvailableInApp_msg": "Esta función non está dispoñible na app móbil",
 		"notFound404_msg": "Desculpe, pero non atopamos a páxina que busca. Comprobe si o URL contén erros e pulse o botón de refresco no seu navegador.",
 		"notificationMailLanguage_label": "Idioma do correo de notificación",
-		"notificationMailSendFailureBody_msg": "Lamentamos facerlle saber que a seguinte notificación de correo non puido ser entregada.",
 		"notificationsDisabled_label": "Desactivado",
 		"notificationSettings_action": "Notificacións",
 		"notSigned_msg": "Non conectada.",
@@ -907,5 +899,3 @@ const translation = {
 		"yourMessage_label": "A súa mensaxe"
 	}
 }
-export default translation
-export var __useDefault = translation

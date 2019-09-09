@@ -2,7 +2,7 @@ import type {EntityUpdateData} from "../src/api/main/EventController"
 import type {TranslationKey} from "../src/misc/LanguageViewModel"
 
 // FIXME change all declare function statements to declare type as otherwise, no types are checked (inferred)
-declare function finder(any): boolean
+declare type finder<T> = (T) => boolean
 
 declare function stringValidator(string): ?string;
 
@@ -20,9 +20,10 @@ declare function handler<T>(T): void;
 
 declare function mapper<T, R>(T): ?R;
 
-declare function clickHandler(event: MouseEvent): void;
+// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
+declare function clickHandler(event: MouseEvent, dom: HTMLElement): void;
 
-declare function dropHandler(dragData: string): void;
+declare type dropHandler = (dragData: string) => void;
 
 type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
 
@@ -45,7 +46,7 @@ declare interface Shortcut {
 /**
  * @return false, if the default action should be aborted
  */
-declare function keyHandler(key: KeyPress): boolean;
+type keyHandler = (key: KeyPress) => boolean;
 
 
 declare interface UpdatableSettingsViewer {
@@ -135,7 +136,7 @@ declare interface VirtualRow<T> {
 
 	entity: ?T;
 	top: number;
-	domElement: HTMLElement;
+	domElement: ?HTMLElement;
 }
 
 declare function stream<T>(value: ?T): T
@@ -159,6 +160,8 @@ declare interface ModalComponent {
 	view(vnode: Vnode<any>): Vnode<any>;
 
 	backgroundClick(e: MouseEvent): void;
+
+	popState(e: Event): boolean;
 }
 
 type LogCategory = {[key: string]: string}
@@ -168,24 +171,10 @@ type ThemeId = 'light' | 'dark' | 'custom'
 
 declare var navigator: Navigator;
 
-declare class DateTimeFormat {
-	constructor(lang: string, options?: Object): void;
-	format(d: Date): string;
-}
-
-declare class NumberFormat {
-	constructor(lang: string, options?: Object): void;
-	format(value: number): string;
-}
-
-declare class Intl {
-	static DateTimeFormat: DateTimeFormat;
-	static NumberFormat: NumberFormat;
-}
-
 type SanitizeResult = {
 	text: string,
-	externalContent: string[]
+	externalContent: string[],
+	inlineImageCids: Array<string>
 }
 
 type StatusTypeEnum = 'neutral' | 'valid' | 'invalid'

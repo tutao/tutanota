@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createAuthenticatedDevice(): AuthenticatedDevice {
-	return create(_TypeModel)
+export function createAuthenticatedDevice(values?: $Shape<$Exact<AuthenticatedDevice>>): AuthenticatedDevice {
+	return Object.assign(create(_TypeModel, AuthenticatedDeviceTypeRef), values)
 }

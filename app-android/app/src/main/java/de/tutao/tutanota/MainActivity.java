@@ -3,16 +3,9 @@ package de.tutao.tutanota;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.content.ActivityNotFoundException;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.net.MailTo;
 import android.net.Uri;
@@ -30,16 +23,14 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-
+import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.SseStorage;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -49,461 +40,478 @@ import org.json.JSONException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import de.tutao.tutanota.push.PushNotificationService;
-import de.tutao.tutanota.push.SseStorage;
 
 public class MainActivity extends Activity {
 
-    private static final String TAG = "MainActivity";
-    public static final String THEME_PREF = "theme";
-    private static final int SUPPORTED_WEBVIEW_VERSION = 63;
-    private static HashMap<Integer, Deferred> requests = new HashMap<>();
-    private static int requestId = 0;
-    private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
-    public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
-    public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
-    public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
-    public static final String IS_SUMMARY_EXTRA = "isSummary";
+	private static final String TAG = "MainActivity";
+	public static final String THEME_PREF = "theme";
+	private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
+	private static int requestId = 0;
+	private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
+	public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
+	public static final String OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION";
+	public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
+	public static final String OPEN_USER_MAILBOX_USERID_KEY = "userId";
+	public static final String IS_SUMMARY_EXTRA = "isSummary";
 
-    private WebView webView;
-    public Native nativeImpl = new Native(this);
-    boolean firstLoaded = false;
+	private WebView webView;
+	public Native nativeImpl = new Native(this);
+	boolean firstLoaded = false;
 
-    @SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(THEME_PREF, "light"));
+	@SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		//noinspection ConstantConditions
+		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
+				.getString(THEME_PREF, "light"));
 
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
 
-        this.setupPushNotifications();
+		this.setupPushNotifications();
 
-        webView = new WebView(this);
-        webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-        setContentView(webView);
-        final String appUrl = getUrl();
-        if (BuildConfig.DEBUG) {
-            WebView.setWebContentsDebuggingEnabled(true);
-        }
-        WebSettings settings = webView.getSettings();
+		webView = new WebView(this);
+		webView.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+		setContentView(webView);
+		final String appUrl = getUrl();
+		if (BuildConfig.DEBUG) {
+			WebView.setWebContentsDebuggingEnabled(true);
+		}
+		WebSettings settings = webView.getSettings();
 
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        settings.setAllowUniversalAccessFromFileURLs(true);
-        // Reject cookies by external content
-        CookieManager.getInstance().setAcceptCookie(false);
-        CookieManager.getInstance().removeAllCookies(null);
+		settings.setJavaScriptEnabled(true);
+		settings.setDomStorageEnabled(true);
+		settings.setJavaScriptCanOpenWindowsAutomatically(false);
+		settings.setAllowUniversalAccessFromFileURLs(true);
+		// Reject cookies by external content
+		CookieManager.getInstance().setAcceptCookie(false);
+		CookieManager.getInstance().removeAllCookies(null);
 
-        this.nativeImpl.getWebAppInitialized().then(result -> {
-            if (!firstLoaded) {
-                handleIntent(getIntent());
-            }
-            firstLoaded = true;
-        });
-        this.webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith(appUrl)) {
-                    // Set JS interface on page reload
-                    nativeImpl.setup();
-                    return false;
-                }
+		this.nativeImpl.getWebAppInitialized().then(result -> {
+			if (!firstLoaded) {
+				handleIntent(getIntent());
+			}
+			firstLoaded = true;
+		});
+		this.webView.setWebViewClient(new WebViewClient() {
+			@Override
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				if (url.startsWith(appUrl)) {
+					// Set JS interface on page reload
+					nativeImpl.setup();
+					return false;
+				}
 
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                try {
-                    startActivity(intent);
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(MainActivity.this, "Could not open link", Toast.LENGTH_SHORT)
-                            .show();
-                }
-                return true;
-            }
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				try {
+					startActivity(intent);
+				} catch (ActivityNotFoundException e) {
+					Toast.makeText(MainActivity.this, "Could not open link", Toast.LENGTH_SHORT)
+							.show();
+				}
+				return true;
+			}
 
-        });
+		});
 
-        // Handle long click on links in the WebView
-        this.registerForContextMenu(this.webView);
+		// Handle long click on links in the WebView
+		this.registerForContextMenu(this.webView);
 
-        List<String> queryParameters = new ArrayList<>();
+		List<String> queryParameters = new ArrayList<>();
 
-        // If opened from notifications, tell Web app to not login automatically, we will pass
-        // mailbox later when loaded (in handleIntent())
-        if (getIntent() != null && OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction())) {
-            queryParameters.add("noAutoLogin=true");
-        }
+		// If opened from notifications, tell Web app to not login automatically, we will pass
+		// mailbox later when loaded (in handleIntent())
+		if (getIntent() != null
+				&& (OPEN_USER_MAILBOX_ACTION.equals(getIntent().getAction()) || OPEN_CALENDAR_ACTION.equals(getIntent().getAction()))) {
+			queryParameters.add("noAutoLogin=true");
+		}
 
-        // If the old credentials are present in the file system, pass them as an URL parameter
-        final File oldCredentialsFile = new File(getFilesDir(), "config/tutanota.json");
-        if (oldCredentialsFile.exists()) {
-            new AsyncTask<Void, Void, String>() {
-                @Override
-                @Nullable
-                protected String doInBackground(Void... voids) {
-                    try {
-                        String result = Utils.base64ToBase64Url(
-                                Utils.bytesToBase64(Utils.readFile(oldCredentialsFile)));
-                        oldCredentialsFile.delete();
-                        return result;
-                    } catch (IOException e) {
-                        return null;
-                    }
-                }
+		// If the old credentials are present in the file system, pass them as an URL parameter
+		final File oldCredentialsFile = new File(getFilesDir(), "config/tutanota.json");
+		if (oldCredentialsFile.exists()) {
+			new AsyncTask<Void, Void, String>() {
+				@Override
+				@Nullable
+				protected String doInBackground(Void... voids) {
+					try {
+						String result = Utils.base64ToBase64Url(
+								Utils.bytesToBase64(Utils.readFile(oldCredentialsFile)));
+						oldCredentialsFile.delete();
+						return result;
+					} catch (IOException e) {
+						return null;
+					}
+				}
 
-                @Override
-                protected void onPostExecute(@Nullable String s) {
-                    if (s != null) {
-                        queryParameters.add("migrateCredentials=" + s);
-                    }
-                    startWebApp(queryParameters);
-                }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            startWebApp(queryParameters);
-        }
-    }
+				@Override
+				protected void onPostExecute(@Nullable String s) {
+					if (s != null) {
+						queryParameters.add("migrateCredentials=" + s);
+					}
+					startWebApp(queryParameters);
+				}
+			}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		} else {
+			startWebApp(queryParameters);
+		}
+	}
 
-    private void startWebApp(List<String> queryParams) {
-        webView.loadUrl(getUrl() +
-                (queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
-        nativeImpl.setup();
-    }
+	private void startWebApp(List<String> queryParams) {
+		webView.loadUrl(getUrl() +
+				(queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
+		nativeImpl.setup();
+	}
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        handleIntent(intent);
-    }
+	@Override
+	protected void onNewIntent(Intent intent) {
+		handleIntent(intent);
+	}
 
-    private void handleIntent(Intent intent) {
-        if (intent.getAction() != null) {
-            switch (intent.getAction()) {
-                // See descriptions of actions in AndroidManifest.xml
-                case Intent.ACTION_SEND:
-                case Intent.ACTION_SEND_MULTIPLE:
-                case Intent.ACTION_SENDTO:
-                case Intent.ACTION_VIEW:
-                    share(intent);
-                    break;
-                case MainActivity.OPEN_USER_MAILBOX_ACTION:
-                    openMailbox(intent);
-                    break;
-            }
-        }
-    }
+	private void handleIntent(Intent intent) {
+		if (intent.getAction() != null) {
+			switch (intent.getAction()) {
+				// See descriptions of actions in AndroidManifest.xml
+				case Intent.ACTION_SEND:
+				case Intent.ACTION_SEND_MULTIPLE:
+				case Intent.ACTION_SENDTO:
+				case Intent.ACTION_VIEW:
+					share(intent);
+					break;
+				case MainActivity.OPEN_USER_MAILBOX_ACTION:
+					openMailbox(intent);
+					break;
+				case MainActivity.OPEN_CALENDAR_ACTION:
+					openCalendar(intent);
+					break;
+			}
+		}
+	}
 
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        webView.saveState(outState);
-    }
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		webView.saveState(outState);
+	}
 
-    public void changeTheme(String themeName) {
-        runOnUiThread(() -> doChangeTheme(themeName));
-    }
+	public void changeTheme(String themeName) {
+		runOnUiThread(() -> doChangeTheme(themeName));
+	}
 
-    private void doChangeTheme(String themeName) {
-        int elemsColor;
-        int backgroundRes;
-        switch (themeName) {
-            case "dark":
-                elemsColor = R.color.colorPrimaryDark;
-                backgroundRes = R.color.windowBackgroundDark;
-                break;
-            default:
-                elemsColor = R.color.colorPrimary;
-                backgroundRes = R.color.windowBackground;
-        }
-        int colorInt = getResources().getColor(elemsColor);
-        getWindow().setStatusBarColor(colorInt);
-        getWindow().setBackgroundDrawableResource(backgroundRes);
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .edit()
-                .putString(THEME_PREF, themeName)
-                .apply();
-    }
+	private void doChangeTheme(String themeName) {
+		int elemsColor;
+		int backgroundRes;
+		switch (themeName) {
+			case "dark":
+				elemsColor = R.color.colorPrimaryDark;
+				backgroundRes = R.color.windowBackgroundDark;
+				break;
+			default:
+				elemsColor = R.color.colorPrimary;
+				backgroundRes = R.color.windowBackground;
+		}
+		int colorInt = getResources().getColor(elemsColor);
+		getWindow().setStatusBarColor(colorInt);
+		getWindow().setBackgroundDrawableResource(backgroundRes);
+		PreferenceManager.getDefaultSharedPreferences(this)
+				.edit()
+				.putString(THEME_PREF, themeName)
+				.apply();
+	}
 
-    public void askBatteryOptinmizationsIfNeeded() {
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        //noinspection ConstantConditions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
-                && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
-            nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
-                saveAskedBatteryOptimizations(preferences);
-                @SuppressLint("BatteryLife")
-                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                        Uri.parse("package:" + getPackageName()));
-                startActivity(intent);
-            });
-        }
-    }
+	public void askBatteryOptinmizationsIfNeeded() {
+		PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+				&& !preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+				&& !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+			nativeImpl.sendRequest(JsRequest.showAlertDialog, new Object[]{"allowPushNotification_msg"}).then((result) -> {
+				saveAskedBatteryOptimizations(preferences);
+				@SuppressLint("BatteryLife")
+				Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+						Uri.parse("package:" + getPackageName()));
+				startActivity(intent);
+			});
+		}
+	}
 
-    private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
-        preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
-    }
+	private void saveAskedBatteryOptimizations(SharedPreferences preferences) {
+		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply();
+	}
 
-    private String getUrl() {
-        return BuildConfig.RES_ADDRESS;
-    }
+	private String getUrl() {
+		return BuildConfig.RES_ADDRESS;
+	}
 
-    public WebView getWebView() {
-        return webView;
-    }
+	public WebView getWebView() {
+		return webView;
+	}
 
-    private static synchronized int getRequestCode() {
-        requestId++;
-        if (requestId < 0) {
-            requestId = 0;
-        }
-        return requestId;
-    }
+	private static synchronized int getRequestCode() {
+		requestId++;
+		if (requestId < 0) {
+			requestId = 0;
+		}
+		return requestId;
+	}
 
-    Promise<Void, Exception, Void> getPermission(String permission) {
-        Deferred<Void, Exception, Void> p = new DeferredObject<>();
-        if (hasPermission(permission)) {
-            p.resolve(null);
-        } else {
-            int requestCode = getRequestCode();
-            requests.put(requestCode, p);
-            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
-        }
-        return p;
-    }
+	Promise<Void, Exception, Void> getPermission(String permission) {
+		Deferred<Void, Exception, Void> p = new DeferredObject<>();
+		if (hasPermission(permission)) {
+			p.resolve(null);
+		} else {
+			int requestCode = getRequestCode();
+			requests.put(requestCode, p);
+			ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+		}
+		return p;
+	}
 
-    private boolean hasPermission(String permission) {
-        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
-    }
+	private boolean hasPermission(String permission) {
+		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+	}
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            requests.remove(requestCode).resolve(null);
-        } else {
-            requests.remove(requestCode).reject(new SecurityException("Permission missing"));
-        }
-    }
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		Deferred deferred = requests.remove(requestCode);
+		if (deferred == null) {
+			Log.w(TAG, "No deferred for the permission request" + requestCode);
+			return;
+		}
+		if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			deferred.resolve(null);
+		} else {
+			deferred.reject(new SecurityException("Permission missing"));
+		}
+	}
 
-    public Promise<ActivityResult, ?, ?> startActivityForResult(@RequiresPermission Intent intent) {
-        int requestCode = getRequestCode();
-        Deferred p = new DeferredObject();
-        requests.put(requestCode, p);
-        super.startActivityForResult(intent, requestCode);
-        return p;
-    }
+	public Promise<ActivityResult, ?, ?> startActivityForResult(@RequiresPermission Intent intent) {
+		int requestCode = getRequestCode();
+		Deferred p = new DeferredObject();
+		requests.put(requestCode, p);
+		super.startActivityForResult(intent, requestCode);
+		return p;
+	}
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Deferred p = requests.remove(requestCode);
-        p.resolve(new ActivityResult(resultCode, data));
-    }
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Deferred deferred = requests.remove(requestCode);
+		if (deferred != null) {
+			deferred.resolve(new ActivityResult(resultCode, data));
+		} else {
 
-    void setupPushNotifications() {
-        startService(PushNotificationService.startIntent(this,
-                new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
+			Log.w(TAG, "No deferred for activity request" + requestCode);
+		}
+	}
 
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        //noinspection ConstantConditions
-        jobScheduler.schedule(
-                new JobInfo.Builder(1, new ComponentName(this, PushNotificationService.class))
-                        .setPeriodic(TimeUnit.MINUTES.toMillis(15))
-                        .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                        .setPersisted(true).build());
-    }
+	void setupPushNotifications() {
+		startService(PushNotificationService.startIntent(this,
+				new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
 
-    /**
-     * The sharing activity. Either invoked from MainActivity (if the app was not active when the
-     * share occured) or from onCreate.
-     */
-    void share(Intent intent) {
-        String action = intent.getAction();
-        String type = intent.getType();
-        ClipData clipData = intent.getClipData();
+		JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+		jobScheduler.schedule(
+				new JobInfo.Builder(1, new ComponentName(this, PushNotificationService.class))
+						.setPeriodic(TimeUnit.MINUTES.toMillis(15))
+						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+						.setPersisted(true).build());
+	}
 
-        JSONArray files;
-        String text = null;
-        String[] addresses = intent.getStringArrayExtra(Intent.EXTRA_EMAIL);
-        String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+	/**
+	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
+	 * share occured) or from onCreate.
+	 */
+	void share(Intent intent) {
+		String action = intent.getAction();
+		String type = intent.getType();
+		ClipData clipData = intent.getClipData();
 
-        if (Intent.ACTION_SEND.equals(action)) {
-            if (type != null && type.startsWith("text")) {
-                if (clipData != null && clipData.getItemCount() > 0) {
-                    text = clipData.getItemAt(0).getHtmlText();
-                    if (text == null && clipData.getItemAt(0).getText() != null) {
-                        text = clipData.getItemAt(0).getText().toString();
-                    } else {
-                        // e.g. text/x-vcard
-                        Toast.makeText(this, "We don't support this kind of data yet",
-                                Toast.LENGTH_SHORT).show();
-                        Log.w(TAG, "Could not read text clipData with type " + type);
-                    }
-                } else {
-                    text = intent.getStringExtra(Intent.EXTRA_TEXT);
-                }
-                files = new JSONArray();
-            } else {
-                files = getFilesFromIntent(intent);
+		JSONArray files;
+		String text = null;
+		String[] addresses = intent.getStringArrayExtra(Intent.EXTRA_EMAIL);
+		String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
 
-            }
-        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-            files = getFilesFromIntent(intent);
-        } else {
-            files = new JSONArray();
-        }
+		if (Intent.ACTION_SEND.equals(action)) {
+			if (type != null && type.startsWith("text")) {
+				if (clipData != null && clipData.getItemCount() > 0) {
+					text = clipData.getItemAt(0).getHtmlText();
+					if (text == null && clipData.getItemAt(0).getText() != null) {
+						text = clipData.getItemAt(0).getText().toString();
+					} else {
+						// e.g. text/x-vcard
+						Toast.makeText(this, "We don't support this kind of data yet",
+								Toast.LENGTH_SHORT).show();
+						Log.w(TAG, "Could not read text clipData with type " + type);
+					}
+				} else {
+					text = intent.getStringExtra(Intent.EXTRA_TEXT);
+				}
+				files = new JSONArray();
+			} else {
+				files = getFilesFromIntent(intent);
 
-        final String mailToUrlString;
-        if (intent.getData() != null && MailTo.isMailTo(intent.getDataString())) {
-            mailToUrlString = intent.getDataString();
-        } else {
-            mailToUrlString = null;
-        }
+			}
+		} else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+			files = getFilesFromIntent(intent);
+		} else {
+			files = new JSONArray();
+		}
 
-        JSONArray jsonAddresses = null;
-        if (addresses != null) {
-            jsonAddresses = new JSONArray();
-            for (String address : addresses) {
-                jsonAddresses.put(address);
-            }
-        }
-        Promise<Void, Exception, Void> permissionPromise;
-        if (files.length() > 0) {
-            permissionPromise = this.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-        } else {
-            permissionPromise = new DeferredObject<Void, Exception, Void>().resolve(null);
-        }
+		final String mailToUrlString;
+		if (intent.getData() != null && MailTo.isMailTo(intent.getDataString())) {
+			mailToUrlString = intent.getDataString();
+		} else {
+			mailToUrlString = null;
+		}
 
-        // Satisfy Java's lambda requirements
-        final String fText = text;
-        final JSONArray fJsonAddresses = jsonAddresses;
-        permissionPromise.then((__) -> {
-            nativeImpl.sendRequest(JsRequest.createMailEditor,
-                    new Object[]{files, fText, fJsonAddresses, subject, mailToUrlString});
-        });
-    }
+		JSONArray jsonAddresses = null;
+		if (addresses != null) {
+			jsonAddresses = new JSONArray();
+			for (String address : addresses) {
+				jsonAddresses.put(address);
+			}
+		}
+		Promise<Void, Exception, Void> permissionPromise;
+		if (files.length() > 0) {
+			permissionPromise = this.getPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+		} else {
+			permissionPromise = new DeferredObject<Void, Exception, Void>().resolve(null);
+		}
 
-    @NonNull
-    private JSONArray getFilesFromIntent(@NonNull Intent intent) {
-        ClipData clipData = intent.getClipData();
-        final JSONArray filesArray = new JSONArray();
-        if (clipData != null) {
-            for (int i = 0; i < clipData.getItemCount(); i++) {
-                ClipData.Item item = clipData.getItemAt(i);
-                filesArray.put(item.getUri().toString());
-            }
-        } else {
-            // Intent documentation claims that data is copied to ClipData if it's not there
-            // but we want to be sure
-            if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
-                //noinspection unchecked
-                @SuppressWarnings("ConstantConditions")
-                ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
-                if (uris != null) {
-                    for (Uri uri : uris) {
-                        filesArray.put(uri.toString());
-                    }
-                }
-            } else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
-                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                filesArray.put(uri.toString());
-            } else if (intent.getData() != null) {
-                Uri uri = intent.getData();
-                filesArray.put(uri.toString());
-            } else {
-                Log.w(TAG, "Did not find files in the intent");
-            }
-        }
-        return filesArray;
-    }
+		// Satisfy Java's lambda requirements
+		final String fText = text;
+		final JSONArray fJsonAddresses = jsonAddresses;
+		permissionPromise.then((__) -> {
+			nativeImpl.sendRequest(JsRequest.createMailEditor,
+					new Object[]{files, fText, fJsonAddresses, subject, mailToUrlString});
+		});
+	}
 
-    public void openMailbox(@NonNull Intent intent) {
-        String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
-        String address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY);
-        boolean isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false);
-        if (userId == null || address == null) {
-            return;
-        }
-        nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
-        ArrayList<String> addressess = new ArrayList<>(1);
-        addressess.add(address);
-        startService(PushNotificationService.notificationDismissedIntent(this, addressess,
-                "MainActivity#openMailbox", isSummary));
-    }
+	@NonNull
+	private JSONArray getFilesFromIntent(@NonNull Intent intent) {
+		ClipData clipData = intent.getClipData();
+		final JSONArray filesArray = new JSONArray();
+		if (clipData != null) {
+			for (int i = 0; i < clipData.getItemCount(); i++) {
+				ClipData.Item item = clipData.getItemAt(i);
+				filesArray.put(item.getUri().toString());
+			}
+		} else {
+			// Intent documentation claims that data is copied to ClipData if it's not there
+			// but we want to be sure
+			if (Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+				//noinspection unchecked
+				@SuppressWarnings("ConstantConditions")
+				ArrayList<Uri> uris = (ArrayList<Uri>) intent.getExtras().get(Intent.EXTRA_STREAM);
+				if (uris != null) {
+					for (Uri uri : uris) {
+						filesArray.put(uri.toString());
+					}
+				}
+			} else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
+				Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+				filesArray.put(uri.toString());
+			} else if (intent.getData() != null) {
+				Uri uri = intent.getData();
+				filesArray.put(uri.toString());
+			} else {
+				Log.w(TAG, "Did not find files in the intent");
+			}
+		}
+		return filesArray;
+	}
 
-    @Override
+	public void openMailbox(@NonNull Intent intent) {
+		String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
+		String address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY);
+		boolean isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false);
+		if (userId == null || address == null) {
+			return;
+		}
+		nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
+		ArrayList<String> addressess = new ArrayList<>(1);
+		addressess.add(address);
+		startService(PushNotificationService.notificationDismissedIntent(this, addressess,
+				"MainActivity#openMailbox", isSummary));
+	}
 
-    public void onBackPressed() {
-        if (nativeImpl.getWebAppInitialized().isResolved()) {
-            nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
-                    .then(result -> {
-                        try {
-                            if (!result.getBoolean("value")) {
-                                goBack();
-                            }
-                        } catch (JSONException e) {
-                            Log.e(TAG, "error parsing response", e);
-                        }
-                    });
-        } else {
-            goBack();
-        }
-    }
+	public void openCalendar(@NonNull Intent intent) {
+		String userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY);
+		if (userId == null) {
+			return;
+		}
+		nativeImpl.sendRequest(JsRequest.openCalendar, new Object[]{userId});
+	}
 
-    private void goBack() {
-        moveTaskToBack(false);
-    }
+	@Override
 
-    public void loadMainPage(String parameters) {
-        // additional path information like app.html/login are not handled properly by the webview
-        // when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
-        runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
-    }
+	public void onBackPressed() {
+		if (nativeImpl.getWebAppInitialized().isResolved()) {
+			nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
+					.then(result -> {
+						try {
+							if (!result.getBoolean("value")) {
+								goBack();
+							}
+						} catch (JSONException e) {
+							Log.e(TAG, "error parsing response", e);
+						}
+					});
+		} else {
+			goBack();
+		}
+	}
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
+	private void goBack() {
+		moveTaskToBack(false);
+	}
 
-        final WebView.HitTestResult hitTestResult = this.webView.getHitTestResult();
-        switch (hitTestResult.getType()) {
-            case WebView.HitTestResult.SRC_ANCHOR_TYPE:
-                final String link = hitTestResult.getExtra();
-                if (link == null) {
-                    return;
-                }
-                if (link.startsWith(getUrl())) {
-                    return;
-                }
-                menu.setHeaderTitle(link);
-                menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
-                    ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
-                            .setPrimaryClip(ClipData.newPlainText(link, link));
-                    return true;
-                });
-                menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
-                    final Intent intent = new Intent(Intent.ACTION_SEND);
-                    intent.putExtra(Intent.EXTRA_TEXT, link);
-                    intent.setTypeAndNormalize("text/plain");
-                    this.startActivity(Intent.createChooser(intent, "Share link"));
-                    return true;
-                });
-                break;
-        }
-    }
+	public void loadMainPage(String parameters) {
+		// additional path information like app.html/login are not handled properly by the webview
+		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
+		runOnUiThread(() -> this.webView.loadUrl(getUrl() + parameters));
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+
+		final WebView.HitTestResult hitTestResult = this.webView.getHitTestResult();
+		switch (hitTestResult.getType()) {
+			case WebView.HitTestResult.SRC_ANCHOR_TYPE:
+				final String link = hitTestResult.getExtra();
+				if (link == null) {
+					return;
+				}
+				if (link.startsWith(getUrl())) {
+					return;
+				}
+				menu.setHeaderTitle(link);
+				menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener(item -> {
+					((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE))
+							.setPrimaryClip(ClipData.newPlainText(link, link));
+					return true;
+				});
+				menu.add(0, 2, 0, "Share").setOnMenuItemClickListener(item -> {
+					final Intent intent = new Intent(Intent.ACTION_SEND);
+					intent.putExtra(Intent.EXTRA_TEXT, link);
+					intent.setTypeAndNormalize("text/plain");
+					this.startActivity(Intent.createChooser(intent, "Share link"));
+					return true;
+				});
+				break;
+		}
+	}
 }
 
 class ActivityResult {
-    int resultCode;
-    Intent data;
+	int resultCode;
+	Intent data;
 
-    ActivityResult(int resultCode, Intent data) {
-        this.resultCode = resultCode;
-        this.data = data;
-    }
+	ActivityResult(int resultCode, Intent data) {
+		this.resultCode = resultCode;
+		this.data = data;
+	}
 }

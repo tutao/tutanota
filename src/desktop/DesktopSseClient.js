@@ -10,13 +10,14 @@ import {SseError} from "../api/common/error/SseError"
 import {isMailAddress} from "../misc/FormatValidator"
 import {neverNull, randomIntFromInterval} from "../api/common/utils/Utils"
 import type {DesktopNotifier} from './DesktopNotifier.js'
+import {NotificationResult} from "./DesktopNotifier.js"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {NotificationResult} from "./DesktopNotifier"
+import DesktopUtils from "./DesktopUtils"
 
 export type SseInfo = {|
 	identifier: string,
 	sseOrigin: string,
-	userIds: Array<string>
+    userIds: Array<string>
 |}
 
 // how long should we wait to retry after failing to get a response?
@@ -42,20 +43,27 @@ export class DesktopSseClient {
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
-
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
+		if (typeof this._readTimeoutInSeconds !== 'number' || Number.isNaN(this._readTimeoutInSeconds)) {
+			this._readTimeoutInSeconds = 30
+			conf.setDesktopConfig('heartbeatTimeoutInSeconds', 30)
+		}
 		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-		this._tryToReconnect = true
-		this._reschedule(1)
-
+		this._tryToReconnect = false
 		app.on('will-quit', () => {
 			this._cleanup()
+			clearTimeout(neverNull(this._nextReconnect))
 			this._tryToReconnect = false
 		})
 	}
 
-	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
+	start() {
+		this._tryToReconnect = true
+		this._reschedule(1)
+	}
+
+	storePushIdentifier(identifier: string, userId: string, sseOrigin: string, pushIdentifierElementId: string, skB64: string): Promise<void> {
 		console.log("storing push identifier", identifier.substring(0, 3))
 		let userIds
 		if (!this._connectedSseInfo) {
@@ -66,7 +74,7 @@ export class DesktopSseClient {
 				userIds.push(userId)
 			}
 		}
-		const sseInfo = {identifier, sseOrigin, userIds}
+        const sseInfo = {identifier, sseOrigin, userIds}
 		return this._conf.setDesktopConfig('pushIdentifier', sseInfo)
 		           .then(() => {
 			           this._connectedSseInfo = sseInfo
@@ -89,8 +97,8 @@ export class DesktopSseClient {
 	}
 
 	connect() {
-		this._reschedule(10)
 		if (!this._connectedSseInfo) {
+			this._reschedule(10)
 			console.log("sse info not available, skip reconnect")
 			return
 		}
@@ -132,11 +140,11 @@ export class DesktopSseClient {
 				                          this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 				                          this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			                          })
-			                          .on('error', e => console.log('sse response error:', e))
+			                          .on('error', e => console.error('sse response error:', e))
 		                       })
-		                       .on('information', e => console.log('sse information:', e))
-		                       .on('connect', e => console.log('sse connect:', e))
-		                       .on('error', e => console.log('sse error:', e))
+		                       .on('information', e => console.log('sse information:', e.message))
+		                       .on('connect', e => console.log('sse connect:', e.message))
+		                       .on('error', e => console.error('sse error:', e.message))
 		                       .end()
 	}
 
@@ -148,8 +156,14 @@ export class DesktopSseClient {
 		}
 		data = data.substring(6) // throw away 'data: '
 		if (data.startsWith('heartbeatTimeout')) {
-			this._readTimeoutInSeconds = Number(data.split(':')[1])
-			this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', this._readTimeoutInSeconds)
+			console.log("received new timeout:", data)
+			const newTimeout = Number(data.split(':')[1])
+			if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
+				this._readTimeoutInSeconds = newTimeout
+				this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', newTimeout)
+			} else {
+				console.error("got invalid heartbeat timeout from server")
+			}
 			this._reschedule()
 			return
 		}
@@ -160,7 +174,7 @@ export class DesktopSseClient {
 				try {
 					return PushMessage.fromJSON(p)
 				} catch (e) {
-					console.log("failed to parse push message from json:", e, "\n\noffending json:\n", p)
+					console.error("failed to parse push message from json:", e, "\n\noffending json:\n", p)
 				}
 			})
 			.filter(Boolean)
@@ -198,6 +212,7 @@ export class DesktopSseClient {
 
 	_sendConfirmation(pushIdentifier: string, confirmationId: string) {
 		if (!this._connectedSseInfo) {
+			console.error("no connectedSseInfo, can't send confirmation")
 			return
 		}
 		const confirmUrl = this._connectedSseInfo.sseOrigin
@@ -208,7 +223,7 @@ export class DesktopSseClient {
 
 		this._getProtocolModule().request(confirmUrl, {method: "DELETE"})
 		    .on('response', res => console.log('push message confirmation response code:', res.statusCode))
-		    .on('error', e => console.log("failed to send push message confirmation:", e))
+		    .on('error', e => console.error("failed to send push message confirmation:", e))
 		    .end()
 	}
 
@@ -220,11 +235,15 @@ export class DesktopSseClient {
 	}
 
 	_reschedule(delay?: number) {
-		delay = delay ? delay : Math.floor(this._readTimeoutInSeconds * 1.2)
-		console.log('scheduling to reconnect sse in', delay, 'seconds')
-		// clearTimeout doesn't care about undefined or null, but flow still complains
 		clearTimeout(neverNull(this._nextReconnect))
 		if (!this._tryToReconnect) return
+		delay = delay ? delay : Math.floor(this._readTimeoutInSeconds * 1.2)
+		if (typeof delay !== 'number' || Number.isNaN(delay)) {
+			console.error("invalid reschedule delay, setting to 10")
+			delay = 10
+		}
+		console.log('scheduling to reconnect sse in', delay, 'seconds')
+		// clearTimeout doesn't care about undefined or null, but flow still complains
 		this._nextReconnect = setTimeout(() => this.connect(), delay * 1000)
 	}
 
@@ -240,29 +259,38 @@ export class PushMessage {
 	title: string;
 	notificationInfos: Array<NotificationInfo>;
 	confirmationId: string;
+	hasAlarmNotification: boolean;
+	changeTime: string;
 
 
-	constructor(title: string, confirmationId: string, notificationInfos: Array<NotificationInfo>) {
+	constructor(title: string, confirmationId: string, notificationInfos: Array<NotificationInfo>, hasAlarmNotification: boolean, changeTime: string) {
 		this.title = title;
 		this.confirmationId = confirmationId;
 		this.notificationInfos = notificationInfos;
+		this.hasAlarmNotification = hasAlarmNotification;
+		this.changeTime = changeTime
 	}
 
 	static fromJSON(json: string): PushMessage {
 		const obj = JSON.parse(json)
-		if ('string' !== typeof obj.title) throw new SseError(`invalid push message title: ${obj.title}`)
-		if ('string' !== typeof obj.confirmationId) throw new SseError(`invalid confirmation id: ${obj.confirmationId}`)
-		if (!Array.isArray(obj.notificationInfos)) throw new SseError(`invalid notificationInfos: ${obj.notificationInfos}`)
-		obj.notificationInfos.forEach(notificationInfo => {
-			if ('string' !== typeof notificationInfo.address
-				|| !isMailAddress(notificationInfo.address, true)) {
-				throw new SseError(`invalid address: ${notificationInfo.address}`)
-			}
-			if ('number' !== typeof notificationInfo.counter) throw new SseError(`invalid counter: ${notificationInfo.counter}`)
-			if ('string' !== typeof notificationInfo.userId) throw new SseError(`invalid userId: ${notificationInfo.userId}`)
-		})
-
-		return new PushMessage(obj.title, obj.confirmationId, obj.notificationInfos)
+		try {
+			DesktopUtils.checkDataFormat(obj, {
+				title: {type: 'string'},
+				confirmationId: {type: 'string'},
+				hasAlarmNotifications: {type: 'boolean'},
+				changeTime: {type: 'string', assert: v => !isNaN(parseInt(v))},
+				notificationInfos: [
+					{
+						address: {type: 'string', assert: v => isMailAddress(v, true)},
+						counter: {type: 'number', assert: v => v > 0},
+						userId: {type: 'string'}
+					}
+				]
+			})
+		} catch (e) {
+			throw new SseError(`push message type error: ${e.message}`)
+		}
+		return new PushMessage(obj.title, obj.confirmationId, obj.notificationInfos, obj.hasAlarmNotifications, obj.changeTime)
 	}
 }
 

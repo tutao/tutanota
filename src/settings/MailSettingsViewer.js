@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {isSameId} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
@@ -30,11 +30,12 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {TableN} from "../gui/base/TableN"
+import {createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
+import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -171,11 +172,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: this._enableMailIndexing,
 			selectionChangedHandler: mailIndexEnabled => {
 				if (mailIndexEnabled) {
-					if (locator.search.indexState().indexingSupported) {
-						showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
-					} else {
-						Dialog.error("searchDisabled_msg")
-					}
+					showProgressDialog("pleaseWait_msg", worker.enableMailIndexing())
+						.catch(IndexingNotSupportedError, () => {
+							Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+						})
 				} else {
 					showProgressDialog("pleaseWait_msg", worker.disableMailIndexing())
 				}
@@ -250,14 +250,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			this._inboxRulesTableLines(props.inboxRules.map((rule, index) => {
 				return {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)],
-					actionButtonAttrs: {
-						label: "delete_action",
-						click: () => {
-							props.inboxRules.splice(index, 1)
-							update(props)
-						},
-						icon: () => Icons.Cancel,
-					}
+					actionButtonAttrs: createRowActions({
+						getArray: () => props.inboxRules,
+						updateInstance: () => update(props)
+					}, rule, index)
 				}
 			}))
 			m.redraw()

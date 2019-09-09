@@ -13,7 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {"name": "_format", "id": 732, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"statusCode": {"name": "statusCode", "id": 733, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
+		"validationResult": {"name": "validationResult", "id": 733, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"invalidDnsRecords": {
@@ -27,9 +27,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createCustomDomainReturn(): CustomDomainReturn {
-	return create(_TypeModel)
+export function createCustomDomainReturn(values?: $Shape<$Exact<CustomDomainReturn>>): CustomDomainReturn {
+	return Object.assign(create(_TypeModel, CustomDomainReturnTypeRef), values)
 }

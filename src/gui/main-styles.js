@@ -15,7 +15,6 @@ export function requiresStatusBarHack() {
 
 styles.registerStyle('main', () => {
 	return {
-
 		"#link-tt": isDesktop() ? {
 			"pointer-events": "none",
 			"font-size": px(size.font_size_small),
@@ -135,14 +134,13 @@ styles.registerStyle('main', () => {
 		},
 
 
-		'h1, h2, h3, h4, h5, h6': {margin: 0},
+		'h1, h2, h3, h4, h5, h6': {margin: 0, 'font-weight': 'normal'},
 		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
 		'h2, .h2': {'font-size': px(size.font_size_base * 1.8)},
 		'h3, .h3': {'font-size': px(size.font_size_base * 1.6)},
 		'h4, .h4': {'font-size': px(size.font_size_base * 1.4)},
 		'h5, .h5': {'font-size': px(size.font_size_base * 1.2)},
 		'h6, .h6': {'font-size': px(size.font_size_base * 1.1)},
-		"h1, h2, h3, h4, h5, h6": {'font-weight': 'normal'},
 		'input, button, select, textarea': {
 			'font-family': 'inherit',
 			'font-size': 'inherit',
@@ -174,6 +172,7 @@ styles.registerStyle('main', () => {
 		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
+		'.ml-m': {'margin-left': px(size.hpad_medium)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -184,7 +183,6 @@ styles.registerStyle('main', () => {
 		'.pt-m': {'padding-top': px(size.vpad)},
 		'.pt-ml': {'padding-top': px(size.vpad_ml)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
-		'.pt-s': {'padding-top': px(size.hpad_small)},
 		'.pt-xs': {'padding-top': px(size.vpad_xs)},
 		'.pb-0': {'padding-bottom': 0},
 		'.pb': {'padding-bottom': px(size.vpad)},
@@ -239,7 +237,6 @@ styles.registerStyle('main', () => {
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
-		'.overflow-x-hidden': {'overflow-x': 'hidden'},
 
 		'.view-column': {'will-change': 'transform'},
 
@@ -252,6 +249,8 @@ styles.registerStyle('main', () => {
 
 		// colors
 		'.bg-transparent': {'background-color': 'transparent'},
+		'.bg-white': {'background-color': 'white'},
+		'.content-black': {'color': 'black'},
 
 		'.content-fg': {color: theme.content_fg},
 		'.content-accent-fg': {color: theme.content_accent},
@@ -300,6 +299,10 @@ styles.registerStyle('main', () => {
 			'overflow-y': client.overflowAuto,
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar'
+		},
+		'.scroll-no-overlay': {
+			'overflow-y': 'auto',
+			'-webkit-overflow-scrolling': 'touch',
 		},
 		'.scroll-x': {
 			'overflow-x': 'auto',
@@ -371,7 +374,6 @@ styles.registerStyle('main', () => {
 		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
 		'.limit-width': {'max-width': '100%'},
 
-		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-radius': {'border-radius': px(size.border_radius)},
 		'.editor-border': {
 			'border': `1px solid ${theme.content_border}`,
@@ -386,6 +388,9 @@ styles.registerStyle('main', () => {
 			'padding-bottom': px(size.vpad_small - 1),
 			'padding-left': px(size.hpad - 1),
 			'padding-right': px(size.hpad - 1),
+		},
+		'.editor-no-top-border': {
+			'border-top-color': 'transparent'
 		},
 
 		// icon
@@ -404,6 +409,14 @@ styles.registerStyle('main', () => {
 		'.icon-progress-search > svg': {
 			height: px(20),
 			width: px(20),
+		},
+		'.icon-small': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
+		},
+		'.icon-small > svg': {
+			height: px(size.font_size_small),
+			width: px(size.font_size_small)
 		},
 		'.icon-large': {
 			height: px(size.icon_size_large),
@@ -448,8 +461,14 @@ styles.registerStyle('main', () => {
 			bottom: px(0),
 			left: px(0),
 			'overflow-x': 'hidden',
-			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
+			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)', // insets for iPhone X)
 		},
+
+		'.margin-are-inset-lr': {
+			'margin-right': 'env(safe-area-inset-right)',
+			'margin-left': 'env(safe-area-inset-left)',
+		},
+
 
 		// view slider
 
@@ -473,7 +492,6 @@ styles.registerStyle('main', () => {
 			'margin-left': px(size.vpad),
 			'margin-right': px(size.vpad),
 			'padding-top': px(size.vpad),
-			'margin-top': (requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)') // insets for iPhone X)
 		},
 
 		'.logo-circle': {
@@ -589,7 +607,13 @@ styles.registerStyle('main', () => {
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),
-			'margin-left': px(0)
+			'margin-left': px(0),
+			'margin-right': px(0)
+		},
+
+		'.tutanota-placeholder': {
+			'max-width': "100px !important",
+			'max-height': "100px !important"
 		},
 
 		'.MsoNormal': {margin: 0},
@@ -898,6 +922,156 @@ styles.registerStyle('main', () => {
 			"bottom": "-20px"
 		},
 
+		// calendar
+
+		'.flex-end-on-child .button-content': {
+			'align-items': 'flex-end !important'
+		},
+
+		'.float-right': {'float': 'right'},
+
+		'.calendar-checkbox': {
+			height: px(22),
+			width: px(22),
+			'border-width': "1.5px",
+			'border-style': "solid",
+			'border-radius': "2px"
+		},
+
+
+		'.calendar-alternate-background': {
+			'background': `${theme.list_bg} !important`
+		},
+
+		'.calendar-day:hover': {
+			'background': theme.list_bg
+		},
+
+		'.calendar-hour': {
+			'cursor': 'pointer',
+			'border-bottom': `1px solid ${theme.content_border}`,
+			height: px(size.calendar_hour_height),
+			flex: '1 0 auto',
+		},
+
+		'.calendar-hour:hover': {
+			'background': theme.list_bg
+		},
+
+		'.calendar-column-border': {
+			'border-right': `1px solid ${theme.content_border}`,
+		},
+
+		'.calendar-column-border:nth-child(7)': {
+			'border-right': "none",
+		},
+
+		'.calendar-hour-margin': {
+			'margin-left': px(size.calendar_hour_width)
+		},
+
+		'.calendar-day': {
+			'border-top': `1px solid ${theme.content_border}`,
+			'transition': 'background 0.4s',
+			'background': theme.list_alternate_bg,
+			'cursor': 'pointer'
+		},
+
+		'.calendar-day-indicator': { // overriden for mobile
+			height: "24px",
+			"line-height": "24px",
+			"text-align": "center",
+			"font-size": "14px",
+		},
+
+		'.calendar-day-number': {
+			margin: "4px auto",
+			width: "24px",
+		},
+
+		'.calendar-event': {
+			'border-radius': px(4),
+			'border': `1px solid ${theme.content_bg}`,
+			'padding-left': '4px',
+			'font-weight': '600',
+			'animation-duration': '0.3s',
+			'box-sizing': 'content-box',
+			'cursor': 'pointer'
+		},
+
+		'.calendar-bubble-more-padding-day .calendar-event': {
+			'border': `1px solid ${theme.list_bg}`,
+		},
+		'.darker-hover:hover': {
+			'filter': 'brightness(95%)',
+		},
+		'.event-continues-left': {
+			'border-top-left-radius': 0,
+			'border-bottom-left-radius': 0,
+			'border-left': 'none'
+		},
+		'.event-continues-right': {
+			'margin-right': 0,
+			'border-right': 'none',
+			'border-top-right-radius': 0,
+			'border-bottom-right-radius': 0
+		},
+		'.event-continues-right-arrow': {
+			"width": 0,
+			"height": 0,
+			"border-top": "9px solid transparent",
+			"border-bottom": "9px solid transparent",
+			"border-left": "6px solid green",
+			"margin-top": px(1),
+			"margin-bottom": px(1),
+		},
+		'.time-field': {
+			'width': '80px'
+		},
+
+		'.calendar-agenda-time-column': {
+			width: px(80)
+		},
+
+		'.calendar-agenda-time-column > *': {
+			height: px(44)
+		},
+
+		'.calendar-agenda-row': {
+			'min-height': '44px',
+			flex: "1 0 auto",
+		},
+
+		'.calendar-switch-button': {
+			width: "40px",
+			"text-align": "center",
+		},
+
+		'.calendar-long-events-header': {
+			overflow: "hidden",
+			"background-color": theme.content_bg,
+			"border-bottom": `1px solid ${theme.content_border}`,
+			transition: 'height 200ms ease-in-out'
+		},
+
+		'.calendar-month-week-number': {
+			"font-size": "12px",
+			"opacity": "0.8",
+			top: "8px",
+			left: "6px",
+		},
+
+		'button.floating': {
+			'border-radius': '50%',
+			'box-shadow': `0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12)`,
+		},
+		'button.floating:hover': {
+			'box-shadow': '0 5px 5px -3px rgba(0,0,0,.2),0 8px 10px 1px rgba(0,0,0,.14),0 3px 14px 2px rgba(0,0,0,.12)'
+		},
+		'button.floating:active': {
+			'box-shadow': '0 7px 8px -4px rgba(0,0,0,.2),0 12px 17px 2px rgba(0,0,0,.14),0 5px 22px 4px rgba(0,0,0,.12)'
+		},
+
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
 		"@media (max-width: 400px)": { // currently used for the reminder dialog
@@ -941,6 +1115,19 @@ styles.registerStyle('main', () => {
 			background: theme.content_accent,
 			color: theme.content_button_icon,
 		},
+		'.date-current': {
+			'border-radius': '50%',
+			background: theme.navigation_button,
+			color: theme.navigation_button_icon,
+		},
+
+		'.switch-month-button': {
+			'cursor': 'pointer',
+		},
+
+		'.switch-month-button svg': {
+			'fill': theme.navigation_button
+		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
@@ -982,10 +1169,41 @@ styles.registerStyle('main', () => {
 
 			'.notification-overlay-content': {
 				'padding-top': px(size.vpad_small)
-			}
+			},
+
+			'.calendar-day-indicator': {
+				height: "20px",
+				"line-height": "20px",
+				"text-align": "center",
+				"font-size": "14px",
+
+			},
+			'.calendar-day-number': {
+				margin: "2px auto",
+				width: "20px",
+			},
+
+			'.calendar-hour-margin': {
+				"margin-left": px(size.calendar_hour_width_mobile)
+			},
+
+			'.calendar-month-week-number': {
+				"font-size": "10px",
+				"opacity": "0.8",
+				top: "3px",
+				left: "3px",
+			},
 		},
 
 		"@media print": {
+			".noprint": {
+				"display": "none",
+			},
+			".print": {
+				"color": "black",
+				"background-color": "white",
+				"display": "block",
+			},
 			'html, body': {position: "initial"}, // overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {display: 'none'},
 			".main-view": {

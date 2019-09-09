@@ -27,9 +27,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createCreateLocalAdminGroupData(): CreateLocalAdminGroupData {
-	return create(_TypeModel)
+export function createCreateLocalAdminGroupData(values?: $Shape<$Exact<CreateLocalAdminGroupData>>): CreateLocalAdminGroupData {
+	return Object.assign(create(_TypeModel, CreateLocalAdminGroupDataTypeRef), values)
 }

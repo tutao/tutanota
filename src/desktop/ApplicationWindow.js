@@ -3,12 +3,13 @@ import type {ElectronPermission} from 'electron'
 import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
-import path from 'path'
 import u2f from '../misc/u2f-api.js'
-import {DesktopTray} from './DesktopTray.js'
 import {lang} from './DesktopLocalizationProvider.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
+import url from "url"
+
+const MINIMUM_WINDOW_SIZE: number = 350
 
 export type UserInfo = {|
 	userId: string,
@@ -17,18 +18,27 @@ export type UserInfo = {|
 
 export class ApplicationWindow {
 	_ipc: IPC;
-	_rewroteURL: boolean;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
 	_userInfo: ?UserInfo;
 	_setBoundsTimeout: TimeoutID;
+	_preloadjs: string;
+	_desktophtml: string;
 	id: number;
 
-	constructor(wm: WindowManager) {
+	constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
 		this._userInfo = null
 		this._ipc = wm.ipc
+		this._preloadjs = preloadjs
+		this._desktophtml = desktophtml
+		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
+		console.log("startFile: ", this._startFile)
 		this._createBrowserWindow(wm)
-		this._browserWindow.loadURL(this._startFile)
+		this._browserWindow.loadURL(
+			noAutoLogin
+				? this._startFile + "?noAutoLogin=true"
+				: this._startFile
+		)
 		Menu.setApplicationMenu(null)
 	}
 
@@ -67,12 +77,8 @@ export class ApplicationWindow {
 	}
 
 	_createBrowserWindow(wm: WindowManager) {
-		this._rewroteURL = false
-		let normalizedPath = path.join(__dirname, "..", "..", "desktop.html")
-		this._startFile = DesktopUtils.pathToFileURL(normalizedPath)
-		console.log("startFile: ", this._startFile)
 		this._browserWindow = new BrowserWindow({
-			icon: DesktopTray.getIcon(),
+			icon: wm.getIcon(),
 			show: false,
 			autoHideMenuBar: true,
 			webPreferences: {
@@ -86,10 +92,11 @@ export class ApplicationWindow {
 				// the preload script changes to the web app
 				contextIsolation: false,
 				webSecurity: true,
-				preload: path.join(__dirname, 'preload.js')
+				preload: this._preloadjs
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
+		this._browserWindow.setMinimumSize(MINIMUM_WINDOW_SIZE, MINIMUM_WINDOW_SIZE)
 		this.id = this._browserWindow.id
 		this._ipc.addWindow(this.id)
 
@@ -139,8 +146,25 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
 		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => this._browserWindow.hide())
+		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => wm.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
+		localShortcut.register(this._browserWindow,
+			process.platform === 'darwin'
+				? 'Command+Right'
+				: 'Alt+Right',
+			() => this._browserWindow.webContents.goForward())
+		localShortcut.register(this._browserWindow,
+			process.platform === 'darwin'
+				? 'Command+Left'
+				: 'Alt+Left',
+			() => {
+				const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
+				if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
+					this._browserWindow.webContents.goBack()
+				} else {
+					console.log("Ignore back events on login page")
+				}
+			})
 		localShortcut.register(
 			this._browserWindow,
 			process.platform === 'darwin'
@@ -192,22 +216,28 @@ export class ApplicationWindow {
 		) {
 			return this._startFile
 		}
-		if (url === this._startFile + '/login?noAutoLogin=true' && isInPlace) {
-			if (!this._rewroteURL) {
-				this._rewroteURL = true
-				return this._startFile + '?noAutoLogin=true'
-			} else {
-				this._rewroteURL = false
-			}
+		if (url === this._startFile + '?r=%2Flogin%3FnoAutoLogin%3Dtrue' && isInPlace) {
+			// after logout, don't try to login automatically.
+			// this fails if ?noAutoLogin=true is set directly from the web app for some reason
+			return this._startFile + '?noAutoLogin=true'
 		}
 		return url
 	}
 
-	findInPage(args: Array<any>) {
+	findInPage(args: Array<any>): Promise<{currentMatch: number, numberOfMatches: number}> {
 		if (args[0] !== '') {
 			this._browserWindow.webContents.findInPage(args[0], args[1])
+			return new Promise((resolve) => {
+				this._browserWindow.webContents.once('found-in-page', (ev: Event, res: {activeMatchOrdinal: number, matches: number}) => {
+					resolve({
+						currentMatch: res.activeMatchOrdinal - 1,
+						numberOfMatches: res.matches - 1
+					})
+				})
+			})
 		} else {
 			this.stopFindInPage()
+			return Promise.resolve({currentMatch: 0, numberOfMatches: 0})
 		}
 	}
 
@@ -258,6 +288,8 @@ export class ApplicationWindow {
 		this._setBoundsTimeout = setTimeout(() => {
 			const newRect = this._browserWindow.getBounds()
 			if (bounds.rect.y !== newRect.y) {
+				// window was moved by some bug/OS interaction, so we move it back twice the distance.
+				// should end up right where we want it. https://github.com/electron/electron/issues/10388
 				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
 			}
 		}, 200)

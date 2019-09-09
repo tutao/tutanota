@@ -6,7 +6,7 @@ import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
-import {loadRoot} from "./Entity"
+import {load, loadRoot, setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
 import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
@@ -14,6 +14,10 @@ import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
+import type {InfoMessage} from "../common/CommonTypes"
+import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
+import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
+import {NotFoundError} from "../common/error/RestError"
 
 assertMainOrNode()
 
@@ -34,8 +38,10 @@ export class WorkerClient {
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
+	+infoMessages: Stream<InfoMessage>;
 
 	constructor() {
+		this.infoMessages = stream()
 		initLocator(this)
 		this._initWorker()
 		this.initialized.then(() => {
@@ -45,7 +51,7 @@ export class WorkerClient {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.eventController.notificationReceived(downcast(message.args[0]))
+				locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
@@ -68,6 +74,10 @@ export class WorkerClient {
 			counterUpdate: (message: Message) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
+			},
+			infoMessage: (message: Message) => {
+				this.infoMessages(downcast(message.args[0]))
+				return Promise.resolve()
 			}
 		})
 	}
@@ -87,9 +97,10 @@ export class WorkerClient {
 			window.env.systemConfig.baseURL = System.getConfig().baseURL
 			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
-			this.initialized = this._queue.postMessage(new Request('setup', [
-				window.env, locator.entropyCollector.getInitialEntropy(), client.indexedDb(), client.browserData()
-			]))
+			this.initialized = this._queue
+			                       .postMessage(new Request('setup', [
+				                       window.env, locator.entropyCollector.getInitialEntropy(), client.browserData()
+			                       ]))
 			                       .then(() => console.log("worker init time (ms):", new Date().getTime() - start))
 
 			worker.onerror = (e: any) => {
@@ -148,9 +159,19 @@ export class WorkerClient {
 	}
 
 	_initUserController(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
-			logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession))
-		})
+		return Promise
+			.all([
+				loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
+				load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+					.catch(NotFoundError, () =>
+						setup(null, Object.assign(createUserSettingsGroupRoot(), {
+							_ownerGroup: user.userGroup.group
+						}))
+							.then(() => load(UserSettingsGroupRootTypeRef, user.userGroup.group)))
+			])
+			.then(([props, userSettingsGroupRoot]) => {
+				logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot))
+			})
 	}
 
 	loadExternalPasswordChannels(userId: Id, salt: Uint8Array): Promise<PasswordChannelReturn> {
@@ -210,8 +231,12 @@ export class WorkerClient {
 		return this._postRequest(new Request('sendMailDraft', arguments))
 	}
 
-	downloadFileContent(file: TutanotaFile): Promise<DataFile | FileReference> {
+	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
 		return this._postRequest(new Request('downloadFileContent', arguments))
+	}
+
+	downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
+		return this._postRequest(new Request('downloadFileContentNative', arguments))
 	}
 
 	changeUserPassword(user: User, newPassword: string): Promise<void> {
@@ -350,7 +375,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('setCatchAllGroup', arguments))
 	}
 
-	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return this._postRequest(new Request('uploadCertificate', arguments))
 	}
 
@@ -379,6 +404,10 @@ export class WorkerClient {
 		return this._postRequest(new Request('disableMailIndexing', arguments))
 	}
 
+	extendMailIndex(newEndTimestamp: number): Promise<void> {
+		return this._postRequest(new Request('extendMailIndex', arguments))
+	}
+
 	cancelMailIndexing(): Promise<void> {
 		return this._postRequest(new Request('cancelMailIndexing', arguments))
 	}
@@ -391,11 +420,19 @@ export class WorkerClient {
 		return this._postRequest(new Request('cancelCreateSession', []))
 	}
 
+	resolveSessionKey(typeModel: TypeModel, instance: Object): Promise<?string> {
+		return this._postRequest(new Request('resolveSessionKey', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 
-	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
+	entityEventsReceived(data: Array<EntityUpdate>): Promise<Array<EntityUpdate>> {
+		throw new Error("must not be used")
+	}
+
+	serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
 		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
 	}
 
@@ -455,6 +492,37 @@ export class WorkerClient {
 
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
 		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
+	}
+
+	resetSession() {
+		return this._queue.postMessage(new Request("resetSession", []))
+	}
+
+	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent]))
+	}
+
+	addCalendar(name: string): Promise<Group> {
+		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
+		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user
+		// this should be removed once we handle missed events during startup
+		return this._queue.postMessage(new Request("addCalendar", [name]))
+		           .then(({user, group}) => {
+			           logins.getUserController().user = user
+			           return group
+		           })
+	}
+
+	scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
+		return this._queue.postMessage(new Request("scheduleAlarmsForNewDevice", [pushIdentifier]))
+	}
+
+	loadAlarmEvents(): Promise<Array<EventWithAlarmInfo>> {
+		return this._queue.postMessage(new Request("loadAlarmEvents", []))
+	}
+
+	getDomainValidationRecord(): Promise<string> {
+		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
 	}
 }
 

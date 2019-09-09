@@ -3,6 +3,7 @@ package de.tutao.tutanota;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.OpenableColumns;
 import android.util.Base64;
 
@@ -108,6 +109,10 @@ public class Utils {
 
     public static File getDir(Context context) {
         return context.getFilesDir();
+    }
+
+    public static boolean atLeastOreo() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
 }

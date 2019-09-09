@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "33d2a9ab1ea65cb3d7064439e005f8c1",
 	"name": "ro",
 	"code": "ro",
@@ -14,7 +12,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2019-03-01T09:53:40Z",
+	"updated_at": "2019-07-22T13:52:51Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -51,7 +49,6 @@ const translation = {
 		"addUsers_action": "Adauga user",
 		"addUserToGroup_label": "Adaugă membru",
 		"add_action": "Adaugă",
-		"adminCustomDomainInfo_msg": "Vă rugăm asigurați-vă înainte că înregistrările MX și SPF sunt setate corect în DNS-ul dvs.",
 		"adminCustomDomain_label": "Domeniu personalizat",
 		"adminDeleteAccount_action": "Ștergere cont",
 		"adminEmailSettings_action": "Email",
@@ -126,6 +123,7 @@ const translation = {
 		"chooseNumber_msg": "Vă rugăm să dați clic pe unul din numerele dvs. de telefon de mai jos pentru a primi parola dvs. de email prin SMS.",
 		"choosePhotos_action": "Fotografii",
 		"choose_label": "Alege ...",
+		"clearFolder_action": "Golește dosarul",
 		"clickNumber_msg": "Vă rugăm să faceți clic pe numărul dvs. de telefon de mai jos pentru a primi parola prin SMS.",
 		"clickToUpdate_msg": "Apasă aici dacă vrei să instalezi acum, sau lasă-ne pe noi să instalăm automat la ieșire.",
 		"client_label": "Client",
@@ -182,7 +180,6 @@ const translation = {
 		"createContact_action": "Crează contact",
 		"createdUsersCount_msg": "{1} utilizator(i) a(au) fost creat(ți).",
 		"created_label": "Creat",
-		"createSearchIndex_msg": "Crearea indexului de căutare {progress}%.",
 		"creditCardCardHolderName_label": "Numele deținătorului cardului.",
 		"creditCardCardHolderName_msg": "Vă rugăm introduceți numele deținătorului cardului.",
 		"creditCardCVVFormat_label": "Va rugăm introduceți codul de securitate (3 sau 4 cifre).",
@@ -202,9 +199,6 @@ const translation = {
 		"customDomainDomainAssigned_msg": "Domeniul este deja asociat contului tău.",
 		"customDomainErrorDnsLookupFailure_msg": "Căutarea DNS a eșuat.",
 		"customDomainErrorDomainNotAvailable_msg": "Domeniul nu este disponibil.",
-		"customDomainErrorInvalidDnsRecord_msg": "Datele registrului DNS pentru acest domeniu includ valori invalide.",
-		"customDomainErrorMissingMxEntry_msg": "\"MX record\"-ul pentru acest domeniu lipseste.",
-		"customDomainErrorMissingSpfEntry_msg": "Inregistrarile SPF pentru acest domeniu lipsesc",
 		"customDomainNeutral_msg": "Vă rugăm introduceți domeniul dvs.",
 		"customEmailDomains_label": "Domenii de email personalizate",
 		"customLabel_label": "Etichetă personalizată",
@@ -292,6 +286,7 @@ const translation = {
 		"enum_label": "Enum",
 		"envelopeSenderInfo_msg": "Expeditorul tehnic este diferit de adresa de e-mail din câmpul \"De la\". Deoarece câmpul \"De la\" poate fi falsificat, expeditorul tehnic este de asemenea afișat, pentru a înțelege cine este, de fapt, expeditorul.",
 		"errorAtLine_msg": "Eroare la linia {index}: {error}",
+		"errorDuringUpdate_msg": "Ceva nu a funcționat în timpul procesului de actualizare. Vom încerca din nou mai târziu.",
 		"errorReport_label": "Vai, nu!",
 		"expiredLink_msg": "Scuze, acest link nu mai este valid. Ar fi trebuit să fi primit un e-mail nou de notificare, cu link-ul actual valid. Link-urile anterioare sunt dezactivate din rațiuni de securitate.",
 		"exportSelectedAsVCard_action": "Exportați contactele selectate ca vCard",
@@ -354,6 +349,7 @@ const translation = {
 		"group_label": "Grup",
 		"header_label": "Antet",
 		"helpPage_label": "Pagină ajutor",
+		"howtoMailBody_markdown": "Tutanota vă permite să trimiteți email criptat către orice adresă de email din lume - în mod automatic, în cazul în care cel care primește folosește deasemenea Tutanota, sau prin folosirea unei parole comune în cazul în care primitorul folosește alt serviciu. Chiar și e-mailurile care sunt trimise fără a fi criptate, sunt stocate în siguranță, criptate, pe serverele Tutanota din Germaia.\n\nVă rog verificați \"Întrebări Frecvente\", \"Cum se folosește\" și \"Forumul de suport\" de la Tutanota, pentru a invăța totul despre noul mailbox al dumneavoastră, care este foarte sigur.\n\n* [Întrebări Frecvente]({faqLink})* [Cum se folosește]({howtoLink})* [Forumul de suport]({redditLink})\n\n**Căutare în datele criptate**\n\nTutanota vă permite să faceți căutare în mailboxul local pe aparatul dumneavoastră, pentru păstrarea confidențialitații datelor dumneavoastră. Vă rog dați click pe bara de căutare de sus.\nCăutarea standard se face numai în datele curente de maxim o lună. [Pentru deblocarea căutărilor nelimitate si pentru multe alte funcții adiționale din mailboxul dumneavoastră]({blogPremiumProLink}), vă rog dați click pe Premium în meniul de sus.\n\n**Ajutor direct**\n\nNoi de la Tutanota permitem tuturor din lume să trimită emailuri confidențiale. Cu milioane de utilizatori, nu putem să răspundem la toate întrebările prin email. În cazul în care nu găsiți raspunsul la întrebarea dumneavoastră în secțiunea \"Întrebări Frecvente\" sau \"Cum se folosește\", [vă rog întrebați comunitatea de utilizatori aici]({redditLink}). \nAjutorul oferit prin email este limitat la utilizatorii Premium. [Pentru ajutor direct, vă rog să faceți upgrade pentru 1€/luna]({pricingLink}).\n\nRămaneți în siguranță,\n\nechipa Tutanota",
 		"howtoMailSubject_msg": "'Cum să...' pentru căsuța dvs. securizată de e-mail",
 		"htmlSourceCode_label": "Cod sursă HTML",
 		"html_action": "HTML",
@@ -516,7 +512,9 @@ const translation = {
 		"mailSendFailureBody_msg": "Ne pare rău să vă informăm că următorul e-mail nu a putut fi transmis.",
 		"mailSendFailureCustomerOnlyBody_msg": "Ne pare rău să te anunțăm că ultimul tau mesaj trimis nu a putut fi livrat la {recipient}. Nu ai permisiunea de a trimite mesaje destinatarilor din afara organizației in care ești.",
 		"mailSendFailureNonExistingRecipientBody_msg": "Regretăm sa te informăm, dar ultimul tău mesaj nu a utut fi livrat către {recipient}.\n\nAdresa nu există.",
+		"mailSendFailureRecipientMailboxLimitReached_msg": "Limita de stocare a destinatarului este atinsă.",
 		"mailSendFailureSubject_msg": "E-mail-ul nu a putut fi transmis.",
+		"mailSendFailureTechnicalError_msg": "A intervenit o eroare tehnică. Vă rugăm încercați din nou mai târziu sau contactați serviciul nostru de mentenanță. ID eroare: {errorId}",
 		"mailSettings_label": "Setările pentru e-mail",
 		"mailView_action": "Comutați la vizualizarea e-mailului",
 		"makeLink_action": "Crează legătura web",
@@ -568,7 +566,6 @@ const translation = {
 		"notAvailableInApp_msg": "Această funție nu este disponibilă în aplicația mobilă.",
 		"notFound404_msg": "Ne pare rau, dar pagina pe care o cautati nu a fost gasita. Va rugam sa verificati daca URL-ul nu contine erori, dupa care apasati butonul de Reimprospatare din browserul dv.",
 		"notificationMailLanguage_label": "Limba mesajului de notificare",
-		"notificationMailSendFailureBody_msg": "Ne pare rău dar trebuie să te informăm că email-ul notificare de mai jos nu a putut fi livrat.",
 		"notificationsDisabled_label": "Dezactivat",
 		"notificationSettings_action": "Notificări",
 		"notSigned_msg": "Nesemnat.",
@@ -630,6 +627,7 @@ const translation = {
 		"paymentProviderTransactionFailedError_msg": "Plata nu a putut fi efectuată. Vă rugăm încercați mai târziu sau modificați datele plății.",
 		"payPalRedirect_msg": "Veți fi redirecționați către site-ul PayPal",
 		"periodOfTime_label": "Perioada de timp",
+		"permanentAliasWarning_msg": "Acesta este un alias de domeniu Tutanota, care, prin contrast cu aliasurile de domeniu personalizate, poate fi doar dezactivat, nu șters. Va conta permanent în stabilirea limitei dumneavoastră de aliasuri.",
 		"phone_label": "Telefon",
 		"photoLibraryUsageDescription_msg": "Atașează o poză din galerie.",
 		"plaintext_action": "text simplu",
@@ -790,6 +788,7 @@ const translation = {
 		"sharedMailboxes_label": "Căsuțe poștale comune",
 		"sharedMailbox_label": "Căsuță de email distribuită",
 		"showAddress_alt": "Arată acestă adresă în OpenStreetMap",
+		"showAll_action": "Arată-le pe toate",
 		"showBlockedContent_action": "Arată",
 		"showContact_action": "Arată contact",
 		"showEmailAliases_action": "Afișați pseudonimele de e-mail",
@@ -823,6 +822,7 @@ const translation = {
 		"storageCapacityUsed_label": "Spațiu de stocare utilizat",
 		"storageCapacity_label": "Capacitate de stocare",
 		"storageDeletionAnnouncement_msg": "Info: Email-urile mutate în directorul spam sau în coșul de gunoi vor fi șterse automat după 30 de zile.",
+		"storageDeletion_msg": "Email-urile din acest dosar vor fi șterse automat după 30 de zile.",
 		"storePassword_action": "Memorează parola",
 		"subject_label": "Subiect",
 		"subscriptionCancelledMessage_msg": "Abonamentul tau a fost anulat. Te rog contactează departamentul Relații Clienți pentru a reactiva abonamentul.",
@@ -913,6 +913,7 @@ const translation = {
 		"welcomeMailBody5_msg": "PS: Tutanota are cod sursă deschis, asa că nu ezitați să inspectați și să revizuiți codul sursă:",
 		"welcomeMailBody6_msg": "PPS: poți cere si vota pentru orice optiune/caracteristică aici:",
 		"welcomeMailBodyTweetText_msg": "Tocmai mi-am setat casuța de e-mail Tutanota. Acum îmi protejez toate e-mailurile de ochi indiscreți! Și tu te poți înscrie:",
+		"welcomeMailBody_markdown": "Bine ați venit în căsuța dumneavoastră poștală sigură și fără reclame, protejată prin criptare solidă. Tutanota permite o trecere ușoară de la alte servicii de mail electronic. Clientul web intuitiv, aplicațiile pentru Android și iOS, precum și aplicațiile desktop pentru Windows, Mac OS și Linux vă dau posibilitatea să vă accesați căsuța poștală sigură de pe orice dispozitiv.\n\nCa profesionist, puteți salva timp și bani, găzduind toate email-urile de afaceri, criptate de la un capăt la altul, pe serverele securizate ale Tutanota, aflate în Germania: creați o Etichetă Personalizată a Tutanota pentru afacerea dumneavoastră, plasați autentificare pe proriul dumneavoastră site și adăugați un formular de contact criptat pe site, astfel încât clienții să poată lua legătura în mod confidențial cu dumneavoastră. [Descoperiți mai multe despre facilitățile extinse pentru afaceri ale Tutanota]({businessLink}).\n\n**Tutanota urmează 4 principii pentru a oferi o alternativă prietenoasă cu confidențialitatea**\n\n1. Tutanota nu vă urmărește.\n2. Tutanota nu vă poate explora datele.\n3. Tutanota vă criptează în întregime căsuța poștală și contactele.\n4. Tutanota incorporează confidențialitate din proiectare.\n\nRecomandați Tutanota, [serviciul de email în sursă deschisă care vă respectă drepyul la confidențialitate]({blogOpenSourceLink}).\n\nCredem că toată lumea merită o căsuță poștală gratuită și confidențială. Ne puteți susține, urmărindu-ne pe canalul dumneavoastră preferat de social media și împărtășind conținutul nostru cu prietenii și colegii dumneavoastră. Împreună vom schimba Internetul în ceva mai bun:\n\n* [LinkedIn]({linkedinLink})\n* [Facebook]({facebookLink})\n* [Mastodon]({mastodonLink})\n* [Twitter]({twitterLink})\n* [Reddit]({redditLink})\n* [Instagram]({instagramLink})\n\nVă mulțumim foarte mult,\n\nEchipa Tutanota\n\nTutanota este în sursă liberă. [Puteți verifica și analiza codul sursă aici]({githubLink}).",
 		"welcomeMailSubject_msg": "Simțiți-vă ca acasă: Datele dumneavoastră rămân private.",
 		"whitelabelAccounts_label": "Conturi etichete albe",
 		"whitelabelAccount_label": "Cont etichetă albă",
@@ -923,7 +924,7 @@ const translation = {
 		"whitelabelDomain_label": "Domeniu whitelabel",
 		"whitelabelRegistrationCode_label": "Cod înregistrare",
 		"whitelabelRegistrationEmailDomain_label": "Înregistrare domeniul e-mail",
-		"whitelabel_label": "Whitelabel",
+		"whitelabel_label": "Etichetă Personalizată",
 		"whitelistProtectionInfo_label": "Această opțiune mută în mod implicit toate e-mailurile primite de la expeditorii externi în dosarul de spam. Expeditorii primesc un e-mail de notificare cu un link care le permite să înregistreze domeniul lor pe lista albă. După înregistrare, e-mailurile din domeniul respectiv nu vor mai fi mutate în dosarul de spam, ci în căsuța de e-mail.",
 		"whitelistProtection_label": "Protecția listei albe",
 		"work_label": "Loc de munca",
@@ -935,5 +936,3 @@ const translation = {
 		"yourMessage_label": "Mesajul tău"
 	}
 }
-export default translation
-export var __useDefault = translation

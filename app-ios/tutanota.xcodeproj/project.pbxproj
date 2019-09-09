@@ -7,9 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D20B36322B8D61600472D12 /* TUTRepeatRule.m */; };
+		3D3697D722AA8CE9007F0A83 /* TUTUserPreferenceFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */; };
+		3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
+		3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
+		3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */; };
+		3D57BEBF22B7979D00205B1B /* TUTIdTuple.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */; };
+		3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */; };
 		3D652B5820F8DC1600DF9962 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
 		3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */; };
+		3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
@@ -41,7 +50,6 @@
 		3D9A1F1822031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6F22031B85002C2455 /* InfoPlist.strings */; };
 		3D9A1F1922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7222031B85002C2455 /* InfoPlist.strings */; };
 		3D9A1F1A22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7522031B86002C2455 /* InfoPlist.strings */; };
-		3D9A1F1B22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7822031B86002C2455 /* InfoPlist.strings */; };
 		3D9A1F1C22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7B22031B86002C2455 /* InfoPlist.strings */; };
 		3D9A1F1D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7E22031B87002C2455 /* InfoPlist.strings */; };
 		3D9A1F1E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8122031B87002C2455 /* InfoPlist.strings */; };
@@ -61,7 +69,6 @@
 		3D9A1F2C22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAB22031B8B002C2455 /* InfoPlist.strings */; };
 		3D9A1F2D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAE22031B8C002C2455 /* InfoPlist.strings */; };
 		3D9A1F2E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB122031B8C002C2455 /* InfoPlist.strings */; };
-		3D9A1F2F22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB422031B8C002C2455 /* InfoPlist.strings */; };
 		3D9A1F3022031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB722031B8D002C2455 /* InfoPlist.strings */; };
 		3D9A1F3122031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBA22031B8D002C2455 /* InfoPlist.strings */; };
 		3D9A1F3222031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBD22031B8D002C2455 /* InfoPlist.strings */; };
@@ -78,7 +85,6 @@
 		3D9A1F3D22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EDE22031B91002C2455 /* InfoPlist.strings */; };
 		3D9A1F3E22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE122031B92002C2455 /* InfoPlist.strings */; };
 		3D9A1F3F22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE422031B92002C2455 /* InfoPlist.strings */; };
-		3D9A1F4022031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE722031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4122031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EEA22031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4222031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EED22031B93002C2455 /* InfoPlist.strings */; };
 		3D9A1F4322031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF022031B94002C2455 /* InfoPlist.strings */; };
@@ -91,11 +97,16 @@
 		3D9A1F4A22031B99002C2455 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0522031B99002C2455 /* LaunchScreen.storyboard */; };
 		3D9A1F4B22031B99002C2455 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0722031B99002C2455 /* Main.storyboard */; };
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
+		3DB9A20E22BA5C23004EA08F /* TUTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DB9A20D22BA5C23004EA08F /* TUTUtils.m */; };
 		3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* TUTViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4A09620F8C6260086EB36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
+		3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */; };
+		3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
+		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -110,12 +121,30 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3D20B36222B8D61600472D12 /* TUTRepeatRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTRepeatRule.h; sourceTree = "<group>"; };
+		3D20B36322B8D61600472D12 /* TUTRepeatRule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTRepeatRule.m; sourceTree = "<group>"; };
+		3D3697D522AA8CE9007F0A83 /* TUTUserPreferenceFacade.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTUserPreferenceFacade.h; sourceTree = "<group>"; };
+		3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTUserPreferenceFacade.m; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
+		3D57BEB422B796CD00205B1B /* TUTMissedNotification.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTMissedNotification.h; sourceTree = "<group>"; };
+		3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTMissedNotification.m; sourceTree = "<group>"; };
+		3D57BEB722B796DD00205B1B /* TUTAlarmInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmInfo.h; sourceTree = "<group>"; };
+		3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmInfo.m; sourceTree = "<group>"; };
+		3D57BEBA22B7976200205B1B /* TUTNotificationSessionKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTNotificationSessionKey.h; sourceTree = "<group>"; };
+		3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTNotificationSessionKey.m; sourceTree = "<group>"; };
+		3D57BEBD22B7979D00205B1B /* TUTIdTuple.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTIdTuple.h; sourceTree = "<group>"; };
+		3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTIdTuple.m; sourceTree = "<group>"; };
+		3D57BEC022B79C4D00205B1B /* TUTAlarmNotification.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmNotification.h; sourceTree = "<group>"; };
+		3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmNotification.m; sourceTree = "<group>"; };
 		3D652B5720F8DC1500DF9962 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; name = build; path = ../../build; sourceTree = "<group>"; };
 		3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTFontIconFactory.h; sourceTree = "<group>"; };
 		3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTFontIconFactory.m; sourceTree = "<group>"; };
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
+		3D6C6D0222AF9BD100289576 /* TUTSseInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSseInfo.h; sourceTree = "<group>"; };
+		3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseInfo.m; sourceTree = "<group>"; };
+		3D6C6D0622B7709A00289576 /* TUTKeychainManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTKeychainManager.h; sourceTree = "<group>"; };
+		3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTKeychainManager.m; sourceTree = "<group>"; };
 		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
@@ -158,7 +187,6 @@
 		3D9A1E7022031B85002C2455 /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = he; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7322031B85002C2455 /* fil */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fil; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7622031B86002C2455 /* lt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = lt; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1E7922031B86002C2455 /* af */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = af; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7C22031B86002C2455 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E7F22031B87002C2455 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1E8222031B87002C2455 /* sw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sw; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -178,7 +206,6 @@
 		3D9A1EAC22031B8B002C2455 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EAF22031B8C002C2455 /* es_ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es_ar; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EB222031B8C002C2455 /* bn_bd */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn_bd; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1EB522031B8C002C2455 /* yo_ng */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = yo_ng; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EB822031B8D002C2455 /* ta */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ta; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EBB22031B8D002C2455 /* ku */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ku; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EBE22031B8D002C2455 /* zh_tw */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = zh_tw; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -195,7 +222,6 @@
 		3D9A1EDF22031B91002C2455 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EE222031B92002C2455 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EE522031B92002C2455 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = InfoPlist.strings; sourceTree = "<group>"; };
-		3D9A1EE822031B93002C2455 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EEB22031B93002C2455 /* sr_cyrl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sr_cyrl; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EEE22031B93002C2455 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = InfoPlist.strings; sourceTree = "<group>"; };
 		3D9A1EF122031B94002C2455 /* bg */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bg; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -208,6 +234,8 @@
 		3D9A1F0622031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3D9A1F0822031B99002C2455 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Main.storyboard; sourceTree = "<group>"; };
 		3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = CompatibilityTestData.json; sourceTree = "<group>"; };
+		3DB9A20C22BA5C23004EA08F /* TUTUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTUtils.h; sourceTree = "<group>"; };
+		3DB9A20D22BA5C23004EA08F /* TUTUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTUtils.m; sourceTree = "<group>"; };
 		3DD4A08320F8C6240086EB36 /* tutanota.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tutanota.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A08620F8C6240086EB36 /* TUTAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAppDelegate.h; sourceTree = "<group>"; };
 		3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAppDelegate.m; sourceTree = "<group>"; };
@@ -219,6 +247,12 @@
 		3DD4A09520F8C6260086EB36 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmManager.h; sourceTree = "<group>"; };
+		3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmManager.m; sourceTree = "<group>"; };
+		3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModelTest.m; sourceTree = "<group>"; };
+		3DD7A23622C604F000876B85 /* TUTAlarmModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTAlarmModel.h; sourceTree = "<group>"; };
+		3DD7A23722C604F000876B85 /* TUTAlarmModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTAlarmModel.m; sourceTree = "<group>"; };
+		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
@@ -244,9 +278,41 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D57BEB322B796AC00205B1B /* Alarms */ = {
+			isa = PBXGroup;
+			children = (
+				3D57BEB422B796CD00205B1B /* TUTMissedNotification.h */,
+				3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */,
+				3D57BEB722B796DD00205B1B /* TUTAlarmInfo.h */,
+				3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */,
+				3D57BEBA22B7976200205B1B /* TUTNotificationSessionKey.h */,
+				3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */,
+				3D57BEBD22B7979D00205B1B /* TUTIdTuple.h */,
+				3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */,
+				3D57BEC022B79C4D00205B1B /* TUTAlarmNotification.h */,
+				3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */,
+				3D20B36222B8D61600472D12 /* TUTRepeatRule.h */,
+				3D20B36322B8D61600472D12 /* TUTRepeatRule.m */,
+				3DD7A23622C604F000876B85 /* TUTAlarmModel.h */,
+				3DD7A23722C604F000876B85 /* TUTAlarmModel.m */,
+			);
+			path = Alarms;
+			sourceTree = "<group>";
+		};
+		3D6C6D0522B7707B00289576 /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				3D6C6D0622B7709A00289576 /* TUTKeychainManager.h */,
+				3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */,
+			);
+			path = Keychain;
+			sourceTree = "<group>";
+		};
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D57BEB322B796AC00205B1B /* Alarms */,
+				3D6C6D0522B7707B00289576 /* Keychain */,
 				3D7453682108A0CE00B16F2E /* Contacts */,
 				3D74536421089DA300B16F2E /* Utils */,
 				3D74536321089D8100B16F2E /* Files */,
@@ -256,6 +322,8 @@
 				3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */,
 				3DD4A08920F8C6240086EB36 /* TUTViewController.h */,
 				3DD4A08A20F8C6240086EB36 /* TUTViewController.m */,
+				3DD6D08722AAAE9800C0E312 /* TUTAlarmManager.h */,
+				3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -304,6 +372,12 @@
 				3D891F022105B12E0031E528 /* TUTEncodingConverter.m */,
 				3D69F031212D4A5B00D52BF7 /* TUTFontIconFactory.h */,
 				3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */,
+				3D3697D522AA8CE9007F0A83 /* TUTUserPreferenceFacade.h */,
+				3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */,
+				3D6C6D0222AF9BD100289576 /* TUTSseInfo.h */,
+				3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */,
+				3DB9A20C22BA5C23004EA08F /* TUTUtils.h */,
+				3DB9A20D22BA5C23004EA08F /* TUTUtils.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -469,14 +543,6 @@
 			path = lt.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1E7722031B86002C2455 /* af.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1E7822031B86002C2455 /* InfoPlist.strings */,
-			);
-			path = af.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1E7A22031B86002C2455 /* cs.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -629,14 +695,6 @@
 			path = bn_bd.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1EB322031B8C002C2455 /* yo_ng.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1EB422031B8C002C2455 /* InfoPlist.strings */,
-			);
-			path = yo_ng.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1EB622031B8D002C2455 /* ta.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -765,14 +823,6 @@
 			path = es.lproj;
 			sourceTree = "<group>";
 		};
-		3D9A1EE622031B93002C2455 /* ar.lproj */ = {
-			isa = PBXGroup;
-			children = (
-				3D9A1EE722031B93002C2455 /* InfoPlist.strings */,
-			);
-			path = ar.lproj;
-			sourceTree = "<group>";
-		};
 		3D9A1EE922031B93002C2455 /* sr_cyrl.lproj */ = {
 			isa = PBXGroup;
 			children = (
@@ -876,8 +926,7 @@
 		3DD4A08520F8C6240086EB36 /* tutanota */ = {
 			isa = PBXGroup;
 			children = (
-				3D9A1E7722031B86002C2455 /* af.lproj */,
-				3D9A1EE622031B93002C2455 /* ar.lproj */,
+				3D74536121089D2200B16F2E /* Sources */,
 				3D9A1F0422031B99002C2455 /* Base.lproj */,
 				3D9A1EEF22031B94002C2455 /* bg.lproj */,
 				3D9A1EB022031B8C002C2455 /* bn_bd.lproj */,
@@ -939,16 +988,15 @@
 				3D9A1EE022031B92002C2455 /* tr.lproj */,
 				3D9A1E9E22031B8A002C2455 /* uk.lproj */,
 				3D9A1E4A22031B82002C2455 /* vi.lproj */,
-				3D9A1EB322031B8C002C2455 /* yo_ng.lproj */,
 				3D9A1EBC22031B8D002C2455 /* zh_tw.lproj */,
 				3D9A1EC222031B8E002C2455 /* zh.lproj */,
 				3D87ECDE212D921600FD7315 /* ionicons.ttf */,
-				3D74536121089D2200B16F2E /* Sources */,
 				3D891F2A2106132B0031E528 /* tutanota.entitlements */,
 				3D652B5720F8DC1500DF9962 /* build */,
 				3DD4A08F20F8C6260086EB36 /* Assets.xcassets */,
 				3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */,
 				3DD4A09420F8C6260086EB36 /* Info.plist */,
+				3DE2E47722D5F198009A9368 /* Info-Debug.plist */,
 			);
 			path = tutanota;
 			sourceTree = "<group>";
@@ -959,6 +1007,7 @@
 				3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */,
 				3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */,
 				3DD4A0A120F8C6260086EB36 /* Info.plist */,
+				3DD7A23422C5FD7500876B85 /* TUTAlarmModelTest.m */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1171,7 +1220,7 @@
 				3D9A1F4622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2B22031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F1B22031B99002C2455 /* InfoPlist.strings in Resources */,
+				3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */,
 				3D9A1F4422031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2122031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1A22031B99002C2455 /* InfoPlist.strings in Resources */,
@@ -1179,7 +1228,6 @@
 				3D9A1F3822031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F3922031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1822031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F2F22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F0B22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1F22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2222031B99002C2455 /* InfoPlist.strings in Resources */,
@@ -1194,7 +1242,6 @@
 				3D9A1F4922031B99002C2455 /* InfoPlist.strings in Resources */,
 				3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */,
 				3D9A1F3A22031B99002C2455 /* InfoPlist.strings in Resources */,
-				3D9A1F4022031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2A22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1D22031B99002C2455 /* InfoPlist.strings in Resources */,
 				3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */,
@@ -1223,20 +1270,32 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */,
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
+				3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */,
+				3D3697D722AA8CE9007F0A83 /* TUTUserPreferenceFacade.m in Sources */,
+				3D57BEBF22B7979D00205B1B /* TUTIdTuple.m in Sources */,
 				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
+				3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
+				3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */,
+				3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
+				3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */,
+				3DB9A20E22BA5C23004EA08F /* TUTUtils.m in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
 				3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */,
+				3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */,
+				3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */,
+				3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
 				3DD4A08820F8C6240086EB36 /* TUTAppDelegate.m in Sources */,
 			);
@@ -1247,6 +1306,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
+				3DD7A23522C5FD7500876B85 /* TUTAlarmModelTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1405,14 +1465,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		3D9A1E7822031B86002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1E7922031B86002C2455 /* af */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
 		3D9A1E7B22031B86002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1565,14 +1617,6 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		3D9A1EB422031B8C002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1EB522031B8C002C2455 /* yo_ng */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
 		3D9A1EB722031B8D002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1697,14 +1741,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				3D9A1EE522031B92002C2455 /* es */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		3D9A1EE722031B93002C2455 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D9A1EE822031B93002C2455 /* ar */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -1922,6 +1958,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
@@ -1953,6 +1990,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;

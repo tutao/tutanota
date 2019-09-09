@@ -387,4 +387,14 @@ o.spec("ClientDetector test", function () {
 		o(client.isMobileDevice()).equals(true)
 		env.mode = Mode.Browser
 	})
+
+	o("old Chrome is not supported", function () {
+		client.init("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36", "Linux")
+		o(client.isSupportedBrowserVersion()).equals(false)
+	})
+
+	o("newer Chrome is supported", function () {
+		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36", "Linux")
+		o(client.isSupportedBrowserVersion()).equals(true)
+	})
 })

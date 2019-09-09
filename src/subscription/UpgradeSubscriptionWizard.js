@@ -17,8 +17,8 @@ import {SignupPage} from "./SignupPage"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
-import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {SubscriptionType} from "./SubscriptionUtils"
+import type {SubscriptionOptions, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
+import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream/stream.js"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createUpgradePriceServiceData} from "../api/entities/sys/UpgradePriceServiceData"
@@ -48,14 +48,14 @@ export type UpgradeSubscriptionData = {
 	newAccountData: ?NewAccountData,
 	campaign: ?string,
 	campaignInfoTextId: ?TranslationKey,
-	isInitialUpgrade: boolean,
+	upgradeType: UpgradeTypeEnum,
 	premiumPrices: PlanPrices,
 	proPrices: PlanPrices
 }
 
 
 function getCampaign(): ?string {
-	const tokenFromUrl = m.route.param()['token']
+	const tokenFromUrl = m.route.param("token")
 	if (tokenFromUrl) {
 		if (client.localStorage()) {
 			localStorage.setItem(CAMPAIGN_KEY, tokenFromUrl)
@@ -115,7 +115,7 @@ export function showUpgradeWizard(): void {
 						newAccountData: null,
 						campaign: getCampaign(),
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
-						isInitialUpgrade: true,
+						upgradeType: UpgradeType.Initial,
 						premiumPrices: prices.premiumPrices,
 						proPrices: prices.proPrices,
 					}
@@ -154,7 +154,7 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 			newAccountData: null,
 			campaign: getCampaign(),
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
-			isInitialUpgrade: true,
+			upgradeType: UpgradeType.Signup,
 			premiumPrices: prices.premiumPrices,
 			proPrices: prices.proPrices
 		}

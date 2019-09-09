@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createSendRegistrationCodeReturn(): SendRegistrationCodeReturn {
-	return create(_TypeModel)
+export function createSendRegistrationCodeReturn(values?: $Shape<$Exact<SendRegistrationCodeReturn>>): SendRegistrationCodeReturn {
+	return Object.assign(create(_TypeModel, SendRegistrationCodeReturnTypeRef), values)
 }

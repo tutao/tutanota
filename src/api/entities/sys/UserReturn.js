@@ -35,9 +35,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createUserReturn(): UserReturn {
-	return create(_TypeModel)
+export function createUserReturn(values?: $Shape<$Exact<UserReturn>>): UserReturn {
+	return Object.assign(create(_TypeModel, UserReturnTypeRef), values)
 }

@@ -1,7 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {Element, ListElement, HttpMethodEnum} from "../common/EntityFunctions"
+import type {Element, HttpMethodEnum, ListElement} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -50,6 +50,9 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
+/**
+ * load multiple does not guarantee order or completeness of returned elements.
+ */
 export function loadMultiple<T: (ListElement | Element)>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
 }
@@ -122,10 +125,10 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	})
 }
 
-export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
+export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
 	return worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
+export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key): Promise<void> {
 	return worker.serviceRequest(service, method, requestEntity, null, queryParams, sk)
 }

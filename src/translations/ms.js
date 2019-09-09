@@ -1,6 +1,4 @@
-//@flow
-
-const translation = {
+module.exports = {
 	"id": "c2b96e2a8d8522fb59ca9d67662721f8",
 	"name": "ms",
 	"code": "ms",
@@ -12,7 +10,7 @@ const translation = {
 		"other"
 	],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2019-02-28T13:20:14Z",
+	"updated_at": "2019-03-21T12:54:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Sila nyahaktifkan pakej penyimpanan atau alias yang ditempah dan matikan semua alias email sebelum menukar jenis akaun.",
@@ -410,7 +408,6 @@ const translation = {
 		"notAvailableInApp_msg": "Fungsi ini tidak tersedia dalam aplikasi mudah alih.",
 		"notFound404_msg": "Maaf, tetapi halaman yang anda cari belum dijumpai. Cuba semak URL untuk kesilapan dan tekan butang penyegaran browser anda.",
 		"notificationMailLanguage_label": "Bahasa e-mel notifikasi",
-		"notificationMailSendFailureBody_msg": "Kami memohon maaf bahawa e-mel pemberitahuan berikut tidak dapat dihantar.",
 		"notificationSettings_action": "Notifikasi",
 		"no_label": "Tiada",
 		"number_label": "Nombor",
@@ -622,5 +619,3 @@ const translation = {
 		"yourMessage_label": "Mesej anda"
 	}
 }
-export default translation
-export var __useDefault = translation

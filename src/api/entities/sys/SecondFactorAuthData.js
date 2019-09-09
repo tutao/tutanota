@@ -38,9 +38,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createSecondFactorAuthData(): SecondFactorAuthData {
-	return create(_TypeModel)
+export function createSecondFactorAuthData(values?: $Shape<$Exact<SecondFactorAuthData>>): SecondFactorAuthData {
+	return Object.assign(create(_TypeModel, SecondFactorAuthDataTypeRef), values)
 }

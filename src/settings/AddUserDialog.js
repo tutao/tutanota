@@ -12,10 +12,10 @@ import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {addAll} from "../api/common/utils/ArrayUtils"
-import {neverNull} from "../api/common/utils/Utils"
+import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showProgressDialog, showWorkerProgressDialog} from "../gui/base/ProgressDialog"
 
 
 assertMainOrNode()
@@ -40,10 +40,10 @@ export function show(): Promise<void> {
 				.then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						showProgressDialog(() => lang.get("createActionStatus_msg", {
+						showWorkerProgressDialog(() => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
-						}), p, true).then(dialog.close())
+						}), p).then(dialog.close())
 					}
 				})
 		}
@@ -60,8 +60,7 @@ export function show(): Promise<void> {
 export function getAvailableDomains(onlyCustomDomains: ?boolean): Promise<string[]> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			let availableDomains = customerInfo.domainInfos.filter(info => info.certificate == null)
-				.map(info => info.domain)
+			let availableDomains = getCustomMailDomains(customerInfo).map(info => info.domain)
 			if (!onlyCustomDomains && logins.getUserController().user.accountType !== AccountType.STARTER &&
 				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())) {
 				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)

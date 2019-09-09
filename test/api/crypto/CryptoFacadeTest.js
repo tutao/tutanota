@@ -2,7 +2,13 @@
 import o from "ospec/ospec.js"
 import {aes128Decrypt, aes128Encrypt, aes128RandomKey, ENABLE_MAC, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
-import {base64ToUint8Array, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "../../../src/api/common/utils/Encoding"
+import {
+	base64ToUint8Array,
+	hexToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString
+} from "../../../src/api/common/utils/Encoding"
 import {
 	decryptAndMapToInstance,
 	decryptKey,
@@ -174,6 +180,36 @@ o.spec("crypto facade", function () {
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
 		})
 
+		o("decrypt compressedString", () => {
+			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
+			let sk = aes128RandomKey()
+			let value = base64ToUint8Array("QHRlc3Q=")
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
+			o(typeof decryptedValue === "string").equals(true)
+			o(decryptedValue).equals("test")
+		})
+
+		o("decrypt compressedString w resize", function () {
+			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
+			let sk = aes128RandomKey()
+			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
+			o(typeof decryptedValue === "string").equals(true)
+			o(decryptedValue)
+				.equals("text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text ")
+		})
+
+		o("decrypt empty compressedString", () => {
+			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
+			let sk = aes128RandomKey()
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
+			o(typeof decryptedValue === "string").equals(true)
+			o(decryptedValue).equals("")
+		})
+
 		o("do not decrypt null values", () => {
 			let sk = aes128RandomKey()
 
@@ -211,7 +247,8 @@ o.spec("crypto facade", function () {
 		o("convert unencrypted Bytes to JS type", function () {
 			let valueBytes = random.generateRandomData(15)
 			let value = uint8ArrayToBase64(valueBytes)
-			o(Array.from(decryptValue(createValueType(ValueType.Bytes, false, Cardinality.One), value, null))).deepEquals(Array.from(valueBytes))
+			o(Array.from(decryptValue(createValueType(ValueType.Bytes, false, Cardinality.One), value, null)))
+				.deepEquals(Array.from(valueBytes))
 		})
 
 		o("convert unencrypted Boolean to JS type", function () {
@@ -231,6 +268,14 @@ o.spec("crypto facade", function () {
 
 			value = "1"
 			o(decryptValue(createValueType(ValueType.Number, false, Cardinality.One), value, null)).equals("1")
+		})
+
+		o("convert unencrypted compressedString to JS type", function () {
+			let value = ""
+			o(decryptValue(createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("")
+
+			value = "QHRlc3Q="
+			o(decryptValue(createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("test")
 		})
 	})
 
@@ -272,7 +317,8 @@ o.spec("crypto facade", function () {
 			let value = new Date()
 
 			let encryptedValue = encryptValue(valueType, value, sk)
-			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value.getTime().toString()), base64ToUint8Array(encryptedValue)
+			let expected = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value.getTime()
+			                                                                                .toString()), base64ToUint8Array(encryptedValue)
 				.slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC))
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(value)
 		})
@@ -340,7 +386,8 @@ o.spec("crypto facade", function () {
 
 		o("convert unencrypted Bytes to DB type", function () {
 			let valueBytes = random.generateRandomData(15)
-			o(encryptValue(createValueType(ValueType.Bytes, false, Cardinality.One), valueBytes, null)).deepEquals(uint8ArrayToBase64(valueBytes))
+			o(encryptValue(createValueType(ValueType.Bytes, false, Cardinality.One), valueBytes, null))
+				.deepEquals(uint8ArrayToBase64(valueBytes))
 		})
 
 		o("convert unencrypted Boolean to DB type", function () {
@@ -450,14 +497,17 @@ o.spec("crypto facade", function () {
 			o(result._ownerGroup).equals(null)
 			o(result._ownerEncSessionKey).equals(null)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
+			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address))))
+				.equals(contact.addresses[0].address)
+			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName))))
+				.equals(contact.addresses[0].customTypeName)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
 			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
-			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(contact.autoTransmitPassword)
+			o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword))))
+				.equals(contact.autoTransmitPassword)
 			done()
 		})
 	})

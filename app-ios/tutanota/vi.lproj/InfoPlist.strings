@@ -1,4 +1,10 @@
 NSCameraUsageDescription = "Chụp hình hoặc quay phim để đính kèm vào thư.";
+NSPhotoLibraryUsageDescription = "Thêm ảnh từ thư viện của bạn vào phần đính kèm.";
+NSMicrophoneUsageDescription = "Thêm ảnh từ thư viện của bạn vào phần đính kèm.";
+NSMicrophoneUsageDescription = "Được sử dụng khi quay video làm phần đính kèm.";
+NSContactsUsageDescription = "Tìm địa chỉ email người nhận trong danh bạ";
+NSRemindersUsageDescription = "Hiển thị thông báo khi email mới đến.";
 TutaoChoosePhotosAction = "Hình";
+TutaoNoPermissionTitle = "Không có quyền";
 TutaoCancelAction = "Huỷ";
 TutaoSettingsAction = "Cài đặt";

@@ -123,6 +123,15 @@ type WorkerRequestType = 'setup'
 	| 'createRecoveryCode'
 	| 'recoverLogin'
 	| 'resetSecondFactors'
+	| 'extendMailIndex'
+	| 'resetSession'
+	| 'downloadFileContentNative'
+	| 'createCalendarEvent'
+	| 'resolveSessionKey'
+	| 'addCalendar'
+	| 'scheduleAlarmsForNewDevice'
+	| 'loadAlarmEvents'
+	| 'getDomainValidationRecord'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -130,6 +139,7 @@ type MainRequestType = 'execNative'
 	| 'updateIndexState'
 	| 'updateWebSocketState'
 	| 'counterUpdate'
+	| 'infoMessage'
 type NativeRequestType = 'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -166,6 +176,7 @@ type NativeRequestType = 'init'
 	| 'updateDesktopConfig'
 	| 'enableAutoLaunch'
 	| 'disableAutoLaunch'
+	| 'sendSocketMessage'
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
@@ -176,6 +187,7 @@ type JsRequestType = 'createMailEditor'
 	| 'print'
 	| 'openFindInPage'
 	| 'reportError'
+	| 'openCalendar'
 
 type WebContentsMessage
 	= 'setup-context-menu'
@@ -274,7 +286,8 @@ type DataFile = {
 	mimeType: string,
 	data: Uint8Array,
 	size: number,
-	id: ?IdTuple
+	id: ?IdTuple,
+	cid?: ?string
 }
 
 type FileReference = {
@@ -282,7 +295,8 @@ type FileReference = {
 	name: string,
 	mimeType: string,
 	location: string,
-	size: number
+	size: number,
+	cid?: ?string
 }
 
 type KeyListener = {
@@ -304,15 +318,18 @@ type SearchResult = {
 	restriction: SearchRestriction,
 	results: IdTuple[];
 	currentIndexTimestamp: number;
-	moreResultsEntries: MoreResultsIndexEntry[];
+	moreResults: Array<MoreResultsIndexEntry>,
+	lastReadSearchIndexRow: Array<[string, ?number]>; // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	matchWordOrder: boolean;
 }
 
 type SearchIndexStateInfo = {
 	initializing: boolean;
-	indexingSupported: boolean;
 	mailIndexEnabled: boolean;
 	progress: number;
 	currentMailIndexTimestamp: number;
+	indexedMailCount: number;
+	failedIndexingUpTo: ?number;
 }
 
 type CreditCardData = {

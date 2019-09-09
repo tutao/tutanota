@@ -26,14 +26,15 @@ assertMainOrNode()
 
 export const INPUT = "input, textarea, div[contenteditable='true']"
 
-export const DialogType = {
+export const DialogType = Object.freeze({
 	Progress: "Progress",
 	Alert: "Alert",
 	Reminder: "Reminder",
 	EditSmall: "EditSmall",
 	EditMedium: "EditMedium",
+	EditLarger: "EditLarger",
 	EditLarge: "EditLarge"
-}
+})
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
 export class Dialog {
@@ -153,7 +154,7 @@ export class Dialog {
 			dialogStyle += ".dialog-width-s.flex.flex-column"
 		} else if (dialogType === DialogType.EditMedium) {
 			dialogStyle += ".dialog-width-m"
-		} else if (dialogType === DialogType.EditLarge) {
+		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l"
 		}
 		return dialogStyle
@@ -203,6 +204,10 @@ export class Dialog {
 		}
 	}
 
+	popState(e: Event): boolean {
+		this.onClose(e)
+		return false
+	}
 
 	/**
 	 * Is invoked from modal as the two animations (background layer opacity and dropdown) should run in parallel
@@ -482,17 +487,17 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: TranslationKey, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: TranslationKey | lazy<string>, labelIdOrLabelFunction: TranslationKey | lazy<string>, infoMsgId: ?TranslationKey | ?lazy<string>, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return new Promise(resolve => {
 			const result: Stream<string> = stream(value)
 			const textFieldAttrs: TextFieldAttrs = {
 				label: labelIdOrLabelFunction,
 				value: result,
-				helpLabel: () => infoMsgId ? lang.get(infoMsgId) : ""
+				helpLabel: () => infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""
 			}
 
 			Dialog.showActionDialog({
-				title: lang.get(titleId),
+				title: lang.getMaybeLazy(titleId),
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
 				okAction: dialog => {
@@ -575,7 +580,7 @@ export class Dialog {
 	 * @param errorMessage a stream of error messages that will be shown as the password field help text. should not start with "", but with lang.get("emptyString_msg")
 	 * @returns a stream of entered passwords
 	 */
-	static showRequestPasswordDialog(errorMessage: Stream<string>): Stream<string> {
+	static showRequestPasswordDialog(errorMessage: Stream<string>, props: {allowCancel: boolean} = {allowCancel: true}): Stream<string> {
 		const out: Stream<string> = stream()
 		const value: Stream<string> = stream("")
 		const textFieldAttrs: TextFieldAttrs = {
@@ -596,7 +601,7 @@ export class Dialog {
 			title: lang.get("password_label"),
 			child: {view: () => m(TextFieldN, textFieldAttrs)},
 			okAction: () => out(value()),
-			allowCancel: true,
+			allowCancel: props.allowCancel,
 			cancelAction: () => dialog.close()
 		})
 

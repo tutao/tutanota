@@ -22,17 +22,7 @@ import {
 	uint8ArrayToBitArray,
 	uint8ArrayToKey
 } from "../crypto/CryptoUtils"
-import {
-	aes256DecryptKey,
-	aes256EncryptKey,
-	decrypt256Key,
-	decryptKey,
-	encrypt256Key,
-	encryptBytes,
-	encryptKey,
-	encryptString,
-	fixedIv
-} from "../crypto/CryptoFacade"
+import {aes256DecryptKey, aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
@@ -44,14 +34,7 @@ import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull} from "../../common/utils/Utils"
-import {
-	_loadEntity,
-	GENERATED_ID_BYTES_LENGTH,
-	HttpMethod,
-	isSameId,
-	isSameTypeRefByAttr,
-	MediaType
-} from "../../common/EntityFunctions"
+import {_loadEntity, GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -64,7 +47,7 @@ import {restClient} from "../rest/RestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
-import {ConnectionError, NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
@@ -73,16 +56,14 @@ import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn
 import {CancelledError} from "../../common/error/CancelledError"
 import {PasswordChannelReturnTypeRef} from "../../entities/tutanota/PasswordChannelReturn"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {createPasswordRetrievalData} from "../../entities/tutanota/PasswordRetrievalData"
-import {PasswordRetrievalReturnTypeRef} from "../../entities/tutanota/PasswordRetrievalReturn"
 import {PasswordMessagingReturnTypeRef} from "../../entities/tutanota/PasswordMessagingReturn"
 import {createPasswordMessagingData} from "../../entities/tutanota/PasswordMessagingData"
-import {concat} from "../../common/utils/ArrayUtils"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDeleteData"
 
 assertWorkerOrNode()
 
+const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 export class LoginFacade {
 	_user: ?User;
@@ -344,7 +325,8 @@ export class LoginFacade {
 			.then(() => {
 				if (!isTest() && permanentLogin && !isAdminClient()) {
 					// index new items in background
-					this._indexer.init(neverNull(this._user), this.getUserGroupKey())
+					console.log("_initIndexer after log in")
+					this._initIndexer()
 				}
 			})
 			.then(() => this.loadEntropy())
@@ -366,6 +348,26 @@ export class LoginFacade {
 			})
 	}
 
+	_initIndexer(): Promise<void> {
+		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
+		           .catch(ServiceUnavailableError, e => {
+			           console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
+			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+				           console.log("_initIndexer after ServiceUnavailableError")
+				           return this._initIndexer()
+			           })
+		           })
+		           .catch(ConnectionError, e => {
+			           console.log("Retry init indexer in 30 seconds after ConnectionError")
+			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+				           console.log("_initIndexer after ConnectionError")
+				           return this._initIndexer()
+			           })
+		           })
+		           .catch(e => {
+			           this._worker.sendError(e)
+		           })
+	}
 
 	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
@@ -517,6 +519,8 @@ export class LoginFacade {
 			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
 		}).catch(ConnectionError, e => {
+			console.log("could not store entropy", e)
+		}).catch(ServiceUnavailableError, e => {
 			console.log("could not store entropy", e)
 		})
 	}

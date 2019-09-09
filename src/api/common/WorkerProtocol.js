@@ -42,6 +42,7 @@ import {RecipientNotResolvedError} from "./error/RecipientNotResolvedError"
 import {FileNotFoundError} from "./error/FileNotFoundError"
 import {FileOpenError} from "./error/FileOpenError"
 import {SseError} from "./error/SseError"
+import {IndexingNotSupportedError} from "./error/IndexingNotSupportedError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -206,6 +207,7 @@ const ErrorNameToType = {
 	SecondFactorPendingError,
 	ServiceUnavailableError,
 	DbError,
+	IndexingNotSupportedError,
 	CancelledError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
@@ -219,5 +221,6 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.CryptoError": CryptoError, // Android app exception class name
 	"de.tutao.tutanota.TutCrypto": CryptoError, // iOS app crypto error domain
 	"android.content.ActivityNotFoundException": FileOpenError,
-	"de.tutao.tutanota.TutFileViewer": FileOpenError
+	"de.tutao.tutanota.TutFileViewer": FileOpenError,
+	"NSURLErrorDomain": ConnectionError
 }

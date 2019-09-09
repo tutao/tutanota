@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createPhotosRef(): PhotosRef {
-	return create(_TypeModel)
+export function createPhotosRef(values?: $Shape<$Exact<PhotosRef>>): PhotosRef {
+	return Object.assign(create(_TypeModel, PhotosRefTypeRef), values)
 }

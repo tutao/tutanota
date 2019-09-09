@@ -21,25 +21,27 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
-		return showProgressDialog("pleaseWait_msg",
-			worker.downloadFileContent(tutanotaFile).then(file => {
-				if (file._type === "FileReference") {
-					return (isAndroidApp() && !open
-						? putFileIntoDownloadsFolder(file.location)
-						: this.open(file))
-						.finally(() => this._deleteFile(file.location))
-				} else {
-					// Data file. No cleanup needed.
-					return this.open(file)
-				}
-			}).catch(CryptoError, e => {
-				console.log(e)
-				return Dialog.error("corrupted_msg")
-			}).catch(ConnectionError, e => {
-				console.log(e)
-				return Dialog.error("couldNotAttachFile_msg")
-			})
-		)
+		let downloadPromise
+		if (isApp()) {
+			downloadPromise = worker.downloadFileContentNative(tutanotaFile)
+			                        .then((file) => {
+				                        return (isAndroidApp() && !open
+					                        ? putFileIntoDownloadsFolder(file.location)
+					                        : this.open(file))
+					                        .finally(() => this._deleteFile(file.location))
+			                        })
+		} else {
+			downloadPromise = worker.downloadFileContent(tutanotaFile)
+			                        .then((file) => this.open(file))
+		}
+
+		return showProgressDialog("pleaseWait_msg", downloadPromise.catch(CryptoError, e => {
+			console.log(e)
+			return Dialog.error("corrupted_msg")
+		}).catch(ConnectionError, e => {
+			console.log(e)
+			return Dialog.error("couldNotAttachFile_msg")
+		}))
 	}
 
 	/**
@@ -48,18 +50,18 @@ export class FileController {
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
 		return Promise
 			.map(tutanotaFiles, (tutanotaFile) => {
-				return worker.downloadFileContent(tutanotaFile)
-				             // We're returning dialogs here so they don't overlap each other
-				             // We're returning null to say that this file is not present.
-				             // (it's void by default and doesn't satisfy type checker)
-				             .catch(CryptoError, e => {
-					             return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-					                          .return(null)
-				             })
-				             .catch(ConnectionError, e => {
-					             return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
-					                          .return(null)
-				             })
+				return (isApp() ? worker.downloadFileContentNative(tutanotaFile) : worker.downloadFileContent(tutanotaFile))
+				// We're returning dialogs here so they don't overlap each other
+				// We're returning null to say that this file is not present.
+				// (it's void by default and doesn't satisfy type checker)
+					.catch(CryptoError, e => {
+						return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
+						             .return(null)
+					})
+					.catch(ConnectionError, e => {
+						return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
+						             .return(null)
+					})
 			}, {concurrency: (isAndroidApp() ? 1 : 5)})
 			.then((files) => files.filter(Boolean)) // filter out failed files
 			.then((files) => {

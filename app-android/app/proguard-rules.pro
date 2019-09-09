@@ -24,5 +24,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+-dontobfuscate
+
 -dontwarn org.apache.harmony.xnet.provider.jsse.NativeCrypto
 -dontwarn org.slf4j.impl.*

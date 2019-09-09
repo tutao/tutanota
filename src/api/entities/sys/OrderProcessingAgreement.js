@@ -52,9 +52,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createOrderProcessingAgreement(): OrderProcessingAgreement {
-	return create(_TypeModel)
+export function createOrderProcessingAgreement(values?: $Shape<$Exact<OrderProcessingAgreement>>): OrderProcessingAgreement {
+	return Object.assign(create(_TypeModel, OrderProcessingAgreementTypeRef), values)
 }

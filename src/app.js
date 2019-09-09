@@ -3,7 +3,7 @@ import {client} from "./misc/ClientDetector"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import en from "./translations/en"
-import {lang} from "./misc/LanguageViewModel"
+import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
@@ -22,6 +22,7 @@ import {windowFacade} from "./misc/WindowFacade"
 import {Const} from "./api/common/TutanotaConstants"
 import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
+import {deviceConfig} from "./misc/DeviceConfig"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -114,6 +115,11 @@ let initialized = lang.init(en).then(() => {
 		return;
 	}
 
+	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
+	if (userLanguage) {
+		lang.setLanguage({code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)})
+	}
+
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
 		let cache: {view: ?View} = {view: null}
@@ -142,7 +148,8 @@ let initialized = lang.init(en).then(() => {
 					}
 					promise.then(view => {
 						view.updateUrl(args, requestedPath)
-						routeChange({args, requestedPath})
+						const currentPath = m.route.get()
+						routeChange({args, requestedPath, currentPath})
 						header.updateCurrentView(view)
 						tutao.currentView = view
 					})
@@ -169,6 +176,8 @@ let initialized = lang.init(en).then(() => {
 		.then(module => new module.SearchView()))
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
 		.then(module => module.contactFormView), false)
+	const calendarViewResolver = createViewResolver(() => _asyncImport("src/calendar/CalendarView.js")
+		.then(module => new module.CalendarView()), true)
 
 	let start = "/"
 	if (!state.prefix) {
@@ -191,7 +200,7 @@ let initialized = lang.init(en).then(() => {
 		history.replaceState(null, "", neverNull(state.prefix) + target)
 		start = target
 	}
-	m.route.prefix(neverNull(state.prefix))
+	m.route.prefix = neverNull(state.prefix)
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	m.route(document.body, start, {
@@ -214,6 +223,9 @@ let initialized = lang.init(en).then(() => {
 		"/settings": settingsViewResolver,
 		"/settings/:folder": settingsViewResolver,
 		"/contactform/:formId": contactFormViewResolver,
+		"/calendar": calendarViewResolver,
+		"/calendar/:view": calendarViewResolver,
+		"/calendar/:view/:date": calendarViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
 				console.log("Not found", args, requestedPath)
@@ -230,6 +242,10 @@ let initialized = lang.init(en).then(() => {
 
 	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
 		.then(module => module.worker)
+	workerPromise.then(() => {
+		_asyncImport("src/gui/InfoMessageHandler.js")
+	})
+
 
 	setupExceptionHandling()
 })

@@ -33,7 +33,7 @@ export function showDatePickerDialog<T>(start: ?Date, end: ?Date): Promise<{star
 		let dialog = Dialog.showActionDialog({
 			title: lang.get("selectPeriodOfTime_label"),
 			child: form,
-			okAction: () => {
+			okAction: () => requestAnimationFrame(() => {
 				let start = (dateStart.invalidDate) ? null : dateStart.date()
 				let end = dateEnd.invalidDate ? null : dateEnd.date()
 				if (start && end && start.getTime() > end.getTime()) {
@@ -42,7 +42,7 @@ export function showDatePickerDialog<T>(start: ?Date, end: ?Date): Promise<{star
 					dialog.close()
 					cb(null, {start, end})
 				}
-			},
+			}),
 			type: DialogType.EditMedium
 		})
 	})

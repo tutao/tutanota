@@ -58,9 +58,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createCustomerContactFormGroupRoot(): CustomerContactFormGroupRoot {
-	return create(_TypeModel)
+export function createCustomerContactFormGroupRoot(values?: $Shape<$Exact<CustomerContactFormGroupRoot>>): CustomerContactFormGroupRoot {
+	return Object.assign(create(_TypeModel, CustomerContactFormGroupRootTypeRef), values)
 }

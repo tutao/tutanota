@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "یک عکس یا ویدیو برای اضافه کردن به عنوان پیوست بگیرید.";
 NSPhotoLibraryUsageDescription = "یک عکس از کتابخانۀ آلبومتان  پیوست کنید";
-NSPhotoLibraryAddUsageDescription = "یک عکس از کتابخانۀ آلبومتان  پیوست کنید";
+NSMicrophoneUsageDescription = "یک عکس از کتابخانۀ آلبومتان  پیوست کنید";
 NSMicrophoneUsageDescription = "هنگام ضبط ویدیو به عنوان پیوست، استفاده می‌شود.";
 NSContactsUsageDescription = "نشانی ایمیل گیرنده را در مخاطبان پیدا کنید.";
 NSRemindersUsageDescription = "اگر ایمیل تازه‌ای دریافت کنید،  اعلان نمایش می‌دهد";

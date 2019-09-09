@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createPublicKeyData(): PublicKeyData {
-	return create(_TypeModel)
+export function createPublicKeyData(values?: $Shape<$Exact<PublicKeyData>>): PublicKeyData {
+	return Object.assign(create(_TypeModel, PublicKeyDataTypeRef), values)
 }

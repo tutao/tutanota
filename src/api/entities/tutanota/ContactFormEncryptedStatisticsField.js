@@ -18,9 +18,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createContactFormEncryptedStatisticsField(): ContactFormEncryptedStatisticsField {
-	return create(_TypeModel)
+export function createContactFormEncryptedStatisticsField(values?: $Shape<$Exact<ContactFormEncryptedStatisticsField>>): ContactFormEncryptedStatisticsField {
+	return Object.assign(create(_TypeModel, ContactFormEncryptedStatisticsFieldTypeRef), values)
 }

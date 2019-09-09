@@ -168,6 +168,7 @@ type User = {
 	userEncClientKey: Uint8Array;
 	verifier: Uint8Array;
 
+	alarmInfoList: ?UserAlarmInfoListType;
 	auth: ?UserAuthentication;
 	authenticatedDevices: AuthenticatedDevice[];
 	externalAuthInfo: ?UserExternalAuthInfo;
@@ -234,6 +235,8 @@ type Permission = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	bucketEncSessionKey: ?Uint8Array;
+	listElementApplication: ?string;
+	listElementTypeId: ?NumberString;
 	ops: ?string;
 	symEncSessionKey: ?Uint8Array;
 	type: NumberString;
@@ -786,6 +789,7 @@ type CustomerProperties = {
 	lastUpgradeReminder: ?Date;
 
 	bigLogo: ?SysFile;
+	notificationMailTemplates: NotificationMailTemplate[];
 	smallLogo: ?SysFile;
 }
 
@@ -900,7 +904,7 @@ type StringWrapper = {
 type CustomDomainReturn = {
 	_type: TypeRef<CustomDomainReturn>;
 	_format: NumberString;
-	statusCode: NumberString;
+	validationResult: NumberString;
 
 	invalidDnsRecords: StringWrapper[];
 }
@@ -1212,14 +1216,15 @@ type WhitelabelConfig = {
 	privacyStatementUrl: ?string;
 
 	bootstrapCustomizations: BootstrapFeature[];
+	certificateInfo: CertificateInfo;
 }
 
 type BrandingDomainData = {
 	_type: TypeRef<BrandingDomainData>;
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: Uint8Array;
-	sessionEncPemPrivateKey: Uint8Array;
+	sessionEncPemCertificateChain: ?Uint8Array;
+	sessionEncPemPrivateKey: ?Uint8Array;
 	systemAdminPubEncSessionKey: Uint8Array;
 
 }
@@ -1574,4 +1579,125 @@ type WebsocketCounterData = {
 	mailGroup: Id;
 
 	counterValues: WebsocketCounterValue[];
+}
+
+type CertificateInfo = {
+	_type: TypeRef<CertificateInfo>;
+	_id: Id;
+	expiryDate: ?Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: ?Id;
+}
+
+type NotificationMailTemplate = {
+	_type: TypeRef<NotificationMailTemplate>;
+	_id: Id;
+	body: string;
+	language: string;
+	subject: string;
+
+}
+
+type CalendarEventRef = {
+	_type: TypeRef<CalendarEventRef>;
+	_id: Id;
+	elementId: Id;
+	listId: Id;
+
+}
+
+type AlarmInfo = {
+	_type: TypeRef<AlarmInfo>;
+	_id: Id;
+	alarmIdentifier: string;
+	trigger: string;
+
+	calendarRef: CalendarEventRef;
+}
+
+type UserAlarmInfo = {
+	_type: TypeRef<UserAlarmInfo>;
+	_errors: Object;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	alarmInfo: AlarmInfo;
+}
+
+type UserAlarmInfoListType = {
+	_type: TypeRef<UserAlarmInfoListType>;
+	_id: Id;
+
+	alarms: Id;
+}
+
+type NotificationSessionKey = {
+	_type: TypeRef<NotificationSessionKey>;
+	_id: Id;
+	pushIdentifierSessionEncSessionKey: Uint8Array;
+
+	pushIdentifier: IdTuple;
+}
+
+type RepeatRule = {
+	_type: TypeRef<RepeatRule>;
+	_id: Id;
+	endType: NumberString;
+	endValue: ?NumberString;
+	frequency: NumberString;
+	interval: NumberString;
+	timeZone: string;
+
+}
+
+type AlarmNotification = {
+	_type: TypeRef<AlarmNotification>;
+	_id: Id;
+	eventEnd: Date;
+	eventStart: Date;
+	operation: NumberString;
+	summary: string;
+
+	alarmInfo: AlarmInfo;
+	notificationSessionKeys: NotificationSessionKey[];
+	repeatRule: ?RepeatRule;
+	user: Id;
+}
+
+type AlarmServicePost = {
+	_type: TypeRef<AlarmServicePost>;
+	_errors: Object;
+	_format: NumberString;
+
+	alarmNotifications: AlarmNotification[];
+}
+
+type DnsRecord = {
+	_type: TypeRef<DnsRecord>;
+	_id: Id;
+	subdomain: ?string;
+	type: NumberString;
+	value: string;
+
+}
+
+type CustomDomainCheckData = {
+	_type: TypeRef<CustomDomainCheckData>;
+	_format: NumberString;
+	domain: string;
+
+}
+
+type CustomDomainCheckReturn = {
+	_type: TypeRef<CustomDomainCheckReturn>;
+	_format: NumberString;
+	checkResult: NumberString;
+
+	invalidRecords: DnsRecord[];
+	missingRecords: DnsRecord[];
 }

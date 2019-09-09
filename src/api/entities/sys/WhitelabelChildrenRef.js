@@ -25,9 +25,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createWhitelabelChildrenRef(): WhitelabelChildrenRef {
-	return create(_TypeModel)
+export function createWhitelabelChildrenRef(values?: $Shape<$Exact<WhitelabelChildrenRef>>): WhitelabelChildrenRef {
+	return Object.assign(create(_TypeModel, WhitelabelChildrenRefTypeRef), values)
 }

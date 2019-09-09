@@ -1,6 +1,8 @@
 // @flow
 import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
+import {TypeRef} from "../EntityFunctions"
+import type {EntityUpdateData} from "../../main/EventController"
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -74,8 +76,11 @@ export function clone<T>(instance: T): T {
 		return instance.map(i => clone(i))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
+	} else if (instance instanceof TypeRef) {
+		return instance
 	} else if (instance instanceof Object) {
-		let copy = {}
+		// Can only pass null or Object, cannot pass undefined
+		const copy = Object.create(instance.__proto__ || null)
 		Object.assign(copy, instance)
 		for (let key of Object.keys(copy)) {
 			copy[key] = clone(copy[key])
@@ -141,9 +146,12 @@ export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
 	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
 }
 
-export function getBrandingDomain(customerInfo: CustomerInfo): ?string {
-	let brandingDomainInfo = customerInfo.domainInfos.find(info => info.certificate != null)
-	return (brandingDomainInfo) ? brandingDomainInfo.domain : null
+export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName: ?string): ?DomainInfo {
+	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName))
+}
+
+export function getCustomMailDomains(customerInfo: CustomerInfo): Array<DomainInfo> {
+	return customerInfo.domainInfos.filter(di => di.whitelabelConfig == null)
 }
 
 /**
@@ -178,9 +186,81 @@ export function identity<T>(t: T): T {
 export function noOp() {}
 
 export function containsEventOfType(events: $ReadOnlyArray<EntityUpdateData>, type: OperationTypeEnum, elementId: Id): boolean {
-	return events.filter(event => event.operation === type && event.instanceId === elementId).length > 0
+	return events.find(event => event.operation === type && event.instanceId === elementId) != null
+}
+
+export function getEventOfType(events: $ReadOnlyArray<EntityUpdate>, type: OperationTypeEnum, elementId: Id): ?EntityUpdate {
+	return events.find(event => event.operation === type && event.instanceId === elementId)
+}
+
+/**
+ * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
+ * Executes function with the last passed arguments
+ * @return {Function}
+ */
+export function debounce<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+	let timeoutId
+	let toInvoke: (...args: A) => void;
+	return (...args: A) => {
+		if (timeoutId) {
+			clearTimeout(timeoutId)
+		}
+		toInvoke = toThrottle.bind(null, ...args)
+		timeoutId = setTimeout(toInvoke, timeout)
+	}
+}
+
+/**
+ * Returns a debounced function. When invoked for the first time, will just invoke
+ * {@param toThrottle}. On subsequent invocations it will either invoke it right away
+ * (if {@param timeout} has passed) or will schedule it to be run after {@param timeout}.
+ * So the first and the last invocations in a series of invocations always take place
+ * but ones in the middle (which happen too often) are discarded.}
+ */
+export function debounceStart<A: any>(timeout: number, toThrottle: (...args: A) => void): (...A) => void {
+	let timeoutId
+	let lastInvoked = 0
+	return (...args: A) => {
+		if (Date.now() - lastInvoked < timeout) {
+			timeoutId && clearTimeout(timeoutId)
+			timeoutId = setTimeout(() => {
+				timeoutId = null
+				toThrottle.apply(null, args)
+			}, timeout)
+		} else {
+			toThrottle.apply(null, args)
+		}
+		lastInvoked = Date.now()
+	}
 }
 
 export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export class ProgressMonitor {
+	totalWork: number
+	workCompleted: number
+	updater: (percentageCompleted: number) => mixed
+
+	constructor(totalWork: number, updater: (percentageCompleted: number) => mixed) {
+		this.updater = updater
+		this.totalWork = totalWork
+		this.workCompleted = 0
+	}
+
+	workDone(amount: number) {
+		this.workCompleted += amount
+		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
+		this.updater(Math.min(100, result))
+	}
+}
+
+
+export function getMailBodyText(body: MailBody): string {
+	return body.compressedText || body.text || ""
+}
+
+export function getMailHeaders(headers: MailHeaders): string {
+	return headers.compressedHeaders || headers.headers || ""
 }

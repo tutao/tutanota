@@ -32,9 +32,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createSecondFactor(): SecondFactor {
-	return create(_TypeModel)
+export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {
+	return Object.assign(create(_TypeModel, SecondFactorTypeRef), values)
 }

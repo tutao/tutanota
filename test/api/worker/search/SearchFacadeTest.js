@@ -1,78 +1,49 @@
 // @flow
 import o from "ospec/ospec.js"
 import {SearchFacade} from "../../../../src/api/worker/search/SearchFacade"
-import {_TypeModel as MailTypeModel, MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createUser} from "../../../../src/api/entities/sys/User"
-import {encryptIndexKeyBase64, encryptIndexKeyUint8Array, encryptSearchIndexEntry, getAppId} from "../../../../src/api/worker/search/IndexUtils"
-import type {
-	ElementData,
-	EncryptedSearchIndexEntry,
-	KeyToIndexEntries,
-	SearchIndexEntry,
-	SearchIndexMetadataEntry
-} from "../../../../src/api/worker/search/SearchTypes"
-import {firstBiggerThanSecond} from "../../../../src/api/common/EntityFunctions"
-import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
-import {timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
+import type {TypeInfo} from "../../../../src/api/worker/search/IndexUtils"
+import {
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+	encryptSearchIndexEntry,
+	typeRefToTypeInfo
+} from "../../../../src/api/worker/search/IndexUtils"
+import type {ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
+import {compareOldestFirst, elementIdPart, firstBiggerThanSecond, listIdPart} from "../../../../src/api/common/EntityFunctions"
+import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
-import {neverNull} from "../../../../src/api/common/utils/Utils"
-import {splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
+import {groupBy, numberRange, splitInChunks} from "../../../../src/api/common/utils/ArrayUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
+import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
+import type {BrowserData} from "../../../../src/misc/ClientConstants"
+import {browserDataStub} from "../../TestUtils"
 
-type MetaTable = {[Base64]: SearchIndexMetadataEntry[]}
-type IndexTable = {[number]: EncryptedSearchIndexEntry[]}
-type DB = {metaTable: MetaTable, indexTable: IndexTable}
+type SearchIndexEntryWithType = SearchIndexEntry & {typeInfo: TypeInfo}
+type KeyToIndexEntriesWithType = {
+	indexKey: Base64;
+	indexEntries: SearchIndexEntryWithType[];
+}
+
+let dbKey
+
+const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
+const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
+const browserData: BrowserData = browserDataStub
 
 o.spec("SearchFacade test", () => {
-	let dbKey
+
 	let user = createUser()
-	let indexMailBoxReceiver = {indexMailboxes: (user, endIndexTime) => Promise.resolve()}
 	let id1 = "L0YED5d----1"
 	let id2 = "L0YED5d----2"
 	let id3 = "L0YED5d----3"
 
-	let createDbContent = (dbData: KeyToIndexEntries[]): DB => {
-		const metaTable: MetaTable = {}
-		const indexTable: IndexTable = {}
-		let counter = 0
-		dbData.forEach((keyToIndexEntries, index) => {
-			const chunks = splitInChunks(2, keyToIndexEntries.indexEntries)
-			metaTable[keyToIndexEntries.indexKey] = []
-			chunks.forEach(chunk => {
-				counter++
-				metaTable[keyToIndexEntries.indexKey].push({key: counter, size: chunk.length})
-				indexTable[counter] = chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv)))
-			})
-		})
-		return {metaTable, indexTable}
-	}
-
-	let createSearchFacade = (dbContent: KeyToIndexEntries[], fullIds: IdTuple[], currentIndexTimestamp: number) => {
-		let db = createDbContent(dbContent)
-		let transaction: any = {
-			getAsList: (os, indexKey): Promise<EncryptedSearchIndexEntry[] | SearchIndexMetadataEntry[]> => {
-				if (os === SearchIndexMetaDataOS) {
-					return Promise.resolve(db.metaTable[indexKey] || [])
-				} else if (os === SearchIndexOS) {
-					return Promise.resolve(db.indexTable[indexKey] || [])
-				} else {
-					throw new Error()
-				}
-			},
-			get: (os, key): Promise<ElementData> => {
-				if (os === ElementDataOS) {
-					const id = neverNull(fullIds.find(id => {
-						let encId = encryptIndexKeyBase64(dbKey, id[1], fixedIv)
-						return encId === key
-					}))[0]
-					return Promise.resolve([id, new Uint8Array(0), ""])
-				} else {
-					throw new Error()
-				}
-			}
-		}
-
+	function createSearchFacade(transaction: DbStubTransaction, currentIndexTimestamp: number) {
 		return new SearchFacade(({
 			getLoggedInUser: () => user
 		}: any), {
@@ -82,35 +53,73 @@ o.spec("SearchFacade test", () => {
 			initialized: Promise.resolve()
 		}, ({
 			mailboxIndexingPromise: Promise.resolve(),
-			currentIndexTimestamp: currentIndexTimestamp,
-			indexMailboxes: (user, endIndexTime) => indexMailBoxReceiver.indexMailboxes(user, endIndexTime)
-		}: any), [])
+			currentIndexTimestamp: currentIndexTimestamp
+		}: any), [], browserData)
 	}
 
-	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntry[]): KeyToIndexEntries => {
+	function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
+		let counter = 0
+		dbData.forEach((keyToIndexEntries, index) => {
+				keyToIndexEntries.indexEntries.sort((a, b) => compareOldestFirst(a.id, b.id))
+				const indexEntriesByType = groupBy(keyToIndexEntries.indexEntries, (e) => e.typeInfo)
+				const metaDataRow: SearchIndexMetaDataRow = {
+					id: index + 1,
+					word: keyToIndexEntries.indexKey,
+					rows: []
+				}
+				indexEntriesByType.forEach((entries, typeInfo) => {
+					const chunks = splitInChunks(2, entries)
+
+					chunks.forEach(chunk => {
+						counter++
+						metaDataRow.rows.push({
+							app: typeInfo.appId,
+							type: typeInfo.typeId,
+							key: counter,
+							size: chunk.length,
+							oldestElementTimestamp: generatedIdToTimestamp(chunk[0].id)
+						})
+
+						const encSearchIndexRow = appendBinaryBlocks(
+							chunk.map(entry => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, fixedIv))))
+						transaction.put(SearchIndexOS, counter, encSearchIndexRow)
+					})
+				})
+				transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(dbKey, metaDataRow))
+
+				fullIds.forEach(id => {
+					let encId = encryptIndexKeyBase64(dbKey, elementIdPart(id), fixedIv)
+					const elementDataEntry: ElementDataDbRow = [listIdPart(id), new Uint8Array(0), ""] // rows not needed for search
+					transaction.put(ElementDataOS, encId, elementDataEntry)
+				})
+				return Promise.resolve()
+			}
+		)
+	}
+
+
+	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntryWithType[]): KeyToIndexEntriesWithType => {
 		return {
 			indexKey: encryptIndexKeyBase64(dbKey, word, fixedIv),
 			indexEntries: entries
 		}
 	}
 
-	let createMailEntry = (id: Id, attribute: number, positions: number[]): SearchIndexEntry => {
+	let createMailEntry = (id: Id, attribute: number, positions: number[]): SearchIndexEntryWithType => {
 		return {
 			id: id,
-			app: getAppId(MailTypeRef),
-			type: MailTypeModel.id,
 			attribute: attribute,
-			positions: positions
+			positions: positions,
+			typeInfo: mailTypeInfo
 		}
 	}
 
-	let createContactEntry = (id: Id, attribute: number, positions: number[]): SearchIndexEntry => {
+	let createContactEntry = (id: Id, attribute: number, positions: number[]): SearchIndexEntryWithType => {
 		return {
 			id: id,
-			app: getAppId(ContactTypeRef),
-			type: ContactTypeModel.id,
 			attribute: attribute,
-			positions: positions
+			positions: positions,
+			typeInfo: contactTypeInfo
 		}
 	}
 
@@ -125,8 +134,23 @@ o.spec("SearchFacade test", () => {
 		}
 	}
 
-	o.before(() => {
+	let testSearch = (dbData: KeyToIndexEntriesWithType[], dbListIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, minSuggestionCount: number = 0, maxResults?: number): Promise<void> => {
+		createDbContent(transaction, dbData, dbListIds)
+		let s = createSearchFacade(transaction, currentIndexTimestamp)
+		return s.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+			o(result.query).equals(query)
+			o(result.restriction).deepEquals(restriction)
+			o(result.results)
+				.deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))
+		})
+	}
+
+	let dbStub: DbStub
+	let transaction: DbStubTransaction
+	o.beforeEach(() => {
 		dbKey = aes256RandomKey()
+		dbStub = createSearchIndexDbStub()
+		transaction = dbStub.createTransaction()
 	})
 
 	o("empty db", () => {
@@ -264,6 +288,54 @@ o.spec("SearchFacade test", () => {
 		)
 	})
 
+	o("find two search words in multiple rows", () => {
+		const firstWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+		const secondWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+
+		const firstWordEntries = firstWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+		const secondWordEntries = secondWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+
+		//const oldestId = in
+		return testSearch(
+			[
+				createKeyToIndexEntries("test", firstWordEntries),
+				createKeyToIndexEntries("ja", secondWordEntries)
+			],
+			firstWordIds.concat(secondWordIds),
+			"ja,test",
+			createMailRestriction(),
+			secondWordIds.slice(500).reverse(),
+			0,
+			0,
+			1000
+		)
+	})
+
+
+	o("find two search words with a time gap", () => {
+		const firstWordIds: Array<IdTuple> = numberRange(1, 1200).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+		const secondWordIds: Array<IdTuple> = numberRange(1, 10).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
+
+		const firstWordEntries = firstWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+		const secondWordEntries = secondWordIds.map(idTuple => createMailEntry(elementIdPart(idTuple), 0, [0]))
+
+		//const oldestId = in
+		return testSearch(
+			[
+				createKeyToIndexEntries("test", firstWordEntries),
+				createKeyToIndexEntries("ja", secondWordEntries)
+			],
+			firstWordIds.concat(secondWordIds),
+			"ja,test",
+			createMailRestriction(),
+			secondWordIds,
+			0,
+			0,
+			100
+		)
+	})
+
+
 	o("find two search words ordered", () => {
 		return testSearch(
 			[
@@ -291,61 +363,8 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]]
 		)
 	})
-
-	o("index mailbox", () => {
-		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
-		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
-		let end = new Date(2017, 5, 7).getTime()
-
-		let indexCalled = false
-		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
-			o(user).deepEquals(user)
-			o(endIndexTime).equals(end)
-			indexCalled = true
-			return Promise.resolve()
-		}
-		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
-			[["listId1", id1]],
-			"test",
-			createMailRestriction(null, null, null, end),
-			[["listId1", id1]],
-			currentIndexTimestamp
-		).then(() => {
-			o(indexCalled).equals(true)
-			indexMailBoxReceiver.indexMailboxes = () => null
-		})
-	})
-
-	o("do not index mailbox", () => {
-		let id1 = timestampToGeneratedId(new Date(2017, 5, 9).getTime())
-		let currentIndexTimestamp = new Date(2017, 5, 8).getTime()
-		let end = new Date(2017, 5, 8).getTime()
-
-		let indexCalled = false
-		indexMailBoxReceiver.indexMailboxes = (user, endIndexTime) => {
-			indexCalled = true
-		}
-		return testSearch(
-			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])],
-			[["listId1", id1]],
-			"test",
-			createMailRestriction(null, null, null, end),
-			[["listId1", id1]],
-			currentIndexTimestamp
-		).then(() => {
-			o(indexCalled).equals(false)
-			indexMailBoxReceiver.indexMailboxes = () => null
-		})
-	})
-
-	let testSearch = (dbData: KeyToIndexEntries[], listIds: IdTuple[], query: string, restriction: SearchRestriction, expectedResult: IdTuple[], currentIndexTimestamp: number = 0, minSuggestionCount: number = 0): Promise<void> => {
-		let s = createSearchFacade(dbData, listIds, currentIndexTimestamp)
-		return s.search(query, restriction, minSuggestionCount).then(result => {
-			o(result.query).equals(query)
-			o(result.restriction).deepEquals(restriction)
-			o(result.results)
-				.deepEquals(expectedResult.sort((idTuple1, idTuple2) => firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1))
-		})
-	}
 })
+
+
+
+

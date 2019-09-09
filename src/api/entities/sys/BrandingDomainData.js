@@ -19,7 +19,7 @@ export const _TypeModel: TypeModel = {
 			"id": 1152,
 			"since": 22,
 			"type": "Bytes",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 			"id": 1153,
 			"since": 22,
 			"type": "Bytes",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
@@ -44,9 +44,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createBrandingDomainData(): BrandingDomainData {
-	return create(_TypeModel)
+export function createBrandingDomainData(values?: $Shape<$Exact<BrandingDomainData>>): BrandingDomainData {
+	return Object.assign(create(_TypeModel, BrandingDomainDataTypeRef), values)
 }

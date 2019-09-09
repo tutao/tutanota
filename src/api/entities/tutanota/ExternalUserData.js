@@ -100,9 +100,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createExternalUserData(): ExternalUserData {
-	return create(_TypeModel)
+export function createExternalUserData(values?: $Shape<$Exact<ExternalUserData>>): ExternalUserData {
+	return Object.assign(create(_TypeModel, ExternalUserDataTypeRef), values)
 }

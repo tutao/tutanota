@@ -28,9 +28,9 @@ export const _TypeModel: TypeModel = {
 		}, "smallLogo": {"name": "smallLogo", "id": 924, "since": 11, "type": "AGGREGATION", "cardinality": "ZeroOrOne", "refType": "File", "final": false}
 	},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createExternalPropertiesReturn(): ExternalPropertiesReturn {
-	return create(_TypeModel)
+export function createExternalPropertiesReturn(values?: $Shape<$Exact<ExternalPropertiesReturn>>): ExternalPropertiesReturn {
+	return Object.assign(create(_TypeModel, ExternalPropertiesReturnTypeRef), values)
 }

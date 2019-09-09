@@ -32,15 +32,15 @@ class ClientDetector {
 	 * Browsers which support these features are supported
 	 */
 	isSupported(): boolean {
-		return this.flexbox() &&
+		return this.isSupportedBrowserVersion() &&
+			this.flexbox() &&
 			this.websockets() &&
 			this.xhr2() &&
 			this.randomNumbers() &&
 			this.dateFormat() &&
 			this.blob() &&
 			this.history() &&
-			this.supportsFocus() &&
-			this.notOldFirefox()
+			this.supportsFocus()
 	}
 
 	isMobileDevice(): boolean {
@@ -144,8 +144,7 @@ class ClientDetector {
 
 	indexedDb(): boolean {
 		try {
-			indexedDB
-			return true
+			return indexedDB != null
 		} catch (e) {
 			return false
 		}
@@ -178,7 +177,7 @@ class ClientDetector {
 		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
 		var ieIndex = this.userAgent.indexOf("MSIE")
-		var edgeIndex = this.userAgent.indexOf("Edge")
+		var edgeIndex = this.userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 		var ie11Index = this.userAgent.indexOf("Trident/7.0")
 		var androidIndex = this.userAgent.indexOf("Android")
 		var blackBerryIndex = this.userAgent.indexOf("BB10")
@@ -359,15 +358,23 @@ class ClientDetector {
 		return this.browser === BrowserType.IE
 	}
 
+	isSupportedBrowserVersion(): boolean {
+		return this.notOldFirefox() && this.notOldChrome()
+	}
+
 	notOldFirefox() {
 		// issue only occurs for old Firefox browsers
 		// https://github.com/tutao/tutanota/issues/835
 		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
 	}
 
+	notOldChrome() {
+		return this.browser !== BrowserType.CHROME || this.browserVersion > 37
+	}
+
 	canDownloadMultipleFiles(): boolean {
 		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion < 65
+		return (this.browser !== BrowserType.FIREFOX || this.browserVersion < 65) && this.browser !== BrowserType.SAFARI
 	}
 
 	needsDownloadBatches(): boolean {
@@ -375,8 +382,34 @@ class ClientDetector {
 		return client.browser === BrowserType.CHROME
 	}
 
+	needsMicrotaskHack(): boolean {
+		return this.isIos()
+			|| this.browser === BrowserType.SAFARI
+			|| this.browser === BrowserType.PALEMOON
+			|| this.browser === BrowserType.WATERFOX
+			// Waterfox looks like Firefox 60 currently
+			|| this.browser === BrowserType.FIREFOX && this.browserVersion <= 60
+			|| this.browser === BrowserType.CHROME && this.browserVersion < 59
+	}
+
+	needsExplicitIDBIds(): boolean {
+		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
+	}
+
+	indexedDBSupported(): boolean {
+		return this.indexedDb() && !this.isIE()
+	}
+
+	calendarSupported(): boolean {
+		return !this.isIE()
+	}
+
 	browserData(): BrowserData {
-		return {browserType: this.browser, browserVersion: this.browserVersion}
+		return {
+			needsMicrotaskHack: this.needsMicrotaskHack(),
+			needsExplicitIDBIds: this.needsExplicitIDBIds(),
+			indexedDbSupported: this.indexedDBSupported()
+		}
 	}
 }
 

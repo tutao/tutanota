@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "添付するために写真あるいはビデオを撮る。";
 NSPhotoLibraryUsageDescription = "ライブラリから添付ファイルとして写真を追加";
-NSPhotoLibraryAddUsageDescription = "ライブラリから添付ファイルとして写真を追加";
+NSMicrophoneUsageDescription = "ライブラリから添付ファイルとして写真を追加";
 NSMicrophoneUsageDescription = "添付ファイルとして動画を収録する際使われます。";
 NSContactsUsageDescription = "連絡先で受信者のメールアドレスを検索します。";
 NSRemindersUsageDescription = "新着メールが届いたときに通知を表示します。";
@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "権限がありません";
 TutaoChangePermissionMsg = "アクセスを認めるためには、このデバイスのパーミッションを変更しなければなりません。";
 TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";
+TutaoCalendarAlarmTitle = "リマインダー";

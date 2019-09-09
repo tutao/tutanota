@@ -39,9 +39,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "30"
+	"version": "36"
 }
 
-export function createFileSystem(): FileSystem {
-	return create(_TypeModel)
+export function createFileSystem(values?: $Shape<$Exact<FileSystem>>): FileSystem {
+	return Object.assign(create(_TypeModel, FileSystemTypeRef), values)
 }

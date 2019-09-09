@@ -17,9 +17,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {"keys": {"name": "keys", "id": 1186, "since": 23, "type": "AGGREGATION", "cardinality": "Any", "refType": "U2fKey", "final": true}},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createU2fChallenge(): U2fChallenge {
-	return create(_TypeModel)
+export function createU2fChallenge(values?: $Shape<$Exact<U2fChallenge>>): U2fChallenge {
+	return Object.assign(create(_TypeModel, U2fChallengeTypeRef), values)
 }

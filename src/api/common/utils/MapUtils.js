@@ -17,3 +17,13 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 		return mergedMap
 	}, new Map())
 }
+
+export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
+	let value = map.get(key)
+	if (!value) {
+		value = byDefault()
+		map.set(key, value)
+	}
+
+	return value
+}

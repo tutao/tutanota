@@ -20,9 +20,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createMailAddressAliasServiceReturn(): MailAddressAliasServiceReturn {
-	return create(_TypeModel)
+export function createMailAddressAliasServiceReturn(values?: $Shape<$Exact<MailAddressAliasServiceReturn>>): MailAddressAliasServiceReturn {
+	return Object.assign(create(_TypeModel, MailAddressAliasServiceReturnTypeRef), values)
 }

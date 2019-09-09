@@ -50,6 +50,11 @@ const openMailbox = (msg: Request): Promise<void> => {
 	)
 }
 
+const openCalendar = (msg: Request): Promise<void> => {
+	return _asyncImport('src/native/OpenMailboxHandler.js')
+		.then(module => module.openCalendar(msg.args[0]))
+}
+
 const handleBackPress = (): Promise<boolean> => {
 	return _asyncImport('src/native/DeviceButtonHandler.js')
 		.then(module => {
@@ -122,6 +127,7 @@ export const appCommands = {
 	handleBackPress,
 	showAlertDialog,
 	openMailbox,
+	openCalendar,
 	keyboardSizeChanged
 }
 

@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Videó vagy fénykép készítése csatolmányként való hozzáadáshoz.";
 NSPhotoLibraryUsageDescription = "Fénykép hozzáadása csatolmányként.";
-NSPhotoLibraryAddUsageDescription = "Fénykép hozzáadása csatolmányként.";
+NSMicrophoneUsageDescription = "Fénykép hozzáadása csatolmányként.";
 NSMicrophoneUsageDescription = "Videó csatolmányként való felhasználásakor.";
 NSContactsUsageDescription = "Címzett keresése a névjegyek között.";
 NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";

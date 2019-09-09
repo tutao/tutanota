@@ -57,19 +57,19 @@ export class ContactEditor {
 
 	/**
 	 * The contact that should be update or the contact list that the new contact should be written to must be provided
-	 * @param c An existing or new contact. If null a new contact is created.
+	 * @param contact An existing or new contact. If null a new contact is created.
 	 * @param listId The list id of the new contact.
 	 * @param newContactIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
 	 */
-	constructor(c: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
-		this.contact = c ? clone(c) : createContact()
+	constructor(contact: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
+		this.contact = contact ? clone(contact) : createContact()
 		migrateToNewBirthday(this.contact)
 
 		this._newContactIdReceiver = newContactIdReceiver
-		if (c == null && listId == null) {
+		if (contact == null && listId == null) {
 			throw new Error("must provide contact to edit or listId for the new contact")
 		} else {
-			this.listId = listId ? listId : neverNull(c)._id[0]
+			this.listId = listId ? listId : neverNull(contact)._id[0]
 		}
 		let firstName = new TextField("firstName_placeholder")
 			.setValue(this.contact.firstName)
@@ -135,70 +135,85 @@ export class ContactEditor {
 		this.socialEditors = this.contact.socialIds.map(p => new ContactAggregateEditor(p, e => remove(this.socialEditors, e)))
 		this.createNewSocialEditor()
 
-		let presharedPassword = this.contact.presharedPassword || !c ? new TextField('password_label')
+		let presharedPassword = this.contact.presharedPassword || !contact ? new TextField('password_label')
 			.setValue((this.contact.presharedPassword: any))
 			.onUpdate(value => this.contact.presharedPassword = value) : null
 
+		let closeButtonAttrs = {
+			label: "close_alt",
+			click: (e, dom) => this._close(),
+			type: ButtonType.Secondary,
+		}
+
 		let headerBarAttrs: DialogHeaderBarAttrs = {
-			left: [{label: "cancel_action", click: () => this._close(), type: ButtonType.Secondary}],
+			left: [closeButtonAttrs],
 			middle: name,
 			right: [{label: 'save_action', click: () => this.save(), type: ButtonType.Primary}]
 		}
-		this.view = () => m("#contact-editor", [
-			m(".wrapping-row", [
-				m(firstName),
-				m(lastName)
-			]),
-			m(".wrapping-row", [
-				m(title),
-				m(this.birthday),
 
-			]),
-			m(".wrapping-row", [
-				m(role),
-				m(company),
-				m(nickname),
-				m(comment)
-			]),
-			m(".wrapping-row", [
-				m(".mail.mt-xl", [
-					m(".h4", lang.get('email_label')),
-					m(".aggregateEditors", [
-						this.mailAddressEditors.map(editor => m(editor, {key: editor.id})),
-					])
+		let windowCloseUnsubscribe = () => {}
+		this.view = () => {
+			return m("#contact-editor", {
+				oncreate: () => {
+					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
+				},
+				onremove: () => windowCloseUnsubscribe()
+			}, [
+				m(".wrapping-row", [
+					m(firstName),
+					m(lastName)
 				]),
-				m(".phone.mt-xl", [
-					m(".h4", lang.get('phone_label')),
-					m(".aggregateEditors", [
-						this.phoneEditors.map(editor => m(editor, {key: editor.id})),
-					])
-				]),
-			]),
+				m(".wrapping-row", [
+					m(title),
+					m(this.birthday),
 
-			m(".wrapping-row", [
-				m(".address.mt-xl", [
-					m(".h4", lang.get('address_label')),
-					m(".aggregateEditors", [
-						this.addressEditors.map(editor => m(editor, {key: editor.id})),
-					])
 				]),
-				m(".social.mt-xl", [
-					m(".h4", lang.get('social_label')),
-					m(".aggregateEditors", [
-						this.socialEditors.map(editor => m(editor, {key: editor.id})),
-					])
+				m(".wrapping-row", [
+					m(role),
+					m(company),
+					m(nickname),
+					m(comment)
 				]),
-			]),
+				m(".wrapping-row", [
+					m(".mail.mt-xl", [
+						m(".h4", lang.get('email_label')),
+						m(".aggregateEditors", [
+							this.mailAddressEditors.map(editor => m(editor, {key: editor.id})),
+						])
+					]),
+					m(".phone.mt-xl", [
+						m(".h4", lang.get('phone_label')),
+						m(".aggregateEditors", [
+							this.phoneEditors.map(editor => m(editor, {key: editor.id})),
+						])
+					]),
+				]),
 
-			presharedPassword ? m(".wrapping-row", [
-				m(".passwords.mt-xl", [
-					m(".h4", lang.get('presharedPassword_label')),
-					m(presharedPassword)
+				m(".wrapping-row", [
+					m(".address.mt-xl", [
+						m(".h4", lang.get('address_label')),
+						m(".aggregateEditors", [
+							this.addressEditors.map(editor => m(editor, {key: editor.id})),
+						])
+					]),
+					m(".social.mt-xl", [
+						m(".h4", lang.get('social_label')),
+						m(".aggregateEditors", [
+							this.socialEditors.map(editor => m(editor, {key: editor.id})),
+						])
+					]),
 				]),
-				m(".spacer")
-			]) : null,
-			m(".pb")
-		])
+
+				presharedPassword ? m(".wrapping-row", [
+					m(".passwords.mt-xl", [
+						m(".h4", lang.get('presharedPassword_label')),
+						m(presharedPassword)
+					]),
+					m(".spacer")
+				]) : null,
+				m(".pb")
+			])
+		}
 
 		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
@@ -217,11 +232,9 @@ export class ContactEditor {
 
 	show() {
 		this.dialog.show()
-		windowFacade.checkWindowClosing(true)
 	}
 
 	_close() {
-		windowFacade.checkWindowClosing(false)
 		this.dialog.close()
 	}
 

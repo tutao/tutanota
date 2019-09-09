@@ -94,9 +94,9 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		}
-	}, "app": "tutanota", "version": "30"
+	}, "app": "tutanota", "version": "36"
 }
 
-export function createMail(): Mail {
-	return create(_TypeModel)
+export function createMail(values?: $Shape<$Exact<Mail>>): Mail {
+	return Object.assign(create(_TypeModel, MailTypeRef), values)
 }

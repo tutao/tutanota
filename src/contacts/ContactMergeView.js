@@ -5,7 +5,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {Icons} from "../gui/base/icons/Icons"
 import type {ContactMergeActionEnum} from "../api/common/TutanotaConstants"
-import {ContactMergeAction} from "../api/common/TutanotaConstants"
+import {ContactMergeAction, getContactSocialType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {formatBirthdayNumeric, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
@@ -71,7 +71,7 @@ export class ContactMergeView {
 				.setHtmlMonospace(false)
 		})
 		let socials1 = this.contact1.socialIds.map(element => {
-			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
+			return new TextField(() => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
 		})
@@ -96,7 +96,7 @@ export class ContactMergeView {
 				.setHtmlMonospace(false)
 		})
 		let socials2 = this.contact2.socialIds.map(element => {
-			return new TextField(() => getContactSocialTypeLabel(element.type, element.customTypeName))
+			return new TextField(() => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName))
 				.setValue(element.socialId)
 				.setDisabled()
 		})
@@ -135,9 +135,12 @@ export class ContactMergeView {
 			                                               .setHtmlMonospace(false)
 		}
 
-
+		let windowCloseUnsubscribe
 		this.view = () => {
-			return m("#contact-editor", [
+			return m("#contact-editor", {
+				oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+				onremove: vnode => windowCloseUnsubscribe(),
+			}, [
 				m(".flex-center.mt", [
 					m(".full-width.max-width-s", [
 						m(mergeButton)
@@ -274,14 +277,12 @@ export class ContactMergeView {
 
 	show(): Promise<ContactMergeActionEnum> {
 		this.dialog.show()
-		windowFacade.checkWindowClosing(true)
 		let d = defer()
 		this.resolveFunction = d.resolve
 		return d.promise
 	}
 
 	_close(action: ContactMergeActionEnum): void {
-		windowFacade.checkWindowClosing(false)
 		this.dialog.close()
 		Promise.delay(200).then(() => {
 			this.resolveFunction(action)

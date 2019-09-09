@@ -7,12 +7,18 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <UserNotifications/UserNotifications.h>
 
-@interface TUTAppDelegate : UIResponder <UIApplicationDelegate>
+#import "TUTAlarmManager.h"
+#import "Utils/TUTUserPreferenceFacade.h"
 
-@property (strong, nonatomic) UIWindow *window;
+@interface TUTAppDelegate : UIResponder <UIApplicationDelegate, UNUserNotificationCenterDelegate>
 
-- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString *token, NSError *error))callback;
+@property (strong, nonatomic) UIWindow *_Nonnull window;
+@property (nonnull, readonly) TUTAlarmManager *alarmManager;
+@property (nonnull, readonly) TUTUserPreferenceFacade *userPreferences;
+
+- (void)registerForPushNotificationsWithCallback:(void (^ _Nonnull)(NSString * _Nullable token , NSError * _Nullable error))callback;
 
 @end
 

@@ -12,6 +12,7 @@ class HtmlSanitizer {
 
 	_blockExternalContent: boolean
 	_externalContent: string[]
+	_inlineImageCids: Array<string>
 	purifier: IDOMPurify
 
 	constructor() {
@@ -22,23 +23,20 @@ class HtmlSanitizer {
 			return
 		}
 		this.purifier.addHook('afterSanitizeElements', (currentNode, data, config) => {
-				// Do something with the current node and return it
-				//console.log("afterSanitizeElements", currentNode.constructor, currentNode, data, config, "prevent: ", this._blockExternalContent, "style", currentNode.style)
-				if (this._blockExternalContent) {
-					this._preventExternalImageLoading(currentNode)
-				}
-
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
 				let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
-						if (allowedClasses.indexOf(cl[0]) == -1) {
+						if (allowedClasses.indexOf(cl[0]) === -1) {
 							cl.remove(cl[0]);
 						}
 					}
 				}
+
+				this._replaceAttributes(currentNode)
+
 				// set target="_blank" for all links
 				if (currentNode.tagName && (
 					currentNode.tagName.toLowerCase() === "a"
@@ -62,7 +60,7 @@ class HtmlSanitizer {
 		const config = this._prepareSanitize(html, blockExternalContent)
 
 		let cleanHtml = this.purifier.sanitize(html, config)
-		return {"text": cleanHtml, "externalContent": this._externalContent}
+		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids}
 	}
 
 	/**
@@ -71,39 +69,40 @@ class HtmlSanitizer {
 	 * @param blockExternalContent
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
-	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>} {
+	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
 			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
-		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent}
+		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
 	}
 
 	_prepareSanitize(html: string, blockExternalContent: boolean): SanitizeConfigBase {
 		// must be set for use in dompurify hook
 		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
+		this._inlineImageCids = []
 
 		return {
-			ADD_ATTR: ['target', 'controls'], // for target = _blank, controls for audio element
+			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 			ADD_URI_SAFE_ATTR: ['poster'], // for video element
 			FORBID_TAGS: ['style'] // prevent loading of external fonts
 		}
 	}
 
-	_preventExternalImageLoading(htmlNode) {
+	_replaceAttributes(htmlNode) {
 		if (htmlNode.attributes) {
 			this._replaceAttributeValue(htmlNode);
 		}
-		if (htmlNode.style) {
+		if (htmlNode.style && this._blockExternalContent) {
 			if (htmlNode.style.backgroundImage) {
 				//console.log(htmlNode.style.backgroundImage)
-				this._replaceStyleImage(htmlNode, "backgroundImage")
+				this._replaceStyleImage(htmlNode, "backgroundImage", false)
 				htmlNode.style.backgroundRepeat = "no-repeat"
 			}
 			if (htmlNode.style.listStyleImage) {
-				this._replaceStyleImage(htmlNode, "listStyleImage")
+				this._replaceStyleImage(htmlNode, "listStyleImage", true)
 			}
 			if (htmlNode.style.content) {
-				this._replaceStyleImage(htmlNode, "content")
+				this._replaceStyleImage(htmlNode, "content", true)
 			}
 			if (htmlNode.style.cursor) {
 				this._removeStyleImage(htmlNode, "cursor")
@@ -119,10 +118,19 @@ class HtmlSanitizer {
 		EXTERNAL_CONTENT_ATTRS.forEach((attrName) => {
 			let attribute = htmlNode.attributes.getNamedItem(attrName)
 			if (attribute) {
-				this._externalContent.push(attribute.value)
-				attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
-				htmlNode.attributes.setNamedItem(attribute)
-				htmlNode.style["max-width"] = "100px"
+				if (attribute.value.startsWith("cid:")) {
+					// replace embedded image with local image until the embedded image is loaded and ready to be shown.
+					const cid = attribute.value.substring(4)
+					this._inlineImageCids.push(cid)
+					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					htmlNode.setAttribute("cid", cid)
+					htmlNode.classList.add("tutanota-placeholder")
+				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
+					this._externalContent.push(attribute.value)
+					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					htmlNode.attributes.setNamedItem(attribute)
+					htmlNode.style["max-width"] = "100px"
+				}
 			}
 		})
 	}
@@ -135,19 +143,27 @@ class HtmlSanitizer {
 		}
 	}
 
-	_replaceStyleImage(htmlNode, styleAttributeName: string) {
+	_replaceStyleImage(htmlNode, styleAttributeName: string, limitWidth: boolean) {
 		let value = htmlNode.style[styleAttributeName]
-		if (value.match(/^url\(/)) {
+		if (value.match(/^url\(/) && !value.match(/^url\(["']?data:/)) {
 			// remove surrounding url definition. url(<link>)
 			value = value.replace(/^url\("*/, "");
 			value = value.replace(/"*\)$/, "");
 			this._externalContent.push(value)
 			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
-			htmlNode.style["max-width"] = "100px"
+			if (limitWidth) {
+				htmlNode.style["max-width"] = "100px"
+			}
 		}
 	}
+}
 
+
+export function stringifyFragment(fragment: DocumentFragment): string {
+	let div = document.createElement("div")
+	div.appendChild(fragment)
+	return div.innerHTML
 }
 
 export const htmlSanitizer: HtmlSanitizer = new HtmlSanitizer()

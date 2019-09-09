@@ -9,12 +9,17 @@ import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
+import {assertMainOrNodeBoot} from "../../api/Env"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
+
+assertMainOrNodeBoot()
 
 export type NavButtonAttrs = {|
 	label: TranslationKey | lazy<string>,
 	icon: lazyIcon,
 	href: string | lazy<string>,
-	isSelectedPrefix?: string,
+	isSelectedPrefix?: string | boolean,
 	click?: clickHandler,
 	colors?: NavButtonColorEnum,
 	isVisible?: lazy<boolean>,
@@ -22,10 +27,11 @@ export type NavButtonAttrs = {|
 	hideLabel?: boolean,
 |}
 
+const navButtonSelector = "a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
+
 class _NavButton {
 	_domButton: HTMLElement;
 	_draggedOver: boolean;
-	_dropHandler: ?dropHandler;
 	_dropCounter: number; // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
 
 
@@ -34,35 +40,28 @@ class _NavButton {
 		this._dropCounter = 0
 	}
 
-	_selectedPrefix(attrs: NavButtonAttrs): string {
-		return attrs.isSelectedPrefix
-			? attrs.isSelectedPrefix
-			: lazyStringValue(attrs.href)
-	}
 
 	view(vnode: Vnode<NavButtonAttrs>) {
 		const a = vnode.attrs
 		// allow nav button without label for registration button on mobile devices
-		return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(a), [
-			a.icon() ? m(Icon, {
-				icon: a.icon(),
-				class: this._getIconClass(a),
-				style: {
-					fill: (this.isSelected(vnode.attrs) || this._draggedOver) ?
-						getColors(a.colors).button_selected : getColors(a.colors).button,
-				}
-			}) : null,
-			(!a.hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel(a.label)) : null
-		])
+		return m((this._isExternalUrl(a.href) ? navButtonSelector : m.route.Link),
+			this.createButtonAttributes(a),
+			[
+				a.icon() ? m(Icon, {
+					icon: a.icon(),
+					class: this._getIconClass(a),
+					style: {
+						fill: (isNavButtonSelected(vnode.attrs) || this._draggedOver) ?
+							getColors(a.colors).button_selected : getColors(a.colors).button,
+					}
+				}) : null,
+				(!a.hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel(a.label)) : null
+			]
+		)
 	}
 
-	isSelected(attrs: NavButtonAttrs) {
-		let current = m.route.get()
-		return attrs.isSelectedPrefix && current === this._selectedPrefix(attrs) || current.indexOf(this._selectedPrefix(attrs) + "/") === 0
-	}
-
-	getLabel(label: string | lazy<string>) {
-		return lazyStringValue(label)
+	getLabel(label: TranslationKey | lazy<string>) {
+		return lang.getMaybeLazy(label)
 	}
 
 	_getUrl(href: string | lazy<string>): string {
@@ -70,10 +69,11 @@ class _NavButton {
 	}
 
 	_getIconClass(a: NavButtonAttrs) {
+		const isSelected = isNavButtonSelected(a)
 		if (a.colors === NavButtonColors.Header && !styles.isDesktopLayout()) {
-			return "flex-end items-center icon-xl" + (this.isSelected(a) ? " selected" : "")
+			return "flex-end items-center icon-xl" + (isSelected ? " selected" : "")
 		} else {
-			return "flex-center items-center icon-large" + (this.isSelected(a) ? " selected" : "")
+			return "flex-center items-center icon-large" + (isSelected ? " selected" : "")
 		}
 	}
 
@@ -86,31 +86,22 @@ class _NavButton {
 		let attr: any = {
 			href: this._getUrl(a.href),
 			style: {
-				color: (this.isSelected(a) || this._draggedOver) ?
+				color: (isNavButtonSelected(a) || this._draggedOver) ?
 					getColors(a.colors).button_selected : getColors(a.colors).button
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
 			oncreate: (vnode: VirtualElement) => {
 				this._domButton = vnode.dom
-				// route.link adds the appropriate prefix to the href attribute and sets the domButton.onclick handler
-				if (!this._isExternalUrl(a.href)) {
-					m.route.link(vnode)
-				}
-				this._domButton.onclick = (event: MouseEvent) => this.click(event, a)
 				addFlash(vnode.dom)
-			},
-			onupdate: (vnode: VirtualElement) => {
-				if (!this._isExternalUrl(a.href)) {
-					m.route.link(vnode)
-				}
-				this._domButton.onclick = (event: MouseEvent) => this.click(event, a)
 			},
 			onbeforeremove: (vnode) => {
 				removeFlash(vnode.dom)
-			}
+			},
+			selector: navButtonSelector,
+			onclick: (e) => this.click(e, a)
 		}
-		if (this._dropHandler) {
+		if (a.dropHandler) {
 			attr.ondragenter = (ev) => {
 				this._dropCounter++
 				this._draggedOver = true
@@ -132,7 +123,7 @@ class _NavButton {
 				this._draggedOver = false
 				ev.preventDefault()
 				if (ev.dataTransfer.getData("text")) {
-					neverNull(this._dropHandler)(ev.dataTransfer.getData("text"))
+					neverNull(a.dropHandler)(ev.dataTransfer.getData("text"))
 				}
 			}
 		}
@@ -144,7 +135,7 @@ class _NavButton {
 			m.route.set(this._getUrl(a.href))
 			try {
 				if (a.click != null) {
-					a.click(event)
+					a.click(event, this._domButton)
 				}
 				// in IE the activeElement might not be defined and blur might not exist
 				if (document.activeElement && typeof document.activeElement.blur === "function") {
@@ -166,11 +157,11 @@ class _NavButton {
 
 export const NavButtonN: Class<MComponent<NavButtonAttrs>> = _NavButton
 
-export const NavButtonColors = {
+export const NavButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
-}
+})
 type NavButtonColorEnum = $Values<typeof NavButtonColors>;
 
 function getColors(buttonColors: ?NavButtonColorEnum) {
@@ -192,4 +183,18 @@ function getColors(buttonColors: ?NavButtonColorEnum) {
 				button_selected: theme.content_button_selected,
 			}
 	}
+}
+
+export function isNavButtonSelected(a: NavButtonAttrs): boolean {
+	if (typeof a.isSelectedPrefix === "boolean") {
+		return a.isSelectedPrefix
+	}
+	const selectedPrefix = a.isSelectedPrefix || lazyStringValue(a.href)
+	return isSelectedPrefix(selectedPrefix)
+}
+
+export function isSelectedPrefix(href: string): boolean {
+	const current = m.route.get()
+	// don't just check current.indexOf(buttonHref) because other buttons may also start with this href
+	return (href !== "") && (current === href || (current.indexOf(href + "/") === 0) || (current.indexOf(href + "?") === 0))
 }

@@ -19,9 +19,9 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "43"
+	"version": "49"
 }
 
-export function createKeyPair(): KeyPair {
-	return create(_TypeModel)
+export function createKeyPair(values?: $Shape<$Exact<KeyPair>>): KeyPair {
+	return Object.assign(create(_TypeModel, KeyPairTypeRef), values)
 }
