@@ -6,7 +6,14 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -450,7 +457,7 @@ export class MailViewer {
 			this._contrastFixNeeded = themeId() === 'dark'
 				&& (
 					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-												.find(s => s.color !== "" && typeof s.color !== 'undefined')
+					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
 					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
 				)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
@@ -477,31 +484,31 @@ export class MailViewer {
 		} else {
 			this._loadingAttachments = true
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-						  .then(files => {
-							  this._attachments = files
-							  this._attachmentButtons = this._createAttachmentsButtons(files)
-							  this._loadingAttachments = false
-							  m.redraw()
-							  return inlineFileIds.then((inlineFileIds) => {
-								  const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
-								  const inlineImages: InlineImages = {}
-								  return Promise
-									  .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-											  const blob = new Blob([dataFile.data], {
-												  type: dataFile.mimeType
-											  })
-											  inlineImages[neverNull(file.cid)] = {
-												  file,
-												  url: URL.createObjectURL(blob)
-											  }
-										  })
-									  ).return(inlineImages)
-							  })
-						  })
-						  .catch(NotFoundError, e => {
-							  console.log("could load attachments as they have been moved/deleted already", e)
-							  return {}
-						  })
+			              .then(files => {
+				              this._attachments = files
+				              this._attachmentButtons = this._createAttachmentsButtons(files)
+				              this._loadingAttachments = false
+				              m.redraw()
+				              return inlineFileIds.then((inlineFileIds) => {
+					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
+					              const inlineImages: InlineImages = {}
+					              return Promise
+						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+								              const blob = new Blob([dataFile.data], {
+									              type: dataFile.mimeType
+								              })
+								              inlineImages[neverNull(file.cid)] = {
+									              file,
+									              url: URL.createObjectURL(blob)
+								              }
+							              })
+						              ).return(inlineImages)
+				              })
+			              })
+			              .catch(NotFoundError, e => {
+				              console.log("could load attachments as they have been moved/deleted already", e)
+				              return {}
+			              })
 		}
 	}
 
@@ -815,12 +822,12 @@ export class MailViewer {
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 		if (this.mail.toRecipients.length > 0) {
 			infoLine += lang.get("to_label") + ": " + this.mail.toRecipients.map(recipient => recipient.address)
-														  .join(", ")
+			                                              .join(", ")
 			infoLine += "<br>";
 		}
 		if (this.mail.ccRecipients.length > 0) {
 			infoLine += lang.get("cc_label") + ": " + this.mail.ccRecipients.map(recipient => recipient.address)
-														  .join(", ")
+			                                              .join(", ")
 			infoLine += "<br>";
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
@@ -906,9 +913,9 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-							  .then(() => {
-								  mailEditor.show()
-							  })
+					          .then(() => {
+						          mailEditor.show()
+					          })
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
@@ -917,7 +924,7 @@ export class MailViewer {
 				m.route.set(newRoute)
 				event.preventDefault()
 			} else if (anchorElement) {
-				let newClickEvent: MaybeSyntheticEvent = new Event("click")
+				let newClickEvent: MaybeSyntheticEvent = new MouseEvent("click")
 				newClickEvent.synthetic = true
 				anchorElement.dispatchEvent(newClickEvent)
 			}
