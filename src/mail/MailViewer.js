@@ -87,6 +87,9 @@ export type InlineImages = {
 	[referencedCid: string]: {file: TutanotaFile, url: string} // map from cid to file and its URL (data or Blob)
 }
 
+// synthetic events are fired in code to distinguish between double and single click events
+type MaybeSyntheticEvent = Event & {synthetic?: boolean}
+
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
@@ -111,10 +114,10 @@ export class MailViewer {
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
 	_isScaling: boolean;
-	_domScaleButton: HTMLElement;
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
+	_lastBodyClickTime = 0
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -339,25 +342,29 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m(".rel.scroll-x",
-							m("#mail-body.selectable.touch-callout.break-word-links.margin-are-inset-lr"
-							+ (this._contrastFixNeeded ? ".bg-white.content-black" :" ")
-							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
-								oncreate: vnode => {
-								this._domBodyDeferred.resolve(vnode.dom)
-									this._updateLineHeight()
-									const width = vnode.dom.getBoundingClientRect().width
-									const containerWidth = this._domMailViewer ? this._domMailViewer.getBoundingClientRect().width : -1
-									console.log(`body width: ${width}, container width: ${containerWidth}`)
-									this._rescale(vnode)
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l", {
+								onclick: (event: MouseEvent) => {
+									if (client.isMobileDevice()) {
+										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
+									} else {
+										this._handleAnchorClick(event)
+									}
 								},
-							onupdate: (vnode) => {
-								if (this._domBodyDeferred.promise.isPending()) {
-									this._domBodyDeferred.resolve(vnode.dom)
-								}
-								this._rescale(vnode)
 							},
-								onclick: (event: Event) => this._handleAnchorClick(event),
+							m("#mail-body.selectable.touch-callout.break-word-links"
+								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " ")
+								+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+								oncreate: vnode => {
+									this._domBodyDeferred.resolve(vnode.dom)
+									this._updateLineHeight()
+									this._rescale(false)
+								},
+								onupdate: (vnode) => {
+									if (this._domBodyDeferred.promise.isPending()) {
+										this._domBodyDeferred.resolve(vnode.dom)
+									}
+									this._rescale(false)
+								},
 								onsubmit: (event: Event) => this._confirmSubmit(event),
 								style: {'line-height': this._bodyLineHeight, 'transform-origin': 'top left'},
 							}, (this._mailBody == null && !this._errorOccurred)
@@ -375,28 +382,6 @@ export class MailViewer {
 						)
 					]
 				),
-
-				m(".abs", {
-					style: {
-						background: "grey",
-						opacity: 0.2,
-						width: px(size.icon_size_xl),
-						height: px(size.icon_size_xl),
-						"z-index": "100",
-						margin: "16px",
-						left: 0,
-						bottom: 0,
-						"border-radius": "4px"
-					},
-					onclick: () => {
-						this._isScaling = !this._isScaling
-					},
-					oncreate: (vnode) => {
-						this._domScaleButton = vnode.dom
-						this._domScaleButton.style.display = 'none'
-					}
-					// TODO: Change icon
-				}, m(Icon, {icon: Icons.Add, class: "icon-xl", style: {fill: "black"}})),
 			]
 		}
 
@@ -465,7 +450,7 @@ export class MailViewer {
 			this._contrastFixNeeded = themeId() === 'dark'
 				&& (
 					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+												.find(s => s.color !== "" && typeof s.color !== 'undefined')
 					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
 				)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
@@ -492,31 +477,31 @@ export class MailViewer {
 		} else {
 			this._loadingAttachments = true
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			              .then(files => {
-				              this._attachments = files
-				              this._attachmentButtons = this._createAttachmentsButtons(files)
-				              this._loadingAttachments = false
-				              m.redraw()
-				              return inlineFileIds.then((inlineFileIds) => {
-					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
-					              const inlineImages: InlineImages = {}
-					              return Promise
-						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								              const blob = new Blob([dataFile.data], {
-									              type: dataFile.mimeType
-								              })
-								              inlineImages[neverNull(file.cid)] = {
-									              file,
-									              url: URL.createObjectURL(blob)
-								              }
-							              })
-						              ).return(inlineImages)
-				              })
-			              })
-			              .catch(NotFoundError, e => {
-				              console.log("could load attachments as they have been moved/deleted already", e)
-				              return {}
-			              })
+						  .then(files => {
+							  this._attachments = files
+							  this._attachmentButtons = this._createAttachmentsButtons(files)
+							  this._loadingAttachments = false
+							  m.redraw()
+							  return inlineFileIds.then((inlineFileIds) => {
+								  const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
+								  const inlineImages: InlineImages = {}
+								  return Promise
+									  .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+											  const blob = new Blob([dataFile.data], {
+												  type: dataFile.mimeType
+											  })
+											  inlineImages[neverNull(file.cid)] = {
+												  file,
+												  url: URL.createObjectURL(blob)
+											  }
+										  })
+									  ).return(inlineImages)
+							  })
+						  })
+						  .catch(NotFoundError, e => {
+							  console.log("could load attachments as they have been moved/deleted already", e)
+							  return {}
+						  })
 		}
 	}
 
@@ -574,11 +559,25 @@ export class MailViewer {
 		return isExcludedMailAddress(this.mail.sender.address)
 	}
 
-	_rescale(vnode: Vnode<any>) {
-		const child = vnode.dom
-		const width = child.scrollWidth
+	_rescale(animate: boolean) {
+		if (!this._domBodyDeferred.promise.isFulfilled()) {
+			return
+		}
 		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
+		const child = this._domBodyDeferred.promise.value()
+		if (containerWidth > (child.scrollWidth)) {
+			return
+		}
+		// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
+		// nested elements inside childs may overlow into the padding so we add another one.
+		const width = child.scrollWidth + 3 * size.hpad_large
+
 		const scale = containerWidth / width
+		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
+		// if(this._domMailViewer){
+		// 	const domContainer = this._domMailViewer
+		// 	console.log("container clientWidth", domContainer.clientWidth, "scrollWidth", domContainer.scrollWidth, "offsetWidth", domContainer.offsetWidth )
+		// }
 
 		if (!this._isScaling) {
 			child.style.transform = ''
@@ -589,7 +588,9 @@ export class MailViewer {
 			child.style.marginBottom = `${-heightDiff}px`
 		}
 
-		if (this._domScaleButton) this._domScaleButton.style.display = 1 - scale < 0.05 ? 'none' : ''
+		if (animate) {
+			child.style.transition = 'transform 200ms ease-in-out'
+		}
 	}
 
 	_setupShortcuts() {
@@ -814,12 +815,12 @@ export class MailViewer {
 		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
 		if (this.mail.toRecipients.length > 0) {
 			infoLine += lang.get("to_label") + ": " + this.mail.toRecipients.map(recipient => recipient.address)
-			                                              .join(", ")
+														  .join(", ")
 			infoLine += "<br>";
 		}
 		if (this.mail.ccRecipients.length > 0) {
 			infoLine += lang.get("cc_label") + ": " + this.mail.ccRecipients.map(recipient => recipient.address)
-			                                              .join(", ")
+														  .join(", ")
 			infoLine += "<br>";
 		}
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(this.mail.subject);
@@ -905,16 +906,20 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-					          .then(() => {
-						          mailEditor.show()
-					          })
+							  .then(() => {
+								  mailEditor.show()
+							  })
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
-			if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+			else if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
+			} else if (anchorElement) {
+				let newClickEvent: MaybeSyntheticEvent = new Event("click")
+				newClickEvent.synthetic = true
+				anchorElement.dispatchEvent(newClickEvent)
 			}
 		}
 	}
@@ -1014,5 +1019,27 @@ export class MailViewer {
 		} else {
 			fileController.downloadAll(this._attachments)
 		}
+	}
+
+	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
+		const lastClick = this._lastBodyClickTime
+		const now = Date.now()
+		if (e.synthetic) {
+			return
+		}
+		e.preventDefault()
+		if (Date.now() - lastClick < 200) {
+			this._isScaling = !this._isScaling
+			this._lastBodyClickTime = 0
+			;(e: any).redraw = false
+			doubleClickAction(e)
+		} else {
+			setTimeout(() => {
+				if (this._lastBodyClickTime === now) {
+					singleClickAction(e)
+				}
+			}, 200)
+		}
+		this._lastBodyClickTime = now
 	}
 }
