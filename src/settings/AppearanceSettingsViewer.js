@@ -23,7 +23,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			items: languages.map(language => {
 				return {name: lang.get(language.textId), value: language.code}
 			}).concat({name: lang.get("automatic_label"), value: null}),
-			selectedValue: stream(deviceConfig.getLanguage()),
+			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
+			selectedValue: stream(deviceConfig.getLanguage() || null),
 			selectionChangedHandler: (value) => {
 				deviceConfig.setLanguage(value)
 				if (value) {
