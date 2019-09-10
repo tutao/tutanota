@@ -252,10 +252,9 @@ export class CalendarView implements CurrentView {
 		// load all calendars. if there is no calendar yet, create one
 		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
 			if (calendarInfos.size === 0) {
-				return worker.addCalendar("").then(() => this._loadGroupRoots())
-			} else {
-				return calendarInfos
+				worker.addCalendar("")
 			}
+			return calendarInfos
 		})
 
 		this.selectedDate.map((d) => {

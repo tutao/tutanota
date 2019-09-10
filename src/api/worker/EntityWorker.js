@@ -36,6 +36,12 @@ export function load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Par
 	return _loadEntity(typeRef, id, queryParams, locator.cache, extraHeaders)
 }
 
+/**
+ * Loading ranges.
+ *
+ * Default order is "newest first".
+ * request for loadRange with start = MAX_ID and count 1 will return the latest element.
+ */
 
 /**
  * load multiple does not guarantee order or completeness of returned elements.

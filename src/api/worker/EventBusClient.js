@@ -6,17 +6,17 @@ import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {load, loadAll, loadRange} from "./EntityWorker"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId} from "../common/EntityFunctions"
 import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError, ServiceUnavailableError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
-import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType} from "../common/TutanotaConstants"
-import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
+import {_TypeModel as WebsocketEntityDataTypeModel, createWebsocketEntityData} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
+import {timestampToGeneratedId} from "../common/utils/Encoding"
 
 assertWorkerOrNode()
 
@@ -91,6 +91,7 @@ export class EventBusClient {
 		if (env.mode === Mode.Test) {
 			return
 		}
+		const startTime = reconnect ? null : new Date()
 
 		console.log("ws connect reconnect=", reconnect, "state:", this._state);
 		this._websocketWrapperQueue = []
@@ -112,7 +113,7 @@ export class EventBusClient {
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
 			console.log("ws open: ", new Date(), "state:", this._state);
-			this._initEntityEvents(reconnect)
+			this._initEntityEvents(startTime)
 			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
@@ -120,9 +121,17 @@ export class EventBusClient {
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
 	}
 
-	_initEntityEvents(reconnect: boolean) {
+	/**
+	 * Load & process missed events.
+	 * @param initialConnectStartedAt when we started to connect, only set for initial connection
+	 * @private
+	 */
+	_initEntityEvents(initialConnectStartedAt: ?Date) {
 		this._queueWebsocketEvents = true
-		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+		const reconnect = initialConnectStartedAt == null
+		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0)
+			? this._loadMissedEntityEvents()
+			: this._setLatestEntityEventIds(initialConnectStartedAt))
 		p.then(() => {
 			this._queueWebsocketEvents = false
 		}).catch(ConnectionError, e => {
@@ -139,7 +148,7 @@ export class EventBusClient {
 				// if we have a websocket reconnect we have to stop retrying
 				if (this._serviceUnavailableRetry === promise) {
 					console.log("retry initializing entity events")
-					return this._initEntityEvents(reconnect)
+					return this._initEntityEvents(initialConnectStartedAt)
 				} else {
 					console.log("cancel initializing entity events")
 				}
@@ -301,16 +310,37 @@ export class EventBusClient {
 	 * stores the latest event batch ids for each of the users groups or min id if there is no event batch yet.
 	 * this is needed to know from where to start loading missed events after a reconnect
 	 */
-	_setLatestEntityEventIds(): Promise<void> {
+	_setLatestEntityEventIds(initialConnectStartedAt: ?Date): Promise<void> {
+		if (initialConnectStartedAt != null) {
+			console.log("loading websocket events since ", initialConnectStartedAt)
+		}
+		const connectionStartedAt = initialConnectStartedAt
 		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
 		let lastIds: {[key: Id]: Id[]} = {}
-		return Promise.each(this._eventGroups(), groupId => {
-			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				lastIds[groupId] = [
-					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
-				]
-			})
-		}).then(() => {
+
+		return (connectionStartedAt == null
+				? Promise.each(this._eventGroups(), groupId => {
+					return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
+						lastIds[groupId] = [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
+					})
+				})
+				// If it's initial connection, we may miss some events until the websocket connection is established.
+				// We manually load & process events for all groups since we started connecting.
+				: Promise.each(this._eventGroups(), groupId => {
+					return loadAll(EntityEventBatchTypeRef, groupId, timestampToGeneratedId(connectionStartedAt.getTime()))
+						.then((batches) =>
+							Promise.each(batches, (batch: EntityEventBatch) => {
+									lastIds[groupId] = [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
+									const eventData = createWebsocketEntityData({
+										eventBatchId: getElementId(batch),
+										eventBatchOwner: neverNull(batch._ownerGroup),
+										eventBatch: batch.events,
+									})
+									this._websocketWrapperQueue.push(eventData)
+								}
+							))
+				})
+		).then(() => {
 			this._lastEntityEventIds = lastIds
 			return this._processQueuedEvents()
 		})
@@ -436,9 +466,9 @@ export class EventBusClient {
 	}
 
 	_isAlreadyProcessed(groupId: Id, eventId: Id): boolean {
-		if (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) {
-			return firstBiggerThanSecond(this._lastEntityEventIds[groupId][0], eventId)
-				|| contains(this._lastEntityEventIds[groupId], eventId)
+		const lastEventIds = this._lastEntityEventIds[groupId]
+		if (lastEventIds && lastEventIds.length > 0) {
+			return firstBiggerThanSecond(lastEventIds[0], eventId) || lastEventIds.includes(eventId)
 		} else {
 			return false
 		}
