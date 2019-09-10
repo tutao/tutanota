@@ -613,15 +613,24 @@ export class CalendarView implements CurrentView {
 		return load(UserTypeRef, logins.getUserController().user._id)
 			.then(user => {
 				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+				const notFoundMemberships = []
 				return Promise
-					.map(calendarMemberships, (membership) => Promise.all([
-						load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
-					]))
+					.map(calendarMemberships, (membership) => Promise
+						.all([
+							load(CalendarGroupRootTypeRef, membership.group), load(GroupInfoTypeRef, membership.groupInfo)
+						])
+						.catch(NotFoundError, () => {
+							notFoundMemberships.push(membership)
+							return null
+						})
+					)
 					.then((groupRoots) => {
 						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupRoots.forEach(([groupRoot, groupInfo]) => {
-							calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})
-						})
+						groupRoots.filter(Boolean)
+						          .forEach(([groupRoot, groupInfo]) => {
+							          calendarInfos.set(groupRoot._id, {groupRoot, groupInfo, shortEvents: [], longEvents: []})
+						          })
+						// TODO: remove notFoundMemberships from the user
 						return calendarInfos
 					})
 			})
