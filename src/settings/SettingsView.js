@@ -110,7 +110,7 @@ export class SettingsView implements CurrentView {
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
 				isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 			])
-		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
+		}, ColumnType.Background, 200, 280, () => lang.get("settings_label"))
 
 		this._settingsColumn = new ViewColumn({
 			view: () => m(this._getCurrentViewer())
@@ -163,14 +163,15 @@ export class SettingsView implements CurrentView {
 				href: folder.url,
 				colors: ButtonColors.Nav,
 				click: () => this.viewSlider.focus(this._settingsColumn),
-				isVisible: () => folder.isVisible()
+				isVisible: () => folder.isVisible(),
 			}
 		})
 		let expander = new ExpanderButton(textId, new ExpanderPanel({
 			view: () => m(".folders", buttons.map(fb => fb.isVisible()
 				? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
 					m(NavButtonN, fb),
-					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users')
+					&& this._customDomains.isLoaded()
 					&& this._customDomains.getLoaded().length > 0
 						? m(importUsersButton)
 						: null
