@@ -17,7 +17,6 @@ const packageJson = require('./package.json')
 	"rcedit",
 	"winreg",
 	"node-forge",
-	"js-yaml"
 ].forEach((dep) => {
 	delete packageJson.devDependencies[dep]
 })
