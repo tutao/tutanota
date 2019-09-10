@@ -588,32 +588,26 @@ export class MailViewer {
 		}
 		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
 		const child = this._domBodyDeferred.promise.value()
-		if (containerWidth > (child.scrollWidth)) {
-			return
-		}
-		// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
-		// nested elements inside childs may overlow into the padding so we add another one.
-		const width = child.scrollWidth + 3 * size.hpad_large
-
-		const scale = containerWidth / width
 		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
 		// if(this._domMailViewer){
 		// 	const domContainer = this._domMailViewer
 		// 	console.log("container clientWidth", domContainer.clientWidth, "scrollWidth", domContainer.scrollWidth, "offsetWidth", domContainer.offsetWidth )
 		// }
 
-		if (!this._isScaling) {
+		if (!this._isScaling || containerWidth > child.scrollWidth) {
 			child.style.transform = ''
 			child.style.marginBottom = ''
 		} else {
+			// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
+			// nested elements inside childs may overlow into the padding so we add another one.
+			const width = child.scrollWidth + 3 * size.hpad_large
+			const scale = containerWidth / width
 			const heightDiff = child.scrollHeight - child.scrollHeight * scale
 			child.style.transform = `scale(${scale})`
 			child.style.marginBottom = `${-heightDiff}px`
 		}
 
-		if (animate) {
-			child.style.transition = 'transform 200ms ease-in-out'
-		}
+		child.style.transition = animate ? 'transform 200ms ease-in-out' : ''
 	}
 
 	_setupShortcuts() {
@@ -710,11 +704,13 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				if (defaultInboxRuleField && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+				if (defaultInboxRuleField
+					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
 					&& !logins.getUserController().isOutlookAccount()
 					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addInboxRule_action", () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail),
+							neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
@@ -935,7 +931,9 @@ export class MailViewer {
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
-			else if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+			else if (anchorElement
+				&& isTutanotaTeamMail(this.mail)
+				&& startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
@@ -1007,10 +1005,12 @@ export class MailViewer {
 					() => Icons.Attachment,
 					() => [
 						new Button("open_action",
-							() => fileController.downloadAndOpen(file, true).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, true)
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown),
 						new Button("download_action",
-							() => fileController.downloadAndOpen(file, false).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, false)
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
