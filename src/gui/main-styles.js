@@ -302,6 +302,7 @@ styles.registerStyle('main', () => {
 		},
 		'.scroll-no-overlay': {
 			'overflow-y': 'auto',
+			'-webkit-overflow-scrolling': 'touch',
 		},
 		'.scroll-x': {
 			'overflow-x': 'auto',

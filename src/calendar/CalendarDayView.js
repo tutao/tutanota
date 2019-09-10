@@ -122,7 +122,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			]),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+					vnode.dom.scrollTop = size.calendar_hour_height * 6
 					this._domElements.push(vnode.dom)
 				},
 				onscroll: (event) => {
@@ -156,6 +156,11 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					events: shortEvents.filter((ev) => !vnode.attrs.hiddenCalendars.has(neverNull(ev._ownerGroup))),
 					displayTimeIndicator: isSameDay(new Date(), vnode.attrs.selectedDate),
 					onTimePressed: (hours, minutes) => {
+						const newDate = new Date(vnode.attrs.selectedDate)
+						newDate.setHours(hours, minutes)
+						vnode.attrs.onNewEvent(newDate)
+					},
+					onTimeContextPressed: (hours, minutes) => {
 						const newDate = new Date(vnode.attrs.selectedDate)
 						newDate.setHours(hours, minutes)
 						vnode.attrs.onNewEvent(newDate)

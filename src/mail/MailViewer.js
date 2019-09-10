@@ -6,7 +6,14 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -87,6 +94,9 @@ export type InlineImages = {
 	[referencedCid: string]: {file: TutanotaFile, url: string} // map from cid to file and its URL (data or Blob)
 }
 
+// synthetic events are fired in code to distinguish between double and single click events
+type MaybeSyntheticEvent = Event & {synthetic?: boolean}
+
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
@@ -110,9 +120,11 @@ export class MailViewer {
 	_folderText: ?string;
 	mailHeaderDialog: Dialog;
 	mailHeaderInfo: string;
+	_isScaling: boolean;
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
+	_lastBodyClickTime = 0
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -138,6 +150,7 @@ export class MailViewer {
 		this._errorOccurred = false
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
+		this._isScaling = true;
 
 		let closeAction = () => this.mailHeaderDialog.close()
 		const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -297,6 +310,7 @@ export class MailViewer {
 
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
+		let updateRequested = false
 		this.view = () => {
 			return [
 				m("#mail-viewer.fill-absolute"
@@ -335,35 +349,46 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links.margin-are-inset-lr"
-							+ (this._contrastFixNeeded ? ".bg-white.content-black" : "")
-							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
-							oncreate: vnode => {
-								this._domBodyDeferred.resolve(vnode.dom)
-								this._updateLineHeight()
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l", {
+								onclick: (event: MouseEvent) => {
+									if (client.isMobileDevice()) {
+										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
+									} else {
+										this._handleAnchorClick(event)
+									}
+								},
 							},
-							onupdate: (vnode) => {
-								if (this._domBodyDeferred.promise.isPending()) {
+							m("#mail-body.selectable.touch-callout.break-word-links"
+								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " ")
+								+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+								oncreate: vnode => {
 									this._domBodyDeferred.resolve(vnode.dom)
-								}
-							},
-							onclick: (event: Event) => this._handleAnchorClick(event),
-							onsubmit: (event: Event) => this._confirmSubmit(event),
-							style: {'line-height': this._bodyLineHeight}
-						}, (this._mailBody == null && !this._errorOccurred)
-							? m(".progress-panel.flex-v-center.items-center", {
-								style: {
-									height: '200px'
-								}
-							}, [
-								progressIcon(),
-								m("small", lang.get("loading_msg"))
-							])
-							: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
-								? m(errorMessageBox)
-								: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+									this._updateLineHeight()
+									this._rescale(false)
+								},
+								onupdate: (vnode) => {
+									if (this._domBodyDeferred.promise.isPending()) {
+										this._domBodyDeferred.resolve(vnode.dom)
+									}
+									this._rescale(false)
+								},
+								onsubmit: (event: Event) => this._confirmSubmit(event),
+								style: {'line-height': this._bodyLineHeight, 'transform-origin': 'top left'},
+							}, (this._mailBody == null && !this._errorOccurred)
+								? m(".progress-panel.flex-v-center.items-center", {
+									style: {
+										height: '200px'
+									}
+								}, [
+									progressIcon(),
+									m("small", lang.get("loading_msg"))
+								])
+								: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
+									? m(errorMessageBox)
+									: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
+						)
 					]
-				)
+				),
 			]
 		}
 
@@ -539,6 +564,40 @@ export class MailViewer {
 
 	_isAnnouncement(): boolean {
 		return isExcludedMailAddress(this.mail.sender.address)
+	}
+
+	_rescale(animate: boolean) {
+		if (!this._domBodyDeferred.promise.isFulfilled()) {
+			return
+		}
+		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
+		const child = this._domBodyDeferred.promise.value()
+		if (containerWidth > (child.scrollWidth)) {
+			return
+		}
+		// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
+		// nested elements inside childs may overlow into the padding so we add another one.
+		const width = child.scrollWidth + 3 * size.hpad_large
+
+		const scale = containerWidth / width
+		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
+		// if(this._domMailViewer){
+		// 	const domContainer = this._domMailViewer
+		// 	console.log("container clientWidth", domContainer.clientWidth, "scrollWidth", domContainer.scrollWidth, "offsetWidth", domContainer.offsetWidth )
+		// }
+
+		if (!this._isScaling) {
+			child.style.transform = ''
+			child.style.marginBottom = ''
+		} else {
+			const heightDiff = child.scrollHeight - child.scrollHeight * scale
+			child.style.transform = `scale(${scale})`
+			child.style.marginBottom = `${-heightDiff}px`
+		}
+
+		if (animate) {
+			child.style.transition = 'transform 200ms ease-in-out'
+		}
 	}
 
 	_setupShortcuts() {
@@ -860,10 +919,14 @@ export class MailViewer {
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
-			if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+			else if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
+			} else if (anchorElement) {
+				let newClickEvent: MaybeSyntheticEvent = new MouseEvent("click")
+				newClickEvent.synthetic = true
+				anchorElement.dispatchEvent(newClickEvent)
 			}
 		}
 	}
@@ -963,5 +1026,27 @@ export class MailViewer {
 		} else {
 			fileController.downloadAll(this._attachments)
 		}
+	}
+
+	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
+		const lastClick = this._lastBodyClickTime
+		const now = Date.now()
+		if (e.synthetic) {
+			return
+		}
+		e.preventDefault()
+		if (Date.now() - lastClick < 200) {
+			this._isScaling = !this._isScaling
+			this._lastBodyClickTime = 0
+			;(e: any).redraw = false
+			doubleClickAction(e)
+		} else {
+			setTimeout(() => {
+				if (this._lastBodyClickTime === now) {
+					singleClickAction(e)
+				}
+			}, 200)
+		}
+		this._lastBodyClickTime = now
 	}
 }

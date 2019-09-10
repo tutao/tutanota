@@ -1,7 +1,7 @@
 // @flow
 
 import m from "mithril"
-import {getDayShifted, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {formatTime} from "../misc/Formatter"
 import {
@@ -143,7 +143,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			}),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = size.calendar_hour_height * new Date().getHours() - 100
+					vnode.dom.scrollTop = size.calendar_hour_height * 6
 					this._domElements.push(vnode.dom)
 				},
 				onscroll: (event) => {
@@ -169,6 +169,11 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				)),
 				m(".flex.flex-grow", thisWeek.week.map((weekday, i) => {
 						const events = thisWeek.eventsPerDay[i]
+						const newEventHandler = (hours, minutes) => {
+							const eventDate = new Date(weekday)
+							eventDate.setHours(hours, minutes)
+							attrs.onNewEvent(eventDate)
+						}
 						return m(".flex-grow.calendar-column-border", {
 							style: {
 								height: px(calendarDayTimes.length * size.calendar_hour_height)
@@ -178,11 +183,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 							groupColors: attrs.groupColors,
 							events: events,
 							displayTimeIndicator: weekday.getTime() === todayTimestamp,
-							onTimePressed: (hours, minutes) => {
-								const eventDate = new Date(weekday)
-								eventDate.setHours(hours, minutes)
-								attrs.onNewEvent(eventDate)
-							}
+							onTimePressed: newEventHandler,
+							onTimeContextPressed: newEventHandler,
 						}))
 					})
 				)
@@ -231,7 +233,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			maxColumns = Math.max(maxColumns, columns.length)
 			return columns.map((rows, c) =>
 				rows.map((event) => {
-					const eventEnd = isAllDayEvent(event) ? getDayShifted(getEventEnd(event), -1) : event.endTime
+					const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event), -1) : event.endTime
 					const dayOfStartDateInWeek = getDiffInDays(getEventStart(event), firstDayOfWeek)
 					const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
 					const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * dayWidth

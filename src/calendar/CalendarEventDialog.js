@@ -165,32 +165,17 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	stream.scan((oldStartDate, startDate) => {
 		const endDate = endDatePicker.date()
 		if (startDate && endDate) {
-			if (endDate < startDate) {
-				const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
-				endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
-			} else if (endDate.getTime() === startDate.getTime()) {
-				fixTime()
-			}
+			const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
+			endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
+			fixTime()
 		}
 		return startDate
 	}, startDatePicker.date(), startDatePicker.date)
 
-
-	stream.scan((oldEndDate, endDate) => {
-		const startDate = startDatePicker.date()
-		if (endDate && startDate) {
-			if (endDate < startDate) {
-				const diff = oldEndDate ? getDiffInDays(oldEndDate, startDate) : 1
-				startDatePicker.setDate(DateTime.fromJSDate(endDate).minus({days: diff}).toJSDate())
-			} else if (endDate.getTime() === startDate.getTime()) {
-				fixTime()
-			}
-		}
-
-		return endDate
-	}, endDatePicker.date(), endDatePicker.date)
+	let oldStartTime: string = startTime()
 
 	function onStartTimeSelected(value) {
+		oldStartTime = startTime()
 		startTime(value)
 		let startDate = neverNull(startDatePicker.date())
 		let endDate = neverNull(endDatePicker.date())
@@ -203,19 +188,21 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	 * Check if the start time is after the end time and fix that
 	 */
 	function fixTime() {
+		const parsedOldStartTime = oldStartTime && parseTime(oldStartTime)
 		const parsedStartTime = parseTime(startTime())
 		const parsedEndTime = parseTime(endTime())
-		if (!parsedStartTime || !parsedEndTime) {
+		if (!parsedStartTime || !parsedEndTime || !parsedOldStartTime) {
 			return
 		}
-		if (parsedEndTime.hours * 60 + parsedEndTime.minutes <= parsedStartTime.hours * 60 + parsedStartTime.minutes) {
-			if (parsedStartTime.minutes < 30) {
-				endTime(timeStringFromParts(parsedStartTime.hours, parsedStartTime.minutes + 30, amPmFormat))
-			} else {
-				endTime(timeStringFromParts(parsedStartTime.hours + 1, parsedStartTime.minutes - 30, amPmFormat))
-			}
-			m.redraw()
-		}
+		const endTotalMinutes = parsedEndTime.hours * 60 + parsedEndTime.minutes
+		const startTotalMinutes = parsedStartTime.hours * 60 + parsedStartTime.minutes
+		const diff = endTotalMinutes - parsedOldStartTime.hours * 60 - parsedOldStartTime.minutes
+		const newEndTotalMinutes = startTotalMinutes + diff
+		let newEndHours = Math.floor(newEndTotalMinutes / 60)
+		if (newEndHours > 23) newEndHours = 23
+		const newEndMinutes = newEndTotalMinutes % 60
+		endTime(timeStringFromParts(newEndHours, newEndMinutes, amPmFormat))
+		m.redraw()
 	}
 
 	function renderStopConditionValue(): Children {

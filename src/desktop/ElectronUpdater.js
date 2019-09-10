@@ -46,6 +46,11 @@ export class ElectronUpdater {
 			this._foundKey.promise
 			    .then(() => this._verifySignature(updateInfo))
 			    .then(() => this._downloadUpdate())
+			    .catch(UpdateError, e => {
+				    this._logger.warn("invalid signature, could not update", e)
+			    })
+		}).on('update-not-available', info => {
+			this._logger.info("update not available:", info)
 		}).on('update-downloaded', info => {
 			this._logger.info("update-downloaded")
 			this._stopPolling()
@@ -177,7 +182,8 @@ export class ElectronUpdater {
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
-			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval") || this._fallbackPollInterval)
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval")
+				|| this._fallbackPollInterval)
 			this._checkUpdate()
 		}
 	}

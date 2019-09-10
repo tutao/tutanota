@@ -12,9 +12,9 @@ import {
 import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 import {valueToDefault} from "./CryptoFacade"
-import {inflate} from "pako_inflate"
 import EC from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../Env"
+import {uncompress} from "../lz4"
 
 assertWorkerOrNode()
 
@@ -211,8 +211,8 @@ function decompressString(compressed: Uint8Array): string {
 	if (compressed.length === 0) {
 		return ""
 	}
-	const uncompressedBytes = inflate(compressed)
-	return utf8Uint8ArrayToString(uncompressedBytes)
+	const output = uncompress(compressed)
+	return utf8Uint8ArrayToString(output)
 }
 
 

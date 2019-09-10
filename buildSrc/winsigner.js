@@ -5,11 +5,11 @@ const fs = Promise.promisifyAll(require("fs-extra"))
 const spawn = require('child_process').spawn
 
 function signer(args) {
-	const certificateFile = process.env["WIN_CSC_LINK"]
-	const certificatePassword = process.env["WIN_CSC_KEY_PASSWORD"]
+	const certificateFile = process.env["WIN_CSC_FILE"]
+	const hsmPin = process.env["HSM_USER_PIN"]
 	const extension = "." + args.path.split(".").pop()
 	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
-	const command = "/usr/bin/osslsigncode"
+	const command = "/opt/osslsigncode/osslsigncode"
 
 	//  Timestamping:
 	//  1. The client application creates a hashed value of the data to the timestamp server.
@@ -22,22 +22,37 @@ function signer(args) {
 	//  http://timestamp.comodoca.com/authenticode
 	//  http://www.startssl.com/timestamp
 
+	if (!certificateFile) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• set WIN_CSC_FILE env var")
+		return Promise.reject(new Error(args.path))
+	}
+
+	if (!hsmPin) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• set  HSM_USER_PIN env var")
+		return Promise.reject(new Error(args.path))
+	}
+
+	if (!fs.existsSync(command)) {
+		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("\t• install osslsigncode")
+		return Promise.reject(new Error(args.path))
+	}
+
 	const commandArguments = [
 		"-in", unsignedFileName,
 		"-out", args.path,
-		"-pkcs12", certificateFile,
-		"-pass", certificatePassword,
+		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines/pkcs11.so",
+		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
+		"-certs", certificateFile,
+		"-key", "10",
+		"-pass", hsmPin,
 		"-h", args.hash ? args.hash : "sha256",
 		"-t", "http://timestamp.comodoca.com/authenticode",
 		"-n", "tutanota-desktop"
 	]
 
-	if (!(certificateFile && certificatePassword && fs.existsSync(command))) {
-		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
-		console.log("\t• install osslsigncode")
-		console.log("\t• set WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD env vars")
-		return Promise.resolve(args.path)
-	}
 	fs.renameSync(args.path, unsignedFileName)
 	console.log(`spawning "${command}"`)
 	// only for testing, would print certificate password to logs, otherwise

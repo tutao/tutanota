@@ -46,11 +46,11 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
+						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 						    sh '''
 						    export JENKINS=TRUE;
-						    export WIN_CSC_KEY_PASSWORD=${PW};
-						    export WIN_CSC_LINK="/opt/etc/comodo-codesign.p12";
+						    export HSM_USER_PIN=${PW};
+						    export WIN_CSC_FILE="/opt/etc/codesign.crt";
 						    node dist -ew '''
 						}
 						dir('build') {
@@ -69,13 +69,7 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
-							sh '''
-							export JENKINS=TRUE;
-							export MAC_CSC_KEY_PASSWORD=${PW};
-							export MAC_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -em '''
-						}
+						sh 'node dist -em'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'mac_installer_test'
                             stash includes: 'desktop/*', name:'mac_installer'
@@ -96,13 +90,7 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
-						withCredentials([string(credentialsId: 'WIN_CSC_KEY_PASSWORD', variable: 'PW')]){
-							sh '''
-							export JENKINS=TRUE;
-							export LINUX_CSC_KEY_PASSWORD=${PW};
-							export LINUX_CSC_LINK="/opt/etc/comodo-codesign.p12";
-							node dist -el '''
-						}
+						sh 'node dist -el'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
 							stash includes: 'desktop/*', name:'linux_installer'
@@ -153,7 +141,11 @@ pipeline {
                     unstash 'mac_installer_test'
                     unstash 'win_installer_test'
 				}
-				sh 'node dist -edp release'
+				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
+					sh '''
+					export HSM_USER_PIN=${PW};
+					node dist -edp release '''
+				}
             }
         }
     }

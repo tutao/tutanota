@@ -97,14 +97,16 @@ export class DatePicker {
 			child: {
 				view: () => m(VisualDatePicker, {
 					selectedDate: date || this.date(),
-					onDateSelected: (newDate) => {date = newDate},
+					onDateSelected: (newDate, dayClick) => {
+						if (dayClick) {
+							this.setDate(newDate)
+							dialog.close()
+						}
+					},
 					wide: true
 				}),
 			},
-			okAction: () => {
-				date && this.setDate(date)
-				dialog.close()
-			},
+			okAction: null,
 			allowCancel: true
 		})
 	}

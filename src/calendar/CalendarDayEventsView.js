@@ -17,6 +17,7 @@ export type Attrs = {
 	events: Array<CalendarEvent>,
 	displayTimeIndicator: boolean,
 	onTimePressed: (hours: number, minutes: number) => mixed,
+	onTimeContextPressed: (hours: number, minutes: number) => mixed,
 }
 
 export const calendarDayTimes = numberRange(0, 23).map((n) => {
@@ -35,7 +36,6 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 				oncreate: (vnode) => {
 					this._dayDom = vnode.dom
 					m.redraw()
-					vnode.dom.scrollTop = getTimeIndicatorPosition(new Date()) - 60
 				}
 			},
 			[
@@ -44,6 +44,10 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 							e.stopPropagation()
 							vnode.attrs.onTimePressed(n.getHours(), n.getMinutes())
 						},
+						oncontextmenu: (e) => {
+							vnode.attrs.onTimeContextPressed(n.getHours(), n.getMinutes())
+							e.preventDefault()
+						}
 					},
 					)
 				),

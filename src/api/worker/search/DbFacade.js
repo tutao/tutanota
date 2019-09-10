@@ -333,7 +333,7 @@ export class IndexedDbTransaction implements DbTransaction {
 
 		if (target && target.error
 			&& (target.error.name === "UnknownError"
-				|| (typeof target.error.message === "string" && target.error.message.contains("UnknownError")))) {
+				|| (typeof target.error.message === "string" && target.error.message.includes("UnknownError")))) {
 			this._onUnknownError(target.error)
 			callback(new IndexingNotSupportedError(msg, this._transaction.error))
 		} else {
