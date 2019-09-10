@@ -365,7 +365,7 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m(".rel.margin-are-inset-lr.scroll-x.plr-l", {
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating", {
 								onclick: (event: MouseEvent) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
