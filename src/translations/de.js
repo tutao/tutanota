@@ -1019,6 +1019,21 @@ module.exports = {
 		"deleteCalendarConfirm_msg": "Möchtest du wirklich den Kalender \"{calendar}\" mit allen Ereignissen darin löschen?",
 		"automatic_label": "Automatisch",
 		"settingsForDevice_label": "Einstellungen für dieses Gerät",
-		"showingEventsUntil_msg": "Zeigt alle Ereignisse bis {untilDay} an."
+		"showingEventsUntil_msg": "Zeigt alle Ereignisse bis {untilDay} an.",
+		"sharing_label": "Teilen",
+		"inviteRecipients_label": "Einladungs-Empfänger",
+		"pendingInvites_label": "Offene Einladungen",
+		"calendarShareCapabilityInvite_label": "Termine ändern und Freigabe verwalten",
+		"calendarShareCapabilityWrite_label": "Termine ändern",
+		"calendarShareCapabilityRead_label": "Alle Termindetails anzeigen",
+		"owner_label": "Inhaber",
+		"calendarInvitationLabel": "Einladungen für Kalendar: '{calendarName}'",
+		"calendarInvitationProgress_msg": "Einladung wird versendet.",
+		"sharedCalendars_label": "Geteilte Kalender",
+		"calendarInvitations_label": "Kalendar-Einladungen",
+		"accept_action": "Annehmen",
+		"decline_action": "Ablehnen"
+
+
 	}
 }

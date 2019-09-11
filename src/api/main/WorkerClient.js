@@ -532,8 +532,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
 	}
 
-	shareGroup(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
-		return this._queue.postMessage(new Request("shareGroup", [groupId, recipients, shareCapability]))
+	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+		return this._queue.postMessage(new Request("sendGroupInvitation", [groupId, recipients, shareCapability]))
 	}
 }
 

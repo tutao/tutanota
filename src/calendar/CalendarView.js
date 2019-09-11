@@ -50,6 +50,8 @@ import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
+import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
+import {IncomingInviteTypeRef} from "../api/entities/sys/IncomingInvite"
 
 
 export type CalendarInfo = {
@@ -69,6 +71,11 @@ const CalendarViewTypeByValue = reverse(CalendarViewType)
 
 export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
 
+type CalendarInvitation = {
+	invite: IncomingInvite,
+	name: string
+}
+
 export class CalendarView implements CurrentView {
 
 	sidebarColumn: ViewColumn
@@ -81,6 +88,8 @@ export class CalendarView implements CurrentView {
 	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
 	_hiddenCalendars: Set<Id>
+
+	_calendarInvitations: Array<CalendarInvitation>
 
 	constructor() {
 		const calendarViewValues = [
@@ -142,10 +151,28 @@ export class CalendarView implements CurrentView {
 							})
 						]),
 						this._renderCalendars()
+					]),
+				m(".folders", {style: {color: theme.navigation_button}}, [
+					m(".folder-row.flex-space-between.button-height.plr-l", [
+						m("small.b.align-self-center.ml-negative-xs",
+							lang.get("sharedCalendars_label").toLocaleUpperCase())
+					]),
+					//this._renderCalendars()
+				]),
+				this._calendarInvitations.length > 0
+					? m(".folders", {style: {color: theme.navigation_button}}, [
+						m(".folder-row.flex-space-between.button-height.plr-l", [
+							m("small.b.align-self-center.ml-negative-xs",
+								lang.get("calendarInvitations_label").toLocaleUpperCase())
+						]),
+						this._renderCalendarInvitations()
 					])
+					: null,
+
 			])
-		}, ColumnType.Foreground, 200, 300, () => this._currentViewType
-		=== CalendarViewType.WEEK ? lang.get("month_label") : lang.get("calendar_label"))
+		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK
+			? lang.get("month_label")
+			: lang.get("calendar_label"))
 
 
 		this.contentColumn = new ViewColumn({
@@ -259,6 +286,10 @@ export class CalendarView implements CurrentView {
 			}
 		})
 
+
+		this._calendarInvitations = []
+		this._updateCalendarInvitations()
+
 		this.selectedDate.map((d) => {
 			const previousMonthDate = new Date(d)
 			previousMonthDate.setMonth(d.getMonth() - 1)
@@ -275,6 +306,25 @@ export class CalendarView implements CurrentView {
 			this.entityEventReceived(updates, eventOwnerGroupId)
 		})
 	}
+
+	_updateCalendarInvitations(): Promise<void> {
+		return load(UserGroupRootTypeRef, logins.getUserController().userGroupInfo.group).then(userGroupRoot => {
+			return loadAll(IncomingInviteTypeRef, userGroupRoot.invites).then(calendarInvitations => {
+				return Promise.map(calendarInvitations, (invitation) => {
+					return load(GroupInfoTypeRef, invitation.groupInfo).then(groupInfo => {
+						return {
+							invite: invitation,
+							name: getCalendarName(groupInfo.name)
+						}
+					})
+				}).then(invitations => {
+					this._calendarInvitations = invitations
+					m.redraw()
+				})
+			})
+		})
+	}
+
 
 	handleBackButton(): boolean {
 		const route = m.route.get()
@@ -325,6 +375,38 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	_renderCalendarInvitations(): Children {
+		return this._calendarInvitations.map((invitation) => m(".folder-row.flex-start.plr-l", [
+			m(".flex.flex-grow.center-vertically.button-height", m(".pl-m.b", invitation.name)),
+			m(ButtonN, attachDropdown({
+					label: "more_label",
+					click: noOp,
+					icon: () => Icons.More
+				}, () => [
+					{
+						label: "accept_action",
+						click: () => this._acceptInvite(invitation),
+						type: ButtonType.Dropdown,
+					},
+					{
+						label: "decline_action",
+						click: () => this._denyInvite(invitation),
+						type: ButtonType.Dropdown,
+					}
+				].filter(Boolean)
+			))
+		]))
+	}
+
+	_acceptInvite(invitation: CalendarInvitation) {
+
+	}
+
+	_denyInvite(invitation: CalendarInvitation) {
+
+	}
+
+
 	_renderCalendars(): Children {
 		return this._calendarInfos.isFulfilled() ?
 			Array.from(this._calendarInfos.value().values()).map(({groupRoot, groupInfo}) => {
@@ -360,7 +442,7 @@ export class CalendarView implements CurrentView {
 									type: ButtonType.Dropdown,
 								},
 								{
-									label: () => "Sharing",
+									label: "sharing_label",
 									icon: () => Icons.ContactImport,
 									click: () => showCalendarSharingDialog(groupInfo),
 									type: ButtonType.Dropdown,
@@ -470,7 +552,6 @@ export class CalendarView implements CurrentView {
 			m(ButtonN, {
 				label: 'newEvent_action',
 				click: () => this._newEvent(),
-				icon: () => Icons.Add,
 				type: ButtonType.Floating
 			})
 		])
@@ -580,6 +661,25 @@ export class CalendarView implements CurrentView {
 								this._calendarInfos = this._loadGroupRoots()
 							}
 						})
+					}
+				} else if (isUpdateForTypeRef(IncomingInviteTypeRef, update)) {
+					if (update.operation === OperationType.CREATE) {
+						load(IncomingInviteTypeRef, [update.instanceListId, update.instanceId]).then(invite => {
+							return load(GroupInfoTypeRef, invite.groupInfo).then(groupInfo => {
+								this._calendarInvitations.push({
+									invite: invite,
+									name: getCalendarName(groupInfo.name)
+								})
+								m.redraw()
+							})
+						})
+					} else if (update.operation === OperationType.DELETE) {
+						const found = findAndRemove(this._calendarInvitations, (invitation) => {
+							isSameId(invitation.invite._id, [update.instanceListId, update.instanceId])
+						})
+						if (found) {
+							m.redraw()
+						}
 					}
 				}
 			})

@@ -1,10 +1,10 @@
 //@flow
 import {assertMainOrNode} from "../api/Env"
-import {ContactSuggestion} from "../mail/MailEditor"
 import {nativeApp} from "./NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {isMailAddress} from "../misc/FormatValidator"
+import {ContactSuggestion} from "../misc/ContactSuggestion"
 
 assertMainOrNode()
 

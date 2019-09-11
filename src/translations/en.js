@@ -1016,6 +1016,21 @@ module.exports = {
 		"automatic_label": "Automatic",
 		"settingsForDevice_label": "Settings for this device",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
-		"permissions_label": "Permissions"
+		"permissions_label": "Berechtigungen",
+		"sharing_label": "Sharing",
+		"inviteRecipients_label": "Invitation recipients",
+		"pendingInvites_label": "Pending invites",
+		"calendarShareCapabilityInvite_label": "Make changes and manage shares",
+		"calendarShareCapabilityWrite_label": "Make changes to events",
+		"calendarShareCapabilityRead_label": "Show all event details",
+		"calendarInvitationLabel": "Invitations for calendar: '{calendarName}'",
+		"owner_label": "Owner",
+		"calendarInvitationProgress_msg": "Sending invitation.",
+		"sharedCalendars_label": "Shared calendars",
+		"calendarInvitations_label": "Invitations",
+		"accept_action": "Accept",
+		"decline_action": "Decline"
+
+
 	}
 }
