@@ -4,6 +4,7 @@ import type {BootstrapFeatureTypeEnum, PaymentMethodTypeEnum} from "../../src/ap
 import type {Theme} from "../../src/gui/theme"
 import {Country} from "../../src/api/common/CountryList"
 import type {MoreResultsIndexEntry} from "../../src/api/worker/search/SearchTypes"
+import type {ConversationTypeEnum} from "../../src/api/common/TutanotaConstants"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -132,6 +133,9 @@ type WorkerRequestType = 'setup'
 	| 'scheduleAlarmsForNewDevice'
 	| 'loadAlarmEvents'
 	| 'getDomainValidationRecord'
+	| 'saveLocalDraft'
+	| 'loadLocalDrafts'
+	| 'deleteLocalDraft'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -352,3 +356,22 @@ type PaymentData = {
 }
 
 type WsConnectionState = "connecting" | "connected" | "terminated"
+
+type LocalDraftData = {
+	draftMail: ?IdTuple,
+	subject: string,
+	body: string,
+	senderName: string,
+	senderAddress: string,
+	senderName: string,
+	toRecipients: Array<RecipientInfo>,
+	ccRecipients: Array<RecipientInfo>,
+	bccRecipients: Array<RecipientInfo>,
+	conversationType: ConversationTypeEnum,
+	previousMessageId: ?Id,
+	attachments: Array<Attachment>,
+	confidential: boolean,
+	replyTos: Array<RecipientInfo>,
+}
+
+type Attachment = TutanotaFile | DataFile | FileReference

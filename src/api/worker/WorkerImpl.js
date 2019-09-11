@@ -293,7 +293,16 @@ export class WorkerImpl {
 			},
 			getDomainValidationRecord: (message: Request) => {
 				return locator.customer.getDomainValidationRecord(...message.args)
-			}
+			},
+			saveLocalDraft: (message: Request) => {
+				return locator.mail.saveLocalDraft(...message.args)
+			},
+			loadLocalDrafts: (message: Request): Promise<Array<{key: number, value: LocalDraftData}>> => {
+				return locator.mail.loadLocalDrafts(...message.args)
+			},
+			deleteLocalDraft: (message: Request): Promise<void> => {
+				return locator.mail.deleteLocalDraft(...message.args)
+			},
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

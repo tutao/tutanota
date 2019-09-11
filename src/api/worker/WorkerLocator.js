@@ -62,7 +62,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
 	locator.file = new FileFacade(locator.login)
-	locator.mail = new MailFacade(locator.login, locator.file)
+	locator.mail = new MailFacade(locator.login, locator.file, () => locator.indexer.db)
 	locator.calendar = new CalendarFacade(locator.login, locator.userManagement, cache)
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)

@@ -55,6 +55,7 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
 import {animations, opacity} from "../gui/animation/Animations"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {client} from "../misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -174,6 +175,17 @@ export class MailView implements CurrentView {
 				this.entityEventReceived(update)
 			}
 		})
+
+		if (client.indexedDBSupported()) {
+			Promise.all([worker.loadLocalDrafts(), mailModel.init()])
+			       .then(([drafts]) => {
+				       if (drafts[0]) {
+					       const editor = new MailEditor(mailModel.getUserMailboxDetails())
+					       editor.initFromLocalDraft(drafts[0].key, drafts[0].value).then(() => editor.show())
+				       }
+			       })
+			       .catch(e => console.warn("Could not load local drafts", e))
+		}
 	}
 
 	getViewSlider(): ?IViewSlider {

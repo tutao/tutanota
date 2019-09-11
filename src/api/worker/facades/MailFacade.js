@@ -1,6 +1,6 @@
 // @flow
 import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
-import {aes128RandomKey} from "../crypto/Aes"
+import {aes128RandomKey, aes256Decrypt, aes256Encrypt} from "../crypto/Aes"
 import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
@@ -23,7 +23,13 @@ import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../cryp
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {SysService} from "../../entities/sys/Services"
 import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
-import {uint8ArrayToHex} from "../../common/utils/Encoding"
+import {
+	base64ToUint8Array,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	uint8ArrayToHex,
+	utf8Uint8ArrayToString
+} from "../../common/utils/Encoding"
 import {hexToPublicKey, rsaEncrypt} from "../crypto/Rsa"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {NotFoundError, TooManyRequestsError} from "../../common/error/RestError"
@@ -50,6 +56,8 @@ import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import {fileApp} from "../../../native/FileApp"
+import type {Db} from "../search/SearchTypes"
+import {MailDraftsOS} from "../search/DbFacade"
 
 assertWorkerOrNode()
 
@@ -58,12 +66,14 @@ export class MailFacade {
 	_file: FileFacade;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
+	_dbProvider: () => Db
 
-	constructor(login: LoginFacade, fileFacade: FileFacade) {
+	constructor(login: LoginFacade, fileFacade: FileFacade, dbProvider: () => Db) {
 		this._login = login
 		this._file = fileFacade
 		this._deferredDraftId = null
 		this._deferredDraftUpdate = null
+		this._dbProvider = dbProvider
 	}
 
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id) {
@@ -378,7 +388,7 @@ export class MailFacade {
 	 * @param verifier The external user's verifier, base64 encoded.
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
-	_getExternalGroupKey = function (recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
+	_getExternalGroupKey(recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
 		return loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
@@ -435,6 +445,48 @@ export class MailFacade {
 		})
 	}
 
+	saveLocalDraft(existingId: ?number, draftData: LocalDraftData): Promise<number> {
+		return this._getDb()
+		           .then((db) => {
+			           // Do not serialize attachments for now
+			           const prepared = Object.assign({}, draftData, {
+				           attachments: draftData.attachments.map(serializeAttachment)
+			           })
+			           let stringified = JSON.stringify(prepared)
+			           const encrypted = aes256Encrypt(db.key, stringToUtf8Uint8Array(stringified), db.iv)
+			           return db.dbFacade.createTransaction(false, [MailDraftsOS]).then((transaction) =>
+				           transaction.put(MailDraftsOS, existingId, encrypted))
+		           })
+	}
+
+	loadLocalDrafts(): Promise<Array<{key: number, value: LocalDraftData}>> {
+		return this._getDb()
+		           .then((db) => {
+			           return db.dbFacade.createTransaction(true, [MailDraftsOS])
+			                    .then((transaction) => transaction.getAll(MailDraftsOS))
+			                    .then((rows) => {
+				                    return rows.map((row) => {
+					                    const decrypted = aes256Decrypt(db.key, row.value)
+					                    const stringified = utf8Uint8ArrayToString(decrypted)
+					                    const parsed = JSON.parse(stringified)
+					                    parsed.attachments = parsed.attachments.map(deserializeAttachment)
+					                    return {key: Number(row.key), value: parsed}
+				                    })
+			                    })
+		           })
+	}
+
+	deleteLocalDraft(key: number): Promise<void> {
+		return this._getDb()
+		           .then((db) => db.dbFacade.createTransaction(false, [MailDraftsOS])
+		                           .then((transaction) => transaction.delete(MailDraftsOS, key)))
+	}
+
+	_getDb(): Promise<Db> {
+		const db = this._dbProvider()
+		return db.initialized.return(db)
+	}
+
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		return Promise.each(data, (update) => {
 			if (this._deferredDraftUpdate && this._deferredDraftId && update.operation === OperationType.UPDATE
@@ -479,3 +531,45 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 	})
 }
 
+/**
+ * Serialize attachment so that it can be saved correctly (including binary data)
+ * @param attachment
+ */
+function serializeAttachment(attachment: Attachment): {} {
+	switch (attachment._type) {
+		case "DataFile":
+			return {
+				_type: "DataFile",
+				id: attachment.id,
+				name: attachment.name,
+				mimeType: attachment.mimeType,
+				data: uint8ArrayToBase64(attachment.data),
+				size: attachment.size,
+				cid: attachment.cid,
+			}
+		case "FileReference":
+			return attachment
+		default: // TutanotaFile
+			return Object.assign({}, attachment, {_ownerEncSessionKey: uint8ArrayToBase64(attachment._ownerEncSessionKey)})
+	}
+}
+
+function deserializeAttachment(object: any): Attachment {
+	switch (object._type) {
+		case "DataFile":
+			return ({
+				_type: "DataFile",
+				id: object.id,
+				name: object.name,
+				mimeType: object.mimeType,
+				data: base64ToUint8Array(object.data),
+				size: object.size,
+				cid: object.cid,
+			}: DataFile)
+		case "FileReference":
+			return object
+		default: // TutanotaFile
+			const sessionKey = base64ToUint8Array(object._ownerEncSessionKey)
+			return (Object.assign({}, object, {_ownerEncSessionKey: sessionKey}): TutanotaFile)
+	}
+}

@@ -118,7 +118,7 @@ export class MailEditor {
 	view: Function;
 	_domElement: HTMLElement;
 	_domCloseButton: HTMLElement;
-	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
+	_attachments: Array<Attachment>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_mailChanged: boolean;
 	_showToolbar: boolean;
 	_previousMail: ?Mail;
@@ -128,6 +128,8 @@ export class MailEditor {
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
+	_saveDraftInterval: IntervalID;
+	_localDraftId: ?number;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -225,7 +227,7 @@ export class MailEditor {
 				                 .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg")),
 				type: ButtonType.Dropdown
 			}
-		], () => this._mailChanged, 250)
+		], /*showDropdown*/ () => this._mailChanged, /*width*/ 250)
 
 		const headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [closeButtonAttrs],
@@ -255,6 +257,12 @@ export class MailEditor {
 				this._mailChanged = false
 				this._editor.addChangeListener(() => this._mailChanged = true)
 			})
+		}
+
+		if (client.indexedDBSupported()) {
+			this._saveDraftInterval = setInterval(() => {
+				this._saveLocalDraft()
+			}, 10 * 1000 /* 10 seconds*/)
 		}
 
 		let windowCloseUnsubscribe = () => {}
@@ -379,6 +387,39 @@ export class MailEditor {
 			                    help: "send_action"
 		                    }).setCloseHandler(() => closeButtonAttrs.click(null, this._domCloseButton))
 		this._mailChanged = false
+	}
+
+	_saveLocalDraft() {
+		console.log("saving draft")
+		let attachments = this._attachments
+		let senderName = getSenderName(this._mailboxDetails)
+		let to = this.toRecipients.bubbles.map(bubble => bubble.entity)
+		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
+		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
+
+		// _tempBody is only set until the editor is initialized. It might not be the case when
+		// assigning a mail to another user because editor is not shown and we cannot
+		// wait for the editor to be initialized.
+		const body = this._tempBody || replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML
+		worker.saveLocalDraft(this._localDraftId, {
+			draftMail: this.draft && this.draft._id,
+			subject: this.subject.value(),
+			body,
+			attachments,
+			senderName,
+			senderAddress: this._senderField.selectedValue(),
+			toRecipients: to,
+			ccRecipients: cc,
+			bccRecipients: bcc,
+			confidential: this._isConfidential(),
+			conversationType: this.conversationType,
+			replyTos: this._replyTos,
+			previousMessageId: this.previousMessageId,
+		}).then((draftId) => {
+			this._localDraftId = draftId
+		}).catch((e) => {
+			console.warn("Couldn't save the draft locally", e)
+		})
 	}
 
 	_getTemplateLanguages(sortedLanguages: Array<Language>): Promise<Array<Language>> {
@@ -554,8 +595,42 @@ export class MailEditor {
 		})
 	}
 
+	/**
+	 * Init from locally stored draft
+	 * @return Promise<void> when the references mail is loaded (if any). Does not wait for editor to initialize
+	 */
+	initFromLocalDraft(draftId: number, {
+		confidential, conversationType, previousMessageId, senderAddress, toRecipients, ccRecipients, bccRecipients,
+		attachments, subject, body, replyTos, draftMail
+	}: LocalDraftData): Promise<void> {
+		const toMailAddress = ({name, mailAddress}: RecipientInfo) => createMailAddress({name, address: mailAddress})
+		this._localDraftId = draftId
+
+		return Promise.resolve(draftMail && load(MailTypeRef, draftMail).then((draft) => {
+			this.draft = draft
+		})).then(() => {
+			// Not waiting for this promises because we want to show the editor
+			this._setMailData(null, confidential, conversationType, previousMessageId, senderAddress, toRecipients.map(toMailAddress),
+				ccRecipients.map(toMailAddress), bccRecipients.map(toMailAddress), attachments, subject, body, replyTos.map(toMailAddress))
+			// Load inline images and collect them into map
+			Promise.reduce(attachments.filter(a => a.cid != null), (acc, attachment: Attachment) => {
+				return (attachment._type === "DataFile" ? Promise.resolve(attachment) : worker.downloadFileContent(downcast(attachment)))
+					.then((dataFile: DataFile) => {
+						let blob = new Blob([dataFile.data], {type: dataFile.mimeType})
+						acc[neverNull(attachment.cid)] = {url: URL.createObjectURL(blob)}
+						return acc
+					})
+			}, {}).then((inlineImages: {[cid: string]: {url: string}}) => {
+				this._editor.initialized.promise.then(() => {
+					replaceCidsWithInlineImages(this._editor.getDOM(), inlineImages)
+					this._mailChanged = true
+				})
+			})
+		})
+	}
+
 	_setMailData(previousMail: ?Mail, confidential: ?boolean, conversationType: ConversationTypeEnum, previousMessageId: ?string, senderMailAddress: string,
-	             toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string,
+	             toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: $ReadOnlyArray<TutanotaFile | DataFile | FileReference>, subject: string,
 	             body: string, replyTos: EncryptedMailAddress[]): Promise<void> {
 		this._previousMail = previousMail
 		this.conversationType = conversationType
@@ -568,7 +643,7 @@ export class MailEditor {
 		this._attachments = []
 		this._tempBody = body
 
-		this.attachFiles(((attachments: any): Array<TutanotaFile | DataFile | FileReference>))
+		this.attachFiles(attachments)
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		const promise = this._editor.initialized.promise.then(() => {
@@ -631,6 +706,10 @@ export class MailEditor {
 
 	_close() {
 		locator.eventController.removeEntityListener(this._entityEventReceived)
+		clearInterval(this._saveDraftInterval)
+		if (this._localDraftId) {
+			worker.deleteLocalDraft(this._localDraftId)
+		}
 		this.dialog.close()
 	}
 
@@ -658,7 +737,7 @@ export class MailEditor {
 		}
 	}
 
-	attachFiles(files: Array<TutanotaFile | DataFile | FileReference>) {
+	attachFiles(files: $ReadOnlyArray<TutanotaFile | DataFile | FileReference>) {
 		let totalSize = 0
 		this._attachments.forEach(file => {
 			totalSize += Number(file.size)
@@ -782,7 +861,7 @@ export class MailEditor {
 				this.attachFiles(attachments)
 				this._mailChanged = false
 			})
-		})
+		}).then(() => {this._localDraftId && worker.deleteLocalDraft(this._localDraftId)})
 
 		if (showProgress) {
 			return showProgressDialog("save_msg", promise)

@@ -9,7 +9,13 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {load, loadRoot, setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
+import type {
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum,
+	CloseEventBusOptionEnum,
+	ConversationTypeEnum,
+	EntropySrcEnum
+} from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
@@ -523,6 +529,18 @@ export class WorkerClient {
 
 	getDomainValidationRecord(): Promise<string> {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
+	}
+
+	saveLocalDraft(existingId: ?number, draftData: LocalDraftData): Promise<number> {
+		return this._queue.postMessage(new Request("saveLocalDraft", [existingId, draftData]))
+	}
+
+	loadLocalDrafts(): Promise<Array<{key: number, value: LocalDraftData}>> {
+		return this._queue.postMessage(new Request("loadLocalDrafts", []))
+	}
+
+	deleteLocalDraft(draftId: number): Promise<void> {
+		return this._queue.postMessage(new Request("deleteLocalDraft", [draftId]))
 	}
 }
 

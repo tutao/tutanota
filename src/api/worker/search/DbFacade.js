@@ -11,6 +11,7 @@ export const ElementDataOS: ObjectStoreName = "ElementData"
 export const MetaDataOS: ObjectStoreName = "MetaData"
 export const GroupDataOS: ObjectStoreName = "GroupMetaData"
 export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
+export const MailDraftsOS: ObjectStoreName = "MailDrafts"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
@@ -18,7 +19,7 @@ export type IndexName = string
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 export const indexName = (indexName: IndexName): string => indexName
 
-const DB_VERSION = 3
+const DB_VERSION = 4
 
 
 export interface DbTransaction {
@@ -82,9 +83,9 @@ export class DbFacade {
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
-							//console.log("upgrade db", event)
 							let db = event.target.result
-							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
+
+							if (event.oldVersion < 3 && event.oldVersion !== 0) {
 								if (onupgrade) onupgrade()
 
 								this._deleteObjectStores(db,
@@ -95,18 +96,21 @@ export class DbFacade {
 									SearchTermSuggestionsOS,
 									SearchIndexMetaDataOS
 								)
-							}
-
-							try {
-								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
-								const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
-								db.createObjectStore(ElementDataOS)
-								db.createObjectStore(MetaDataOS)
-								db.createObjectStore(GroupDataOS)
-								db.createObjectStore(SearchTermSuggestionsOS)
-								metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
-							} catch (e) {
-								callback(new DbError("could not create object store searchindex", e))
+							} else if (event.oldVersion === 3) {
+								db.createObjectStore(MailDraftsOS, {autoIncrement: true})
+							} else {
+								try {
+									db.createObjectStore(SearchIndexOS, {autoIncrement: true})
+									const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
+									db.createObjectStore(ElementDataOS)
+									db.createObjectStore(MetaDataOS)
+									db.createObjectStore(GroupDataOS)
+									db.createObjectStore(SearchTermSuggestionsOS)
+									db.createObjectStore(MailDraftsOS, {autoIncrement: true})
+									metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
+								} catch (e) {
+									callback(new DbError("could not create object store searchindex", e))
+								}
 							}
 						}
 

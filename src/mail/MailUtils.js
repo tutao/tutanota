@@ -38,7 +38,6 @@ import type {AllIconsEnum, lazyIcon} from "../gui/base/Icon"
 import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import type {InlineImages} from "./MailViewer"
 
 assertMainOrNode()
 
@@ -467,7 +466,7 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 }
 
 
-export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages) {
+export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: $ReadOnly<{[cid: string]: {url: string}}>) {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	imageElements.forEach((imageElement) => {
