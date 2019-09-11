@@ -301,6 +301,19 @@ type CustomerInfo = {
 	takeoverCustomer: ?Id;
 }
 
+type GroupInvitation = {
+	_type: TypeRef<GroupInvitation>;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	capability: NumberString;
+	invitedMailAddress: string;
+
+	group: Id;
+	invitor: Id;
+}
+
 type MailAddressToGroup = {
 	_type: TypeRef<MailAddressToGroup>;
 	_format: NumberString;

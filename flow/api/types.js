@@ -184,6 +184,8 @@ type NativeRequestType = 'init'
 	| 'sendGroupInvitation'
 	| 'calendarInvitationProgress_msg'
 	| 'shareGroup'
+	| 'sendGroupInvitation'
+
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'
