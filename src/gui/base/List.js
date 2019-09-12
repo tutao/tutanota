@@ -19,6 +19,8 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
+import {isColorLight} from "../main-styles"
+import {theme} from "../theme"
 
 assertMainOrNode()
 
@@ -191,6 +193,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 												transform: `translateY(-${this._config.rowHeight}px)`,
 												paddingTop: px(15),
 												paddingBottom: px(15),
+												transition: "100ms filter",
 											},
 											ondragstart: (event) => this._dragstart(event, virtualRow)
 										}, virtualRow.render())
@@ -273,8 +276,10 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 		let timeoutId: ?TimeoutID
 		let touchStartCoords: ?{x: number, y: number}
+		const isLightTheme = isColorLight(theme.list_bg.slice(1))
 
 		domElement.addEventListener("touchstart", (e: TouchEvent) => {
+			if (virtualRow.domElement) virtualRow.domElement.style.filter = isLightTheme ? "brightness(95%)" : "brightness(110%)"
 			touchStartTime = Date.now()
 			if (this._config.multiSelectionAllowed) {
 				// Activate multi selection after pause
@@ -292,6 +297,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			}
 		})
 		const touchEnd = () => {
+			if (virtualRow.domElement) virtualRow.domElement.style.filter = ""
 			timeoutId && clearTimeout(timeoutId)
 		}
 
