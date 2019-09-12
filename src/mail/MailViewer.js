@@ -6,14 +6,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {
-	formatDateTime,
-	formatDateWithWeekday,
-	formatStorageSize,
-	formatTime,
-	getDomainWithoutSubdomains,
-	urlEncodeHtmlTags
-} from "../misc/Formatter"
+import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -365,7 +358,8 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating", {
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
+							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
 								onclick: (event: MouseEvent) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
@@ -375,8 +369,7 @@ export class MailViewer {
 								},
 							},
 							m("#mail-body.selectable.touch-callout.break-word-links"
-								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " ")
-								+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
 								oncreate: vnode => {
 									this._domBodyDeferred.resolve(vnode.dom)
 									this._updateLineHeight()
@@ -583,11 +576,11 @@ export class MailViewer {
 	}
 
 	_rescale(animate: boolean) {
-		if (!this._domBodyDeferred.promise.isFulfilled()) {
+		if (!client.isMobileDevice() || !this._domBodyDeferred.promise.isFulfilled()) {
 			return
 		}
-		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
 		const child = this._domBodyDeferred.promise.value()
+		const containerWidth = child.offsetWidth
 		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
 		// if(this._domMailViewer){
 		// 	const domContainer = this._domMailViewer
@@ -598,9 +591,7 @@ export class MailViewer {
 			child.style.transform = ''
 			child.style.marginBottom = ''
 		} else {
-			// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
-			// nested elements inside childs may overlow into the padding so we add another one.
-			const width = child.scrollWidth + 3 * size.hpad_large
+			const width = child.scrollWidth
 			const scale = containerWidth / width
 			const heightDiff = child.scrollHeight - child.scrollHeight * scale
 			child.style.transform = `scale(${scale})`
