@@ -30,6 +30,12 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 	_redrawIntervalId: ?IntervalID
 	_selectedDate: Date
 	_domElements = []
+	_scrollPosition: number
+
+
+	constructor() {
+		this._scrollPosition = size.calendar_hour_height * 6
+	}
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
 		this._selectedDate = vnode.attrs.selectedDate
@@ -122,7 +128,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 			]),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = size.calendar_hour_height * 6
+					vnode.dom.scrollTop = this._scrollPosition
 					this._domElements.push(vnode.dom)
 				},
 				onscroll: (event) => {
@@ -132,6 +138,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 								dom.scrollTop = event.target.scrollTop
 							}
 						})
+						this._scrollPosition = event.target.scrollTop
 					}
 				},
 			}, [
