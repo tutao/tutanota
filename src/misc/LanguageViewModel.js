@@ -386,6 +386,9 @@ export function getAvailableLanguageCode(code: string): string {
  * @param code
  */
 export function languageCodeToTag(code: string): string {
+	if (code === "de_sie") {
+		return "de"
+	}
 	const indexOfUnderscore = code.indexOf("_")
 	if (indexOfUnderscore === -1) {
 		return code
