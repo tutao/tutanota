@@ -18,7 +18,7 @@ import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../Env"
 import {aesDecryptFile, aesEncryptFile} from "../../../native/AesApp"
 import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/FileApp"
-import {createDataFile} from "../../common/DataFile"
+import {convertToDataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 
 assertWorkerOrNode()
@@ -48,7 +48,7 @@ export class FileFacade {
 				let body = JSON.stringify(entityToSend)
 				return this._restClient.request(REST_PATH, HttpMethod.GET, {}, headers, body, MediaType.Binary)
 				           .then(data => {
-					           return createDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
+					           return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 				           })
 			})
 		})

@@ -66,8 +66,9 @@ import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeS
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {FolderExpander} from "../gui/base/FolderExpander"
-import {getListId, isSameId} from "../api/common/utils/EntityUtils";
 import {archiveMails, isNewMailActionAvailable, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
+import {selectMsgFiles} from "./Exporter"
+import {getListId, isSameId} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 
@@ -96,7 +97,7 @@ export class MailView implements CurrentView {
 	_mailboxExpanders: Map<Id, MailboxExpander>; // mailGroupId -> expander
 	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
-	_actionBar: lazy<ActionBar>;
+	_actionBarButtons: lazy<ButtonAttrs[]>;
 	_throttledRouteSet: (string) => void;
 	_countersStream: Stream<*>;
 
@@ -137,7 +138,7 @@ export class MailView implements CurrentView {
 		})
 
 		this._multiMailViewer = new MultiMailViewer(this)
-		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
+		this._actionBarButtons = lazyMemoized(() => this._multiMailViewer.getActionBarButtons())
 
 		const mailColumnTitle = () => {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : [];
@@ -228,7 +229,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.HOME,
 				exec: () => {
-					if (this.mailViewer) this.mailViewer.scrollToTop()
+					selectMsgFiles()
 				},
 				help: "scrollToTop_action"
 			},
@@ -807,7 +808,11 @@ export class MailView implements CurrentView {
 		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this.mailList.list.selectNone(),
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			content: this._actionBar()
+			content: {
+				view: () => {
+					m(ActionBar, {buttons: this._actionBarButtons()})
+				}
+			}
 		}) : null
 	}
 }

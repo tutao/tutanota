@@ -60,7 +60,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	getFolder
+	makeMailBundle, getFolder,
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -121,10 +121,11 @@ import {defaultSendMailModel} from "./SendMailModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
+import {fileApp} from "../native/FileApp"
+import {isNewMailActionAvailable, moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import type {MailModel} from "./MailModel"
 import type {ContactModel} from "../contacts/ContactModel"
 import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
-import {isNewMailActionAvailable, moveMails, promptAndDeleteMails, showDeleteConfirmationDialog} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -607,7 +608,13 @@ export class MailViewer {
 			icon: () => Icons.Trash,
 			colors,
 		}))
-
+		if (isDesktop() /* && env.platformId === "win32" */) { // TODO Switch properly before release
+			actions.push(m(ButtonN, {
+				label: "dragAndDropExport_action",
+				click: () => showProgressDialog("pleaseWait_msg", makeMailBundle(mail)).then(bundle => fileApp.mailBundleExport([bundle])),
+				icon: () => Icons.Open,
+			}))
+		}
 		if (mail.state !== MailState.DRAFT) {
 			actions.push(m(ButtonN, {
 				label: "more_label",

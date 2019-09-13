@@ -10,8 +10,14 @@ import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} f
 import type {MailView} from "./MailView"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {assertMainOrNode} from "../api/Env"
-import {getArchiveFolder, getFolderName, getInboxFolder, getSenderOrRecipientHeading, isTutanotaTeamMail} from "./MailUtils"
+import {assertMainOrNode, isDesktop} from "../api/Env"
+import {
+	makeMailBundle,
+	getArchiveFolder,
+	getFolderName,
+	getSenderOrRecipientHeading,
+	isTutanotaTeamMail, getInboxFolder
+} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
@@ -30,6 +36,7 @@ import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
 import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 
 assertMainOrNode()
 

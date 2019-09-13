@@ -28,6 +28,7 @@ declare module 'electron' {
 		createEmpty(): NativeImage;
 		createFromPath(string): NativeImage;
 		createFromBuffer(Buffer, opts?: {width: number, height: number, scaleFactor: number}): NativeImage;
+		createFromDataURL(string): NativeImage
 	};
 	declare export var shell: {
 		// Open the given external protocol URL in the desktop's default manner.
@@ -400,6 +401,7 @@ declare module 'electron' {
 		on(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		once(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		emit(BrowserWindowEvent): void;
+		// removeListener(BrowserWindowEvent, (Event, ...any) => void): BrowserWindow;
 		focus(): void;
 		hide(): void;
 		close(): void;
@@ -475,6 +477,8 @@ declare module 'electron' {
 		removeAllListeners(event: DesktopNotificationEvent): Notification;
 	}
 
+	declare export type DragInfo = {files: string[] | string, icon?: NativeImage | string}
+
 	declare export class WebContents {
 		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
 		once(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
@@ -502,6 +506,7 @@ declare module 'electron' {
 		paste(): void;
 		undo(): void;
 		redo(): void;
+		startDrag(item: DragInfo): void;
 	}
 
 	declare export class WebFrame {

@@ -1,7 +1,7 @@
 // @flow
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/Env"
 import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
 import {downcast, neverNull} from "../api/common/utils/Utils"
@@ -54,7 +54,7 @@ export class FileController {
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
+	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
 		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).return(null)
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
@@ -89,7 +89,7 @@ export class FileController {
 	/**
 	 * @param allowedExtensions Array of extensions strings without "."
 	 */
-	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
+	showFileChooser(multiple: boolean, allowedExtensions: ?Array<string>): Promise<Array<DataFile>> {
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 
@@ -131,7 +131,7 @@ export class FileController {
 		return promise
 	}
 
-	readLocalFiles(fileList: FileList): Promise<DataFile[]> {
+	readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
 		// create an array of files form the FileList because we can not iterate the FileList directly
 		let nativeFiles = []
 		for (let i = 0; i < fileList.length; i++) {
@@ -143,7 +143,7 @@ export class FileController {
 				reader.onloadend = function (evt: ProgressEvent) {
 					const target: any = evt.target
 					if (target.readyState === reader.DONE && target.result) { // DONE == 2
-						cb(null, createDataFile(nativeFile, new Uint8Array(target.result)))
+						cb(null, convertToDataFile(nativeFile, new Uint8Array(target.result)))
 					} else {
 						cb(new Error("could not load file"))
 					}
@@ -252,7 +252,7 @@ export class FileController {
 	 * @param dataFilesPromises Promise resolving to an array of DataFiles
 	 * @param name the name of the new zip file
 	 */
-	zipDataFiles(dataFilesPromises: Promise<DataFile[]>, name: string): Promise<DataFile> {
+	zipDataFiles(dataFilesPromises: Promise<Array<DataFile>>, name: string): Promise<DataFile> {
 		const file = new File([], name, {type: "application/zip"})
 		//$FlowFixMe[cannot-resolve-module] - we are missing definitions for it
 		const zipPromise = import("jszip")
@@ -263,9 +263,12 @@ export class FileController {
 				zip.file(sanitizeFilename(df.name), df.data, {binary: true})
 			})
 			return zip.generateAsync({type: 'uint8array'})
-		}).then(zf => createDataFile(file, zf))
+		}).then(zf => convertToDataFile(file, zf))
 	}
 }
+
+
+export type MailExportMode = "msg" | "eml"
 
 export const fileController: FileController = new FileController()
 

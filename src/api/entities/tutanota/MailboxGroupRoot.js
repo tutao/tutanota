@@ -59,6 +59,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "OutOfOfficeNotificationRecipientList"
 		},
+		"outOfOfficeNotificationRecipientList": {
+			"name": "outOfOfficeNotificationRecipientList",
+			"id": 1151,
+			"since": 44,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OutOfOfficeNotificationRecipientList",
+			"final": true
+		},
 		"contactFormUserContactForm": {
 			"id": 748,
 			"type": "LIST_ELEMENT_ASSOCIATION",
@@ -79,6 +88,16 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"refType": "OutOfOfficeNotification"
+		},
+		"outOfOfficeNotification": {
+			"name": "outOfOfficeNotification",
+			"id": 1150,
+			"since": 44,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OutOfOfficeNotification",
+			"final": true,
+			"external": false
 		},
 		"participatingContactForms": {
 			"id": 842,

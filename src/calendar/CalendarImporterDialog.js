@@ -20,7 +20,7 @@ import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {createFile} from "../api/entities/tutanota/File"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -109,7 +109,7 @@ function exportCalendarEvents(
 	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
-	return fileController.open(createDataFile(tmpFile, data))
+	return fileController.open(convertToDataFile(tmpFile, data))
 }
 
 function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {

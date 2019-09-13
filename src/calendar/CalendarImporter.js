@@ -7,7 +7,7 @@ import {getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalen
 import {CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
 import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
@@ -52,7 +52,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 	tmpFile.name = `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
-	return createDataFile(tmpFile, data)
+	return convertToDataFile(tmpFile, data)
 }
 
 function wrapIntoCalendar(versionNumber: string, method: string, contents: Array<string>): string {

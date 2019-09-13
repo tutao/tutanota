@@ -3,15 +3,18 @@ import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/En
 import {pad} from "../api/common/utils/StringUtils"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
-import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 import type {Mail} from "../api/entities/tutanota/Mail"
+import {fileController} from "../file/FileController"
 import {EntityClient} from "../api/common/EntityClient"
 
 assertMainOrNode()
+
+let msgFiles: DataFile[] = []
 
 export function mailToEmlFile(entityClient: EntityClient, mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
 	return toEml(entityClient, mail, sanitizedHtmlBody).then(emlString => {
@@ -28,7 +31,15 @@ export function mailToEmlFile(entityClient: EntityClient, mail: Mail, sanitizedH
 		tmpFile.name = filename + ".eml"
 		tmpFile.mimeType = "message/rfc822"
 		tmpFile.size = String(data.byteLength)
-		return createDataFile(tmpFile, data)
+		return convertToDataFile(tmpFile, data)
+	})
+}
+
+export function selectMsgFiles(): void {
+	console.log("show file chooser")
+	fileController.showFileChooser(true, ["msg"]).then(files => {
+		msgFiles = files
+		msgFiles.forEach(f => console.log(f.size))
 	})
 }
 

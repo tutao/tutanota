@@ -10,6 +10,12 @@ import {log} from "./DesktopLog"
 import {uint8ArrayToHex} from "../api/common/utils/Encoding"
 import {cryptoFns} from "./CryptoFns"
 
+import {legalizeFilenames} from "./PathUtils"
+import type {MailBundle} from "../mail/MailUtils"
+import {Email, AttachmentType, MessageEditorFormat} from "oxmsg"
+
+// import type {MsgEditorFormat, AttachmentType} from "oxmsg/"
+
 export class DesktopUtils {
 	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
@@ -135,9 +141,57 @@ export class DesktopUtils {
 		} else {
 			app.once('ready', callback)
 		}
-	}
-}
 
+
+	}
+
+	/**
+	 * Writes files to a new dir in tmp
+	 * @param files Array of named content to write to tmp
+	 * @returns {string} path to the directory in which the files were written
+	 * */
+	// TODO The files are no longer being deleted, as we need them to persist in order for the user to be able to presented them
+	// in their file explorer of choice. Do we need to set up some hook to delete it all later? or should we just count on the OS
+	// to do it's thing
+	async writeFilesToTmp(files: Array<{name: string, content: Uint8Array}>): Promise<string> {
+		const dirPath = path.join(app.getPath('temp'), 'tutanota', randomHexString(12))
+		const legalNames = legalizeFilenames(files.map(f => f.name))
+		const legalFiles = files.map(f => ({
+			content: f.content,
+			name: legalNames[f.name].shift()
+		}))
+		await fs.mkdir(dirPath, {recursive: true})
+		for (let file of legalFiles) {
+			await fs.writeFile(path.join(dirPath, file.name), file.content)
+		}
+		return dirPath
+	}
+
+	async makeMsgFile(bundle: MailBundle): Promise<{name: string, content: Uint8Array}> {
+		const subject = `[Tutanota] ${bundle.subject}`
+		const email = new Email(bundle.isDraft, bundle.isRead)
+			.subject(subject)
+			.bodyHtml(bundle.body)
+			.bodyFormat(MessageEditorFormat.EDITOR_FORMAT_HTML)
+			.sender(bundle.sender.address, bundle.sender.name)
+			.tos(bundle.to)
+			.ccs(bundle.cc)
+			.bccs(bundle.bcc)
+			.replyTos(bundle.replyTo)
+			.sentOn(new Date(bundle.sentOn))
+			.receivedOn(new Date(bundle.receivedOn))
+			.headers(bundle.headers || "")
+
+		for (let attachment of bundle.attachments) {
+			const data = await fs.readFile(attachment.location)
+			email.attach(new Uint8Array(data), attachment.name, attachment.cid || "", AttachmentType.ATTACH_BY_VALUE)
+		}
+
+		return {name: `${subject}_export.msg`, content: email.msg()}
+	}
+
+
+}
 
 const singleton: DesktopUtils = new DesktopUtils()
 export default singleton
