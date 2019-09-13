@@ -1,7 +1,7 @@
 // @flow
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile, createDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {fileController} from "../file/FileController"
@@ -21,7 +21,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
 	tmpFile.name = "vCard3.0.vcf"
 	tmpFile.mimeType = "vCard/rfc2426"
 	tmpFile.size = String(data.byteLength)
-	return fileController.open(createDataFile(tmpFile, data))
+	return fileController.open(convertToDataFile(tmpFile, data))
 }
 
 /**

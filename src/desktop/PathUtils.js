@@ -90,3 +90,51 @@ export function looksExecutable(file: string): boolean {
 
 	return false
 }
+
+/**
+ * take array of file names and add numbered suffixes to the basename of
+ * duplicates. Use to make a legal set of names for files written to disk
+ * at the same time.
+ *
+ * treats file names that already have numbered suffixes as non-numbered.
+ * assumes the file system is case insensitive (a.txt would overwrite A.TXT)
+ *
+ * @param files file names.
+ * @returns map from old names to array of new names. use map[oldname].shift() to replace oldname with newname.
+ */
+export function legalizeFilenames(files: Array<string>): {[string]: Array<string>} {
+	const suffix = (name, suf) => {
+		const ext = path.extname(name)
+		const basename = path.basename(name, ext)
+		return `${basename}-${suf}${ext}`
+	}
+	const unreserveFilename = name => _isReservedFilename(name) ? suffix(name, "") : name
+
+	let cleaned = files.map(sanitizeFilename).map(unreserveFilename)
+	let dedup = new Set(cleaned.map(s => s.toLowerCase()))
+	let conv = cleaned.map((e, i) => [files[i], e]) // pairs [oldname, newname]
+	if (dedup.size === cleaned.length) {
+		return conv.reduce((m, [o, n]) => ({...m, [o]: [n]}), {}) // convert into map oldname -> [newname]
+	}
+
+	const out = {}
+	const news = {}
+	conv.forEach(([o, n]) => {
+		const lower = n.toLowerCase()
+		let newname
+		if (news[lower] === undefined) {
+			news[lower] = 0
+			newname = n
+		} else {
+			news[lower] = news[lower] + 1
+			newname = suffix(n, news[lower])
+		}
+		if (out[o]) {
+			out[o].push(newname)
+		} else {
+			out[o] = [newname]
+		}
+	})
+
+	return out
+}

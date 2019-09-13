@@ -42,7 +42,7 @@ import {createStringWrapper} from "../api/entities/sys/StringWrapper"
 import {DatePicker} from "../gui/base/DatePicker"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
-import {createDataFile} from "../api/common/DataFile"
+import {convertToDataFile} from "../api/common/DataFile"
 import {createFile} from "../api/entities/tutanota/File"
 import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
@@ -527,7 +527,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 					tmpFile.name = "report.csv"
 					tmpFile.mimeType = "text/csv"
 					tmpFile.size = String(data.byteLength)
-					return fileController.open(createDataFile(tmpFile, data))
+					return fileController.open(convertToDataFile(tmpFile, data))
 				}))
 		}
 	}

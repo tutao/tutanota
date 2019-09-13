@@ -1,27 +1,21 @@
 // @flow
 import m from "mithril"
-import {Button} from "./Button"
 import {assertMainOrNode} from "../../api/Env"
+import type {ButtonAttrs} from "./ButtonN"
+import {ButtonN} from "./ButtonN"
 
 assertMainOrNode()
+
+export type ActionBarAttrs = {
+	buttons: ButtonAttrs[]
+}
 
 /**
  * An action bar is a bar that contains buttons (either on the left or on the right).
  */
-export class ActionBar {
-	_buttons: Button[];
-	view: Function;
-
-	constructor() {
-		this._buttons = []
-
-		this.view = (): VirtualElement => {
-			return m(".action-bar.flex-end.items-center", this._buttons.filter(b => b.isVisible()).map(b => m(b)))
-		}
-	}
-
-	add(button: Button): ActionBar {
-		this._buttons.push(button)
-		return this
+export class ActionBar implements MComponent<ActionBarAttrs> {
+	view(vnode: Vnode<ActionBarAttrs>): Children {
+		return m(".action-bar.flex-end.items-center",
+			vnode.attrs.buttons.filter(b => !b.isVisible || b.isVisible()).map(b => m(ButtonN, b)))
 	}
 }

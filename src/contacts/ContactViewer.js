@@ -9,7 +9,6 @@ import {
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel
 } from "./ContactUtils"
-import {ActionBar} from "../gui/base/ActionBar"
 import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/Env"
@@ -28,6 +27,7 @@ import {newMailEditorFromTemplate} from "../mail/MailEditor"
 import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {NBSP} from "../api/common/utils/StringUtils"
+import {ActionBar} from "../gui/base/ActionBar"
 
 assertMainOrNode()
 
@@ -58,9 +58,18 @@ export class ContactViewer {
 	constructor(contact: Contact) {
 		this.contact = contact
 
-		let actions = new ActionBar()
-			.add(new Button('edit_action', () => this.edit(), () => Icons.Edit))
-			.add(new Button('delete_action', () => this.delete(), () => Icons.Trash))
+		const actionBarButtons = [
+			{
+				label: "edit_action",
+				click: () => this.edit(),
+				icon: () => Icons.Edit
+			},
+			{
+				label: "delete_action",
+				click: () => this.delete(),
+				icon: () => Icons.Trash
+			}
+		]
 		let title = this.contact.title ? this.contact.title + " " : ""
 		let nickname = (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")
 		let fullName = this.contact.firstName + " " + this.contact.lastName
@@ -128,7 +137,7 @@ export class ContactViewer {
 								])
 							]),
 							m(".action-bar.align-self-end", [//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
-								m(actions)
+								m(ActionBar, {buttons: actionBarButtons})
 							]),
 						]),
 						m("hr.hr.mt.mb"),

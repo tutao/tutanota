@@ -60,6 +60,7 @@ import {ContactEditor} from "../contacts/ContactEditor";
 import {styles} from "../gui/styles"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {newMailEditor} from "../mail/MailEditor"
+import {ActionBar} from "../gui/base/ActionBar"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {isSameTypeRef, TypeRef} from "../api/common/utils/EntityUtils";
 import {isNewMailActionAvailable} from "../mail/MailGuiUtils"
@@ -540,7 +541,9 @@ export class SearchView implements CurrentView {
 		&& this._searchList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
 			selectNoneHandler: () => this._searchList.selectNone(),
 			selectedEntiesLength: this._searchList.getSelectedEntities().length,
-			content: this._viewer.multiSearchActionBar()
+			content: {
+				view: () => m(ActionBar, {buttons: this._viewer.multiSearchActionBarButtons()})
+			}
 		}) : null
 	}
 

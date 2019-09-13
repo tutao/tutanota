@@ -1,6 +1,8 @@
 [ignore]
 # see https://github.com/facebook/flow/issues/869#issuecomment-256643823
 .*/node_modules/.*
+# unignore oxmsg so we can map to it (to use it's flow types)
+!.*/node_modules/oxmsg/.*
 .*/build/.*
 .*/resources/.*
 .*/buildSrc/.*
@@ -12,10 +14,12 @@ dist.js
 
 [libs]
 flow
+node_modules/oxmsg/flow
 
 [options]
 module.ignore_non_literal_requires=true
 include_warnings=true
+module.name_mapper='^oxmsg$' -> '<PROJECT_ROOT>/node_modules/oxmsg/lib/index.js'
 
 [lints]
 untyped-import=error

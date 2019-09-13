@@ -18,6 +18,7 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import {noOp} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
 import {isSameId, isSameTypeRef} from "../api/common/utils/EntityUtils";
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -96,7 +97,7 @@ export class SearchResultDetailsViewer {
 		}
 	}
 
-	multiSearchActionBar(): ActionBar {
-		return this._multiSearchViewer.actionBar()
+	multiSearchActionBarButtons(): ButtonAttrs[] {
+		return this._multiSearchViewer.actionBarButtons()
 	}
 }
