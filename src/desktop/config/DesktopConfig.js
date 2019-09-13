@@ -1,86 +1,47 @@
 // @flow
 import path from 'path'
-import {promisify} from 'util'
-import {app, dialog} from 'electron'
-import fs from 'fs-extra'
-import {getChangedProps} from "../../api/common/utils/Utils"
+import {downcast, getChangedProps} from "../../api/common/utils/Utils"
+import type {MigrationKind} from "./migrations/DesktopConfigMigrator"
 import applyMigrations from "./migrations/DesktopConfigMigrator"
-
-export const DesktopConfigKey = {
-	any: 'any',
-	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',
-	defaultDownloadPath: 'defaultDownloadPath',
-	enableAutoUpdate: 'enableAutoUpdate',
-	showAutoUpdateOption: 'showAutoUpdateOption',
-	pushIdentifier: 'pushIdentifier',
-	runAsTrayApp: 'runAsTrayApp',
-	lastBounds: 'lastBounds',
-	pushEncSessionKeys: 'pushEncSessionKeys',
-	scheduledAlarms: 'scheduledAlarms',
-	lastProcessedNotificationId: 'lastProcessedNotificationId',
-	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
-	desktopConfigVersion: "desktopConfigVersion"
-}
-export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
-
-export const BuildConfigKey = {
-	pollingInterval: "pollingInterval",
-	checkUpdateSignature: "checkUpdateSignature",
-	appUserModelId: "appUserModelId",
-	initialSseConnectTimeoutInSeconds: "initialSseConnectTimeoutInSeconds",
-	maxSseConnectTimeoutInSeconds: "maxSseConnectTimeoutInSeconds",
-	defaultDesktopConfig: "defaultDesktopConfig",
-	desktophtml: "desktophtml",
-	preloadjs: "preloadjs",
-	iconName: "iconName",
-	fileManagerTimeout: "fileManagerTimeout",
-	pubKeys: "pubKeys",
-}
-export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>
+import {existsSync, promises as fs, writeFileSync} from "fs"
+import {readJSONSync} from "../DesktopUtils"
+import type {Config} from "./ConfigCommon"
+import type {BuildConfigKeyEnum, DesktopConfigKeyEnum} from "./ConfigKeys"
+import type {App} from "electron"
 
 /**
  * manages build and user config
  */
 export class DesktopConfig {
-	_buildConfig: any;
-	_desktopConfig: any; // user preferences as set for this installation
+	_buildConfig: Config;
+	_desktopConfig: Config; // user preferences as set for this installation
 	_desktopConfigPath: string;
 	_onValueSetListeners: {[DesktopConfigKeyEnum]: Array<(val: any)=>void>}
 
-	constructor() {
+	constructor(app: App) {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
 		this._onValueSetListeners = {}
 		try {
-			this._buildConfig = require(path.join(app.getAppPath(), 'package.json'))['tutao-config']
+			this._buildConfig = downcast<Config>(readJSONSync(path.join(app.getAppPath(), 'package.json'))['tutao-config'])
 		} catch (e) {
-			app.once('ready', () => {
-				dialog.showMessageBox(null, {
-					type: 'error',
-					buttons: ['Ok'],
-					defaultId: 0,
-					// no lang yet
-					title: 'Oh No!',
-					message: `Couldn't load config: \n ${e.message}`
-				})
-				process.exit(1)
-			})
-			return
+			throw new Error("Could not load config: " + e)
 		}
 		try {
-			const defaultConf = this._buildConfig["defaultDesktopConfig"]
-			const userConf = fs.existsSync(this._desktopConfigPath)
-				? fs.readJSONSync(this._desktopConfigPath)
+			const defaultConf: Config = downcast(this._buildConfig["defaultDesktopConfig"])
+			const userConf = existsSync(this._desktopConfigPath)
+				? readJSONSync(this._desktopConfigPath)
 				: {}
 			this._desktopConfig = Object.assign({}, defaultConf, userConf)
 			this._desktopConfig = applyMigrations(
-				this._buildConfig["configMigrationFunction"],
+				downcast<MigrationKind>(this._buildConfig["configMigrationFunction"]),
 				this._desktopConfig,
 				defaultConf
 			)
-			fs.mkdirp(path.join(app.getPath('userData')))
-			fs.writeJSONSync(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
+			fs.mkdir(path.join(app.getPath('userData')), {recursive: true})
+			const json = JSON.stringify(this._desktopConfig, null, 2)
+			writeFileSync(this._desktopConfigPath, json)
 		} catch (e) {
-			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
+			this._desktopConfig = downcast<Config>(this._buildConfig["defaultDesktopConfig"])
 			console.error("Could not create or load desktop config:", e.message)
 		}
 	}
@@ -114,7 +75,10 @@ export class DesktopConfig {
 		}
 		return Promise.resolve()
 		              .then(() => this._notifyChangeListeners(key, value, oldVal))
-		              .then(() => promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2}))
+		              .then(() => {
+			              const json = JSON.stringify(this._desktopConfig, null, 2)
+			              return fs.writeFile(this._desktopConfigPath, json)
+		              })
 	}
 
 	/**

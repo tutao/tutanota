@@ -16,9 +16,8 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {createNotAvailableForFreeClickHandler, formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import type {Booking} from "../api/entities/sys/Booking"
@@ -44,7 +43,6 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
-	formatPrice,
 	getIncludedAliases,
 	getIncludedStorageCapacity,
 	getNbrOfUsers,
@@ -70,6 +68,8 @@ import {locator} from "../api/main/MainLocator"
 import {SettingsExpander} from "../settings/SettingsExpander"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
+import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {HttpMethod} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 

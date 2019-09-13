@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {appendEmailSignature, LINE_BREAK, prependEmailSignature} from "../../../src/mail/MailUtils"
 import type {EmailSignatureTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {EmailSignatureType} from "../../../src/api/common/TutanotaConstants"
@@ -11,7 +11,7 @@ import type {LoginController} from "../../../src/api/main/LoginController"
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 
-o.spec("MailUtils", function () {
+o.spec("MailUtilsSignature", function () {
 
 	const mockedAttributes = []
 

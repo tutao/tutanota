@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const WriteCounterDataTypeRef: TypeRef<WriteCounterData> = new TypeRef("monitor", "WriteCounterData")
@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 50,
-			"since": 4,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"counterType": {
-			"name": "counterType",
 			"id": 215,
-			"since": 12,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"row": {
-			"name": "row",
 			"id": 51,
-			"since": 4,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"column": {
-			"name": "column",
 			"id": 52,
-			"since": 4,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"value": {
-			"name": "value",
 			"id": 53,
-			"since": 4,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

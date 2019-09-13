@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {generateRandomSalt, generateKeyFromPassphrase} from "../../../src/api/worker/crypto/Bcrypt"
 import {KeyLength} from "../../../src/api/worker/crypto/CryptoConstants"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"

@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {MailFacade, phishingMarkerValue} from "../../../../src/api/worker/facades/MailFacade"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import {createMail} from "../../../../src/api/entities/tutanota/Mail"

@@ -3,15 +3,20 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
-import {getSpamRuleFieldMapping, getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
 import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
-import type {SpamRuleFieldTypeEnum} from "../api/common/TutanotaConstants"
-import {getSpamRuleType, getSparmRuleField, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
+import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
+import {
+	getSpamRuleType,
+	getSparmRuleField,
+	SpamRuleFieldType,
+	SpamRuleType,
+	TUTANOTA_MAIL_ADDRESS_DOMAINS
+} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {load} from "../api/main/Entity"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, objectEntries} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
@@ -19,6 +24,7 @@ import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
+import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 
@@ -113,4 +119,25 @@ function _isInvalidRule(type: NumberString, value: string, customDomains: string
 		}
 	}
 	return false
+}
+
+export function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
+	return {
+		[SpamRuleFieldType.FROM]: lang.get("from_label"),
+		[SpamRuleFieldType.TO]: lang.get("to_label"),
+		[SpamRuleFieldType.CC]: "CC",
+		[SpamRuleFieldType.BCC]: "BCC",
+	}
+}
+
+export function getSpamRuleFieldMapping(): SelectorItemList<SpamRuleFieldTypeEnum> {
+	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({value, name}))
+}
+
+export function getSpamRuleTypeNameMapping(): SelectorItemList<SpamRuleTypeEnum> {
+	return [
+		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
+		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
+		{value: SpamRuleType.DISCARD, name: lang.get("emailSenderDiscardlist_action")}
+	]
 }

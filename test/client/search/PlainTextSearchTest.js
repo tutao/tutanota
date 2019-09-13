@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_findMatches, _search, search} from "../../../src/search/PlainTextSearch"
 
 o.spec("PlainTextSearchTest", function () {

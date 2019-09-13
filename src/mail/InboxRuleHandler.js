@@ -1,17 +1,15 @@
 //@flow
 import type {MoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
-import {load, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/FormatValidator"
-import {getElementId, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {debounce, getMailHeaders, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {logins} from "../api/main/LoginController"
-import {getInboxFolder} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -19,6 +17,10 @@ import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {splitInChunks} from "../api/common/utils/ArrayUtils"
+import {EntityClient} from "../api/common/EntityClient"
+import type {WorkerClient} from "../api/main/WorkerClient"
+import {getElementId, getListId, isSameId} from "../api/common/utils/EntityUtils";
+import {getInboxFolder} from "./MailUtils"
 
 assertMainOrNode()
 
@@ -26,20 +28,20 @@ const moveMailDataPerFolder: MoveMailData[] = []
 const DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS = 200
 let applyingRules = false // used to avoid concurrent application of rules (-> requests to locked service)
 
-function sendMoveMailRequest(): Promise<void> {
+function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 	if (moveMailDataPerFolder.length) {
 		const moveToTargetFolder = moveMailDataPerFolder.shift()
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		return Promise.each(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
-			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
+			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
 		}).catch(LockedError, e => { //LockedError should no longer be thrown!?!
 			console.log("moving mail failed", e, moveToTargetFolder)
 		}).catch(PreconditionFailedError, e => {
 			// move mail operation may have been locked by other process
 			console.log("moving mail failed", e, moveToTargetFolder)
 		}).finally(() => {
-			return sendMoveMailRequest()
+			return sendMoveMailRequest(worker)
 		})
 	} else {
 		//We are done and unlock for future requests
@@ -49,11 +51,11 @@ function sendMoveMailRequest(): Promise<void> {
 
 // We throttle the moveMail requests to a rate of 50ms
 // Each target folder requires one request
-const applyMatchingRules = debounce(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, () => {
+const applyMatchingRules = debounce(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, (worker: WorkerClient) => {
 	if (applyingRules) return
 	// We lock to avoid concurrent requests
 	applyingRules = true
-	sendMoveMailRequest().finally(() => {
+	sendMoveMailRequest(worker).finally(() => {
 		applyingRules = false
 	})
 })
@@ -78,12 +80,13 @@ export function getInboxRuleTypeName(type: string): string {
  * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
  * @returns true if a rule matches otherwise false
  */
-export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<?IdTuple> {
+export function findAndApplyMatchingRule(worker: WorkerClient, entityClient: EntityClient, mailboxDetail: MailboxDetail, mail: Mail,
+                                         applyRulesOnServer: boolean): Promise<?IdTuple> {
 	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail))
 		|| !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(null)
 	}
-	return _findMatchingRule(mail).then(inboxRule => {
+	return _findMatchingRule(entityClient, mail).then(inboxRule => {
 		if (inboxRule) {
 			let targetFolder = mailboxDetail.folders.filter(folder => folder !== getInboxFolder(mailboxDetail.folders))
 			                                .find(folder => isSameId(folder._id, inboxRule.targetFolder))
@@ -98,7 +101,7 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
 						moveMailData.mails.push(mail._id)
 						moveMailDataPerFolder.push(moveMailData)
 					}
-					applyMatchingRules()
+					applyMatchingRules(worker)
 				}
 				return [targetFolder.mails, getElementId(mail)]
 			} else {
@@ -114,7 +117,7 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
  * Finds the first matching inbox rule for the mail and returns it.
  * export only for testing
  */
-export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
+export function _findMatchingRule(entityClient: EntityClient, mail: Mail): Promise<?InboxRule> {
 	return Promise.reduce(logins.getUserController().props.inboxRules, (resultInboxRule, inboxRule) => {
 
 		if (resultInboxRule) {
@@ -136,7 +139,7 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 				return _checkContainsRule(mail.subject, inboxRule)
 			} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
 				if (mail.headers) {
-					return load(MailHeadersTypeRef, mail.headers)
+					return entityClient.load(MailHeadersTypeRef, mail.headers)
 						.then(mailHeaders => {
 							return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
 						})

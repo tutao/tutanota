@@ -12,7 +12,6 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
@@ -41,6 +40,7 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
+import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/utils/EntityUtils";
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 

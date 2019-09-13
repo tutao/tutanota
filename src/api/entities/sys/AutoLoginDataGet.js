@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const AutoLoginDataGetTypeRef: TypeRef<AutoLoginDataGet> = new TypeRef("sys", "AutoLoginDataGet")
@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 432,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"deviceToken": {
-			"name": "deviceToken",
 			"id": 434,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -34,14 +30,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"userId": {
-			"name": "userId",
 			"id": 433,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "User",
 			"final": false,
-			"external": false
+			"refType": "User"
 		}
 	},
 	"app": "sys",

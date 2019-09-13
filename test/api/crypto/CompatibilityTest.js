@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {hexToPrivateKey, hexToPublicKey, rsaDecryptSync, rsaEncryptSync, sign, verifySignature} from "../../../src/api/worker/crypto/Rsa"
 import {
 	base64ToUint8Array,
@@ -87,7 +87,7 @@ o.spec("crypto compatibility", function () {
 	})
 
 	/*
-	o("aes 256 webcrypto", browser((done, timeout) => {
+	o("aes 256 webcrypto", browser(function (done, timeout) {
 		timeout(2000)
 		Promise.all(
 			compatibilityTestData.aes256Tests.map(td => {

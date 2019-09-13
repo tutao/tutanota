@@ -3,23 +3,15 @@ import m from "mithril"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
-import {HttpMethod, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequestVoid} from "../api/main/Entity"
-import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
-import {MailView} from "./MailView"
+import type {MailView} from "./MailView"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {
-	getArchiveFolder,
-	getFolderName,
-	getInboxFolder,
-	getSenderOrRecipientHeading,
-	isTutanotaTeamMail,
-	showDeleteConfirmationDialog
-} from "./MailUtils"
+import {getArchiveFolder, getFolderName, getInboxFolder, getSenderOrRecipientHeading, isTutanotaTeamMail} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
@@ -36,6 +28,8 @@ import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
+import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -56,7 +50,6 @@ export class MailListView implements Component {
 	listId: Id;
 	mailView: MailView;
 	list: List<Mail, MailRow>;
-	view: Function;
 
 	constructor(mailListId: Id, mailView: MailView) {
 		this.listId = mailListId
@@ -83,24 +76,18 @@ export class MailListView implements Component {
 					m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))
 				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
-				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed) {
-						this.list.selectNone()
-						locator.mailModel.deleteMails([listElement])
-					}
-					return Promise.resolve(confirmed)
-				}),
+				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
 						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						              .then((folders) => locator.mailModel.moveMails([listElement], getInboxFolder(folders)))
+						              .then((folders) => moveMails(locator.mailModel, [listElement], getInboxFolder(folders)))
 					} else {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						              .then((folders) => locator.mailModel.moveMails([listElement], getArchiveFolder(folders)))
+						              .then((folders) => moveMails(locator.mailModel, [listElement], getArchiveFolder(folders)))
 					}
 				},
 				enabled: true
@@ -201,7 +188,8 @@ export class MailListView implements Component {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return Promise.filter(mails, (mail) => {
-						return findAndApplyMatchingRule(mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
+						return findAndApplyMatchingRule(worker, locator.entityClient, mailboxDetail, mail, true)
+							.then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {
 							//console.log("load more because of matching inbox rules")

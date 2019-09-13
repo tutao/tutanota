@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ImapFolderTypeRef: TypeRef<ImapFolder> = new TypeRef("tutanota", "ImapFolder")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 191,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"lastseenuid": {
-			"name": "lastseenuid",
 			"id": 193,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"name": {
-			"name": "name",
 			"id": 192,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"uidvalidity": {
-			"name": "uidvalidity",
 			"id": 194,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"syncInfo": {
-			"name": "syncInfo",
 			"id": 195,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "RemoteImapSyncInfo",
 			"final": true,
-			"external": false
+			"refType": "RemoteImapSyncInfo"
 		}
 	},
 	"app": "tutanota",

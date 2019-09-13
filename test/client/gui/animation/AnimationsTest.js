@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import type {DomMutation} from "../../../../src/gui/animation/Animations"
 import {alpha, Animation, animations, DefaultAnimationTime, transform} from "../../../../src/gui/animation/Animations"
 import {ease} from "../../../../src/gui/animation/Easing"

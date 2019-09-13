@@ -5,7 +5,7 @@ import {BucketPermissionType, GroupType, PermissionType} from "../../common/Tuta
 import {serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {rsaDecrypt} from "./Rsa"
-import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
@@ -44,6 +44,7 @@ import type {Contact} from "../../entities/tutanota/Contact"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

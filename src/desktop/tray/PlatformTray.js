@@ -53,7 +53,7 @@ function iconPath(iconName: string): string {
 	return path.join((process: any).resourcesPath, `icons/${iconName}`)
 }
 
-const platformTray: PlatformTray = {
+export const platformTray: PlatformTray = {
 	getPlatformMenuItems,
 	getTray,
 	attachMenuToTray,
@@ -63,4 +63,4 @@ const platformTray: PlatformTray = {
 	needsWindowListInMenu
 }
 
-module.exports = platformTray
+export default platformTray

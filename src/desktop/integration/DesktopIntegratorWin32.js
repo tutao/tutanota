@@ -1,67 +1,80 @@
 // @flow
 
-import Registry from "winreg"
-import {app} from "electron"
+import typeof Registry from "winreg"
 import type {WindowManager} from "../DesktopWindowManager"
 
-const autoRunKey = new Registry({
-	hive: Registry.HKCU,
-	key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
-})
 
-export function isAutoLaunchEnabled(): Promise<boolean> {
-	// can't promisify here because it screws with autoRunKeys 'this' semantics
-	return new Promise((resolve, reject) => {
-		autoRunKey.get(app.name, (err, item) => {
-			if (err) {
-				reject(err)
-			} else {
-				resolve(typeof item !== "undefined" && item !== null)
-			}
+type Electron = $Exports<"electron">
+
+export class DesktopIntegratorWin32 {
+	_electron: Electron
+	_registry: Registry
+	_autoRunKey: any
+
+	constructor(electron: Electron, registry: Registry) {
+		this._electron = electron
+		this._registry = registry
+
+		this._autoRunKey = new registry({
+			hive: registry.HKCU,
+			key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'
 		})
-	}).catch(() => false)
-}
+	}
 
-export function enableAutoLaunch(): Promise<void> {
-	// can't promisify here because it screws with autoRunKeys 'this' semantics
-	return isAutoLaunchEnabled().then(enabled => enabled
-		? Promise.resolve()
-		: new Promise((resolve, reject) => {
-			autoRunKey.set(app.name, Registry.REG_SZ, `${process.execPath} -a`, (err) => {
+	isAutoLaunchEnabled(): Promise<boolean> {
+		// can't promisify here because it screws with autoRunKeys 'this' semantics
+		return new Promise((resolve, reject) => {
+			this._autoRunKey.get(this._electron.app.name, (err, item) => {
 				if (err) {
 					reject(err)
+				} else {
+					resolve(typeof item !== "undefined" && item !== null)
 				}
-				resolve()
 			})
-		}))
-}
+		}).catch(() => false)
+	}
 
-export function disableAutoLaunch(): Promise<void> {
-	// can't promisify here because it screws with autoRunKeys 'this' semantics
-	return isAutoLaunchEnabled().then(enabled => enabled
-		? new Promise((resolve, reject) => {
-			autoRunKey.remove(app.name, (err) => {
-				if (err) {
-					reject(err)
-				}
-				resolve()
+	enableAutoLaunch(): Promise<void> {
+		// can't promisify here because it screws with autoRunKeys 'this' semantics
+		return this.isAutoLaunchEnabled().then(enabled => enabled
+			? Promise.resolve()
+			: new Promise((resolve, reject) => {
+				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, (err) => {
+					if (err) {
+						reject(err)
+					}
+					resolve()
+				})
+			}))
+	}
+
+	disableAutoLaunch(): Promise<void> {
+		// can't promisify here because it screws with autoRunKeys 'this' semantics
+		return this.isAutoLaunchEnabled().then(enabled => enabled
+			? new Promise((resolve, reject) => {
+				this._autoRunKey.remove(this._electron.app.name, (err) => {
+					if (err) {
+						reject(err)
+					}
+					resolve()
+				})
 			})
-		})
-		: Promise.resolve())
-}
+			: Promise.resolve())
+	}
 
-export function runIntegration(wm: WindowManager): Promise<void> {
-	return Promise.resolve()
-}
+	runIntegration(wm: WindowManager): Promise<void> {
+		return Promise.resolve()
+	}
 
-export function isIntegrated(): Promise<boolean> {
-	return Promise.resolve(true)
-}
+	isIntegrated(): Promise<boolean> {
+		return Promise.resolve(true)
+	}
 
-export function integrate(): Promise<void> {
-	return Promise.resolve()
-}
+	integrate(): Promise<void> {
+		return Promise.resolve()
+	}
 
-export function unintegrate(): Promise<void> {
-	return Promise.resolve()
+	unintegrate(): Promise<void> {
+		return Promise.resolve()
+	}
 }

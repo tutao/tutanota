@@ -1,31 +1,15 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from '../../nodemocker'
 import {CryptoError} from "../../../../src/api/common/error/CryptoError"
 import {uint8ArrayToBitArray} from "../../../../src/api/worker/crypto/CryptoUtils"
+import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage"
+import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
+import {downcast} from "../../../../src/api/common/utils/Utils"
+import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade"
 
 o.spec("DesktopAlarmStorageTest", () => {
-	n.startGroup({
-		group: __filename, allowables: [
-			"./TutanotaError",
-			"../error/CryptoError",
-			"../../api/common/utils/Encoding",
-			"../../api/common/error/CryptoError",
-			"./StringUtils",
-			"./EntityConstants",
-			"./Utils",
-			"../../api/common/utils/Utils",
-			"./utils/Utils",
-			"../TutanotaConstants",
-			"./utils/ArrayUtils",
-			"./MapUtils",
-		]
-	})
-
 	const electron = {}
-	const keytar = {
-		findPassword: () => Promise.resolve("password")
-	}
 	const crypto = {
 		aes256DecryptKeyToB64: (pw, data) => {
 			if (data !== "user3pw=") {
@@ -64,72 +48,68 @@ o.spec("DesktopAlarmStorageTest", () => {
 	const standardMocks = () => {
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
-		const keytarMock = n.mock("keytar", keytar).set()
-
 		// our modules
 		const entityFunctionMock = n.mock("../EntityFunctions", entityFunctions).set()
 		n.mock('../../api/common/EntityFunctions', entityFunctions).set()
 		const aesMock = n.mock('../../api/worker/crypto/Aes', aes).set()
-		const cryptoMock = n.mock("../DesktopCryptoFacade", crypto).set()
-		const cryptoUtilsMock = n.mock("../../api/worker/crypto/CryptoUtils", cryptoUtils).set()
+		const cryptoMock = downcast<DesktopCryptoFacade>(n.mock("../DesktopCryptoFacade", crypto).set())
 
 		// instances
 		const wmMock = n.mock('__wm', wm).set()
-		const confMock = n.mock("__conf", conf).set()
+		const confMock: DesktopConfig = downcast(n.mock("__conf", conf).set())
+
+		const secretStorageMock = {
+			findPassword: () => Promise.resolve("password"),
+			setPassword: () => o.spy(Promise.resolve())
+		}
 
 		return {
 			electronMock,
-			keytarMock,
 			cryptoMock,
 			confMock,
 			wmMock,
 			aesMock,
-			entityFunctionMock
+			entityFunctionMock,
+			secretStorageMock
 		}
 	}
 
 	o("init", () => {
-		const {confMock, cryptoMock} = standardMocks()
+		const {confMock, cryptoMock, secretStorageMock} = standardMocks()
 
-		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock)
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, secretStorageMock)
 		desktopStorage.init().then()
 	})
 
-	o("resolvePushIdentifierSessionKey with uncached sessionKey", done => {
-		const {confMock, cryptoMock} = standardMocks()
+	o("resolvePushIdentifierSessionKey with uncached sessionKey", async function () {
+		const {confMock, cryptoMock, secretStorageMock} = standardMocks()
 
-		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock)
-		desktopStorage.init().then(() => desktopStorage.resolvePushIdentifierSessionKey([
-				{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
-				{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
-			])
-		).then(() => {
-			o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(2)
-		}).then(() => done())
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, secretStorageMock)
+		await desktopStorage.init()
+		await desktopStorage.resolvePushIdentifierSessionKey([
+			{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
+			{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
+		])
+		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(2)
 	})
 
-	o("resolvePushIdentifierSessionKey with cached sessionKey", done => {
-		const {cryptoMock} = standardMocks()
-		const confMock = n.mock("__conf", conf).with({
+	o("resolvePushIdentifierSessionKey with cached sessionKey", async function () {
+		const {cryptoMock, secretStorageMock} = standardMocks()
+		const confMock = downcast<DesktopConfig>(n.mock("__conf", conf).with({
 			getVar: key => {}
 		}).set()
-
-		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')
-		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock)
-		desktopStorage.init().then(() => {
-			return desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
-		}).then(() => desktopStorage.resolvePushIdentifierSessionKey([
-				{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
-				{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
-			])
-		).then(() => {
-			o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(0)
-			o(confMock.setVar.callCount).equals(1)
-			o(confMock.setVar.args.length).equals(2)
-			o(confMock.setVar.args[0]).equals("pushEncSessionKeys")
-			o(confMock.setVar.args[1]).deepEquals({fourId: "password"})
-		}).then(() => done())
+)
+		const desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, secretStorageMock)
+		await desktopStorage.init()
+		await desktopStorage.storePushIdentifierSessionKey("fourId", "user4pw=")
+		await desktopStorage.resolvePushIdentifierSessionKey([
+			{pushIdentifierSessionEncSessionKey: "abc", pushIdentifier: ["oneId", "twoId"]},
+			{pushIdentifierSessionEncSessionKey: "def", pushIdentifier: ["threeId", "fourId"]}
+		])
+		o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(0)
+		o(confMock.setVar.callCount).equals(1)
+		o(confMock.setVar.args.length).equals(2)
+		o(confMock.setVar.args[0]).equals("pushEncSessionKeys")
+		o(confMock.setVar.args[1]).deepEquals({fourId: "password"})
 	})
 })

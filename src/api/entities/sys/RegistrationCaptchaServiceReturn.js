@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", "RegistrationCaptchaServiceReturn")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 679,
-			"since": 7,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"challenge": {
-			"name": "challenge",
 			"id": 681,
-			"since": 7,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"token": {
-			"name": "token",
 			"id": 680,
-			"since": 7,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

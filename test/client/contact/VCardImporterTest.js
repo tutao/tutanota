@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/ContactAddress"
 import {neverNull} from "../../../src/api/common/utils/Utils"
@@ -9,14 +9,17 @@ import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
-import {TextDecoder} from "util"
 
-global.TextDecoder = global.isBrowser ? window.TextDecoder : TextDecoder;
 
 o.spec("VCardImporterTest", function () {
 
-	o.before(function () {
+	o.before(async function () {
 		window.whitelabelCustomizations = null
+		if (global.isBrowser) {
+			global.TextDecoder = window.TextDecoder
+		} else {
+			global.TextDecoder = (await import("util")).TextDecoder
+		}
 		lang.init(en)
 	})
 

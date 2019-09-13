@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", "NotificationInfo")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1365,
-			"since": 32,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"counter": {
-			"name": "counter",
 			"id": 1367,
-			"since": 32,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailAddress": {
-			"name": "mailAddress",
 			"id": 1366,
-			"since": 32,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"userId": {
-			"name": "userId",
 			"id": 1368,
-			"since": 32,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const DomainMailAddressAvailabilityReturnTypeRef: TypeRef<DomainMailAddressAvailabilityReturn> = new TypeRef("sys", "DomainMailAddressAvailabilityReturn")
@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 603,
-			"since": 2,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"available": {
-			"name": "available",
 			"id": 604,
-			"since": 2,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,

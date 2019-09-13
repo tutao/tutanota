@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {EventBusClient, EventBusState} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {spy} from "../TestUtils"

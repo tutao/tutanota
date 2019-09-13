@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {ContactFormEncryptedStatisticsField} from "./ContactFormEncryptedStatisticsField"
 
@@ -15,54 +15,42 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 777,
-			"since": 19,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 775,
-			"since": 19,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerEncSessionKey": {
-			"name": "_ownerEncSessionKey",
 			"id": 779,
-			"since": 19,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 778,
-			"since": 19,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 776,
-			"since": 19,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"date": {
-			"name": "date",
 			"id": 780,
-			"since": 19,
 			"type": "Date",
 			"cardinality": "One",
 			"final": true,
@@ -71,23 +59,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"values": {
-			"name": "values",
 			"id": 781,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "ContactFormEncryptedStatisticsField",
-			"final": true
+			"final": true,
+			"refType": "ContactFormEncryptedStatisticsField"
 		},
 		"contactForm": {
-			"name": "contactForm",
 			"id": 782,
-			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "ContactForm",
 			"final": true,
-			"external": false
+			"refType": "ContactForm"
 		}
 	},
 	"app": "tutanota",

@@ -7,12 +7,7 @@ import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/User
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
 import {
-	elementIdPart,
-	getListId,
-	HttpMethod,
-	isSameId,
-	listIdPart,
-	uint8arrayToCustomId
+	HttpMethod
 } from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
@@ -48,6 +43,7 @@ import {hash} from "../crypto/Sha256"
 import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
+import {elementIdPart, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

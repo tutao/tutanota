@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {clone, deepEqual, getChangedProps} from "../../../src/api/common/utils/Utils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"

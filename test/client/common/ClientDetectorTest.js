@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {client} from "../../../src/misc/ClientDetector"
 import {Mode} from "../../../src/api/Env"
 import {BrowserType, DeviceType} from "../../../src/misc/ClientConstants"

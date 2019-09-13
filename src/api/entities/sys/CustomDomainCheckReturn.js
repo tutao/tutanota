@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DnsRecord} from "./DnsRecord"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1590,
-			"since": 49,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"checkResult": {
-			"name": "checkResult",
 			"id": 1591,
-			"since": 49,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -35,31 +31,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"invalidRecords": {
-			"name": "invalidRecords",
 			"id": 1593,
-			"since": 49,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DnsRecord",
-			"final": false
+			"final": false,
+			"refType": "DnsRecord"
 		},
 		"missingRecords": {
-			"name": "missingRecords",
 			"id": 1592,
-			"since": 49,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DnsRecord",
-			"final": false
+			"final": false,
+			"refType": "DnsRecord"
 		},
 		"requiredRecords": {
-			"name": "requiredRecords",
 			"id": 1758,
-			"since": 62,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DnsRecord",
-			"final": false
+			"final": false,
+			"refType": "DnsRecord"
 		}
 	},
 	"app": "sys",

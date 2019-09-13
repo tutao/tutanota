@@ -9,7 +9,6 @@ import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
-import {isSameId} from "../../api/common/EntityFunctions"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
@@ -26,6 +25,7 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {showProgressDialog} from "../../gui/base/ProgressDialog"
 import {worker} from "../../api/main/WorkerClient"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
+import {isSameId} from "../../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

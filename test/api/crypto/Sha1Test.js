@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {hash} from "../../../src/api/worker/crypto/Sha256"
 import {hexToUint8Array, stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
 import {sha1hash} from "../../../src/api/worker/crypto/Sha1"

@@ -1,58 +1,90 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
+import type {App} from "electron"
+import type {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade";
+import {downcast} from "../../../src/api/common/utils/Utils";
+import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater";
+import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray";
+import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper";
 import n from "../nodemocker"
+import type {DesktopConfig} from "../../../src/desktop/config/DesktopConfig";
+import type {DesktopNotifier} from "../../../src/desktop/DesktopNotifier";
 
-o.spec("ElectronUpdater Test", function (done, timeout) {
-	n.startGroup({
-		group: __filename, allowables: [
-			'./utils/Utils', '../api/common/utils/Utils',
-			'./TutanotaError',
-			'../api/common/error/RestError',
-			'../api/common/error/UpdateError',
-			'./DesktopNotifier',
-			'../TutanotaConstants',
-			"./DesktopConstants",
-			'../EntityFunctions',
-			'./utils/Encoding',
-			'../error/CryptoError',
-			'./StringUtils',
-			'./EntityConstants',
-			'./utils/ArrayUtils',
-			'./Utils',
-			'./MapUtils'
-		], timeout: 2000
+o.spec("ElectronUpdater Test", function () {
+
+	let electron: { app: App }
+	let rightKey
+	let wrongKey
+	let crypto
+	let autoUpdater
+	let conf: DesktopConfig
+	let notifier: DesktopNotifier
+
+	const tray: DesktopTray = downcast({
+		getIconByName: () => ({})
 	})
 
-	const electron = {
-		app: {
-			getPath: (path: string) => `/mock-${path}/`,
-			getVersion: (): string => "3.45.0",
-			emit: () => {},
-			callbacks: [],
-			once: function (ev: string, cb: ()=>void) {
-				this.callbacks[ev] = cb
-				return n.spyify(electron.app)
-			},
+	let updaterImpl: UpdaterWrapper
+	o.beforeEach(function () {
+		notifier = downcast({
+			showOneShot: o.spy((prop: { title: string, body: string, icon: any }) => Promise.resolve('click'))
+		})
+		conf = downcast({
+				removeListener: o.spy((key: string, cb: ()=>void) => conf),
+				on: o.spy((key: string) => conf),
+				setVar: o.spy(),
+				getVar: (key: string) => {
+					switch (key) {
+						case 'enableAutoUpdate':
+							return true
+						case 'showAutoUpdateOption':
+							return true
+						default:
+							throw new Error(`unexpected getVar key ${key}`)
+					}
+				},
+				getConst: (key: string) => {
+					switch (key) {
+						case 'checkUpdateSignature':
+							return true
+						case 'pubKeys':
+							return ['no', 'yes']
+						case 'pollingInterval':
+							return 300
+						case 'iconName':
+							return 'iconName.name'
+						default:
+							throw new Error(`unexpected getConst key ${key}`)
+					}
+				},
+			}
+		)
+		electron = {
+			app: downcast({
+					getPath: (path: string) => `/mock-${path}/`,
+					getVersion: (): string => "3.45.0",
+					emit: o.spy(),
+					callbacks: [],
+					once: function (ev: string, cb: ()=>void) {
+						this.callbacks[ev] = cb
+						return electron.app
+					},
+				}
+			)
 		}
-	}
-
-	const rightKey = {verify: () => true}
-	const wrongKey = {verify: () => false}
-	const nodeForge = {
-		pki: {
-			publicKeyFromPem: (pem: string) => n.spyify(pem === "yes" ? rightKey : wrongKey)
-		}
-	}
-
-	const autoUpdater = {
-		autoUpdater: {
+		rightKey = {verify: o.spy(() => true)}
+		wrongKey = {verify: o.spy(() => false)}
+		crypto = downcast<DesktopCryptoFacade>({
+			publicKeyFromPem: o.spy((pem: string) => pem === "yes" ? rightKey : wrongKey)
+		})
+		autoUpdater = {
 			callbacks: {},
 			logger: undefined,
-			on: function (ev: string, cb: (any)=>void) {
+			on: o.spy(function (ev: string, cb: (any)=>void) {
 				if (!this.callbacks[ev]) this.callbacks[ev] = []
 				this.callbacks[ev].push({fn: o.spy(cb), once: false})
 				return this
-			},
+			}),
 			once: function (ev: string, cb: (any) => void) {
 				if (!this.callbacks[ev]) this.callbacks[ev] = []
 				this.callbacks[ev].push({fn: o.spy(cb), once: true})
@@ -62,463 +94,248 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				if (!this.callbacks[ev]) return
 				this.callbacks[ev] = this.callbacks[ev].filter(entry => entry.fn !== cb)
 			},
-			removeAllListeners: function (ev: string) {
+			removeAllListeners: o.spy(function (ev: string) {
 				this.callbacks[ev] = []
 				return this
-			},
+			}),
 			emit: function (ev: string, args: any) {
 				const entries = this.callbacks[ev]
 				entries.forEach(entry => {
-					setTimeout(() => entry.fn(args), 10)
+					setTimeout(() => entry.fn(args), 1)
 				})
 				this.callbacks[ev] = entries.filter(entry => !entry.once)
 			},
-			checkForUpdates: function () {
+			checkForUpdates: o.spy(function () {
 				this.emit('update-available', {
 					sha512: 'sha512',
 					signature: 'signature',
 				})
 				return Promise.resolve()
-			},
-			downloadUpdate: function () {
+			}),
+			downloadUpdate: o.spy(function () {
 				this.emit('update-downloaded', {
 					version: '4.5.0',
 				})
 				return Promise.resolve()
-			},
-			quitAndInstall: (isSilent: boolean, isForceRunAfter: boolean) => {
-			}
+			}),
+			quitAndInstall: o.spy(),
 		}
-	}
+		updaterImpl = downcast({
+			electronUpdater: Promise.resolve(autoUpdater),
+			updatesEnabledInBuild: () => true,
+		})
+	})
 
-	const desktopTray = {
-		DesktopTray: {
-			getIcon: () => {
-				return 'this is an icon'
-			}
-		}
-	}
-
-	const fs = {
-		accessSync: () => {},
-		constants: {
-			"R_OK": 1
-		}
-	}
-
-	const lang = {
-		lang: {
-			get: (key: string) => {
-				if (['updateAvailable_label', 'clickToUpdate_msg', 'errorReport_label', 'errorDuringUpdate_msg'].includes(key)) {
-					return key
-				}
-				throw new Error(`unexpected lang key ${key}`)
-			}
-		}
-	}
-
-	const notifier = {
-		showOneShot: (prop: {title: string, body: string, icon: any}) => Promise.resolve('click')
-	}
-
-	const conf = {
-		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
-		on: (key: string) => n.spyify(conf),
-		setVar: (key, value) => {},
-		getVar: (key: string) => {
-			switch (key) {
-				case 'enableAutoUpdate':
-					return true
-				case 'showAutoUpdateOption':
-					return true
-				default:
-					throw new Error(`unexpected getVar key ${key}`)
-			}
-		},
-		getConst: (key: string) => {
-			switch (key) {
-				case 'checkUpdateSignature':
-					return true
-				case 'pubKeys':
-					return ['yes', 'no']
-				case 'pollingInterval':
-					return 300
-				case 'iconName':
-					return 'iconName.name'
-				default:
-					throw new Error(`unexpected getConst key ${key}`)
-			}
-		}
-	}
-
-	o("update is available", done => {
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
-		const electronMock = n.mock('electron', electron).set()
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
-		//mock instances
-		const confMock = n.mock('__conf', conf).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock)
-
-		o(autoUpdaterMock.on.callCount).equals(6)
+	o("update is available", async function () {
+		downcast(updaterImpl).updatesEnabledInBuild = () => true
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 
 		upd.start()
 
-		o(confMock.setVar.callCount).equals(1)
-		o(confMock.setVar.args).deepEquals(['showAutoUpdateOption', true])
+		o(conf.setVar.callCount).equals(1)
+		o(conf.setVar.args).deepEquals(['showAutoUpdateOption', true])
 
 		// there is only one enableAutoUpdate listener
-		o(confMock.removeListener.callCount).equals(1)
-		o(confMock.removeListener.args[0]).equals('enableAutoUpdate')
-		o(confMock.on.callCount).equals(1)
+		o(conf.removeListener.callCount).equals(1)
+		o(conf.removeListener.args[0]).equals('enableAutoUpdate')
+		o(conf.on.callCount).equals(1)
 
-		setTimeout(() => {
-			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
+		await updaterImpl.electronUpdater
+		await Promise.delay(190)
 
-			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
+		// check signature
+		o(crypto.publicKeyFromPem.callCount).equals(2)
 
-			o(n.spyify(rightKey).verify.callCount).equals(1)
-			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(rightKey.verify.callCount).equals(1)
+		o(rightKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(rightKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			o(n.spyify(wrongKey).verify.callCount).equals(1)
-			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(wrongKey.verify.callCount).equals(1)
+		o(wrongKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(wrongKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			// show notification
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: 'updateAvailable_label',
-				body: 'clickToUpdate_msg',
-				icon: 'this is an icon'
-			})
-
-			o(electronMock.app.emit.callCount).equals(1)
-			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
-			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
-			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
-			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
-			done()
-		}, 190)
+		// show notification
+		o(notifier.showOneShot.callCount).equals(1)
+		o(electron.app.emit.callCount).equals(1)
+		o(electron.app.emit.args[0]).equals('enable-force-quit')
+		o(autoUpdater.quitAndInstall.callCount).equals(1)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
 
 
-	o("update is not available", done => {
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
-		                         .with({
-			                         autoUpdater: {
-				                         //never emit update-available
-				                         checkForUpdates: () => Promise.resolve()
-			                         }
-		                         })
-		                         .set().autoUpdater
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
-		//mock instances
-		const confMock = n.mock('__conf', conf).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock)
+	o("update is not available", async function () {
+		autoUpdater.checkForUpdates = o.spy(() => Promise.resolve())
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 		upd.start()
 
-		setTimeout(() => {
-			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
+		await Promise.delay(190)
+		o(autoUpdater.checkForUpdates.callCount).equals(1)
 
-			// don't check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(0)
-			o(n.spyify(rightKey).verify.callCount).equals(0)
-			o(n.spyify(wrongKey).verify.callCount).equals(0)
+		// don't check signature
+		o(crypto.publicKeyFromPem.callCount).equals(0)
+		o(rightKey.verify.callCount).equals(0)
+		o(wrongKey.verify.callCount).equals(0)
 
-			// don't show notification
-			o(notifierMock.showOneShot.callCount).equals(0)
-			o(autoUpdaterMock.quitAndInstall.callCount).equals(0)
-			done()
-			upd._stopPolling() // makes the test halt
-		}, 190)
+		// don't show notification
+		o(notifier.showOneShot.callCount).equals(0)
+		o(autoUpdater.quitAndInstall.callCount).equals(0)
+		upd._stopPolling() // makes the test halt
 	})
 
-	o("enable autoUpdate while running", done => {
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
+	o("enable autoUpdate while running", async function () {
 		//mock instances
 		let enabled = false
-		const confMock = n.mock('__conf', conf)
-		                  .with({
-			                  removeListener: () => confMock,
-			                  on: (key: string, cb: any) => {
-				                  if (!enabled) {
-					                  setTimeout(() => {
-						                  enabled = true
-						                  cb()
-					                  }, 25)
-				                  }
-				                  return confMock
-			                  },
-			                  getVar: (key: string) => {
-				                  switch (key) {
-					                  case 'enableAutoUpdate':
-						                  return enabled
-					                  case 'showAutoUpdateOption':
-						                  return true
-					                  default:
-						                  throw new Error(`unexpected getVar key ${key}`)
-				                  }
-			                  }
-		                  })
-		                  .set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock)
+		const oldConf = conf
+		conf = n.mock('__conf', oldConf)
+				.with({
+					removeListener: () => conf,
+					on: (key: string, cb: any) => {
+						if (!enabled) {
+							setTimeout(() => {
+								enabled = true
+								cb()
+							}, 25)
+						}
+						return conf
+					},
+					getVar: (key: string) => {
+						switch (key) {
+							case 'enableAutoUpdate':
+								return enabled
+							case 'showAutoUpdateOption':
+								return true
+							default:
+								throw new Error(`unexpected getVar key ${key}`)
+						}
+					}
+				})
+				.set()
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 
 		upd.start()
 
-		setTimeout(() => {
-			// entered start() twice
-			o(confMock.removeListener.callCount).equals(2)
-			o(confMock.on.callCount).equals(2)
+		await Promise.delay(100)
+		// entered start() twice
+		o(conf.removeListener.callCount).equals(2)
+		o(conf.on.callCount).equals(2)
 
-			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
-			o(forgeMock.pki.publicKeyFromPem.args[0]).equals('no')
+		// check signature
+		o(crypto.publicKeyFromPem.callCount).equals(2)
+		o(crypto.publicKeyFromPem.args[0]).equals('yes')
 
-			o(n.spyify(rightKey).verify.callCount).equals(1)
-			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(rightKey.verify.callCount).equals(1)
+		o(rightKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(rightKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			o(n.spyify(wrongKey).verify.callCount).equals(1)
-			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(wrongKey.verify.callCount).equals(1)
+		o(wrongKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(wrongKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			// show notification
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: 'updateAvailable_label',
-				body: 'clickToUpdate_msg',
-				icon: 'this is an icon'
-			})
+		// show notification
+		o(notifier.showOneShot.callCount).equals(1)
 
-			o(electronMock.app.emit.callCount).equals(1)
-			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
-			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
-			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
-			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
-			done()
-		}, 250)
+		o(electron.app.emit.callCount).equals(1)
+		o(electron.app.emit.args[0]).equals('enable-force-quit')
+		o(autoUpdater.quitAndInstall.callCount).equals(1)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
 
-	o("retry after autoUpdater reports an error", done => {
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const electronMock = n.mock('electron', electron).set()
+	o("retry after autoUpdater reports an error", async function () {
+		o.timeout(500) // this is very slow for some reason
 		let first = true
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).with({
-			autoUpdater: {
-				checkForUpdates: function () {
-					if (first) {
-						first = false
-						this.emit('error', {message: "this is an autoUpdater error"})
-						return Promise.reject("oops")
-					} else {
-						this.emit('update-available', {
-							sha512: 'sha512',
-							signature: 'signature',
-						})
-						return Promise.resolve()
-					}
-				}
+		autoUpdater.checkForUpdates = function () {
+			if (first) {
+				first = false
+				this.emit('error', {message: "this is an autoUpdater error"})
+				return Promise.reject("oops")
+			} else {
+				this.emit('update-available', {
+					sha512: 'sha512',
+					signature: 'signature',
+				})
+				return Promise.resolve()
 			}
-		}).set().autoUpdater
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
-		//mock instances
-		const confMock = n.mock('__conf', conf).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock, 100)
+		}
+		const scheduler: typeof setInterval = (fn) => setInterval(fn, 10)
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()
 
 		// after the error
-		setTimeout(() => {
-			o(autoUpdaterMock.downloadUpdate.callCount).equals(0)
-		}, 10)
+		await Promise.delay(2)
+		o(autoUpdater.downloadUpdate.callCount).equals(0)("downloadUpdate after error")
 
 		//after the download
-		setTimeout(() => {
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: "updateAvailable_label",
-				body: "clickToUpdate_msg",
-				icon: 'this is an icon'
-			})
-			o(autoUpdaterMock.downloadUpdate.callCount).equals(1)
-			done()
-		}, 450)
+		await Promise.delay(200)
+		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
+		o(autoUpdater.downloadUpdate.callCount).equals(1)("downloadUpdate after download")
 	})
 
-	o("shut down autoUpdater after errors", done => {
-		const RETRY_INTERVAL = 15
-		const MAX_NUM_ERRORS = 5
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
-		                         .with({
-			                         autoUpdater: {
-				                         downloadUpdate: function () {
-					                         autoUpdaterMock.emit('error', {message: "this is an autoUpdater error"})
-					                         return Promise.resolve()
-				                         }
-			                         }
-		                         })
-		                         .set().autoUpdater
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
-		//mock instances
-		const confMock = n.mock('__conf', conf).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock, RETRY_INTERVAL)
+	o("shut down autoUpdater after errors", async function () {
+		autoUpdater.downloadUpdate = function () {
+			autoUpdater.emit('error', {message: "this is an autoUpdater error"})
+			return Promise.resolve()
+		}
+		const scheduler: typeof setInterval = (fn) => setInterval(fn, 5)
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl, scheduler)
 
 		upd.start()
+		await Promise.delay(150)
 
-		setTimeout(() => {
-			upd._stopPolling()
-			o(autoUpdaterMock.removeAllListeners.callCount).equals(4)
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0].title).equals("errorReport_label")
-			done()
-		}, RETRY_INTERVAL * Math.pow(2, MAX_NUM_ERRORS + 1) * 2)
+		upd._stopPolling()
+		o(autoUpdater.removeAllListeners.callCount).equals(4)("removeAllListeners")
+		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
 	})
 
-	o("works if second key is right one", done => {
-
-		//mock node modules
-		const fsMock = n.mock('fs-extra', fs).set()
-		const forgeMock = n.mock('node-forge', nodeForge).with({
-			publicKeyFromPem: (pem: string) => n.spyify(pem === "no" ? rightKey : wrongKey)
-		}).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
-		const electronMock = n.mock('electron', electron).set()
-
-		//mock our modules
-		n.mock('./tray/DesktopTray', desktopTray).set()
-		n.mock('../misc/LanguageViewModel', lang).set()
-
-		//mock instances
-		const confMock = n.mock('__conf', conf).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-
-		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock)
-
-		o(autoUpdaterMock.on.callCount).equals(6)
-
+	o("works if second key is right one", async function () {
+		o.timeout(1000)
+		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
 		upd.start()
 
 		// there is only one enableAutoUpdate listener
-		o(confMock.removeListener.callCount).equals(1)
-		o(confMock.removeListener.args[0]).equals('enableAutoUpdate')
-		o(confMock.on.callCount).equals(1)
+		o(conf.removeListener.callCount).equals(1)
+		o(conf.removeListener.args[0]).equals('enableAutoUpdate')
+		o(conf.on.callCount).equals(1)
 
-		setTimeout(() => {
-			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
+		await Promise.delay(250)
+		o(autoUpdater.checkForUpdates.callCount).equals(1)
 
-			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
-			o(forgeMock.pki.publicKeyFromPem.args[0]).equals("no")
+		// check signature
+		o(crypto.publicKeyFromPem.callCount).equals(2)
+		o(crypto.publicKeyFromPem.args[0]).equals("yes")
 
-			o(n.spyify(rightKey).verify.callCount).equals(1)
-			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(wrongKey.verify.callCount).equals(1)
+		o(wrongKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(wrongKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			o(n.spyify(wrongKey).verify.callCount).equals(1)
-			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+		o(rightKey.verify.callCount).equals(1)
+		o(rightKey.verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+		o(rightKey.verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
-			// show notification
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: 'updateAvailable_label',
-				body: 'clickToUpdate_msg',
-				icon: 'this is an icon'
-			})
+		// show notification
+		o(notifier.showOneShot.callCount).equals(1)
 
-
-			o(electronMock.app.emit.callCount).equals(1)
-			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
-			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
-			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
-			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
-			upd._stopPolling()
-			done()
-		}, 190)
+		o(electron.app.emit.callCount).equals(1)
+		o(electron.app.emit.args[0]).equals('enable-force-quit')
+		o(autoUpdater.quitAndInstall.callCount).equals(1)
+		o(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o(autoUpdater.quitAndInstall.args[1]).equals(true)
+		upd._stopPolling()
 	})
 
-	o("updater disables itself if accessSync throws", function () {
-			//mock node modules
-			const fsMock = n.mock('fs-extra', fs).with({
-				accessSync: undefined
-			}).set()
-			const forgeMock = n.mock('node-forge', nodeForge).set()
-			const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
-			const electronMock = n.mock('electron', electron).set()
-
-			//mock our modules
-			n.mock('./tray/DesktopTray', desktopTray).set()
-			n.mock('../misc/LanguageViewModel', lang).set()
-
-			//mock instances
-			const confMock = n.mock('__conf', conf).set()
-			const notifierMock = n.mock('__notifier', notifier).set()
-
-			const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-			const upd = new ElectronUpdater(confMock, notifierMock)
-
-			o(autoUpdaterMock.on.callCount).equals(6)
+	o("updater disables itself if accessSync throws", async function () {
+			downcast(updaterImpl).updatesEnabledInBuild = () => false
+			const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, tray, updaterImpl)
+			await updaterImpl.electronUpdater
+			o(autoUpdater.on.callCount).equals(6)
 
 			upd.start()
 
-			o(confMock.setVar.callCount).equals(1)
-			o(confMock.setVar.args).deepEquals(['showAutoUpdateOption', false])
-			o(confMock.removeListener.callCount).equals(0)
+			o(conf.setVar.callCount).equals(1)
+			o(conf.setVar.args).deepEquals(['showAutoUpdateOption', false])
+			o(conf.removeListener.callCount).equals(0)
 		}
 	)
 })

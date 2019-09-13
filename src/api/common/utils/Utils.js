@@ -1,16 +1,12 @@
 // @flow
-import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
-import {GroupType} from "../TutanotaConstants"
-import {TypeRef} from "../EntityFunctions"
+import type {OperationTypeEnum} from "../TutanotaConstants"
 import type {EntityUpdateData} from "../../main/EventController"
-import type {GroupInfo} from "../../entities/sys/GroupInfo"
-import type {User} from "../../entities/sys/User"
-import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {MailBody} from "../../entities/tutanota/MailBody"
 import type {MailHeaders} from "../../entities/tutanota/MailHeaders"
 import type {DomainInfo} from "../../entities/sys/DomainInfo"
+import {TypeRef} from "./EntityUtils";
 
 export type DeferredObject<T> = {
 	resolve: (T) => void,
@@ -104,61 +100,6 @@ export function clone<T>(instance: T): T {
 	} else {
 		return instance
 	}
-}
-
-/**
- * Imports a module using System.import and sets up the depencency map (needed for hmr)
- * => Hot reloading is currently not capable of tracking dynamic imports => We add the metadata for the dynamic import manually
- * @see https://github.com/alexisvincent/systemjs-hot-reloader/issues/129
- * @param importer The name of the importing module
- * @param moduleName The module to import
- * @returns resolves to the imported module
- */
-export function asyncImport(importer: string, moduleName: string): Promise<*> {
-	return System.import(moduleName)
-	             .then(module => {
-		             if (System.loads) {
-			             if (!System.loads[System.resolveSync(importer)].depMap[moduleName]) {
-				             System.loads[System.resolveSync(importer)].deps.push(moduleName)
-				             System.loads[System.resolveSync(importer)].depMap[moduleName] = System.resolveSync(moduleName)
-			             }
-		             }
-		             return module
-	             })
-}
-
-export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
-	let aliases = groupInfo.mailAddressAliases.filter(alias => alias.enabled).map(alias => alias.mailAddress)
-	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
-	return aliases
-}
-
-/**
- * Provides the memberships of the user with the given type. In case of area groups all groups are returned.
- */
-export function getUserGroupMemberships(user: User, groupType: GroupTypeEnum): GroupMembership[] {
-	if (groupType === GroupType.User) {
-		return [user.userGroup]
-	} else {
-		return user.memberships.filter(m => m.groupType === groupType)
-	}
-}
-
-/**
- * Provides the name if available, otherwise the email address if available, otherwise an empty string.
- */
-export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
-	if (groupInfo.name) {
-		return groupInfo.name
-	} else if (groupInfo.mailAddress) {
-		return groupInfo.mailAddress
-	} else {
-		return ""
-	}
-}
-
-export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
-	return getGroupInfoDisplayName(a).localeCompare(getGroupInfoDisplayName(b))
 }
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName: ?string): ?DomainInfo {

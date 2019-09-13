@@ -5,9 +5,10 @@ import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {BusinessUseItems, formatPrice, getFormattedUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {BusinessUseItems, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
+import {formatPrice, getFormattedUpgradePrice} from "./PriceUtils"
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,

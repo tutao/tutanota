@@ -10,7 +10,6 @@ import {InvalidDataError, LimitReachedError} from "../api/common/error/RestError
 import {worker} from "../api/main/WorkerClient"
 import {noOp} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -24,6 +23,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {MailAddressAlias} from "../api/entities/sys/MailAddressAlias"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 

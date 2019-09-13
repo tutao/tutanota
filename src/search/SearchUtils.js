@@ -4,7 +4,6 @@ import {_TypeModel as MailModel, MailTypeRef} from "../api/entities/tutanota/Mai
 import {_TypeModel as ContactModel, ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {assertMainOrNode} from "../api/Env"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {getDayShifted, getStartOfDay} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
@@ -12,6 +11,7 @@ import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {throttleRoute} from "../misc/RouteChange"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {SearchRestriction} from "../api/worker/search/SearchTypes"
+import {isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

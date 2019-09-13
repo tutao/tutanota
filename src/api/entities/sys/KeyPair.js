@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", "KeyPair")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"pubKey": {
-			"name": "pubKey",
 			"id": 2,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"symEncPrivKey": {
-			"name": "symEncPrivKey",
 			"id": 3,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"version": {
-			"name": "version",
 			"id": 4,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,

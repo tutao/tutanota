@@ -1,23 +1,26 @@
 // @flow
 
-import net from 'net'
-import {app} from 'electron'
+import type {App} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
 import type {WindowManager} from "./DesktopWindowManager"
 import {isMailAddress} from "../misc/FormatValidator"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
+
+type net = $Exports<"net">
 
 /**
  * this is used to control our administration tool
  */
 export class Socketeer {
-	_server: ?net.Server;
-	_connection: ?net.Socket;
+	_server: ?net$Server;
+	_connection: ?net$Socket;
 	_delayHandler: typeof setTimeout
+	_net: net
 
-	constructor(delayHandler: typeof setTimeout = setTimeout) {
+	constructor(net: net, app: App, delayHandler: typeof setTimeout = setTimeout) {
+		this._net = net
 		this._delayHandler = delayHandler
 
 		app.on('will-quit', () => {
@@ -46,7 +49,7 @@ export class Socketeer {
 		if (this._server) {
 			return
 		}
-		this._server = net.createServer(c => {
+		this._server = this._net.createServer(c => {
 			log.debug("got connection")
 			this._connection = c
 			c.on('data', () => {
@@ -80,7 +83,7 @@ export class Socketeer {
 		if (this._connection) {
 			return
 		}
-		this._connection = net
+		this._connection = this._net
 			.createConnection(SOCKET_PATH)
 			.on('connect', () => {
 				log.debug('socket connected')

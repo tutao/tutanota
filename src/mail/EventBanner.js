@@ -13,7 +13,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {logins} from "../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 export type Attrs = {
 	event: CalendarEvent,

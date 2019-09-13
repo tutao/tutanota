@@ -1,5 +1,4 @@
 // @flow
-
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
@@ -14,7 +13,7 @@ import {isApp, isTutanotaDomain} from "../Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../common/TutanotaConstants"
 import {PasswordForm} from "../../settings/PasswordForm"
 import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
-import {asyncImport, neverNull} from "../common/utils/Utils"
+import {neverNull} from "../common/utils/Utils"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"

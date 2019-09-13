@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", "Subfiles")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 12,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"files": {
-			"name": "files",
 			"id": 27,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "File",
 			"final": true,
-			"external": false
+			"refType": "File"
 		}
 	},
 	"app": "tutanota",

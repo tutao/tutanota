@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const CalendarGroupDataTypeRef: TypeRef<CalendarGroupData> = new TypeRef("tutanota", "CalendarGroupData")
@@ -14,54 +14,42 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 957,
-			"since": 33,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"adminEncGroupKey": {
-			"name": "adminEncGroupKey",
 			"id": 959,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"calendarEncCalendarGroupRootSessionKey": {
-			"name": "calendarEncCalendarGroupRootSessionKey",
 			"id": 958,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"groupInfoEncName": {
-			"name": "groupInfoEncName",
 			"id": 962,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"ownerEncGroupInfoSessionKey": {
-			"name": "ownerEncGroupInfoSessionKey",
 			"id": 960,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"userEncGroupKey": {
-			"name": "userEncGroupKey",
 			"id": 961,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -70,14 +58,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"adminGroup": {
-			"name": "adminGroup",
 			"id": 963,
-			"since": 33,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "Group",
 			"final": true,
-			"external": true
+			"refType": "Group"
 		}
 	},
 	"app": "tutanota",

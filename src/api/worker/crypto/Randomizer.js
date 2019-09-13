@@ -1,6 +1,6 @@
 // @flow
 // $FlowIgnore[untyped-import]
-import sjcl from "./lib/crypto-sjcl-1.0.7"
+import sjcl from "./lib/sjcl"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
 import type {EntropySrcEnum} from "../../common/TutanotaConstants"

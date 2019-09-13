@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_matchesRegularExpression} from "../../../src/mail/InboxRuleHandler"
 import {createInboxRule} from "../../../src/api/entities/tutanota/InboxRule"
 import type {InboxRule} from "../../../src/api/entities/tutanota/InboxRule"

@@ -20,7 +20,7 @@ import {
 	MAX_LOGO_SIZE,
 	OperationType
 } from "../api/common/TutanotaConstants"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -39,7 +39,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {DatePicker} from "../gui/base/DatePicker"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
@@ -60,7 +59,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {isWhitelabelActive, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
+import {isWhitelabelActive, showNotAvailableForFreeDialog, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
@@ -69,6 +68,7 @@ import {LockedError, PreconditionFailedError} from "../api/common/error/RestErro
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import type {CertificateInfo} from "../api/entities/sys/CertificateInfo"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

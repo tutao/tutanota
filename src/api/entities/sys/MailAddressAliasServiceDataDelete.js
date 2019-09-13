@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const MailAddressAliasServiceDataDeleteTypeRef: TypeRef<MailAddressAliasServiceDataDelete> = new TypeRef("sys", "MailAddressAliasServiceDataDelete")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 786,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailAddress": {
-			"name": "mailAddress",
 			"id": 787,
-			"since": 9,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"restore": {
-			"name": "restore",
 			"id": 788,
-			"since": 9,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
@@ -43,14 +37,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"group": {
-			"name": "group",
 			"id": 789,
-			"since": 9,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": false,
-			"external": false
+			"refType": "Group"
 		}
 	},
 	"app": "sys",

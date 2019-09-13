@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
@@ -25,7 +25,6 @@ import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/F
 import {createFile} from "../../../../src/api/entities/tutanota/File"
 import {createMailAddress} from "../../../../src/api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/EncryptedMailAddress"
-import {getElementId, getListId} from "../../../../src/api/common/EntityFunctions"
 import {Metadata as MetaData} from "../../../../src/api/worker/search/Indexer"
 import type {MailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
 import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder"
@@ -46,6 +45,7 @@ import {createMailFolderRef} from "../../../../src/api/entities/tutanota/MailFol
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
+import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
 
 class FixedDateProvider implements DateProvider {
 	now: number;
@@ -146,16 +146,16 @@ o.spec("MailIndexer test", () => {
 		o(args[1]).equals(mail)
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
 		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.name, value: h.value()}
+			return {attribute: h.attribute.id, value: h.value()}
 		})
 		o(JSON.stringify(attributes)).deepEquals(JSON.stringify([
-			{attribute: "subject", value: "Su"},
-			{attribute: "toRecipients", value: "tr0N <tr0A>,tr1N <tr1A>"},
-			{attribute: "ccRecipients", value: "ccr0N <ccr0A>,ccr1N <ccr1A>"},
-			{attribute: "bccRecipients", value: "bccr0N <bccr0A>,bccr1N <bccr1A>"},
-			{attribute: "sender", value: "SN <SA>"},
-			{attribute: "body", value: "BT"},
-			{attribute: "attachments", value: "FN"},
+			{attribute: MailModel.values["subject"].id, value: "Su"},
+			{attribute: MailModel.associations["toRecipients"].id, value: "tr0N <tr0A>,tr1N <tr1A>"},
+			{attribute: MailModel.associations["ccRecipients"].id, value: "ccr0N <ccr0A>,ccr1N <ccr1A>"},
+			{attribute: MailModel.associations["bccRecipients"].id, value: "bccr0N <bccr0A>,bccr1N <bccr1A>"},
+			{attribute: MailModel.associations["sender"].id, value: "SN <SA>"},
+			{attribute: MailModel.associations["body"].id, value: "BT"},
+			{attribute: MailModel.associations["attachments"].id, value: "FN"},
 		]))
 	})
 
@@ -181,12 +181,11 @@ o.spec("MailIndexer test", () => {
 		}).then(done)
 	})
 
-	o("processNewMail catches NotFoundError", function (done) {
+	o("processNewMail catches NotFoundError", async function () {
 		const indexer = new MailIndexer((null: any), (null: any), (null: any), entityMock, entityMock, dateProvider)
 		let event: EntityUpdate = ({instanceListId: "lid", instanceId: "eid"}: any)
-		indexer.processNewMail(event).then(result => {
-			o(result).equals(null)
-		}).then(done)
+		const result = await indexer.processNewMail(event)
+		o(result).equals(null)
 	})
 
 	o("processNewMail catches NotAuthorizedError", function (done) {

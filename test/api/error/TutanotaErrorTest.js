@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {TutanotaError} from "../../../src/api/common/error/TutanotaError"
 

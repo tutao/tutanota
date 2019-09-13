@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GiftCardCreateReturnTypeRef: TypeRef<GiftCardCreateReturn> = new TypeRef("sys", "GiftCardCreateReturn")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1814,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"giftCard": {
-			"name": "giftCard",
 			"id": 1815,
-			"since": 65,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GiftCard",
 			"final": true,
-			"external": false
+			"refType": "GiftCard"
 		}
 	},
 	"app": "sys",

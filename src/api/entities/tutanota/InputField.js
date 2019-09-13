@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {Name} from "./Name"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 729,
-			"since": 19,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"name": "name",
 			"id": 730,
-			"since": 19,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"type": {
-			"name": "type",
 			"id": 731,
-			"since": 19,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -44,13 +38,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"enumValues": {
-			"name": "enumValues",
 			"id": 732,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "Name",
-			"final": false
+			"final": false,
+			"refType": "Name"
 		}
 	},
 	"app": "tutanota",

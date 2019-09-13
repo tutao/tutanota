@@ -11,11 +11,11 @@ import {StatusField} from "../gui/base/StatusField"
 import Stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
-import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/Utils"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {User} from "../api/entities/sys/User"
+import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
 
 assertMainOrNode()
 

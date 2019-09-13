@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {InternalGroupData} from "./InternalGroupData"
 
@@ -15,36 +15,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 708,
-			"since": 19,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"encryptedName": {
-			"name": "encryptedName",
 			"id": 710,
-			"since": 19,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailAddress": {
-			"name": "mailAddress",
 			"id": 709,
-			"since": 19,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailEncMailboxSessionKey": {
-			"name": "mailEncMailboxSessionKey",
 			"id": 711,
-			"since": 19,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -53,13 +45,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"groupData": {
-			"name": "groupData",
 			"id": 712,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "InternalGroupData",
-			"final": false
+			"final": false,
+			"refType": "InternalGroupData"
 		}
 	},
 	"app": "tutanota",

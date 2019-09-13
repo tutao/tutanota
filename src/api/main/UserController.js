@@ -6,7 +6,7 @@ import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
 import {UserTypeRef} from "../entities/sys/User"
-import {isSameId, MediaType} from "../common/EntityFunctions"
+import {MediaType} from "../common/EntityFunctions"
 import type {GroupInfo} from "../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
@@ -27,6 +27,7 @@ import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import type {AccountingInfo} from "../entities/sys/AccountingInfo"
 import type {CustomerInfo} from "../entities/sys/CustomerInfo"
+import {isSameId} from "../common/utils/EntityUtils";
 
 assertMainOrNode()
 

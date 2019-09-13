@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const OtpChallengeTypeRef: TypeRef<OtpChallenge> = new TypeRef("sys", "OtpChallenge")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1245,
-			"since": 24,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"secondFactors": {
-			"name": "secondFactors",
 			"id": 1246,
-			"since": 24,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
-			"refType": "SecondFactor",
 			"final": false,
-			"external": false
+			"refType": "SecondFactor"
 		}
 	},
 	"app": "sys",

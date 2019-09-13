@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const AuthenticationTypeRef: TypeRef<Authentication> = new TypeRef("sys", "Authentication")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 454,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"accessToken": {
-			"name": "accessToken",
 			"id": 1239,
-			"since": 23,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"authVerifier": {
-			"name": "authVerifier",
 			"id": 456,
-			"since": 1,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"externalAuthToken": {
-			"name": "externalAuthToken",
 			"id": 968,
-			"since": 15,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"userId": {
-			"name": "userId",
 			"id": 455,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "User",
 			"final": false,
-			"external": false
+			"refType": "User"
 		}
 	},
 	"app": "sys",

@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {isSuspensionResponse, RestClient} from "../../../src/api/worker/rest/RestClient"
 import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
@@ -33,8 +33,8 @@ o.spec("rest client", function () {
 			}
 		})
 
-		o("GET json", function (done, timeout) {
-			timeout(200)
+		o("GET json", function (done) {
+			o.timeout(200)
 			let responseText = '{"msg":"Hello Client"}'
 			let before = new Date().getTime()
 			app.get("/get/json", (req, res) => {
@@ -51,8 +51,8 @@ o.spec("rest client", function () {
 			})
 		})
 
-		o("GET with body (converted to query parameter)", function (done, timeout) {
-			timeout(200)
+		o("GET with body (converted to query parameter)", function (done) {
+			o.timeout(200)
 			let request = "{get: true}"
 			app.get("/get/with-body", (req, res) => {
 				o(req.method).equals('GET')
@@ -64,8 +64,8 @@ o.spec("rest client", function () {
 			rc.request("/get/with-body", HttpMethod.GET, {}, {}, request, MediaType.Json)
 		})
 
-		o("GET binary", function (done, timeout) {
-			timeout(200)
+		o("GET binary", function (done) {
+			o.timeout(200)
 			let response = new Buffer([1, 50, 83, 250])
 			let before = new Date().getTime()
 			app.get("/get/binary", (req, res) => {
@@ -88,8 +88,8 @@ o.spec("rest client", function () {
 		o("DELETE json", testJson('DELETE'))
 
 		function testJson(method) {
-			return function (done, timeout) {
-				timeout(200)
+			return function (done) {
+				o.timeout(200)
 				let requestText = '{"msg":"Dear Server"}'
 				let responseText = '{"msg":"Hello Client"}'
 				let before = new Date().getTime()
@@ -121,8 +121,8 @@ o.spec("rest client", function () {
 		o("DELETE binary", testBinary('DELETE'))
 
 		function testBinary(method) {
-			return function (done, timeout) {
-				timeout(200)
+			return function (done) {
+				o.timeout(200)
 				let request = new Buffer([8, 5, 2, 183])
 				let response = new Buffer([1, 50, 83, 250])
 				let before = new Date().getTime()
@@ -155,8 +155,8 @@ o.spec("rest client", function () {
 		o("DELETE empty body", testEmptyBody('DELETE'))
 
 		function testEmptyBody(method) {
-			return function (done, timeout) {
-				timeout(200)
+			return function (done) {
+				o.timeout(200)
 				let before = new Date().getTime()
 				let url = "/" + method + "/empty-body";
 
@@ -180,8 +180,8 @@ o.spec("rest client", function () {
 		o("DELETE empty body error", testError('DELETE'))
 
 		function testError(method) {
-			return function (done, timeout) {
-				timeout(200)
+			return function (done) {
+				o.timeout(200)
 				let before = new Date().getTime()
 				let url = "/" + method + "/error";
 

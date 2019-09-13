@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
-import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {
@@ -39,7 +38,7 @@ import {load} from "../api/main/Entity"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
-import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -47,7 +46,6 @@ import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
 import {logins} from "../api/main/LoginController"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
@@ -59,11 +57,13 @@ import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {ContactEditor} from "../contacts/ContactEditor";
-import {LazyContactListId} from "../contacts/ContactUtils";
 import {styles} from "../gui/styles"
-import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {newMailEditor} from "../mail/MailEditor"
+import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
+import {isSameTypeRef, TypeRef} from "../api/common/utils/EntityUtils";
+import {isNewMailActionAvailable} from "../mail/MailGuiUtils"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -263,7 +263,7 @@ export class SearchView implements CurrentView {
 				: isSameTypeRef(restriction.type, ContactTypeRef)
 				? m(ButtonN, {
 					click: () => {
-						LazyContactListId.getAsync().then(contactListId => {
+						locator.contactModel.contactListId().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
 						})
 					},
@@ -407,7 +407,7 @@ export class SearchView implements CurrentView {
 					if (isSameTypeRef(restriction, MailTypeRef)) {
 						locator.mailModel.getUserMailboxDetails().then(newMailEditor).then(editor => editor.show()).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
-						LazyContactListId.getAsync().then(contactListId => {
+						locator.contactModel.contactListId().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
 						})
 					}
@@ -557,7 +557,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
 			return {
 				click: () => {
-					LazyContactListId.getAsync().then(contactListId => {
+					locator.contactModel.contactListId().then(contactListId => {
 						new ContactEditor(null, contactListId, null).show()
 					})
 				},

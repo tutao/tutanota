@@ -1,6 +1,6 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/Env"
-import {asyncImport, downcast} from "../api/common/utils/Utils"
+import {downcast} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 import type {TranslationKeyType} from "./TranslationKey"
 
@@ -56,6 +56,88 @@ export const languages: Language[] = [
 	{code: 'zh', textId: 'languageChineseSimplified_label'},
 	{code: 'zh_tw', textId: 'languageChineseTraditional_label'}
 ]
+
+// FIXME: make flow less angry
+const translationImportMap = {
+	// $FlowFixMe[untyped-import]
+	'ar': () => import("../translations/ar.js"),
+	// $FlowFixMe[untyped-import]
+	'bg': () => import("../translations/bg.js"),
+	// $FlowFixMe[untyped-import]
+	'ca': () => import("../translations/ca.js"),
+	// $FlowFixMe[untyped-import]
+	'cs': () => import("../translations/cs.js"),
+	// $FlowFixMe[untyped-import]
+	'da': () => import("../translations/da.js"),
+	// $FlowFixMe[untyped-import]
+	'de': () => import("../translations/de.js"),
+	// $FlowFixMe[untyped-import]
+	'de_sie': () => import("../translations/de_sie.js"),
+	// $FlowFixMe[untyped-import]
+	'el': () => import("../translations/el.js"),
+	// $FlowFixMe[untyped-import]
+	'en': () => import("../translations/en.js"),
+	// $FlowFixMe[untyped-import]
+	'es': () => import("../translations/es.js"),
+	// $FlowFixMe[untyped-import]
+	'et': () => import("../translations/et.js"),
+	// $FlowFixMe[untyped-import]
+	'fa_ir': () => import("../translations/fa_ir.js"),
+	// $FlowFixMe[untyped-import]
+	'fi': () => import("../translations/fi.js"),
+	// $FlowFixMe[untyped-import]
+	'fr': () => import("../translations/fr.js"),
+	// $FlowFixMe[untyped-import]
+	'gl': () => import("../translations/gl.js"),
+	// $FlowFixMe[untyped-import]
+	'hi': () => import("../translations/hi.js"),
+	// $FlowFixMe[untyped-import]
+	'hr': () => import("../translations/hr.js"),
+	// $FlowFixMe[untyped-import]
+	'hu': () => import("../translations/hu.js"),
+	// $FlowFixMe[untyped-import]
+	'id': () => import("../translations/id.js"),
+	// $FlowFixMe[untyped-import]
+	'it': () => import("../translations/it.js"),
+	// $FlowFixMe[untyped-import]
+	'ja': () => import("../translations/ja.js"),
+	// $FlowFixMe[untyped-import]
+	'lt': () => import("../translations/lt.js"),
+	// $FlowFixMe[untyped-import]
+	'lv': () => import("../translations/lv.js"),
+	// $FlowFixMe[untyped-import]
+	'nl': () => import("../translations/nl.js"),
+	// $FlowFixMe[untyped-import]
+	'no': () => import("../translations/no.js"),
+	// $FlowFixMe[untyped-import]
+	'pl': () => import("../translations/pl.js"),
+	// $FlowFixMe[untyped-import]
+	'pt_br': () => import("../translations/pt_br.js"),
+	// $FlowFixMe[untyped-import]
+	'pt_pt': () => import("../translations/pt_pt.js"),
+	// $FlowFixMe[untyped-import]
+	'ro': () => import("../translations/ro.js"),
+	// $FlowFixMe[untyped-import]
+	'ru': () => import("../translations/ru.js"),
+	// $FlowFixMe[untyped-import]
+	'sk': () => import("../translations/sk.js"),
+	// $FlowFixMe[untyped-import]
+	'sl': () => import("../translations/sl.js"),
+	// $FlowFixMe[untyped-import]
+	'sr': () => import("../translations/sr.js"),
+	// $FlowFixMe[untyped-import]
+	'sv': () => import("../translations/sv.js"),
+	// $FlowFixMe[untyped-import]
+	'tr': () => import("../translations/tr.js"),
+	// $FlowFixMe[untyped-import]
+	'uk': () => import("../translations/uk.js"),
+	// $FlowFixMe[untyped-import]
+	'vi': () => import("../translations/vi.js"),
+	// $FlowFixMe[untyped-import]
+	'zh': () => import("../translations/zh.js"),
+	// $FlowFixMe[untyped-import]
+	'zh_tw': () => import("../translations/zh_tw.js"),
+}
 export const languageByCode: {[string]: Language} = languages.reduce((acc, curr) => {
 	acc[curr.code] = curr
 	return acc
@@ -162,10 +244,9 @@ export class LanguageViewModel {
 		// we don't support multiple language files for en so just use the one and only.
 		const code = lang.code.startsWith("en") ? "en" : lang.code
 
-		return asyncImport(typeof module
-		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${code}.js`)
-			.then(translations => {
-				this.translations = translations
+		return translationImportMap[code]()
+			.then(translationsModule => {
+				this.translations = translationsModule.default
 				this.code = lang.code
 			})
 	}

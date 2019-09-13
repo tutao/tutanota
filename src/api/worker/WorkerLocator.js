@@ -1,7 +1,6 @@
 //@flow
 import {LoginFacade} from "./facades/LoginFacade"
 import type {WorkerImpl} from "./WorkerImpl"
-import {module as replaced} from "@hot"
 import {Indexer} from "./search/Indexer"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityRestClient} from "./rest/EntityRestClient"
@@ -95,25 +94,25 @@ export function resetLocator(): Promise<void> {
 if (typeof self !== "undefined") {
 	self.locator = locator // export in worker scope
 }
-// hot reloading
-if (replaced) {
-	if (replaced.locator.login) {
-		Object.assign(locator.login, replaced.locator.login)
-		// close the websocket, but do not reset the state
-		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
-			locator.login._eventBusClient.close(CloseEventBusOption.Reconnect);
-		}
-		if (locator.login.isLoggedIn()) {
-			locator.login._eventBusClient.connect(false)
-		}
-	}
-
-
-	if (replaced.locator.indexer) {
-		Object.assign(locator.indexer, replaced.locator.indexer)
-	}
-
-	if (replaced.locator.search) {
-		Object.assign(locator.search, replaced.locator.search)
-	}
-}
+// // hot reloading
+// if (replaced) {
+// 	if (replaced.locator.login) {
+// 		Object.assign(locator.login, replaced.locator.login)
+// 		// close the websocket, but do not reset the state
+// 		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
+// 			locator.login._eventBusClient.close(CloseEventBusOption.Reconnect);
+// 		}
+// 		if (locator.login.isLoggedIn()) {
+// 			locator.login._eventBusClient.connect(false)
+// 		}
+// 	}
+//
+//
+// 	if (replaced.locator.indexer) {
+// 		Object.assign(locator.indexer, replaced.locator.indexer)
+// 	}
+//
+// 	if (replaced.locator.search) {
+// 		Object.assign(locator.search, replaced.locator.search)
+// 	}
+// }

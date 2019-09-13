@@ -3,20 +3,19 @@ import m from "mithril"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Icons} from "../gui/base/icons/Icons"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
 import {erase, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {exportMails, getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../mail/MailUtils"
+import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../mail/MailUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
@@ -28,6 +27,9 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {NBSP} from "../api/common/utils/StringUtils"
+import {isSameTypeRef} from "../api/common/utils/EntityUtils";
+import {exportMails, moveMails} from "../mail/MailGuiUtils"
+import {createAsyncDropDownButton, createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 
@@ -54,7 +56,7 @@ export class MultiSearchViewer {
 			} else {
 				console.log("ERROR LIST TYPE NOT FOUND")
 			}
-			
+
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
@@ -180,7 +182,7 @@ export class MultiSearchViewer {
 									//is needed for correct selection behavior on mobile
 									this._searchListView.selectNone()
 									// move all groups one by one because the mail list cannot be modified in parallel
-									return locator.mailModel.moveMails(selectedMails, f)
+									return moveMails(locator.mailModel, selectedMails, f)
 								}, getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})
@@ -197,16 +199,16 @@ export class MultiSearchViewer {
 			//select non is needed for mobile
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action",
-				this.getSelectedMails(mails => markMails(mails, true).then(this._searchListView.selectNone())),
+				this.getSelectedMails(mails => markMails(locator.entityClient, mails, true).then(this._searchListView.selectNone())),
 				() => Icons.NoEye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action",
-				this.getSelectedMails(mails => markMails(mails, false).then(this._searchListView.selectNone())),
+				this.getSelectedMails(mails => markMails(locator.entityClient, mails, false).then(this._searchListView.selectNone())),
 				() => Icons.Eye)
 				.setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
-					this.getSelectedMails(mails => exportMails(mails)),
+					this.getSelectedMails(mails => exportMails(locator.entityClient, mails)),
 					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}

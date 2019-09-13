@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {LOG_SIZE, Logger} from "../../../src/api/common/Logger"
 import {lastThrow} from "../../../src/api/common/utils/ArrayUtils"
 

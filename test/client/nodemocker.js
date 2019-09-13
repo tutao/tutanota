@@ -1,64 +1,9 @@
 // @flow
-import o from "ospec/ospec.js"
-import chalk from 'chalk'
-import mockery from 'mockery'
-import path from 'path'
-import {downcast, neverNull} from "../../src/api/common/utils/Utils"
-
-let exit = {value: undefined}
-let random = {value: undefined}
-const platform = process.platform
-let spyCache: Array<any> = []
-let classCache = []
-let testcount = 0
-
-
-function startGroup(opts: {
-	group: string,
-	allowables?: Array<string>,
-	cleanupFunctions?: Array<()=>void>, timeout?: number,
-	beforeEach?: () => void
-}) {
-	const {group, allowables, cleanupFunctions, timeout, beforeEach} = Object.assign({}, {cleanupFunctions: [], allowables: []}, opts)
-	o.beforeEach(() => {
-		enable(allowables)
-		beforeEach && beforeEach()
-	})
-	o.afterEach(() => disable(cleanupFunctions))
-	if (typeof timeout == 'number') o.specTimeout(timeout)
-}
-
-function enable(allowables: Array<string>) {
-	testcount = testcount + 1
-	exit = setProperty(process, 'exit', o.spy())
-	random = setProperty(Math, 'random', () => 0)
-	setProperty(process, 'resourcesPath', 'app/path/resources')
-	mockery.enable({useCleanCache: true, warnOnUnregistered: false})
-	mockery.registerAllowables(allowedNodeModules)
-	mockery.registerAllowables(allowables)
-	mockery.registerAllowables(['bluebird'])
-}
-
-function disable(cleanups: Array<()=>void>): void {
-	cleanups.forEach(f => f())
-	mockery.deregisterAll()
-	mockery.disable()
-	setProperty(process, 'exit', neverNull(exit).value)
-	setProperty(Math, 'random', neverNull(random).value)
-	setPlatform(platform)
-	spyCache.forEach(obj => delete obj.spy)
-	spyCache = []
-	classCache.forEach(c => c.mockedInstances = [])
-}
-
-// register and get a test subject
-function subject(module: string): any {
-	mockery.registerAllowable(module)
-	return require(module)
-}
+import o from "ospec"
+import {downcast} from "../../src/api/common/utils/Utils"
 
 /**
- * you need to call .get() on the return value to actually register the replacer with mockery and to spyify its functions.
+ * you need to call .get() on the return value to actually register the replacer to spyify its functions.
  * placer object that replaces the module and gets returned when require(old) is called. Its functions are spyified when .get() is called.
  * warning: contents of array properties will not be spyified
  * @param old name of the module to replace
@@ -68,20 +13,17 @@ function mock<T>(old: string, replacer: T): MockBuilder<T> {
 	return new MockBuilder(old, replacer)
 }
 
-function spyify<T>(obj: T): T {
+export function spyify<T>(obj: T): T {
 	const anyObj: any = obj
 	switch (typeof obj) {
 		case 'function':
-			if (typeof anyObj.spy !== 'function') {
-				anyObj.spy = o.spy(obj)
-				spyCache.push(obj)
-			}
+			const spy = o.spy(obj)
 
 			Object.keys(anyObj) // classes are functions
 			      .filter(k => !['args', 'callCount', 'spy'].includes(k))
-			      .forEach(k => anyObj.spy[k] = spyify(anyObj[k]))
+			      .forEach(k => spy[k] = spyify(anyObj[k]))
 
-			return anyObj.spy
+			return spy
 		case 'object':
 			if (Array.isArray(anyObj)) {
 				// TODO: use proxy to sync spyified array?
@@ -109,7 +51,6 @@ type Mocked<T> = Class<T> & {
  * @returns {cls}
  */
 function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
-
 	const cls = function () {
 		cls.mockedInstances.push(this)
 		Object.keys(template.prototype).forEach(p => {
@@ -138,7 +79,6 @@ function classify(template: {prototype: {}, statics: {}}): Mocked<any> {
 		Object.keys(template.statics).forEach(s => cls[s] = template.statics[s])
 	}
 
-	classCache.push(cls)
 	cls.mockedInstances = []
 	return downcast(cls)
 }
@@ -193,63 +133,20 @@ class MockBuilder<T> {
 
 	/**
 	 * register & get the actual mock module object
+	 * warning! This effectively returns any.
 	 * @returns {T} the mock with recursively o.spy()'d functions
 	 */
-	set(): T {
+	set<R>(): R {
 		const copy = spyify(this._mock)
-		mockery.deregisterMock(this._old)
-		mockery.registerMock(this._old, copy)
-		return copy
+		return downcast(copy)
 	}
 }
 
 const n = {
-	subject,
 	classify,
 	mock,
 	spyify,
 	setPlatform,
-	startGroup
 }
-
-const allowedNodeModules = [
-	'promise', './promise',
-	'path', './path',
-	'util', './util',
-	'url',
-	'./es5',
-	'./async',
-	'./schedule',
-	'./errors',
-	'./finally',
-	'./context',
-	'./queue',
-	'./thenables',
-	'./promise_array',
-	'./debuggability',
-	'./catch_filter',
-	'./nodeback',
-	'./method',
-	'./bind',
-	'./cancel',
-	'./direct_resolve',
-	'./synchronous_inspection',
-	'./join',
-	'./map.js',
-	'./call_get.js',
-	'./using.js',
-	'./timers.js',
-	'./generators.js',
-	'./nodeify.js',
-	'./promisify.js',
-	'./props.js',
-	'./race.js',
-	'./reduce.js',
-	'./settle.js',
-	'./some.js',
-	'./filter.js',
-	'./each.js',
-	'./any.js'
-]
 
 export default n

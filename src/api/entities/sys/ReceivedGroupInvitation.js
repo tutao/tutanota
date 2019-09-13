@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ReceivedGroupInvitationTypeRef: TypeRef<ReceivedGroupInvitation> = new TypeRef("sys", "ReceivedGroupInvitation")
@@ -14,99 +14,77 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1606,
-			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 1604,
-			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerEncSessionKey": {
-			"name": "_ownerEncSessionKey",
 			"id": 1608,
-			"since": 52,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 1607,
-			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 1605,
-			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"capability": {
-			"name": "capability",
 			"id": 1614,
-			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"inviteeMailAddress": {
-			"name": "inviteeMailAddress",
 			"id": 1613,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"inviterMailAddress": {
-			"name": "inviterMailAddress",
 			"id": 1611,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"inviterName": {
-			"name": "inviterName",
 			"id": 1612,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"sharedGroupKey": {
-			"name": "sharedGroupKey",
 			"id": 1609,
-			"since": 52,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"sharedGroupName": {
-			"name": "sharedGroupName",
 			"id": 1610,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -115,24 +93,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"sentInvitation": {
-			"name": "sentInvitation",
 			"id": 1616,
-			"since": 52,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "SentGroupInvitation",
 			"final": false,
-			"external": false
+			"refType": "SentGroupInvitation"
 		},
 		"sharedGroup": {
-			"name": "sharedGroup",
 			"id": 1615,
-			"since": 52,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": false,
-			"external": false
+			"refType": "Group"
 		}
 	},
 	"app": "sys",

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const PdfInvoiceServiceDataTypeRef: TypeRef<PdfInvoiceServiceData> = new TypeRef("sys", "PdfInvoiceServiceData")
@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 778,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"invoiceNumber": {
-			"name": "invoiceNumber",
 			"id": 1629,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -34,14 +30,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"invoice": {
-			"name": "invoice",
 			"id": 779,
-			"since": 9,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "LegacyInvoice",
 			"final": false,
-			"external": false
+			"refType": "LegacyInvoice"
 		}
 	},
 	"app": "sys",

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {PriceItemData} from "./PriceItemData"
 
@@ -15,36 +15,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 854,
-			"since": 9,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"paymentInterval": {
-			"name": "paymentInterval",
 			"id": 857,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"price": {
-			"name": "price",
 			"id": 855,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"taxIncluded": {
-			"name": "taxIncluded",
 			"id": 856,
-			"since": 9,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
@@ -53,13 +45,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"items": {
-			"name": "items",
 			"id": 858,
-			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "PriceItemData",
-			"final": false
+			"final": false,
+			"refType": "PriceItemData"
 		}
 	},
 	"app": "sys",

@@ -2,7 +2,6 @@
 import type {BubbleHandler} from "../gui/base/BubbleTextField"
 import {Bubble} from "../gui/base/BubbleTextField"
 import {isMailAddress} from "./FormatValidator"
-import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {DbError} from "../api/common/error/DbError"
 import {loadAll} from "../api/main/Entity"
 import type {Contact} from "../api/entities/tutanota/Contact"
@@ -12,6 +11,7 @@ import {findRecipients} from "../native/ContactApp"
 import {stringToNameAndMailAddress} from "./Formatter"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
+import type {ContactModel} from "../contacts/ContactModel"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -27,9 +27,11 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 
 	suggestionHeight: number;
 	_bubbleFactory: RecipientInfoBubbleFactory;
+	_contactModel: ContactModel
 
-	constructor(bubbleFactory: RecipientInfoBubbleFactory) {
+	constructor(bubbleFactory: RecipientInfoBubbleFactory, contactModel: ContactModel) {
 		this._bubbleFactory = bubbleFactory
+		this._contactModel = contactModel
 		this.suggestionHeight = ContactSuggestionHeight
 	}
 
@@ -40,8 +42,9 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		}
 
 		// ensure match word order for email addresses mainly
-		let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
-			return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+		let contactsPromise = this._contactModel.searchForContacts("\"" + query + "\"", "recipient", 10)
+		                          .catch(DbError, () => {
+			return this._contactModel.contactListId().then(listId => loadAll(ContactTypeRef, listId))
 		})
 
 		return contactsPromise

@@ -7,7 +7,6 @@ declare var customDomainCacheExclusions: () => Array<string>;
 
 // test case
 var versionString = typeof version === "undefined" ? "test" : version()
-console.log("sw start", versionString)
 
 const isTutanotaDomain = () =>
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
@@ -18,7 +17,8 @@ const urlWithoutQuery = (urlString) => {
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
 }
 
-class ServiceWorker {
+
+export class ServiceWorker {
 	_caches: CacheStorage
 	_cacheName: string
 	_selfLocation: string
@@ -179,9 +179,7 @@ const init = (sw: ServiceWorker) => {
 // With normal import Babel generates code which tries to set __esModule on exports but we have no exports in standalone.
 // We hack module in dist.js by prepending `self.module` = {} so that the line below actually works.
 // We should probably split the class and the actual content into separate files and just bundle them together during the build.
-module.exports = {ServiceWorker}
-
-console.log("sw top-level end", versionString)
+// module.exports = {ServiceWorker}-
 
 // do not add listeners for Node tests. env is not set for production
 if (typeof env === "undefined" || env.mode !== "Test") {

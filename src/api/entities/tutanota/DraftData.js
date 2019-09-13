@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DraftAttachment} from "./DraftAttachment"
 import type {DraftRecipient} from "./DraftRecipient"
@@ -17,63 +17,49 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 497,
-			"since": 11,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"bodyText": {
-			"name": "bodyText",
 			"id": 499,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"confidential": {
-			"name": "confidential",
 			"id": 502,
-			"since": 11,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"method": {
-			"name": "method",
 			"id": 1116,
-			"since": 42,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"senderMailAddress": {
-			"name": "senderMailAddress",
 			"id": 500,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"senderName": {
-			"name": "senderName",
 			"id": 501,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"subject": {
-			"name": "subject",
 			"id": 498,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
@@ -82,59 +68,46 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"addedAttachments": {
-			"name": "addedAttachments",
 			"id": 506,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DraftAttachment",
-			"final": true
+			"final": true,
+			"refType": "DraftAttachment"
 		},
 		"bccRecipients": {
-			"name": "bccRecipients",
 			"id": 505,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DraftRecipient",
-			"final": true
+			"final": true,
+			"refType": "DraftRecipient"
 		},
 		"ccRecipients": {
-			"name": "ccRecipients",
 			"id": 504,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DraftRecipient",
-			"final": true
+			"final": true,
+			"refType": "DraftRecipient"
 		},
 		"replyTos": {
-			"name": "replyTos",
 			"id": 819,
-			"since": 21,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "EncryptedMailAddress",
-			"final": false
+			"final": false,
+			"refType": "EncryptedMailAddress"
 		},
 		"toRecipients": {
-			"name": "toRecipients",
 			"id": 503,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DraftRecipient",
-			"final": true
+			"final": true,
+			"refType": "DraftRecipient"
 		},
 		"removedAttachments": {
-			"name": "removedAttachments",
 			"id": 507,
-			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
-			"refType": "File",
 			"final": true,
-			"external": false
+			"refType": "File"
 		}
 	},
 	"app": "tutanota",

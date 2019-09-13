@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GiftCardRedeemGetReturnTypeRef: TypeRef<GiftCardRedeemGetReturn> = new TypeRef("sys", "GiftCardRedeemGetReturn")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1822,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"country": {
-			"name": "country",
 			"id": 1826,
-			"since": 65,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"message": {
-			"name": "message",
 			"id": 1824,
-			"since": 65,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
 		},
 		"value": {
-			"name": "value",
 			"id": 1825,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"giftCard": {
-			"name": "giftCard",
 			"id": 1823,
-			"since": 65,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GiftCard",
 			"final": true,
-			"external": false
+			"refType": "GiftCard"
 		}
 	},
 	"app": "sys",

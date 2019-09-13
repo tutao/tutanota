@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import type {Guest} from "../../../src/calendar/CalendarEventViewModel"

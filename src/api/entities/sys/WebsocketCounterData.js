@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {WebsocketCounterValue} from "./WebsocketCounterValue"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1493,
-			"since": 41,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailGroup": {
-			"name": "mailGroup",
 			"id": 1494,
-			"since": 41,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -35,13 +31,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"counterValues": {
-			"name": "counterValues",
 			"id": 1495,
-			"since": 41,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "WebsocketCounterValue",
-			"final": false
+			"final": false,
+			"refType": "WebsocketCounterValue"
 		}
 	},
 	"app": "sys",

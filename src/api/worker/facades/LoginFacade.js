@@ -48,10 +48,7 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull, noOp} from "../../common/utils/Utils"
 import {
 	_loadEntity,
-	GENERATED_ID_BYTES_LENGTH,
 	HttpMethod,
-	isSameId,
-	isSameTypeRefByAttr,
 	MediaType
 } from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
@@ -88,6 +85,7 @@ import {createTakeOverDeletedAddressData} from "../../entities/sys/TakeOverDelet
 import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
+import {GENERATED_ID_BYTES_LENGTH, isSameId, isSameTypeRefByAttr} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

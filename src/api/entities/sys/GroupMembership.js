@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GroupMembershipTypeRef: TypeRef<GroupMembership> = new TypeRef("sys", "GroupMembership")
@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 26,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"admin": {
-			"name": "admin",
 			"id": 28,
-			"since": 1,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"capability": {
-			"name": "capability",
 			"id": 1626,
-			"since": 52,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"groupType": {
-			"name": "groupType",
 			"id": 1030,
-			"since": 17,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"symEncGKey": {
-			"name": "symEncGKey",
 			"id": 27,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
@@ -61,34 +51,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"group": {
-			"name": "group",
 			"id": 29,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": true,
-			"external": false
+			"refType": "Group"
 		},
 		"groupInfo": {
-			"name": "groupInfo",
 			"id": 30,
-			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GroupInfo",
 			"final": true,
-			"external": false
+			"refType": "GroupInfo"
 		},
 		"groupMember": {
-			"name": "groupMember",
 			"id": 230,
-			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GroupMember",
 			"final": true,
-			"external": false
+			"refType": "GroupMember"
 		}
 	},
 	"app": "sys",

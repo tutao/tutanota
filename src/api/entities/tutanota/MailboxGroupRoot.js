@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventUpdateList} from "./CalendarEventUpdateList"
 import type {OutOfOfficeNotificationRecipientList} from "./OutOfOfficeNotificationRecipientList"
@@ -16,36 +16,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 697,
-			"since": 18,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 695,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 698,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 696,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -54,92 +46,67 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"calendarEventUpdates": {
-			"name": "calendarEventUpdates",
 			"id": 1119,
-			"since": 42,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "CalendarEventUpdateList",
-			"final": true
+			"final": true,
+			"refType": "CalendarEventUpdateList"
 		},
 		"outOfOfficeNotificationRecipientList": {
-			"name": "outOfOfficeNotificationRecipientList",
 			"id": 1151,
-			"since": 44,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "OutOfOfficeNotificationRecipientList",
-			"final": true
+			"final": true,
+			"refType": "OutOfOfficeNotificationRecipientList"
 		},
 		"contactFormUserContactForm": {
-			"name": "contactFormUserContactForm",
 			"id": 748,
-			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "ContactForm",
 			"final": true,
-			"external": false
+			"refType": "ContactForm"
 		},
 		"mailbox": {
-			"name": "mailbox",
 			"id": 699,
-			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "MailBox",
 			"final": true,
-			"external": false
+			"refType": "MailBox"
 		},
 		"outOfOfficeNotification": {
-			"name": "outOfOfficeNotification",
 			"id": 1150,
-			"since": 44,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "OutOfOfficeNotification",
 			"final": true,
-			"external": false
+			"refType": "OutOfOfficeNotification"
 		},
 		"participatingContactForms": {
-			"name": "participatingContactForms",
 			"id": 842,
-			"since": 22,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
-			"refType": "ContactForm",
 			"final": false,
-			"external": false
+			"refType": "ContactForm"
 		},
 		"serverProperties": {
-			"name": "serverProperties",
 			"id": 700,
-			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "MailboxServerProperties",
 			"final": true,
-			"external": false
+			"refType": "MailboxServerProperties"
 		},
 		"targetMailGroupContactForm": {
-			"name": "targetMailGroupContactForm",
 			"id": 749,
-			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "ContactForm",
 			"final": true,
-			"external": false
+			"refType": "ContactForm"
 		},
 		"whitelistRequests": {
-			"name": "whitelistRequests",
 			"id": 701,
-			"since": 18,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "WhitelistRequest",
 			"final": true,
-			"external": false
+			"refType": "WhitelistRequest"
 		}
 	},
 	"app": "tutanota",

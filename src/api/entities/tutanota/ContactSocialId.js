@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ContactSocialIdTypeRef: TypeRef<ContactSocialId> = new TypeRef("tutanota", "ContactSocialId")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 60,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"customTypeName": {
-			"name": "customTypeName",
 			"id": 63,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"socialId": {
-			"name": "socialId",
 			"id": 62,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"type": {
-			"name": "type",
 			"id": 61,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

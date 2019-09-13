@@ -8,12 +8,11 @@ import {load, loadAll, loadMultiple, loadRange, update} from "../api/main/Entity
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {CUSTOM_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
@@ -40,16 +39,17 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
-import {checkAndImportUserData} from "./ImportUsersViewer"
+import {checkAndImportUserData, CSV_USER_FORMAT} from "./ImportUsersViewer"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
+import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 assertMainOrNode()
-export const CSV_USER_FORMAT = "username;user@domain.com;password"
 
 export class UserViewer {
 	view: Function;

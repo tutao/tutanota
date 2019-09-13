@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {parseCalendarStringData, serializeCalendar, serializeEvent} from "../../../src/calendar/CalendarImporter"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {DateTime} from "luxon"

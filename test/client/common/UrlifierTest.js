@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {urlify} from "../../../src/misc/Urlifier"
 
 o.spec("UrlifierTest", function () {

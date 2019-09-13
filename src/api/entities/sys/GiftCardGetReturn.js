@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {GiftCardOption} from "./GiftCardOption"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1799,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"maxPerPeriod": {
-			"name": "maxPerPeriod",
 			"id": 1800,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"period": {
-			"name": "period",
 			"id": 1801,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -44,13 +38,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"options": {
-			"name": "options",
 			"id": 1802,
-			"since": 65,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "GiftCardOption",
-			"final": false
+			"final": false,
+			"refType": "GiftCardOption"
 		}
 	},
 	"app": "sys",

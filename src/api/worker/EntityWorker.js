@@ -6,12 +6,12 @@ import {
 	_loadEntityRange,
 	_loadMultipleEntities,
 	_setupEntity,
-	_updateEntity,
-	TypeRef
+	_updateEntity
 } from "../common/EntityFunctions"
 import {_service} from "./rest/ServiceRestClient"
 import {assertWorkerOrNode} from "../Env"
 import {locator} from "./WorkerLocator"
+import {TypeRef} from "../common/utils/EntityUtils";
 
 assertWorkerOrNode()
 

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DataBlock} from "./DataBlock"
 
@@ -15,54 +15,42 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 8,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 6,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 579,
-			"since": 13,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 7,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"size": {
-			"name": "size",
 			"id": 9,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"unreferenced": {
-			"name": "unreferenced",
 			"id": 409,
-			"since": 2,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
@@ -71,13 +59,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"blocks": {
-			"name": "blocks",
 			"id": 10,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "DataBlock",
-			"final": false
+			"final": false,
+			"refType": "DataBlock"
 		}
 	},
 	"app": "tutanota",

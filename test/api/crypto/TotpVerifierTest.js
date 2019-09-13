@@ -1,8 +1,8 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {TotpVerifier} from "../../../src/api/worker/crypto/TotpVerifier"
 import {stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
-import sjcl from "../../../src/api/worker/crypto/lib/crypto-sjcl-1.0.7"
+import sjcl from "../../../src/api/worker/crypto/lib/sjcl"
 
 o.spec("TotpVerifier", function () {
 

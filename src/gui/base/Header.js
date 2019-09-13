@@ -3,7 +3,7 @@ import m from "mithril"
 import {NavBar} from "./NavBar"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
-import {asyncImport, neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "../../api/common/utils/Utils"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
@@ -15,7 +15,6 @@ import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
-import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
@@ -84,42 +83,37 @@ class Header {
 
 
 		// load worker and search bar one after another because search bar uses worker.
-		asyncImport(typeof module !== "undefined" ?
-			module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`)
-			.then(workerClientModule => {
-				const worker = (workerClientModule.worker: WorkerClient)
-				worker.wsConnection().map(state => {
-					this._wsState = state
-					m.redraw()
-				})
-				worker.initialized.then(() => {
-					asyncImport(typeof module !== "undefined" ?
-						module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
-						.then((searchBarModule) => {
-							this.searchBar = new searchBarModule.SearchBar()
-						})
-
-					asyncImport(typeof module !== "undefined" ?
-						module.id : __moduleName, `${env.rootPathPrefix}src/api/main/MainLocator.js`)
-						.then(locatorModule => {
-							const progressTracker: ProgressTracker = locatorModule.locator.progressTracker
-							if (progressTracker.totalWork() !== 0) {
-								this._loadingProgress = progressTracker.completedAmount()
-							}
-							progressTracker.onProgressUpdate.map(amount => {
-								if (this._loadingProgress !== amount) {
-									this._loadingProgress = amount
-									m.redraw()
-									if (this._loadingProgress >= PROGRESS_DONE) {
-										// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
-										setTimeout(() => {
-											this._loadingProgress = PROGRESS_HIDDEN
-											m.redraw()
-										}, 500)
-									}
-								}
+		import("../../api/main/MainLocator")
+			.then((locatorModule) => {
+				return locatorModule.locator.initializedWorker.then((worker) => {
+					worker.wsConnection().map(state => {
+						this._wsState = state
+						m.redraw()
+					})
+					worker.initialized.then(() => {
+						import('../../search/SearchBar.js')
+							.then((searchBarModule) => {
+								this.searchBar = new searchBarModule.SearchBar()
 							})
+
+						const progressTracker: ProgressTracker = locatorModule.locator.progressTracker
+						if (progressTracker.totalWork() !== 0) {
+							this._loadingProgress = progressTracker.completedAmount()
+						}
+						progressTracker.onProgressUpdate.map(amount => {
+							if (this._loadingProgress !== amount) {
+								this._loadingProgress = amount
+								m.redraw()
+								if (this._loadingProgress >= PROGRESS_DONE) {
+									// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
+									setTimeout(() => {
+										this._loadingProgress = PROGRESS_HIDDEN
+										m.redraw()
+									}, 500)
+								}
+							}
 						})
+					})
 				})
 			})
 	}
@@ -233,6 +227,7 @@ class Header {
 			const fistVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
 			const title = fistVisibleBgColumn ? fistVisibleBgColumn.getTitle() : ""
 			return header(title)
+
 		} else if (m.route.get().startsWith('/login')) {
 			return header(lang.get("login_label"))
 		} else if (m.route.get().startsWith('/signup')) {

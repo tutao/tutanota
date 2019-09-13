@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {PlanPrices} from "./PlanPrices"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1470,
-			"since": 39,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"business": {
-			"name": "business",
 			"id": 1472,
-			"since": 39,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"messageTextId": {
-			"name": "messageTextId",
 			"id": 1471,
-			"since": 39,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
@@ -44,31 +38,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"premiumPrices": {
-			"name": "premiumPrices",
 			"id": 1473,
-			"since": 39,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "PlanPrices",
-			"final": false
+			"final": false,
+			"refType": "PlanPrices"
 		},
 		"proPrices": {
-			"name": "proPrices",
 			"id": 1474,
-			"since": 39,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "PlanPrices",
-			"final": false
+			"final": false,
+			"refType": "PlanPrices"
 		},
 		"teamsPrices": {
-			"name": "teamsPrices",
 			"id": 1729,
-			"since": 57,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "PlanPrices",
-			"final": false
+			"final": false,
+			"refType": "PlanPrices"
 		}
 	},
 	"app": "sys",

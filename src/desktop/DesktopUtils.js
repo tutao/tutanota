@@ -1,91 +1,17 @@
 // @flow
-import * as url from 'url'
 import path from 'path'
 import {exec, spawn} from 'child_process'
 import {promisify} from 'util'
-import fs from "fs-extra"
+import {closeSync, openSync, promises as fs, readFileSync, unlinkSync, writeFileSync} from "fs"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {neverNull, noOp} from "../api/common/utils/Utils"
-import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import {Mode} from "../api/Env"
+import {noOp} from "../api/common/utils/Utils"
+import {log} from "./DesktopLog"
+import {uint8ArrayToHex} from "../api/common/utils/Encoding"
+import {cryptoFns} from "./CryptoFns"
 
-export default class DesktopUtils {
-
-	/**
-	 * @param pathToConvert absolute Path to a file
-	 * @returns {string} file:// URL that can be extended with query parameters and loaded with BrowserWindow.loadURL()
-	 */
-	static pathToFileURL(pathToConvert: string): string {
-		pathToConvert = pathToConvert
-			.trim()
-			.split(path.sep)
-			.map((fragment) => encodeURIComponent(fragment))
-			.join("/")
-		const extraSlashForWindows = process.platform === "win32" && pathToConvert !== ''
-			? "/"
-			: ""
-		let urlFromPath = url.format({
-			pathname: extraSlashForWindows + pathToConvert.trim(),
-			protocol: 'file:'
-		})
-
-		return urlFromPath.trim()
-	}
-
-	/**
-	 * compares a filename to a list of filenames and finds the first number-suffixed
-	 * filename not already contained in the list.
-	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
-	 */
-	static nonClobberingFilename(files: Array<string>, filename: string): string {
-		filename = sanitizeFilename(filename)
-		const clashingFile = files.find(f => f === filename)
-		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
-			return filename
-		} else { // there are clashing file names or the file name is reserved
-			const ext = path.extname(filename)
-			const basename = path.basename(filename, ext)
-			const clashNumbers: Array<number> = files
-				.filter(f => f.startsWith(`${basename}-`))
-				.map(f => f.slice(0, f.length - ext.length))
-				.map(f => f.slice(basename.length + 1, f.length))
-				.map(f => !f.startsWith('0') ? parseInt(f, 10) : 0)
-				.filter(n => !isNaN(n) && n > 0)
-			const clashNumbersSet: Set<number> = new Set(clashNumbers)
-			clashNumbersSet.add(0)
-
-			// if a number is bigger than its index, there is room somewhere before that number
-			const firstGapMinusOne = Array
-				.from(clashNumbersSet)
-				.sort((a, b) => a - b)
-				.find((n, i, a) => a[i + 1] > i + 1)
-
-			return !isNaN(firstGapMinusOne)
-				? `${basename}-${neverNull(firstGapMinusOne) + 1}${ext}`
-				: `${basename}-${clashNumbersSet.size}${ext}`
-		}
-	}
-
-	static looksExecutable(file: string): boolean {
-		// only windows will happily execute a just downloaded program
-		if (process.platform === 'win32') {
-			// taken from https://www.lifewire.com/list-of-executable-file-extensions-2626061
-			const ext = path.extname(file).toLowerCase().slice(1)
-			return [
-				'exe', 'bat', 'bin', 'cmd', 'com', 'cpl', 'gadget',
-				'inf', 'inx', 'ins', 'isu', 'job', 'jse', 'lnk', 'msc',
-				'msi', 'msp', 'mst', 'paf', 'pif', 'ps1', 'reg', 'rgs',
-				'scr', 'sct', 'shb', 'sct', 'shs', 'u3p', 'vb', 'vbe',
-				'vbs', 'vbscript', 'ws', 'wsf', 'wsh'
-			].includes(ext)
-		}
-
-		return false
-	}
-
-	static checkIsMailtoHandler(): Promise<boolean> {
+export class DesktopUtils {
+	checkIsMailtoHandler(): Promise<boolean> {
 		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
 	}
 
@@ -93,11 +19,11 @@ export default class DesktopUtils {
 	 * open and close a file to make sure it exists
 	 * @param path: the file to touch
 	 */
-	static touch(path: string): void {
-		fs.closeSync(fs.openSync(path, 'a'))
+	touch(path: string): void {
+		closeSync(openSync(path, 'a'))
 	}
 
-	static registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
+	registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
 		log.debug("trying to register...")
 		switch (process.platform) {
 			case "win32":
@@ -122,7 +48,7 @@ export default class DesktopUtils {
 		}
 	}
 
-	static unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
+	unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
 		log.debug("trying to unregister...")
 		switch (process.platform) {
 			case "win32":
@@ -151,7 +77,7 @@ export default class DesktopUtils {
 	 * reads the lockfile and then writes the own version into the lockfile
 	 * @returns {Promise<boolean>} whether the lock was overridden by another version
 	 */
-	static singleInstanceLockOverridden(): Promise<boolean> {
+	singleInstanceLockOverridden(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
 		return fs.readFile(lockfilePath, 'utf8')
 		         .then(version => {
@@ -172,7 +98,7 @@ export default class DesktopUtils {
 	 *
 	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
 	 */
-	static makeSingleInstance(): Promise<boolean> {
+	makeSingleInstance(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
@@ -185,16 +111,16 @@ export default class DesktopUtils {
 			         // will terminate itself.
 			         return app.requestSingleInstanceLock()
 				         ? Promise.resolve(true)
-				         : Promise.delay(1500)
-				                  .then(() => DesktopUtils.singleInstanceLockOverridden())
-				                  .then(canStay => {
-					                  if (canStay) {
-						                  app.requestSingleInstanceLock()
-					                  } else {
-						                  app.quit()
-					                  }
-					                  return canStay
-				                  })
+				         : delay(1500)
+					         .then(() => this.singleInstanceLockOverridden())
+					         .then(canStay => {
+						         if (canStay) {
+							         app.requestSingleInstanceLock()
+						         } else {
+							         app.quit()
+						         }
+						         return canStay
+					         })
 		         })
 	}
 
@@ -203,7 +129,7 @@ export default class DesktopUtils {
 	 * registers it as an event listener otherwise
 	 * @param callback listener to call
 	 */
-	static callWhenReady(callback: ()=>void): void {
+	callWhenReady(callback: ()=>void): void {
 		if (app.isReady()) {
 			callback()
 		} else {
@@ -211,6 +137,10 @@ export default class DesktopUtils {
 		}
 	}
 }
+
+
+const singleton: DesktopUtils = new DesktopUtils()
+export default singleton
 
 /**
  * Checks if the user has admin privileges
@@ -237,10 +167,14 @@ function getLockFilePath() {
  * @private
  */
 function _writeToDisk(contents: string): string {
-	const filename = DesktopCryptoFacade.randomHexString(12)
+	const filename = randomHexString(12)
 	const filePath = path.join(path.dirname(process.execPath), filename)
-	fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
+	writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 	return filePath
+}
+
+function randomHexString(byteLength: number): string {
+	return uint8ArrayToHex(cryptoFns.randomBytes(byteLength))
 }
 
 /**
@@ -279,7 +213,7 @@ function _executeRegistryScript(script: string): Promise<void> {
 		stdio: ['ignore', 'inherit', 'inherit'],
 		detached: false
 	}).on('exit', (code, signal) => {
-		fs.unlinkSync(file)
+		unlinkSync(file)
 		if (code === 0) {
 			deferred.resolve()
 		} else {
@@ -290,44 +224,26 @@ function _executeRegistryScript(script: string): Promise<void> {
 }
 
 
-function _registerOnWin(): Promise<void> {
-	const tmpRegScript = require('./reg-templater.js').registerKeys(process.execPath)
+async function _registerOnWin() {
+	const tmpRegScript = (await import('./reg-templater.js')).registerKeys(process.execPath)
 	return _executeRegistryScript(tmpRegScript)
 		.then(() => {
 			app.setAsDefaultProtocolClient('mailto')
 		})
 }
 
-function _unregisterOnWin(): Promise<void> {
+async function _unregisterOnWin() {
 	app.removeAsDefaultProtocolClient('mailto')
-	const tmpRegScript = require('./reg-templater.js').unregisterKeys()
+	const tmpRegScript = (await import('./reg-templater.js')).unregisterKeys()
 	return _executeRegistryScript(tmpRegScript)
 }
 
-/**
- * checks if the given filename is a reserved filename on the current platform
- * @param filename
- * @returns {boolean}
- * @private
- */
-function _isReservedFilename(filename: string): boolean {
-	// CON, CON.txt, COM0 etc. (windows device files)
-	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
-	// .. and .
-	const reservedRe = /^\.{1,2}$/
-
-	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
+export function readJSONSync(absolutePath: string): {[string]: mixed} {
+	return JSON.parse(readFileSync(absolutePath, {encoding: "utf8"}))
 }
 
-type LogFn = (...args: any) => void
-export const log: {debug: LogFn, warn: LogFn, error: LogFn} = (typeof env !== "undefined" && env.mode === Mode.Test)
-	? {
-		debug: noOp,
-		warn: noOp,
-		error: noOp,
-	}
-	: {
-		debug: console.log.bind(console),
-		warn: console.warn.bind(console),
-		error: console.error.bind(console)
-	}
+export function delay(ms: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+		setTimeout(resolve, ms)
+	})
+}

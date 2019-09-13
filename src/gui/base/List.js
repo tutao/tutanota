@@ -3,8 +3,6 @@ import m from "mithril"
 import {Cat, log} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import type {ListElement} from "../../api/common/EntityFunctions"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
@@ -22,6 +20,8 @@ import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import {isKeyPressed} from "../../misc/KeyManager"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils";
+import type {ListElement} from "../../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 

@@ -1,7 +1,7 @@
 // @flow
 import {FileTypeRef} from "../entities/tutanota/File"
-import {isSameTypeRef} from "./EntityFunctions"
 import type {File as TutanotaFile} from "../entities/tutanota/File"
+import {isSameTypeRef} from "./utils/EntityUtils";
 
 export function createDataFile(file: File | TutanotaFile, data: Uint8Array): DataFile {
 	if (file._type && isSameTypeRef((file: any)._type, FileTypeRef)) {

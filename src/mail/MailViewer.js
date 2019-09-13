@@ -4,7 +4,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {serviceRequestVoid} from "../api/main/Entity"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ease} from "../gui/animation/Easing"
@@ -50,7 +50,6 @@ import {
 	getDefaultSender,
 	getDisplayText,
 	getEnabledMailAddresses,
-	getFolder,
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
@@ -61,7 +60,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog
+	getFolder
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
@@ -83,15 +82,14 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
-import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {elementIdPart, getListId, HttpMethod, listIdPart} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {mailToEmlFile} from "./Exporter"
 import {client} from "../misc/ClientDetector"
 import type {PosRect} from "../gui/base/Dropdown"
-import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
 import {FileOpenError} from "../api/common/error/FileOpenError"
@@ -104,7 +102,6 @@ import {CALENDAR_MIME_TYPE} from "../calendar/CalendarUtils"
 import {createAsyncDropdown, createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
-import {isNewMailActionAvailable} from "./MailView"
 import {RecipientButton} from "../gui/base/RecipientButton"
 import {Banner, BannerType} from "../gui/base/Banner"
 import {createReportPhishingPostData} from "../api/entities/tutanota/ReportPhishingPostData"
@@ -124,7 +121,10 @@ import {defaultSendMailModel} from "./SendMailModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
-import {MailModel} from "./MailModel"
+import type {MailModel} from "./MailModel"
+import type {ContactModel} from "../contacts/ContactModel"
+import {elementIdPart, getListId, listIdPart} from "../api/common/utils/EntityUtils"
+import {isNewMailActionAvailable, moveMails, promptAndDeleteMails, showDeleteConfirmationDialog} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -136,6 +136,7 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 const DOUBLE_TAP_TIME_MS = 350
 const SCROLL_FACTOR = 4 / 5
+
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -173,11 +174,13 @@ export class MailViewer {
 	_calendarEventAttachment: ?{|event: CalendarEvent, method: CalendarMethodEnum, recipient: string|};
 	_entityClient: EntityClient;
 	_mailModel: MailModel;
+	_contactModel: ContactModel;
 
-	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel) {
+	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel, contactModel: ContactModel) {
 		if (isDesktop()) {
 			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
+		this._contactModel = contactModel
 		this.mail = mail
 		this._entityClient = entityClient
 		this._mailModel = mailModel
@@ -579,7 +582,7 @@ export class MailViewer {
 								return targetFolders.map(f => {
 									return {
 										label: () => getFolderName(f),
-										click: () => this._mailModel.moveMails([mail], f),
+										click: () => moveMails(this._mailModel, [mail], f),
 										icon: getFolderIcon(f),
 										type: ButtonType.Dropdown,
 									}
@@ -599,11 +602,7 @@ export class MailViewer {
 		actions.push(m(ButtonN, {
 			label: "delete_action",
 			click: () => {
-				showDeleteConfirmationDialog([this.mail]).then((confirmed) => {
-					if (confirmed) {
-						this._mailModel.deleteMails([this.mail])
-					}
-				})
+				promptAndDeleteMails(this._mailModel, [this.mail], noOp)
 			},
 			icon: () => Icons.Trash,
 			colors,
@@ -701,7 +700,7 @@ export class MailViewer {
 			      .then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
 			      .then((mailboxDetails) => {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-				      return this._mailModel.moveMails([this.mail], spamFolder)
+				      return moveMails(this._mailModel, [this.mail], spamFolder)
 			      })
 			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
 			      .catch(NotFoundError, () => console.log("mail already moved"))
@@ -742,6 +741,7 @@ export class MailViewer {
 
 	_exportMail() {
 		const exportPromise = mailToEmlFile(
+			this._entityClient,
 			this.mail,
 			this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""
 		)
@@ -1102,7 +1102,7 @@ export class MailViewer {
 		if (logins.getUserController().isInternalUser()) {
 			let contactsPromise = Promise.resolve()
 			if (!logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
+				contactsPromise = this._contactModel.searchForContactByMailAddress(address.address).then(contact => {
 					if (contact) {
 						buttons.push({
 							label: "showContact_action",
@@ -1116,7 +1116,7 @@ export class MailViewer {
 						buttons.push({
 							label: "createContact_action",
 							click: () => {
-								LazyContactListId.getAsync().then(contactListId => {
+								this._contactModel.contactListId().then(contactListId => {
 									const contact = createNewContact(logins.getUserController().user, address.address, address.name)
 									new ContactEditor(contact, contactListId).show()
 								})
@@ -1361,7 +1361,7 @@ export class MailViewer {
 				return defaultSendMailModel(mailboxDetails).initAsResponse(args).then(model => model.send(MailMethod.NONE))
 			})
 		}).then(() => this._mailModel.getMailboxFolders(this.mail)).then((folders) => {
-			this._mailModel.moveMails([this.mail], getArchiveFolder(folders))
+			return moveMails(this._mailModel, [this.mail], getArchiveFolder(folders))
 		})
 	}
 

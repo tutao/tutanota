@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ResetPasswordDataTypeRef: TypeRef<ResetPasswordData> = new TypeRef("sys", "ResetPasswordData")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 585,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"pwEncUserGroupKey": {
-			"name": "pwEncUserGroupKey",
 			"id": 588,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"salt": {
-			"name": "salt",
 			"id": 587,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"verifier": {
-			"name": "verifier",
 			"id": 586,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"user": {
-			"name": "user",
 			"id": 589,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "User",
 			"final": false,
-			"external": false
+			"refType": "User"
 		}
 	},
 	"app": "sys",

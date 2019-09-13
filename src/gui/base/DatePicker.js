@@ -17,12 +17,12 @@ import {BootIcons} from "./icons/BootIcons"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
 import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common/utils/DateUtils"
-import type {CalendarDay} from "../../calendar/CalendarUtils"
-import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
 import {TextFieldN} from "./TextFieldN"
 import {Keys} from "../../api/common/TutanotaConstants"
+import {getCalendarMonth} from "../../calendar/CalendarUtils"
+import type {CalendarDay} from "../../calendar/CalendarUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:

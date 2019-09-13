@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GiftCardCreateDataTypeRef: TypeRef<GiftCardCreateData> = new TypeRef("sys", "GiftCardCreateData")
@@ -14,54 +14,42 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1804,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"country": {
-			"name": "country",
 			"id": 1808,
-			"since": 65,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"keyHash": {
-			"name": "keyHash",
 			"id": 1809,
-			"since": 65,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"message": {
-			"name": "message",
 			"id": 1805,
-			"since": 65,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"ownerEncSessionKey": {
-			"name": "ownerEncSessionKey",
 			"id": 1806,
-			"since": 65,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"value": {
-			"name": "value",
 			"id": 1807,
-			"since": 65,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

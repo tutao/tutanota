@@ -753,4 +753,4 @@ u2f.getApiVersion = function (callback, opt_timeoutSeconds) {
 	});
 };
 
-module.exports = u2f
+export default u2f

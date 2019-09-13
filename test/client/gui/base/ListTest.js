@@ -1,10 +1,10 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List"
-import type {ListElement} from "../../../../src/api/common/EntityFunctions"
-import {GENERATED_MAX_ID} from "../../../../src/api/common/EntityFunctions"
 import {downcast, noOp} from "../../../../src/api/common/utils/Utils"
 import {createMail} from "../../../../src/api/entities/tutanota/Mail"
+import {GENERATED_MAX_ID} from "../../../../src/api/common/utils/EntityUtils";
+import type {ListElement} from "../../../../src/api/common/utils/EntityUtils"
 
 function dummySort() {
 	return 0

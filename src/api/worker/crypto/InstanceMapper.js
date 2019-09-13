@@ -1,6 +1,6 @@
 // @flow
 
-import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {
 	base64ToBase64Url,
@@ -13,16 +13,12 @@ import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
 
 // $FlowIgnore[untyped-import]
-import EC from "../../common/EntityConstants"
+import {Type, ValueType, Cardinality, AssociationType} from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../Env"
 import {uncompress} from "../lz4"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 assertWorkerOrNode()
-
-const Type = EC.Type
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
 
 /**
  * Decrypts an object literal as received from the DB and maps it to an entity class (e.g. Mail)
@@ -37,22 +33,22 @@ export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, s
 	}
 	for (let key of Object.keys(model.values)) {
 		let valueType = model.values[key]
-		let value = instance[valueType.name]
+		let value = instance[key]
 		try {
-			decrypted[valueType.name] = decryptValue(valueType, value, sk)
+			decrypted[key] = decryptValue(key, valueType, value, sk)
 		} catch (e) {
 			if (decrypted._errors == null) {
 				decrypted._errors = {}
 			}
-			decrypted._errors[valueType.name] = JSON.stringify(e)
+			decrypted._errors[key] = JSON.stringify(e)
 		} finally {
 			if (valueType.encrypted) {
 				if (valueType.final) {
 					// we have to store the encrypted value to be able to restore it when updating the instance. this is not needed for data transfer types, but it does not hurt
-					decrypted["_finalEncrypted_" + valueType.name] = value
+					decrypted["_finalEncrypted_" + key] = value
 				} else if (value === "") {
 					// we have to store the default value to make sure that updates do not cause more storage use
-					decrypted["_defaultEncrypted_" + valueType.name] = decrypted[valueType.name]
+					decrypted["_defaultEncrypted_" + key] = decrypted[key]
 				}
 			}
 		}
@@ -93,15 +89,15 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 
 	for (let key of Object.keys(model.values)) {
 		let valueType = model.values[key]
-		let value = i[valueType.name]
+		let value = i[key]
 		// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitely because "" is allowed
-		if (valueType.encrypted && valueType.final && i["_finalEncrypted_" + valueType.name] != null) {
-			encrypted[valueType.name] = i["_finalEncrypted_" + valueType.name]
-		} else if (valueType.encrypted && i["_defaultEncrypted_" + valueType.name] === value) {
+		if (valueType.encrypted && valueType.final && i["_finalEncrypted_" + key] != null) {
+			encrypted[key] = i["_finalEncrypted_" + key]
+		} else if (valueType.encrypted && i["_defaultEncrypted_" + key] === value) {
 			// restore the default encrypted value because it has not changed
-			encrypted[valueType.name] = ""
+			encrypted[key] = ""
 		} else {
-			encrypted[valueType.name] = encryptValue(valueType, value, sk)
+			encrypted[key] = encryptValue(key, valueType, value, sk)
 		}
 	}
 	if (model.type === Type.Aggregated && !encrypted._id) {
@@ -138,12 +134,12 @@ export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Ae
 
 }
 
-export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key): any {
-	if (value == null && valueType.name !== '_id' && valueType.name !== '_permissions') {
+export function encryptValue(valueName: string, valueType: ModelValue, value: any, sk: ?Aes128Key): any {
+	if (value == null && valueName !== '_id' && valueName !== '_permissions') {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
 		} else {
-			throw new ProgrammingError(`Value ${valueType.name} with cardinality ONE can not be null`)
+			throw new ProgrammingError(`Value ${valueName} with cardinality ONE can not be null`)
 		}
 	} else if (valueType.encrypted) {
 		let bytes = value
@@ -157,12 +153,12 @@ export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key):
 	}
 }
 
-export function decryptValue(valueType: ModelValue, value: ?Base64 | string, sk: ?Aes128Key): any {
+export function decryptValue(valueName: string, valueType: ModelValue, value: ?Base64 | string, sk: ?Aes128Key): any {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
 		} else {
-			throw new ProgrammingError(`Value ${valueType.name} with cardinality ONE can not be null`)
+			throw new ProgrammingError(`Value ${valueName} with cardinality ONE can not be null`)
 		}
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
 		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially

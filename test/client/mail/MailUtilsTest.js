@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {GroupType} from "../../../src/api/common/TutanotaConstants"
 import {createRecipientInfo, parseMailtoUrl} from "../../../src/mail/MailUtils"
 import {LoginControllerImpl, logins} from "../../../src/api/main/LoginController"

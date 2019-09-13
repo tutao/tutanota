@@ -1,12 +1,13 @@
 // @flow
 import m from "mithril"
-import {Button, createDropDownButton} from "./Button"
+import {Button} from "./Button"
 import {TextField} from "./TextField"
 import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ButtonType} from "./ButtonN"
+import {createDropDownButton} from "./Dropdown";
 
 assertMainOrNode()
 

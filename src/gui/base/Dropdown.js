@@ -6,12 +6,14 @@ import {Button} from "./Button"
 import {mod} from "../../misc/MathUtils"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import {showDropdown} from "./DropdownN"
 import type {Shortcut} from "../../misc/KeyManager"
+import type {AllIconsEnum, lazyIcon} from "./Icon"
 
 assertMainOrNodeBoot()
 
@@ -328,4 +330,69 @@ export class Dropdown {
 				: b.isVisible() && b.getLabel().toLowerCase().includes(this._filterString().toLowerCase())
 		})
 	}
+}
+
+export function createDropDownButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: ?lazy<AllIconsEnum>,
+                                     lazyButtons: lazy<$ReadOnlyArray<string | Button>>, width: number = 200,
+                                     originOverride: ?(() => PosRect)): Button {
+	return createAsyncDropDownButton(labelTextIdOrTextFunction, icon, () => Promise.resolve(lazyButtons()), width,
+		originOverride)
+}
+
+export function createAsyncDropDownButton(labelTextIdOrTextFunction: TranslationKey | lazy<string>, icon: ?lazyIcon,
+                                          lazyButtons: lazyAsync<$ReadOnlyArray<string | Button>>,
+                                          width: number = 200, originOverride: ?(() => PosRect))
+	: Button {
+	let mainButton = new Button(labelTextIdOrTextFunction, ((event) => {
+		event.stopPropagation()
+		if (!mainButton.isActive) {
+			return
+		}
+		let buttonPromise = lazyButtons()
+		let resultPromise = buttonPromise
+		// If the promise is pending and does not resolve in 100ms, show progress dialog
+		if (buttonPromise.isPending()) {
+			resultPromise = Promise.race([
+					buttonPromise,
+					Promise.all([
+						Promise.delay(100),
+						import("./ProgressDialog.js")
+					]).then(([_, module]) => {
+						if (buttonPromise.isPending()) {
+							return module.showProgressDialog("loading_msg", buttonPromise)
+						} else {
+							return buttonPromise
+						}
+					})
+				]
+			)
+		}
+		const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
+		resultPromise.then(buttons => {
+			if (buttons.length === 0) {
+				import( './Dialog.js')
+					.then(module => {
+						return module.Dialog.error("selectionNotAvailable_msg")
+					})
+			} else {
+				mainButton.isActive = false
+				let dropdown = new Dropdown(() => buttons, width)
+				dropdown.closeHandler = () => {
+					mainButton.isActive = true
+				}
+				if (mainButton._domButton) {
+					let buttonRect: PosRect = mainButton._domButton.getBoundingClientRect()
+					if (originOverride) {
+						buttonRect = originOverride()
+					} else if (buttonRect.width === 0 && buttonRect.height === 0) {
+						// When new instance is created and the old DOM is detached we may have incorrect positioning
+						buttonRect = initialButtonRect
+					}
+					dropdown.setOrigin(buttonRect)
+					modal.displayUnique(dropdown, false)
+				}
+			}
+		})
+	}: clickHandler), icon)
+	return mainButton
 }

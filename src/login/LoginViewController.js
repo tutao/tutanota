@@ -22,7 +22,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {windowFacade} from "../misc/WindowFacade"
 import {pushServiceApp} from "../native/PushServiceApp"
 import {logins} from "../api/main/LoginController"
-import {LoginView} from "./LoginView"
+import type {LoginView} from "./LoginView"
 import {PasswordForm} from "../settings/PasswordForm"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
@@ -38,10 +38,10 @@ import {loadSignupWizard, showUpgradeWizard} from "../subscription/UpgradeSubscr
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfoServiceData"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {formatPrice} from "../subscription/SubscriptionUtils"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
+import {formatPrice} from "../subscription/PriceUtils"
 
 assertMainOrNode()
 

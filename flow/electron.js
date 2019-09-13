@@ -440,6 +440,7 @@ declare module 'electron' {
 		id: number;
 
 		static fromId(number): BrowserWindow;
+		static getAllWindows(): Array<BrowserWindow>
 	}
 
 	declare export class Tray {
@@ -477,6 +478,7 @@ declare module 'electron' {
 	declare export class WebContents {
 		on(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
 		once(WebContentsEvent, (Event, ...Array<any>) => void): WebContents;
+		removeListener(WebContentsEvent, (Event, ...any) => void): BrowserWindow;
 		removeAllListeners(WebContentsEvent): WebContents;
 		send(string, any): void;
 		session: ElectronSession;
@@ -547,18 +549,6 @@ declare interface ClientRequest {
 
 declare module 'electron-updater' {
 	declare export var autoUpdater: AutoUpdater
-}
-
-declare module 'electron-localshortcut' {
-	declare module .exports: {
-		register(win?: BrowserWindow, shortcut: string, cb: Function): void;
-		unregister(shortcut: string): void;
-		isRegistered(shortcut: string): boolean;
-		unregisterAll(win?: BrowserWindow): void;
-		enableAll(win?: BrowserWindow): void;
-		disableAll(win?: BrowserWindow): void;
-	}
-;
 }
 
 // https://electronjs.org/docs/api/structures/notification-action
@@ -786,6 +776,7 @@ export type WebContentsEvent
 	| 'will-attach-webview'
 	| 'did-attach-webview'
 	| 'console-message'
+	| 'closed'
 
 export type AutoUpdaterEvent
 	= 'error'
@@ -797,12 +788,6 @@ export type AutoUpdaterEvent
 
 export type TrayEvent
 	= 'click'
-
-
-declare module 'fs-extra' {
-	declare export default any;
-	//declare export var fs: any;
-}
 
 declare module 'bluebird' {
 	declare export default any;

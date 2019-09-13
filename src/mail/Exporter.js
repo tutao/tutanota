@@ -1,7 +1,6 @@
 // @flow
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {pad} from "../api/common/utils/StringUtils"
-import {load} from "../api/main/Entity"
 import {createFile, FileTypeRef} from "../api/entities/tutanota/File"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
@@ -10,11 +9,12 @@ import {assertMainOrNode} from "../api/Env"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 import type {Mail} from "../api/entities/tutanota/Mail"
+import {EntityClient} from "../api/common/EntityClient"
 
 assertMainOrNode()
 
-export function mailToEmlFile(mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
-	return toEml(mail, sanitizedHtmlBody).then(emlString => {
+export function mailToEmlFile(entityClient: EntityClient, mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
+	return toEml(entityClient, mail, sanitizedHtmlBody).then(emlString => {
 		let data = stringToUtf8Uint8Array(emlString)
 		let tmpFile = createFile()
 		let filename = [...formatSortableDateTime(mail.sentDate).split(' '), mail.subject].join('-')
@@ -35,8 +35,8 @@ export function mailToEmlFile(mail: Mail, sanitizedHtmlBody: string): Promise<Da
 /**
  * Converts a mail into the plain text EML format.
  */
-export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
-	const headersPromise = mail.headers ? load(MailHeadersTypeRef, mail.headers) : Promise.resolve(null)
+export function toEml(entityClient: EntityClient, mail: Mail, sanitizedBodyText: string): Promise<string> {
+	const headersPromise = mail.headers ? entityClient.load(MailHeadersTypeRef, mail.headers) : Promise.resolve(null)
 	return headersPromise.then(header => {
 		let body = uint8ArrayToBase64(stringToUtf8Uint8Array(sanitizedBodyText)).match(/.{1,78}/g)
 		if (!body) {
@@ -87,7 +87,7 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 			""
 		])
 		return Promise.map(mail.attachments, fileId => {
-			return load(FileTypeRef, fileId).then(attachment => {
+			return entityClient.load(FileTypeRef, fileId).then(attachment => {
 				return worker.downloadFileContent(attachment).then(file => {
 					let dataFile = ((file: any): DataFile)
 					let base64Filename = "=?UTF-8?B?" +

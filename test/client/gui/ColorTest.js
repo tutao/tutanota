@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {hexToRgb, rgbToHex} from "../../../src/gui/Color"
 
 o.spec("color", function () {

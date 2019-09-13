@@ -13,10 +13,9 @@ import {InfoView} from "./gui/base/InfoView"
 import {Button} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/Env"
-import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
-import {asyncImport, neverNull} from "./api/common/utils/Utils"
+import {downcast, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
@@ -62,23 +61,18 @@ window.tutao = {
 }
 setupExceptionHandling()
 
-function _asyncImport(path: string) {
-	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
-}
-
-
 client.init(navigator.userAgent, navigator.platform)
-_asyncImport("src/serviceworker/ServiceWorkerClient.js").then((swModule) => swModule.init())
+import("./serviceworker/ServiceWorkerClient").then((swModule) => swModule.init())
 if (client.isIE()) {
-	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
+	import("./gui/base/NotificationOverlay.js").then((module) => module.show({
 		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
-	}, "close_alt", []))
+	}, {label: "close_alt"}, []))
 } else if (isDesktop()) {
 	nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('isUpdateAvailable', [])))
 	         .then(updateInfo => {
 		         if (updateInfo) {
 			         let message = {view: () => m("", lang.get("updateAvailable_label", {"{version}": updateInfo.version}))}
-			         _asyncImport("src/gui/base/NotificationOverlay.js").then(module => module.show(message, {label: "postpone_action"},
+			         import("./gui/base/NotificationOverlay.js").then(module => module.show(message, {label: "postpone_action"},
 				         [
 					         {
 						         label: "installNow_action",
@@ -90,8 +84,11 @@ if (client.isIE()) {
 	         })
 }
 
-export const state: {prefix: ?string} = (deletedModule && deletedModule.module)
-	? deletedModule.module.state : {prefix: null}
+export const state: {prefix: ?string, prefixWithoutFile: ?string} = (module.hot && module.hot.data)
+	? downcast(module.hot.data.state) : {prefix: null, prefixWithoutFile: null}
+
+// Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
+window.tutao.appState = state
 
 let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
@@ -107,7 +104,6 @@ if (!isDesktop() && navigator.registerProtocolHandler) {
 }
 
 let initialized = lang.init(en).then(() => {
-	styles.init()
 	if (!client.isSupported()) {
 		if (isApp() && client.device === DeviceType.ANDROID) {
 
@@ -185,27 +181,29 @@ let initialized = lang.init(en).then(() => {
 		}
 	}
 
-	let mailViewResolver = createViewResolver(() => _asyncImport("src/mail/MailView.js")
+	let mailViewResolver = createViewResolver(() => import("./mail/MailView.js")
 		.then(module => new module.MailView()))
-	let contactViewResolver = createViewResolver(() => _asyncImport("src/contacts/ContactView.js")
+	let contactViewResolver = createViewResolver(() => import("./contacts/ContactView.js")
 		.then(module => new module.ContactView()))
-	let externalLoginViewResolver = createViewResolver(() => _asyncImport("src/login/ExternalLoginView.js")
+	let externalLoginViewResolver = createViewResolver(() => import("./login/ExternalLoginView.js")
 		.then(module => new module.ExternalLoginView()), false)
-	let loginViewResolver = createViewResolver(() => _asyncImport("src/login/LoginView.js")
+	let loginViewResolver = createViewResolver(() => import("./login/LoginView.js")
 		.then(module => module.login), false)
-	let settingsViewResolver = createViewResolver(() => _asyncImport("src/settings/SettingsView.js")
+	let settingsViewResolver = createViewResolver(() => import("./settings/SettingsView.js")
 		.then(module => new module.SettingsView()))
-	let searchViewResolver = createViewResolver(() => _asyncImport("src/search/SearchView.js")
+	let searchViewResolver = createViewResolver(() => import("./search/SearchView.js")
 		.then(module => new module.SearchView()))
-	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js")
+	let contactFormViewResolver = createViewResolver(() => import("./login/ContactFormView.js")
 		.then(module => module.contactFormView), false)
-	const calendarViewResolver = createViewResolver(() => _asyncImport("src/calendar/CalendarView.js")
+	const calendarViewResolver = createViewResolver(() => import("./calendar/CalendarView.js")
 		.then(module => new module.CalendarView()), true)
 
 	let start = "/"
-	if (!state.prefix) {
-		state.prefix = location.pathname[location.pathname.length - 1] !== '/'
-			? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
+	if (state.prefix == null) {
+		const prefix = state.prefix = location.pathname[location.pathname.length - 1] !== '/'
+			? location.pathname
+			: location.pathname.substring(0, location.pathname.length - 1)
+		state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
 
 		let query = m.parseQueryString(location.search)
 		let redirectTo = query['r'] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
@@ -224,6 +222,7 @@ let initialized = lang.init(en).then(() => {
 		start = target
 	}
 	m.route.prefix = neverNull(state.prefix)
+	styles.init()
 
 	// keep in sync with RewriteAppResourceUrlHandler.java
 	m.route(neverNull(document.body), start, {
@@ -265,10 +264,9 @@ let initialized = lang.init(en).then(() => {
 		}
 	})
 
-	const workerPromise = _asyncImport("src/api/main/WorkerClient.js")
-		.then(module => module.worker)
+	const workerPromise = import("./api/main/WorkerClient.js")
 	workerPromise.then((worker) => {
-		_asyncImport("src/gui/InfoMessageHandler.js")
+		import("./gui/InfoMessageHandler.js")
 	})
 
 
@@ -335,3 +333,16 @@ WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 `)
 }, 5000)
+
+const hot = typeof module !== "undefined" && module.hot
+if (hot) {
+	// Save the state (mostly prefix) before the reload
+	hot.dispose((data) => {
+		data.state = state
+	})
+	// Import ourselves again to actually replace ourselves and all the dependencies
+	hot.accept(() => {
+		console.log("Requiring new app.js")
+		require(module.id)
+	})
+}

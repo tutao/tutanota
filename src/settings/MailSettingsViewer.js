@@ -2,12 +2,11 @@
 import m from "mithril"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId} from "../api/common/EntityFunctions"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
 import {load, update} from "../api/main/Entity"
-import {getEnabledMailAddressesForGroupInfo, neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
 import * as EditSignatureDialog from "./EditSignatureDialog"
@@ -40,6 +39,8 @@ import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupporte
 import {LockedError} from "../api/common/error/RestError"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
+import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils";
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

@@ -1,23 +1,11 @@
 // @flow
-import {dialog, ipcMain} from 'electron'
 import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
-import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfig} from "./config/DesktopConfig"
-import {DesktopConfigKey} from "./config/DesktopConfig"
-import {
-	disableAutoLaunch,
-	enableAutoLaunch,
-	integrate,
-	isAutoLaunchEnabled,
-	isIntegrated,
-	unintegrate
-} from "./integration/DesktopIntegrator"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
@@ -26,8 +14,12 @@ import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
-import {log} from "./DesktopUtils"
 import type {ElectronUpdater} from "./ElectronUpdater"
+import {DesktopConfigKey} from "./config/ConfigKeys";
+import {log} from "./DesktopLog";
+import type {DesktopUtils} from "./DesktopUtils"
+import type {DesktopErrorHandler} from "./DesktopErrorHandler"
+import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -45,6 +37,10 @@ export class IPC {
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 	_updater: ?ElectronUpdater;
+	_electron: $Exports<"electron">;
+	_desktopUtils: DesktopUtils;
+	_err: DesktopErrorHandler;
+	_integrator: DesktopIntegrator ;
 
 	constructor(
 		conf: DesktopConfig,
@@ -55,7 +51,11 @@ export class IPC {
 		alarmStorage: DesktopAlarmStorage,
 		desktopCryptoFacade: DesktopCryptoFacade,
 		dl: DesktopDownloadManager,
-		updater: ?ElectronUpdater
+		updater: ?ElectronUpdater,
+		electron: $Exports<"electron">,
+		desktopUtils: DesktopUtils,
+		errorHandler: DesktopErrorHandler,
+		integrator: DesktopIntegrator,
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -66,6 +66,10 @@ export class IPC {
 		this._crypto = desktopCryptoFacade
 		this._dl = dl
 		this._updater = updater
+		this._electron = electron
+		this._desktopUtils = desktopUtils
+		this._err = errorHandler
+		this._integrator = integrator
 		if (!!this._updater) {
 			this._updater.setUpdateDownloadedListener(() => {
 				this._wm.getAll().forEach(w => this.sendRequest(w.id, 'appUpdateDownloaded', []))
@@ -74,15 +78,14 @@ export class IPC {
 
 		this._initialized = []
 		this._queue = {}
+		this._err = errorHandler
 	}
 
 	_invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): Promise<any> {
 
 		switch (method) {
 			case 'init':
-				if (!this.initialized(windowId).isFulfilled()) {
-					this._initialized[windowId].resolve()
-				}
+				this._initialized[windowId].resolve()
 				return Promise.resolve(process.platform)
 			case 'findInPage':
 				return this.initialized(windowId).then(() => {
@@ -112,31 +115,31 @@ export class IPC {
 				}
 				return Promise.resolve()
 			case 'registerMailto':
-				return DesktopUtils.registerAsMailtoHandler(true)
+				return this._desktopUtils.registerAsMailtoHandler(true)
 			case 'unregisterMailto':
-				return DesktopUtils.unregisterAsMailtoHandler(true)
+				return this._desktopUtils.unregisterAsMailtoHandler(true)
 			case 'integrateDesktop':
-				return integrate()
+				return this._integrator.integrate()
 			case 'unIntegrateDesktop':
-				return unintegrate()
+				return this._integrator.unintegrate()
 			case 'sendDesktopConfig':
-				return Promise.join(
-					DesktopUtils.checkIsMailtoHandler(),
-					isAutoLaunchEnabled(),
-					isIntegrated(),
-					(isMailtoHandler, autoLaunchEnabled, isIntegrated) => {
-						const config = this._conf.getVar()
-						config.isMailtoHandler = isMailtoHandler
-						config.runOnStartup = autoLaunchEnabled
-						config.isIntegrated = isIntegrated
-						config.updateInfo = !!this._updater
-							? this._updater.updateInfo
-							: null
-						return config
-					})
+				return Promise.all([
+					this._desktopUtils.checkIsMailtoHandler(),
+					this._integrator.isAutoLaunchEnabled(),
+					this._integrator.isIntegrated()
+				]).then(([isMailtoHandler, autoLaunchEnabled, isIntegrated]) => {
+					const config = this._conf.getVar()
+					config.isMailtoHandler = isMailtoHandler
+					config.runOnStartup = autoLaunchEnabled
+					config.isIntegrated = isIntegrated
+					config.updateInfo = !!this._updater
+						? this._updater.updateInfo
+						: null
+					return config
+				})
 			case 'openFileChooser':
 				if (args[1]) { // open folder dialog
-					return dialog.showOpenDialog(null, {properties: ['openDirectory']}).then(({filePaths}) => filePaths)
+					return this._electron.dialog.showOpenDialog(null, {properties: ['openDirectory']}).then(({filePaths}) => filePaths)
 				} else { // open file
 					return Promise.resolve([])
 				}
@@ -168,9 +171,9 @@ export class IPC {
 					}
 				})
 			case 'enableAutoLaunch':
-				return enableAutoLaunch()
+				return this._integrator.enableAutoLaunch()
 			case 'disableAutoLaunch':
-				return disableAutoLaunch()
+				return this._integrator.disableAutoLaunch()
 			case 'getPushIdentifier':
 				const uInfo = {
 					userId: args[0].toString(),
@@ -178,17 +181,17 @@ export class IPC {
 				}
 				// we know there's a logged in window
 				// first, send error report if there is one
-				return err.sendErrorReport(windowId)
-				          .then(() => {
-					          const w = this._wm.get(windowId)
-					          if (!w) return
-					          w.setUserInfo(uInfo)
-					          if (!w.isHidden()) {
-						          this._notifier.resolveGroupedNotification(uInfo.userId)
-					          }
-					          const sseInfo = this._sse.getPushIdentifier()
-					          return sseInfo && sseInfo.identifier
-				          })
+				return this._err.sendErrorReport(windowId)
+				           .then(() => {
+					           const w = this._wm.get(windowId)
+					           if (!w) return
+					           w.setUserInfo(uInfo)
+					           if (!w.isHidden()) {
+						           this._notifier.resolveGroupedNotification(uInfo.userId)
+					           }
+					           const sseInfo = this._sse.getPushIdentifier()
+					           return sseInfo && sseInfo.identifier
+				           })
 			case 'storePushIdentifierLocally':
 				return Promise.all([
 					this._sse.storePushIdentifier(
@@ -200,7 +203,7 @@ export class IPC {
 						args[3].toString(),
 						args[4].toString()
 					)
-				]).return()
+				]).then(() => {})
 			case 'initPushNotifications':
 				// Nothing to do here because sse connection is opened when starting the native part.
 				return Promise.resolve()
@@ -246,9 +249,9 @@ export class IPC {
 			if (w) {
 				w.sendMessageToWebContents(windowId, request)
 			}
-			return Promise.fromCallback(cb => {
-				this._queue[requestId] = cb
-			});
+			return new Promise((resolve, reject) => {
+				this._queue[requestId] = (err, result) => err ? reject(err) : resolve(result)
+			})
 		})
 	}
 
@@ -269,7 +272,7 @@ export class IPC {
 
 	addWindow(id: number) {
 		this._initialized[id] = defer()
-		ipcMain.on(String(id), (ev: Event, msg: string) => {
+		this._electron.ipcMain.on(String(id), (ev: Event, msg: string) => {
 			const request = JSON.parse(msg)
 			if (request.type === "response") {
 				this._queue[request.id](null, request.value);
@@ -312,7 +315,7 @@ export class IPC {
 	}
 
 	removeWindow(id: number) {
-		ipcMain.removeAllListeners(`${id}`)
+		this._electron.ipcMain.removeAllListeners(`${id}`)
 		delete this._initialized[id]
 	}
 }

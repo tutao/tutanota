@@ -18,7 +18,7 @@ import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {CurrentView} from "../gui/base/Header"
-import {getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -36,16 +36,13 @@ import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
 	appendEmailSignature,
-	archiveMails,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
 	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
-	getSortedSystemFolders,
-	moveToInbox,
-	showDeleteConfirmationDialog
+	getSortedSystemFolders
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
@@ -69,6 +66,8 @@ import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeS
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {FolderExpander} from "../gui/base/FolderExpander"
+import {getListId, isSameId} from "../api/common/utils/EntityUtils";
+import {archiveMails, isNewMailActionAvailable, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
 
 assertMainOrNode()
 
@@ -432,7 +431,7 @@ export class MailView implements CurrentView {
 				const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
 				return targetFolders.map(f => ({
 					label: () => getFolderName(f),
-					click: () => locator.mailModel.moveMails(selectedMails, f),
+					click: () => moveMails(locator.mailModel, selectedMails, f),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}))
@@ -613,7 +612,7 @@ export class MailView implements CurrentView {
 				dropHandler: (droppedMailId) => {
 					// the dropped mail is among the selected mails, move all selected mails
 					if (this.mailList.list.isEntitySelected(droppedMailId)) {
-						locator.mailModel.moveMails(this.mailList.list.getSelectedEntities(), folder)
+						moveMails(locator.mailModel, this.mailList.list.getSelectedEntities(), folder)
 					} else {
 						let entity = this.mailList.list.getEntity(droppedMailId)
 						if (entity) {
@@ -721,7 +720,7 @@ export class MailView implements CurrentView {
 		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel, locator.contactModel)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -758,13 +757,7 @@ export class MailView implements CurrentView {
 		}
 
 	deleteMails(mails: Mail[]): Promise<void> {
-		return showDeleteConfirmationDialog(mails).then((confirmed) => {
-			if (confirmed) {
-				locator.mailModel.deleteMails(mails)
-			} else {
-				return Promise.resolve()
-			}
-		})
+		return promptAndDeleteMails(locator.mailModel, mails, noOp)
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
@@ -794,7 +787,7 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel)
+						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel, locator.contactModel)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})
@@ -819,6 +812,3 @@ export class MailView implements CurrentView {
 	}
 }
 
-export function isNewMailActionAvailable(): boolean {
-	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
-}

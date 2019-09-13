@@ -1,9 +1,3 @@
-const Promise = require('bluebird')
-
-const path = require("path")
-const fs = Promise.Promise.promisifyAll(require("fs-extra"))
-
-
 global.window = undefined
 
 function getUrls(env) {
@@ -17,11 +11,11 @@ function getUrls(env) {
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
-module.exports.renderHtml = function (scripts, env) {
-	global.window = require("mithril/test-utils/browserMock")(global)
+export async function renderHtml(scripts, env) {
+	global.window = (await import("mithril/test-utils/browserMock.js")).default(global)
 	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
+	const m = (await import('mithril')).default
+	const render = (await import('mithril-node-render')).default
 
 	return render(
 		m("html", [
@@ -32,7 +26,7 @@ module.exports.renderHtml = function (scripts, env) {
 				m("meta[name=mobile-web-app-capable][content=yes]"),
 				m("meta[name=referrer][content=no-referrer]"),
 				m("meta[name=viewport][content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover]"),
-				scripts.map(script => m(`script[src=${script}][defer]`)),
+				scripts.map((scriptImport) => renderScriptImport(m, scriptImport)),
 				m.trust("<!-- TutanotaTags -->"), // everything from here to </head> is replaced at runtime for custom domains with defined metaTags
 				m("title", "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"), // keep in sync with Env.
 				m("meta[name=description][content=Mail. Done. Right. Make a fresh start in 2019 and get a free mail account that does not abuse your emails for advertising. Tutanota is fast, easy, secure and free of ads.]"),
@@ -73,42 +67,30 @@ module.exports.renderHtml = function (scripts, env) {
 }
 
 const csp = (m, env) => {
-	if (env.dist && (env.mode === "App" || env.mode === "Desktop")) {
-		// differences in comparison to web csp:
-		// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
-		return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: blob: data: *; "
-			+ `style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)} https://tutanota.com;]`)
+	if (env.dist) {
+		if (env.mode === "App" || env.mode === "Desktop") {
+			// differences in comparison to web csp:
+			// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
+			return m("meta[http-equiv=Content-Security-Policy][content=default-src 'none'; script-src 'self'; child-src 'self'; font-src 'self'; img-src http: blob: data: *; "
+				+ `style-src 'unsafe-inline'; base-uri 'none'; connect-src 'self' ${getUrls(env)} https://tutanota.com;]`)
+		} else {
+			return null
+		}
 	} else {
-		return null
+		m("meta[http-equiv=Content-Security-Policy][content="
+			+ "default-src * 'unsafe-inline' 'unsafe-eval';"
+			+ " script-src * 'unsafe-inline' 'unsafe-eval';"
+			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)} ws://localhost:9001;`
+			+ " img-src * data: blob: 'unsafe-inline';"
+			+ " media-src * data: blob: 'unsafe-inline';"
+			+ " frame-src *;"
+			+ " style-src * 'unsafe-inline';"
+			+ "]")
 	}
 }
 
-module.exports.renderTestHtml = async function (scripts) {
-	global.window = require("mithril/test-utils/browserMock")()
-	global.requestAnimationFrame = setTimeout
-	const m = require('mithril')
-	const render = require('mithril-node-render')
-
-	let html = '<!DOCTYPE html>\n' + await render(
-		m("html", [
-			m("head", [
-				m("meta[charset=utf-8]"),
-				m("title", "Test"),
-				scripts.map(script => m(`script[src=${script}]`))
-			]),
-			m("body", "Open the console (F12) for test output!")
-		])
-	)
-	global.window = undefined // we have to reset the window stream as it leads to problems with system js builder, otherwise
-	return html
-}
-
-function _writeFile(targetFile, content) {
-	return fs.mkdirsAsync(path.dirname(targetFile)).then(() => fs.writeFileAsync(targetFile, content, 'utf-8'))
-}
-
-class ExternalScript {
-	constructor(url) {
-		this.url = url
-	}
+function renderScriptImport(m, scriptImport) {
+	const {src, type} = scriptImport
+	const typeString = type ? `[type=${type}]` : ""
+	return m(`script[src=${src}]${typeString}[defer]`)
 }

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const UpgradePriceServiceDataTypeRef: TypeRef<UpgradePriceServiceData> = new TypeRef("sys", "UpgradePriceServiceData")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1457,
-			"since": 39,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"campaign": {
-			"name": "campaign",
 			"id": 1459,
-			"since": 39,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"date": {
-			"name": "date",
 			"id": 1458,
-			"since": 39,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
 			"final": false,

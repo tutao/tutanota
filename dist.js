@@ -1,42 +1,30 @@
-"use strict"
-const options = require('commander')
-const Promise = require('bluebird')
-const fs = Promise.promisifyAll(require("fs-extra"))
-const Builder = require('systemjs-builder')
-let version = require('./package.json').version
-const env = require('./buildSrc/env.js')
-const LaunchHtml = require('./buildSrc/LaunchHtml.js')
-const spawnSync = require('child_process').spawnSync
-const desktopSigner = require('./buildSrc/installerSigner.js')
+import options from "commander"
+import Promise from "bluebird"
+import fs from "fs-extra"
+import * as env from "./buildSrc/env.js"
+import {renderHtml} from "./buildSrc/LaunchHtml.js"
+import {spawnSync} from "child_process"
+import {sign} from "./buildSrc/installerSigner.js"
+import path, {dirname} from "path"
+import os from "os"
+import {rollup} from "rollup"
+import {resolveLibs} from "./buildSrc/RollupConfig.js"
+import {terser} from "rollup-plugin-terser"
+import pluginBabel from "@rollup/plugin-babel"
+import commonjs from "@rollup/plugin-commonjs"
+import analyze from "rollup-plugin-analyzer"
+import {fileURLToPath} from "url"
+import {buildDesktop} from "./buildSrc/DesktopBuilder.js"
+import nodeResolve from "@rollup/plugin-node-resolve"
 
-const glob = require('glob')
-const path = require("path")
-const os = require("os")
-
-const SystemConfig = require('./buildSrc/SystemConfig.js')
-const builder = new Builder(SystemConfig.distBuildConfig()) // baseURL and configuration
-const babelCompile = require('./buildSrc/Builder.js').babelCompile
-
+const {babel} = pluginBabel
 let start = Date.now()
 
 const DistDir = 'build/dist'
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 let bundles = {}
 const bundlesCache = "build/bundles.json"
-
-
-function getAsyncImports(file) {
-	let appSrc = fs.readFileSync(path.resolve(__dirname, file), 'utf-8')
-	const regExp = /_asyncImport\(["|'](.*?)["|']\)/g
-	let match = regExp.exec(appSrc)
-	let asyncImports = []
-	while (match != null) {
-		asyncImports.push(match[1])
-		match = regExp.exec(appSrc)
-	}
-	//console.log(`async imports for ${file}: ${asyncImports.join("\n")}`)
-	return asyncImports
-}
 
 const distLoc = (filename) => `${DistDir}/${filename}`
 
@@ -81,116 +69,159 @@ options
 	})
 	.parse(process.argv)
 
-Promise.resolve()
-       .then(buildWebapp)
-       .then(buildDesktopClient)
-       .then(signDesktopClients)
-       .then(packageDeb)
-       .then(publish)
-       .then(() => {
-	       const now = new Date(Date.now()).toTimeString().substr(0, 5)
-	       console.log(`\nBuild time: ${measure()}s (${now})`)
-       })
-       .catch(e => {
-	       console.log("\nBuild error:", e)
-	       process.exit(1)
-       })
+doBuild().catch(e => {
+	console.error(e)
+	process.exit(1)
+})
+
+async function doBuild() {
+	try {
+		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
+		await buildWebapp(version)
+		await buildDesktopClient(version)
+		await signDesktopClients()
+		await packageDeb(version)
+		await publish()
+		const now = new Date(Date.now()).toTimeString().substr(0, 5)
+		console.log(`\nBuild time: ${measure()}s (${now})`)
+	} catch (e) {
+		console.error("\nBuild error:", e)
+		process.exit(1)
+	}
+}
 
 function measure() {
 	return (Date.now() - start) / 1000
 }
 
-function clean() {
-	return fs.removeAsync("build")
-	         .then(() => fs.ensureDirAsync(DistDir + "/translations"))
+async function clean() {
+	await fs.emptyDir("build")
+	await fs.ensureDir(DistDir + "/translations")
 }
 
-function buildWebapp() {
+async function buildWebapp(version) {
 	if (options.existing) {
 		console.log("Found existing option (-e). Skipping Webapp build.")
-		return fs.readFileAsync(path.join(__dirname, bundlesCache)).then(bundlesCache => {
+		return fs.readFile(path.join(__dirname, bundlesCache)).then(bundlesCache => {
 			bundles = JSON.parse(bundlesCache)
 		})
 	}
-	return Promise.resolve()
-	              .then(() => console.log("started cleaning", measure()))
-	              .then(() => clean())
-	              .then(() => console.log("started copying images", measure()))
-	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
-	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
-	              .then(() => fs.copyAsync(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html')))
-	              .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
-		              let lines = bootstrap.split("\n")
-		              lines[0] = `importScripts('libs.js')`
-		              let code = babelCompile(lines.join("\n")).code
-		              return fs.writeFileAsync('build/dist/WorkerBootstrap.js', code, 'utf-8')
-	              }))
-	              .then(() => {
-		              console.log("started tracing", measure())
-		              return Promise.all([
-			              builder.trace('src/api/worker/WorkerImpl.js + src/api/entities/*/* + src/system-resolve.js + libs/polyfill.js'),
-			              builder.trace('src/app.js + src/system-resolve.js'),
-			              builder.trace('src/gui/theme.js - libs/stream.js'),
-			              builder.trace(getAsyncImports('src/app.js')
-				              .concat(getAsyncImports('src/native/NativeWrapperCommands.js'))
-				              .concat(getAsyncImports('src/gui/nav/NavFunctions.js'))
-				              .concat([
-					              "src/login/LoginViewController.js",
-					              "src/gui/base/icons/Icons.js",
-					              "src/search/SearchBar.js",
-					              "src/subscription/terms.js",
-					              "src/api/main/UserController.js"
-				              ]).join(" + "))
-		              ])
-	              })
-	              .then(([workerTree, bootTree, themeTree, mainTree]) => {
-		              console.log("started bundling", measure())
-		              let commonTree = builder.intersectTrees(workerTree, mainTree)
-		              return Promise.all([
-			              bundle(commonTree, distLoc("common.js"), bundles),
-			              bundle(builder.subtractTrees(workerTree, commonTree), distLoc("worker.js"), bundles),
-			              bundle(builder.subtractTrees(builder.subtractTrees(builder.subtractTrees(mainTree, commonTree), bootTree), themeTree), distLoc("main.js"), bundles),
-			              bundle(builder.subtractTrees(themeTree, commonTree), distLoc("theme.js"), bundles),
-			              bundle(builder.subtractTrees(bootTree, themeTree), distLoc("main-boot.js"), bundles)
-		              ])
-	              })
-	              .then(() => console.log("creating language bundles"))
-	              .then(() => createLanguageBundles(bundles))
-	              .then(() => createExtraLibBundle(bundles))
-	              .then(() => {
-		              let restUrl
-		              if (options.stage === 'test') {
-			              restUrl = 'https://test.tutanota.com'
-		              } else if (options.stage === 'prod') {
-			              restUrl = 'https://mail.tutanota.com'
-		              } else if (options.stage === 'local') {
-			              restUrl = "http://" + os.hostname() + ":9000"
-		              } else if (options.stage === 'release') {
-			              restUrl = undefined
-		              } else { // host
-			              restUrl = options.host
-		              }
-		              return Promise.all([
-			              createHtml(env.create(SystemConfig.distRuntimeConfig(bundles),
-				              (options.stage === 'release' || options.stage === 'local')
-					              ? null
-					              : restUrl, version, "Browser", true), bundles),
-			              (options.stage !== 'release')
-				              ? createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), restUrl, version, "App", true), bundles)
-				              : null,
-		              ])
-	              })
-	              .then(() => bundleServiceWorker(bundles))
-	              .then(copyDependencies)
-	              .then(() => _writeFile(path.join(__dirname, bundlesCache), JSON.stringify(bundles)))
+	console.log("started cleaning", measure())
+	await clean()
+
+	console.log("bundling polyfill", measure())
+	const polyfillBundle = await rollup({
+		input: ["src/polyfill.js"],
+		plugins: [
+			terser(),
+			nodeResolve(),
+			commonjs(),
+			{
+				name: "append-libs",
+				async footer() {
+					const systemjs = await fs.readFile("libs/s.js")
+					const bluebird = await fs.readFile("libs/bluebird.js")
+					return systemjs + "\n" + bluebird
+				}
+			}
+		],
+	})
+	await polyfillBundle.write({sourcemap: false, format: "iife", file: "build/dist/polyfill.js"})
+
+	console.log("started copying images", measure())
+	await fs.copy(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images'))
+	await fs.copy(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/dist/braintree.html'))
+
+	console.log("stared bundling", measure())
+	const bundle = await rollup({
+		input: ["src/app.js", "src/api/worker/worker.js"],
+		plugins: [
+			analyze({limit: 10, hideDeps: true}),
+			babel({
+				plugins: [
+					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
+					"@babel/plugin-transform-flow-strip-types",
+					"@babel/plugin-proposal-class-properties",
+					"@babel/plugin-syntax-dynamic-import",
+					"@babel/plugin-transform-arrow-functions",
+					"@babel/plugin-transform-classes",
+					"@babel/plugin-transform-computed-properties",
+					"@babel/plugin-transform-destructuring",
+					"@babel/plugin-transform-for-of",
+					"@babel/plugin-transform-parameters",
+					"@babel/plugin-transform-shorthand-properties",
+					"@babel/plugin-transform-spread",
+					"@babel/plugin-transform-template-literals",
+				],
+				babelHelpers: "bundled",
+			}),
+			resolveLibs(),
+			commonjs({
+				exclude: "src/**",
+			}),
+			terser(),
+		],
+		perf: true,
+	})
+	console.log("bundling timings: ")
+	for (let [k, v] of Object.entries(bundle.getTimings())) {
+		console.log(k, v[0])
+	}
+	console.log("started writing bundles", measure())
+	const output = await bundle.write({
+		sourcemap: true,
+		format: "system",
+		dir: "build/dist",
+		manualChunks: (id, {getModuleInfo, getModuleIds}) => {
+			if (id.includes("api/entities")) {
+				return "entities"
+			} else if (id.includes("src/translation")) {
+				return "translation-" + getModuleInfo(id).id
+			}
+		}
+	})
+	const chunks = output.output.map(c => c.fileName)
+
+	// we have to use System.import here because bootstrap is not executed until we actually import()
+	// unlike nollup+es format where it just runs on being loaded like you expect,
+	// Configure promise before running so that it's not too slow.
+	await fs.promises.writeFile("build/dist/worker-bootstrap.js", `importScripts("./polyfill.js")
+self.Promise = Promise.config({
+\tlongStackTraces: false,
+\twarnings: false
+})
+System.import("./worker.js")`)
+
+
+	let restUrl
+	if (options.stage === 'test') {
+		restUrl = 'https://test.tutanota.com'
+	} else if (options.stage === 'prod') {
+		restUrl = 'https://mail.tutanota.com'
+	} else if (options.stage === 'local') {
+		restUrl = "http://" + os.hostname() + ":9000"
+	} else if (options.stage === 'release') {
+		restUrl = undefined
+	} else { // host
+		restUrl = options.host
+	}
+	await Promise.all([
+		createHtml(
+			env.create((options.stage === 'release' || options.stage === 'local') ? null : restUrl, version, "Browser", true),
+		),
+		(options.stage !== 'release')
+			? createHtml(env.create(restUrl, version, "App", true), bundles)
+			: null,
+	])
+
+	await bundleServiceWorker(chunks, version)
 }
 
-function buildDesktopClient() {
+async function buildDesktopClient(version) {
 	if (options.desktop) {
-		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 		const desktopBaseOpts = {
 			dirname: __dirname,
-			version: version,
+			version,
 			targets: options.desktop,
 			updateUrl: options.customDesktopRelease
 				? ""
@@ -202,8 +233,8 @@ function buildDesktopClient() {
 		}
 
 		if (options.stage === "release") {
-			const buildPromise = createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(desktopBaseOpts))
+			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true), bundles)
+			await buildDesktop(desktopBaseOpts)
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 					updateUrl: "https://test.tutanota.com/desktop",
@@ -211,10 +242,9 @@ function buildDesktopClient() {
 					// Do not notarize test build
 					notarize: false
 				})
-				buildPromise.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				            .then(() => desktopBuilder.build(desktopTestOpts))
+				await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true), bundles)
+				await buildDesktop(desktopTestOpts)
 			}
-			return buildPromise
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -222,24 +252,24 @@ function buildDesktopClient() {
 				nameSuffix: "-snapshot",
 				notarize: false
 			})
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(desktopLocalOpts))
+			await createHtml(env.create("http://localhost:9000", version, "Desktop", true), bundles)
+			await buildDesktop(desktopLocalOpts)
 		} else if (options.stage === "test") {
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 				updateUrl: "https://test.tutanota.com/desktop",
 				nameSuffix: "-test",
 				notarize: false
 			})
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(desktopTestOpts))
+			await createHtml(env.create("https://test.tutanota.com", version, "Desktop", true), bundles)
+			await buildDesktop(desktopTestOpts)
 		} else if (options.stage === "prod") {
 			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
 				version,
 				updateUrl: "http://localhost:9000/desktop",
 				notarize: false
 			})
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(desktopProdOpts))
+			await createHtml(env.create("https://mail.tutanota.com", version, "Desktop", true), bundles)
+			await buildDesktop(desktopProdOpts)
 		} else { // stage = host
 			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 				version,
@@ -247,55 +277,48 @@ function buildDesktopClient() {
 				nameSuffix: "-snapshot",
 				notarize: false
 			})
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host, version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(desktopHostOpts))
+			await createHtml(env.create(options.host, version, "Desktop", true), bundles)
+			await buildDesktop(desktopHostOpts)
 		}
 	}
 }
 
-const buildConfig = {
-	minify: true,
-	mangle: false, // destroys type information (e.g. used for bluebird catch blocks)
-	runtime: false,
-	sourceMaps: true,
-	sourceMapContents: true
-}
-
-function bundle(src, targetFile, bundles) {
-	return builder.bundle(src, targetFile, buildConfig).then(function (output) {
-		bundles[path.basename(targetFile)] = output.modules.sort()
-		console.log(`  > bundled ${targetFile}`);
-		return bundles
-	}).catch(function (err) {
-		console.log('Build error in bundle ' + targetFile);
-		throw err
+async function bundleServiceWorker(bundles, version) {
+	const customDomainFileExclusions = ["index.html", "index.js"]
+	const filesToCache = ["index-index.js", "index.html", "polyfill.js"]
+		.concat(bundles.filter(it => !it.startsWith("translation")))
+		.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
+	const swBundle = await rollup({
+		input: ["src/serviceworker/sw.js"],
+		plugins: [
+			babel({
+				plugins: [
+					// Using Flow plugin and not preset to run before class-properties and avoid generating strange property code
+					"@babel/plugin-transform-flow-strip-types",
+					"@babel/plugin-proposal-class-properties",
+					"@babel/plugin-transform-computed-properties",
+					"@babel/plugin-transform-parameters",
+					"@babel/plugin-transform-shorthand-properties",
+					"@babel/plugin-transform-spread",
+				],
+				babelHelpers: "bundled",
+			}),
+			terser(),
+			{
+				name: "sw-banner",
+				banner() {
+					return `function filesToCache() { return ${JSON.stringify(filesToCache)} }
+					function version() { return "${version}" }
+					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
+				}
+			}
+		],
 	})
-}
-
-function bundleServiceWorker(bundles) {
-	return fs.readFileAsync("src/serviceworker/sw.js", "utf8").then((content) => {
-		const filesToCache = ["index.js", "WorkerBootstrap.js", "index.html", "libs.js"]
-			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
-			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
-		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
-		// of "declare var"
-		const customDomainFileExclusions = ["index.html", "index.js"]
-		// This is a hack to use the same build for tests and for prod. This module is not compiled with SystemJS
-		// and is just processed with babel so we want to define "module" variable but if we do it with new variable Babel
-		// will rename module to _module so we define it on self which has the same effect but is not detected by Babel.
-		// See the comment near the end of sw.js
-		content = `self.module = {}
-${content}
-function filesToCache() { return ${JSON.stringify(filesToCache)} }
-function version() { return "${version}" }
-function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
-		return babelCompile(content).code
-	}).then((content) => _writeFile(distLoc("sw.js"), content))
-}
-
-function copyDependencies() {
-	let libs = SystemConfig.baseProdDependencies.map(file => fs.readFileSync(file, 'utf-8')).join("\n")
-	return fs.writeFileSync('build/dist/libs.js', libs, 'utf-8')
+	await swBundle.write({
+		sourcemap: true,
+		format: "iife",
+		file: "build/dist/sw.js"
+	})
 }
 
 function createHtml(env) {
@@ -310,84 +333,47 @@ function createHtml(env) {
 		case "Desktop":
 			filenamePrefix = "desktop"
 	}
-	let imports = ["libs.js", "main-boot.js", `${filenamePrefix}.js`]
+	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
+	const imports = [{src: "polyfill.js"}, {src: `index-${filenamePrefix}.js`}]
 	return Promise.all([
-		_writeFile(`./build/dist/${filenamePrefix}.js`, [
-			`window.whitelabelCustomizations = null`,
-			`window.env = ${JSON.stringify(env, null, 2)}`,
-			`System.config(env.systemConfig)`,
-			`System.import("src/system-resolve.js").then(function() { System.import('src/app.js') })`,
-		].join("\n")),
-		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
+		_writeFile(`./build/dist/index-${filenamePrefix}.js`,
+			`window.whitelabelCustomizations = null
+window.env = ${JSON.stringify(env, null, 2)}
+Promise.config({
+    longStackTraces: false,
+    warnings: false
+})
+System.import('./app.js')`),
+		renderHtml(imports, env).then((content) => _writeFile(`./build/dist/${filenamePrefix}.html`, content))
 	])
 }
 
-function createLanguageBundles(bundles) {
-	const languageFiles = options.stage === 'release' || options.stage === 'prod'
-		? glob.sync('src/translations/*.js')
-		: [
-			'src/translations/en.js',
-			'src/translations/de.js',
-			'src/translations/de_sie.js',
-			'src/translations/ru.js',
-			'src/translations/ja.js'
-		]
-	return Promise.all(languageFiles.map(translation => {
-		let filename = path.basename(translation)
-		return builder.bundle(translation, {
-			minify: false,
-			mangle: false,
-			runtime: false,
-			sourceMaps: false
-		}).then(function (output) {
-			const bundle = `${DistDir}/translations/${filename}`
-			bundles["translations/" + filename] = output.modules.sort()
-			fs.writeFileSync(bundle, output.source, 'utf-8')
-			console.log(`  > bundled ${bundle}`);
-		})
-	})).then(() => bundles)
-}
-
-function createExtraLibBundle(bundles) {
-	return builder.bundle('libs/jszip.js', {
-		minify: false,
-		mangle: false,
-		runtime: false,
-		sourceMaps: false
-	}).then(function (output) {
-		const bundle = `${DistDir}/extra-libs.js`
-		bundles["extra-libs.js"] = output.modules.sort()
-		fs.writeFileSync(bundle, output.source, 'utf-8')
-		console.log(`  > bundled ${bundle}`);
-	}).then(() => bundles)
-}
-
 function _writeFile(targetFile, content) {
-	return fs.mkdirsAsync(path.dirname(targetFile)).then(() => fs.writeFileAsync(targetFile, content, 'utf-8'))
+	return fs.mkdirs(path.dirname(targetFile)).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }
 
 function signDesktopClients() {
 	if (options.deb) {
 		if (options.stage === "release" || options.stage === "prod") {
-			desktopSigner('./build/desktop/tutanota-desktop-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
-			desktopSigner('./build/desktop/tutanota-desktop-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
-			desktopSigner('./build/desktop/tutanota-desktop-win.exe', 'win-sig.bin', 'latest.yml')
-			desktopSigner('./build/desktop/tutanota-desktop-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
+			sign('./build/desktop/tutanota-desktop-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
+			sign('./build/desktop/tutanota-desktop-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
+			sign('./build/desktop/tutanota-desktop-win.exe', 'win-sig.bin', 'latest.yml')
+			sign('./build/desktop/tutanota-desktop-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
 		}
 		if (options.stage === "release" || options.stage === "test") {
-			desktopSigner('./build/desktop-test/tutanota-desktop-test-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
-			desktopSigner('./build/desktop-test/tutanota-desktop-test-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
-			desktopSigner('./build/desktop-test/tutanota-desktop-test-win.exe', 'win-sig.bin', 'latest.yml')
-			desktopSigner('./build/desktop-test/tutanota-desktop-test-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
+			sign('./build/desktop-test/tutanota-desktop-test-mac.zip', 'mac-sig-zip.bin', 'latest-mac.yml')
+			sign('./build/desktop-test/tutanota-desktop-test-mac.dmg', 'mac-sig-dmg.bin', /*ymlFileName*/ null)
+			sign('./build/desktop-test/tutanota-desktop-test-win.exe', 'win-sig.bin', 'latest.yml')
+			sign('./build/desktop-test/tutanota-desktop-test-linux.AppImage', 'linux-sig.bin', 'latest-linux.yml')
 		}
 	}
 }
 
-let webAppDebName = `tutanota_${version}_amd64.deb`
-let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
-let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 
-function packageDeb() {
+function packageDeb(version) {
+	let webAppDebName = `tutanota_${version}_amd64.deb`
+	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
+	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 	if (options.deb) {
 		const target = `/opt/tutanota`
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {

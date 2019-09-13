@@ -2,12 +2,11 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID, isSameId} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import {SettingsView} from "./SettingsView"
+import type {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
@@ -27,7 +26,8 @@ import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contac
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {GENERATED_MAX_ID, isSameId} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 

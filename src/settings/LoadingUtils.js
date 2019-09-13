@@ -3,11 +3,12 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {load, loadAll, loadMultiple} from "../api/main/Entity"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {getGroupInfoDisplayName, getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {flat} from "../api/common/utils/ArrayUtils"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import {getGroupInfoDisplayName, getUserGroupMemberships} from "../api/common/utils/GroupUtils";
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.

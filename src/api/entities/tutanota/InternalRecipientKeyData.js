@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const InternalRecipientKeyDataTypeRef: TypeRef<InternalRecipientKeyData> = new TypeRef("tutanota", "InternalRecipientKeyData")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 528,
-			"since": 11,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"mailAddress": {
-			"name": "mailAddress",
 			"id": 529,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"pubEncBucketKey": {
-			"name": "pubEncBucketKey",
 			"id": 530,
-			"since": 11,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"pubKeyVersion": {
-			"name": "pubKeyVersion",
 			"id": 531,
-			"since": 11,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,

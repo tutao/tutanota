@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {PhishingMarker} from "./PhishingMarker"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1035,
-			"since": 40,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"lastId": {
-			"name": "lastId",
 			"id": 1036,
-			"since": 40,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -35,13 +31,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"markers": {
-			"name": "markers",
 			"id": 1037,
-			"since": 40,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "PhishingMarker",
-			"final": false
+			"final": false,
+			"refType": "PhishingMarker"
 		}
 	},
 	"app": "tutanota",

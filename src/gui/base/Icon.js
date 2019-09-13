@@ -5,7 +5,6 @@ import {BootIcons, BootIconsSvg} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {IconsEnum} from "./icons/Icons"
-import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
 
@@ -21,7 +20,7 @@ export type AllIconsEnum = BootIconsEnum | IconsEnum
 export type lazyIcon = lazy<AllIconsEnum>;
 
 let IconsSvg = {}
-asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/icons/Icons.js`)
+import("./icons/Icons.js")
 	.then(IconsModule => {
 		IconsSvg = IconsModule.IconsSvg
 	})

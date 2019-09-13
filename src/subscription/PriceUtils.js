@@ -2,8 +2,6 @@
 import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
-import {formatPrice} from "../subscription/SubscriptionUtils"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {load} from "../api/main/Entity"
@@ -13,6 +11,8 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import type {PriceItemData} from "../api/entities/sys/PriceItemData"
 import type {Booking} from "../api/entities/sys/Booking"
+import type {SubscriptionData, SubscriptionTypeEnum, UpgradePriceTypeEnum} from "./SubscriptionUtils"
+import {getUpgradePrice, showNotAvailableForFreeDialog} from "./SubscriptionUtils"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -42,6 +42,25 @@ export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string
 
 export function formatPriceDataWithInfo(priceData: PriceData): string {
 	return formatPriceWithInfo(Number(priceData.price), Number(priceData.paymentInterval), priceData.taxIncluded)
+}
+
+// Used on website, keep it in sync
+export function formatPrice(value: number, includeCurrency: boolean): string {
+	// round to two digits first because small deviations may exist at far away decimal places
+	value = Math.round(value * 100) / 100
+	if (includeCurrency) {
+		return (value % 1 !== 0) ?
+			lang.formats.priceWithCurrency.format(value)
+			: lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
+	} else {
+		return (value % 1 !== 0) ?
+			lang.formats.priceWithoutCurrency.format(value)
+			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
+	}
+}
+
+export function getFormattedUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
+	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
 }
 
 export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {

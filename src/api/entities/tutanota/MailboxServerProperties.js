@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const MailboxServerPropertiesTypeRef: TypeRef<MailboxServerProperties> = new TypeRef("tutanota", "MailboxServerProperties")
@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 681,
-			"since": 18,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 679,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 682,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 680,
-			"since": 18,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"whitelistProtectionEnabled": {
-			"name": "whitelistProtectionEnabled",
 			"id": 683,
-			"since": 18,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {NewDraftAttachment} from "./NewDraftAttachment"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 492,
-			"since": 11,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"ownerEncFileSessionKey": {
-			"name": "ownerEncFileSessionKey",
 			"id": 493,
-			"since": 11,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
@@ -35,23 +31,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"newFile": {
-			"name": "newFile",
 			"id": 494,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "NewDraftAttachment",
-			"final": true
+			"final": true,
+			"refType": "NewDraftAttachment"
 		},
 		"existingFile": {
-			"name": "existingFile",
 			"id": 495,
-			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "File",
 			"final": true,
-			"external": false
+			"refType": "File"
 		}
 	},
 	"app": "tutanota",

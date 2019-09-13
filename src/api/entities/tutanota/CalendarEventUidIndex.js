@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const CalendarEventUidIndexTypeRef: TypeRef<CalendarEventUidIndex> = new TypeRef("tutanota", "CalendarEventUidIndex")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1097,
-			"since": 42,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 1095,
-			"since": 42,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 1098,
-			"since": 42,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 1096,
-			"since": 42,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"calendarEvent": {
-			"name": "calendarEvent",
 			"id": 1099,
-			"since": 42,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "CalendarEvent",
 			"final": true,
-			"external": false
+			"refType": "CalendarEvent"
 		}
 	},
 	"app": "tutanota",

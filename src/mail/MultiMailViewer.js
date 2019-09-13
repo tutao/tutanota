@@ -1,20 +1,18 @@
 // @flow
 import m from "mithril"
-import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {MailView} from "./MailView"
+import {Button} from "../gui/base/Button"
+import type {MailView} from "./MailView"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {
-	exportMails,
 	getFolderIcon,
 	getFolderName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	markMails,
-	showDeleteConfirmationDialog
+	markMails
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {logins} from "../api/main/LoginController";
@@ -25,6 +23,8 @@ import {theme} from "../gui/theme"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 import type {PosRect} from "../gui/base/Dropdown"
+import {exportMails, moveMails, promptAndDeleteMails, showDeleteConfirmationDialog} from "./MailGuiUtils"
+import {createAsyncDropDownButton, createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 
@@ -102,7 +102,7 @@ export class MultiMailViewer {
 						.filter(f => f !== this._mailView.selectedFolder)
 						.map(f => {
 							return new Button(() => getFolderName(f),
-								this._actionBarAction((mails) => locator.mailModel.moveMails(mails, f)),
+								this._actionBarAction((mails) => moveMails(locator.mailModel, mails, f)),
 								getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})
@@ -111,20 +111,15 @@ export class MultiMailViewer {
 		}))
 		actions.add(new Button('delete_action', () => {
 				let mails = this._mailView.mailList.list.getSelectedEntities()
-				showDeleteConfirmationDialog(mails).then((confirmed) => {
-					if (confirmed) {
-						this._mailView.mailList.list.selectNone()
-						locator.mailModel.deleteMails(mails)
-					}
-				})
+				promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
 			}, () => Icons.Trash
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
-			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => markMails(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => markMails(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
+			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => markMails(locator.entityClient, mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
+			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => markMails(locator.entityClient, mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
-				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(mails)), () => Icons.Export).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(locator.entityClient, mails)), () => Icons.Export).setType(ButtonType.Dropdown))
 			}
 			return moreButtons
 		}))

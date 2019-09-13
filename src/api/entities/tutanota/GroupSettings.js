@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const GroupSettingsTypeRef: TypeRef<GroupSettings> = new TypeRef("tutanota", "GroupSettings")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 969,
-			"since": 34,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"color": {
-			"name": "color",
 			"id": 971,
-			"since": 34,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"name": {
-			"name": "name",
 			"id": 1020,
-			"since": 39,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
@@ -43,14 +37,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"group": {
-			"name": "group",
 			"id": 970,
-			"since": 34,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": true,
-			"external": true
+			"refType": "Group"
 		}
 	},
 	"app": "tutanota",

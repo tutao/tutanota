@@ -3,14 +3,12 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadRange, update} from "../api/main/Entity"
-import {showAddSpamRuleDialog} from "./AddSpamRuleDialog"
-import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
+import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getCustomMailDomains, getUserGroupMemberships, neverNull, noOp, objectEntries} from "../api/common/utils/Utils"
+import {getCustomMailDomains, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -29,7 +27,6 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -49,7 +46,9 @@ import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
+import {getUserGroupMemberships} from "../api/common/utils/GroupUtils";
+import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -541,34 +540,5 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				return this._updateDomains()
 			}
 		}).return()
-	}
-}
-
-export function getSpamRuleTypeNameMapping(): SelectorItemList<SpamRuleTypeEnum> {
-	return [
-		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
-		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
-		{value: SpamRuleType.DISCARD, name: lang.get("emailSenderDiscardlist_action")}
-	]
-}
-
-function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
-	return {
-		[SpamRuleFieldType.FROM]: lang.get("from_label"),
-		[SpamRuleFieldType.TO]: lang.get("to_label"),
-		[SpamRuleFieldType.CC]: "CC",
-		[SpamRuleFieldType.BCC]: "BCC",
-	}
-}
-
-export function getSpamRuleFieldMapping(): SelectorItemList<SpamRuleFieldTypeEnum> {
-	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({value, name}))
-}
-
-function escape(s: string) {
-	if (s.indexOf('"') !== -1 || s.indexOf(',') !== -1) {
-		return '"' + s.replace(new RegExp('"', 'g'), `\\"`) + '"'
-	} else {
-		return s
 	}
 }

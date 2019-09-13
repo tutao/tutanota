@@ -72,6 +72,10 @@ function getThemeId(): ThemeId {
 	}
 }
 
+export function setThemeId(themeId: ThemeId) {
+	deviceConfig.setTheme(themeId)
+}
+
 function getTheme(): Theme {
 	switch (themeId()) {
 		case 'custom':

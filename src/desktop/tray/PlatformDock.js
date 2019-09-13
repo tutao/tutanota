@@ -54,4 +54,4 @@ const platformTray: PlatformTray = {
 	needsWindowListInMenu
 }
 
-module.exports = platformTray
+export default platformTray

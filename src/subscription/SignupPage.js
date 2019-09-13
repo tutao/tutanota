@@ -17,7 +17,7 @@ import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/Tutanota
 import {SysService} from "../api/entities/sys/Services"
 import {worker} from "../api/main/WorkerClient"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
-import {asyncImport, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {serviceRequest, serviceRequestVoid} from "../api/main/Entity"

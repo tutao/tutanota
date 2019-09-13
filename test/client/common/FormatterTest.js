@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
@@ -212,7 +212,7 @@ o.spec("FormatterTest", function () {
 		o(isRegularExpression("/\./")).equals(true)
 		o(isRegularExpression("/\\/")).equals(true)
 		o(isRegularExpression("/\$/")).equals(true)
-		
+
 		// with flags
 		o(isRegularExpression("/hey/i")).equals(true)
 		o(isRegularExpression("//muy")).equals(true)

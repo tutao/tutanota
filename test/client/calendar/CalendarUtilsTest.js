@@ -1,6 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
-import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
+import o from "ospec"
 import {
 	getCalendarMonth,
 	getStartOfWeek,
@@ -14,6 +13,7 @@ import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembersh
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {GroupType, ShareCapability} from "../../../src/api/common/TutanotaConstants"
+import type {CalendarMonth} from "../../../src/calendar/CalendarUtils";
 
 o.spec("calendar utils tests", function () {
 	o.spec("getCalendarMonth", function () {

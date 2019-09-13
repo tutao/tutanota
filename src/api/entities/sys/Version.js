@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", "Version")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 481,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"operation": {
-			"name": "operation",
 			"id": 484,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"timestamp": {
-			"name": "timestamp",
 			"id": 483,
-			"since": 1,
 			"type": "Date",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"version": {
-			"name": "version",
 			"id": 482,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -52,24 +44,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"author": {
-			"name": "author",
 			"id": 485,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": false,
-			"external": false
+			"refType": "Group"
 		},
 		"authorGroupInfo": {
-			"name": "authorGroupInfo",
 			"id": 486,
-			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GroupInfo",
 			"final": false,
-			"external": false
+			"refType": "GroupInfo"
 		}
 	},
 	"app": "sys",

@@ -6,14 +6,14 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import {load} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
-import {getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
+import {formatPrice, getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {formatPrice, showBuyDialog} from "./SubscriptionUtils"
+import {showBuyDialog} from "./SubscriptionUtils"
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))

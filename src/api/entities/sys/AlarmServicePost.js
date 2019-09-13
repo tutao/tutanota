@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {AlarmNotification} from "./AlarmNotification"
 
@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1577,
-			"since": 48,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,13 +24,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"alarmNotifications": {
-			"name": "alarmNotifications",
 			"id": 1578,
-			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "AlarmNotification",
-			"final": false
+			"final": false,
+			"refType": "AlarmNotification"
 		}
 	},
 	"app": "sys",

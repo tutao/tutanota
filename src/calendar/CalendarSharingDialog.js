@@ -22,7 +22,6 @@ import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
-import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -43,6 +42,7 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {showSharingBuyDialog} from "../subscription/SubscriptionUtils"
+import {getElementId, isSameId} from "../api/common/utils/EntityUtils";
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
@@ -257,8 +257,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 			})
 			return buttonAttrs
 		}
-
-	}))
+	}, locator.contactModel))
 	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 	const realCalendarName = getCalendarName(sharedGroupInfo, false)
 	const customCalendarName = getCalendarName(sharedGroupInfo, true)

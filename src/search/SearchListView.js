@@ -1,16 +1,6 @@
 // @flow
 import m from "mithril"
 import {List} from "../gui/base/List"
-import type {ListElement} from "../api/common/EntityFunctions"
-import {
-	elementIdPart,
-	GENERATED_MAX_ID,
-	isSameId,
-	isSameTypeRef,
-	listIdPart,
-	sortCompareByReverseId,
-	TypeRef
-} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
@@ -30,9 +20,18 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
-import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {Dialog} from "../gui/base/Dialog"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
+import {
+	elementIdPart,
+	GENERATED_MAX_ID,
+	isSameId,
+	isSameTypeRef,
+	listIdPart,
+	sortCompareByReverseId, TypeRef
+} from "../api/common/utils/EntityUtils";
+import type {ListElement} from "../api/common/utils/EntityUtils"
+import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailGuiUtils";
 
 assertMainOrNode()
 

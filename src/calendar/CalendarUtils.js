@@ -2,15 +2,19 @@
 import {getStartOfDay, incrementDate, isSameDay, isSameDayOfDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {
+	AlarmIntervalEnum,
 	CalendarAttendeeStatusEnum,
+	EndTypeEnum,
 	EventTextTimeOptionEnum,
 	RepeatPeriodEnum,
 	ShareCapabilityEnum,
 	WeekStartEnum
 } from "../api/common/TutanotaConstants"
 import {
+	AlarmInterval,
 	CalendarAttendeeStatus,
 	defaultCalendarColor,
+	EndType,
 	EventTextTimeOption,
 	getWeekStart,
 	GroupType,
@@ -18,17 +22,16 @@ import {
 	ShareCapability,
 	WeekStart
 } from "../api/common/TutanotaConstants"
-import {DateTime} from "luxon"
-import {clone, neverNull} from "../api/common/utils/Utils"
+import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
+import {clone, downcast, neverNull} from "../api/common/utils/Utils"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDateTime, formatDateWithMonth, formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
-import {isSameId} from "../api/common/EntityFunctions"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
@@ -38,7 +41,8 @@ import type {Group} from "../api/entities/sys/Group"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {isColorLight} from "../gui/Color"
 import type {CalendarInfo} from "./CalendarView"
-import {incrementByRepeatPeriod} from "./CalendarModel"
+import {isSameId} from "../api/common/utils/EntityUtils";
+import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -202,99 +206,6 @@ export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
 }
 
-export type CalendarDay = {
-	date: Date,
-	year: number,
-	month: number,
-	day: number,
-	paddingDay: boolean
-}
-
-export type CalendarMonth = {
-	weekdays: Array<string>,
-	weeks: Array<Array<CalendarDay>>
-}
-
-
-/**
- * @param date
- * @param firstDayOfWeekFromOffset
- * @return {{weeks: Array[], weekdays: Array}}
- */
-export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
-	const weeks = [[]]
-	const calculationDate = getStartOfDay(date)
-	calculationDate.setDate(1)
-	let currentYear = calculationDate.getFullYear()
-	let month = calculationDate.getMonth()
-	// add "padding" days
-	// getDay returns the day of the week (from 0 to 6) for the specified date (with first one being Sunday)
-
-	let firstDay
-	if (firstDayOfWeekFromOffset > calculationDate.getDay()) {
-		firstDay = (calculationDate.getDay() + 7) - firstDayOfWeekFromOffset
-	} else {
-		firstDay = calculationDate.getDay() - firstDayOfWeekFromOffset
-	}
-
-	let dayCount
-
-	incrementDate(calculationDate, -firstDay)
-	for (dayCount = 0; dayCount < firstDay; dayCount++) {
-		weeks[0].push({
-			date: new Date(calculationDate),
-			day: calculationDate.getDate(),
-			month: calculationDate.getMonth(),
-			year: calculationDate.getFullYear(),
-			paddingDay: true
-		})
-		incrementDate(calculationDate, 1)
-	}
-
-	// add actual days
-	while (calculationDate.getMonth() === month) {
-		if (weeks[0].length && dayCount % 7 === 0) {
-			// start new week
-			weeks.push([])
-		}
-		const dayInfo = {
-			date: new Date(currentYear, month, calculationDate.getDate()),
-			year: currentYear,
-			month: month,
-			day: calculationDate.getDate(),
-			paddingDay: false
-		}
-		weeks[weeks.length - 1].push(dayInfo)
-		incrementDate(calculationDate, 1)
-		dayCount++
-	}
-	// add remaining "padding" days
-	while (dayCount < 42) {
-		if (dayCount % 7 === 0) {
-			weeks.push([])
-		}
-		weeks[weeks.length - 1].push({
-			day: calculationDate.getDate(),
-			year: calculationDate.getFullYear(),
-			month: calculationDate.getMonth(),
-			date: new Date(calculationDate),
-			paddingDay: true
-		})
-		incrementDate(calculationDate, 1)
-		dayCount++
-	}
-	const weekdays = []
-	const weekdaysDate = new Date()
-	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromOffset)// get first day of week
-	for (let i = 0; i < 7; i++) {
-		weekdays.push(weekdayNarrowFormat ? lang.formats.weekdayNarrow.format(weekdaysDate) : lang.formats.weekdayShort.format(weekdaysDate))
-		incrementDate(weekdaysDate, 1)
-	}
-	return {
-		weekdays,
-		weeks
-	}
-}
 
 export function layOutEvents(events: Array<CalendarEvent>, zone: string,
                              renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
@@ -548,6 +459,326 @@ export function hasAlarmsForTheUser(event: CalendarEvent): boolean {
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
+function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
+	return l.startTime.getTime() - r.startTime.getTime()
+}
+
+export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                zone: string = getTimeZone()) {
+	const eventStart = getEventStart(event, zone)
+	let calculationDate = getStartOfDayWithZone(eventStart, zone)
+	const eventEndDate = getEventEnd(event, zone);
+
+	// only add events when the start time is inside this month
+	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
+		return
+	}
+
+	// if start time is in current month then also add events for subsequent months until event ends
+	while (calculationDate.getTime() < eventEndDate.getTime()) {
+		if (eventEndDate.getTime() >= month.start.getTime()) {
+			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
+		}
+		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+	}
+}
+
+export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                         timeZone: string) {
+	const repeatRule = event.repeatRule
+	if (repeatRule == null) {
+		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+	}
+	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
+	const interval = Number(repeatRule.interval)
+	const isLong = isLongEvent(event, timeZone)
+	let eventStartTime = new Date(getEventStart(event, timeZone))
+	let eventEndTime = new Date(getEventEnd(event, timeZone))
+	// Loop by the frequency step
+	let repeatEndTime = null
+	let endOccurrences = null
+	const allDay = isAllDayEvent(event)
+	// For all-day events we should rely on the local time zone or at least we must use the same zone as in getAllDayDateUTCFromZone
+	// below. If they are not in sync, then daylight saving shifts may cause us to extract wrong UTC date (day in repeat rule zone and in
+	// local zone may be different).
+	const repeatTimeZone = allDay ? timeZone : getValidTimeZone(repeatRule.timeZone)
+	if (repeatRule.endType === EndType.Count) {
+		endOccurrences = Number(repeatRule.endValue)
+	} else if (repeatRule.endType === EndType.UntilDate) {
+		// See CalendarEventDialog for an explanation why it's needed
+		if (allDay) {
+			repeatEndTime = getAllDayDateForTimezone(new Date(Number(repeatRule.endValue)), timeZone)
+		} else {
+			repeatEndTime = new Date(Number(repeatRule.endValue))
+		}
+	}
+	let calcStartTime = eventStartTime
+	const calcDuration = allDay ? getDiffInDays(eventEndTime, eventStartTime) : eventEndTime - eventStartTime
+	let calcEndTime = eventEndTime
+	let iteration = 1
+	while ((endOccurrences == null || iteration <= endOccurrences)
+	&& (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime)
+	&& calcStartTime.getTime() < month.end.getTime()) {
+		if (calcEndTime.getTime() >= month.start.getTime()) {
+			const eventClone = clone(event)
+			if (allDay) {
+				eventClone.startTime = getAllDayDateUTCFromZone(calcStartTime, timeZone)
+				eventClone.endTime = getAllDayDateUTCFromZone(calcEndTime, timeZone)
+			} else {
+				eventClone.startTime = new Date(calcStartTime)
+				eventClone.endTime = new Date(calcEndTime)
+			}
+			if (isLong) {
+				addDaysForLongEvent(events, eventClone, month, timeZone)
+			} else {
+				addDaysForEvent(events, eventClone, month, timeZone)
+			}
+		}
+		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
+		calcEndTime = allDay
+			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
+		iteration++
+	}
+}
+
+export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                    zone: string = getTimeZone()) {
+	// for long running events we create events for the month only
+
+	// first start of event is inside month
+	const eventStart = getEventStart(event, zone).getTime()
+	const eventEnd = getEventEnd(event, zone).getTime()
+
+	let calculationDate
+	let eventEndInMonth
+
+	if (eventStart >= month.start.getTime() && eventStart < month.end.getTime()) { // first: start of event is inside month
+		calculationDate = getStartOfDayWithZone(new Date(eventStart), zone)
+	} else if (eventStart < month.start.getTime()) { // start is before month
+		calculationDate = new Date(month.start)
+	} else {
+		return // start date is after month end
+	}
+
+	if (eventEnd > month.start.getTime() && eventEnd <= month.end.getTime()) { //end is inside month
+		eventEndInMonth = new Date(eventEnd)
+	} else if (eventEnd > month.end.getTime()) { // end is after month end
+		eventEndInMonth = new Date(month.end)
+	} else {
+		return // end is before start of month
+	}
+
+	let iterations = 0
+	while (calculationDate.getTime() < eventEndInMonth) {
+		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
+		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+		if (iterations++ > 10000) {
+			throw new Error("Run into the infinite loop, addDaysForLongEvent")
+		}
+	}
+}
+
+export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
+	switch (repeatPeriod) {
+		case RepeatPeriod.DAILY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
+		case RepeatPeriod.WEEKLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({weeks: interval}).toJSDate()
+		case RepeatPeriod.MONTHLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
+		case RepeatPeriod.ANNUALLY:
+			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
+		default:
+			throw new Error("Unknown repeat period")
+	}
+}
+
+const OCCURRENCES_SCHEDULED_AHEAD = 10
+
+export function iterateEventOccurrences(
+	now: Date,
+	timeZone: string,
+	eventStart: Date,
+	eventEnd: Date,
+	frequency: RepeatPeriodEnum,
+	interval: number,
+	endType: EndTypeEnum,
+	endValue: number,
+	alarmTrigger: AlarmIntervalEnum,
+	localTimeZone: string,
+	callback: (time: Date, occurrence: number) => mixed) {
+
+
+	let occurrences = 0
+	let futureOccurrences = 0
+
+	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
+	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
+	const endDate = endType === EndType.UntilDate
+		? isAllDayEvent
+			? getAllDayDateForTimezone(new Date(endValue), localTimeZone)
+			: new Date(endValue)
+		: null
+
+	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
+		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval
+			* occurrences, isAllDayEvent ? localTimeZone : timeZone);
+
+		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
+			break;
+		}
+
+		const alarmTime = calculateAlarmTime(occurrenceDate, alarmTrigger, localTimeZone);
+
+		if (alarmTime >= now) {
+			callback(alarmTime, occurrences);
+			futureOccurrences++;
+		}
+		occurrences++;
+	}
+}
+
+export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, ianaTimeZone?: string): Date {
+	let diff
+	switch (interval) {
+		case AlarmInterval.FIVE_MINUTES:
+			diff = {minutes: 5}
+			break
+		case AlarmInterval.TEN_MINUTES:
+			diff = {minutes: 10}
+			break
+		case AlarmInterval.THIRTY_MINUTES:
+			diff = {minutes: 30}
+			break
+		case AlarmInterval.ONE_HOUR:
+			diff = {hours: 1}
+			break
+		case AlarmInterval.ONE_DAY:
+			diff = {days: 1}
+			break
+		case AlarmInterval.TWO_DAYS:
+			diff = {days: 2}
+			break
+		case AlarmInterval.THREE_DAYS:
+			diff = {days: 3}
+			break
+		case AlarmInterval.ONE_WEEK:
+			diff = {weeks: 1}
+			break
+		default:
+			diff = {minutes: 5}
+	}
+	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
+}
+
+export function getValidTimeZone(zone: string, fallback: ?string): string {
+	if (IANAZone.isValidZone(zone)) {
+		return zone
+	} else {
+		if (fallback && IANAZone.isValidZone(fallback)) {
+			console.warn(`Time zone ${zone} is not valid, falling back to ${fallback}`)
+			return fallback
+		} else {
+			const actualFallback = FixedOffsetZone.instance(new Date().getTimezoneOffset()).name
+			console.warn(`Fallback time zone ${zone} is not valid, falling back to ${actualFallback}`)
+			return actualFallback
+		}
+	}
+}
+
+export type CalendarDay = {
+	date: Date,
+	year: number,
+	month: number,
+	day: number,
+	paddingDay: boolean
+}
+export type CalendarMonth = {
+	weekdays: Array<string>,
+	weeks: Array<Array<CalendarDay>>
+}
+
+/**
+ * @param date
+ * @param firstDayOfWeekFromOffset
+ * @return {{weeks: Array[], weekdays: Array}}
+ */
+export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
+	const weeks = [[]]
+	const calculationDate = getStartOfDay(date)
+	calculationDate.setDate(1)
+	let currentYear = calculationDate.getFullYear()
+	let month = calculationDate.getMonth()
+	// add "padding" days
+	// getDay returns the day of the week (from 0 to 6) for the specified date (with first one being Sunday)
+
+	let firstDay
+	if (firstDayOfWeekFromOffset > calculationDate.getDay()) {
+		firstDay = (calculationDate.getDay() + 7) - firstDayOfWeekFromOffset
+	} else {
+		firstDay = calculationDate.getDay() - firstDayOfWeekFromOffset
+	}
+
+	let dayCount
+
+	incrementDate(calculationDate, -firstDay)
+	for (dayCount = 0; dayCount < firstDay; dayCount++) {
+		weeks[0].push({
+			date: new Date(calculationDate),
+			day: calculationDate.getDate(),
+			month: calculationDate.getMonth(),
+			year: calculationDate.getFullYear(),
+			paddingDay: true
+		})
+		incrementDate(calculationDate, 1)
+	}
+
+	// add actual days
+	while (calculationDate.getMonth() === month) {
+		if (weeks[0].length && dayCount % 7 === 0) {
+			// start new week
+			weeks.push([])
+		}
+		const dayInfo = {
+			date: new Date(currentYear, month, calculationDate.getDate()),
+			year: currentYear,
+			month: month,
+			day: calculationDate.getDate(),
+			paddingDay: false
+		}
+		weeks[weeks.length - 1].push(dayInfo)
+		incrementDate(calculationDate, 1)
+		dayCount++
+	}
+	// add remaining "padding" days
+	while (dayCount < 42) {
+		if (dayCount % 7 === 0) {
+			weeks.push([])
+		}
+		weeks[weeks.length - 1].push({
+			day: calculationDate.getDate(),
+			year: calculationDate.getFullYear(),
+			month: calculationDate.getMonth(),
+			date: new Date(calculationDate),
+			paddingDay: true
+		})
+		incrementDate(calculationDate, 1)
+		dayCount++
+	}
+	const weekdays = []
+	const weekdaysDate = new Date()
+	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromOffset)// get first day of week
+	for (let i = 0; i < 7; i++) {
+		weekdays.push(weekdayNarrowFormat ? lang.formats.weekdayNarrow.format(weekdaysDate) : lang.formats.weekdayShort.format(weekdaysDate))
+		incrementDate(weekdaysDate, 1)
+	}
+	return {
+		weekdays,
+		weeks
+	}
+}
+
 export function formatEventDuration(event: CalendarEvent, zone: string, includeTimezone: boolean): string {
 	if (isAllDayEvent(event)) {
 		const startTime = getEventStart(event, zone)
@@ -610,3 +841,5 @@ export function findPrivateCalendar(calendarInfo: Map<Id, CalendarInfo>): ?Calen
 	}
 	return null
 }
+
+export const DEFAULT_HOUR_OF_DAY = 6

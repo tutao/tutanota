@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {UserAlarmInfoListType} from "./UserAlarmInfoListType"
 import type {UserAuthentication} from "./UserAuthentication"
@@ -21,90 +21,70 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 88,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 86,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 996,
-			"since": 17,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 87,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"accountType": {
-			"name": "accountType",
 			"id": 92,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"enabled": {
-			"name": "enabled",
 			"id": 93,
-			"since": 1,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"requirePasswordUpdate": {
-			"name": "requirePasswordUpdate",
 			"id": 1117,
-			"since": 22,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"salt": {
-			"name": "salt",
 			"id": 90,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"userEncClientKey": {
-			"name": "userEncClientKey",
 			"id": 89,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"verifier": {
-			"name": "verifier",
 			"id": 91,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
@@ -113,116 +93,88 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"alarmInfoList": {
-			"name": "alarmInfoList",
 			"id": 1552,
-			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "UserAlarmInfoListType",
-			"final": false
+			"final": false,
+			"refType": "UserAlarmInfoListType"
 		},
 		"auth": {
-			"name": "auth",
 			"id": 1210,
-			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "UserAuthentication",
-			"final": true
+			"final": true,
+			"refType": "UserAuthentication"
 		},
 		"authenticatedDevices": {
-			"name": "authenticatedDevices",
 			"id": 97,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "AuthenticatedDevice",
-			"final": true
+			"final": true,
+			"refType": "AuthenticatedDevice"
 		},
 		"externalAuthInfo": {
-			"name": "externalAuthInfo",
 			"id": 98,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "UserExternalAuthInfo",
-			"final": true
+			"final": true,
+			"refType": "UserExternalAuthInfo"
 		},
 		"memberships": {
-			"name": "memberships",
 			"id": 96,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "GroupMembership",
-			"final": true
+			"final": true,
+			"refType": "GroupMembership"
 		},
 		"phoneNumbers": {
-			"name": "phoneNumbers",
 			"id": 94,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "PhoneNumber",
-			"final": true
+			"final": true,
+			"refType": "PhoneNumber"
 		},
 		"pushIdentifierList": {
-			"name": "pushIdentifierList",
 			"id": 638,
-			"since": 5,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "PushIdentifierList",
-			"final": false
+			"final": false,
+			"refType": "PushIdentifierList"
 		},
 		"userGroup": {
-			"name": "userGroup",
 			"id": 95,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "GroupMembership",
-			"final": true
+			"final": true,
+			"refType": "GroupMembership"
 		},
 		"customer": {
-			"name": "customer",
 			"id": 99,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "Customer",
 			"final": true,
-			"external": false
+			"refType": "Customer"
 		},
 		"failedLogins": {
-			"name": "failedLogins",
 			"id": 101,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Login",
 			"final": true,
-			"external": false
+			"refType": "Login"
 		},
 		"secondFactorAuthentications": {
-			"name": "secondFactorAuthentications",
 			"id": 102,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "SecondFactorAuthentication",
 			"final": true,
-			"external": false
+			"refType": "SecondFactorAuthentication"
 		},
 		"successfulLogins": {
-			"name": "successfulLogins",
 			"id": 100,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Login",
 			"final": true,
-			"external": false
+			"refType": "Login"
 		}
 	},
 	"app": "sys",

@@ -27,27 +27,36 @@ import "./gui/base/WizardDialogNTest"
 import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
-import o from "ospec/ospec.js"
+import o from "ospec"
+import {random} from "../../src/api/worker/crypto/Randomizer"
+import {EntropySrc} from "../../src/api/common/TutanotaConstants"
+import {preTest, reportTest} from "../api/TestUtils"
+import {noOp} from "../../src/api/common/utils/Utils"
 
-node(() => {
-	require("./desktop/DesktopUtilsTest.js")
-	require("./desktop/DesktopConfigTest")
-	require("./desktop/config/migrations/DesktopConfigMigratorTest")
-	require("./desktop/ElectronUpdaterTest")
-	require("./desktop/DesktopNotifierTest")
-	require("./desktop/DesktopWindowManagerTest.js")
-	require("./desktop/DesktopTrayTest.js")
-	require("./desktop/ApplicationWindowTest.js")
-	require("./desktop/sse/DesktopSseClientTest.js")
-	require("./desktop/sse/DesktopAlarmStorageTest.js")
-	require("./desktop/sse/DesktopAlarmSchedulerTest.js")
-	require("./desktop/DesktopDownloadManagerTest.js")
-	require("./desktop/IPCTest.js")
-	require("./desktop/SocketeerTest.js")
-	require("./desktop/integration/DesktopIntegratorTest.js")
-	require("./desktop/DesktopCryptoFacadeTest.js")
-	require("./desktop/DesktopContextMenuTest.js")
+(async () => {
+	if (typeof process != "undefined") {
+		// setup the Entropy for all testcases
+		random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+		await import("./desktop/PathUtilsTest.js")
+		await import("./desktop/config/migrations/DesktopConfigMigratorTest")
+		await import("./desktop/ElectronUpdaterTest")
+		await import("./desktop/DesktopNotifierTest")
+		await import("./desktop/ApplicationWindowTest.js")
+		await import("./desktop/sse/DesktopSseClientTest.js")
+		await import("./desktop/sse/DesktopAlarmStorageTest.js")
+		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
+		await import("./desktop/DesktopDownloadManagerTest.js")
+		await import("./desktop/IPCTest.js")
+		await import("./desktop/SocketeerTest.js")
+		await import("./desktop/integration/DesktopIntegratorTest.js")
+		await import("./desktop/DesktopCryptoFacadeTest.js")
+		await import("./desktop/DesktopContextMenuTest.js")
+	}
+
+	preTest()
+	o.run(reportTest)
 })()
-o.run()
+
+
 
 

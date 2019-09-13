@@ -30,7 +30,7 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getTimeZone,
-	hasCapabilityOnGroup,
+	hasCapabilityOnGroup, incrementByRepeatPeriod,
 	incrementSequence,
 	parseTime,
 	timeString,
@@ -39,7 +39,7 @@ import {
 } from "./CalendarUtils"
 import {assertNotNull, clone, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {CalendarModel, incrementByRepeatPeriod} from "./CalendarModel"
+import {CalendarModel} from "./CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"

@@ -1,27 +1,33 @@
 // @flow
 import type {ElectronSession} from 'electron'
-import {app, dialog, DownloadItem, shell} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
-import DesktopUtils from "./DesktopUtils"
-import fs from "fs-extra"
-import {downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {ApplicationWindow} from "./ApplicationWindow"
+import type {ApplicationWindow} from "./ApplicationWindow"
 import {EventEmitter} from 'events'
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
+import {looksExecutable, nonClobberingFilename} from "./PathUtils"
+import type {DesktopUtils} from "./DesktopUtils"
+import type {DownloadItem} from "electron"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
 	_net: DesktopNetworkClient;
 	_fileManagersOpen: number;
+	_desktopUtils: DesktopUtils;
+	_fs: $Exports<"fs">;
+	_electron: $Exports<"electron">
 
-	constructor(conf: DesktopConfig, net: DesktopNetworkClient) {
+	constructor(conf: DesktopConfig, net: DesktopNetworkClient, desktopUtils: DesktopUtils, fs: $Exports<"fs">, electron: $Exports<"electron">) {
 		this._conf = conf
 		this._net = net
 		this._fileManagersOpen = 0
+		this._desktopUtils = desktopUtils
+		this._fs = fs
+		this._electron = electron
 	}
 
 	manageDownloadsForSession(session: ElectronSession) {
@@ -30,17 +36,16 @@ export class DesktopDownloadManager {
 
 	downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise((resolve, reject) => {
-			fs.mkdirp(app.getPath('temp') + '/tuta/')
-			const encryptedFileUri = path.join(app.getPath('temp'), '/tuta/', fileName)
-			const fileStream = fs
-				.createWriteStream(encryptedFileUri, {emitClose: true})
-				.on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
+			this._fs.mkdirSync(this._electron.app.getPath('temp') + '/tuta/', {recursive: true})
+			const encryptedFileUri = path.join(this._electron.app.getPath('temp'), '/tuta/', fileName)
+			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
+			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {
 				cleanup = noOp
 				fileStream.removeAllListeners('close').on('close', () => { // file descriptor was released
 					fileStream.removeAllListeners('close')
 					// remove file if it was already created
-					fs.unlink(encryptedFileUri).catch(noOp).then(() => reject(e))
+					this._fs.promises.unlink(encryptedFileUri).catch(noOp).then(() => reject(e))
 				}).end() // {end: true} doesn't work when response errors
 			}
 			this._net.request(sourceUrl, {method: "GET", timeout: 20000, headers})
@@ -63,15 +68,15 @@ export class DesktopDownloadManager {
 	}
 
 	open(itemPath: string): Promise<void> {
-		const tryOpen = () => shell
-			.openPath(itemPath) // may resolve with "" or an error message
-			.catch(() => 'failed to open path.')
-			.then(errMsg => errMsg === ''
-				? Promise.resolve()
-				: Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))
-			)
-		if (DesktopUtils.looksExecutable(itemPath)) {
-			return dialog.showMessageBox(null, {
+		const tryOpen = () => this._electron.shell
+		                          .openPath(itemPath) // may resolve with "" or an error message
+		                          .catch(() => 'failed to open path.')
+		                          .then(errMsg => errMsg === ''
+			                          ? Promise.resolve()
+			                          : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))
+		                          )
+		if (looksExecutable(itemPath)) {
+			return this._electron.dialog.showMessageBox(null, {
 				type: "warning",
 				buttons: [lang.get("yes_label"), lang.get("no_label")],
 				title: lang.get("executableOpen_label"),
@@ -91,7 +96,7 @@ export class DesktopDownloadManager {
 
 	saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
 		const write = ({canceled, filePath}): Promise<void> => {
-			if (!canceled) return fs.writeFile(filePath, data)
+			if (!canceled) return this._fs.promises.writeFile(assertNotNull(filePath), data)
 			return Promise.reject('canceled')
 		}
 
@@ -101,8 +106,8 @@ export class DesktopDownloadManager {
 		this._handleDownloadItem(downloadItem)
 		const writePromise = downloadItem.savePath
 			? write({canceled: false, filePath: downloadItem.savePath})
-			: dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(app.getPath('downloads'), filename)})
-			        .then(write)
+			: this._electron.dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(this._electron.app.getPath('downloads'), filename)})
+			      .then(write)
 		return writePromise.then(() => downloadItem.emit('done', undefined, 'completed'))
 		                   .catch(e => {downloadItem.emit('done', e, 'cancelled')})
 	}
@@ -112,32 +117,33 @@ export class DesktopDownloadManager {
 		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
 		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
-		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
+		if (defaultDownloadPath && this._fs.existsSync(defaultDownloadPath)) {
 			try {
 				const fileName = path.basename(item.getFilename())
 				const savePath = path.join(
 					defaultDownloadPath,
-					DesktopUtils.nonClobberingFilename(
-						fs.readdirSync(defaultDownloadPath),
+					nonClobberingFilename(
+						this._fs.readdirSync(defaultDownloadPath),
 						fileName
 					)
 				)
 				// touch file so it is already in the dir the next time sth gets dl'd
-				DesktopUtils.touch(savePath)
+				this._desktopUtils.touch(savePath)
 				item.savePath = savePath
 
 				if (this._fileManagersOpen === 0) {
 					this._fileManagersOpen = this._fileManagersOpen + 1
-					fileManagerLock = () => shell
-						.openPath(path.dirname(savePath))
-						.then(() => {
-							setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.getConst("fileManagerTimeout"))
-						}).catch(noOp)
+					fileManagerLock = () => this._electron.shell
+					                            .openPath(path.dirname(savePath))
+					                            .then(() => {
+						                            setTimeout(() => this._fileManagersOpen = this._fileManagersOpen
+							                            - 1, this._conf.getConst("fileManagerTimeout"))
+					                            }).catch(noOp)
 
 				}
 			} catch (e) {
 				console.error("error while downloading", e)
-				showDownloadErrorMessageBox(e.message, item.getFilename())
+				showDownloadErrorMessageBox(this._electron, e.message, item.getFilename())
 			}
 		}
 
@@ -147,7 +153,7 @@ export class DesktopDownloadManager {
 			}
 			if (state === 'interrupted') {
 				console.error("download interrupted", event)
-				showDownloadErrorMessageBox('download interrupted', item.getFilename())
+				showDownloadErrorMessageBox(this._electron, 'download interrupted', item.getFilename())
 			}
 			if (state === 'cancelled') {
 				log.debug("download cancelled", item.getFilename())
@@ -156,8 +162,8 @@ export class DesktopDownloadManager {
 	}
 }
 
-function showDownloadErrorMessageBox(message: string, filename: string) {
-	dialog.showMessageBox(null, {
+function showDownloadErrorMessageBox(electron: $Exports<"electron">, message: string, filename: string) {
+	electron.dialog.showMessageBox(null, {
 		type: 'error',
 		buttons: [lang.get('ok_action')],
 		defaultId: 0,

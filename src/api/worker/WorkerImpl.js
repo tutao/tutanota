@@ -23,15 +23,10 @@ import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAcc
 import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
-import {LazyLoaded} from "../common/utils/LazyLoaded"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()
-
-if (typeof self !== "undefined") {
-	replaceNativeLogger(self, new Logger())
-}
 
 export class WorkerImpl {
 

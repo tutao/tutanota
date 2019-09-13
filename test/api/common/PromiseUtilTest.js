@@ -1,6 +1,6 @@
 //@flow
 
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {mapInCallContext, PromisableWrapper as PromiseableWrapper} from "../../../src/api/common/utils/PromiseUtils"
 
 

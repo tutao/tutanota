@@ -1,32 +1,87 @@
 //@flow
 import n from "../nodemocker"
-import o from "ospec/ospec.js"
+import o from "ospec"
+import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../../src/api/common/utils/Encoding"
+import {aes128Encrypt, aes128RandomKey, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
+import {keyToBase64, uint8ArrayToBitArray} from "../../../src/api/worker/crypto/CryptoUtils"
+import {random} from "../../../src/api/worker/crypto/Randomizer"
+import {arrayEquals} from "../../../src/api/common/utils/ArrayUtils"
+import {downcast} from "../../../src/api/common/utils/Utils"
+import type {CryptoFunctions} from "../../../src/desktop/CryptoFns"
 
 o.spec("DesktopCryptoFacadeTest", () => {
-	n.startGroup({group: __filename})
+	const data = "uint8_somedata"
+	const aes128Key = [1, 2, 8]
+	const aes256Key = [2, 5, 6]
+	const aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
+	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
+	const aes256EncryptedKeyb64 = uint8ArrayToBase64(aes256EncryptedKey)
+	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
 
-	const fs = {
-		readFile: () => Promise.resolve("uint8_somedata"),
-		writeFile: (file, data) => data === "decrypted" ? Promise.resolve() : Promise.reject("decryption failed")
+	const sessionKey = [1, 2, 3]
+	const encSessionKey = [3, 2, 1]
+
+	const cryptoFns: CryptoFunctions = {
+		aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
+			if (key === aes128Key) {
+				return decryptedUint8
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
+		aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+			if (key === aes256Key && arrayEquals(aes256DecryptedKey, bytes)) {
+				return aes256EncryptedKey
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
+		aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+			if (key === aes256Key && arrayEquals(encryptedBytes, aes256EncryptedKey)) {
+				return aes256DecryptedKey
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
+		decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
+			if (arrayEquals(encryptionKey, aes128Key) && arrayEquals(key, aes256EncryptedKey)) {
+				return uint8ArrayToBitArray(aes256DecryptedKey)
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
+		base64ToKey(base64: Base64): BitArray {
+			if (base64 === "b64_somekey") {
+				return aes128Key
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
+		publicKeyFromPem(pem: string): {verify: (string, string) => boolean} {
+			throw new Error("stub!")
+		},
+
+		randomBytes(bytes: number): Uint8Array {
+			return Buffer.alloc(bytes, 4)
+		},
+		decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
+			return Promise.resolve(instance)
+		}
 	}
-	const crypto = {
-		randomBytes: count => Buffer.alloc(count, 4)
+	const fs = {
+		promises: {
+			readFile: () => Promise.resolve(data),
+			writeFile: (file, data) => data === decryptedUint8 ? Promise.resolve() : Promise.reject("decryption failed")
+		},
 	}
 	const instanceMapper = {
 		decryptAndMapToInstance: (model, obj, sk) => Promise.resolve(obj)
-	}
-	const cryptoUtils = {
-		uint8ArrayToBitArray: uint8 => uint8 instanceof Uint8Array || uint8.startsWith("uint8") ? "bit_stuff" : "nonsense_bitarray"
-	}
-	const aes = {
-		aes128Decrypt: (key, data) => key.startsWith("bit") && data.startsWith("uint8")
-			? "decrypted"
-			: "nonsense_aes128decryption",
-		aes256Decrypt: (key, data) => key.startsWith("uint8") && data instanceof Uint8Array ? "uint8_stuff" : "nonsense_aes256decryption",
-		aes256Encrypt: (key, data) => key.startsWith("uint8") && data instanceof Uint8Array ? "uint8_stuff" : "nonsense_aes256encryption"
-	}
-	const keyCryptoUtils = {
-		decrypt256Key: (key, data) => key.startsWith("uint8") || data instanceof Uint8Array ? "bit_stuff" : "nonsense_256key"
 	}
 	const encoding = {
 		base64ToUint8Array: b64 => b64.startsWith("b64") ? "uint8_stuff" : "nonsense_uint8array",
@@ -41,77 +96,56 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			fsMock: n.mock("fs-extra", fs).set(),
 			cryptoMock: n.mock("crypto", crypto).set(),
 			instanceMapperMock: n.mock("../api/worker/crypto/InstanceMapper", instanceMapper).set(),
-			cryptoUtilsMock: n.mock("../api/worker/crypto/CryptoUtils", cryptoUtils).set(),
-			aesMock: n.mock("../api/worker/crypto/Aes", aes).set(),
-			keyCryptoUtilsMock: n.mock("../api/worker/crypto/KeyCryptoUtils", keyCryptoUtils).set(),
-			encodingMock: n.mock("../api/common/utils/Encoding", encoding).set()
+			encodingMock: n.mock("../api/common/utils/Encoding", encoding).set(),
+			cryptoFnsMock: n.mock("cryptoFns", cryptoFns).set()
 		}
 	}
 
 	const setupSubject = () => {
 		const sm = standardMocks()
-		const {DesktopCryptoFacade} = n.subject("../../src/desktop/DesktopCryptoFacade.js")
-		const desktopCrypto = new DesktopCryptoFacade()
+		const desktopCrypto = new DesktopCryptoFacade(sm.fsMock, sm.cryptoFnsMock)
 		return Object.assign({}, sm, {desktopCrypto})
 	}
 
-	o("aesDecryptFile", done => {
-		const {desktopCrypto, fsMock, aesMock} = setupSubject()
-
-		const file = "/some/path/to/file"
-
-		desktopCrypto.aesDecryptFile("b64_somekey", file)
-		             .then(file => {
-			             o(file).equals("/some/path/to/file")
-			             o(fsMock.readFile.callCount).equals(1)
-			             o(fsMock.readFile.args).deepEquals([file])
-			             o(fsMock.writeFile.callCount).equals(1)
-			             o(fsMock.writeFile.args).deepEquals([file, "decrypted", {encoding: 'binary'}])
-
-			             o(aesMock.aes128Decrypt.callCount).equals(1)
-		             }).then(() => done())
+	o("aesDecryptFile", async function () {
+		const {desktopCrypto, fsMock} = setupSubject()
+		const file = await desktopCrypto.aesDecryptFile("b64_somekey", "/some/path/to/file")
+		o(file).equals("/some/path/to/file")
+		o(fsMock.promises.writeFile.callCount).equals(1)
 	})
 
-	o("aes256DecryptKeyToB64", () => {
-		const {desktopCrypto, aesMock} = setupSubject()
+	o("aes256DecryptKeyToB64", function () {
+		const {desktopCrypto} = setupSubject()
 
-		const key = desktopCrypto.aes256DecryptKeyToB64("uint8_somekey", "b64_encryptedKey")
-		o(key).equals("b64_stuff")
-		o(aesMock.aes256Decrypt.callCount).equals(1)
-		o(aesMock.aes256Decrypt.args.length).equals(4)
-		o(aesMock.aes256Decrypt.args[0]).equals("uint8_somekey")
-		o(aesMock.aes256Decrypt.args[1].includes(Buffer.from("b64_encryptedKey", 'base64'))).equals(true)
+		const key = desktopCrypto.aes256DecryptKeyToB64(aes256Key, aes256EncryptedKeyb64)
+		o(key).equals(uint8ArrayToBase64(aes256DecryptedKey))
 	})
 
-	o("aes256EncryptKeyToB64", () => {
-		const {desktopCrypto, aesMock, cryptoMock} = setupSubject()
+	o("aes256EncryptKeyToB64", function () {
+		const {desktopCrypto, cryptoFnsMock} = setupSubject()
 
-		const key = desktopCrypto.aes256EncryptKeyToB64("uint8_somekey", "b64_decryptedKey")
-		o(key).equals("b64_stuff")
-		o(cryptoMock.randomBytes.callCount).equals(1)
-		o(cryptoMock.randomBytes.args[0]).equals(16)
-		o(aesMock.aes256Encrypt.callCount).equals(1)
-		o(aesMock.aes256Encrypt.args.length).equals(5)
-		o(aesMock.aes256Encrypt.args[0]).equals("uint8_somekey")
-		o(bufferComp(aesMock.aes256Encrypt.args[1], Buffer.from("b64_decryptedKey", 'base64'))).equals(true)
-		o(bufferComp(aesMock.aes256Encrypt.args[2], Buffer.from("04040404040404040404040404040404", 'hex'))).equals(true)
+		const key = desktopCrypto.aes256EncryptKeyToB64(aes256Key, uint8ArrayToBase64(aes256DecryptedKey))
+		o(key).equals(aes256EncryptedKeyb64)
+		o(cryptoFnsMock.randomBytes.callCount).equals(1)
 	})
 
-	o("decryptAndMapToInstance", done => {
-		const {desktopCrypto, instanceMapperMock, keyCryptoUtilsMock} = setupSubject()
+	o("decryptAndMapToInstance", async function () {
+		const {desktopCrypto, cryptoFnsMock} = setupSubject()
 
-		desktopCrypto.decryptAndMapToInstance("somemodel", {a: "property_a", b: true, c: 42}, "b64_piSk", "b64_piSkEncSk")
-		             .then(instance => {
-			             o(instance).deepEquals({a: "property_a", b: true, c: 42})
-			             o(keyCryptoUtilsMock.decrypt256Key.callCount).equals(1)
-			             o(keyCryptoUtilsMock.decrypt256Key.args[0]).equals('bit_stuff')
-			             o(uint8ArrayComp(keyCryptoUtilsMock.decrypt256Key.args[1], Uint8Array.from(Buffer.from('b64_piSkEncSk', 'base64')))).equals(true)
-			             o(instanceMapperMock.decryptAndMapToInstance.callCount).equals(1)
-			             o(instanceMapperMock.decryptAndMapToInstance.args).deepEquals([
-				             'somemodel',
-				             {a: 'property_a', b: true, c: 42},
-				             'bit_stuff'
-			             ])
-		             }).then(() => done())
+		const instance = await desktopCrypto.decryptAndMapToInstance(downcast("somemodel"), {
+			a: "property_a",
+			b: true,
+			c: 42
+		}, keyToBase64(aes128Key), aes256EncryptedKeyb64)
+		o(instance).deepEquals({a: "property_a", b: true, c: 42})
+		o(cryptoFnsMock.decrypt256Key.callCount).equals(1)
+		o(cryptoFnsMock.decrypt256Key.args[0]).deepEquals(aes128Key)
+		o(uint8ArrayComp(cryptoFnsMock.decrypt256Key.args[1], aes256EncryptedKey)).equals(true)
+		o(cryptoFnsMock.decryptAndMapToInstance.callCount).equals(1)
+		o(cryptoFnsMock.decryptAndMapToInstance.args).deepEquals([
+			'somemodel',
+			{a: 'property_a', b: true, c: 42},
+			uint8ArrayToBitArray(aes256DecryptedKey)
+		])
 	})
 })

@@ -7,6 +7,8 @@
 .app-android/.*
 .app-ios/.*
 .fdroid-metadata-workaround/.*
+make.js
+dist.js
 
 [libs]
 flow

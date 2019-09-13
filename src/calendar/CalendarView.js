@@ -16,7 +16,7 @@ import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
+import {_loadReverseRangeBetween, HttpMethod} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defaultCalendarColor, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
@@ -24,6 +24,10 @@ import {locator} from "../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
+	addDaysForEvent,
+	addDaysForLongEvent,
+	addDaysForRecurringEvent,
+	DEFAULT_HOUR_OF_DAY,
 	getCalendarName,
 	getCapabilityText,
 	getEventStart,
@@ -40,7 +44,6 @@ import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../api/main/WorkerClient"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
@@ -57,13 +60,11 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import type {GroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
-import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
@@ -83,9 +84,11 @@ import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
+import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
+import {exportCalendar, showCalendarImportDialog} from "./CalendarImporterDialog"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
-export const DEFAULT_HOUR_OF_DAY = 6
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,

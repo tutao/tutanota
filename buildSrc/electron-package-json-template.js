@@ -1,18 +1,22 @@
-const path = require('path')
-const pj = require('../package.json')
+import path, {dirname} from "path"
+import {readFileSync} from "fs"
+import {fileURLToPath} from "url"
+
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (opts) {
-	const {nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked} = opts
+export default function generateTemplate({nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked}) {
+	const __dirname = dirname(fileURLToPath(import.meta.url))
+
+	const pj = JSON.parse(readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"))
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	return {
 		"name": appName,
-		"main": "./src/desktop/DesktopMain.js",
+		"main": "./desktop/DesktopMain.js",
 		"version": version,
 		"author": "Tutao GmbH",
 		"description": "The desktop client for Tutanota, the secure e-mail service.",
@@ -41,7 +45,7 @@ module.exports = function (opts) {
 				+ "-----END PUBLIC KEY-----"
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
-			"preloadjs": "./src/desktop/preload.js",
+			"preloadjs": "./desktop/preload.js",
 			"desktophtml": "./desktop.html",
 			"iconName": "logo-solo-red.png",
 			"fileManagerTimeout": 30000,
@@ -64,13 +68,8 @@ module.exports = function (opts) {
 		},
 		"dependencies": {
 			"electron-updater": pj.devDependencies["electron-updater"],
-			"chalk": pj.devDependencies.chalk,
-			"electron-localshortcut": pj.devDependencies["electron-localshortcut"],
-			"fs-extra": pj.devDependencies["fs-extra"],
-			"bluebird": pj.dependencies.bluebird,
-			"node-forge": pj.devDependencies["node-forge"],
-			"winreg": pj.devDependencies.winreg,
-			"keytar": pj.dependencies.keytar
+			// This is not ideal, keytar pulls some rebuild dependencies into runtime. We should probably use our own rebuild versions
+			"keytar": pj.dependencies.keytar,
 		},
 		"build": {
 			"electronVersion": pj.devDependencies.electron,

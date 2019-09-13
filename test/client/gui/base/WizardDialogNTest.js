@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {createWizardDialog} from "../../../../src/gui/base/WizardDialogN"
 import {Dialog} from "../../../../src/gui/base/Dialog"
 import {EnterDomainPage, EnterDomainPageAttrs} from "../../../../src/settings/emaildomain/EnterDomainPage"

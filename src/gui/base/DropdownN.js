@@ -14,7 +14,6 @@ import {NavButtonN} from "./NavButtonN"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
-import {asyncImport} from "../../api/common/utils/Utils"
 import type {PosRect} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
@@ -23,6 +22,7 @@ assertMainOrNodeBoot()
 
 
 export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
+
 
 // TODO: add resize listener like in the old Dropdown
 export class DropdownN {
@@ -302,7 +302,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 					originalButtons,
 					Promise.all([
 						Promise.delay(100),
-						asyncImport(importBase, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+						import("./ProgressDialog.js")
 					]).then(([_, module]) => {
 						if (originalButtons.isPending()) {
 							return module.showProgressDialog("loading_msg", originalButtons)

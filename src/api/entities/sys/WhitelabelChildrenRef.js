@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const WhitelabelChildrenRefTypeRef: TypeRef<WhitelabelChildrenRef> = new TypeRef("sys", "WhitelabelChildrenRef")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1270,
-			"since": 26,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"items": {
-			"name": "items",
 			"id": 1271,
-			"since": 26,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "WhitelabelChild",
 			"final": true,
-			"external": false
+			"refType": "WhitelabelChild"
 		}
 	},
 	"app": "sys",

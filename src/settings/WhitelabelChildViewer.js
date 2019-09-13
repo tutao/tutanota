@@ -5,7 +5,6 @@ import {TextField, Type} from "../gui/base/TextField"
 import {load, update} from "../api/main/Entity"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {isSameId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull} from "../api/common/utils/Utils"
 import {OperationType} from "../api/common/TutanotaConstants"
@@ -18,6 +17,7 @@ import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

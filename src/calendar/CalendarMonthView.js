@@ -6,11 +6,9 @@ import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
 import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import type {CalendarDay} from "./CalendarUtils"
 import {
 	CALENDAR_EVENT_HEIGHT,
-	getAllDayDateForTimezone,
-	getCalendarMonth,
+	getAllDayDateForTimezone, getCalendarMonth,
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
@@ -34,6 +32,7 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {PageView} from "../gui/base/PageView"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import type {CalendarDay} from "./CalendarUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,

@@ -23,7 +23,6 @@ import {
 import {PermissionError} from "../api/common/error/PermissionError"
 import {locator} from "../api/main/MainLocator"
 import {logins} from "../api/main/LoginController"
-import {formatPrice} from "../subscription/SubscriptionUtils"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, Keys, MailMethod} from "../api/common/TutanotaConstants"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import {PreconditionFailedError} from "../api/common/error/RestError"
@@ -60,6 +59,7 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {formatPrice} from "../subscription/PriceUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -88,7 +88,6 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 		_onSend: () => {}
 	}
 }
-
 
 export class MailEditor implements MComponent<MailEditorAttrs> {
 
@@ -151,9 +150,9 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		this.toolbar = new RichTextToolbar(this.editor, {imageButtonClickHandler: insertImageHandler})
 
 		this.recipientFields = {
-			to: new MailEditorRecipientField(model, "to"),
-			cc: new MailEditorRecipientField(model, "cc"),
-			bcc: new MailEditorRecipientField(model, "bcc"),
+			to: new MailEditorRecipientField(model, "to", locator.contactModel),
+			cc: new MailEditorRecipientField(model, "cc", locator.contactModel),
+			bcc: new MailEditorRecipientField(model, "bcc", locator.contactModel),
 		}
 
 		if (model.logins().isInternalUserLoggedIn()) {

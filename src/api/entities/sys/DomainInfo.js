@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", "DomainInfo")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 697,
-			"since": 9,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"domain": {
-			"name": "domain",
 			"id": 698,
-			"since": 9,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"validatedMxRecord": {
-			"name": "validatedMxRecord",
 			"id": 699,
-			"since": 9,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
@@ -43,24 +37,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"catchAllMailGroup": {
-			"name": "catchAllMailGroup",
 			"id": 1044,
-			"since": 18,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "Group",
 			"final": true,
-			"external": false
+			"refType": "Group"
 		},
 		"whitelabelConfig": {
-			"name": "whitelabelConfig",
 			"id": 1136,
-			"since": 22,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "WhitelabelConfig",
 			"final": true,
-			"external": false
+			"refType": "WhitelabelConfig"
 		}
 	},
 	"app": "sys",

@@ -1,5 +1,5 @@
 import {parseBigInt} from "../../../src/api/worker/crypto/lib/crypto-jsbn-2012-08-09_1"
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {
 	_getPSBlock,
 	_keyArrayToHex,

@@ -1,7 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
-import type {Element, HttpMethodEnum, ListElement} from "../common/EntityFunctions"
+import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -11,15 +11,9 @@ import {
 	_setupEntity,
 	_updateEntity,
 	_verifyType,
-	CUSTOM_MIN_ID,
-	GENERATED_MIN_ID,
-	getEtId,
 	getFirstIdIsBiggerFnForType,
-	getLetId,
 	HttpMethod,
-	RANGE_ITEM_LIMIT,
-	resolveTypeReference,
-	TypeRef
+	resolveTypeReference
 } from "../common/EntityFunctions"
 import {createVersionData} from "../entities/sys/VersionData"
 import type {RootInstance} from "../entities/sys/RootInstance"
@@ -28,12 +22,11 @@ import type {VersionReturn} from "../entities/sys/VersionReturn"
 import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
 // $FlowIgnore[untyped-import]
-import EC from "../common/EntityConstants"
+import {Type, ValueType} from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
-
-const Type = EC.Type
-const ValueType = EC.ValueType
+import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getEtId, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "../common/utils/EntityUtils";
+import type {Element, ListElement} from "../common/utils/EntityUtils";
 
 assertMainOrNode()
 

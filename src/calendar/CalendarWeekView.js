@@ -5,7 +5,7 @@ import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {formatTime} from "../misc/Formatter"
 import {
-	CALENDAR_EVENT_HEIGHT,
+	CALENDAR_EVENT_HEIGHT, DEFAULT_HOUR_OF_DAY,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	getCalendarWeek,
@@ -30,7 +30,6 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {PageView} from "../gui/base/PageView"
-import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {logins} from "../api/main/LoginController"
 

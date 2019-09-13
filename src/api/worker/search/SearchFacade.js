@@ -1,7 +1,7 @@
 //@flow
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
-import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
 import {asyncFind, defer, downcast, neverNull} from "../../common/utils/Utils"
@@ -39,17 +39,14 @@ import {LoginFacade} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 // $FlowIgnore[untyped-import]
-import EC from "../../common/EntityConstants"
+import {AssociationType, Cardinality, ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {iterateBinaryBlocks} from "./SearchIndexEncoding"
 import {getDayShifted, getStartOfDay} from "../../common/utils/DateUtils"
 import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
-
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
+import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, TypeRef} from "../../common/utils/EntityUtils";
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

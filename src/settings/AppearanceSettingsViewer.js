@@ -6,7 +6,7 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {themeId} from "../gui/theme"
+import {setThemeId, themeId} from "../gui/theme"
 import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
@@ -46,7 +46,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			label: "switchColorTheme_action",
 			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}],
 			selectedValue: themeId,
-			selectionChangedHandler: (value) => deviceConfig.setTheme(value)
+			selectionChangedHandler: (value) => setThemeId(value)
 		}
 
 		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot

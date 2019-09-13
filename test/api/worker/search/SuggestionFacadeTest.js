@@ -2,7 +2,7 @@
  * Created by bdeterding on 13.12.17.
  */
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {SuggestionFacade} from "../../../../src/api/worker/search/SuggestionFacade"

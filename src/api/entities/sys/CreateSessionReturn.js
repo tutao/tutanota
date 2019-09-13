@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {Challenge} from "./Challenge"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1220,
-			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"accessToken": {
-			"name": "accessToken",
 			"id": 1221,
-			"since": 23,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
@@ -35,23 +31,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"challenges": {
-			"name": "challenges",
 			"id": 1222,
-			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "Challenge",
-			"final": true
+			"final": true,
+			"refType": "Challenge"
 		},
 		"user": {
-			"name": "user",
 			"id": 1223,
-			"since": 23,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "User",
 			"final": true,
-			"external": false
+			"refType": "User"
 		}
 	},
 	"app": "sys",

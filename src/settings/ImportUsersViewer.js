@@ -6,7 +6,6 @@ import {isMailAddress} from "../misc/FormatValidator"
 import {worker} from "../api/main/WorkerClient"
 import {showWorkerProgressDialog} from "../gui/base/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {CSV_USER_FORMAT} from "./UserViewer"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {show as showBuyDialog} from "../subscription/BuyDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
@@ -18,6 +17,8 @@ type UserImportDetails = {
 	mailAddress: string,
 	password: string
 }
+
+export const CSV_USER_FORMAT = "username;user@domain.com;password"
 
 export function checkAndImportUserData(userDetailsInputCsv: string, availableDomains: string[]): boolean {
 	let userData = csvToUserDetails(userDetailsInputCsv)

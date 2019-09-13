@@ -3,13 +3,11 @@
 import {OperationType} from "../../common/TutanotaConstants"
 import {assertNotNull, containsEventOfType, getEventOfType} from "../../common/utils/Utils"
 import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
-import type {WorkerImpl} from "../WorkerImpl"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import {isSameId, isSameTypeRefByAttr} from "../../common/EntityFunctions"
-import {findAllAndRemove, findAndRemove, firstThrow, last, remove} from "../../common/utils/ArrayUtils"
+import {findAllAndRemove, remove} from "../../common/utils/ArrayUtils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {createEntityUpdate} from "../../entities/sys/EntityUpdate"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
+import {isSameId, isSameTypeRefByAttr} from "../../common/utils/EntityUtils"
 
 export type QueuedBatch = {
 	events: EntityUpdate[], groupId: Id, batchId: Id

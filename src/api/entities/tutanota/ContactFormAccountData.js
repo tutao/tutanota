@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {ContactFormStatisticField} from "./ContactFormStatisticField"
 import type {ContactFormStatisticEntry} from "./ContactFormStatisticEntry"
@@ -18,9 +18,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 792,
-			"since": 19,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -29,50 +27,39 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"statisticFields": {
-			"name": "statisticFields",
 			"id": 795,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "ContactFormStatisticField",
-			"final": false
+			"final": false,
+			"refType": "ContactFormStatisticField"
 		},
 		"statistics": {
-			"name": "statistics",
 			"id": 831,
-			"since": 22,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "ContactFormStatisticEntry",
-			"final": true
+			"final": true,
+			"refType": "ContactFormStatisticEntry"
 		},
 		"userData": {
-			"name": "userData",
 			"id": 793,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "ContactFormUserData",
-			"final": false
+			"final": false,
+			"refType": "ContactFormUserData"
 		},
 		"userGroupData": {
-			"name": "userGroupData",
 			"id": 794,
-			"since": 19,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "InternalGroupData",
-			"final": false
+			"final": false,
+			"refType": "InternalGroupData"
 		},
 		"contactForm": {
-			"name": "contactForm",
 			"id": 796,
-			"since": 19,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "ContactForm",
 			"final": false,
-			"external": false
+			"refType": "ContactForm"
 		}
 	},
 	"app": "tutanota",

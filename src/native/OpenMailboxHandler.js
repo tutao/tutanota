@@ -1,8 +1,8 @@
 //@flow
 import m from "mithril"
-import {getInboxFolder} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
+import {getInboxFolder} from "../mail/MailUtils";
 
 
 export function openMailbox(userId: Id, mailAddress: string, requestedPath: ?string): void {

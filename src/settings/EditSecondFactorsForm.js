@@ -33,12 +33,10 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {getEtId, isSameId} from "../api/common/EntityFunctions"
-import {nativeApp} from "../native/NativeWrapper"
-import {Request} from "../api/common/WorkerProtocol"
+import {getEtId, isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

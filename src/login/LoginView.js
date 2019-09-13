@@ -1,17 +1,14 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {TextField, Type} from "../gui/base/TextField"
-import {Checkbox} from "../gui/base/Checkbox"
-import {Button} from "../gui/base/Button"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {asyncImport, defer, neverNull} from "../api/common/utils/Utils"
+import type {DeferredObject} from "../api/common/utils/Utils"
+import {defer, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {themeId} from "../gui/theme"
+import {setThemeId, themeId} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -19,11 +16,9 @@ import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {show} from "./RecoverLoginDialog"
 import {header} from "../gui/base/Header"
-import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
 import type {ILoginViewController} from "./LoginViewController"
-import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
 import {getTokenFromUrl} from "../subscription/giftcards/GiftCardUtils"
-import {Dialog} from "../gui/base/Dialog"
 import {loadRedeemGiftCardWizard} from "../subscription/giftcards/RedeemGiftCardWizard"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
@@ -32,7 +27,6 @@ import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
-import type {DeferredObject} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -80,8 +74,7 @@ export class LoginView {
 		this._isDeleteCredentials = false;
 		this._moreExpanded = stream(false)
 
-		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-			`${env.rootPathPrefix}src/login/LoginViewController.js`)
+		this._viewController = import('../login/LoginViewController.js')
 			.then(module => new module.LoginViewController(this))
 
 		if (window.location.href.includes('signup')) {
@@ -178,9 +171,9 @@ export class LoginView {
 							click: () => {
 								switch (themeId()) {
 									case 'light':
-										return deviceConfig.setTheme('dark')
+										return setThemeId('dark')
 									case 'dark':
-										return deviceConfig.setTheme('light')
+										return setThemeId('light')
 								}
 							}
 						})

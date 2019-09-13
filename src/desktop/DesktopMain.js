@@ -2,6 +2,7 @@
 import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
 import {DesktopConfig} from './config/DesktopConfig'
+import * as electron from 'electron'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'
@@ -12,7 +13,6 @@ import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
-import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../translations/en"
@@ -20,18 +20,29 @@ import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
+import {UpdaterWrapperImpl} from "./UpdaterWrapper"
+import {ElectronNotificationFactory} from "./NotificatonFactory"
+import {KeytarSecretStorage} from "./sse/SecretStorage"
+import desktopUtils from "./DesktopUtils"
+import fs from "fs"
+import {DesktopIntegrator} from "./integration/DesktopIntegrator"
+import net from "net"
+import child_process from "child_process"
+import {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
+import {cryptoFns} from "./CryptoFns"
 
 mp()
 
 lang.init(en)
-const conf = new DesktopConfig()
-const net = new DesktopNetworkClient()
-const crypto = new DesktopCryptoFacade()
-const sock = new Socketeer()
-const notifier = new DesktopNotifier()
-const dl = new DesktopDownloadManager(conf, net)
-const alarmStorage = new DesktopAlarmStorage(conf, crypto)
+const conf = new DesktopConfig(app)
+const desktopNet = new DesktopNetworkClient()
+const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
+const sock = new Socketeer(net, app)
+const tray = new DesktopTray(conf)
+const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
+const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, fs, electron)
+const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, new KeytarSecretStorage())
 alarmStorage.init()
             .then(() => {
 	            log.debug("alarm storage initialized")
@@ -39,13 +50,16 @@ alarmStorage.init()
             .catch(e => {
 	            console.warn("alarm storage failed to initialize:", e)
             })
-const updater = new ElectronUpdater(conf, notifier)
-const tray = new DesktopTray(conf, notifier)
-const wm = new WindowManager(conf, tray, notifier, dl)
-const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
+const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
+const shortcutManager = new LocalShortcutManager()
+const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl)
+const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto)
+alarmScheduler.rescheduleAll()
+
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater)
+const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
+const integrator = new DesktopIntegrator(electron, fs, child_process, () => import("winreg"))
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, desktopCrypto, dl, updater, electron, desktopUtils, err, integrator)
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))
@@ -118,7 +132,7 @@ function onAppReady() {
 }
 
 function main() {
-	tray.update()
+	tray.update(notifier)
 	if (process.argv.indexOf('-s') !== -1) {
 		sock.startServer()
 	}
@@ -130,9 +144,9 @@ function main() {
 		wm.getLastFocused(true)
 		tray.clearBadge()
 	})
-	notifier.start(tray, 2000)
+	notifier.start(2000)
 	updater.start()
-	runIntegration(wm)
+	integrator.runIntegration(wm)
 	handleArgv(process.argv)
 }
 

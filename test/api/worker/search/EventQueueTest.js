@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {replaceAllMaps} from "../../TestUtils"

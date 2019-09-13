@@ -1,7 +1,13 @@
 //@flow
 import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {timestampToGeneratedId} from "../../../src/api/common/utils/Encoding"
-import type {Element, HttpMethodEnum, ListElement} from "../../../src/api/common/EntityFunctions"
+import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
+import {
+	HttpMethod,
+	resolveTypeReference
+} from "../../../src/api/common/EntityFunctions"
+import {NotFoundError} from "../../../src/api/common/error/RestError"
+import {downcast} from "../../../src/api/common/utils/Utils"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -9,13 +15,9 @@ import {
 	firstBiggerThanSecond,
 	getElementId,
 	getListId,
-	HttpMethod,
-	listIdPart,
-	resolveTypeReference,
-	TypeRef
-} from "../../../src/api/common/EntityFunctions"
-import {NotFoundError} from "../../../src/api/common/error/RestError"
-import {downcast} from "../../../src/api/common/utils/Utils"
+	listIdPart, TypeRef
+} from "../../../src/api/common/utils/EntityUtils";
+import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
 
 export class EntityRestClientMock extends EntityRestClient {
 

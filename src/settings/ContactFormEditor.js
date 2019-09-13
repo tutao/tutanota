@@ -1,19 +1,18 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../api/common/TutanotaConstants"
 import {load, loadAll, setup, update} from "../api/main/Entity"
-import {compareGroupInfos, getGroupInfoDisplayName, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
+import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {GroupTypeRef} from "../api/entities/sys/Group"
-import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
 import {Table} from "../gui/base/Table"
 import {ColumnWidth} from "../gui/base/TableN"
 import TableLine from "../gui/base/TableLine"
@@ -42,6 +41,9 @@ import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {InputField} from "../api/entities/tutanota/InputField"
 import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
+import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
+import {isSameId, stringToCustomId} from "../api/common/utils/EntityUtils";
+import {createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 

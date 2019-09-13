@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const PriceRequestDataTypeRef: TypeRef<PriceRequestData> = new TypeRef("sys", "PriceRequestData")
@@ -14,63 +14,49 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 837,
-			"since": 9,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"accountType": {
-			"name": "accountType",
 			"id": 842,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"business": {
-			"name": "business",
 			"id": 840,
-			"since": 9,
 			"type": "Boolean",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"count": {
-			"name": "count",
 			"id": 839,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"featureType": {
-			"name": "featureType",
 			"id": 838,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"paymentInterval": {
-			"name": "paymentInterval",
 			"id": 841,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"reactivate": {
-			"name": "reactivate",
 			"id": 1285,
-			"since": 26,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,

@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {
 	_replaceLoneSurrogates,
 	_stringToUtf8Uint8ArrayLegacy,
@@ -20,21 +20,22 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex, uint8ArrayToString
 } from "../../../src/api/common/utils/Encoding"
-import {GENERATED_MIN_ID} from "../../../src/api/common/EntityFunctions"
-// $FlowIssue[missing-export] TextEncoder *is* present in util.
-import {TextDecoder as nodeTextDecoder, TextEncoder as nodeTextEncoder} from "util"
-
-if (global.isBrowser) {
-	global.TextDecoder = window.TextDecoder
-	global.TextEncoder = window.TextEncoder
-} else {
-	global.TextDecoder = nodeTextDecoder
-	global.TextEncoder = nodeTextEncoder
-}
+import {GENERATED_MIN_ID} from "../../../src/api/common/utils/EntityUtils";
 
 o.spec("Encoding", function () {
 
 	//TODO test missing encoder functions (only tested partially)
+	o.before(async function () {
+		if (global.isBrowser) {
+			global.TextDecoder = window.TextDecoder
+			global.TextEncoder = window.TextEncoder
+		} else {
+			// $FlowIssue[prop-missing] TextEncoder *is* present in util.
+			const {TextDecoder: nodeTextDecoder, TextEncoder: nodeTextEncoder} = await import("util")
+			global.TextDecoder = nodeTextDecoder
+			global.TextEncoder = nodeTextEncoder
+		}
+	})
 
 	o("_replaceLoneSurrogates", function () {
 		o(_replaceLoneSurrogates("a\uD800\uDFFFb")).equals("a\uD800\uDFFFb") // high and low

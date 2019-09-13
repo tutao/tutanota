@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const CertificateInfoTypeRef: TypeRef<CertificateInfo> = new TypeRef("sys", "CertificateInfo")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1501,
-			"since": 44,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"expiryDate": {
-			"name": "expiryDate",
 			"id": 1502,
-			"since": 44,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"state": {
-			"name": "state",
 			"id": 1503,
-			"since": 44,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"type": {
-			"name": "type",
 			"id": 1504,
-			"since": 44,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -52,14 +44,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"certificate": {
-			"name": "certificate",
 			"id": 1505,
-			"since": 44,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "SslCertificate",
 			"final": true,
-			"external": false
+			"refType": "SslCertificate"
 		}
 	},
 	"app": "sys",

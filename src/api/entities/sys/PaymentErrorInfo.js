@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", "PaymentErrorInfo")
@@ -14,36 +14,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1633,
-			"since": 52,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"errorCode": {
-			"name": "errorCode",
 			"id": 1635,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"errorTime": {
-			"name": "errorTime",
 			"id": 1634,
-			"since": 52,
 			"type": "Date",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"thirdPartyErrorId": {
-			"name": "thirdPartyErrorId",
 			"id": 1636,
-			"since": 52,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,

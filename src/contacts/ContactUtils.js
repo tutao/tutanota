@@ -3,47 +3,15 @@ import {lang} from "../misc/LanguageViewModel.js"
 import type {ContactAddressTypeEnum, ContactPhoneNumberTypeEnum, ContactSocialTypeEnum} from "../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
-import {createRestriction} from "../search/SearchUtils"
 import type {Contact} from "../api/entities/tutanota/Contact"
-import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {ContactList} from "../api/entities/tutanota/ContactList"
-import {ContactListTypeRef} from "../api/entities/tutanota/ContactList"
-import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
-import type {LoginController} from "../api/main/LoginController"
-import {logins} from "../api/main/LoginController"
-import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
-import {worker} from "../api/main/WorkerClient"
-import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {neverNull} from "../api/common/utils/Utils"
 import type {Birthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {DbError} from "../api/common/error/DbError"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
-import {locator} from "../api/main/MainLocator"
-import type {EntityClient} from "../api/common/EntityClient"
+import {sortCompareByReverseId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
-
-export function lazyContactListId(logins: LoginController, entityClient?: EntityClient): LazyLoaded<Id> {
-	return new LazyLoaded(() => {
-		return (entityClient || locator.entityClient)
-			.loadRoot(ContactListTypeRef, logins.getUserController().user.userGroup.group)
-			.then((contactList: ContactList) => {
-				return contactList.contacts
-			})
-			.catch(NotFoundError, e => {
-				if (!logins.getUserController().isInternalUser()) {
-					return null // external users have no contact list.
-				} else {
-					throw e
-				}
-			})
-	})
-}
-
-// convenience so we don't have to update every call site with lazyContactListId
-export const LazyContactListId: LazyLoaded<Id> = lazyContactListId(logins)
 
 export const ContactMailAddressTypeToLabel: {[key: ContactAddressTypeEnum]: TranslationKey} = {
 	[ContactAddressType.PRIVATE]: "private_label",
@@ -154,52 +122,6 @@ export function compareContacts(contact1: Contact, contact2: Contact): number {
 			return result
 		}
 	}
-}
-
-/**
- * @pre locator.search.indexState().indexingSupported
- */
-export function searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-	return worker.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
-	             .then(result => {
-		             // load one by one because they may be in different lists when we have different lists
-		             return Promise.map(result.results, idTuple => {
-			             return locator.entityClient.load(ContactTypeRef, idTuple).catch(NotFoundError, e => {
-				             return null
-			             }).catch(NotAuthorizedError, e => {
-				             return null
-			             })
-		             }).filter(contact => contact != null)
-	             })
-}
-
-
-/**
- * Provides the first contact (starting with oldest contact) that contains the given email address. Uses the index search if available, otherwise loads all contacts.
- */
-export function searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
-	let cleanMailAddress = mailAddress.trim().toLowerCase()
-	return worker.search("\"" + cleanMailAddress + "\"",
-		createRestriction("contact", null, null, "mailAddress", null), 0).then(result => {
-		// the result is sorted from newest to oldest, but we want to return the oldest first like before
-		result.results.sort(compareOldestFirst)
-		return asyncFindAndMap(result.results, contactId => {
-			return locator.entityClient.load(ContactTypeRef, contactId).then(contact => {
-				// look for the exact match in the contacts
-				return (contact.mailAddresses.find(a => a.address.trim().toLowerCase()
-					=== cleanMailAddress)) ? contact : null
-			}).catch(NotFoundError, e => {
-				return null
-			}).catch(NotAuthorizedError, e => {
-				return null
-			})
-		})
-	}).catch(DbError, () => {
-		return LazyContactListId.getAsync().then(listId => locator.entityClient.loadAll(ContactTypeRef, listId)).then(contacts => {
-			return contacts.find(contact => contact.mailAddresses.find(a =>
-				a.address.trim().toLowerCase() === cleanMailAddress) != null)
-		})
-	})
 }
 
 export function getContactDisplayName(contact: Contact): string {

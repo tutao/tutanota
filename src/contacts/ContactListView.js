@@ -3,14 +3,15 @@ import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {ContactView} from "./ContactView"
-import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
-import {compareContacts, LazyContactListId, getContactListName} from "./ContactUtils"
+import type {ContactView} from "./ContactView"
+import {compareContacts, getContactListName} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import type {Contact} from "../api/entities/tutanota/Contact"
+import {locator} from "../api/main/MainLocator"
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
@@ -29,7 +30,7 @@ export class ContactListView {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
-					return LazyContactListId.getAsync().then(contactListId => {
+					return locator.contactModel.contactListId().then(contactListId => {
 						// we have to load all contacts in order to sort them by name
 						return loadAll(ContactTypeRef, contactListId).then(allContacts => {
 							// we have to set loadedCompletely to make sure that fetch is never called again and also that new received contacts are inserted into the list, even at the end

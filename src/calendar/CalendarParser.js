@@ -3,8 +3,8 @@ import {downcast, neverNull} from "../api/common/utils/Utils"
 import {DateTime, IANAZone} from "luxon"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, CalendarMethod, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {createRepeatRule} from "../api/entities/sys/RepeatRule"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
@@ -24,7 +24,6 @@ import {
 } from "../misc/parsing"
 import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
-import {parstatToCalendarAttendeeStatus} from "./CalendarImporter"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {filterInt} from "./CalendarUtils"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
@@ -373,6 +372,16 @@ function parseMailtoValue(value: string) {
 	return match && match[1]
 }
 
+
+export const calendarAttendeeStatusToParstat: {[CalendarAttendeeStatusEnum]: string} = {
+	// WE map ADDED to NEEDS-ACTION for sending out invites
+	[CalendarAttendeeStatus.ADDED]: "NEEDS-ACTION",
+	[CalendarAttendeeStatus.NEEDS_ACTION]: "NEEDS-ACTION",
+	[CalendarAttendeeStatus.ACCEPTED]: "ACCEPTED",
+	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
+	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
+}
+export const parstatToCalendarAttendeeStatus: {[string]: CalendarAttendeeStatusEnum} = reverse(calendarAttendeeStatusToParstat)
 
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
 	const methodProp = icalObject.properties.find((prop) => prop.name === "METHOD")

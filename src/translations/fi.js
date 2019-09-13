@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	"id": "fc793e57b2ad95a6ade9c69abe1a46c4",
 	"name": "fi",
 	"code": "fi",

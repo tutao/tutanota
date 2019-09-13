@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {FaqModel} from "../../../src/support/FaqModel"
 import {downcast} from "../../../src/api/common/utils/Utils"
 import {lang} from "../../../src/misc/LanguageViewModel"

@@ -22,7 +22,6 @@ import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
 import type {SelectorItemList} from "./DropDownSelectorN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
-import {showProgressDialog} from "./ProgressDialog"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 import {styles} from "../styles"
@@ -507,7 +506,8 @@ export class Dialog {
 				}
 			})
 			if (validationResult instanceof Promise) {
-				showProgressDialog("pleaseWait_msg", finalizer)
+				// breaking hard circular dependency
+				import("./ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
 			}
 		}
 

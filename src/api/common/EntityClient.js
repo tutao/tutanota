@@ -3,7 +3,6 @@
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {RootInstance} from "../entities/sys/RootInstance"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
-import type {ListElement} from "./EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -12,12 +11,10 @@ import {
 	_loadReverseRangeBetween,
 	_setupEntity,
 	_updateEntity,
-	GENERATED_MIN_ID,
-	getLetId,
-	RANGE_ITEM_LIMIT,
-	resolveTypeReference,
-	TypeRef
+	resolveTypeReference
 } from "./EntityFunctions"
+import {GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "./utils/EntityUtils";
+import type {ListElement} from "./utils/EntityUtils";
 
 function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterface): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {

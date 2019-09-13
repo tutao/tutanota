@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const BucketTypeRef: TypeRef<Bucket> = new TypeRef("sys", "Bucket")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 130,
-			"since": 1,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"bucketPermissions": {
-			"name": "bucketPermissions",
 			"id": 131,
-			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "BucketPermission",
 			"final": true,
-			"external": false
+			"refType": "BucketPermission"
 		}
 	},
 	"app": "sys",

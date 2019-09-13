@@ -1,5 +1,4 @@
 //@flow
-import {getInboxFolder} from "../mail/MailUtils"
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {LoginView} from "../login/LoginView"
@@ -8,6 +7,7 @@ import {modal} from "../gui/base/Modal";
 import {last} from "../api/common/utils/ArrayUtils";
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../misc/RouteChange"
 import {locator} from "../api/main/MainLocator"
+import {getInboxFolder} from "../mail/MailUtils"
 
 assertMainOrNode()
 

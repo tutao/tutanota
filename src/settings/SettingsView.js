@@ -14,7 +14,6 @@ import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
 import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {Button} from "../gui/base/Button"
 import {ButtonColors} from "../gui/base/ButtonN"
@@ -45,6 +44,7 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {nativeApp} from "../native/NativeWrapper"
 import {FolderExpander} from "../gui/base/FolderExpander"
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

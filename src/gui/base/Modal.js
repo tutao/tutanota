@@ -5,7 +5,6 @@ import {theme} from "../theme"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
-import {module as replaced} from "@hot"
 import {windowFacade} from "../../misc/WindowFacade"
 import {remove} from "../../api/common/utils/ArrayUtils"
 
@@ -176,10 +175,6 @@ class Modal {
 }
 
 export const modal: Modal = new Modal()
-
-if (replaced && replaced.components) {
-	replaced.components.map(wrapper => replaced.remove(wrapper.component))
-}
 
 export interface ModalComponent {
 	hideAnimation(): Promise<void>;

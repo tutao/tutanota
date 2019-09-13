@@ -1,16 +1,16 @@
 // @flow
-import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfig} from "../config/DesktopConfig"
-import {DesktopConfigKey} from "../config/DesktopConfig"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
-import {elementIdPart} from "../../api/common/EntityFunctions"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import type {AlarmNotification} from "../../api/entities/sys/AlarmNotification"
+import {elementIdPart} from "../../api/common/utils/EntityUtils"
+import {DesktopConfigKey} from "../config/ConfigKeys"
+import type {SecretStorage} from "./SecretStorage"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
@@ -23,12 +23,14 @@ export class DesktopAlarmStorage {
 	_conf: DesktopConfig;
 	_crypto: DesktopCryptoFacade
 	_sessionKeysB64: {[pushIdentifierId: string]: string};
+	_secretStorage: SecretStorage
 
-	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade) {
+	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, secretStorage: SecretStorage) {
 		this._conf = conf
 		this._crypto = desktopCryptoFacade
 		this._initialized = defer()
 		this._sessionKeysB64 = {}
+		this._secretStorage = secretStorage
 	}
 
 	/**
@@ -36,25 +38,25 @@ export class DesktopAlarmStorage {
 	 * ensures there is a device key in the local secure storage
 	 */
 	init(): Promise<void> {
-		return keytar.findPassword(SERVICE_NAME)
-		             .then(pw => pw
-			             ? pw
-			             : this._generateAndStoreDeviceKey()
-		             )
-		             .then(pw => this._initialized.resolve(uint8ArrayToBitArray(base64ToUint8Array(pw))))
+		return this._secretStorage.findPassword(SERVICE_NAME)
+		           .then(pw => pw
+			           ? pw
+			           : this._generateAndStoreDeviceKey()
+		           )
+		           .then(pw => this._initialized.resolve(uint8ArrayToBitArray(base64ToUint8Array(pw))))
 	}
 
 	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
 		// save key entry in keychain
-		return keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, DesktopCryptoFacade.generateDeviceKey())
-		             .then(() => keytar.findPassword(SERVICE_NAME))
-		             .then(pw => {
-			             if (!pw) {
-				             throw new CryptoError("alarmstorage key creation failed!")
-			             }
-			             return pw
-		             })
+		return this._secretStorage.setPassword(SERVICE_NAME, ACCOUNT_NAME, this._crypto.generateDeviceKey())
+		           .then(() => this._secretStorage.findPassword(SERVICE_NAME))
+		           .then(pw => {
+			           if (!pw) {
+				           throw new CryptoError("alarmstorage key creation failed!")
+			           }
+			           return pw
+		           })
 	}
 
 	/**

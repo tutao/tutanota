@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {Braintree3ds2Response} from "./Braintree3ds2Response"
 
@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1838,
-			"since": 66,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,13 +24,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"braintree3dsResponse": {
-			"name": "braintree3dsResponse",
 			"id": 1839,
-			"since": 66,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "Braintree3ds2Response",
-			"final": false
+			"final": false,
+			"refType": "Braintree3ds2Response"
 		}
 	},
 	"app": "sys",

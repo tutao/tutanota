@@ -21,7 +21,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {formatPrice, getPreconditionFailedPaymentMsg, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {getPreconditionFailedPaymentMsg, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {
 	renderAcceptGiftCardTermsCheckbox,
 	showGiftCardToShare
@@ -39,6 +39,7 @@ import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
 import {noOp} from "../../api/common/utils/Utils"
 import {isIOSApp} from "../../api/Env"
+import {formatPrice} from "../PriceUtils";
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,

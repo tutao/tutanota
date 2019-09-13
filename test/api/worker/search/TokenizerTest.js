@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {tokenize} from "../../../../src/api/worker/search/Tokenizer"
 
 o.spec("Tokenizer test", () => {

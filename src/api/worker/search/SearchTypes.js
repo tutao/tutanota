@@ -2,7 +2,7 @@
 import type {DbFacade} from "./DbFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
-import {TypeRef} from "../../common/EntityFunctions"
+import {TypeRef} from "../../common/utils/EntityUtils";
 
 
 // db types

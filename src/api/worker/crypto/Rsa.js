@@ -13,22 +13,37 @@ import {random} from "./Randomizer"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode, Mode} from "../../Env"
 // $FlowIgnore[untyped-import]
-import JSBN from "./lib/crypto-jsbn-2012-08-09_1"
-import {rsaApp} from "../../../native/RsaApp" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
-const RSAKey = JSBN.RSAKey
-const parseBigInt = JSBN.parseBigInt
-const BigInteger: Class<BigIntegerType> = JSBN.BigInteger
-
-type BigIntegerType = {
-	toByteArray(): Uint8Array;
-	toString(radix: number): string;
-	bitLength(): number;
-}
+import {BigInteger, parseBigInt, RSAKey} from "./lib/crypto-jsbn-2012-08-09_1"
+import {LazyLoaded} from "../../common/utils/LazyLoaded"
 
 assertWorkerOrNode()
 
 const keyLengthInBits = 2048
 const publicExponent = 65537
+
+const jsRsaApp = {
+	generateRsaKey: () => Promise.resolve(generateRsaKeySync()),
+	rsaEncrypt: (publicKey, bytes, seed) => rsaEncryptSync(publicKey, bytes, seed),
+	rsaDecrypt: (privateKey, bytes) => rsaDecryptSync(privateKey, bytes),
+}
+
+/**
+ * This is a hack to avoid loading things we don't need and we should re-structure to avoid it
+ */
+const rsaApp = new LazyLoaded<typeof jsRsaApp>(() => {
+	if (env.mode === Mode.App) {
+		return import("../../../native/RsaApp").then((m) => {
+			const app = m.rsaApp
+			return {
+				generateRsaKey: () => app.generateRsaKey(random.generateRandomData(512)),
+				rsaEncrypt: app.rsaEncrypt,
+				rsaDecrypt: app.rsaDecrypt,
+			}
+		})
+	} else {
+		return Promise.resolve(jsRsaApp)
+	}
+})
 
 /**
  * Returns the newly generated key
@@ -36,14 +51,11 @@ const publicExponent = 65537
  * @return resolves to the the generated keypair
  */
 export function generateRsaKey(): Promise<RsaKeyPair> {
-	if (env.mode === Mode.App) {
-		return rsaApp.generateRsaKey(random.generateRandomData(512))
-	} else {
-		return Promise.resolve(generateRsaKeySync())
-	}
+	return rsaApp.getAsync().then((app) => app.generateRsaKey())
 }
 
 export function generateRsaKeySync(): RsaKeyPair {
+	// jsbn is seeded inside, see SecureRandom.js
 	try {
 		let rsa = new RSAKey()
 		rsa.generate(keyLengthInBits, publicExponent.toString(16)) // must be hex for JSBN
@@ -79,15 +91,7 @@ export function generateRsaKeySync(): RsaKeyPair {
  */
 export function rsaEncrypt(publicKey: PublicKey, bytes: Uint8Array): Promise<Uint8Array> {
 	let seed = random.generateRandomData(32)
-	if (env.mode === Mode.App) {
-		return rsaApp.rsaEncrypt(publicKey, bytes, seed)
-	} else {
-		try {
-			return Promise.resolve(rsaEncryptSync(publicKey, bytes, seed))
-		} catch (e) {
-			return Promise.reject(e)
-		}
-	}
+	return rsaApp.getAsync().then((app) => app.rsaEncrypt(publicKey, bytes, seed))
 }
 
 export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
@@ -122,15 +126,7 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
  * @return returns the decrypted bytes.
  */
 export function rsaDecrypt(privateKey: PrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
-	if (env.mode === Mode.App) {
-		return rsaApp.rsaDecrypt(privateKey, bytes)
-	} else {
-		try {
-			return Promise.resolve(rsaDecryptSync(privateKey, bytes))
-		} catch (e) {
-			return Promise.reject(e)
-		}
-	}
+	return rsaApp.getAsync().then((app) => app.rsaDecrypt(privateKey, bytes))
 }
 
 export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
@@ -232,11 +228,7 @@ export function verifySignature(publicKey: PublicKey, bytes: Uint8Array, signatu
 }
 
 
-// TODO remove the following functions
-function _uint8ArrayToByteArray(uint8Array) {
-	return [].slice.call(uint8Array)
-}
-
+// TODO remove the following function
 function _bytesToHex(bytes) {
 	return uint8ArrayToHex(new Uint8Array(bytes))
 }
@@ -527,6 +519,7 @@ export function i2osp(i: number): Uint8Array {
  * @returns The public key in a persistable array format
  * @private
  */
+//$FlowFixMe[value-as-type]
 function _publicKeyToArray(publicKey: PublicKey): BigInteger[] {
 	return [_base64ToBigInt(publicKey.modulus)]
 }
@@ -536,6 +529,7 @@ function _publicKeyToArray(publicKey: PublicKey): BigInteger[] {
  * @returns The private key in a persistable array format
  * @private
  */
+//$FlowFixMe[value-as-type]
 function _privateKeyToArray(privateKey: PrivateKey): BigInteger[] {
 	return [
 		_base64ToBigInt(privateKey.modulus),
@@ -548,6 +542,7 @@ function _privateKeyToArray(privateKey: PrivateKey): BigInteger[] {
 	]
 }
 
+//$FlowFixMe[value-as-type]
 function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	var self = this
 	return {
@@ -558,6 +553,7 @@ function _arrayToPublicKey(publicKey: BigInteger[]): PublicKey {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
 	return {
 		version: 0,
@@ -572,6 +568,7 @@ function _arrayToPrivateKey(privateKey: BigInteger[]): PrivateKey {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _base64ToBigInt(base64: Base64): BigInteger {
 	return parseBigInt(base64ToHex(base64), 16)
 }
@@ -589,7 +586,7 @@ function _hexLen(string: string): Hex {
 	return hexLen
 }
 
-
+//$FlowFixMe[value-as-type]
 export function _keyArrayToHex(key: BigInteger[]): Hex {
 	var hex = ""
 	for (var i = 0; i < key.length; i++) {
@@ -602,6 +599,7 @@ export function _keyArrayToHex(key: BigInteger[]): Hex {
 	return hex
 }
 
+//$FlowFixMe[value-as-type]
 function _hexToKeyArray(hex: Hex): BigInteger[] {
 	try {
 		var key = []
@@ -619,6 +617,7 @@ function _hexToKeyArray(hex: Hex): BigInteger[] {
 	}
 }
 
+//$FlowFixMe[value-as-type]
 function _validateKeyLength(key: BigInteger[]) {
 	if (key.length !== 1 && key.length !== 7) {
 		throw new Error("invalid key params")

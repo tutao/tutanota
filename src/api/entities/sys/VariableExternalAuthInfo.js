@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
@@ -14,90 +14,70 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 70,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 68,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 995,
-			"since": 17,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 69,
-			"since": 1,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"authUpdateCounter": {
-			"name": "authUpdateCounter",
 			"id": 76,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"lastSentTimestamp": {
-			"name": "lastSentTimestamp",
 			"id": 75,
-			"since": 1,
 			"type": "Date",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"loggedInIpAddressHash": {
-			"name": "loggedInIpAddressHash",
 			"id": 73,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"loggedInTimestamp": {
-			"name": "loggedInTimestamp",
 			"id": 72,
-			"since": 1,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"loggedInVerifier": {
-			"name": "loggedInVerifier",
 			"id": 71,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"sentCount": {
-			"name": "sentCount",
 			"id": 74,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

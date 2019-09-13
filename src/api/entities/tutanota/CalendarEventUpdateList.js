@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const CalendarEventUpdateListTypeRef: TypeRef<CalendarEventUpdateList> = new TypeRef("tutanota", "CalendarEventUpdateList")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1114,
-			"since": 42,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"list": {
-			"name": "list",
 			"id": 1115,
-			"since": 42,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "CalendarEventUpdate",
 			"final": true,
-			"external": false
+			"refType": "CalendarEventUpdate"
 		}
 	},
 	"app": "tutanota",

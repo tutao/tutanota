@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {NotificationMail} from "./NotificationMail"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 558,
-			"since": 11,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"messageId": {
-			"name": "messageId",
 			"id": 559,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"sentDate": {
-			"name": "sentDate",
 			"id": 560,
-			"since": 11,
 			"type": "Date",
 			"cardinality": "One",
 			"final": false,
@@ -44,23 +38,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"notifications": {
-			"name": "notifications",
 			"id": 561,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "NotificationMail",
-			"final": false
+			"final": false,
+			"refType": "NotificationMail"
 		},
 		"sentMail": {
-			"name": "sentMail",
 			"id": 562,
-			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Mail",
 			"final": true,
-			"external": false
+			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",

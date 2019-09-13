@@ -7,7 +7,7 @@ import path from 'path'
 import os from 'os'
 import type {IPC} from "./IPC"
 import type {WindowManager} from "./DesktopWindowManager.js"
-import {log} from "./DesktopUtils"
+import {log} from "./DesktopLog";
 
 type ErrorLog = {|
 	name: string,
@@ -17,7 +17,7 @@ type ErrorLog = {|
 	version: string
 |}
 
-class DesktopErrorHandler {
+export class DesktopErrorHandler {
 	_wm: WindowManager
 	_ipc: IPC
 	_errorLogPath: string;

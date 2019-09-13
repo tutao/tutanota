@@ -3,11 +3,9 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
-import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
-import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {Dialog} from "../gui/base/Dialog"
+import {HttpMethod} from "../api/common/EntityFunctions"
+import {NotFoundError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import type {MailBox} from "../api/entities/tutanota/MailBox"
@@ -36,6 +34,8 @@ import type {PublicKeyReturn} from "../api/entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {groupBy, splitInChunks} from "../api/common/utils/ArrayUtils"
+import {EntityClient} from "../api/common/EntityClient"
+import {elementIdPart, getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -60,15 +60,17 @@ export class MailModel {
 	_initialization: ?Promise<void>
 	_notifications: Notifications
 	_eventController: EventController
-	_worker: WorkerClient
+	_worker: WorkerClient;
+	_entityClient: EntityClient;
 
-	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient) {
+	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, entityClient: EntityClient) {
 		this.mailboxDetails = stream()
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
 		this._eventController = eventController
 		this._worker = worker
+		this._entityClient = entityClient
 	}
 
 	init(): Promise<void> {
@@ -87,11 +89,11 @@ export class MailModel {
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
 		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
 				return Promise.all([
-					load(MailboxGroupRootTypeRef, mailGroupMembership.group),
-					load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
-					load(GroupTypeRef, mailGroupMembership.group)
+					this._entityClient.load(MailboxGroupRootTypeRef, mailGroupMembership.group),
+					this._entityClient.load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
+					this._entityClient.load(GroupTypeRef, mailGroupMembership.group)
 				]).spread((mailboxGroupRoot, mailGroupInfo, mailGroup) => {
-					return load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then((mailbox) => {
+					return this._entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then((mailbox) => {
 						return this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
 						           .then((folders) => {
 							           return {
@@ -112,7 +114,7 @@ export class MailModel {
 	}
 
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
-		return loadAll(MailFolderTypeRef, folderListId).then(folders => {
+		return this._entityClient.loadAll(MailFolderTypeRef, folderListId).then(folders => {
 			if (loadSubFolders) {
 				return Promise.map(folders, folder => this._loadFolders(folder.subFolders, false)).then(subfolders => {
 					return folders.concat(...subfolders)
@@ -192,14 +194,14 @@ export class MailModel {
 			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveMailData.mails)
 			return Promise.each(mailChunks, mailChunk => {
 				moveMailData.mails = mailChunk
-				return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
-			}).catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
-			              .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+				return this._worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+			})
+			              .return()
 		}
 		return Promise.resolve()
 	}
 
-	moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+	moveMails(mails: $ReadOnlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
@@ -219,7 +221,7 @@ export class MailModel {
 	 * otherwise moves them to the trash folder.
 	 * A deletion confirmation must have been show before.
 	 */
-	deleteMails(mails: Mail[]): Promise<void> {
+	deleteMails(mails: $ReadOnlyArray<Mail>): Promise<void> {
 		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
@@ -250,9 +252,8 @@ export class MailModel {
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
 		return Promise.each(mailChunks, mailChunk => {
 			deleteMailData.mails = mailChunk
-			return serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
-		}).catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
-
+			return this._worker.serviceRequest(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+		}).return()
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
@@ -265,7 +266,7 @@ export class MailModel {
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
-					return load(UserTypeRef, update.instanceId).then(updatedUser => {
+					return this._entityClient.load(UserTypeRef, update.instanceId).then(updatedUser => {
 						let newMemberships = updatedUser.memberships
 						                                .filter(membership => membership.groupType === GroupType.Mail)
 						return this.getMailboxDetails().then(mailboxDetails => {
@@ -282,14 +283,15 @@ export class MailModel {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation,
 					// otherwise it's a move
 					const mailId = [update.instanceListId, update.instanceId]
-					return load(MailTypeRef, mailId)
-						.then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
-						                    .then(mailboxDetail => {
-							                    // We only apply rules on server if we are the leader in case of incoming messages
-							                    return findAndApplyMatchingRule(mailboxDetail, mail, this._worker.isLeader())
-						                    })
-						                    .then((newId) => this._showNotification(newId || mailId)))
-						.catch(noOp)
+					return this._entityClient.load(MailTypeRef, mailId)
+					           .then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
+					                               .then(mailboxDetail => {
+						                               // We only apply rules on server if we are the leader in case of incoming messages
+						                               return findAndApplyMatchingRule(this._worker, this._entityClient, mailboxDetail, mail,
+							                               this._worker.isLeader())
+					                               })
+					                               .then((newId) => this._showNotification(newId || mailId)))
+					           .catch(noOp)
 				}
 			}
 		}).return()
@@ -341,4 +343,3 @@ export class MailModel {
 		).catch(NotFoundError, () => null)
 	}
 }
-

@@ -1,6 +1,6 @@
 // @flow
 
-import o from "ospec/ospec.js"
+import o from "ospec"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import type {IUserController} from "../../../src/api/main/UserController"
@@ -35,7 +35,6 @@ import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {UserError} from "../../../src/api/common/error/UserError"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
-import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {locator} from "../../../src/api/main/MainLocator"
@@ -45,6 +44,7 @@ import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
+import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/utils/EntityUtils";
 
 
 type TestIdGenerator = {
@@ -111,6 +111,19 @@ class ContactModelMock implements ContactModel {
 	searchForContact(mailAddress: string): Promise<?Contact> {
 		const contact = this.contacts.find(contact => contact.mailAddresses.includes(mailAddress))
 		return Promise.resolve(contact)
+	}
+
+	contactListId(): Promise<Id> {
+		return Promise.resolve("contactListId")
+	}
+
+
+	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+		throw new Error("stub!")
+	}
+
+	searchForContactByMailAddress(mailAddress: string): Promise<?Contact> {
+		throw new Error("stub!")
 	}
 }
 

@@ -1,206 +1,232 @@
 // @flow
-import fs from "fs-extra"
-import {app, dialog} from "electron"
 import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
-import {execFile} from "child_process"
 import type {WindowManager} from "../DesktopWindowManager"
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
 
-const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
-const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
+type Electron = $Exports<"electron">
+type Fs = $Exports<"fs">
+type ChildProcess = $Exports<"child_process">
 
-const executablePath = process.execPath
-const packagePath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
-const autoLaunchPath = path.join(CONFIG_HOME, `autostart/${app.name}.desktop`)
-const desktopFilePath = path.join(DATA_HOME, `applications/${app.name}.desktop`)
-const iconTargetDir64 = path.join(DATA_HOME, `icons/hicolor/64x64/apps/`)
-const iconTargetDir512 = path.join(DATA_HOME, `icons/hicolor/512x512/apps/`)
-const iconTargetPath64 = path.join(iconTargetDir64, `${app.name}.png`)
-const iconTargetPath512 = path.join(iconTargetDir512, `${app.name}.png`)
-const iconSourcePath64 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red-small.png`)
-const iconSourcePath512 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red.png`)
-const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integration')
+export class DesktopIntegratorLinux {
+	_electron: Electron;
+	_fs: Fs;
+	_childProcess: ChildProcess
 
-fs.access(iconSourcePath512, fs.constants.F_OK)
-  .catch(() => log.error("icon logo-solo-red.png not found, has the file name changed?"))
+	DATA_HOME: string
+	CONFIG_HOME: string
+
+	executablePath: string
+	packagePath: string
+	autoLaunchPath: string
+	desktopFilePath: string
+	iconTargetDir64: string
+	iconTargetDir512: string
+	iconTargetPath64: string
+	iconTargetPath512: string
+	iconSourcePath64: string
+	iconSourcePath512: string
+	nointegrationpath: string
+
+	constructor(electron: Electron, fs: Fs, childProcess: ChildProcess) {
+		this._electron = electron
+		this._fs = fs
+		this._childProcess = childProcess
+		const {app} = electron
+
+		this.DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
+		this.CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
+
+		this.executablePath = process.execPath
+		this.packagePath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
+		this.autoLaunchPath = path.join(this.CONFIG_HOME, `autostart/${app.name}.desktop`)
+		this.desktopFilePath = path.join(this.DATA_HOME, `applications/${app.name}.desktop`)
+		this.iconTargetDir64 = path.join(this.DATA_HOME, `icons/hicolor/64x64/apps/`)
+		this.iconTargetDir512 = path.join(this.DATA_HOME, `icons/hicolor/512x512/apps/`)
+		this.iconTargetPath64 = path.join(this.iconTargetDir64, `${app.name}.png`)
+		this.iconTargetPath512 = path.join(this.iconTargetDir512, `${app.name}.png`)
+		this.iconSourcePath64 = path.join(path.dirname(this.executablePath), `resources/icons/logo-solo-red-small.png`)
+		this.iconSourcePath512 = path.join(path.dirname(this.executablePath), `resources/icons/logo-solo-red.png`)
+		this.nointegrationpath = path.join(this.CONFIG_HOME, 'tuta_integration/no_integration')
+	}
+
+	isAutoLaunchEnabled(): Promise<boolean> {
+		return this.checkFileIsThere(this.autoLaunchPath)
+	}
+
+	isIntegrated(): Promise<boolean> {
+		return this.checkFileIsThere(this.desktopFilePath)
+	}
+
+	checkFileIsThere(pathToCheck: string): Promise<boolean> {
+		return this._fs.promises.access(
+			pathToCheck,
+			this._fs.constants.F_OK | this._fs.constants.W_OK | this._fs.constants.R_OK
+		).then(() => true).catch(() => false)
+	}
+
+	enableAutoLaunch(): Promise<void> {
+		return this.isAutoLaunchEnabled().then(enabled => {
+			if (enabled) return
+			const autoLaunchDesktopEntry = `[Desktop Entry]
+	Type=Application
+	Version=${this._electron.app.getVersion()}
+	Name=${this._electron.app.name}
+	Comment=${this._electron.app.name} startup script
+	Exec=${this.packagePath} -a
+	StartupNotify=false
+	Terminal=false`
+			this._fs.mkdirSync(path.dirname(this.autoLaunchPath), {recursive: true})
+			this._fs.writeFileSync(this.autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
+		})
+	}
+
+	disableAutoLaunch(): Promise<void> {
+		return this.isAutoLaunchEnabled()
+		           .then(enabled => enabled ? this._fs.unlink(this.autoLaunchPath) : Promise.resolve())
+		           .catch(e => {
+			           // don't throw if file not found
+			           if (e.code !== 'ENOENT') throw e
+		           })
+	}
+
+	runIntegration(wm: WindowManager): Promise<void> {
+		if (this.executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
+		return this.isIntegrated().then(integrated => {
+			if (integrated) {
+				log.debug(`desktop file exists, checking version...`)
+				const desktopEntryVersion = this.getDesktopEntryVersion()
+				if (desktopEntryVersion !== this._electron.app.getVersion()) {
+					log.debug("version mismatch, reintegrating...")
+					return this.integrate()
+				}
+			} else {
+				log.debug(`${this.desktopFilePath} does not exist, checking for permission to ask for permission...`)
+				this.checkFileIsThere(this.nointegrationpath).then(isThere => {
+					if (isThere) {
+						const forbiddenPaths = this._fs.readFileSync(this.nointegrationpath, {encoding: 'utf8', flag: 'r'})
+						                         .trim()
+						                         .split('\n')
+						if (!forbiddenPaths.includes(this.packagePath)) {
+							return this.askPermission()
+						}
+					} else {
+						return this.askPermission()
+					}
+				})
+			}
+		})
+	}
+
+	/**
+	 * returns the version number from the desktop file
+	 * @returns {*}
+	 */
+	getDesktopEntryVersion(): string {
+		const versionLine = this._fs
+		                        .readFileSync(this.desktopFilePath, 'utf8')
+		                        .split('\n')
+		                        .find(s => s.includes("X-Tutanota-Version")) || "=0.0.0"
+		return versionLine.split("=")[1]
+	}
+
+	integrate(): Promise<void> {
+		const prefix = this._electron.app.name.includes("test") ? "test " : ""
+		return this.copyIcons().then(
+			() => this.createDesktopEntry(prefix)
+		).then(() => {
+			if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
+			try {
+				this._childProcess.execFile('update-desktop-database', [path.join(this._electron.app.getPath('home'), ".local/share/applications")], logExecFile)
+			} catch (e) {
+			}
+		})
+	}
+
+	unintegrate(): Promise<void> {
+		return Promise.all([
+			this._fs.unlink(this.iconTargetPath64),
+			this._fs.unlink(this.iconTargetPath512)
+		]).catch(e => {
+			if (!e.message.startsWith('ENOENT')) {
+				throw e
+			}
+		}).then(
+			() => this._fs.unlink(this.desktopFilePath)
+		).catch(e => {
+			if (!e.message.startsWith('ENOENT')) {
+				throw e
+			}
+		})
+	}
+
+	createDesktopEntry(prefix: string): Promise<void> {
+		const desktopEntry = `[Desktop Entry]
+Name=${prefix}Tutanota Desktop
+Comment=The desktop client for Tutanota, the secure e-mail service.
+Exec="${this.packagePath}" %U
+Terminal=false
+Type=Application
+Icon=${this._electron.app.name}.png
+StartupWMClass=${this._electron.app.name}
+MimeType=x-scheme-handler/mailto;
+Categories=Network;
+X-Tutanota-Version=${this._electron.app.getVersion()}
+TryExec=${this.packagePath}`
+		return this._fs.promises.mkdir(path.dirname(this.desktopFilePath), {recursive: true})
+		         .then(() => this._fs.promises.writeFile(this.desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
+	}
+
+	copyIcons(): Promise<void> {
+		return Promise.all([
+			this._fs.promises.mkdir(this.iconTargetDir64, {recursive: true}),
+			this._fs.promises.mkdir(this.iconTargetDir512, {recursive: true})
+		]).then(() => {
+			return Promise.all([
+				this._fs.promises.copyFile(this.iconSourcePath64, this.iconTargetPath64),
+				this._fs.promises.copyFile(this.iconSourcePath512, this.iconTargetPath512)
+			])
+		}).then(() => {
+			try {// refresh icon cache (update last modified timestamp)
+				this._childProcess.execFile('touch', [path.join(this._electron.app.getPath('home'), ".local/share/icons/hicolor")], logExecFile)
+			} catch (e) {
+				// it's ok if this fails for some reason, the icons will appear after a reboot at the latest
+			}
+		})
+	}
+
+	/**
+	 * asks the user for permission to integrate.
+	 * also gives the option to opt-out indefinitely, which
+	 * records the current path to the appImage in
+	 * ~/.config/tuta_integration/no_integration
+	 */
+	askPermission(): Promise<void> {
+		return this._electron.dialog.showMessageBox(null, {
+			title: lang.get('desktopIntegration_label'),
+			buttons: [lang.get('no_label'), lang.get('yes_label')],
+			defaultId: 1,
+			message: lang.get('desktopIntegration_msg'),
+			checkboxLabel: lang.get("doNotAskAgain_label"),
+			checkboxChecked: false,
+			type: 'question'
+		}).then(({response, checkboxChecked}) => {
+			let p: Promise<void> = Promise.resolve()
+			if (checkboxChecked) {
+				log.debug("updating no_integration blacklist...")
+				p.then(() => this._fs.promises.mkdir(path.dirname(this.nointegrationpath), {recursive: true}))
+				 .then(() => this._fs.promises.writeFile(this.nointegrationpath, this.packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
+			}
+			if (response === 1) { // clicked yes
+				return p.then(() => this.integrate())
+			}
+			return p;
+		})
+	}
+}
 
 function logExecFile(err, stdout, stderr) {
 	if (stdout && stdout !== "") log.debug("stdout:", stdout)
 	if (err) log.error(err)
 	if (stderr && stderr !== "") log.error("stderr:", stderr)
-}
-
-export function isAutoLaunchEnabled(): Promise<boolean> {
-	return checkFileIsThere(autoLaunchPath)
-}
-
-export function isIntegrated(): Promise<boolean> {
-	return checkFileIsThere(desktopFilePath)
-}
-
-function checkFileIsThere(pathToCheck: string): Promise<boolean> {
-	return fs.access(
-		pathToCheck,
-		fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK
-	).then(() => true).catch(() => false)
-}
-
-export function enableAutoLaunch(): Promise<void> {
-	return isAutoLaunchEnabled().then(enabled => {
-		if (enabled) return
-		const autoLaunchDesktopEntry = `[Desktop Entry]
-	Type=Application
-	Version=${app.getVersion()}
-	Name=${app.name}
-	Comment=${app.name} startup script
-	Exec=${packagePath} -a
-	StartupNotify=false
-	Terminal=false`
-		fs.ensureDirSync(path.dirname(autoLaunchPath))
-		fs.writeFileSync(autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
-	})
-}
-
-export function disableAutoLaunch(): Promise<void> {
-	return isAutoLaunchEnabled()
-		.then(enabled => enabled ? fs.unlink(autoLaunchPath) : Promise.resolve())
-		.catch(e => {
-			// don't throw if file not found
-			if (e.code !== 'ENOENT') throw e
-		})
-}
-
-export function runIntegration(wm: WindowManager): Promise<void> {
-	if (executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
-	return isIntegrated().then(integrated => {
-		if (integrated) {
-			log.debug(`desktop file exists, checking version...`)
-			const desktopEntryVersion = getDesktopEntryVersion()
-			if (desktopEntryVersion !== app.getVersion()) {
-				log.debug("version mismatch, reintegrating...")
-				return integrate()
-			}
-		} else {
-			log.debug(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
-			checkFileIsThere(nointegrationpath).then(isThere => {
-				if (isThere) {
-					const forbiddenPaths = fs.readFileSync(nointegrationpath, {encoding: 'utf8', flag: 'r'})
-					                         .trim()
-					                         .split('\n')
-					if (!forbiddenPaths.includes(packagePath)) {
-						return askPermission()
-					}
-				} else {
-					return askPermission()
-				}
-			})
-		}
-	})
-}
-
-/**
- * returns the version number from the desktop file
- * @returns {*}
- */
-function getDesktopEntryVersion(): string {
-	const versionLine = fs
-		.readFileSync(desktopFilePath, 'utf8')
-		.split('\n')
-		.find(s => s.includes("X-Tutanota-Version")) || "=0.0.0"
-	return versionLine.split("=")[1]
-}
-
-export function integrate(): Promise<void> {
-	const prefix = app.name.includes("test") ? "test " : ""
-	return copyIcons().then(
-		() => createDesktopEntry(prefix)
-	).then(() => {
-		if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
-		try {
-			execFile('update-desktop-database', [path.join(app.getPath('home'), ".local/share/applications")], logExecFile)
-		} catch (e) {
-		}
-	})
-}
-
-export function unintegrate(): Promise<void> {
-	return Promise.all([
-		fs.unlink(iconTargetPath64),
-		fs.unlink(iconTargetPath512)
-	]).catch(e => {
-		if (!e.message.startsWith('ENOENT')) {
-			throw e
-		}
-	}).then(
-		() => fs.unlink(desktopFilePath)
-	).catch(e => {
-		if (!e.message.startsWith('ENOENT')) {
-			throw e
-		}
-	})
-}
-
-function createDesktopEntry(prefix: string): Promise<void> {
-	const desktopEntry = `[Desktop Entry]
-Name=${prefix}Tutanota Desktop
-Comment=The desktop client for Tutanota, the secure e-mail service.
-Exec="${packagePath}" %U
-Terminal=false
-Type=Application
-Icon=${app.name}.png
-StartupWMClass=${app.name}
-MimeType=x-scheme-handler/mailto;
-Categories=Network;
-X-Tutanota-Version=${app.getVersion()}
-TryExec=${packagePath}`
-	return fs.ensureDir(path.dirname(desktopFilePath))
-	         .then(() => fs.writeFile(desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
-}
-
-function copyIcons(): Promise<void> {
-	return Promise.all([
-		fs.mkdir(iconTargetDir64, {recursive: true}),
-		fs.mkdir(iconTargetDir512, {recursive: true})
-	]).then(() => {
-		return Promise.all([
-			fs.copyFile(iconSourcePath64, iconTargetPath64),
-			fs.copyFile(iconSourcePath512, iconTargetPath512)
-		])
-	}).then(() => {
-		try {// refresh icon cache (update last modified timestamp)
-			execFile('touch', [path.join(app.getPath('home'), ".local/share/icons/hicolor")], logExecFile)
-		} catch (e) {
-			// it's ok if this fails for some reason, the icons will appear after a reboot at the latest
-		}
-	})
-}
-
-/**
- * asks the user for permission to integrate.
- * also gives the option to opt-out indefinitely, which
- * records the current path to the appImage in
- * ~/.config/tuta_integration/no_integration
- */
-function askPermission(): Promise<void> {
-	return dialog.showMessageBox(null, {
-		title: lang.get('desktopIntegration_label'),
-		buttons: [lang.get('no_label'), lang.get('yes_label')],
-		defaultId: 1,
-		message: lang.get('desktopIntegration_msg'),
-		checkboxLabel: lang.get("doNotAskAgain_label"),
-		checkboxChecked: false,
-		type: 'question'
-	}).then(({response, checkboxChecked}) => {
-		let p: Promise<void> = Promise.resolve()
-		if (checkboxChecked) {
-			log.debug("updating no_integration blacklist...")
-			p.then(() => fs.ensureDir(path.dirname(nointegrationpath)))
-			 .then(() => fs.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
-		}
-		if (response === 1) { // clicked yes
-			return p.then(() => integrate())
-		}
-		return p;
-	})
 }

@@ -1,5 +1,5 @@
 //@flow
-import {assertNotNull, asyncImport, defer} from "../common/utils/Utils"
+import {assertNotNull, defer} from "../common/utils/Utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 import type {IUserController, UserControllerInitData} from "./UserController"
@@ -51,8 +51,8 @@ export class LoginControllerImpl implements LoginController {
 	waitForLogin: {resolve: Function, reject: Function, promise: Promise<void>} = defer()
 
 	_getWorker(): Promise<WorkerClient> {
-		return asyncImport(importBase,
-			`${env.rootPathPrefix}src/api/main/WorkerClient.js`).then((workerModule) => workerModule.worker)
+		return import("./MainLocator")
+			.then(locatorModule => locatorModule.locator.initializedWorker)
 	}
 
 	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean): Promise<Credentials> {
@@ -72,7 +72,7 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	_initUserController(initData: UserControllerInitData): Promise<void> {
-		return asyncImport(importBase, `${env.rootPathPrefix}src/api/main/UserController.js`)
+		return import("./UserController")
 			.then((userControllerModule) => userControllerModule.initUserController(initData))
 			.then((userController) => this.setUserController(userController))
 	}

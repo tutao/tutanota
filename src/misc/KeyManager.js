@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/Env"
 import {ButtonType} from "../gui/base/ButtonN"
-import {asyncImport, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
@@ -19,7 +19,7 @@ assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
 export type KeyPress = {keyCode: number, key: string, ctrl: boolean, shift: boolean};
-type Key = {code: number, name: string};
+export type Key = {code: number, name: string};
 
 /**
  * @return false, if the default action should be aborted
@@ -39,7 +39,7 @@ export interface Shortcut {
 }
 
 export function focusPrevious(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none' && e.tabIndex !==-1) // also filter for tabIndex here to restrict tabbing to invisible inputs
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none' && e.tabIndex !== -1) // also filter for tabIndex here to restrict tabbing to invisible inputs
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -144,8 +144,7 @@ class KeyManager {
 	}
 
 	openF1Help() {
-		asyncImport(typeof module
-		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
+		import("../gui/base/Dialog.js")
 			.then(module => {
 				if (this._helpDialog && this._helpDialog.visible) {
 					return

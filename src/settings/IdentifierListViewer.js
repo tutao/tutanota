@@ -11,7 +11,6 @@ import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {getCleanedMailAddress} from "../misc/Formatter"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
@@ -28,6 +27,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 import type {EntityUpdateData} from "../api/main/EventController"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 type IdentifierRowAttrs = {|
 	name: string,

@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
@@ -34,6 +34,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {locator} from "../api/main/MainLocator"
+import {createDropDownButton} from "../gui/base/Dropdown";
 
 assertMainOrNode()
 

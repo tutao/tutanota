@@ -4,7 +4,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
-import {getCurrentCount} from "./PriceUtils"
+import {formatPrice, getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
@@ -18,10 +18,11 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import * as BuyDialog from "./BuyDialog"
-import {asyncImport} from "../api/common/utils/Utils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ButtonType} from "../gui/base/ButtonN"
+import {isIOSApp} from "../api/Env"
+import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 
 
 export type SubscriptionOptions = {
@@ -54,21 +55,6 @@ export const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{name: lang.get("pricing.privateUse_label"), value: false},
 	{name: lang.get("pricing.businessUse_label"), value: true}
 ]
-
-// keep this function here because we also need it on the website
-export function formatPrice(value: number, includeCurrency: boolean): string {
-	// round to two digits first because small deviations may exist at far away decimal places
-	value = Math.round(value * 100) / 100
-	if (includeCurrency) {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithCurrency.format(value)
-			: lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
-	} else {
-		return (value % 1 !== 0) ?
-			lang.formats.priceWithoutCurrency.format(value)
-			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
-	}
-}
 
 export type SubscriptionData = {
 	options: SubscriptionOptions,
@@ -110,10 +96,6 @@ export function getUpgradePrice(attrs: SubscriptionData, subscription: Subscript
 		monthlyPriceString = prices.contactFormPriceMonthly
 	}
 	return Number(monthlyPriceString) * monthsFactor - discount
-}
-
-export function getFormattedUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
-	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
 }
 
 /**
@@ -278,8 +260,7 @@ export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum
 
 
 export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
-	asyncImport(typeof module !== "undefined"
-		? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
+	import("./terms.js")
 		.then(terms => {
 			let dialog: Dialog
 			let visibleLang = lang.code.startsWith("de") ? "de" : "en"
@@ -321,3 +302,17 @@ function getBookingItemErrorMsg(feature: BookingItemFeatureTypeEnum): Translatio
 	}
 }
 
+export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
+	if (isIOSApp()) {
+		Dialog.error("notAvailableInApp_msg")
+	} else {
+		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
+			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
+		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
+		      .then(confirmed => {
+			      if (confirmed) {
+				      showUpgradeWizard()
+			      }
+		      })
+	}
+}

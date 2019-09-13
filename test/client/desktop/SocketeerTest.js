@@ -1,26 +1,10 @@
 // @flow
 import n from "../nodemocker"
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {makeTimeoutMock} from "../../api/TestUtils"
+import {Socketeer} from "../../../src/desktop/Socketeer"
 
-o.spec("Socketeer Test", (done, timeout) => {
-	n.startGroup({
-		group: __filename, allowables: [
-			'../api/common/utils/Utils',
-			'../TutanotaConstants',
-			'./utils/Utils',
-			'../EntityFunctions',
-			'./utils/Encoding',
-			'../error/CryptoError',
-			'./TutanotaError',
-			'./StringUtils',
-			'./EntityConstants',
-			'./utils/Utils',
-			'./utils/ArrayUtils',
-			'./Utils',
-			'./MapUtils',
-		], timeout: 2000
-	})
+o.spec("Socketeer Test", function () {
 
 	const electron = {
 		app: {
@@ -41,15 +25,15 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 	let serverMock
 	let connectionMock
-	const net = {
-		createServer: connectionHandler => {
-			serverMock.connectionHandler = connectionHandler
-			return serverMock
-		},
-		createConnection: () => connectionMock
-	}
 
 	const standardMocks = () => {
+		const net = {
+			createServer: connectionHandler => {
+				serverMock.connectionHandler = connectionHandler
+				return serverMock
+			},
+			createConnection: () => connectionMock
+		}
 		serverMock = n.mock("__server", {
 			connectionHandler: (connection: any) => {
 			},
@@ -81,10 +65,9 @@ o.spec("Socketeer Test", (done, timeout) => {
 		}
 	}
 
-	o("startServer & cleanup", () => {
+	o("startServer & cleanup", function () {
 		const {electronMock, netMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+		const sock = new Socketeer(netMock, electronMock.app)
 
 		o(electronMock.app.on.callCount).equals(1)
 		o(electronMock.app.on.args[0]).equals("will-quit")
@@ -129,10 +112,10 @@ o.spec("Socketeer Test", (done, timeout) => {
 		o(serverMock.close.args.length).equals(0)
 	})
 
-	o("startClient & cleanup", () => {
+	o("startClient & cleanup", function () {
 		const {electronMock, netMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+
+		const sock = new Socketeer(netMock, electronMock.app)
 
 		const ondata = o.spy(data => {
 		})
@@ -169,8 +152,8 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 	o("reconnect on end", async function () {
 		const {electronMock, netMock, timeoutMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer(timeoutMock)
+
+		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
@@ -193,8 +176,8 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 	o("reconnect on close with error", async function () {
 		const {electronMock, netMock, timeoutMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer(timeoutMock)
+
+		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
@@ -216,8 +199,8 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 	o("don't reconnect on close without error", async function () {
 		const {electronMock, netMock, timeoutMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer(timeoutMock)
+
+		const sock = new Socketeer(netMock, electronMock.app, timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
@@ -236,10 +219,10 @@ o.spec("Socketeer Test", (done, timeout) => {
 		o(netMock.createConnection.callCount).equals(1)
 	})
 
-	o("sendSocketMessage calls write", () => {
+	o("sendSocketMessage calls write", function () {
 		const {electronMock, netMock} = standardMocks()
-		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+
+		const sock = new Socketeer(netMock, electronMock.app)
 		const ondata = o.spy(data => {
 		})
 

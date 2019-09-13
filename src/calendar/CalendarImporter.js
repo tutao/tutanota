@@ -1,88 +1,22 @@
 //@flow
-
 import type {AlarmIntervalEnum, CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
-import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from "../api/common/TutanotaConstants"
-import {fileController} from "../file/FileController"
+import {AlarmInterval, EndType, SECOND_MS} from "../api/common/TutanotaConstants"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
-import {generateEventElementId, getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {worker} from "../api/main/WorkerClient"
-import {assignEventId, CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {loadAll, loadMultiple} from "../api/main/Entity"
+import {calendarAttendeeStatusToParstat, iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
+import {getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {pad} from "../api/common/utils/StringUtils"
 import {assertNotNull, downcast, neverNull} from "../api/common/utils/Utils"
-import {elementIdPart, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import type {UserAlarmInfo} from "../api/entities/sys/UserAlarmInfo"
-import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
-import stream from "mithril/stream/stream.js"
 import {ParserError} from "../misc/parsing"
-import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import {flat} from "../api/common/utils/ArrayUtils"
 import {DateTime} from "luxon"
-import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
-import {ProgressMonitor} from "../api/common/utils/ProgressMonitor"
-
-export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
-	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
-	              .then((dataFiles) => {
-		              const parsedEvents = dataFiles.map((file) => parseCalendarFile(file).contents)
-
-		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
-		              const progress = stream(0)
-		              const progressMonitor = new ProgressMonitor(totalCount, progress)
-		              const zone = getTimeZone()
-
-		              const importPromise =
-			              loadAllEvents(calendarGroupRoot)
-				              .then((events) => {
-					              const uidToEvent = new Map()
-					              events.forEach((event) => {
-						              event.uid && uidToEvent.set(event.uid, event)
-					              })
-					              return Promise.each(parsedEvents, (events: Iterable<{event: CalendarEvent, alarms: Array<AlarmInfo>}>) => {
-						              return Promise.each(events, ({event, alarms}) => {
-							              // Don't try to create event which we already have
-							              if (event.uid && uidToEvent.has(event.uid)) {
-								              return
-							              }
-							              event.uid && uidToEvent.set(event.uid, event)
-
-							              const repeatRule = event.repeatRule
-							              assignEventId(event, zone, calendarGroupRoot)
-							              event._ownerGroup = calendarGroupRoot._id
-
-							              if (repeatRule && repeatRule.timeZone === "") {
-								              repeatRule.timeZone = getTimeZone()
-							              }
-
-							              for (let alarmInfo of alarms) {
-								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-							              }
-							              assignEventId(event, zone, calendarGroupRoot)
-							              return worker.createCalendarEvent(event, alarms, null)
-							                           .then(() => progressMonitor.workDone(1))
-							                           .delay(100)
-						              })
-					              })
-
-				              })
-		              return showProgressDialog("importCalendar_label", importPromise.then(() => progress(100)), progress)
-	              })
-	              .catch(ParserError, (e) => {
-		              console.log("Failed to parse file", e)
-		              Dialog.error(() => lang.get("importReadFileError_msg", {"{filename}": e.filename}))
-	              })
-
-}
 
 export type ParsedCalendarData = {method: string, contents: Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}>}
 
@@ -97,57 +31,11 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 			throw e
 		}
 	}
-
 }
 
 export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree, zone)
-}
-
-export function exportCalendar(
-	calendarName: string,
-	groupRoot: CalendarGroupRoot,
-	userAlarmInfos: Id,
-	now: Date,
-	zone: string
-) {
-	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
-		.then((allEvents) => {
-			return Promise.map(allEvents, event => {
-				const thisUserAlarms = event.alarmInfos.filter(alarmInfoId => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
-				if (thisUserAlarms.length > 0) {
-					return loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
-						.then(alarms => ({event, alarms}))
-				} else {
-					return {event, alarms: []}
-				}
-			})
-		})
-		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)))
-}
-
-function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
-	return loadAll(CalendarEventTypeRef, groupRoot.longEvents)
-		.then((longEvents) =>
-			loadAll(CalendarEventTypeRef, groupRoot.shortEvents).then((shortEvents) => {
-				return shortEvents.concat(longEvents)
-			}))
-}
-
-function exportCalendarEvents(
-	calendarName: string,
-	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
-	now: Date,
-	zone: string,
-) {
-	const stringValue = serializeCalendar(env.versionNumber, events, now, zone)
-	const data = stringToUtf8Uint8Array(stringValue)
-	const tmpFile = createFile()
-	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
-	tmpFile.mimeType = CALENDAR_MIME_TYPE
-	tmpFile.size = String(data.byteLength)
-	return fileController.open(createDataFile(tmpFile, data))
 }
 
 export function makeInvitationCalendar(versionNumber: string, event: CalendarEvent, method: string, now: Date, zone: string): string {
@@ -315,7 +203,8 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 	}
 	const attendeesProperties = attendees.map(({address, status}) => {
 		const namePart = address.name ? `;CN=${address.name}` : ""
-		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${calendarAttendeeStatusToParstat[status]}`
+		const partstat = calendarAttendeeStatusToParstat[downcast<CalendarAttendeeStatusEnum>(status)]
+		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${partstat}`
 			+ `;RSVP=TRUE${namePart};EMAIL=${address.address}:mailto:${address.address}`
 	})
 	return lines.concat(attendeesProperties)
@@ -346,12 +235,3 @@ export function formatDate(date: Date, timeZone: string): string {
 	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }
 
-const calendarAttendeeStatusToParstat = {
-	// WE map ADDED to NEEDS-ACTION for sending out invites
-	[CalendarAttendeeStatus.ADDED]: "NEEDS-ACTION",
-	[CalendarAttendeeStatus.NEEDS_ACTION]: "NEEDS-ACTION",
-	[CalendarAttendeeStatus.ACCEPTED]: "ACCEPTED",
-	[CalendarAttendeeStatus.DECLINED]: "DECLINED",
-	[CalendarAttendeeStatus.TENTATIVE]: "TENTATIVE",
-}
-export const parstatToCalendarAttendeeStatus: {[string]: CalendarAttendeeStatusEnum} = reverse(calendarAttendeeStatusToParstat)

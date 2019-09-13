@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
 import {ContactIndexer} from "../../../../src/api/worker/search/ContactIndexer"
 import {createContactAddress} from "../../../../src/api/entities/tutanota/ContactAddress"
@@ -13,11 +13,11 @@ import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstan
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {isSameId} from "../../../../src/api/common/EntityFunctions"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {makeCore} from "../../TestUtils"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 
 
 const dbMock: any = {iv: fixedIv}
@@ -94,20 +94,20 @@ o.spec("ContactIndexer test", () => {
 		o(args[0]).equals(ContactModel)
 		o(args[1]).equals(c)
 		let attributes = attributeHandlers.map(h => {
-			return {attribute: h.attribute.name, value: h.value()}
+			return {attribute: h.attribute.id, value: h.value()}
 		})
 		o(attributes).deepEquals([
-			{attribute: "firstName", value: "FN"},
-			{attribute: "lastName", value: "LN"},
-			{attribute: "nickname", value: "NN"},
-			{attribute: "role", value: "R"},
-			{attribute: "title", value: "T"},
-			{attribute: "comment", value: "C"},
-			{attribute: "company", value: "co"},
-			{attribute: "addresses", value: "A0,A1"},
-			{attribute: "mailAddresses", value: "MA0,MA1"},
-			{attribute: "phoneNumbers", value: "PN0,PN1"},
-			{attribute: "socialIds", value: ""},
+			{attribute: ContactModel.values["firstName"].id, value: "FN"},
+			{attribute: ContactModel.values["lastName"].id , value: "LN"},
+			{attribute: ContactModel.values["nickname"].id, value: "NN"},
+			{attribute: ContactModel.values["role"].id, value: "R"},
+			{attribute: ContactModel.values["title"].id, value: "T"},
+			{attribute: ContactModel.values["comment"].id, value: "C"},
+			{attribute: ContactModel.values["company"].id, value: "co"},
+			{attribute: ContactModel.associations["addresses"].id, value: "A0,A1"},
+			{attribute: ContactModel.associations["mailAddresses"].id, value: "MA0,MA1"},
+			{attribute: ContactModel.associations["phoneNumbers"].id, value: "PN0,PN1"},
+			{attribute: ContactModel.associations["socialIds"].id, value: ""},
 		])
 	})
 

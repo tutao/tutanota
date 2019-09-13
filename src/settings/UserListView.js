@@ -2,16 +2,15 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
-import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
-import {SettingsView} from "./SettingsView"
+import type {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
@@ -26,8 +25,10 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
+import {compareGroupInfos} from "../api/common/utils/GroupUtils";
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 assertMainOrNode()
 

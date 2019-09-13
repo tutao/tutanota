@@ -11,9 +11,9 @@ import {Request} from "../api/common/WorkerProtocol"
 import {logins} from "../api/main/LoginController"
 import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector.js"
-import {getElementId} from "../api/common/EntityFunctions"
 import {deviceConfig} from "../misc/DeviceConfig"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
+import {getElementId} from "../api/common/utils/EntityUtils";
 
 class PushServiceApp {
 	_pushNotification: ?Object;

@@ -484,4 +484,4 @@ bCrypt.prototype.crypt_raw = function (password, salt, log_rounds) {
 	return roundFunction()
 };
 
-module.exports = bCrypt
+export default bCrypt

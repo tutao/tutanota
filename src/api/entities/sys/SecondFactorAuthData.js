@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {U2fResponseData} from "./U2fResponseData"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 542,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"otpCode": {
-			"name": "otpCode",
 			"id": 1243,
-			"since": 24,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"type": {
-			"name": "type",
 			"id": 1230,
-			"since": 23,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -44,23 +38,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"u2f": {
-			"name": "u2f",
 			"id": 1231,
-			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "U2fResponseData",
-			"final": true
+			"final": true,
+			"refType": "U2fResponseData"
 		},
 		"session": {
-			"name": "session",
 			"id": 1232,
-			"since": 23,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "Session",
 			"final": true,
-			"external": false
+			"refType": "Session"
 		}
 	},
 	"app": "sys",

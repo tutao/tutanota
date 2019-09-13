@@ -1,8 +1,5 @@
 // @flow
-import type {ContextMenuParams, ElectronPermission, FindInPageResult} from 'electron'
-import {app, BrowserWindow, Menu, shell, WebContents} from 'electron'
-import * as localShortcut from 'electron-localshortcut'
-import DesktopUtils from './DesktopUtils.js'
+import type {BrowserWindow, ContextMenuParams, ElectronPermission, FindInPageResult, WebContents} from 'electron'
 // $FlowIgnore[untyped-import]
 import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
@@ -10,11 +7,14 @@ import type {IPC} from "./IPC"
 import url from "url"
 import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {Shortcut} from "../misc/KeyManager"
-import {DesktopConfig} from "./config/DesktopConfig"
+import type {Key} from "../misc/KeyManager"
+import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {noOp} from "../api/common/utils/Utils"
-import {log} from "./DesktopUtils"
+import type {TranslationKey} from "../misc/LanguageViewModel"
+import {log} from "./DesktopLog"
+import {pathToFileURL} from "./PathUtils"
+import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -22,6 +22,19 @@ export type UserInfo = {|
 	userId: string,
 	mailAddress?: string
 |}
+
+type LocalShortcut = {
+	key: Key;
+	ctrl?: boolean; // undefined == false
+	alt?: boolean; // undefined == false
+	shift?: boolean; // undefined == false
+	meta?: boolean; // undefined == false
+	enabled?: lazy<boolean>;
+
+	exec(): ?boolean; // must return true, if preventDefault should not be invoked
+	help: TranslationKey;
+}
+
 
 export class ApplicationWindow {
 	_ipc: IPC;
@@ -34,13 +47,18 @@ export class ApplicationWindow {
 	_skipNextSearchBarBlur: boolean = false;
 	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
 	_lastSearchPromiseReject: (?string) => void;
-	_shortcuts: Array<Shortcut>;
+	_shortcuts: Array<LocalShortcut>;
 	id: number;
+	_electron: $Exports<"electron">;
+	_localShortcut: LocalShortcutManager;
 
-	constructor(wm: WindowManager, conf: DesktopConfig, noAutoLogin?: boolean) {
+	constructor(wm: WindowManager, conf: DesktopConfig, electron: $Exports<"electron">, localShortcutManager: LocalShortcutManager,
+	            noAutoLogin?: boolean) {
 		this._userInfo = null
 		this._ipc = wm.ipc
-		this._startFile = DesktopUtils.pathToFileURL(path.join(app.getAppPath(), conf.getConst("desktophtml")),)
+		this._electron = electron
+		this._localShortcut = localShortcutManager
+		this._startFile = pathToFileURL(path.join(this._electron.app.getAppPath(), conf.getConst("desktophtml")),)
 		this._lastSearchPromiseReject = noOp
 
 		const isMac = process.platform === 'darwin';
@@ -61,14 +79,14 @@ export class ApplicationWindow {
 			])
 
 		log.debug("startFile: ", this._startFile)
-		const preloadPath = path.join(app.getAppPath(), conf.getConst("preloadjs"))
+		const preloadPath = path.join(this._electron.app.getAppPath(), conf.getConst("preloadjs"))
 		this._createBrowserWindow(wm, preloadPath)
 		this._browserWindow.loadURL(
 			noAutoLogin
 				? this._startFile + "?noAutoLogin=true"
 				: this._startFile
 		)
-		Menu.setApplicationMenu(null)
+		this._electron.Menu.setApplicationMenu(null)
 	}
 
 	//expose browserwindow api
@@ -113,7 +131,7 @@ export class ApplicationWindow {
 	}
 
 	_createBrowserWindow(wm: WindowManager, preloadPath: string) {
-		this._browserWindow = new BrowserWindow({
+		this._browserWindow = new this._electron.BrowserWindow({
 			icon: wm.getIcon(),
 			show: false,
 			autoHideMenuBar: true,
@@ -147,14 +165,14 @@ export class ApplicationWindow {
 			    this.setUserInfo(null)
 			    this._ipc.removeWindow(this.id)
 		    })
-		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
-		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
+		    .on('focus', () => this._localShortcut.enableAll(this._browserWindow))
+		    .on('blur', ev => this._localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
 		    .on('new-window', (e, url) => {
 			    // we never open any new windows directly from the renderer
 			    // except for links in mails etc. so open them in the browser
-			    shell.openExternal(url)
+			    this._electron.shell.openExternal(url)
 			    e.preventDefault()
 		    })
 		    .on('will-attach-webview', e => e.preventDefault())
@@ -193,7 +211,7 @@ export class ApplicationWindow {
 		    })
 
 		this._browserWindow.webContents.on('dom-ready', () => {
-			this.sendMessageToWebContents('initialize-ipc', [app.getVersion(), this.id])
+			this.sendMessageToWebContents('initialize-ipc', [this._electron.app.getVersion(), this.id])
 		})
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
@@ -201,7 +219,7 @@ export class ApplicationWindow {
 	}
 
 	_reRegisterShortcuts() {
-		localShortcut.unregisterAll(this._browserWindow)
+		this._localShortcut.unregisterAll(this._browserWindow)
 		this._shortcuts.forEach(s => {
 			// build the accelerator string localShortcut understands
 			let shortcutString = ""
@@ -210,7 +228,7 @@ export class ApplicationWindow {
 			shortcutString += s.alt ? "Alt+" : ""
 			shortcutString += s.shift ? "Shift+" : ""
 			shortcutString += capitalizeFirstLetter(Object.keys(Keys).filter(k => s.key === Keys[k])[0])
-			localShortcut.register(this._browserWindow, shortcutString, s.exec)
+			this._localShortcut.register(this._browserWindow, shortcutString, s.exec)
 		})
 	}
 

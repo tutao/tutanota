@@ -71,6 +71,5 @@ const server = http.createServer(options, function (request, response) {
 })
 
 
-require('chokidar-socket-emitter')({app: server, path: 'build', relativeTo: 'build'})
 
 server.listen(9082)

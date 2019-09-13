@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_loadMultipleEntities, HttpMethod} from "../../../src/api/common/EntityFunctions"
 import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 

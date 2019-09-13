@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const CustomerReturnTypeRef: TypeRef<CustomerReturn> = new TypeRef("sys", "CustomerReturn")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 371,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -25,24 +23,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"adminUser": {
-			"name": "adminUser",
 			"id": 372,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "User",
 			"final": false,
-			"external": false
+			"refType": "User"
 		},
 		"adminUserGroup": {
-			"name": "adminUserGroup",
 			"id": 373,
-			"since": 1,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Group",
 			"final": false,
-			"external": false
+			"refType": "Group"
 		}
 	},
 	"app": "sys",

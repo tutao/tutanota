@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {StringWrapper} from "./StringWrapper"
 
@@ -15,18 +15,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 732,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"validationResult": {
-			"name": "validationResult",
 			"id": 733,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -35,13 +31,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"invalidDnsRecords": {
-			"name": "invalidDnsRecords",
 			"id": 734,
-			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "StringWrapper",
-			"final": true
+			"final": true,
+			"refType": "StringWrapper"
 		}
 	},
 	"app": "sys",

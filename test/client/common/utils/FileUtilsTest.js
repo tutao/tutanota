@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {sanitizeFilename} from "../../../../src/api/common/utils/FileUtils"
 
 o.spec("sanitizeFilename Test", function () {

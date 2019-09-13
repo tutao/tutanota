@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {DraftData} from "./DraftData"
 
@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 520,
-			"since": 11,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,23 +24,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"draftData": {
-			"name": "draftData",
 			"id": 521,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "DraftData",
-			"final": false
+			"final": false,
+			"refType": "DraftData"
 		},
 		"draft": {
-			"name": "draft",
 			"id": 522,
-			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Mail",
 			"final": false,
-			"external": false
+			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",

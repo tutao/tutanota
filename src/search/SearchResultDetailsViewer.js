@@ -1,7 +1,6 @@
 //@flow
 import m from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
@@ -18,6 +17,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {noOp} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
+import {isSameId, isSameTypeRef} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
@@ -54,7 +54,7 @@ export class SearchResultDetailsViewer {
 	showEntity(entity: Object, entitySelected: boolean): void {
 		if (isSameTypeRef(MailTypeRef, entity._type)) {
 			let mail = ((entity: any): Mail)
-			this._viewer = new MailViewer(mail, true, locator.entityClient, locator.mailModel)
+			this._viewer = new MailViewer(mail, true, locator.entityClient, locator.mailModel, locator.contactModel)
 			this._viewerEntityId = mail._id
 			if (entitySelected && mail.unread && !mail._errors) {
 				mail.unread = false

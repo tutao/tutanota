@@ -1,22 +1,12 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
 import {createMailBody, MailBodyTypeRef} from "../../../src/api/entities/tutanota/MailBody"
 import type {OperationTypeEnum} from "../../../src/api/common/TutanotaConstants"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {
-	CUSTOM_MIN_ID,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getElementId,
-	getListId,
-	HttpMethod,
-	isSameTypeRef,
-	readOnlyHeaders,
-	sortCompareById,
-	stringToCustomId,
-	TypeRef
+	HttpMethod
 } from "../../../src/api/common/EntityFunctions"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {clone} from "../../../src/api/common/utils/Utils"
@@ -27,6 +17,15 @@ import {lastThrow} from "../../../src/api/common/utils/ArrayUtils"
 import type {MailBody} from "../../../src/api/entities/tutanota/MailBody"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
+import {
+	CUSTOM_MIN_ID,
+	GENERATED_MAX_ID, GENERATED_MIN_ID,
+	getElementId,
+	getListId, isSameTypeRef,
+	readOnlyHeaders,
+	sortCompareById,
+	stringToCustomId, TypeRef
+} from "../../../src/api/common/utils/EntityUtils";
 
 o.spec("entity rest cache", function () {
 

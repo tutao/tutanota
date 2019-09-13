@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const SwitchAccountTypeDataTypeRef: TypeRef<SwitchAccountTypeData> = new TypeRef("sys", "SwitchAccountTypeData")
@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 773,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"accountType": {
-			"name": "accountType",
 			"id": 774,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"campaign": {
-			"name": "campaign",
 			"id": 1454,
-			"since": 38,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"date": {
-			"name": "date",
 			"id": 775,
-			"since": 9,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"subscriptionType": {
-			"name": "subscriptionType",
 			"id": 1310,
-			"since": 30,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,

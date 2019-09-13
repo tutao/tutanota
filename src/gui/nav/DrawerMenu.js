@@ -9,7 +9,6 @@ import {isDesktop, isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
-import {isNewMailActionAvailable} from "../../mail/MailView"
 import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
@@ -19,6 +18,7 @@ import {noOp} from "../../api/common/utils/Utils"
 import {keyManager} from "../../misc/KeyManager"
 import {showPurchaseGiftCardDialog} from "../../subscription/giftcards/PurchaseGiftCardDialog"
 import {createNotAvailableForFreeClickHandler} from "../../subscription/PriceUtils"
+import {isNewMailActionAvailable} from "../../mail/MailGuiUtils";
 
 type Attrs = void
 

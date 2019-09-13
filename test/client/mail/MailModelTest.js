@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {Notifications} from "../../../src/gui/Notifications"
 import type {Spy} from "../../api/TestUtils"
 import {spy} from "../../api/TestUtils"
@@ -12,6 +12,7 @@ import {MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
 import {createMailFolder} from "../../../src/api/entities/tutanota/MailFolder"
 import type {EntityUpdateData} from "../../../src/api/main/EventController"
 import {worker} from "../../../src/api/main/WorkerClient"
+import {EntityClient} from "../../../src/api/common/EntityClient"
 
 o.spec("MailModelTest", function () {
 	let notifications: $Shape<Notifications>
@@ -35,7 +36,7 @@ o.spec("MailModelTest", function () {
 	o.beforeEach(function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
-		model = new MailModel(downcast(notifications), downcast({}), worker)
+		model = new MailModel(downcast(notifications), downcast({}), worker, new EntityClient(worker))
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails)
 	})

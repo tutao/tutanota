@@ -8,7 +8,8 @@ export const Mode: {[EnvMode]: EnvMode} = Object.freeze({
 	App: "App",
 	Test: "Test",
 	Playground: "Playground",
-	Desktop: "Desktop"
+	Desktop: "Desktop",
+	Admin: "Admin",
 })
 
 export function getWebsocketOrigin(): string {
@@ -75,7 +76,7 @@ export function isMain(): boolean {
 }
 
 export function isAdminClient(): boolean {
-	return env.adminTypes.length > 0
+	return env.mode === Mode.Admin
 }
 
 export function isMainOrNode(): boolean {

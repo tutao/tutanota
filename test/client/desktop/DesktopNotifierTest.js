@@ -1,235 +1,133 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from "../nodemocker"
+import type {ElectronNotificationFactory} from "../../../src/desktop/NotificatonFactory"
+import {downcast} from "../../../src/api/common/utils/Utils"
+import {DesktopNotifier} from "../../../src/desktop/DesktopNotifier"
+import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray"
+import type {NativeImage} from "electron"
 
-o.spec("Desktop Notifier Test", (done, timeout) => {
-	n.startGroup({
-		group: __filename, allowables: [
-			'../api/common/utils/Utils', '.utils/Utils', './Utils',
-			'../TutanotaConstants',
-			"./DesktopConstants",
-			'../EntityFunctions',
-			'./utils/Encoding',
-			'../error/CryptoError',
-			'./StringUtils',
-			'./utils/ArrayUtils',
-			'./MapUtils',
-			'./utils/Utils',
-			'./TutanotaError',
-			'./EntityConstants'
-		], timeout: 2500
-	})
+// just a placeholder, symbol to make sure it's the same instance
+const appIcon: NativeImage = downcast(Symbol("appIcon"))
+const icon1: NativeImage = downcast(Symbol("icon1"))
 
+o.spec("Desktop Notifier Test", function () {
 	const notificationStartDelay = 10
 
-	const electron = {
-		app: {},
-		Notification: n.classify({
-			prototype: {
-				on: function () {
-					return this
-				},
-				show: function () {
-				},
-				removeAllListeners: function () {
-					return this
-				},
-				close: function () {
-				}
-			},
-			statics: {
-				isSupported: () => true
+	let createdNotifications
+	let desktopTray: DesktopTray
+	let notificationFactory: ElectronNotificationFactory
+
+	o.beforeEach(function () {
+		createdNotifications = []
+		desktopTray = downcast({
+			getIcon: () => appIcon,
+			update: o.spy(() => {}),
+			setBadge: o.spy(() => {})
+		})
+		notificationFactory = downcast({
+				isSupported: () => true,
+				makeNotification: o.spy((props, click) => {
+					const n = {
+						close: o.spy(),
+						click,
+					}
+					createdNotifications.push(n)
+					return () => n.close()
+				})
 			}
-		})
-	}
-
-	const desktopTray = {
-		getIcon: () => 'this is an instance icon',
-		DesktopTray: {
-			getIcon: () => {
-				return 'this is a static icon'
-			}
-		},
-		update: () => {},
-		setBadge: () => {}
-	}
-
-	o("show no notifications before call to start()", done => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		n.mock('./DesktopTray', desktopTray).set()
-
-		// instances
-		const desktopTrayMock = n.mock("__tray", desktopTray).set()
-
-		const {DesktopNotifier} = n.subject('../../src/desktop/DesktopNotifier.js')
-		const notifier = new DesktopNotifier()
-
-		notifier.showOneShot({title: "Title1", body: "Body1", icon: "Icon1"})
-		notifier.submitGroupedNotification("Title2", "Message", "gn1", () => {
-		})
-
-		o(electronMock.Notification.mockedInstances.length).equals(0)
-
-		notifier.start(desktopTrayMock, notificationStartDelay)
-
-		setImmediate(() => {
-			o(electronMock.Notification.mockedInstances.length).equals(0)
-		})
-
-		setTimeout(() => {
-			o(electronMock.Notification.mockedInstances.length).equals(2)
-			o(electronMock.Notification.args).deepEquals([
-				{
-					title: "Title1",
-					body: "Body1",
-					icon: "Icon1"
-				}
-			])
-			o(desktopTrayMock.update.callCount).equals(1)
-			done()
-		}, notificationStartDelay * 3)
+		)
 	})
 
-	o("show no notifications when no notifications available", done => {
-		// node modules
-		const electronMock = n.mock("electron", electron)
-		                      .with({
-			                      Notification: n.classify({
-				                      prototype: {
-					                      on: function () {
-						                      return this
-					                      },
-					                      show: function () {
-					                      },
-					                      removeAllListeners: function () {
-						                      return this
-					                      },
-					                      close: function () {
-					                      }
-				                      },
-				                      statics: {
-					                      isSupported: () => false
-				                      }
-			                      })
-		                      })
-		                      .set()
+	o("show no notifications before call to start()", async function () {
+		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
 
-		// our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		notifier.showOneShot({title: "Title1", body: "Body1", icon: icon1})
+		notifier.submitGroupedNotification("Title2", "Message", "gn1", () => {})
 
-		// instances
-		const desktopTrayMock = n.mock("__tray", desktopTray).set()
+		o(notificationFactory.makeNotification.calls).deepEquals([])
 
-		const {DesktopNotifier} = n.subject('../../src/desktop/DesktopNotifier.js')
-		const notifier = new DesktopNotifier()
+		notifier.start(notificationStartDelay)
 
-		notifier.showOneShot({title: "Title1", body: "Body1", icon: "Icon1"})
+		setImmediate(() => {
+			o(notificationFactory.makeNotification.calls).deepEquals([])
+		})
+
+
+		await Promise.delay(notificationStartDelay * 3)
+		o(notificationFactory.makeNotification.calls[0].args[0]).deepEquals({
+			title: "Title1",
+			body: "Body1",
+			icon: icon1
+		})
+		o(desktopTray.update.callCount).equals(1)
+	})
+
+	o("show no notifications when no notifications available", async function () {
+		downcast(notificationFactory).isSupported = () => false
+		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+
+		notifier.showOneShot({title: "Title1", body: "Body1", icon: icon1})
 		        .catch(() => {
 		        }) // this should fail
 		notifier.submitGroupedNotification("Title2", "Message", "gn1", () => {
 		})
 
-		notifier.start(desktopTrayMock, notificationStartDelay)
+		notifier.start(notificationStartDelay)
 
-		setTimeout(() => {
-			o(electronMock.Notification.mockedInstances.length).equals(0)
-			done()
-		}, notificationStartDelay * 1.1)
+		await Promise.delay(notificationStartDelay * 1.1)
+		o(notificationFactory.makeNotification.callCount).equals(0)
 	})
 
-	o("grouped notifications replace each other", done => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
+	o("grouped notifications replace each other", async function () {
+		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
 
-		// our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		notifier.start(notificationStartDelay)
 
-		// instances
-		const desktopTrayMock = n.mock("__tray", desktopTray).set()
+		await Promise.delay(notificationStartDelay * 1.1)
 
-		const {DesktopNotifier} = n.subject('../../src/desktop/DesktopNotifier.js')
-		const notifier = new DesktopNotifier()
+		// Notice the same "gn1". The second replaces the first and calls its "close"
+		notifier.submitGroupedNotification("Title1", "Message1", "gn1", () => {
+		})
+		notifier.submitGroupedNotification("Title2", "Message2", "gn1", () => {
+		})
+		notifier.submitGroupedNotification("Title3", "Message3", "gn2", () => {
+		})
 
-		notifier.start(desktopTrayMock, notificationStartDelay)
-		setTimeout(() => {
-			notifier.submitGroupedNotification("Title1", "Message1", "gn1", () => {
-			})
-			notifier.submitGroupedNotification("Title2", "Message2", "gn1", () => {
-			})
-			notifier.submitGroupedNotification("Title3", "Message3", "gn2", () => {
-			})
-			o(electronMock.Notification.mockedInstances.length).equals(3)
-			o(electronMock.Notification.mockedInstances[0].close.callCount).equals(1)
-			o(electronMock.Notification.mockedInstances[1].close.callCount).equals(0)
-			o(electronMock.Notification.mockedInstances[2].close.callCount).equals(0)
+		o(createdNotifications.length).equals(3)
+		o(createdNotifications[0].close.callCount).equals(1)
+		o(createdNotifications[1].close.callCount).equals(0)
+		o(createdNotifications[1].close.callCount).equals(0)
 
-			o(desktopTrayMock.update.callCount).equals(3)
-			o(desktopTrayMock.setBadge.callCount).equals(3)
-			o(notifier.hasNotificationForId("gn1")).equals(true)
-			o(notifier.hasNotificationForId("gn2")).equals(true)
-			done()
-		}, notificationStartDelay * 1.1)
+		o(desktopTray.update.callCount).equals(3)
+		o(desktopTray.setBadge.callCount).equals(3)
+		o(notifier.hasNotificationForId("gn1")).equals(true)
+		o(notifier.hasNotificationForId("gn2")).equals(true)
 	})
 
-	o("grouped notification disappear after clicking", done => {
-		// node modules
-		const electronMock = n.mock("electron", electron)
-		                      .with({
-			                      Notification: n.classify({
-				                      prototype: {
-					                      on: function (ev: string, cb: ()=>void) {
-						                      if (ev === "click") {
-							                      setImmediate(() => cb())
-						                      }
-						                      return this
-					                      },
-					                      show: function () {
-					                      },
-					                      removeAllListeners: function () {
-						                      return this
-					                      },
-					                      close: function () {
-					                      }
-				                      },
-				                      statics: {
-					                      isSupported: () => true
-				                      }
-			                      })
-		                      })
-		                      .set()
-
-		// our modules
-		n.mock('./DesktopTray', desktopTray).set()
-
-		// instances
-		const desktopTrayMock = n.mock("__tray", desktopTray).set()
-
-		const {DesktopNotifier} = n.subject('../../src/desktop/DesktopNotifier.js')
-		const notifier = new DesktopNotifier()
-
-		notifier.start(desktopTrayMock, notificationStartDelay)
+	o("grouped notification disappear after clicking", async function () {
+		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+		notifier.start(notificationStartDelay)
 		const clickHandler = o.spy(() => notifier.resolveGroupedNotification("gn1"))
 		notifier.submitGroupedNotification("Title1", "Message1", "gn1", clickHandler)
 
 		// not shown yet
-		o(electronMock.Notification.mockedInstances.length).equals(0)
-		o(desktopTrayMock.update.callCount).equals(0)
+		o(createdNotifications.length).equals(0)
+		o(desktopTray.update.callCount).equals(0)
 		o(notifier.hasNotificationForId("gn1")).equals(false)
 		o(clickHandler.callCount).equals(0)
 
-		setTimeout(() => {
-			// shown and removed
-			o(clickHandler.callCount).equals(1)
-			o(electronMock.Notification.mockedInstances.length).equals(1)
-			o(electronMock.Notification.mockedInstances[0].close.callCount).equals(1)
+		await Promise.delay(notificationStartDelay * 2)
 
-			o(desktopTrayMock.update.callCount).equals(2)
-			o(desktopTrayMock.setBadge.callCount).equals(1)
-			o(notifier.hasNotificationForId("gn1")).equals(false)
-			done()
-		}, notificationStartDelay * 2)
+		createdNotifications[0].click()
+
+		// shown and removed
+		o(clickHandler.callCount).equals(1)
+		o(createdNotifications.length).equals(1)
+		o(createdNotifications[0].close.callCount).equals(1)
+
+		o(desktopTray.update.callCount).equals(2)
+		o(desktopTray.setBadge.callCount).equals(1)
+		o(notifier.hasNotificationForId("gn1")).equals(false)
 	})
 })

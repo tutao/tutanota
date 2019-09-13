@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {mergeMaps} from "../../../src/api/common/utils/MapUtils"
 
 o.spec("map utils", function () {

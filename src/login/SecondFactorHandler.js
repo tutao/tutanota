@@ -4,7 +4,7 @@ import {SessionTypeRef} from "../api/entities/sys/Session"
 import {load, serviceRequestVoid} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
 import {OperationType, SecondFactorType, SessionState} from "../api/common/TutanotaConstants"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -24,6 +24,7 @@ import type {Challenge} from "../api/entities/sys/Challenge"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
+import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

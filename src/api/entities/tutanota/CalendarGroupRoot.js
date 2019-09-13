@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventIndexRef} from "./CalendarEventIndexRef"
 
@@ -15,45 +15,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 951,
-			"since": 33,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"_id": {
-			"name": "_id",
 			"id": 949,
-			"since": 33,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerEncSessionKey": {
-			"name": "_ownerEncSessionKey",
 			"id": 953,
-			"since": 33,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_ownerGroup": {
-			"name": "_ownerGroup",
 			"id": 952,
-			"since": 33,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"_permissions": {
-			"name": "_permissions",
 			"id": 950,
-			"since": 33,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
@@ -62,33 +52,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"index": {
-			"name": "index",
 			"id": 1103,
-			"since": 42,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "CalendarEventIndexRef",
-			"final": true
+			"final": true,
+			"refType": "CalendarEventIndexRef"
 		},
 		"longEvents": {
-			"name": "longEvents",
 			"id": 955,
-			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "CalendarEvent",
 			"final": true,
-			"external": false
+			"refType": "CalendarEvent"
 		},
 		"shortEvents": {
-			"name": "shortEvents",
 			"id": 954,
-			"since": 33,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "CalendarEvent",
 			"final": true,
-			"external": false
+			"refType": "CalendarEvent"
 		}
 	},
 	"app": "tutanota",

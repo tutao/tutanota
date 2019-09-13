@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {PriceData} from "./PriceData"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 860,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"currentPeriodAddedPrice": {
-			"name": "currentPeriodAddedPrice",
 			"id": 862,
-			"since": 9,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"periodEndDate": {
-			"name": "periodEndDate",
 			"id": 861,
-			"since": 9,
 			"type": "Date",
 			"cardinality": "One",
 			"final": false,
@@ -44,31 +38,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"currentPriceNextPeriod": {
-			"name": "currentPriceNextPeriod",
 			"id": 864,
-			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "PriceData",
-			"final": false
+			"final": false,
+			"refType": "PriceData"
 		},
 		"currentPriceThisPeriod": {
-			"name": "currentPriceThisPeriod",
 			"id": 863,
-			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "PriceData",
-			"final": false
+			"final": false,
+			"refType": "PriceData"
 		},
 		"futurePriceNextPeriod": {
-			"name": "futurePriceNextPeriod",
 			"id": 865,
-			"since": 9,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "PriceData",
-			"final": false
+			"final": false,
+			"refType": "PriceData"
 		}
 	},
 	"app": "sys",

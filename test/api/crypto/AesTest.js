@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../src/api/worker/crypto/Aes"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex, utf8Uint8ArrayToString} from "../../../src/api/common/utils/Encoding"
@@ -14,7 +14,7 @@ o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", (done) => arrayRoundtrip(done, aes128Encrypt, aes128Decrypt, aes128RandomKey(), false))
 	o("encryption roundtrip 128 with mac", (done) => arrayRoundtrip(done, aes128Encrypt, aes128Decrypt, aes128RandomKey(), true))
 	o("encryption roundtrip 256 without mac", (done) => arrayRoundtrip(done, aes256Encrypt, aes256Decrypt, aes256RandomKey(), false))
-	// o("encryption roundtrip 256 webcrypto", browser((done, timeout) => {
+	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
 	// 	arrayRoundtrip(done, aes256EncryptFile, aes256DecryptFile, aes256RandomKey(), true)
 	// }))
@@ -183,7 +183,7 @@ o.spec("aes", function () {
 	// 	}
 	// })
 
-	// o("decryptManipulatedData 256 webcrypto", browser((done, timeout) => {
+	// o("decryptManipulatedData 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(2000)
 	// 	let key = aes256RandomKey()
 	// 	aes256EncryptFile(key, stringToUtf8Uint8Array("hello"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => {
@@ -211,7 +211,7 @@ o.spec("aes", function () {
 		}
 	}
 
-	// o("decryptWithWrongKey 256 webcrypto", browser((done, timeout) => {
+	// o("decryptWithWrongKey 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(2000)
 	// 	let key = aes256RandomKey()
 	// 	let key2 = aes256RandomKey()

@@ -14,7 +14,6 @@ import {
 	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
-import {GENERATED_MIN_ID} from "../api/common/EntityFunctions"
 import {base64ToUint8Array, base64UrlToBase64} from "../api/common/utils/Encoding"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -36,6 +35,7 @@ import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {header} from "../gui/base/Header"
 import type {PasswordChannelPhoneNumber} from "../api/entities/tutanota/PasswordChannelPhoneNumber"
 import type {PhoneNumber} from "../api/entities/sys/PhoneNumber"
+import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 

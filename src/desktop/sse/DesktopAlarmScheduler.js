@@ -12,7 +12,7 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import {downcast} from "../../api/common/utils/Utils"
 import {getAllDayDateLocal, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
 
 export type TimeoutData = {
 	id: TimeoutID,
@@ -60,17 +60,16 @@ export class DesktopAlarmScheduler {
 		setTimeout = (what, when) => timeProvider.setTimeout(what, when)
 		clearTimeout = id => timeProvider.clearTimeout(id)
 		now = () => timeProvider.now()
-		this._rescheduleAll()
 	}
 
 	/**
 	 * stores, deletes and schedules alarm notifications
 	 * @param an the AlarmNotification to handle
 	 */
-	handleAlarmNotification(an: any): void {
+	handleAlarmNotification(an: any): Promise<void> {
 		if (an.operation === OperationType.CREATE) {
 			log.debug("creating alarm notification!")
-			this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
+			return this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
 			    .then(({piSk, piSkEncSk}) => this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk))
 			    .then(decAn => {
 				    const identifier = decAn.alarmInfo.alarmIdentifier
@@ -85,9 +84,10 @@ export class DesktopAlarmScheduler {
 		} else if (an.operation === OperationType.DELETE) {
 			log.debug(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
 			this._cancelAlarms(an)
-			this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
+			return this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
 		} else {
 			console.warn(`received AlarmNotification (alarmInfo identifier ${an.alarmInfo.alarmIdentifier}) with unsupported operation ${an.operation}, ignoring`)
+			return Promise.resolve()
 		}
 	}
 
@@ -165,9 +165,11 @@ export class DesktopAlarmScheduler {
 	/**
 	 * read all stored alarms and reschedule the notifications
 	 */
-	_rescheduleAll(): void {
+	async rescheduleAll(): Promise<void> {
 		const alarms = this._alarmStorage.getScheduledAlarms()
-		alarms.forEach(an => this.handleAlarmNotification(an))
+		for (const alarm of alarms) {
+			await this.handleAlarmNotification(alarm)
+		}
 	}
 }
 

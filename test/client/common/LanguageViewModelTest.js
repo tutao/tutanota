@@ -1,15 +1,14 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang} from "../../../src/misc/LanguageViewModel"
 // $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 
 o.spec("LanguageViewModelTests", function () {
-	o("en is default language", browser((done, timeout) => {
-		timeout(4500)
-		lang.init(en).then(() => {
-			o(lang.fallback).equals(en)
-		}).then(done)
+	o("en is default language", browser(async function () {
+		o.timeout(4500)
+		await lang.init(en)
+		o(lang.fallback).equals(en)
 	}))
 
 	o("getAvailableLanguage", function () {
@@ -45,8 +44,9 @@ o.spec("LanguageViewModelTests", function () {
 	})
 
 	o("_getSubstitutedLanguageCodeWhitelabelCustomizations", function () {
-		global.whitelabelCustomizations = {germanLanguageCode: "de_sie"}
+		const globalSelf = typeof global == "undefined" ? window : global
+		globalSelf.whitelabelCustomizations = {germanLanguageCode: "de_sie"}
 		o(_getSubstitutedLanguageCode("de")).equals("de_sie")
-		global.whitelabelCustomizations = undefined
+		globalSelf.whitelabelCustomizations = undefined
 	})
 })

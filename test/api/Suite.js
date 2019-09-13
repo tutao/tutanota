@@ -1,4 +1,4 @@
-import o from "ospec/ospec.js"
+import o from "ospec"
 
 import "./common/LoggerTest.js"
 import "./crypto/RandomizerTest.js"
@@ -39,11 +39,27 @@ import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
 import "./worker/facades/MailFacadeTest"
 import "./worker/SuspensionHandlerTest"
+import "./common/IntegrationTest"
+import {preTest, reportTest} from "./TestUtils"
 
-const disabledTests = ["./common/IntegrationTest", "./common/WorkerTest"]
-console.log("!!! Some tests are disabled because they need a server instance, see Suite.js", disabledTests)
+(async function () {
 
-// setup the Entropy for all testcases
-random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+	const {WorkerImpl} = await import("../../src/api/worker/WorkerImpl")
+	// const workerImpl = new WorkerImpl(this, true, browserDataStub)
+	globalThis.testWorker = WorkerImpl
 
-o.run()
+	if (typeof process != "undefined") {
+		if (process.argv.includes("-i")) {
+			console.log("\nRunning with integration tests because was run with -i\n")
+			await import("./common/WorkerTest")
+		} else {
+			console.log("\nRunning without integration tests because run without -i\n")
+		}
+	}
+
+	// setup the Entropy for all testcases
+	random.addEntropy([{data: 36, entropy: 256, source: EntropySrc.key}])
+	preTest()
+
+	await o.run(reportTest)
+})()

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const ReportPhishingPostDataTypeRef: TypeRef<ReportPhishingPostData> = new TypeRef("tutanota", "ReportPhishingPostData")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1067,
-			"since": 40,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"mailSessionKey": {
-			"name": "mailSessionKey",
 			"id": 1068,
-			"since": 40,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"reportType": {
-			"name": "reportType",
 			"id": 1082,
-			"since": 41,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -43,14 +37,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"mailId": {
-			"name": "mailId",
 			"id": 1069,
-			"since": 40,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Mail",
 			"final": false,
-			"external": false
+			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {MailAddress} from "./MailAddress"
 
@@ -15,9 +15,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 1007,
-			"since": 38,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -26,31 +24,25 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"existingMailAddresses": {
-			"name": "existingMailAddresses",
 			"id": 1008,
-			"since": 38,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "MailAddress",
-			"final": false
+			"final": false,
+			"refType": "MailAddress"
 		},
 		"invalidMailAddresses": {
-			"name": "invalidMailAddresses",
 			"id": 1009,
-			"since": 38,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "MailAddress",
-			"final": false
+			"final": false,
+			"refType": "MailAddress"
 		},
 		"invitedMailAddresses": {
-			"name": "invitedMailAddresses",
 			"id": 1010,
-			"since": 38,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "MailAddress",
-			"final": false
+			"final": false,
+			"refType": "MailAddress"
 		}
 	},
 	"app": "tutanota",

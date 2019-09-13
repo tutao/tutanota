@@ -25,7 +25,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {formatStorageSize} from "../misc/Formatter"
 import {FeatureType} from "../api/common/TutanotaConstants"
 import {ContactEditor} from "../contacts/ContactEditor"
-import {getContactDisplayName, lazyContactListId} from "../contacts/ContactUtils"
+import {getContactDisplayName} from "../contacts/ContactUtils"
 import {createNewContact, getDisplayText, resolveRecipientInfo, resolveRecipientInfoContact} from "./MailUtils"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../misc/RecipientInfoBubbleHandler"
@@ -37,6 +37,7 @@ import {ConnectionError, TooManyRequestsError} from "../api/common/error/RestErr
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import type {ContactModel} from "../contacts/ContactModel"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
@@ -185,13 +186,14 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 	field: RecipientField
 	component: BubbleTextField<RecipientInfo>
 	bubbleDeleted: Bubble<RecipientInfo> => void
+	_contactModel: ContactModel
 
-	constructor(model: SendMailModel, fieldType: RecipientField) {
+	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel) {
 
 		this.model = model
 		this.field = fieldType
 
-		const handler = new RecipientInfoBubbleHandler(this)
+		const handler = new RecipientInfoBubbleHandler(this, contactModel)
 		this.component = new BubbleTextField(_getRecipientFieldLabelTranslationKey(this.field), handler)
 
 		// we want to fill in the field with existing recipients from the model
@@ -268,7 +270,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 
 		const createdContactReceiver = (contactElementId) => {
 			const mailAddress = recipient.mailAddress
-			lazyContactListId(this.model.logins(), this.model.entity()).getAsync().then(contactListId => {
+			this._contactModel.contactListId().then(contactListId => {
 				const id: IdTuple = [contactListId, contactElementId]
 				this.model.entity().load(ContactTypeRef, id).then(contact => {
 					if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
@@ -297,12 +299,11 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 					type: ButtonType.Secondary,
 					click: () => {
 						// contact list
-						lazyContactListId(this.model.logins(), this.model.entity())
-							.getAsync()
-							.then(contactListId => {
-								const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
-								new ContactEditor(newContact, contactListId, createdContactReceiver).show()
-							})
+						this._contactModel.contactListId()
+						    .then(contactListId => {
+							    const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
+							    new ContactEditor(newContact, contactListId, createdContactReceiver).show()
+						    })
 					}
 				}
 				: "",

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const RejectedSendersRefTypeRef: TypeRef<RejectedSendersRef> = new TypeRef("sys", "RejectedSendersRef")
@@ -14,9 +14,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1748,
-			"since": 60,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
@@ -25,14 +23,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"items": {
-			"name": "items",
 			"id": 1749,
-			"since": 60,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "RejectedSender",
 			"final": true,
-			"external": false
+			"refType": "RejectedSender"
 		}
 	},
 	"app": "sys",

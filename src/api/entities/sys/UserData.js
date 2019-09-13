@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CreateGroupData} from "./CreateGroupData"
 
@@ -15,63 +15,49 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 397,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"date": {
-			"name": "date",
 			"id": 878,
-			"since": 9,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"mobilePhoneNumber": {
-			"name": "mobilePhoneNumber",
 			"id": 403,
-			"since": 1,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"salt": {
-			"name": "salt",
 			"id": 401,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"userEncClientKey": {
-			"name": "userEncClientKey",
 			"id": 398,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"userEncCustomerGroupKey": {
-			"name": "userEncCustomerGroupKey",
 			"id": 399,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"verifier": {
-			"name": "verifier",
 			"id": 402,
-			"since": 1,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -80,13 +66,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"userGroupData": {
-			"name": "userGroupData",
 			"id": 400,
-			"since": 1,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "CreateGroupData",
-			"final": false
+			"final": false,
+			"refType": "CreateGroupData"
 		}
 	},
 	"app": "sys",

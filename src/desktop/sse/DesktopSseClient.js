@@ -6,7 +6,6 @@ import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfig} from "../config/DesktopConfig"
-import {DesktopConfigKey} from "../config/DesktopConfig"
 import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
@@ -19,7 +18,8 @@ import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
-import {log} from "../DesktopUtils"
+import {log} from "../DesktopLog"
+import {DesktopConfigKey} from "../config/ConfigKeys"
 
 export type SseInfo = {|
 	identifier: string,

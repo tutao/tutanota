@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const FileDataDataGetTypeRef: TypeRef<FileDataDataGet> = new TypeRef("tutanota", "FileDataDataGet")
@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 332,
-			"since": 1,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"base64": {
-			"name": "base64",
 			"id": 333,
-			"since": 1,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
@@ -34,14 +30,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"file": {
-			"name": "file",
 			"id": 334,
-			"since": 1,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "File",
 			"final": false,
-			"external": false
+			"refType": "File"
 		}
 	},
 	"app": "tutanota",

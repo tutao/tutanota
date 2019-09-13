@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {AttachmentKeyData} from "./AttachmentKeyData"
 import type {InternalRecipientKeyData} from "./InternalRecipientKeyData"
@@ -17,63 +17,49 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 548,
-			"since": 11,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"bucketEncMailSessionKey": {
-			"name": "bucketEncMailSessionKey",
 			"id": 551,
-			"since": 11,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"calendarMethod": {
-			"name": "calendarMethod",
 			"id": 1117,
-			"since": 42,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"language": {
-			"name": "language",
 			"id": 549,
-			"since": 11,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"mailSessionKey": {
-			"name": "mailSessionKey",
 			"id": 550,
-			"since": 11,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
 		"plaintext": {
-			"name": "plaintext",
 			"id": 675,
-			"since": 18,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"senderNameUnencrypted": {
-			"name": "senderNameUnencrypted",
 			"id": 552,
-			"since": 11,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -82,41 +68,32 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"attachmentKeyData": {
-			"name": "attachmentKeyData",
 			"id": 555,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "AttachmentKeyData",
-			"final": true
+			"final": true,
+			"refType": "AttachmentKeyData"
 		},
 		"internalRecipientKeyData": {
-			"name": "internalRecipientKeyData",
 			"id": 553,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "InternalRecipientKeyData",
-			"final": true
+			"final": true,
+			"refType": "InternalRecipientKeyData"
 		},
 		"secureExternalRecipientKeyData": {
-			"name": "secureExternalRecipientKeyData",
 			"id": 554,
-			"since": 11,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "SecureExternalRecipientKeyData",
-			"final": true
+			"final": true,
+			"refType": "SecureExternalRecipientKeyData"
 		},
 		"mail": {
-			"name": "mail",
 			"id": 556,
-			"since": 11,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Mail",
 			"final": true,
-			"external": false
+			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",

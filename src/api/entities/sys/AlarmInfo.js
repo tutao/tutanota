@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {CalendarEventRef} from "./CalendarEventRef"
 
@@ -15,27 +15,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1537,
-			"since": 48,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"alarmIdentifier": {
-			"name": "alarmIdentifier",
 			"id": 1539,
-			"since": 48,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"trigger": {
-			"name": "trigger",
 			"id": 1538,
-			"since": 48,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
@@ -44,13 +38,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"calendarRef": {
-			"name": "calendarRef",
 			"id": 1540,
-			"since": 48,
 			"type": "AGGREGATION",
 			"cardinality": "One",
-			"refType": "CalendarEventRef",
-			"final": false
+			"final": false,
+			"refType": "CalendarEventRef"
 		}
 	},
 	"app": "sys",

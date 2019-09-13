@@ -38,11 +38,11 @@
  * openssl x509 -pubkey -noout -in tutao-cert.pem > tutao-pub.pem
  * */
 
-const Promise = require('bluebird')
-const fs = Promise.promisifyAll(require('fs-extra'))
-const path = require('path')
-const spawnSync = require('child_process').spawnSync
-const jsyaml = require('js-yaml')
+
+import path from "path"
+import fs from "fs-extra"
+import {spawnSync} from "child_process"
+import jsyaml from "js-yaml"
 
 /**
  * Creates a signature on the given application file, writes it to signatureFileName and adds the signature to the yaml file.
@@ -51,7 +51,7 @@ const jsyaml = require('js-yaml')
  * @param signatureFileName The signature will be written to that file. Must not contain any path.
  * @param ymlFileName This yaml file will be adapted to include the signature. Must not contain any path.
  */
-function signer(filePath, signatureFileName, ymlFileName) {
+export function sign(filePath, signatureFileName, ymlFileName) {
 	console.log("Signing", path.basename(filePath), '...')
 	const dir = path.dirname(filePath)
 	const sigOutPath = path.join(dir, signatureFileName)
@@ -82,5 +82,3 @@ function signer(filePath, signatureFileName, ymlFileName) {
 	}
 
 }
-
-module.exports = signer

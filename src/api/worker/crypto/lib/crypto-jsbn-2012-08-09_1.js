@@ -1,5 +1,4 @@
-'use strict';
-var SecureRandom = require('../SecureRandom.js').SecureRandom
+import {SecureRandom} from '../SecureRandom'
 
 // Copyright (c) 2005  Tom Wu
 // All Rights Reserved.
@@ -18,7 +17,7 @@ var j_lm = ((canary & 0xffffff) == 0xefcafe);
 // tutao: a = bitlength (1024)
 //        b = number of miller rabin test * 2
 //        c = SecureRandom
-function BigInteger(a, b, c) {
+export function BigInteger(a, b, c) {
 	if (a != null) {
 		if ("number" == typeof a) {
 			this.fromNumber(a, b, c);
@@ -1497,7 +1496,7 @@ BigInteger.prototype.square = bnSquare;
 // Version 1.1: support utf-8 encoding in pkcs1pad2
 
 // convert a (hex) string to a bignum object
-function parseBigInt(str, r) {
+export function parseBigInt(str, r) {
 	return new BigInteger(str, r);
 }
 
@@ -1554,7 +1553,7 @@ function pkcs1pad2(s, n) {
 }
 
 // "empty" RSA key constructor
-function RSAKey() {
+export function RSAKey() {
 	this.n = null;
 	this.e = 0;
 	this.d = null;
@@ -2414,7 +2413,7 @@ function GCD_(x, y) {
 		D = 1;
 		while ((yp + C) && (yp + D)) {
 			q = Math.floor((xp + A) / (yp + C));
-			qp = Math.floor((xp + B) / (yp + D));
+			let qp = Math.floor((xp + B) / (yp + D));
 			if (q != qp) {
 				break;
 			}
@@ -3386,11 +3385,4 @@ function mont_(x, y, n, np) {
 		sub_(sa, n);
 	}
 	copy_(x, sa);
-}
-
-
-module.exports = {
-	BigInteger: BigInteger,
-	RSAKey: RSAKey,
-	parseBigInt: parseBigInt
 }

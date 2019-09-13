@@ -258,7 +258,6 @@ type TypeModel = {
 
 type ModelValue = {
 	id: number,
-	name: string,
 	type: ValueTypeEnum,
 	cardinality: CardinalityEnum,
 	final: boolean,
@@ -272,7 +271,7 @@ type ModelAssociation = {
 	refType: string
 }
 
-type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop"
+type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 
 type EnvType = {
 	staticUrl: ?string, // if null the url from the browser is used
@@ -281,8 +280,6 @@ type EnvType = {
 	dist: boolean,
 	versionNumber: string,
 	timeout: number,
-	rootPathPrefix: string,
-	adminTypes: string[],
 	systemConfig: any
 }
 

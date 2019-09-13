@@ -1,5 +1,5 @@
 //@flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {defer, downcast} from "../../../src/api/common/utils/Utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"

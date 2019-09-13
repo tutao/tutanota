@@ -15,7 +15,7 @@ import {loadGroupInfos} from "./LoadingUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
-import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "../subscription/BuyDialog"
@@ -30,6 +30,7 @@ import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {EntityUpdateData} from "../api/main/EventController"
+import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 
 assertMainOrNode()
 

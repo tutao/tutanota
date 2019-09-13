@@ -2,7 +2,6 @@
 import {CryptoError} from "../common/error/CryptoError"
 import {objToError, Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
-import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import type {
@@ -52,14 +51,9 @@ import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
-import {ProgressMonitor} from "../common/utils/ProgressMonitor"
+import {TypeRef} from "../common/utils/EntityUtils";
 
 assertMainOrNode()
-
-
-function requireNodeOnly(path: string) {
-	return require(path)
-}
 
 type Message = {
 	id: string,
@@ -139,19 +133,16 @@ export class WorkerClient implements EntityRestInterface {
 	}
 
 	_initWorker() {
-		if (typeof Worker !== 'undefined') {
-			let worker = null
-			if (env.dist) {
-				worker = new Worker(System.getConfig().baseURL + "WorkerBootstrap.js")
-			} else {
-				let url = System.normalizeSync(typeof module !== "undefined" ? module.id : __moduleName)
-				let workerUrl = url.substring(0, url.lastIndexOf('/')) + '/../worker/WorkerBootstrap.js'
-				worker = new Worker(workerUrl)
-			}
+		if (env.mode !== "Test") {
+			const {prefixWithoutFile} = window.tutao.appState
+			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
+			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
+			// localhost/path/WorkerBootstrap.js respectively.
+			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
+			const workerUrl = prefixWithoutFile + '/worker-bootstrap.js'
+			const worker = new Worker(workerUrl)
 			this._queue = new Queue(worker)
 
-			window.env.systemConfig.baseURL = System.getConfig().baseURL
-			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
 			let start = new Date().getTime()
 			this.initialized = this._queue
 			                       .postMessage(new Request('setup', [
@@ -162,12 +153,12 @@ export class WorkerClient implements EntityRestInterface {
 			worker.onerror = (e: any) => {
 				throw new CryptoError("could not setup worker", e)
 			}
-
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
 			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
-			const workerModule = requireNodeOnly('./../worker/WorkerImpl.js')
-			const workerImpl = new workerModule.WorkerImpl(this, true, client.browserData())
+			// $FlowIssue[cannot-resolve-name] flow doesn't know globalThis
+			const WorkerImpl = globalThis.testWorker
+			const workerImpl = new WorkerImpl(this, true, client.browserData())
 			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
 			this._queue = new Queue(({
 				postMessage: function (msg) {

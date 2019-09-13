@@ -1,5 +1,5 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {htmlSanitizer, PREVENT_EXTERNAL_IMAGE_LOADING_ICON} from "../../../src/misc/HtmlSanitizer"
 
 o.spec("HtmlSanitizerTest", browser(function () {

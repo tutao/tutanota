@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 import type {OtpChallenge} from "./OtpChallenge"
 import type {U2fChallenge} from "./U2fChallenge"
@@ -16,18 +16,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1188,
-			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"type": {
-			"name": "type",
 			"id": 1189,
-			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -36,22 +32,18 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"otp": {
-			"name": "otp",
 			"id": 1247,
-			"since": 24,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "OtpChallenge",
-			"final": true
+			"final": true,
+			"refType": "OtpChallenge"
 		},
 		"u2f": {
-			"name": "u2f",
 			"id": 1190,
-			"since": 23,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
-			"refType": "U2fChallenge",
-			"final": true
+			"final": true,
+			"refType": "U2fChallenge"
 		}
 	},
 	"app": "sys",

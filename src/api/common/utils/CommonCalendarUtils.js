@@ -1,7 +1,7 @@
 // @flow
 import {DAY_IN_MILLIS} from "./DateUtils"
-import {stringToCustomId} from "../EntityFunctions"
 import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
+import {stringToCustomId} from "./EntityUtils";
 
 export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
 

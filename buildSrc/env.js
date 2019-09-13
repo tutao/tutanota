@@ -22,19 +22,21 @@
 // prod desktop dist     | mail.tutanota.com | desktop.html | node -l dist
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
-function create(systemConfig, staticUrl, version, mode, dist, rootPathPrefix, adminTypes) {
+export function create(staticUrl, version, mode, dist) {
 	return {
-		systemConfig,
 		"staticUrl": staticUrl,
 		"mode": mode != null ? mode : "Browser",
 		"versionNumber": version,
 		"dist": dist != null ? dist : false,
 		"timeout": 20000,
-		"rootPathPrefix": rootPathPrefix != null ? rootPathPrefix : "",
-		"adminTypes": adminTypes ? adminTypes : []
 	}
 }
 
-module.exports = {
-	create
+export function preludeEnvPlugin(env) {
+	return {
+		name: "prelude-env",
+		banner() {
+			return `globalThis.env = ${JSON.stringify(env, null, 2)}`
+		}
+	}
 }

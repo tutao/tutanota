@@ -1,5 +1,4 @@
 const Promise = require('bluebird')
-const chalk = require('chalk')
 const path = require('path')
 const fs = Promise.promisifyAll(require("fs-extra"))
 const spawn = require('child_process').spawn
@@ -23,19 +22,19 @@ function signer(args) {
 	//  http://www.startssl.com/timestamp
 
 	if (!certificateFile) {
-		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.error("ERROR: " + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• set WIN_CSC_FILE env var")
 		return Promise.reject(new Error(args.path))
 	}
 
 	if (!hsmPin) {
-		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("ERROR: " + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• set  HSM_USER_PIN env var")
 		return Promise.reject(new Error(args.path))
 	}
 
 	if (!fs.existsSync(command)) {
-		console.log(`  ${chalk.red("• ERROR: ")}"` + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("ERROR: " + args.path.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• install osslsigncode")
 		return Promise.reject(new Error(args.path))
 	}

@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
@@ -14,45 +14,35 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"name": "_format",
 			"id": 642,
-			"since": 5,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"authVerifier": {
-			"name": "authVerifier",
 			"id": 1325,
-			"since": 30,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"reason": {
-			"name": "reason",
 			"id": 644,
-			"since": 5,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"takeoverMailAddress": {
-			"name": "takeoverMailAddress",
 			"id": 1077,
-			"since": 19,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		},
 		"undelete": {
-			"name": "undelete",
 			"id": 643,
-			"since": 5,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
@@ -61,14 +51,11 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"customer": {
-			"name": "customer",
 			"id": 645,
-			"since": 5,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Customer",
 			"final": false,
-			"external": false
+			"refType": "Customer"
 		}
 	},
 	"app": "sys",

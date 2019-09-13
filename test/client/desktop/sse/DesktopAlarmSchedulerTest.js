@@ -1,9 +1,9 @@
 // @flow
-import o from "ospec/ospec.js"
+import o from "ospec"
 import n from '../../nodemocker'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants"
-import {MAX_SAFE_DELAY} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 import {downcast} from "../../../../src/api/common/utils/Utils"
+import {DesktopAlarmScheduler, MAX_SAFE_DELAY, occurrenceIterator} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
 const oldTimezone = process.env.TZ
@@ -11,26 +11,7 @@ const oldTimezone = process.env.TZ
 o.before(() => process.env.TZ = 'Europe/Berlin')
 o.after(() => process.env.TZ = oldTimezone)
 
-o.spec("DesktopAlarmSchedulerTest", () => {
-	n.startGroup({
-		group: __filename, allowables: [
-			"./DesktopConstants", "../DesktopConstants",
-			"../../api/common/TutanotaConstants", "../TutanotaConstants",
-			"./utils/Utils",
-			"./TutanotaError",
-			"../EntityFunctions",
-			"../../api/common/utils/Utils", "./Utils",
-			"./DateUtils",
-			"../../api/common/utils/CommonCalendarUtils",
-			"./utils/Encoding",
-			"../error/CryptoError",
-			"./StringUtils",
-			"./MapUtils",
-			"./utils/ArrayUtils", "../../api/common/utils/ArrayUtils",
-			"./EntityConstants"
-		], timeout: 2000
-	})
-
+o.spec("DesktopAlarmSchedulerTest", function () {
 	const lang = {
 		lang: {get: key => key}
 	}
@@ -82,56 +63,54 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			console.log("show notification!")
 		}
 	}
-	const alarmStorage = {
-		storeScheduledAlarms: () => Promise.resolve(),
-		resolvePushIdentifierSessionKey: () => Promise.resolve({piSk: "piSk", piSkEncSk: "piSkEncSk"}),
-		getScheduledAlarms: () => [
-			{
-				_id: "scheduledAlarmId1",
-				eventStart: new Date('2019-10-08T09:38:14.835Z'),
-				eventEnd: new Date('2019-10-08T09:38:14.900Z'),
-				operation: "0",
-				summary: "summary1",
-				alarmInfo: {
-					_id: "alarmInfoId1",
-					alarmIdentifier: "alarmIdentifier1",
-					trigger: "5M",
-					calendarRef: {
-						_id: "calendarRefId1",
-						elementId: "calendarRefElementId1",
-						listId: "calendarRefListId1"
-					}
-				},
-				notificationSessionKeys: [
-					{
-						_id: "notificationSessionKeysId1",
-						pushIdentifierSessionEncSessionKey: "pushIdentifierSessionEncSessionKey1",
-						pushIdentifier: [
-							"pushIdentifierPart1",
-							"pushIdentifierPart2"
-						]
-					}
-				],
-				repeatRule: null,
-				user: "userId1"
-			}
-		]
-	}
-
 	const standardMocks = () => {
 		// node modules
 
 		// our modules
-		const langMock = n.mock("../../misc/LanguageViewModel", lang).set()
-		const alarmNotificationMock = n.mock("../../api/entities/sys/AlarmNotification", alarmNotification).set()
-		const cryptoMock = n.mock('../DesktopCryptoFacade', crypto).set()
+		const langMock = n.mock("__lang", lang).set()
+		const alarmNotificationMock = n.mock("__alarmNotification", alarmNotification).set()
+		const cryptoMock = n.mock('__crypto', crypto).set()
 
 		// instances
 		const wmMock = n.mock('__wm', wm).set()
 		const notifierMock = n.mock("__notifier", notifier).set()
-		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).with({
-			getScheduledAlarms: () => []
-		}).set()
+
+		const alarmStorage = {
+			storeScheduledAlarms: () => Promise.resolve(),
+			resolvePushIdentifierSessionKey: () => Promise.resolve({piSk: "piSk", piSkEncSk: "piSkEncSk"}),
+			getScheduledAlarms: () => [
+				{
+					_id: "scheduledAlarmId1",
+					eventStart: new Date('2019-10-08T09:38:14.835Z'),
+					eventEnd: new Date('2019-10-08T09:38:14.900Z'),
+					operation: "0",
+					summary: "summary1",
+					alarmInfo: {
+						_id: "alarmInfoId1",
+						alarmIdentifier: "alarmIdentifier1",
+						trigger: "5M",
+						calendarRef: {
+							_id: "calendarRefId1",
+							elementId: "calendarRefElementId1",
+							listId: "calendarRefListId1"
+						}
+					},
+					notificationSessionKeys: [
+						{
+							_id: "notificationSessionKeysId1",
+							pushIdentifierSessionEncSessionKey: "pushIdentifierSessionEncSessionKey1",
+							pushIdentifier: [
+								"pushIdentifierPart1",
+								"pushIdentifierPart2"
+							]
+						}
+					],
+					repeatRule: null,
+					user: "userId1"
+				}
+			]
+		}
+		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).set()
 
 		return {
 			langMock,
@@ -143,31 +122,28 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 		}
 	}
 
-	o("init, retrieve stored alarms, deletion of outdated alarms", done => {
-		const {wmMock, notifierMock, cryptoMock} = standardMocks()
-		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).set()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+	o("init, retrieve stored alarms, deletion of outdated alarms", async function () {
+		const {wmMock, notifierMock, cryptoMock, alarmStorageMock} = standardMocks()
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
-		o(alarmStorageMock.getScheduledAlarms.callCount).equals(1)
-		setTimeout(() => {
-			o(alarmStorageMock.storeScheduledAlarms.callCount).equals(1)
-			o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
-			o(alarmStorageMock.storeScheduledAlarms.args[0]).deepEquals({})
+		await scheduler.rescheduleAll()
 
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(alarmStorageMock.storeScheduledAlarms.callCount).equals(1)
+		o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
+		o(alarmStorageMock.storeScheduledAlarms.args[0]).deepEquals({})
 
-			o(timeProviderMock.setTimeout.callCount).equals(0)
-			done()
-		}, 10)
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
+
+		o(timeProviderMock.setTimeout.callCount).equals(0)
 	})
 
-	o("schedule at most MAX_OCCURRENCES alarms", done => {
+	o("schedule at most MAX_OCCURRENCES alarms", async function () {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+		alarmStorageMock.getScheduledAlarms = () => []
 		const timeProviderMock = new timeProvider(Infinity, 30)
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
+		o(alarmStorageMock.storeScheduledAlarms.callCount).equals(0)
 
 		const an = createAlarmNotification({
 			startTime: new Date(2019, 9, 20, 10),
@@ -180,35 +156,29 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 		})
 		const delAn = createDeleteAlarmNotification(an.alarmInfo.alarmIdentifier)
 
-		scheduler.handleAlarmNotification(an)
+		await scheduler.handleAlarmNotification(an)
 
-		setTimeout(() => {
-			o(alarmStorageMock.storeScheduledAlarms.callCount).equals(1)
-			o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
-			o(alarmStorageMock.storeScheduledAlarms.args[0][an.alarmInfo.alarmIdentifier].an).deepEquals(an)
+		o(alarmStorageMock.storeScheduledAlarms.callCount).equals(1)
+		o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
+		o(alarmStorageMock.storeScheduledAlarms.args[0][an.alarmInfo.alarmIdentifier].an).deepEquals(an)
 
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
 
-			o(timeProviderMock.setTimeout.callCount).equals(10)
+		o(timeProviderMock.setTimeout.callCount).equals(10)
 
-			scheduler.handleAlarmNotification(delAn)
-		}, 10)
+		await scheduler.handleAlarmNotification(delAn)
 
-		setTimeout(() => {
-			o(alarmStorageMock.storeScheduledAlarms.callCount).equals(2)
-			o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
-			o(alarmStorageMock.storeScheduledAlarms.args[0]).deepEquals({})
+		o(alarmStorageMock.storeScheduledAlarms.callCount).equals(2)
+		o(alarmStorageMock.storeScheduledAlarms.args.length).equals(1)
+		o(alarmStorageMock.storeScheduledAlarms.args[0]).deepEquals({})
 
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
-			o(timeProviderMock.setTimeout.callCount).equals(10)
-			o(timeProviderMock.clearTimeout.callCount).equals(10)
-			done()
-		}, 20)
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(timeProviderMock.setTimeout.callCount).equals(10)
+		o(timeProviderMock.clearTimeout.callCount).equals(10)
 	})
 
-	o("schedule intermediate timeout for events too far in the future", done => {
+	o("schedule intermediate timeout for events too far in the future", async function () {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
@@ -217,17 +187,14 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			endTime: new Date(2020, 9, 20, 12),
 			trigger: "5M"
 		})
-		scheduler.handleAlarmNotification(an)
-		setTimeout(() => {
-			o(timeProviderMock.setTimeout.callCount).equals(1)
-			o(timeProviderMock.timeouts[0].when).equals(START_DATE + MAX_SAFE_DELAY)
-			done()
-		}, 10)
+		await scheduler.handleAlarmNotification(an)
+		o(timeProviderMock.setTimeout.callCount).equals(1)
+		o(timeProviderMock.timeouts[0].when).equals(START_DATE + MAX_SAFE_DELAY)
 	})
 
-	o("don't schedule alarms for occurrences in the past", done => {
+	o("don't schedule alarms for occurrences in the past", async function () {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
@@ -236,16 +203,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			endTime: new Date(2017, 9, 20, 12),
 			trigger: "5M"
 		})
-		scheduler.handleAlarmNotification(an)
-		setTimeout(() => {
-			o(timeProviderMock.setTimeout.callCount).equals(0)
-			done()
-		}, 10)
+		await scheduler.handleAlarmNotification(an)
+		o(timeProviderMock.setTimeout.callCount).equals(0)
 	})
 
-	o("show notification for alarm and reschedule next occurrence", done => {
+	o("show notification for alarm and reschedule next occurrence", async function () {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
@@ -258,23 +222,20 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.ANNUALLY,
 			interval: '1'
 		})
-		scheduler.handleAlarmNotification(an)
+		await scheduler.handleAlarmNotification(an)
 
-		setTimeout(() => {
-			const notifyTime = mkDate('Oct 20 2019 09:55').getTime()
-			timeProviderMock.tickOnce()
-			o(timeProviderMock.setTimeout.callCount).equals(2)
-			o(timeProviderMock.clearTimeout.callCount).equals(1)
-			o(timeProviderMock.executedTimeouts[0].when).equals(notifyTime)
-			o(timeProviderMock.timeouts.length).equals(1)
-			o(timeProviderMock.timeouts[0].when).equals(notifyTime + MAX_SAFE_DELAY)
-			done()
-		}, 10)
+		const notifyTime = mkDate('Oct 20 2019 09:55').getTime()
+		timeProviderMock.tickOnce()
+		o(timeProviderMock.setTimeout.callCount).equals(2)
+		o(timeProviderMock.clearTimeout.callCount).equals(1)
+		o(timeProviderMock.executedTimeouts[0].when).equals(notifyTime)
+		o(timeProviderMock.timeouts.length).equals(1)
+		o(timeProviderMock.timeouts[0].when).equals(notifyTime + MAX_SAFE_DELAY)
 	})
 
-	o("handle multiple events", done => {
+	o("handle multiple events", async function () {
 		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
-		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
+
 		const timeProviderMock = new timeProvider()
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
@@ -299,28 +260,19 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 		})
 
 		const an3 = createDeleteAlarmNotification(an1.alarmInfo.alarmIdentifier)
-		scheduler.handleAlarmNotification(an1)
-		setTimeout(() => {
-			scheduler.handleAlarmNotification(an2)
-		}, 10)
+		await scheduler.handleAlarmNotification(an1)
+		await scheduler.handleAlarmNotification(an2)
 
-		setTimeout(() => {
-			o(timeProviderMock.setTimeout.callCount).equals(2)
-			scheduler.handleAlarmNotification(an3)
-		}, 20)
+		o(timeProviderMock.setTimeout.callCount).equals(2)
+		await scheduler.handleAlarmNotification(an3)
 
-		setTimeout(() => {
-			o(timeProviderMock.setTimeout.callCount).equals(2)
-			o(timeProviderMock.clearTimeout.callCount).equals(1)
-			o(timeProviderMock.clearTimeout.args[0]).equals(1)
-			done()
-		}, 30)
-
+		o(timeProviderMock.setTimeout.callCount).equals(2)
+		o(timeProviderMock.clearTimeout.callCount).equals(1)
+		o(timeProviderMock.clearTimeout.args[0]).equals(1)
 	})
 
-	o("alarm occurrences", () => {
+	o("alarm occurrences", function () {
 		standardMocks()
-		const {occurrenceIterator} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 
 		// test EndType.Count
 		testOccurrenceArray(occurrenceIterator, {
