@@ -344,10 +344,13 @@ export class MailViewer {
 
 						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
 							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
-								onclick: (event: MouseEvent) => {
+								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
-									} else {
+									}
+								},
+								onclick: (event: MouseEvent) => {
+									if (!client.isMobileDevice()) {
 										this._handleAnchorClick(event)
 									}
 								},
@@ -900,9 +903,9 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-					          .then(() => {
-						          mailEditor.show()
-					          })
+							  .then(() => {
+								  mailEditor.show()
+							  })
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
@@ -981,11 +984,11 @@ export class MailViewer {
 					() => [
 						new Button("open_action",
 							() => fileController.downloadAndOpen(file, true)
-							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown),
 						new Button("download_action",
 							() => fileController.downloadAndOpen(file, false)
-							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
@@ -1022,11 +1025,12 @@ export class MailViewer {
 	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
 		const lastClick = this._lastBodyClickTime
 		const now = Date.now()
+		console.log("click", "synthetic", e.synthetic, "now", now, "lastClick", lastClick, "now - lastClick", now - lastClick)
 		if (e.synthetic) {
 			return
 		}
 		e.preventDefault()
-		if (Date.now() - lastClick < 200) {
+		if (now - lastClick < 200) {
 			this._isScaling = !this._isScaling
 			this._lastBodyClickTime = 0
 			;(e: any).redraw = false
