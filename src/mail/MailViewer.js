@@ -366,7 +366,8 @@ export class MailViewer {
 						]),
 
 						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
-							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay")
+							+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
@@ -378,8 +379,7 @@ export class MailViewer {
 									}
 								},
 							},
-							m("#mail-body.selectable.touch-callout.break-word-links"
-								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
+							m("#mail-body.selectable.touch-callout.break-word-links", {
 								oncreate: vnode => {
 									this._domBodyDeferred.resolve(vnode.dom)
 									this._updateLineHeight()
