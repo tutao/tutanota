@@ -6,7 +6,14 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
+import {
+	formatDateTime,
+	formatDateWithWeekday,
+	formatStorageSize,
+	formatTime,
+	getDomainWithoutSubdomains,
+	urlEncodeHtmlTags
+} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -362,12 +369,12 @@ export class MailViewer {
 							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
-										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
+										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
 									}
 								},
 								onclick: (event: MouseEvent) => {
 									if (!client.isMobileDevice()) {
-										this._handleAnchorClick(event)
+										this._handleAnchorClick(event, false)
 									}
 								},
 							},
@@ -910,7 +917,7 @@ export class MailViewer {
 		}
 	}
 
-	_handleAnchorClick(event: Event): void {
+	_handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
 		let target = (event.target: any)
 		if (target && target.closest) {
 			let anchorElement = target.closest("a")
@@ -919,9 +926,9 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-							  .then(() => {
-								  mailEditor.show()
-							  })
+					          .then(() => {
+						          mailEditor.show()
+					          })
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
@@ -931,7 +938,7 @@ export class MailViewer {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
-			} else if (anchorElement) {
+			} else if (anchorElement && shouldDispatchSyntheticClick) {
 				let newClickEvent: MaybeSyntheticEvent = new MouseEvent("click")
 				newClickEvent.synthetic = true
 				anchorElement.dispatchEvent(newClickEvent)
@@ -1000,11 +1007,11 @@ export class MailViewer {
 					() => [
 						new Button("open_action",
 							() => fileController.downloadAndOpen(file, true)
-												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown),
 						new Button("download_action",
 							() => fileController.downloadAndOpen(file, false)
-												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							                    .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
