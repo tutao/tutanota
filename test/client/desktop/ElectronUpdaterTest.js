@@ -217,7 +217,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
 		const upd = new ElectronUpdater(confMock, notifierMock)
 
-		o(autoUpdaterMock.on.callCount).equals(4)
+		o(autoUpdaterMock.on.callCount).equals(5)
 		o(autoUpdaterMock.logger).equals(null)
 
 		upd.start()
