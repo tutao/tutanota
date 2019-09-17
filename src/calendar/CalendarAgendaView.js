@@ -28,7 +28,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		const now = new Date()
 
 		const today = getStartOfDay(now)
-		const tomorrow = incrementDate(new Date(today), 1).getTime()
+		const tomorrow = incrementDate(new Date(today), 1)
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)
 		let title: string
@@ -53,18 +53,19 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 						: null,
 				]),
 				m(".scroll.pt-s", days
-					.map((day) => {
-						let events = (attrs.eventsForDays.get(day.getTime()) || []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
+					.map((day: Date) => {
+						let events = (attrs.eventsForDays.get(day.getTime())
+							|| []).filter((e) => !attrs.hiddenCalendars.has(neverNull(e._ownerGroup)))
 						if (day === today) {
 							// only show future and currently running events
 							events = events.filter(ev => isAllDayEvent(ev) || now < ev.endTime)
-						} else if (day > tomorrow && events.length === 0) {
+						} else if (day.getTime() > tomorrow.getTime() && events.length === 0) {
 							return null
 						}
 
-						const dateDescription = day === today
+						const dateDescription = day.getTime() === today.getTime()
 							? lang.get("today_label")
-							: day === tomorrow
+							: day.getTime() === tomorrow.getTime()
 								? lang.get("tomorrow_label")
 								: formatDateWithWeekday(day)
 						return m(".flex.mlr-l.calendar-agenda-row.mb-s.col", {
