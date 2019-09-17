@@ -1,6 +1,6 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
+import {getAllDayDateLocal, getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
 import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
@@ -8,7 +8,7 @@ import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {getEventEnd, getEventStart, isAllDayEvent, isAllDayEventByTimes, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -50,7 +50,8 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 	}
 }
 
-export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
+export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                         timeZone: string) {
 	const repeatRule = event.repeatRule
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
@@ -70,7 +71,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	} else if (repeatRule.endType === EndType.UntilDate) {
 		// See CalendarEventDialog for an explanation why it's needed
 		if (allDay) {
-			repeatEndTime = getAllDayDateLocal(new Date(Number(repeatRule.endValue)))
+			repeatEndTime = getAllDayDateLocal(new Date(Number(repeatRule.endValue)), timeZone)
 		} else {
 			repeatEndTime = new Date(Number(repeatRule.endValue))
 		}
@@ -171,15 +172,16 @@ export function iterateEventOccurrences(
 	let futureOccurrences = 0
 
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
-	const calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart) : eventStart
+	const calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart, localTimeZone) : eventStart
 	const endDate = endType === EndType.UntilDate
 		? isAllDayEvent
-			? getAllDayDateLocal(new Date(endValue))
+			? getAllDayDateLocal(new Date(endValue), localTimeZone)
 			: new Date(endValue)
 		: null
 
 	while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && (endType !== EndType.Count || occurrences < endValue)) {
-		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval * occurrences, isAllDayEvent ? localTimeZone : timeZone);
+		const occurrenceDate = incrementByRepeatPeriod(calcEventStart, frequency, interval
+			* occurrences, isAllDayEvent ? localTimeZone : timeZone);
 
 		if (endDate && occurrenceDate.getTime() >= endDate.getTime()) {
 			break;
