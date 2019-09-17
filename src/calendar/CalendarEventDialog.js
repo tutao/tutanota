@@ -165,9 +165,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	stream.scan((oldStartDate, startDate) => {
 		const endDate = endDatePicker.date()
 		if (startDate && endDate) {
-			const diff = oldStartDate ? getDiffInDays(endDate, oldStartDate) : 1
+			const diff = getDiffInDays(endDate, neverNull(oldStartDate))
 			endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
-			fixTime()
 		}
 		return startDate
 	}, startDatePicker.date(), startDatePicker.date)
@@ -196,10 +195,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 		const endTotalMinutes = parsedEndTime.hours * 60 + parsedEndTime.minutes
 		const startTotalMinutes = parsedStartTime.hours * 60 + parsedStartTime.minutes
-		const diff = endTotalMinutes - parsedOldStartTime.hours * 60 - parsedOldStartTime.minutes
+		const diff = Math.abs(endTotalMinutes - parsedOldStartTime.hours * 60 - parsedOldStartTime.minutes)
 		const newEndTotalMinutes = startTotalMinutes + diff
 		let newEndHours = Math.floor(newEndTotalMinutes / 60)
-		if (newEndHours > 23) newEndHours = 23
+		if (newEndHours > 23) {
+			newEndHours = 23
+		}
 		const newEndMinutes = newEndTotalMinutes % 60
 		endTime(timeStringFromParts(newEndHours, newEndMinutes, amPmFormat))
 		m.redraw()

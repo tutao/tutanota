@@ -52,9 +52,13 @@ export class CalendarWeekView implements MComponent<Attrs> {
 	_redrawIntervalId: ?IntervalID;
 	_longEventsDom: ?HTMLElement;
 	_domElements: HTMLElement[] = [];
+	_scrollPosition: number;
+
+	constructor() {
+		this._scrollPosition = size.calendar_hour_height * 6
+	}
 
 	view(vnode: Vnode<Attrs>) {
-
 		const previousWeek = getCalendarWeek(incrementDate(new Date(vnode.attrs.selectedDate), -7), vnode.attrs.startOfTheWeek)
 		const currentWeek = getCalendarWeek(vnode.attrs.selectedDate, vnode.attrs.startOfTheWeek)
 		const nextWeek = getCalendarWeek(incrementDate(new Date(vnode.attrs.selectedDate), +7), vnode.attrs.startOfTheWeek)
@@ -143,7 +147,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			}),
 			m(".flex.scroll", {
 				oncreate: (vnode) => {
-					vnode.dom.scrollTop = size.calendar_hour_height * 6
+					vnode.dom.scrollTop = this._scrollPosition
 					this._domElements.push(vnode.dom)
 				},
 				onscroll: (event) => {
@@ -153,6 +157,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 								dom.scrollTop = event.target.scrollTop
 							}
 						})
+						this._scrollPosition = event.target.scrollTop
 					}
 				},
 			}, [

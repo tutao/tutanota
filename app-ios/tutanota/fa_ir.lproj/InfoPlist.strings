@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "هیچ دسترسی";
 TutaoChangePermissionMsg = "برای دادن دسترسی شما باید مجوزها را برای این دستگاه ویرایش کنید.";
 TutaoCancelAction = "لغو";
 TutaoSettingsAction = "تنظیمات";
+TutaoCalendarAlarmTitle = "یادآور";

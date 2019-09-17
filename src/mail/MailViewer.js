@@ -6,14 +6,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {
-	formatDateTime,
-	formatDateWithWeekday,
-	formatStorageSize,
-	formatTime,
-	getDomainWithoutSubdomains,
-	urlEncodeHtmlTags
-} from "../misc/Formatter"
+import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, getDomainWithoutSubdomains, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -349,18 +342,21 @@ export class MailViewer {
 							m("hr.hr.mt"),
 						]),
 
-						m(".rel.margin-are-inset-lr.scroll-x.plr-l", {
-								onclick: (event: MouseEvent) => {
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
+							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e), () => this._rescale(true))
-									} else {
+									}
+								},
+								onclick: (event: MouseEvent) => {
+									if (!client.isMobileDevice()) {
 										this._handleAnchorClick(event)
 									}
 								},
 							},
 							m("#mail-body.selectable.touch-callout.break-word-links"
-								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " ")
-								+ (client.isMobileDevice() ? "" : ".scroll-no-overlay"), {
+								+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
 								oncreate: vnode => {
 									this._domBodyDeferred.resolve(vnode.dom)
 									this._updateLineHeight()
@@ -567,37 +563,29 @@ export class MailViewer {
 	}
 
 	_rescale(animate: boolean) {
-		if (!this._domBodyDeferred.promise.isFulfilled()) {
+		if (!client.isMobileDevice() || !this._domBodyDeferred.promise.isFulfilled()) {
 			return
 		}
-		const containerWidth = this._domMailViewer ? this._domMailViewer.scrollWidth : -1
 		const child = this._domBodyDeferred.promise.value()
-		if (containerWidth > (child.scrollWidth)) {
-			return
-		}
-		// parent container has left and right padding. to calculate the correct scalling we have to add two paddings for calculation
-		// nested elements inside childs may overlow into the padding so we add another one.
-		const width = child.scrollWidth + 3 * size.hpad_large
-
-		const scale = containerWidth / width
+		const containerWidth = child.offsetWidth
 		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
 		// if(this._domMailViewer){
 		// 	const domContainer = this._domMailViewer
 		// 	console.log("container clientWidth", domContainer.clientWidth, "scrollWidth", domContainer.scrollWidth, "offsetWidth", domContainer.offsetWidth )
 		// }
 
-		if (!this._isScaling) {
+		if (!this._isScaling || containerWidth > child.scrollWidth) {
 			child.style.transform = ''
 			child.style.marginBottom = ''
 		} else {
+			const width = child.scrollWidth
+			const scale = containerWidth / width
 			const heightDiff = child.scrollHeight - child.scrollHeight * scale
 			child.style.transform = `scale(${scale})`
 			child.style.marginBottom = `${-heightDiff}px`
 		}
 
-		if (animate) {
-			child.style.transition = 'transform 200ms ease-in-out'
-		}
+		child.style.transition = animate ? 'transform 200ms ease-in-out' : ''
 	}
 
 	_setupShortcuts() {
@@ -694,11 +682,13 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				if (defaultInboxRuleField && !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+				if (defaultInboxRuleField
+					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
 					&& !logins.getUserController().isOutlookAccount()
 					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addInboxRule_action", () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail),
+							neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
@@ -913,13 +903,15 @@ export class MailViewer {
 				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-					          .then(() => {
-						          mailEditor.show()
-					          })
+							  .then(() => {
+								  mailEditor.show()
+							  })
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
-			else if (anchorElement && isTutanotaTeamMail(this.mail) && startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+			else if (anchorElement
+				&& isTutanotaTeamMail(this.mail)
+				&& startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
@@ -991,10 +983,12 @@ export class MailViewer {
 					() => Icons.Attachment,
 					() => [
 						new Button("open_action",
-							() => fileController.downloadAndOpen(file, true).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, true)
+												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown),
 						new Button("download_action",
-							() => fileController.downloadAndOpen(file, false).catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
+							() => fileController.downloadAndOpen(file, false)
+												.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg")),
 							null).setType(ButtonType.Dropdown)
 					], 200, () => {
 						// Bubble buttons use border so dropdown is misaligned by default
@@ -1031,11 +1025,12 @@ export class MailViewer {
 	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
 		const lastClick = this._lastBodyClickTime
 		const now = Date.now()
+		console.log("click", "synthetic", e.synthetic, "now", now, "lastClick", lastClick, "now - lastClick", now - lastClick)
 		if (e.synthetic) {
 			return
 		}
 		e.preventDefault()
-		if (Date.now() - lastClick < 200) {
+		if (now - lastClick < 200) {
 			this._isScaling = !this._isScaling
 			this._lastBodyClickTime = 0
 			;(e: any).redraw = false
