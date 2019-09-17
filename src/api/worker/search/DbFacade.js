@@ -41,7 +41,7 @@ export interface DbTransaction {
 }
 
 
-function extractErrorProperties(e: any) {
+function extractErrorProperties(e: any): string {
 	const requestErrorEntries = {}
 	for (let key in e) {
 		requestErrorEntries[key] = e[key]
@@ -322,19 +322,27 @@ export class IndexedDbTransaction implements DbTransaction {
 		return this._promise
 	}
 
-	_handleDbError(event: any, target: ?any, prefix: string, callback: (e: any) => mixed) {
+	_handleDbError(event: any, customTarget: ?any, prefix: string, callback: (e: any) => mixed) {
 		const errorEntries = extractErrorProperties(event)
+
+		const eventTargetEntries = event.target ? extractErrorProperties(event.target) : '<null>'
+		const eventTargetErrorEntries = event.target && event.target.error ? extractErrorProperties(event.target.error) : '<null>'
+		const customTargetEntries = customTarget ? extractErrorProperties(customTarget) : '<null>'
+		const customTargetErrorEntries = customTarget && customTarget.error ? extractErrorProperties(customTarget.error) : '<null>'
+
 		const msg = "IndexedDbTransaction " + prefix
 			+ "\nOSes: " + JSON.stringify((this._transaction: any).objectStoreNames) +
 			"\nevent:" + errorEntries +
 			"\ntransaction.error: " + (this._transaction.error ? this._transaction.error.message : '<null>') +
-			"\nevent.target.error: " + (target && target.error ? target.error.message : '<null>') +
-			"\nevent.target.error.name: " + (target && target.error ? target.error.name : '<null>')
+			"\nevent.target: " + eventTargetEntries +
+			"\nevent.target.error: " + eventTargetErrorEntries +
+			"\ncustom.target: " + customTargetEntries +
+			"\ncustom.target.error: " + customTargetErrorEntries
 
-		if (target && target.error
-			&& (target.error.name === "UnknownError"
-				|| (typeof target.error.message === "string" && target.error.message.includes("UnknownError")))) {
-			this._onUnknownError(target.error)
+		if (customTarget && customTarget.error
+			&& (customTarget.error.name === "UnknownError"
+				|| (typeof customTarget.error.message === "string" && customTarget.error.message.includes("UnknownError")))) {
+			this._onUnknownError(customTarget.error)
 			callback(new IndexingNotSupportedError(msg, this._transaction.error))
 		} else {
 			callback(new DbError(msg, this._transaction.error))
