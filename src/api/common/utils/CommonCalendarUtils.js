@@ -1,12 +1,9 @@
 // @flow
 import {DAY_IN_MILLIS} from "./DateUtils"
 import {stringToCustomId} from "../EntityFunctions"
+import {getAllDayDateLocal, getTimeZone} from "../../../calendar/CalendarUtils"
 
 export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS
-
-export function getAllDayDateLocal(utcDate: Date): Date {
-	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 0, 0, 0, 0)
-}
 
 
 export function isAllDayEvent({startTime, endTime}: CalendarEvent): boolean {
@@ -38,7 +35,7 @@ export function getEventElementMinId(timestamp: number): string {
 
 export function getEventEnd(event: CalendarEvent): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.endTime)
+		return getAllDayDateLocal(event.endTime, getTimeZone())
 	} else {
 		return event.endTime
 	}
@@ -46,7 +43,7 @@ export function getEventEnd(event: CalendarEvent): Date {
 
 export function getEventStart(event: CalendarEvent): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.startTime)
+		return getAllDayDateLocal(event.startTime, getTimeZone())
 	} else {
 		return event.startTime
 	}

@@ -19,7 +19,7 @@ import {defaultCalendarColor, GroupType, OperationType, reverse, TimeFormat} fro
 import {locator} from "../api/main/MainLocator"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getCalendarName, getMonth, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
+import {getCalendarName, getMonth, getTimeZone, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -619,7 +619,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		addDaysForRecurringEvent(this._eventsForDays, event, month)
+		addDaysForRecurringEvent(this._eventsForDays, event, month, getTimeZone())
 	}
 
 	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {

@@ -22,6 +22,7 @@ import {ParserError} from "../misc/parsing"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {incrementDate} from "../api/common/utils/DateUtils"
+import {DateTime} from "luxon"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
@@ -148,7 +149,7 @@ export function serializeCalendar(versionNumber: string, events: Array<{event: C
 	return value.join("\r\n")
 }
 
-function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean) {
+function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean, localTimeZone: string) {
 	if (repeatRule) {
 		let endType = ""
 		if (repeatRule.endType === EndType.Count) {
@@ -178,7 +179,9 @@ function serializeRepeatRule(repeatRule: ?RepeatRule, isAllDayEvent: boolean) {
 			// We also differ in a way that we define end as exclusive (because it's so
 			// hard to find anything in this RFC).
 			const date = new Date(Number(repeatRule.endValue))
-			const value = isAllDayEvent ? formatDate(incrementDate(date, -1)) : formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
+			const value = isAllDayEvent
+				? formatDate(incrementDate(date, -1), localTimeZone)
+				: formatDateTimeUTC(new Date(date.getTime() - SECOND_MS))
 			endType = `;UNTIL=${value}`
 		}
 		return [
@@ -224,16 +227,16 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 	]
 }
 
-export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date()): Array<string> {
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date(), timeZone: string = getTimeZone()): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	let dateStart, dateEnd
 	if (isAllDay) {
-		dateStart = `DTSTART:${formatDate(event.startTime)}`
-		dateEnd = `DTEND:${formatDate(event.endTime)}`
+		dateStart = `DTSTART:${formatDate(event.startTime, timeZone)}`
+		dateEnd = `DTEND:${formatDate(event.endTime, timeZone)}`
 	} else if (repeatRule) {
-		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime)}`
-		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime)}`
+		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime, repeatRule.timeZone)}`
+		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime, repeatRule.timeZone)}`
 	} else {
 		dateStart = `DTSTART:${formatDateTimeUTC(event.startTime)}`
 		dateEnd = `DTEND:${formatDateTimeUTC(event.endTime)}`
@@ -247,7 +250,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])
-		.concat(serializeRepeatRule(repeatRule, isAllDay))
+		.concat(serializeRepeatRule(repeatRule, isAllDay, timeZone))
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${escapeSemicolons(event.location)}` : [])
 		.concat(...alarms.map((alarm) => serializeAlarm(event, alarm)))
 		.concat("END:VEVENT")
@@ -261,16 +264,19 @@ function pad2(number) {
 	return pad(number, 2)
 }
 
-export function formatDateTime(date: Date): string {
-	return `${date.getFullYear()}${pad2(date.getMonth()
-		+ 1)}${pad2(date.getDate())}T${pad2(date.getHours())}${pad2(date.getMinutes())}${pad2(date.getSeconds())}`
+export function formatDateTime(date: Date, timeZone: string): string {
+	const dateTime = DateTime.fromJSDate(date, {zone: timeZone})
+	return `${dateTime.year}${
+		pad2(dateTime.month)}${pad2(dateTime.day)}T${pad2(dateTime.hour)}${pad2(dateTime.minute)}${pad2(dateTime.second)}`
 }
 
 export function formatDateTimeUTC(date: Date): string {
-	return `${date.getUTCFullYear()}${pad2(date.getUTCMonth()
-		+ 1)}${pad2(date.getUTCDate())}T${pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(date.getUTCSeconds())}Z`
+	return `${date.getUTCFullYear()}${
+		pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}T${
+		pad2(date.getUTCHours())}${pad2(date.getUTCMinutes())}${pad2(date.getUTCSeconds())}Z`
 }
 
-export function formatDate(date: Date): string {
-	return `${date.getFullYear()}${pad2(date.getMonth() + 1)}${pad2(date.getDate())}`
+export function formatDate(date: Date, timeZone: string): string {
+	const dateTime = DateTime.fromJSDate(date, {zone: timeZone})
+	return `${dateTime.year}${pad2(dateTime.month)}${pad2(dateTime.day)}`
 }

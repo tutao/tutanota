@@ -119,7 +119,7 @@ o.spec("CalendarImporterTest", function () {
 						frequency: RepeatPeriod.WEEKLY,
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART;TZID=${zone}:20190813T050600`,
@@ -146,7 +146,7 @@ o.spec("CalendarImporterTest", function () {
 						endValue: "100",
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART;TZID=${zone}:20190813T050600`,
@@ -173,7 +173,7 @@ o.spec("CalendarImporterTest", function () {
 						endValue: String(DateTime.fromObject({year: 2019, month: 9, day: 20, zone}).toMillis()),
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART;TZID=${zone}:20190813T050600`,
@@ -191,17 +191,17 @@ o.spec("CalendarImporterTest", function () {
 					_id: ["123", "456"],
 					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
-					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13, zone}).toJSDate()),
-					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15, zone}).toJSDate()),
+					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13}).toJSDate()),
+					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15}).toJSDate()),
 					repeatRule: createRepeatRule({
 						endType: EndType.UntilDate,
 						interval: "3",
 						frequency: RepeatPeriod.MONTHLY,
 						// Beginning of 20th will be displayed to the user as 19th
-						endValue: String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 9, day: 20, zone}).toJSDate()).getTime()),
+						endValue: String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 9, day: 20}).toJSDate()).getTime()),
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART:20190813`,

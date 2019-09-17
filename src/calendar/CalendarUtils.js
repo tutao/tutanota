@@ -6,7 +6,7 @@ import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/commo
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {getAllDayDateLocal, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
 import {formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
@@ -244,7 +244,7 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 	let columns: Array<Array<CalendarEvent>> = []
 	const children = []
 	events.forEach((e) => {
-		const calcEvent = getCalculatioEvent(e, handleAsAllDay)
+		const calcEvent = getCalculationEvent(e, handleAsAllDay)
 
 		// Check if a new event group needs to be started
 		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
@@ -260,7 +260,7 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 		let placed = false
 		for (let i = 0; i < columns.length; i++) {
 			var col = columns[i]
-			const lastEvent = getCalculatioEvent(col[col.length - 1], handleAsAllDay)
+			const lastEvent = getCalculationEvent(col[col.length - 1], handleAsAllDay)
 			if (!collidesWith(lastEvent, calcEvent)) {
 				col.push(e) // push real event here not calc event
 				placed = true
@@ -284,12 +284,18 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 	return children
 }
 
-function getCalculatioEvent(event: CalendarEvent, handleAsAllDay: boolean): CalendarEvent {
+export function getAllDayDateLocal(utcDate: Date, timeZone: string): Date {
+	return DateTime.fromObject({year: utcDate.getUTCFullYear(), month: utcDate.getUTCMonth() + 1, day: utcDate.getDate(), zone: timeZone})
+	               .toJSDate()
+}
+
+function getCalculationEvent(event: CalendarEvent, handleAsAllDay: boolean): CalendarEvent {
+	const timeZone = getTimeZone()
 	if (handleAsAllDay) {
 		const calcDate = clone(event)
 		if (isAllDayEvent(event)) {
-			calcDate.startTime = getAllDayDateLocal(event.startTime)
-			calcDate.endTime = getAllDayDateLocal(event.endTime)
+			calcDate.startTime = getAllDayDateLocal(event.startTime, timeZone)
+			calcDate.endTime = getAllDayDateLocal(event.endTime, timeZone)
 		} else {
 			calcDate.startTime = getStartOfDay(event.startTime)
 			calcDate.endTime = getStartOfNextDay(event.endTime)
