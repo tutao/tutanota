@@ -219,7 +219,7 @@ o.spec("CalendarImporterTest", function () {
 	o("importer", function () {
 		o(parseCalendarStringData([
 				"BEGIN:VCALENDAR",
-				"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
 				"VERSION:2.0",
 				"CALSCALE:GREGORIAN",
 				"METHOD:PUBLISH",

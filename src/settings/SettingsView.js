@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ViewSlider} from "../gui/base/ViewSlider"
@@ -41,10 +41,7 @@ import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import {Dialog} from "../gui/base/Dialog"
-import {ButtonN} from "../gui/base/ButtonN"
-import {getDeviceLogs} from "../native/SystemApp"
-import {MailEditor} from "../mail/MailEditor"
-import {mailModel} from "../mail/MailModel"
+import {AboutDialog} from "./AboutDialog"
 
 assertMainOrNode()
 
@@ -265,62 +262,32 @@ export class SettingsView implements CurrentView {
 	}
 
 	_aboutThisSoftwareLink(): Vnode<any> {
-		const pltf = isAndroidApp()
-			? 'android-'
-			: isIOSApp()
-				? 'ios-'
-				: ''
-		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
 		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
-			m("a.text-center.small.no-text-decoration", {
+			m("button.text-center.small.no-text-decoration", {
+					style: {
+						// color: "transparent",
+						backgroundColor: "transparent",
+					},
 					href: '#',
 					onclick: () => {
-						const dialog = Dialog.largeDialog({
-							right: [
-								{
-									label: "ok_action",
-									click: () => dialog.close(),
-									type: ButtonType.Secondary
-								}
-							]
-						}, AboutDialog).show()
+						this.viewSlider.focusNextColumn()
+						setTimeout(() => {
+							Dialog.showActionDialog({
+								title: () => "",
+								child: () => m(AboutDialog),
+								okAction: (dialog) => dialog.close(),
+								allowCancel: false,
+							})
+						}, 200)
 					}
 				}, [
 					m("", `Tutanota v${env.versionNumber}`),
-					m(".underline", "About")
+					m(".b", {
+						style: {color: theme.content_button_selected}
+					}, "About")
 				]
 			)
 		])
 	}
 }
 
-class AboutDialog implements MComponent<void> {
-	view(vnode: Vnode<void>): ?Children {
-		return m(".flex.col", [
-			m(".center.mt", m.trust(theme.logo)),
-			m(".center.h1.b", `v${env.versionNumber}`),
-			m("a.text-center.no-text-decoration", {
-					href: 'https://github.com/tutao/tutanota/releases',
-					target: '_blank'
-				}, [
-					m(".underline", 'Source-Code')
-				]
-			),
-			m("p.text-center", "GPL-v3"),
-			m(".mt.right", m(ButtonN, {
-					label: () => 'Send Logs',
-					click: () => {
-						getDeviceLogs()
-							.then((fileReference) => {
-								const editor = new MailEditor(mailModel.getUserMailboxDetails())
-								editor.initWithTemplate(null, null, "Device logs " + env.versionNumber, "", true)
-								editor.attachFiles([fileReference])
-								editor.show()
-							})
-					},
-					type: ButtonType.Primary
-				})
-			),
-		])
-	}
-}
