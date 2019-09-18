@@ -6,10 +6,13 @@ import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/commo
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {lang} from "../misc/LanguageViewModel"
 import {formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
+import {assertMainOrNode} from "../api/Env"
+
+assertMainOrNode()
 
 export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
 
@@ -97,6 +100,15 @@ export function shouldDefaultToAmPmTimeFormat(): boolean {
 
 export function getAllDayDateUTC(localDate: Date): Date {
 	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
+}
+
+export function getAllDayDateLocal(utcDate: Date, timeZone: string): Date {
+	return DateTime.fromObject({
+		year: utcDate.getUTCFullYear(),
+		month: utcDate.getUTCMonth() + 1,
+		day: utcDate.getUTCDate(),
+		zone: timeZone
+	}).toJSDate()
 }
 
 
@@ -284,10 +296,6 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 	return children
 }
 
-export function getAllDayDateLocal(utcDate: Date, timeZone: string): Date {
-	return DateTime.fromObject({year: utcDate.getUTCFullYear(), month: utcDate.getUTCMonth() + 1, day: utcDate.getDate(), zone: timeZone})
-	               .toJSDate()
-}
 
 function getCalculationEvent(event: CalendarEvent, handleAsAllDay: boolean): CalendarEvent {
 	const timeZone = getTimeZone()
@@ -395,3 +403,30 @@ export function getWeekNumber(startOfTheWeek: Date): number {
 	// Currently it doesn't support US-based week numbering system with partial weeks.
 	return DateTime.fromJSDate(startOfTheWeek).weekNumber
 }
+
+
+export function getEventEnd(event: CalendarEvent): Date {
+	if (isAllDayEvent(event)) {
+		return getAllDayDateLocal(event.endTime, getTimeZone())
+	} else {
+		return event.endTime
+	}
+}
+
+export function getEventStart(event: CalendarEvent): Date {
+	if (isAllDayEvent(event)) {
+		return getAllDayDateLocal(event.startTime, getTimeZone())
+	} else {
+		return event.startTime
+	}
+}
+
+export function isLongEvent(event: CalendarEvent): boolean {
+	return getEventEnd(event).getTime() - getEventStart(event).getTime() > DAYS_SHIFTED_MS
+}
+
+export function createEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
+	const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
+	event._id = [listId, generateEventElementId(event.startTime.getTime())]
+}
+

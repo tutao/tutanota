@@ -7,7 +7,6 @@ import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
 import {findAllAndRemove} from "../../common/utils/ArrayUtils"
 import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
-import {generateEventElementId, isLongEvent} from "../../common/utils/CommonCalendarUtils"
 import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
@@ -45,7 +44,7 @@ export class CalendarFacade {
 		this._entityRestCache = entityRestCache
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
+	createCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
 		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		let p = Promise.resolve()
@@ -54,8 +53,6 @@ export class CalendarFacade {
 		if (oldEvent) {
 			p = erase(oldEvent).catch(NotFoundError, noOp)
 		}
-		const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
-		event._id = [listId, generateEventElementId(event.startTime.getTime())]
 
 		return p
 			.then(() => Promise.map(alarmInfos, (alarmInfo) => {
@@ -63,7 +60,7 @@ export class CalendarFacade {
 					newAlarm._ownerGroup = user.userGroup.group
 					newAlarm.alarmInfo = alarmInfo
 					newAlarm.alarmInfo.calendarRef = Object.assign(createCalendarEventRef(), {
-						listId,
+						listId: listIdPart(event._id),
 						elementId: elementIdPart(event._id)
 					})
 					const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
@@ -77,7 +74,7 @@ export class CalendarFacade {
 					event.alarmInfos.push([userAlarmInfoListId, id])
 				})
 
-				return setup(listId, event)
+				return setup(listIdPart(event._id), event)
 			})
 			.then(() => {
 				if (alarmNotifications.length > 0) {
@@ -165,7 +162,9 @@ export class CalendarFacade {
 				.then((userAlarmInfos) =>
 					Promise
 						.map(userAlarmInfos, (userAlarmInfo) =>
-							load(CalendarEventTypeRef, [userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId])
+							load(CalendarEventTypeRef, [
+								userAlarmInfo.alarmInfo.calendarRef.listId, userAlarmInfo.alarmInfo.calendarRef.elementId
+							])
 								.then((event) => {
 									return {event, userAlarmInfo}
 								})

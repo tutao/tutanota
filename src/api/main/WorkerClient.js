@@ -505,8 +505,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("resetSession", []))
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
-		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent]))
+	createCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("createCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
 	addCalendar(name: string): Promise<Group> {

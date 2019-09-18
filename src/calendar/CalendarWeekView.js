@@ -10,14 +10,14 @@ import {
 	eventStartsBefore,
 	getCalendarWeek,
 	getDiffInDays,
-	getEventColor,
+	getEventColor, getEventEnd, getEventStart,
 	getWeekNumber,
 	layOutEvents
 } from "./CalendarUtils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {neverNull} from "../api/common/utils/Utils"
 import {getFromMap} from "../api/common/utils/MapUtils"
-import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
