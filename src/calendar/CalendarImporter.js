@@ -3,9 +3,9 @@
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
-import {generateEventElementId, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
-import {generateUid, getTimeZone} from "./CalendarUtils"
+import {createEventId, generateUid, getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {loadAll, loadMultiple} from "../api/main/Entity"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
@@ -47,13 +47,8 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              if (event.uid && uidToEvent.has(event.uid)) {
 								              return
 							              }
-							              const elementId = generateEventElementId(event.startTime.getTime())
 							              const repeatRule = event.repeatRule
-							              if (isLongEvent(event) || repeatRule) {
-								              event._id = [calendarGroupRoot.longEvents, elementId]
-							              } else {
-								              event._id = [calendarGroupRoot.shortEvents, elementId]
-							              }
+							              createEventId(event, calendarGroupRoot)
 							              event._ownerGroup = calendarGroupRoot._id
 
 							              if (repeatRule && repeatRule.timeZone === "") {
@@ -63,7 +58,8 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              for (let alarmInfo of alarms) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
-							              return worker.createCalendarEvent(calendarGroupRoot, event, alarms, null)
+							              createEventId(event, calendarGroupRoot)
+							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
 						              })
