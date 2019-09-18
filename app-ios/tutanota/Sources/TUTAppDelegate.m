@@ -81,9 +81,7 @@
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     if (_pushTokenCallback) {
-        var stringToken = [[deviceToken description] stringByTrimmingCharactersInSet:
-                           [NSCharacterSet characterSetWithCharactersInString:@"<>"]];
-        stringToken = [stringToken stringByReplacingOccurrencesOfString:@" " withString:@""];
+        let stringToken = [TUTAppDelegate stringFromDeviceToken:deviceToken];
         _pushTokenCallback(stringToken, nil);
         _pushTokenCallback = nil;
     }
@@ -102,7 +100,18 @@
     }
 }
 
-
++ (NSString *)stringFromDeviceToken:(NSData *)deviceToken {
+    NSUInteger length = deviceToken.length;
+    if (length == 0) {
+        return nil;
+    }
+    const unsigned char *buffer = deviceToken.bytes;
+    NSMutableString *hexString  = [NSMutableString stringWithCapacity:(length * 2)];
+    for (int i = 0; i < length; ++i) {
+        [hexString appendFormat:@"%02x", buffer[i]];
+    }
+    return [hexString copy];
+}
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
        willPresentNotification:(UNNotification *)notification
