@@ -265,7 +265,6 @@ export class SettingsView implements CurrentView {
 		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
 			m("button.text-center.small.no-text-decoration", {
 					style: {
-						// color: "transparent",
 						backgroundColor: "transparent",
 					},
 					href: '#',
@@ -283,8 +282,8 @@ export class SettingsView implements CurrentView {
 				}, [
 					m("", `Tutanota v${env.versionNumber}`),
 					m(".b", {
-						style: {color: theme.content_button_selected}
-					}, "About")
+						style: {color: theme.navigation_button_selected}
+					}, lang.get("about_label"))
 				]
 			)
 		])

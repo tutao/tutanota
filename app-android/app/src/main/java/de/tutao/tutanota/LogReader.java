@@ -12,11 +12,13 @@ import java.nio.charset.Charset;
 final public class LogReader {
 	static Uri getLogFile(Context context) {
 		try {
-			File logFile = new File(new File(Utils.getDir(context), "temp"), "log.txt");
+			File tempDirectory = new File(Utils.getDir(context), "temp");
+			tempDirectory.mkdirs();
+			File logFile = new File(tempDirectory, "log.txt");
 			logFile.delete();
 			logFile.createNewFile();
-			String strPID = "--pid=" + android.os.Process.myPid();
-			Process process = Runtime.getRuntime().exec(new String[]{"logcat", "-d", "-T", "500", /*strPID, */"-f", logFile.getAbsolutePath()});
+			// -d means print and exit, -T gets last lines, -f outputs to file
+			Process process = Runtime.getRuntime().exec(new String[]{"logcat", "-d", "-T", "1500","-f", logFile.getAbsolutePath()});
 			try {
 				process.waitFor();
 			} catch (InterruptedException ignored) {
