@@ -1,5 +1,5 @@
 // @flow
-import {Logo, LogoSvg} from "./base/icons/Logo"
+import {LogoSvg} from "./base/icons/Logo"
 import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNodeBoot} from "../api/Env"
@@ -50,8 +50,8 @@ if (typeof whitelabelCustomizations !== "undefined" && whitelabelCustomizations 
 	updateCustomTheme(whitelabelCustomizations.theme)
 }
 
-export var theme: Theme = getTheme()
-export var defaultTheme: Theme = getLightTheme()
+export let theme: Theme = getTheme()
+export let defaultTheme: Theme = getLightTheme()
 
 themeId.map(() => {
 	theme = Object.assign(theme, getTheme())
@@ -99,7 +99,7 @@ function getLightTheme() {
 	const red = '#840010'
 
 	return {
-		logo: LogoSvg[Logo.Red],
+		logo: LogoSvg.Red,
 
 
 		button_bubble_bg: grey_lighter,
@@ -152,7 +152,7 @@ function getDarkTheme(): Theme {
 	const cyan = '#76cbda'
 
 	return {
-		logo: LogoSvg[Logo.Cyan],
+		logo: LogoSvg.Cyan,
 
 
 		button_bubble_bg: dark_lightest,

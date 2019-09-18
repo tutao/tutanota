@@ -74,6 +74,7 @@ public class MainActivity extends Activity {
 	@SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.d(TAG, "App started");
 		//noinspection ConstantConditions
 		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
 				.getString(THEME_PREF, "light"));

@@ -23,7 +23,7 @@ public final class MissedNotification {
 		JSONArray notificationInfosJson = jsonObject.getJSONArray("notificationInfos");
 		List<PushMessage.NotificationInfo> notificationInfos = new ArrayList<>(notificationInfosJson.length());
 		for (int i = 0; i < notificationInfosJson.length(); i++) {
-			notificationInfos.add(PushMessage.NotificationInfo.fromJson(notificationInfosJson.getJSONObject(i)));
+			notificationInfos.add(PushMessage.NotificationInfo.fromJson(notificationInfosJson.getJSONObject(i), "mailAddress"));
 		}
 		String changeTime = jsonObject.getString("changeTime");
 		String confirmationId = jsonObject.getString("confirmationId");
