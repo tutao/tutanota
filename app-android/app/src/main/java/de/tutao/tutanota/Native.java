@@ -258,6 +258,9 @@ public final class Native {
                 case "putFileIntoDownloads":
                     final String path = args.getString(0);
                     return files.putToDownloadFolder(path);
+                case "getLog":
+                    return new DeferredObject<String, Object, Void>()
+                            .resolve(LogReader.getLogFile(activity).toString());
                 default:
                     throw new Exception("unsupported method: " + method);
             }

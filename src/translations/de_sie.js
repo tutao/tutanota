@@ -1022,6 +1022,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht"
+		"yourMessage_label": "Ihre Nachricht",
+		"about_label": "Über"
 	}
 }

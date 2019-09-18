@@ -1015,6 +1015,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
+		"about_label": "About",
 		"yourMessage_label": "Your message",
 		"color_label": "Color",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",

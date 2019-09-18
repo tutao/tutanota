@@ -563,7 +563,7 @@ export class Dialog {
 		})
 	}
 
-	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
+	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: (Component | Class<MComponent<void>>)): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [
