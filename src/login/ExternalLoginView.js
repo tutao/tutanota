@@ -236,11 +236,6 @@ export class ExternalLoginView {
 		if (document.title === LOGIN_TITLE) {
 			document.title = "Tutanota"
 		}
-
-		windowFacade.addResumeAfterSuspendListener(() => {
-			console.log("resume after suspend")
-			worker.tryReconnectEventBus(true, true)
-		})
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
 			worker.tryReconnectEventBus(true, true)
