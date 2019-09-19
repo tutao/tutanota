@@ -82,6 +82,8 @@ declare class Promise<+R> {
 
 	tap(handler: (R => $Promisable<mixed>)): Promise<R>;
 
+	timeout(ms: number, message?: string): Promise<R>;
+
 	static resolve<T>(object: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: $Promisable<T>>(elements: Array<Elem>): Promise<Array<T>>;

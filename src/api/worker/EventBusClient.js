@@ -92,7 +92,7 @@ export class EventBusClient {
 			return
 		}
 
-		console.log("ws connect reconnect=", reconnect, "state:", this._state);
+		console.log(new Date().toISOString(), "ws connect reconnect=", reconnect, "state:", this._state);
 		this._websocketWrapperQueue = []
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this._serviceUnavailableRetry = null
@@ -158,7 +158,7 @@ export class EventBusClient {
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(closeOption: CloseEventBusOptionEnum) {
-		console.log("ws close: ", new Date(), "closeOption: ", closeOption, "state:", this._state);
+		console.log(new Date().toISOString(), "ws close closeOption: ", closeOption, "state:", this._state);
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
 				this._terminate()
@@ -191,7 +191,7 @@ export class EventBusClient {
 	}
 
 	_error(error: any) {
-		console.log("ws error: ", error, "state:", this._state);
+		console.log(new Date().toISOString(), "ws error: ", error, JSON.stringify(error), "state:", this._state);
 	}
 
 	_message(message: MessageEvent): Promise<void> {
@@ -232,7 +232,7 @@ export class EventBusClient {
 	}
 
 	_close(event: CloseEvent) {
-		console.log("ws _close: ", event, new Date(), "state:", this._state);
+		console.log(new Date().toISOString(), "ws _close: ", event, "state:", this._state);
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
@@ -273,7 +273,7 @@ export class EventBusClient {
 	 * Tries to reconnect the websocket if it is not connected.
 	 */
 	_reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
-		console.log("ws _reconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
+		console.log(new Date().toISOString(), "ws _reconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): "
 			+ ((this._socket) ? this._socket.readyState : "null"), "state:", this._state,
 			"closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState);
 		if (this._state !== EventBusState.Terminated && enableAutomaticState) {

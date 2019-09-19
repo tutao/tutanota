@@ -191,16 +191,12 @@ export class LoginViewController implements ILoginViewController {
 		let postLoginTitle = (document.title === LOGIN_TITLE) ? "Tutanota" : document.title
 		document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 
-		windowFacade.addResumeAfterSuspendListener(() => {
-			console.log("resume after suspend - try reconnect\"")
-			worker.tryReconnectEventBus(true, true)
-		})
 		windowFacade.addOnlineListener(() => {
-			console.log("online - try reconnect")
+			console.log(new Date().toISOString(), "online - try reconnect")
 			worker.tryReconnectEventBus(true, true)
 		})
 		windowFacade.addOfflineListener(() => {
-			console.log("offline - pause event bus")
+			console.log(new Date().toISOString(), "offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
