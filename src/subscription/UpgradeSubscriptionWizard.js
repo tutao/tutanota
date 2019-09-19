@@ -53,10 +53,12 @@ export type UpgradeSubscriptionData = {
 	proPrices: PlanPrices
 }
 
+const TOKEN_PARAM_NAME = "#token="
 
 function getCampaign(): ?string {
-	const tokenFromUrl = m.route.param("token")
-	if (tokenFromUrl) {
+	const hashString = location.hash
+	if (hashString.startsWith(TOKEN_PARAM_NAME)) {
+		const tokenFromUrl = hashString.substring(TOKEN_PARAM_NAME.length)
 		if (client.localStorage()) {
 			localStorage.setItem(CAMPAIGN_KEY, tokenFromUrl)
 		}

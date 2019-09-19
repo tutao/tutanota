@@ -9,7 +9,13 @@ import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties
 import {load, loadRoot, setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
-import type {AccountTypeEnum, BookingItemFeatureTypeEnum, CloseEventBusOptionEnum, ConversationTypeEnum, EntropySrcEnum} from "../common/TutanotaConstants"
+import type {
+	AccountTypeEnum,
+	BookingItemFeatureTypeEnum,
+	CloseEventBusOptionEnum,
+	ConversationTypeEnum,
+	EntropySrcEnum
+} from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import {downcast, identity} from "../common/utils/Utils"
@@ -498,8 +504,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("resetSession", []))
 	}
 
-	createCalendarEvent(groupRoot: CalendarGroupRoot, event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
-		return this._queue.postMessage(new Request("createCalendarEvent", [groupRoot, event, alarmInfo, oldEvent]))
+	createCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("createCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
 	addCalendar(name: string): Promise<Group> {

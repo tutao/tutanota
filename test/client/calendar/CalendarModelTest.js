@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec/ospec.js"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createRepeatRuleWithValues, getAllDayDateUTC, getMonth} from "../../../src/calendar/CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTC, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, neverNull} from "../../../src/api/common/utils/Utils"
 import {mapToObject} from "../../api/TestUtils"
@@ -121,6 +121,7 @@ o.spec("CalendarModel", function () {
 	})
 
 	o.spec("addDaysForRecurringEvent", function () {
+		const timeZone = getTimeZone()
 
 		let eventsForDays: Map<number, Array<CalendarEvent>>
 		o.beforeEach(function () {
@@ -131,7 +132,7 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 2, 10), new Date(2019, 4, 2, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 6).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 6, 10), new Date(2019, 5, 6, 12))],
@@ -142,7 +143,7 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)), timeZone)
 
 			const expectedForJuneAndJuly = Object.assign({}, expectedForJune, {
 				[new Date(2019, 4, 2).getTime()]: [event],
@@ -158,7 +159,7 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 30, 10), new Date(2019, 4, 30, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 4)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 3).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 3, 10), new Date(2019, 5, 3, 12))],
@@ -176,25 +177,25 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)), timeZone)
 			const expectedForMay = {
 				[new Date(2019, 4, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12))]
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForMay)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 			const expectedForJune = Object.assign({}, expectedForMay, {
 				[new Date(2019, 5, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 30, 10), new Date(2019, 5, 30, 12))]
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)), timeZone)
 			const expectedForJuly = Object.assign({}, expectedForJune, {
 				[new Date(2019, 6, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12))]
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2020, 1)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2020, 1)), timeZone)
 			const expectedForFebruary = Object.assign({}, expectedForJuly, {
 				[new Date(2020, 1, 29).getTime()]: [cloneEventWithNewTime(event, new Date(2020, 1, 29, 10), new Date(2020, 1, 29, 12))]
 			})
@@ -207,34 +208,34 @@ o.spec("CalendarModel", function () {
 			const event = createEvent(new Date(2019, 4, 31, 10), new Date(2019, 4, 31, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 2)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 			o(mapToObject(eventsForDays)).deepEquals({})
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)), timeZone)
 			const expectedForJuly = {
 				[new Date(2019, 6, 31).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 6, 31, 10), new Date(2019, 6, 31, 12))]
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 7)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 7)), timeZone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuly)
 
 			const expectedForSeptember = Object.assign({}, expectedForJuly, {
 				[new Date(2019, 8, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 8, 30, 10), new Date(2019, 8, 30, 12))]
 			})
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 8)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 8)), timeZone)
 			// o(mapToObject(eventsForDays)).deepEquals(expectedForSeptember)
 			const expectedForNovember = Object.assign({}, expectedForSeptember, {
 				[new Date(2019, 10, 30).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 10, 30, 10), new Date(2019, 10, 30, 12))]
 			})
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 10)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 10)), timeZone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForNovember)
 		})
 
 		o("recuring event - short multiple days ", function () {
 			const event = createEvent(new Date(2019, 4, 3, 10), new Date(2019, 4, 5, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 7).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 7, 10), new Date(2019, 5, 9, 12))],
@@ -256,7 +257,7 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 4)), timeZone)
 
 			const expectedForJuneAndJuly = Object.assign({}, expectedForJune, {
 				[new Date(2019, 4, 3).getTime()]: [event],
@@ -289,7 +290,7 @@ o.spec("CalendarModel", function () {
 			repeatRule.endValue = "2"
 			event.repeatRule = repeatRule
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12))],
@@ -298,7 +299,7 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)), timeZone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 		})
 
@@ -309,7 +310,7 @@ o.spec("CalendarModel", function () {
 			repeatRule.endValue = String(new Date(2019, 5, 29).getTime())
 			event.repeatRule = repeatRule
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12))],
@@ -319,7 +320,7 @@ o.spec("CalendarModel", function () {
 			}
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6)), timeZone)
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJune)
 		})
 
@@ -335,7 +336,7 @@ o.spec("CalendarModel", function () {
 			event.repeatRule = repeatRule
 			event.repeatRule.timeZone = "Asia/Anadyr" // +12
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)))
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5)), timeZone)
 
 			const expectedForJune = {
 				[new Date(2019, 5, 2).getTime()]: [cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2019, 5, 2)), getAllDayDateUTC(new Date(2019, 5, 3)))],
@@ -408,6 +409,7 @@ o.spec("CalendarModel", function () {
 
 
 		o("longer than a month repeating", function () {
+			const timeZone = getTimeZone()
 			const event = createEvent(new Date(2019, 4, 2, 10), new Date(2019, 5, 2, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
 
@@ -415,7 +417,7 @@ o.spec("CalendarModel", function () {
 			const startingInJune = cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 6, 2, 12))
 			const startingInJuly = cloneEventWithNewTime(event, new Date(2019, 6, 2, 10), new Date(2019, 7, 2, 12))
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5, 2))) // invoke for June
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5, 2)), timeZone) // invoke for June
 			o(eventsForDays.size).equals(30) // One starting in May and all the June
 			o(eventsForDays.get(new Date(2019, 4, 31).getTime())).deepEquals(undefined)
 			o(eventsForDays.get(new Date(2019, 5, 1).getTime())).deepEquals([startingInMay])
@@ -423,7 +425,7 @@ o.spec("CalendarModel", function () {
 			o(eventsForDays.get(new Date(2019, 5, 30).getTime())).deepEquals([startingInJune])
 			o(eventsForDays.get(new Date(2019, 6, 1).getTime())).deepEquals(undefined)
 
-			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6, 2))) // invoke for July
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6, 2)), timeZone) // invoke for July
 			o(eventsForDays.size).equals(30 + 31) // Previous pls all of the July
 			o(eventsForDays.get(new Date(2019, 6, 1).getTime())).deepEquals([startingInJune])
 			o(eventsForDays.get(new Date(2019, 6, 2).getTime())).deepEquals([startingInJune, startingInJuly])
@@ -448,7 +450,8 @@ o.spec("CalendarModel", function () {
 			const daylightSavingDay = DateTime.fromObject({year: 2019, month: 10, day: 26, hour: 10, zone: 'Europe/Moscow'}).toJSDate()
 			const dayAfter = DateTime.fromObject({year: 2019, month: 10, day: 27, hour: 10, zone: 'Europe/Moscow'}).toJSDate()
 
-			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, 'Europe/Moscow').toISOString()).equals(dayAfter.toISOString())
+			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, 'Europe/Moscow').toISOString())
+				.equals(dayAfter.toISOString())
 		})
 
 		o("weekly", function () {

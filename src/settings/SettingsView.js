@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ViewSlider} from "../gui/base/ViewSlider"
@@ -40,6 +40,8 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
+import {Dialog} from "../gui/base/Dialog"
+import {AboutDialog} from "./AboutDialog"
 
 assertMainOrNode()
 
@@ -170,7 +172,8 @@ export class SettingsView implements CurrentView {
 			view: () => m(".folders", buttons.map(fb => fb.isVisible()
 				? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
 					m(NavButtonN, fb),
-					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users') && this._customDomains.isLoaded()
+					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users')
+					&& this._customDomains.isLoaded()
 					&& this._customDomains.getLoaded().length > 0
 						? m(importUsersButton)
 						: null
@@ -259,21 +262,31 @@ export class SettingsView implements CurrentView {
 	}
 
 	_aboutThisSoftwareLink(): Vnode<any> {
-		const pltf = isAndroidApp()
-			? 'android-'
-			: isIOSApp()
-				? 'ios-'
-				: ''
-		const lnk = `https://github.com/tutao/tutanota/releases/tutanota-${pltf}release-${env.versionNumber}`
-		return m(".pb-s.pt-l.flex-no-shrink.flex.col.justify-end", [
-			m("a.text-center.small.no-text-decoration", {
-					href: lnk,
-					target: '_blank',
+		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end", [
+			m("button.text-center.small.no-text-decoration", {
+					style: {
+						backgroundColor: "transparent",
+					},
+					href: '#',
+					onclick: () => {
+						this.viewSlider.focusNextColumn()
+						setTimeout(() => {
+							Dialog.showActionDialog({
+								title: () => "",
+								child: () => m(AboutDialog),
+								okAction: (dialog) => dialog.close(),
+								allowCancel: false,
+							})
+						}, 200)
+					}
 				}, [
 					m("", `Tutanota v${env.versionNumber}`),
-					m(".underline", lang.get('releaseNotes_action'))
+					m(".b", {
+						style: {color: theme.navigation_button_selected}
+					}, lang.get("about_label"))
 				]
 			)
 		])
 	}
 }
+

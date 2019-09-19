@@ -14,6 +14,8 @@ import {
 	getCalendarMonth,
 	getDiffInDays,
 	getEventColor,
+	getEventEnd,
+	getEventStart,
 	getStartOfTheWeekOffset,
 	getWeekNumber,
 	layOutEvents
@@ -24,7 +26,7 @@ import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithFullYear} from "../misc/Formatter"
-import {getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"

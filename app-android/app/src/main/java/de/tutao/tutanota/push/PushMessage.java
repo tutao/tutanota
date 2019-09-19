@@ -30,7 +30,7 @@ final class PushMessage {
 		List<NotificationInfo> notificationInfos = new ArrayList<>(recipientInfosJsonArray.length());
 		for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
 			JSONObject itemObject = recipientInfosJsonArray.getJSONObject(i);
-			notificationInfos.add(NotificationInfo.fromJson(itemObject));
+			notificationInfos.add(NotificationInfo.fromJson(itemObject, "address"));
 		}
 		boolean hasAlarmNotifications = jsonObject.getBoolean(HAS_ALARM_NOTIFICATIONS_KEY);
 		String changeTime = jsonObject.getString("changeTime");
@@ -72,8 +72,9 @@ final class PushMessage {
 		private final int counter;
 		private String userId;
 
-		public static NotificationInfo fromJson(JSONObject jsonObject) throws JSONException {
-			String address = jsonObject.getString(ADDRESS_KEY);
+		// We pass in mailAddressKey because of the incompatibility between the entity passed with SSE message and the one inside MissedNotification
+		public static NotificationInfo fromJson(JSONObject jsonObject, String mailAddressKey) throws JSONException {
+			String address = jsonObject.getString(mailAddressKey);
 			int counter = jsonObject.getInt(COUNTER_KEY);
 			String userId = jsonObject.getString(USER_ID_KEY);
 			return new NotificationInfo(address, counter, userId);

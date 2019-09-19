@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.59.13",
+	"version": "3.59.14",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -55,7 +55,7 @@
 		"mockery": "^2.1.0",
 		"node-forge": "0.8.5",
 		"node-static": "0.7.11",
-		"ospec": "3.1.0",
+		"ospec": "4.0.1",
 		"request": "2.88.0",
 		"server-destroy": "1.0.1",
 		"sha": "2.0.1",

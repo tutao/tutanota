@@ -26,16 +26,19 @@ import {isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {
+	createEventId,
 	createRepeatRuleWithValues,
 	generateUid,
 	getAllDayDateUTC,
 	getCalendarName,
 	getDiffInDays,
+	getEventEnd,
+	getEventStart,
 	parseTime,
 	timeString,
 	timeStringFromParts
 } from "./CalendarUtils"
-import {generateEventElementId, getEventEnd, getEventStart, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
@@ -300,7 +303,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				newAlarms.push(newAlarm)
 			}
 		}
-		worker.createCalendarEvent(groupRoot, newEvent, newAlarms, existingEvent)
+
+		createEventId(newEvent, groupRoot)
+		worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
 
 		dialog.close()
 	}

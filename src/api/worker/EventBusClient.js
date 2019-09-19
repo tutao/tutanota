@@ -7,7 +7,7 @@ import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} fro
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
-import {ConnectionError, handleRestError, NotFoundError, ServiceUnavailableError} from "../common/error/RestError"
+import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError, ServiceUnavailableError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
@@ -327,6 +327,9 @@ export class EventBusClient {
 							.each(eventBatch => {
 								return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
 							})
+							.catch(NotAuthorizedError, () => {
+								console.log("could not download entity updates => lost permission")
+							})
 					}).then(() => {
 						return this._processQueuedEvents()
 					})
@@ -415,7 +418,9 @@ export class EventBusClient {
 		return Promise.each(this._eventGroups(), groupId => {
 			let lastEventBatchId = this._getLastEventBatchIdOrMinIdForGroup(groupId)
 			if (lastEventBatchId !== GENERATED_MIN_ID) {
-				return load(EntityEventBatchTypeRef, [groupId, lastEventBatchId])
+				return load(EntityEventBatchTypeRef, [groupId, lastEventBatchId]).catch(NotAuthorizedError, () => {
+					console.log("could not download entity updates => lost permission")
+				})
 			}
 		}).then(() => {
 			return false
