@@ -17,6 +17,8 @@ import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common
 import type {CalendarDay} from "../../calendar/CalendarUtils"
 import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import {DateTime} from "luxon"
+import {logins} from "../../api/main/LoginController"
+import {getStartOfTheWeekOffset} from "../../calendar/CalendarUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -32,11 +34,13 @@ export class DatePicker {
 	view: Function;
 	invalidDate: boolean;
 	date: Stream<?Date>;
-	_forceCompact: boolean
+	_forceCompact: boolean;
+	_startOfTheWeekOffset: number
 
-	constructor(labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false) {
 		this.date = stream(null)
 		this._forceCompact = forceCompact
+		this._startOfTheWeekOffset = startOfTheWeekOffset
 
 		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
 		let inputDate: ?Date
@@ -85,7 +89,8 @@ export class DatePicker {
 				: m(VisualDatePicker, {
 					selectedDate: this.date(),
 					onDateSelected: (newDate) => this.setDate(newDate),
-					wide: false
+					wide: false,
+					startOfTheWeekOffset: this._startOfTheWeekOffset
 				}))
 		])
 	}
@@ -103,7 +108,8 @@ export class DatePicker {
 							dialog.close()
 						}
 					},
-					wide: true
+					wide: true,
+					startOfTheWeekOffset: this._startOfTheWeekOffset
 				}),
 			},
 			okAction: null,
@@ -124,7 +130,8 @@ export class DatePicker {
 type VisualDatePickerAttrs = $Attrs<{
 	selectedDate: ?Date,
 	onDateSelected?: (date: Date, dayClick: boolean) => mixed;
-	wide: boolean
+	wide: boolean,
+	startOfTheWeekOffset: number
 }>
 
 export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
@@ -146,8 +153,7 @@ export class VisualDatePicker implements MComponent<VisualDatePickerAttrs> {
 		}
 
 		let date = new Date(this._displayingDate)
-
-		const {weeks, weekdays} = getCalendarMonth(this._displayingDate, 1, true)
+		const {weeks, weekdays} = getCalendarMonth(this._displayingDate, vnode.attrs.startOfTheWeekOffset, true)
 
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-between.pt-s.pb-s.items-center", [

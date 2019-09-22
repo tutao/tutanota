@@ -27,6 +27,8 @@ import {createDataFile} from "../api/common/DataFile"
 import {fileController} from "../file/FileController"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {formatSortableDate} from "../misc/Formatter"
+import {logins} from "../api/main/LoginController"
+import {getStartOfTheWeekOffset} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -75,9 +77,9 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 				f.name, statisticsFieldTypeToString(f)
 			])))
 		}
-
-		let contactFormReportFrom = new DatePicker("dateFrom_label")
-		let contactFormReportTo = new DatePicker("dateTo_label")
+		const startOfTheWeekOffset = getStartOfTheWeekOffset(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
+		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
+		let contactFormReportTo = new DatePicker(startOfTheWeekOffset, "dateTo_label")
 		contactFormReportFrom.setDate(new Date())
 		contactFormReportTo.setDate(new Date())
 		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Export)
