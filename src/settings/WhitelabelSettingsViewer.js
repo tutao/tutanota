@@ -52,6 +52,7 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {getStartOfTheWeekOffset} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -117,8 +118,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			})
 		})
 
-		let contactFormReportFrom = new DatePicker("dateFrom_label")
-		let contactFormReportTo = new DatePicker("dateTo_label")
+		const startOfTheWeekOffset = getStartOfTheWeekOffset(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
+		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
+		let contactFormReportTo = new DatePicker(startOfTheWeekOffset, "dateTo_label")
 		contactFormReportFrom.setDate(new Date())
 		contactFormReportTo.setDate(new Date())
 		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom.date(), contactFormReportTo.date()), () => Icons.Export)
