@@ -22,10 +22,13 @@ class HtmlSanitizer {
 		} else {
 			return
 		}
-		this.purifier.addHook('afterSanitizeElements', (currentNode, data, config) => {
+		// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
+		this.purifier.addHook('afterSanitizeAttributes', (currentNode, data, config) => {
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
-				let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
+				let allowedClasses = [
+					"tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"
+				]
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
@@ -83,8 +86,11 @@ class HtmlSanitizer {
 
 		return {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
-			ADD_URI_SAFE_ATTR: ['poster'], // for video element
-			FORBID_TAGS: ['style'] // prevent loading of external fonts
+			// poster for video element. It overwrites defaults so we specify all default ones. See https://github.com/cure53/DOMPurify/issues/366
+			ADD_URI_SAFE_ATTR: [
+				'alt', 'for', 'label', 'name', 'pattern', 'placeholder', 'summary', 'title', 'value', 'style', 'xmlns', 'poster'
+			],
+			FORBID_TAGS: ['style'], // prevent loading of external fonts
 		}
 	}
 
