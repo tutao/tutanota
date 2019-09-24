@@ -10,9 +10,9 @@
  * https://github.com/electron-userland/electron-builder/issues/2199
  *
  * The installer signatures are created in the following files:
- * https://mail.tutanota.com/desktop/tutanota-desktop-win-sig.bin (for Windows)
- * https://mail.tutanota.com/desktop/tutanota-desktop-mac-sig.bin (for Mac)
- * https://mail.tutanota.com/desktop/tutanota-desktop-linux-sig.bin (for Linux)
+ * https://mail.tutanota.com/desktop/win-sig.bin (for Windows)
+ * https://mail.tutanota.com/desktop/mac-sig.bin (for Mac)
+ * https://mail.tutanota.com/desktop/linux-sig.bin (for Linux)
  *
  * They allow verifying the initial download via
  *
