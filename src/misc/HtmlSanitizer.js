@@ -131,6 +131,11 @@ class HtmlSanitizer {
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.setAttribute("cid", cid)
 					htmlNode.classList.add("tutanota-placeholder")
+				} else if (this._blockExternalContent && attribute.name === "srcset") {
+					this._externalContent.push(attribute.value)
+					htmlNode.removeAttribute("srcset")
+					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
+					htmlNode.style["max-width"] = "100px"
 				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
 					this._externalContent.push(attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
@@ -139,6 +144,7 @@ class HtmlSanitizer {
 				}
 			}
 		})
+
 	}
 
 	_removeStyleImage(htmlNode, styleAttributeName: string) {

@@ -141,7 +141,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		const plainHtml = "<table><tr><td background=\"https://tutanota.com/image.jpg\"> ....</td></tr></table>"
 		const cleanHtml = htmlSanitizer.sanitize(plainHtml, true)
 		o(cleanHtml.externalContent.length).equals(1)
-		o(cleanHtml.text.includes("background=")).equals(false) // background attribute is removed when writing node
+		o(cleanHtml.text.includes("image.jpg")).equals(false)
 		o(htmlSanitizer.sanitize(plainHtml, false).text.includes("background=")).equals(true)
 	})
 	o("srcset attribute", function () {
@@ -155,7 +155,8 @@ o.spec("HtmlSanitizerTest", browser(function () {
 	o("detect images", function () {
 		let result = htmlSanitizer.sanitize('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', true)
 		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/510828b5a8f43ab5")
-		o(result.text.includes('<img style="max-width: 100px;" src="data:image/svg+xml;utf8,')).equals(true);
+		o(result.text.includes('src="data:image/svg+xml;utf8,')).equals(true)
+		o(result.text.includes('style="max-width: 100px;')).equals(true);
 	})
 
 	o("detect figure", function () {
@@ -228,7 +229,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(result.externalContent.length).equals(9);
 		// do not replace links
 		o(result.text.includes('<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">')
-			|| result.text.includes('<a href="http://localhost/index.html" target="_blank" rel="noopener noreferrer">')).equals(true)
+			|| result.text.includes('<a href="http://localhost/index.html" rel="noopener noreferrer" target="_blank">')).equals(true)
 	})
 
 	o("do not replace inline images", function () {
@@ -237,7 +238,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(result.externalContent.length).equals(0);
 		o(result.inlineImageCids).deepEquals(["asbasdf-safd_d"]);
 		o(result.text)
-			.equals(`<img class="tutanota-placeholder" cid="asbasdf-safd_d" src="${replaceHtmlEntities(PREVENT_EXTERNAL_IMAGE_LOADING_ICON)}"><img src="data:image/svg+xml;utf8,sadfsdasdf">`)
+			.equals(`<img src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}" cid="asbasdf-safd_d" class="tutanota-placeholder"><img src="data:image/svg+xml;utf8,sadfsdasdf">`)
 	})
 
 
