@@ -532,6 +532,10 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
 	}
 
+	notifyVisiblityChange(visible: boolean): Promise<void> {
+		return this._queue.postMessage(new Request("visibilityChange", [visible]))
+	}
+
 	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
 		return this._queue.postMessage(new Request("sendGroupInvitation", [groupId, recipients, shareCapability]))
 	}
