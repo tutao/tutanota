@@ -101,7 +101,7 @@ export function makeCore(args?: {
 	const defaultDb = {
 		key: aes256RandomKey(),
 		iv: fixedIv,
-		dbFacade: ({createTransaction: () => Promise.resolve(transaction)}: any),
+		dbFacade: ({createTransaction: () => Promise.resolve(transaction), createTransactionSync: () => transaction}: any),
 		initialized: Promise.resolve()
 	}
 	const {db = defaultDb, queue = (null: any), browserData = browserDataStub} = safeArgs

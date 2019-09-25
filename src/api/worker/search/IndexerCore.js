@@ -292,7 +292,9 @@ export class IndexerCore {
 			if (operation.isAbortedForBackgroundMode) {
 				console.log("transaction has been aborted because of background mode")
 			} else {
-				console.log("rejecting operation with error", e)
+				if (env.mode !== "Test") {
+					console.log("rejecting operation with error", e)
+				}
 				operation.deferred.reject(e)
 			}
 		})
