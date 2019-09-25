@@ -332,9 +332,14 @@ typedef void(^VoidCallback)(void);
 - (void)webView:(WKWebView *)webView
 decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-	if ([[navigationAction.request.URL absoluteString] hasPrefix:[self appUrl].absoluteString]) {
+	if ([[navigationAction.request.URL absoluteString] isEqualToString:[self appUrl].absoluteString]) {
 		decisionHandler(WKNavigationActionPolicyAllow);
-	} else {
+    } else if([[navigationAction.request.URL absoluteString] hasPrefix:[self appUrl].absoluteString]) {
+        // If the app is removed from memory, the URL won't point to the file but will have additional path.
+        // We ignore additional path for now.
+        decisionHandler(WKNavigationActionPolicyCancel);
+        [self loadMainPageWithParams:nil];
+    } else {
 		decisionHandler(WKNavigationActionPolicyCancel);
 		[[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
 	}
