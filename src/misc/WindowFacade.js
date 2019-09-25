@@ -207,6 +207,11 @@ class WindowFacade {
 		if (isApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
+
+				if (client.isIos()) {
+					this._worker.notifyVisiblityChange(!document.hidden)
+				}
+
 				if (document.hidden) {
 					if (isAndroidApp()) {
 						setTimeout(() => {

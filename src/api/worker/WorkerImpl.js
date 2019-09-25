@@ -293,6 +293,10 @@ export class WorkerImpl {
 			},
 			getDomainValidationRecord: (message: Request) => {
 				return locator.customer.getDomainValidationRecord(...message.args)
+			},
+			visibilityChange: (message: Request) => {
+				locator.indexer.onVisibilityChanged(...message.args)
+				return Promise.resolve()
 			}
 		})
 

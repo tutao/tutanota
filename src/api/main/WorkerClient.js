@@ -530,6 +530,10 @@ export class WorkerClient {
 	getDomainValidationRecord(): Promise<string> {
 		return this._queue.postMessage(new Request("getDomainValidationRecord", []))
 	}
+
+	notifyVisiblityChange(visible: boolean): Promise<void> {
+		return this._queue.postMessage(new Request("visibilityChange", [visible]))
+	}
 }
 
 export const worker = new WorkerClient()
