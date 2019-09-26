@@ -536,6 +536,10 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("visibilityChange", [visible]))
 	}
 
+	getLog(): Promise<Array<string>> {
+		return this._queue.postMessage(new Request("getLog", []))
+	}
+
 	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
 		return this._queue.postMessage(new Request("sendGroupInvitation", [groupId, recipients, shareCapability]))
 	}

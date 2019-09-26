@@ -17,7 +17,7 @@ import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
 import {AccountType, ConversationType} from "../api/common/TutanotaConstants"
-import {neverNull} from "../api/common/utils/Utils"
+import {errorToString, neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {client} from "./ClientDetector"
@@ -250,6 +250,18 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 
 function prepareFeedbackContent(error: Error): FeedbackContent {
 	const timestamp = new Date()
+	let {message, client, type} = clientInfoString(timestamp)
+	if (error) {
+		message += errorToString(error)
+	}
+	const subject = `Feedback v${env.versionNumber} - ${(error && error.name) ? error.name : '?'} - ${type} - ${client}`
+	return {
+		message,
+		subject
+	}
+}
+
+export function clientInfoString(timestamp: Date): {message: string, client: string, type: string} {
 	const type = neverNull(Object.keys(AccountType)
 	                             .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
 	const client = (() => {
@@ -271,20 +283,9 @@ function prepareFeedbackContent(error: Error): FeedbackContent {
 	message += `\n Tutanota version: ${env.versionNumber}`
 	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
 	message += `\n User agent:\n${navigator.userAgent}`
-	if (error && error.message) {
-		message += `\n\n Error message: \n${error.message}`
-	}
-
-	if (error && error.stack) {
-		// the error id is included in the stacktrace
-		message += `\n\n Stacktrace: \n${error.stack}`
-	}
-	const subject = `Feedback v${env.versionNumber} - ${(error && error.name) ? error.name : '?'} - ${type} - ${client}`
-	return {
-		message,
-		subject
-	}
+	return {message, client, type}
 }
+
 
 export function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 	const recipient = createRecipientInfo("support@tutao.de", "", null, true)

@@ -18,8 +18,14 @@ import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
 import {resolveSessionKey} from "./crypto/CryptoFacade"
+import {Logger, replaceNativeLogger} from "../common/Logger"
+import {downcast} from "../common/utils/Utils"
 
 assertWorkerOrNode()
+
+if (typeof self !== "undefined") {
+	replaceNativeLogger(self, new Logger())
+}
 
 export class WorkerImpl {
 
@@ -298,9 +304,18 @@ export class WorkerImpl {
 				locator.indexer.onVisibilityChanged(...message.args)
 				return Promise.resolve()
 			},
+			getLog: () => {
+				const global = downcast(self)
+				if (global.logger) {
+					return Promise.resolve(global.logger.getEntries())
+				} else {
+					return Promise.resolve([])
+				}
+			},
 			sendGroupInvitation: (message: Request) => {
 				return locator.share.sendGroupInvitation(...message.args)
-			}
+			},
+
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
