@@ -34,7 +34,7 @@ import {
 	getDiffInDays,
 	getEventEnd,
 	getEventStart,
-	getStartOfTheWeekOffset,
+	getStartOfTheWeekOffsetForUser,
 	parseTime,
 	timeString,
 	timeStringFromParts
@@ -57,7 +57,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
-	const startOfTheWeekOffset = getStartOfTheWeekOffset(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
+	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(getStartOfDay(date))
 	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true)

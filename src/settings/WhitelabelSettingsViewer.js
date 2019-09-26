@@ -10,7 +10,14 @@ import {logins} from "../api/main/LoginController"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {ALLOWED_IMAGE_FORMATS, CertificateState, CertificateType, FeatureType, MAX_LOGO_SIZE, OperationType} from "../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	CertificateState,
+	CertificateType,
+	FeatureType,
+	MAX_LOGO_SIZE,
+	OperationType
+} from "../api/common/TutanotaConstants"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -52,7 +59,7 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {getStartOfTheWeekOffset} from "../calendar/CalendarUtils"
+import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -118,7 +125,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			})
 		})
 
-		const startOfTheWeekOffset = getStartOfTheWeekOffset(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 		let contactFormReportFrom = new DatePicker(startOfTheWeekOffset, "dateFrom_label")
 		let contactFormReportTo = new DatePicker(startOfTheWeekOffset, "dateTo_label")
 		contactFormReportFrom.setDate(new Date())

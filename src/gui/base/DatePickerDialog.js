@@ -12,12 +12,12 @@ assertMainOrNode()
 /**
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.
  */
-export function showDatePickerDialog<T>(start: ?Date, end: ?Date): Promise<{start: ?Date, end: ?Date}> {
-	let dateStart = new DatePicker("dateFrom_label", "unlimited_label")
+export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Date, end: ?Date): Promise<{start: ?Date, end: ?Date}> {
+	let dateStart = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "unlimited_label")
 	if (start) {
 		dateStart.setDate(start)
 	}
-	let dateEnd = new DatePicker("dateTo_label", "unlimited_label")
+	let dateEnd = new DatePicker(startOfTheWeekOffset, "dateTo_label", "unlimited_label")
 	if (end) {
 		dateEnd.setDate(end)
 	}

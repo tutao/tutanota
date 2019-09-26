@@ -40,6 +40,7 @@ import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -86,7 +87,7 @@ export class SearchView implements CurrentView {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(true)
 			} else {
-				showDatePickerDialog((this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+				showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
 					(this._endDate) ? this._endDate : new Date())
 					.then(dates => {
 						if (dates.end && isToday(dates.end)) {

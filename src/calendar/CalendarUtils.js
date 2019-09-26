@@ -2,7 +2,7 @@
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption, getWeekStart, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -11,6 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -399,6 +400,11 @@ export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
 	}
 }
 
+export function getStartOfTheWeekOffsetForUser(): number {
+	return getStartOfTheWeekOffset(getWeekStart(logins.getUserController().userSettingsGroupRoot))
+}
+
+
 export function getWeekNumber(startOfTheWeek: Date): number {
 	// Currently it doesn't support US-based week numbering system with partial weeks.
 	return DateTime.fromJSDate(startOfTheWeek).weekNumber
@@ -429,4 +435,3 @@ export function createEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot
 	const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
-
