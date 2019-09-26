@@ -1,5 +1,6 @@
 import o from "ospec/ospec.js"
 
+import "./common/LoggerTest.js"
 import "./crypto/RandomizerTest.js"
 import "./common/EncodingTest"
 import "./common/ArrayUtilsTest"

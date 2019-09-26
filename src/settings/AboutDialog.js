@@ -4,10 +4,14 @@ import {getDeviceLogs} from "../native/SystemApp"
 import {MailEditor} from "../mail/MailEditor"
 import {mailModel} from "../mail/MailModel"
 import {ButtonType} from "../gui/base/Button"
-import {isAndroidApp} from "../api/Env"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {isColorLight} from "../calendar/CalendarUtils"
 import {theme} from "../gui/theme"
+import {isAndroidApp} from "../api/Env"
+import {worker} from "../api/main/WorkerClient"
+import {createLogFile} from "../api/common/Logger"
+import {downcast} from "../api/common/utils/Utils"
+import {clientInfoString} from "../misc/ErrorHandlerImpl"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -29,14 +33,12 @@ export class AboutDialog implements MComponent<void> {
 }
 
 function sendLogsLink(): Children {
-	return isAndroidApp()
-		? m(".mt.right", m(ButtonN, {
-				label: () => 'Send Logs',
-				click: () => sendDeviceLogs(),
-				type: ButtonType.Primary
-			})
-		)
-		: null
+	return m(".mt.right", m(ButtonN, {
+			label: () => 'Send Logs',
+			click: () => sendDeviceLogs(),
+			type: ButtonType.Primary
+		})
+	)
 }
 
 function aboutLink(href, text): Children {
@@ -50,11 +52,32 @@ function aboutLink(href, text): Children {
 }
 
 function sendDeviceLogs() {
-	getDeviceLogs()
-		.then((fileReference) => {
-			const editor = new MailEditor(mailModel.getUserMailboxDetails())
-			editor.initWithTemplate(null, null, "Device logs " + env.versionNumber, "", true)
-			editor.attachFiles([fileReference])
-			editor.show()
+	const editor = new MailEditor(mailModel.getUserMailboxDetails())
+	const timestamp = new Date()
+	let {message, type, client} = clientInfoString(timestamp)
+	message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
+	editor.initWithTemplate(null, null, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
+	const global = downcast(window)
+	let p = Promise.resolve()
+	if (global.logger) {
+		p = worker.getLog().then(workerLogEntries => {
+			const mainEntries = global.logger.getEntries()
+			editor.attachFiles([
+				createLogFile(timestamp.getTime(), mainEntries, "main"),
+				createLogFile(timestamp.getTime(), workerLogEntries, "worker")
+			])
 		})
+	}
+
+	if (isAndroidApp()) {
+		p = p.then(() => {
+			getDeviceLogs()
+				.then((fileReference) => {
+					editor.attachFiles([fileReference])
+				})
+		})
+	}
+	p.then(() => {
+		editor.show()
+	})
 }
