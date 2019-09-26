@@ -168,6 +168,9 @@ export class IPC {
 				this._sock.sendSocketMessage(args[0])
 				d.resolve()
 				break
+			case 'getLog':
+				d.resolve(global.logger.getEntries())
+				break
 			default:
 				d.reject(new Error(`Invalid Method invocation: ${method}`))
 				break
