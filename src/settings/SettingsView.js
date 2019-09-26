@@ -272,7 +272,7 @@ export class SettingsView implements CurrentView {
 						this.viewSlider.focusNextColumn()
 						setTimeout(() => {
 							Dialog.showActionDialog({
-								title: () => "",
+								title: () => lang.get("about_label"),
 								child: () => m(AboutDialog),
 								okAction: (dialog) => dialog.close(),
 								allowCancel: false,

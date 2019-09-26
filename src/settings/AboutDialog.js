@@ -1,13 +1,13 @@
 import m from "mithril"
 import {ButtonN} from "../gui/base/ButtonN"
-import {getDeviceLogs} from "../native/SystemApp"
+import {getDesktopLogs, getDeviceLogs} from "../native/SystemApp"
 import {MailEditor} from "../mail/MailEditor"
 import {mailModel} from "../mail/MailModel"
 import {ButtonType} from "../gui/base/Button"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {isColorLight} from "../calendar/CalendarUtils"
 import {theme} from "../gui/theme"
-import {isAndroidApp, isDesktop} from "../api/Env"
+import {isApp, isDesktop} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
@@ -73,15 +73,15 @@ function sendDeviceLogs() {
 
 	if (isDesktop()) {
 		p = p.then(() => {
-			return nativeApp.invokeNative(new Request("getLog", []))
-			                .then((desktopEntries) => {
-				                const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
-				                editor.attachFiles([desktopLogFile])
-			                })
+			return getDesktopLogs()
+				.then((desktopEntries) => {
+					const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
+					editor.attachFiles([desktopLogFile])
+				})
 		})
 	}
 
-	if (isAndroidApp()) {
+	if (isApp()) {
 		p = p.then(() => {
 			getDeviceLogs()
 				.then((fileReference) => {
