@@ -13,6 +13,7 @@
 #import "TUTViewController.h"
 #import "TUTAlarmManager.h"
 #import "Utils/TUTUserPreferenceFacade.h"
+#import "Utils/TUTLog.h"
 
 @interface TUTAppDelegate ()
 @property TUTViewController *viewController;
@@ -23,7 +24,7 @@
 @implementation TUTAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    NSLog(@"start tutanota %@", launchOptions);
+    TUTLog(@"start tutanota %@", launchOptions);
     // Override point for customization after application launch.
     _window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     _viewController = [TUTViewController new];
@@ -90,7 +91,7 @@
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler{
     // Print full message.
     let apsDict = (NSDictionary *) userInfo[@"aps"];
-    NSLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
+    TUTLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
     if (apsDict[@"content-available"]) {
         NSString *changeTime = apsDict[@"changeTime"];

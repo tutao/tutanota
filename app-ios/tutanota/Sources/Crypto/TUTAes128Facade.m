@@ -70,7 +70,6 @@ static const uint8_t FIXED_IV_BYTES[] = {
 		*error = [TUTErrorFactory createErrorWithDomain:TUT_CRYPTO_ERROR message:@"invalid iv length"];
 		return NO;
 	}
-	//NSLog(@"iv: %@", [TutaoEncodingConverter bytesToHex:iv]);
 	
 	if (![TUTAes128Facade writeBytes:iv.bytes dataInLength:iv.length to:output error:error]){
 		return NO;

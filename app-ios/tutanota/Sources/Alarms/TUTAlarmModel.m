@@ -8,6 +8,7 @@
 
 #import "TUTAlarmModel.h"
 #import "../Utils/Swiftier.h"
+#import "../Utils/TUTLog.h"
 
 @implementation TUTAlarmModel
 +(void)iterateRepeatingAlarmWithNow:(NSDate *)now
@@ -62,7 +63,7 @@
         case TUTRepeatPeriodAnnually:
             return NSCalendarUnitYear;
         default:
-            NSLog(@"Did not find repeat period: %zd", repeatPeriod);
+            TUTLog(@"Did not find repeat period: %zd", repeatPeriod);
             return NSCalendarUnitDay;
             break;
     }

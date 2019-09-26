@@ -146,7 +146,6 @@
 
 // from UIDocumentPickerDelegate protocol
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentAtURL:(NSURL *)url{
-	//NSLog(@"picked url: %@", url);
 	[self copyFileToLocalFolderAndSendResult:url fileName:[url lastPathComponent]];
 }
 
