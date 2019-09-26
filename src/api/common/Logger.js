@@ -71,9 +71,9 @@ export function createLogFile(timestamp: number, entries: Array<string>, scope: 
 	}
 }
 
-export function replaceNativeLogger(global: any, loggerInstance: Logger) {
+export function replaceNativeLogger(global: any, loggerInstance: Logger, force: boolean = false) {
 	// Replace native logger only when enabled because we lose line numbers
-	if (global.env.dist || global.debug) {
+	if (force || global.env.dist || global.debug) {
 		global.logger = loggerInstance
 		const globalConsole = global.console
 		global.console = {

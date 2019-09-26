@@ -13,6 +13,7 @@ import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./DesktopSseClient"
 import {Socketeer} from "./Socketeer"
+import {Logger, replaceNativeLogger} from "../api/common/Logger"
 
 const oldLog = console.log
 const oldError = console.error
@@ -21,6 +22,9 @@ const oldWarn = console.warn
 ;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
 ;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
 ;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
+
+const logger = new Logger()
+replaceNativeLogger(global, logger, true)
 
 const conf = new DesktopConfigHandler()
 const sock = new Socketeer()

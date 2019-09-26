@@ -7,11 +7,13 @@ import {ButtonType} from "../gui/base/Button"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {isColorLight} from "../calendar/CalendarUtils"
 import {theme} from "../gui/theme"
-import {isAndroidApp} from "../api/Env"
+import {isAndroidApp, isDesktop} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString} from "../misc/ErrorHandlerImpl"
+import {nativeApp} from "../native/NativeWrapper"
+import {Request} from "../api/common/WorkerProtocol"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -66,6 +68,16 @@ function sendDeviceLogs() {
 				createLogFile(timestamp.getTime(), mainEntries, "main"),
 				createLogFile(timestamp.getTime(), workerLogEntries, "worker")
 			])
+		})
+	}
+
+	if (isDesktop()) {
+		p = p.then(() => {
+			return nativeApp.invokeNative(new Request("getLog", []))
+			                .then((desktopEntries) => {
+				                const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
+				                editor.attachFiles([desktopLogFile])
+			                })
 		})
 	}
 
