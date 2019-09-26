@@ -179,7 +179,8 @@ type NativeRequestType = 'init'
 	| 'enableAutoLaunch'
 	| 'disableAutoLaunch'
 	| 'sendSocketMessage'
-	| 'getLog'
+	| 'getDeviceLog' // for mobile apps
+	| 'getLog' // for desktop
 	| 'sendGroupInvitation'
 	| 'calendarInvitationProgress_msg'
 
