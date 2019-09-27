@@ -234,14 +234,13 @@ typedef void(^VoidCallback)(void);
 		}];
     } else if ([@"getDeviceLog" isEqualToString:type]) {
         let entries = TUTLogger.sharedInstance.entries;
-        NSLog(@"getDeviceLogs entries of size %lu", (unsigned long)entries.count);
         NSError *error;
         let directory = [TUTFileUtil getDecryptedFolder:&error];
         if (error) {
             [self sendErrorResponseWithId:requestId value:error];
             return;
         }
-        let fileName = [NSString stringWithFormat:@"deviceLog-%d.txt", (int) NSDate.date.timeIntervalSince1970];
+        let fileName = [NSString stringWithFormat:@"%d_device_tutanota.log", (int) NSDate.date.timeIntervalSince1970];
         let filePath = [directory stringByAppendingPathComponent:fileName];
         let stringContent = [entries componentsJoinedByString:@"\n"];
         let bytes = [TUTEncodingConverter stringToBytes:stringContent];
