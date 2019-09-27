@@ -86,10 +86,7 @@ class HtmlSanitizer {
 
 		return {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
-			// poster for video element. It overwrites defaults so we specify all default ones. See https://github.com/cure53/DOMPurify/issues/366
-			ADD_URI_SAFE_ATTR: [
-				'alt', 'for', 'label', 'name', 'pattern', 'placeholder', 'summary', 'title', 'value', 'style', 'xmlns', 'poster'
-			],
+			ADD_URI_SAFE_ATTR: ['poster'], // poster for video element.
 			FORBID_TAGS: ['style'], // prevent loading of external fonts
 		}
 	}
