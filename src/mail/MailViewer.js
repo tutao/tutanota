@@ -95,7 +95,7 @@ export type InlineImages = {
 }
 
 // synthetic events are fired in code to distinguish between double and single click events
-type MaybeSyntheticEvent = Event & {synthetic?: boolean}
+type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -124,7 +124,8 @@ export class MailViewer {
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
-	_lastBodyClickTime = 0
+	_lastBodyTouchEndTime = 0;
+	_lastTouchStart: {x: number, y: number, time: number}
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -151,6 +152,7 @@ export class MailViewer {
 		this._domMailViewer = null
 		this._scrollAnimation = Promise.resolve()
 		this._isScaling = true;
+		this._lastTouchStart = {x: 0, y: 0, time: Date.now()}
 
 		let closeAction = () => this.mailHeaderDialog.close()
 		const headerBarAttrs: DialogHeaderBarAttrs = {
@@ -368,6 +370,13 @@ export class MailViewer {
 						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
 							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay")
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
+								ontouchstart: (event) => {
+									event.redraw = false
+									const touch = event.touches[0]
+									this._lastTouchStart.x = touch.clientX
+									this._lastTouchStart.y = touch.clientY
+									this._lastTouchStart.time = Date.now()
+								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
@@ -939,7 +948,7 @@ export class MailViewer {
 				m.route.set(newRoute)
 				event.preventDefault()
 			} else if (anchorElement && shouldDispatchSyntheticClick) {
-				let newClickEvent: MaybeSyntheticEvent = new MouseEvent("click")
+				let newClickEvent: MouseEvent & {synthetic?: boolean} = new MouseEvent("click")
 				newClickEvent.synthetic = true
 				anchorElement.dispatchEvent(newClickEvent)
 			}
@@ -1046,25 +1055,28 @@ export class MailViewer {
 	}
 
 	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
-		const lastClick = this._lastBodyClickTime
+		const lastClick = this._lastBodyTouchEndTime
 		const now = Date.now()
-		console.log("click", "synthetic", e.synthetic, "now", now, "lastClick", lastClick, "now - lastClick", now - lastClick)
-		if (e.synthetic) {
+		const touch = e.changedTouches[0]
+		// If there are no touches or it's not cancellable event (e.g. scroll) or more than certain time has passed or finger moved too
+		// much then do nothing
+		if (!touch || e.synthetic || !e.cancelable || Date.now() - this._lastTouchStart.time > 200
+			|| touch.clientX - this._lastTouchStart.x > 40 || touch.clientY - this._lastTouchStart.y > 40) {
 			return
 		}
 		e.preventDefault()
 		if (now - lastClick < 200) {
 			this._isScaling = !this._isScaling
-			this._lastBodyClickTime = 0
+			this._lastBodyTouchEndTime = 0
 			;(e: any).redraw = false
 			doubleClickAction(e)
 		} else {
 			setTimeout(() => {
-				if (this._lastBodyClickTime === now) {
+				if (this._lastBodyTouchEndTime === now) {
 					singleClickAction(e)
 				}
 			}, 200)
 		}
-		this._lastBodyClickTime = now
+		this._lastBodyTouchEndTime = now
 	}
 }
