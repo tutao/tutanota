@@ -12,8 +12,6 @@ import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString} from "../misc/ErrorHandlerImpl"
-import {nativeApp} from "../native/NativeWrapper"
-import {Request} from "../api/common/WorkerProtocol"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -85,6 +83,7 @@ function sendDeviceLogs() {
 		p = p.then(() => {
 			getDeviceLogs()
 				.then((fileReference) => {
+					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
 					editor.attachFiles([fileReference])
 				})
 		})
