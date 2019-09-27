@@ -17,6 +17,7 @@ class DeviceConfig {
 	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
 	_language: ?string;
+	_lastPath: {[userId: string]: string};
 
 	/**
 	 * @param config The config to copy from
@@ -36,6 +37,7 @@ class DeviceConfig {
 		}
 		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 		this._language = loadedConfig && loadedConfig._language
+		this._lastPath = loadedConfig && loadedConfig._lastPath || {}
 	}
 
 	getStoredAddresses(): string[] {
@@ -88,6 +90,15 @@ class DeviceConfig {
 	deleteByAccessToken(accessToken: string) {
 		this._credentials.splice(this._credentials.findIndex(c => c.accessToken === accessToken), 1)
 		this._store()
+	}
+
+	setLastPath(userId: string, path: string) {
+		this._lastPath[userId] = path
+		this._store()
+	}
+
+	getLastPath(userId: string): ?string {
+		return this._lastPath[userId]
 	}
 
 	_store() {

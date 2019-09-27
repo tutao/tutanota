@@ -135,7 +135,16 @@ export class LoginViewController implements ILoginViewController {
 		            .then(() => logins.loadCustomizations())
 		            .then(() => this._postLoginActions())
 		            .then(() => {
-			            m.route.set(this.view._requestedPath)
+			            if (this.view._requestedPath) {
+				            m.route.set(this.view._requestedPath)
+			            } else {
+				            const savedPath = deviceConfig.getLastPath(logins.getUserController().user._id)
+				            if (savedPath) {
+					            m.route.set(savedPath)
+				            } else {
+					            m.route.set("/mail")
+				            }
+			            }
 			            this.view.helpText = lang.get('emptyString_msg')
 			            m.redraw()
 		            })

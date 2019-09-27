@@ -15,7 +15,7 @@ import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
-import {asyncImport, neverNull} from "./api/common/utils/Utils"
+import {asyncImport, debounce, neverNull} from "./api/common/utils/Utils"
 import {themeId} from "./gui/theme"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
@@ -123,11 +123,18 @@ let initialized = lang.init(en).then(() => {
 		lang.setLanguage({code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)})
 	}
 
+	const saveLastPath = debounce(1000, (requestedPath) => {
+		if (logins.isUserLoggedIn()) {
+			deviceConfig.setLastPath(logins.getUserController().user._id, requestedPath)
+		}
+	})
+
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,
 	                            doNotCache: boolean = false): RouteResolverMatch {
 		let cache: {view: ?View} = {view: null}
 		return {
 			onmatch: (args, requestedPath) => {
+				saveLastPath(requestedPath)
 				if (requireLogin && !logins.isUserLoggedIn()) {
 					forceLogin(args, requestedPath)
 				} else if (!requireLogin && logins.isUserLoggedIn()) {

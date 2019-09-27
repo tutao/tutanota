@@ -47,7 +47,6 @@ export class LoginView {
 
 	constructor() {
 		this.targetPath = '/mail'
-		this._requestedPath = this.targetPath
 
 		this.mailAddress = new TextField('mailAddress_label')
 			.setType(Type.Email)
@@ -324,8 +323,6 @@ export class LoginView {
 			this._requestedPath = args.requestedPath
 		} else if (args.action) {
 			this._requestedPath = this.targetPath + `?action=${args.action}`
-		} else {
-			this._requestedPath = this.targetPath
 		}
 
 		let promise = Promise.resolve()
