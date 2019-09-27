@@ -97,6 +97,9 @@ export type InlineImages = {
 // synthetic events are fired in code to distinguish between double and single click events
 type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
+
+const DOUBLE_TAP_TIME_MS = 350
+
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
@@ -379,7 +382,7 @@ export class MailViewer {
 								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
-										this._handleDoubleClick(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
+										this._handleDoubleTap(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
 									}
 								},
 								onclick: (event: MouseEvent) => {
@@ -1054,18 +1057,18 @@ export class MailViewer {
 		}
 	}
 
-	_handleDoubleClick(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
+	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
 		const lastClick = this._lastBodyTouchEndTime
 		const now = Date.now()
 		const touch = e.changedTouches[0]
 		// If there are no touches or it's not cancellable event (e.g. scroll) or more than certain time has passed or finger moved too
 		// much then do nothing
-		if (!touch || e.synthetic || !e.cancelable || Date.now() - this._lastTouchStart.time > 200
+		if (!touch || e.synthetic || !e.cancelable || Date.now() - this._lastTouchStart.time > DOUBLE_TAP_TIME_MS
 			|| touch.clientX - this._lastTouchStart.x > 40 || touch.clientY - this._lastTouchStart.y > 40) {
 			return
 		}
 		e.preventDefault()
-		if (now - lastClick < 200) {
+		if (now - lastClick < DOUBLE_TAP_TIME_MS) {
 			this._isScaling = !this._isScaling
 			this._lastBodyTouchEndTime = 0
 			;(e: any).redraw = false
@@ -1075,7 +1078,7 @@ export class MailViewer {
 				if (this._lastBodyTouchEndTime === now) {
 					singleClickAction(e)
 				}
-			}, 200)
+			}, DOUBLE_TAP_TIME_MS)
 		}
 		this._lastBodyTouchEndTime = now
 	}
