@@ -225,7 +225,7 @@ styles.registerStyle('main', () => {
 		'.ml-negative-xs': {'margin-left': px(-3)},
 		'.ml-negative-bubble': {'margin-left': px(-7)},
 		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
-		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad_large), right: px(size.hpad_large)},
+		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad + size.bottom_nav_bar), right: px(size.hpad_large)},
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
@@ -508,6 +508,14 @@ styles.registerStyle('main', () => {
 			'box-shadow': `0 3px 2px 0 ${theme.header_box_shadow_bg}`,
 			'z-index': 1, // box_shadow will be overruled by the views background, otherwise
 			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
+		},
+
+		'.bottom-nav': {
+			'box-shadow': `0 -1px 10px 0 ${theme.header_box_shadow_bg}`,
+			height: positionValue(size.bottom_nav_bar),
+			left: 0,
+			right: 0,
+			bottom: 0,
 		},
 
 
@@ -1156,7 +1164,7 @@ styles.registerStyle('main', () => {
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
-			'.main-view': {top: positionValue(size.navbar_height_mobile)},
+			'.main-view': {top: positionValue(size.navbar_height_mobile), bottom: positionValue(size.bottom_nav_bar)},
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},
 			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},

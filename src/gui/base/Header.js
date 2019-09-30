@@ -162,9 +162,9 @@ class Header {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),
 				styles.isDesktopLayout() ? null : this._getCenterContent(),
-				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
-					style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
-				}, m(this.buttonBar))
+				// m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
+				// 	style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
+				// }, m(this.buttonBar))
 			]))
 		}
 
@@ -295,7 +295,11 @@ class Header {
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			return m(NavButtonN, {
 				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
-				icon: () => BootIcons.Back,
+				icon: () =>
+					viewSlider.focusedColumn.columnType === 0 /*foreground*/ ||
+					viewSlider.getBackgroundColumns()[0] === viewSlider.focusedColumn
+						? BootIcons.MoreVertical
+						: BootIcons.Back,
 				colors: NavButtonColors.Header,
 				href: () => m.route.get(),
 				click: () => {

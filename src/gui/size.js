@@ -41,6 +41,7 @@ export const size = {
 
 	navbar_height: 70,
 	navbar_height_mobile: 48,
+	bottom_nav_bar: 56,
 
 	navbar_button_width: 80,
 	navbar_edge_width_mobile: 58,

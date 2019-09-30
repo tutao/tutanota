@@ -158,6 +158,10 @@ export class ViewSlider implements IViewSlider {
 		return nextColumn
 	}
 
+	getBackgroundColumns(): ViewColumn[] {
+		return this.columns.filter(c => c.columnType === ColumnType.Background)
+	}
+
 	/**
 	 * distributes the remaining space to all visible columns
 	 * @param visibleColumns
@@ -404,7 +408,8 @@ export class ViewSlider implements IViewSlider {
 					oldGestureInfo = lastGestureInfo
 					lastGestureInfo = gestureInfoFromTouch(touch)
 					// If we have horizonal lock or we don't have vertical lock but would like to acquire horizontal one, the lock horizontally
-					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x) > 30) {
+					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x)
+						> 30) {
 						directionLock = HORIZONTAL
 						const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
 							sideColRect.width)

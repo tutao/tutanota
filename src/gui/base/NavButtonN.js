@@ -25,9 +25,12 @@ export type NavButtonAttrs = {|
 	isVisible?: lazy<boolean>,
 	dropHandler?: dropHandler,
 	hideLabel?: boolean,
+	vertical?: boolean
 |}
 
-const navButtonSelector = "a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
+const navButtonSelector = (vertical) =>
+	"a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
+	+ (vertical ? ".col" : "")
 
 class _NavButton {
 	_domButton: HTMLElement;
@@ -44,7 +47,7 @@ class _NavButton {
 	view(vnode: Vnode<NavButtonAttrs>) {
 		const a = vnode.attrs
 		// allow nav button without label for registration button on mobile devices
-		return m((this._isExternalUrl(a.href) ? navButtonSelector : m.route.Link),
+		return m((this._isExternalUrl(a.href) ? navButtonSelector(vnode.attrs.vertical) : m.route.Link),
 			this.createButtonAttributes(a),
 			[
 				a.icon() ? m(Icon, {
@@ -55,7 +58,7 @@ class _NavButton {
 							getColors(a.colors).button_selected : getColors(a.colors).button,
 					}
 				}) : null,
-				(!a.hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel(a.label)) : null
+				(!a.hideLabel) ? m("span.label.click.text-ellipsis.b" + (a.vertical ? "" : ".pl-m"), this.getLabel(a.label)) : null
 			]
 		)
 	}
@@ -98,7 +101,7 @@ class _NavButton {
 			onbeforeremove: (vnode) => {
 				removeFlash(vnode.dom)
 			},
-			selector: navButtonSelector,
+			selector: navButtonSelector(a.vertical),
 			onclick: (e) => this.click(e, a)
 		}
 		if (a.dropHandler) {

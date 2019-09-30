@@ -1,9 +1,9 @@
-import {ViewColumn as _ViewColumn} from "../src/gui/base/ViewColumn"
+import {ViewColumn} from "../src/gui/base/ViewColumn"
 import type {EntityUpdateData} from "../src/api/main/EventController"
 
 
 interface IViewSlider {
-	focusedColumn: _ViewColumn;
+	focusedColumn: ViewColumn;
 
 	isFocusPreviousPossible(): boolean;
 
@@ -16,6 +16,8 @@ interface IViewSlider {
 	focusPreviousColumn(): void;
 
 	focusNextColumn(): void;
+
+	getBackgroundColumns(): ViewColumn[];
 }
 
 interface IUserController {
