@@ -14,9 +14,33 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 497, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"bodyText": {"name": "bodyText", "id": 499, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
-		"confidential": {"name": "confidential", "id": 502, "since": 11, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": true},
-		"senderMailAddress": {"name": "senderMailAddress", "id": 500, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"senderName": {"name": "senderName", "id": 501, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"confidential": {
+			"name": "confidential",
+			"id": 502,
+			"since": 11,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": true
+		},
+		"senderMailAddress": {
+			"name": "senderMailAddress",
+			"id": 500,
+			"since": 11,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"senderName": {
+			"name": "senderName",
+			"id": 501,
+			"since": 11,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": true
+		},
 		"subject": {"name": "subject", "id": 498, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {

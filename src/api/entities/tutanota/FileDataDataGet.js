@@ -12,8 +12,15 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 332, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"base64": {"name": "base64", "id": 333, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 332,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}, "base64": {"name": "base64", "id": 333, "since": 1, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {
 		"file": {

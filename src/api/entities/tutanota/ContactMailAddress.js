@@ -14,7 +14,15 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 45, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"address": {"name": "address", "id": 47, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"customTypeName": {"name": "customTypeName", "id": 48, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"customTypeName": {
+			"name": "customTypeName",
+			"id": 48,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"type": {"name": "type", "id": 46, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},

@@ -12,13 +12,29 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 413, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 413,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"pubKey": {"name": "pubKey", "id": 414, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"pubKeyVersion": {"name": "pubKeyVersion", "id": 415, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
+		"pubKeyVersion": {
+			"name": "pubKeyVersion",
+			"id": 415,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createPublicKeyReturn(values?: $Shape<$Exact<PublicKeyReturn>>): PublicKeyReturn {

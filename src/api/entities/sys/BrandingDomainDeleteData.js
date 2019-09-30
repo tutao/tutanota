@@ -12,12 +12,19 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1156, "since": 22, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"domain": {"name": "domain", "id": 1157, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1156,
+			"since": 22,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}, "domain": {"name": "domain", "id": 1157, "since": 22, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createBrandingDomainDeleteData(values?: $Shape<$Exact<BrandingDomainDeleteData>>): BrandingDomainDeleteData {

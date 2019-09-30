@@ -12,7 +12,15 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 548, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 548,
+			"since": 11,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"bucketEncMailSessionKey": {
 			"name": "bucketEncMailSessionKey",
 			"id": 551,
@@ -23,8 +31,24 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"language": {"name": "language", "id": 549, "since": 11, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"mailSessionKey": {"name": "mailSessionKey", "id": 550, "since": 11, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"plaintext": {"name": "plaintext", "id": 675, "since": 18, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
+		"mailSessionKey": {
+			"name": "mailSessionKey",
+			"id": 550,
+			"since": 11,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"plaintext": {
+			"name": "plaintext",
+			"id": 675,
+			"since": 18,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"senderNameUnencrypted": {
 			"name": "senderNameUnencrypted",
 			"id": 552,

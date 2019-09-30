@@ -12,12 +12,20 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 439, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 439,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"deviceKey": {"name": "deviceKey", "id": 440, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createAutoLoginDataReturn(values?: $Shape<$Exact<AutoLoginDataReturn>>): AutoLoginDataReturn {

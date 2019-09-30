@@ -14,7 +14,15 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 1179, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"appId": {"name": "appId", "id": 1181, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"keyHandle": {"name": "keyHandle", "id": 1180, "since": 23, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
+		"keyHandle": {
+			"name": "keyHandle",
+			"id": 1180,
+			"since": 23,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"secondFactor": {
@@ -29,7 +37,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createU2fKey(values?: $Shape<$Exact<U2fKey>>): U2fKey {

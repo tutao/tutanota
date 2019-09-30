@@ -11,7 +11,17 @@ export const _TypeModel: TypeModel = {
 	"rootId": "A3N5cwAE3A",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 1245, "since": 24, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {
+		"_id": {
+			"name": "_id",
+			"id": 1245,
+			"since": 24,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
+	},
 	"associations": {
 		"secondFactors": {
 			"name": "secondFactors",
@@ -25,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createOtpChallenge(values?: $Shape<$Exact<OtpChallenge>>): OtpChallenge {

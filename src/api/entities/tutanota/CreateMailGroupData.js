@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 708, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"encryptedName": {"name": "encryptedName", "id": 710, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 709, "since": 19, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 708,
+			"since": 19,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"encryptedName": {
+			"name": "encryptedName",
+			"id": 710,
+			"since": 19,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 709,
+			"since": 19,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"mailEncMailboxSessionKey": {
 			"name": "mailEncMailboxSessionKey",
 			"id": 711,

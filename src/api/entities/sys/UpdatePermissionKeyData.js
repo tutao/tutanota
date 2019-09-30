@@ -12,7 +12,15 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 446, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 446,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"ownerEncSessionKey": {
 			"name": "ownerEncSessionKey",
 			"id": 1031,
@@ -22,7 +30,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"symEncSessionKey": {"name": "symEncSessionKey", "id": 447, "since": 1, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
+		"symEncSessionKey": {
+			"name": "symEncSessionKey",
+			"id": 447,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"bucketPermission": {
@@ -47,7 +63,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createUpdatePermissionKeyData(values?: $Shape<$Exact<UpdatePermissionKeyData>>): UpdatePermissionKeyData {

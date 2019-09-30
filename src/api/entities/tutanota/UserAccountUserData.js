@@ -49,7 +49,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"encryptedName": {"name": "encryptedName", "id": 625, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"encryptedName": {
+			"name": "encryptedName",
+			"id": 625,
+			"since": 16,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"fileEncFileSystemSessionKey": {
 			"name": "fileEncFileSystemSessionKey",
 			"id": 638,
@@ -59,7 +67,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"mailAddress": {"name": "mailAddress", "id": 624, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 624,
+			"since": 16,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"mailEncMailBoxSessionKey": {
 			"name": "mailEncMailBoxSessionKey",
 			"id": 636,
@@ -69,7 +85,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 629, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"pwEncUserGroupKey": {
+			"name": "pwEncUserGroupKey",
+			"id": 629,
+			"since": 16,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"recoverCodeEncUserGroupKey": {
 			"name": "recoverCodeEncUserGroupKey",
 			"id": 893,
@@ -89,7 +113,15 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"salt": {"name": "salt", "id": 626, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"userEncClientKey": {"name": "userEncClientKey", "id": 628, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {
+			"name": "userEncClientKey",
+			"id": 628,
+			"since": 16,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"userEncContactGroupKey": {
 			"name": "userEncContactGroupKey",
 			"id": 632,
@@ -108,7 +140,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncEntropy": {"name": "userEncEntropy", "id": 634, "since": 16, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncEntropy": {
+			"name": "userEncEntropy",
+			"id": 634,
+			"since": 16,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"userEncFileGroupKey": {
 			"name": "userEncFileGroupKey",
 			"id": 633,
@@ -127,7 +167,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncRecoverCode": {"name": "userEncRecoverCode", "id": 892, "since": 29, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncRecoverCode": {
+			"name": "userEncRecoverCode",
+			"id": 892,
+			"since": 29,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"userEncTutanotaPropertiesSessionKey": {
 			"name": "userEncTutanotaPropertiesSessionKey",
 			"id": 635,

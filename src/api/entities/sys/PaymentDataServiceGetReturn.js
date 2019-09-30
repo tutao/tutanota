@@ -12,12 +12,20 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 791, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 791,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"loginUrl": {"name": "loginUrl", "id": 792, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createPaymentDataServiceGetReturn(values?: $Shape<$Exact<PaymentDataServiceGetReturn>>): PaymentDataServiceGetReturn {

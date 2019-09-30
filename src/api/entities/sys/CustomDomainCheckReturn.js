@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1590, "since": 49, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"checkResult": {"name": "checkResult", "id": 1591, "since": 49, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1590,
+			"since": 49,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"checkResult": {
+			"name": "checkResult",
+			"id": 1591,
+			"since": 49,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"invalidRecords": {
@@ -36,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createCustomDomainCheckReturn(values?: $Shape<$Exact<CustomDomainCheckReturn>>): CustomDomainCheckReturn {

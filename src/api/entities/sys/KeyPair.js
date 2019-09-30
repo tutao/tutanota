@@ -14,12 +14,20 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 1, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"pubKey": {"name": "pubKey", "id": 2, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
-		"symEncPrivKey": {"name": "symEncPrivKey", "id": 3, "since": 1, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"symEncPrivKey": {
+			"name": "symEncPrivKey",
+			"id": 3,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"version": {"name": "version", "id": 4, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createKeyPair(values?: $Shape<$Exact<KeyPair>>): KeyPair {

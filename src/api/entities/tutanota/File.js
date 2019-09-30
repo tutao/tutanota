@@ -25,10 +25,34 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 580, "since": 13, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 16, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 580,
+			"since": 13,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 16,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"cid": {"name": "cid", "id": 924, "since": 32, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
-		"mimeType": {"name": "mimeType", "id": 23, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
+		"mimeType": {
+			"name": "mimeType",
+			"id": 23,
+			"since": 1,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		},
 		"name": {"name": "name", "id": 21, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"size": {"name": "size", "id": 22, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},

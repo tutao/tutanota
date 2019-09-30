@@ -11,7 +11,17 @@ export const _TypeModel: TypeModel = {
 	"rootId": "A3N5cwAEtg",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 1207, "since": 23, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {
+		"_id": {
+			"name": "_id",
+			"id": 1207,
+			"since": 23,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
+	},
 	"associations": {
 		"recoverCode": {
 			"name": "recoverCode",
@@ -45,7 +55,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createUserAuthentication(values?: $Shape<$Exact<UserAuthentication>>): UserAuthentication {

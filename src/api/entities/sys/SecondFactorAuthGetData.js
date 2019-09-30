@@ -12,12 +12,28 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1234, "since": 23, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"accessToken": {"name": "accessToken", "id": 1235, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1234,
+			"since": 23,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"accessToken": {
+			"name": "accessToken",
+			"id": 1235,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createSecondFactorAuthGetData(values?: $Shape<$Exact<SecondFactorAuthGetData>>): SecondFactorAuthGetData {

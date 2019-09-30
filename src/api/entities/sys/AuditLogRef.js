@@ -11,7 +11,17 @@ export const _TypeModel: TypeModel = {
 	"rootId": "A3N5cwAEWg",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_id": {"name": "_id", "id": 1115, "since": 22, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false}},
+	"values": {
+		"_id": {
+			"name": "_id",
+			"id": 1115,
+			"since": 22,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
+	},
 	"associations": {
 		"items": {
 			"name": "items",
@@ -25,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createAuditLogRef(values?: $Shape<$Exact<AuditLogRef>>): AuditLogRef {

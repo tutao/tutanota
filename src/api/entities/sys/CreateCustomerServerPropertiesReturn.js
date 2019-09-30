@@ -11,7 +11,17 @@ export const _TypeModel: TypeModel = {
 	"rootId": "A3N5cwADxA",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_format": {"name": "_format", "id": 965, "since": 13, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 965,
+			"since": 13,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
+	},
 	"associations": {
 		"id": {
 			"name": "id",
@@ -25,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createCreateCustomerServerPropertiesReturn(values?: $Shape<$Exact<CreateCustomerServerPropertiesReturn>>): CreateCustomerServerPropertiesReturn {
