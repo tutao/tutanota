@@ -14,9 +14,33 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 1558, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"endType": {"name": "endType", "id": 1560, "since": 48, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
-		"endValue": {"name": "endValue", "id": 1561, "since": 48, "type": "Number", "cardinality": "ZeroOrOne", "final": false, "encrypted": true},
-		"frequency": {"name": "frequency", "id": 1559, "since": 48, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
-		"interval": {"name": "interval", "id": 1562, "since": 48, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"endValue": {
+			"name": "endValue",
+			"id": 1561,
+			"since": 48,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
+		"frequency": {
+			"name": "frequency",
+			"id": 1559,
+			"since": 48,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"interval": {
+			"name": "interval",
+			"id": 1562,
+			"since": 48,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"timeZone": {"name": "timeZone", "id": 1563, "since": 48, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},

@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 751, "since": 19, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"requestMailAddress": {"name": "requestMailAddress", "id": 752, "since": 19, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 751,
+			"since": 19,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"requestMailAddress": {
+			"name": "requestMailAddress",
+			"id": 752,
+			"since": 19,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"responseMailAddress": {
 			"name": "responseMailAddress",
 			"id": 753,

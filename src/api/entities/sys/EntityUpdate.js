@@ -13,10 +13,42 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 463, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"application": {"name": "application", "id": 464, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"instanceId": {"name": "instanceId", "id": 467, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"instanceListId": {"name": "instanceListId", "id": 466, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"operation": {"name": "operation", "id": 624, "since": 4, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"application": {
+			"name": "application",
+			"id": 464,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"instanceId": {
+			"name": "instanceId",
+			"id": 467,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"instanceListId": {
+			"name": "instanceListId",
+			"id": 466,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"operation": {
+			"name": "operation",
+			"id": 624,
+			"since": 4,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"type": {"name": "type", "id": 465, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},

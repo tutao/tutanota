@@ -23,8 +23,24 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 986, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 957, "since": 13, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 986,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 957,
+			"since": 13,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"requirePasswordUpdateAfterReset": {
 			"name": "requirePasswordUpdateAfterReset",
 			"id": 1100,
@@ -43,7 +59,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"whitelabelCode": {"name": "whitelabelCode", "id": 1278, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
+		"whitelabelCode": {
+			"name": "whitelabelCode",
+			"id": 1278,
+			"since": 26,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"emailSenderList": {

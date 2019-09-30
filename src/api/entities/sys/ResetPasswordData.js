@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 585, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 588, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 585,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"pwEncUserGroupKey": {
+			"name": "pwEncUserGroupKey",
+			"id": 588,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"salt": {"name": "salt", "id": 587, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
 		"verifier": {"name": "verifier", "id": 586, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},

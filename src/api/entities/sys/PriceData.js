@@ -13,9 +13,25 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 854, "since": 9, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"paymentInterval": {"name": "paymentInterval", "id": 857, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"paymentInterval": {
+			"name": "paymentInterval",
+			"id": 857,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"price": {"name": "price", "id": 855, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"taxIncluded": {"name": "taxIncluded", "id": 856, "since": 9, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
+		"taxIncluded": {
+			"name": "taxIncluded",
+			"id": 856,
+			"since": 9,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"items": {

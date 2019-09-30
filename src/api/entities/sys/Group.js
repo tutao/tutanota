@@ -12,10 +12,34 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 9, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 9,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 7, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 981, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 8, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 981,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 8,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"adminGroupEncGKey": {
 			"name": "adminGroupEncGKey",
 			"id": 11,
@@ -26,7 +50,15 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"enabled": {"name": "enabled", "id": 12, "since": 1, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
-		"external": {"name": "external", "id": 982, "since": 17, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
+		"external": {
+			"name": "external",
+			"id": 982,
+			"since": 17,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"type": {"name": "type", "id": 10, "since": 1, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {

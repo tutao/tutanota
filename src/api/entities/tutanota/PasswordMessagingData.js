@@ -12,9 +12,25 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 309, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 309,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"language": {"name": "language", "id": 310, "since": 1, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"numberId": {"name": "numberId", "id": 311, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"numberId": {
+			"name": "numberId",
+			"id": 311,
+			"since": 1,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"symKeyForPasswordTransmission": {
 			"name": "symKeyForPasswordTransmission",
 			"id": 312,

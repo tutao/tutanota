@@ -23,8 +23,24 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1002, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 135, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1002,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 135,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"bucketEncSessionKey": {
 			"name": "bucketEncSessionKey",
 			"id": 139,

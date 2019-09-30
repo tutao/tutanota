@@ -85,7 +85,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"userEncClientKey": {"name": "userEncClientKey", "id": 147, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {
+			"name": "userEncClientKey",
+			"id": 147,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"verifier": {"name": "verifier", "id": 149, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {

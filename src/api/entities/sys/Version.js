@@ -13,9 +13,25 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 481, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"operation": {"name": "operation", "id": 484, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"operation": {
+			"name": "operation",
+			"id": 484,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"timestamp": {"name": "timestamp", "id": 483, "since": 1, "type": "Date", "cardinality": "One", "final": false, "encrypted": false},
-		"version": {"name": "version", "id": 482, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false}
+		"version": {
+			"name": "version",
+			"id": 482,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"author": {

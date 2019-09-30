@@ -31,10 +31,34 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 759, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"pwEncUserGroupKey": {
+			"name": "pwEncUserGroupKey",
+			"id": 759,
+			"since": 19,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"salt": {"name": "salt", "id": 756, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"userEncClientKey": {"name": "userEncClientKey", "id": 758, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"userEncEntropy": {"name": "userEncEntropy", "id": 761, "since": 19, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"userEncClientKey": {
+			"name": "userEncClientKey",
+			"id": 758,
+			"since": 19,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"userEncEntropy": {
+			"name": "userEncEntropy",
+			"id": 761,
+			"since": 19,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"userEncMailGroupKey": {
 			"name": "userEncMailGroupKey",
 			"id": 760,

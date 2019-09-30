@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1457, "since": 39, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"campaign": {"name": "campaign", "id": 1459, "since": 39, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 1457,
+			"since": 39,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"campaign": {
+			"name": "campaign",
+			"id": 1459,
+			"since": 39,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"date": {"name": "date", "id": 1458, "since": 39, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false}
 	},
 	"associations": {},

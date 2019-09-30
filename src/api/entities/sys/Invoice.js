@@ -32,13 +32,45 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1005, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 742, "since": 9, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1005,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 742,
+			"since": 9,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"country": {"name": "country", "id": 892, "since": 10, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"date": {"name": "date", "id": 745, "since": 9, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
-		"grandTotal": {"name": "grandTotal", "id": 748, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"grandTotal": {
+			"name": "grandTotal",
+			"id": 748,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"number": {"name": "number", "id": 746, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
-		"paymentMethod": {"name": "paymentMethod", "id": 751, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"paymentMethod": {
+			"name": "paymentMethod",
+			"id": 751,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"source": {"name": "source", "id": 749, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"status": {"name": "status", "id": 750, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"vat": {"name": "vat", "id": 747, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},

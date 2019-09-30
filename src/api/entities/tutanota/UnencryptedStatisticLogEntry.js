@@ -12,11 +12,43 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 883, "since": 25, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 883,
+			"since": 25,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 881, "since": 25, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 884, "since": 25, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 882, "since": 25, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"contactFormPath": {"name": "contactFormPath", "id": 886, "since": 25, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 884,
+			"since": 25,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 882,
+			"since": 25,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"contactFormPath": {
+			"name": "contactFormPath",
+			"id": 886,
+			"since": 25,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"date": {"name": "date", "id": 885, "since": 25, "type": "Date", "cardinality": "One", "final": true, "encrypted": false}
 	},
 	"associations": {},

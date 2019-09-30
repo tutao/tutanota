@@ -12,10 +12,34 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 535, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 535,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"code": {"name": "code", "id": 539, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"oldVerifier": {"name": "oldVerifier", "id": 1240, "since": 23, "type": "Bytes", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"pwEncUserGroupKey": {"name": "pwEncUserGroupKey", "id": 538, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"oldVerifier": {
+			"name": "oldVerifier",
+			"id": 1240,
+			"since": 23,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"pwEncUserGroupKey": {
+			"name": "pwEncUserGroupKey",
+			"id": 538,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"recoverCodeVerifier": {
 			"name": "recoverCodeVerifier",
 			"id": 1418,

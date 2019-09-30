@@ -23,12 +23,60 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1196, "since": 23, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 1194, "since": 23, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"accessKey": {"name": "accessKey", "id": 1202, "since": 23, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"clientIdentifier": {"name": "clientIdentifier", "id": 1198, "since": 23, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"lastAccessTime": {"name": "lastAccessTime", "id": 1201, "since": 23, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
-		"loginIpAddress": {"name": "loginIpAddress", "id": 1200, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1196,
+			"since": 23,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 1194,
+			"since": 23,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"accessKey": {
+			"name": "accessKey",
+			"id": 1202,
+			"since": 23,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"clientIdentifier": {
+			"name": "clientIdentifier",
+			"id": 1198,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"lastAccessTime": {
+			"name": "lastAccessTime",
+			"id": 1201,
+			"since": 23,
+			"type": "Date",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"loginIpAddress": {
+			"name": "loginIpAddress",
+			"id": 1200,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		},
 		"loginTime": {"name": "loginTime", "id": 1199, "since": 23, "type": "Date", "cardinality": "One", "final": true, "encrypted": true},
 		"state": {"name": "state", "id": 1203, "since": 23, "type": "Number", "cardinality": "One", "final": true, "encrypted": false}
 	},

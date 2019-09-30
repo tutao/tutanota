@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1484, "since": 41, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"eventBatchId": {"name": "eventBatchId", "id": 1485, "since": 41, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false},
-		"eventBatchOwner": {"name": "eventBatchOwner", "id": 1486, "since": 41, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1484,
+			"since": 41,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"eventBatchId": {
+			"name": "eventBatchId",
+			"id": 1485,
+			"since": 41,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"eventBatchOwner": {
+			"name": "eventBatchOwner",
+			"id": 1486,
+			"since": 41,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"eventBatch": {

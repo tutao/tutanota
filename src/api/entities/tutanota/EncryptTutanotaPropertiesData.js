@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 474, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"symEncSessionKey": {"name": "symEncSessionKey", "id": 476, "since": 9, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 474,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"symEncSessionKey": {
+			"name": "symEncSessionKey",
+			"id": 476,
+			"since": 9,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"properties": {

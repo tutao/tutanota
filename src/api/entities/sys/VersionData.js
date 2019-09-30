@@ -12,10 +12,34 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 488, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"application": {"name": "application", "id": 489, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 488,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"application": {
+			"name": "application",
+			"id": 489,
+			"since": 1,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"id": {"name": "id", "id": 491, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false},
-		"listId": {"name": "listId", "id": 492, "since": 1, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"listId": {
+			"name": "listId",
+			"id": 492,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"typeId": {"name": "typeId", "id": 490, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},

@@ -14,7 +14,15 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 918, "since": 11, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"data": {"name": "data", "id": 921, "since": 11, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"mimeType": {"name": "mimeType", "id": 920, "since": 11, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"mimeType": {
+			"name": "mimeType",
+			"id": 920,
+			"since": 11,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"name": {"name": "name", "id": 919, "since": 11, "type": "String", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},

@@ -52,7 +52,6 @@ type GroupMembership = {
 	_type: TypeRef<GroupMembership>;
 	_id: Id;
 	admin: boolean;
-	capability: NumberString;
 	groupType: ?NumberString;
 	symEncGKey: Uint8Array;
 
@@ -302,19 +301,6 @@ type CustomerInfo = {
 	takeoverCustomer: ?Id;
 }
 
-type GroupInvitation = {
-	_type: TypeRef<GroupInvitation>;
-	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-	capability: NumberString;
-	invitedMailAddress: string;
-
-	group: Id;
-	invitor: Id;
-}
-
 type MailAddressToGroup = {
 	_type: TypeRef<MailAddressToGroup>;
 	_format: NumberString;
@@ -331,7 +317,6 @@ type GroupMember = {
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	capability: NumberString;
 
 	group: Id;
 	user: Id;
@@ -1717,25 +1702,10 @@ type CustomDomainCheckReturn = {
 	missingRecords: DnsRecord[];
 }
 
-type IncomingInvite = {
-	_type: TypeRef<IncomingInvite>;
+type DeleteSessionServicePost = {
+	_type: TypeRef<DeleteSessionServicePost>;
 	_format: NumberString;
-	_id: IdTuple;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-	pubEncGKey: Uint8Array;
-	pubKeyVersion: NumberString;
+	accessToken: string;
 
-	groupInfo: IdTuple;
-	groupInvitation: IdTuple;
-}
-
-type UserGroupRoot = {
-	_type: TypeRef<UserGroupRoot>;
-	_format: NumberString;
-	_id: Id;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-
-	invites: Id;
+	sessionId: IdTuple;
 }

@@ -12,11 +12,43 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 773, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"accountType": {"name": "accountType", "id": 774, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"campaign": {"name": "campaign", "id": 1454, "since": 38, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 773,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"accountType": {
+			"name": "accountType",
+			"id": 774,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"campaign": {
+			"name": "campaign",
+			"id": 1454,
+			"since": 38,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"date": {"name": "date", "id": 775, "since": 9, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"proUpgrade": {"name": "proUpgrade", "id": 1310, "since": 30, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false}
+		"proUpgrade": {
+			"name": "proUpgrade",
+			"id": 1310,
+			"since": 30,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",

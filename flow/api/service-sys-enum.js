@@ -39,3 +39,4 @@ type SysServiceEnum =
 	| "upgradepriceservice"
 	| "alarmservice"
 	| "customdomaincheckservice"
+	| "deletesessionservice"

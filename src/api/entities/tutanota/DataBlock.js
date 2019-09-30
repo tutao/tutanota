@@ -13,7 +13,15 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"blockData": {"name": "blockData", "id": 3, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false},
+		"blockData": {
+			"name": "blockData",
+			"id": 3,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"size": {"name": "size", "id": 2, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},

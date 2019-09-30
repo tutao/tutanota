@@ -14,8 +14,24 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_format": {"name": "_format", "id": 1131, "since": 22, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"_id": {"name": "_id", "id": 1129, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1132, "since": 22, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 1130, "since": 22, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1132,
+			"since": 22,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 1130,
+			"since": 22,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"germanLanguageCode": {
 			"name": "germanLanguageCode",
 			"id": 1308,
@@ -25,9 +41,33 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"imprintUrl": {"name": "imprintUrl", "id": 1425, "since": 37, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"jsonTheme": {"name": "jsonTheme", "id": 1133, "since": 22, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
-		"metaTags": {"name": "metaTags", "id": 1281, "since": 26, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"imprintUrl": {
+			"name": "imprintUrl",
+			"id": 1425,
+			"since": 37,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"jsonTheme": {
+			"name": "jsonTheme",
+			"id": 1133,
+			"since": 22,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"metaTags": {
+			"name": "metaTags",
+			"id": 1281,
+			"since": 26,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"privacyStatementUrl": {
 			"name": "privacyStatementUrl",
 			"id": 1496,

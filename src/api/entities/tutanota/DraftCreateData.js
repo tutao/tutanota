@@ -12,9 +12,33 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 509, "since": 11, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"conversationType": {"name": "conversationType", "id": 511, "since": 11, "type": "Number", "cardinality": "One", "final": true, "encrypted": false},
-		"ownerEncSessionKey": {"name": "ownerEncSessionKey", "id": 512, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 509,
+			"since": 11,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"conversationType": {
+			"name": "conversationType",
+			"id": 511,
+			"since": 11,
+			"type": "Number",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"ownerEncSessionKey": {
+			"name": "ownerEncSessionKey",
+			"id": 512,
+			"since": 11,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"previousMessageId": {
 			"name": "previousMessageId",
 			"id": 510,
@@ -24,7 +48,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"symEncSessionKey": {"name": "symEncSessionKey", "id": 513, "since": 11, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": false}
+		"symEncSessionKey": {
+			"name": "symEncSessionKey",
+			"id": 513,
+			"since": 11,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"draftData": {

@@ -32,12 +32,44 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 983, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 17, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 983,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 17,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"created": {"name": "created", "id": 23, "since": 1, "type": "Date", "cardinality": "One", "final": true, "encrypted": false},
 		"deleted": {"name": "deleted", "id": 24, "since": 1, "type": "Date", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"groupType": {"name": "groupType", "id": 1286, "since": 27, "type": "Number", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 22, "since": 1, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"groupType": {
+			"name": "groupType",
+			"id": 1286,
+			"since": 27,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 22,
+			"since": 1,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"name": {"name": "name", "id": 21, "since": 1, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {

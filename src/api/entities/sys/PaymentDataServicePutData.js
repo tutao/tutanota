@@ -13,7 +13,15 @@ export const _TypeModel: TypeModel = {
 	"encrypted": true,
 	"values": {
 		"_format": {"name": "_format", "id": 794, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"business": {"name": "business", "id": 795, "since": 9, "type": "Boolean", "cardinality": "One", "final": false, "encrypted": false},
+		"business": {
+			"name": "business",
+			"id": 795,
+			"since": 9,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"confirmedCountry": {
 			"name": "confirmedCountry",
 			"id": 804,
@@ -23,12 +31,60 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"invoiceAddress": {"name": "invoiceAddress", "id": 797, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"invoiceCountry": {"name": "invoiceCountry", "id": 798, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"invoiceName": {"name": "invoiceName", "id": 796, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"invoiceVatIdNo": {"name": "invoiceVatIdNo", "id": 799, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"paymentInterval": {"name": "paymentInterval", "id": 802, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"paymentMethod": {"name": "paymentMethod", "id": 800, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"invoiceAddress": {
+			"name": "invoiceAddress",
+			"id": 797,
+			"since": 9,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"invoiceCountry": {
+			"name": "invoiceCountry",
+			"id": 798,
+			"since": 9,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"invoiceName": {
+			"name": "invoiceName",
+			"id": 796,
+			"since": 9,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"invoiceVatIdNo": {
+			"name": "invoiceVatIdNo",
+			"id": 799,
+			"since": 9,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"paymentInterval": {
+			"name": "paymentInterval",
+			"id": 802,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"paymentMethod": {
+			"name": "paymentMethod",
+			"id": 800,
+			"since": 9,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
 		"paymentMethodInfo": {
 			"name": "paymentMethodInfo",
 			"id": 801,
@@ -38,7 +94,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"paymentToken": {"name": "paymentToken", "id": 803, "since": 9, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
+		"paymentToken": {
+			"name": "paymentToken",
+			"id": 803,
+			"since": 9,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		}
 	},
 	"associations": {
 		"creditCard": {

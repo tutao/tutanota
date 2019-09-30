@@ -12,11 +12,51 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 302, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"freeGroupKey": {"name": "freeGroupKey", "id": 305, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"premiumGroupKey": {"name": "premiumGroupKey", "id": 306, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"starterGroupKey": {"name": "starterGroupKey", "id": 307, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"systemAdminPubKey": {"name": "systemAdminPubKey", "id": 303, "since": 1, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 302,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"freeGroupKey": {
+			"name": "freeGroupKey",
+			"id": 305,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"premiumGroupKey": {
+			"name": "premiumGroupKey",
+			"id": 306,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"starterGroupKey": {
+			"name": "starterGroupKey",
+			"id": 307,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"systemAdminPubKey": {
+			"name": "systemAdminPubKey",
+			"id": 303,
+			"since": 1,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"systemAdminPubKeyVersion": {
 			"name": "systemAdminPubKeyVersion",
 			"id": 304,

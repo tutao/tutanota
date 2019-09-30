@@ -12,12 +12,60 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1212, "since": 23, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"accessKey": {"name": "accessKey", "id": 1216, "since": 23, "type": "Bytes", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"authToken": {"name": "authToken", "id": 1217, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"authVerifier": {"name": "authVerifier", "id": 1214, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"clientIdentifier": {"name": "clientIdentifier", "id": 1215, "since": 23, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"mailAddress": {"name": "mailAddress", "id": 1213, "since": 23, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 1212,
+			"since": 23,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"accessKey": {
+			"name": "accessKey",
+			"id": 1216,
+			"since": 23,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"authToken": {
+			"name": "authToken",
+			"id": 1217,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"authVerifier": {
+			"name": "authVerifier",
+			"id": 1214,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"clientIdentifier": {
+			"name": "clientIdentifier",
+			"id": 1215,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"mailAddress": {
+			"name": "mailAddress",
+			"id": 1213,
+			"since": 23,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"recoverCodeVerifier": {
 			"name": "recoverCodeVerifier",
 			"id": 1417,
