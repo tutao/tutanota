@@ -14,7 +14,7 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {compareContacts} from "../contacts/ContactUtils"
-import {defer, downcast, neverNull} from "../api/common/utils/Utils"
+import {defer, neverNull} from "../api/common/utils/Utils"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
@@ -22,7 +22,6 @@ import {hasMoreResults} from "./SearchModel"
 import {showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
-import {lastThrow} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -102,7 +101,7 @@ export class SearchListView {
 	}
 
 	isInSearchResult(typeRef: TypeRef<any>, id: IdTuple): boolean {
-		const result = locator.search.result()
+		const result = this._searchResult
 		return !!(result && isSameTypeRef(typeRef, result.restriction.type)
 			&& result.results.find(r => isSameId(r, id)))
 	}
