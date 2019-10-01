@@ -43,12 +43,13 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"electron-localshortcut": "3.1.0",
 			"fs-extra": "7.0.1",
 			"bluebird": "3.5.2",
-			"node-forge": "0.8.5",
+			"node-forge": "0.9.1",
 			"winreg": "1.2.4",
-			"keytar": "4.13.0"
+			"keytar": "4.13.0",
+			"pako": "1.0.10"
 		},
 		"build": {
-			"electronVersion": "4.1.4",
+			"electronVersion": "6.0.10",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
