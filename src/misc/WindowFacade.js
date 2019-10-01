@@ -190,7 +190,7 @@ class WindowFacade {
 	addOfflineListener(listener: Function) {
 		window.addEventListener("offline", listener)
 	}
-	
+
 	reload(args: {[string]: any}) {
 		if (isApp()) {
 			if (!args.hasOwnProperty("noAutoLogin")) {

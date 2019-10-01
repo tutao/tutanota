@@ -193,7 +193,8 @@ export class LoginViewController implements ILoginViewController {
 
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
-			worker.tryReconnectEventBus(true, true)
+			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
+			worker.tryReconnectEventBus(true, true, 2000)
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log(new Date().toISOString(), "offline - pause event bus")
