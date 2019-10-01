@@ -1,6 +1,7 @@
 // @flow
 import DOMPurify from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
+import {client} from "./ClientDetector"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
@@ -45,8 +46,14 @@ class HtmlSanitizer {
 					currentNode.tagName.toLowerCase() === "a"
 					|| currentNode.tagName.toLowerCase() === "area"
 					|| currentNode.tagName.toLowerCase() === "form")) {
-					currentNode.setAttribute('rel', 'noopener noreferrer')
-					currentNode.setAttribute('target', '_blank')
+					const href = currentNode.getAttribute("href")
+					if (isAllowedLink(href)) {
+						currentNode.setAttribute('rel', 'noopener noreferrer')
+						currentNode.setAttribute('target', '_blank')
+					} else {
+						console.log("Relative/invalid URL", currentNode, href)
+						currentNode.href = "#"
+					}
 				}
 
 				return currentNode;
@@ -172,6 +179,17 @@ class HtmlSanitizer {
 	}
 }
 
+function isAllowedLink(link: string): boolean {
+	if (client.isIE()) { // No support for creating URLs in IE11
+		return true
+	}
+	try {
+		// We create URL without explicit base (second argument). It is an error for relative links
+		return new URL(link).protocol !== "file"
+	} catch (e) {
+		return false
+	}
+}
 
 export function stringifyFragment(fragment: DocumentFragment): string {
 	let div = document.createElement("div")
