@@ -6,7 +6,7 @@ import path from "path"
 import DesktopUtils from "./DesktopUtils"
 import fs from "fs"
 import {noOp} from "../api/common/utils/Utils"
-import {lang} from "./DesktopLocalizationProvider"
+import {lang} from "../misc/LanguageViewModel"
 
 export class DesktopDownloadManager {
     _conf: DesktopConfigHandler;

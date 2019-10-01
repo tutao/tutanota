@@ -208,7 +208,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
-		n.mock('./DesktopLocalizationProvider.js', lang).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
 		const confMock = n.mock('__conf', conf).set()
@@ -273,7 +273,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
-		n.mock('./DesktopLocalizationProvider.js', lang).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
 		const confMock = n.mock('__conf', conf).set()
@@ -313,7 +313,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
-		n.mock('./DesktopLocalizationProvider.js', lang).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
 		let enabled = false
@@ -413,7 +413,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
-		n.mock('./DesktopLocalizationProvider.js', lang).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
 		const confMock = n.mock('__conf', conf).set()
@@ -475,7 +475,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
-		n.mock('./DesktopLocalizationProvider.js', lang).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
 		const confMock = n.mock('__conf', conf).set()

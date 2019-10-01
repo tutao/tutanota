@@ -4,7 +4,7 @@ import {net} from 'electron'
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopNotifier'
-import {lang} from './DesktopLocalizationProvider.js'
+import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfigHandler} from './DesktopConfigHandler'
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {defer, neverNull} from "../api/common/utils/Utils"

@@ -1,6 +1,6 @@
 // @flow
 import {Request} from '../api/common/WorkerProtocol.js'
-import {lang} from './DesktopLocalizationProvider.js'
+import {lang} from "../misc/LanguageViewModel"
 import * as localShortcut from 'electron-localshortcut'
 import {isMailAddress} from "../misc/FormatValidator"
 import type {Socketeer} from "./Socketeer"

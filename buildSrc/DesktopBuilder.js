@@ -3,6 +3,11 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
+const requiredEntities = fs.readdirSync('./src/api/entities/sys/')
+                           .map(fn => path.join('./src/api/entities/sys', fn))
+const languageFiles = fs.readdirSync('./src/translations/')
+                        .map(fn => path.join('./src/translations', fn))
+
 function build(dirname, version, targets, updateUrl, nameSuffix) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
@@ -27,7 +32,9 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 		.then(() => fs.removeAsync(path.join(distDir, "..", updateSubDir)))
 		.then(() => {
 			console.log("Tracing dependencies...")
-			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js'], dirname, distDir)
+			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js']
+				.concat(requiredEntities)
+				.concat(languageFiles), dirname, distDir)
 		})
 		.then(() => {
 			console.log("Starting installer build...")

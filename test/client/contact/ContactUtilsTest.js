@@ -3,6 +3,7 @@ import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, expectedResult) {
@@ -26,7 +27,8 @@ o.spec("ContactUtilsTest", function () {
 		}
 		let result = compareContacts(c1, c2)
 		if (result != expectedResult) {
-			console.log("error >>>>>>>", "'" + c1Firstname + "'", "'" + c1Lastname + "'", c1MailAddress, "'" + c2Firstname + "'", "'" + c2Lastname + "'", c2MailAddress, "expected:", expectedResult, "result", result)
+			console.log("error >>>>>>>", "'" + c1Firstname + "'", "'" + c1Lastname + "'", c1MailAddress, "'" + c2Firstname + "'", "'"
+				+ c2Lastname + "'", c2MailAddress, "expected:", expectedResult, "result", result)
 		}
 		o(result).equals(expectedResult)
 	}
@@ -70,6 +72,7 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("formatNewBirthdayTest", function () {
+		lang.setLanguage({code: "en", languageTag: "en"})
 		let bday = createBirthday()
 		bday.day = "12"
 		bday.month = "10"
@@ -88,6 +91,26 @@ o.spec("ContactUtilsTest", function () {
 		bday.year = null
 
 		o(formatBirthdayNumeric(bday)).equals("7/9")
+
+		bday = createBirthday()
+		bday.day = "12"
+		bday.month = "10"
+		bday.year = "2009"
+
+		lang.setLanguage({code: "de", languageTag: "de"})
+		o(formatBirthdayNumeric(bday)).equals("2009-10-12")
+
+		bday.day = "9"
+		bday.month = "07"
+		bday.year = null
+
+		o(formatBirthdayNumeric(bday)).equals("07-09")
+
+		bday.day = "09"
+		bday.month = "7"
+		bday.year = null
+
+		o(formatBirthdayNumeric(bday)).equals("07-09")
 	})
 
 })

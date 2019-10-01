@@ -190,7 +190,7 @@ o.spec("ApplicationWindow Test", () => {
 		// our modules
 		const desktopUtilsMock = n.mock("./DesktopUtils.js", desktopUtils).set()
 		const desktopTrayMock = n.mock("./DesktopTray.js", {DesktopTray: {getIcon: () => "this is an icon"}}).set()
-		const langMock = n.mock("./DesktopLocalizationProvider.js", lang).set()
+		const langMock = n.mock("../misc/LanguageViewModel", lang).set()
 		const u2fMock = n.mock("../misc/u2f-api.js", u2f).set()
 
 		// instances
@@ -545,7 +545,6 @@ o.spec("ApplicationWindow Test", () => {
 		bwInstance.webContents.callbacks['dom-ready']()
 
 		setTimeout(() => {
-			o(langMock.lang.initialized.promise.then.callCount).equals(1)
 			o(bwInstance.webContents.send.callCount).equals(1)
 			o(bwInstance.webContents.send.args[0]).equals('setup-context-menu')
 			o(bwInstance.webContents.send.args[1]).deepEquals([])

@@ -102,7 +102,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 			electronMock: n.mock("electron", electron).set(),
 			fsMock: n.mock("fs", fs).set(),
 			desktopUtilsMock: n.mock("./DesktopUtils", desktopUtils).set(),
-			langMock: n.mock('./DesktopLocalizationProvider', lang).set()
+			langMock: n.mock('../misc/LanguageViewModel', lang).set()
 		}
 	}
 
