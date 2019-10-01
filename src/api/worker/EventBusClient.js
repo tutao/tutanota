@@ -122,7 +122,8 @@ export class EventBusClient {
 
 	_initEntityEvents(reconnect: boolean) {
 		this._queueWebsocketEvents = true
-		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0) ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0)
+			? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
 		p.then(() => {
 			this._queueWebsocketEvents = false
 		}).catch(ConnectionError, e => {
@@ -265,7 +266,7 @@ export class EventBusClient {
 		if (!delay) {
 			this._reconnect(closeIfOpen, enableAutomaticState)
 		} else {
-			this._reconnectTimer = setTimeout(() => this._reconnect(false, false), delay);
+			this._reconnectTimer = setTimeout(() => this._reconnect(closeIfOpen, enableAutomaticState), delay);
 		}
 	}
 
