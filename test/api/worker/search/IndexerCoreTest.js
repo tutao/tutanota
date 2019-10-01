@@ -872,23 +872,34 @@ o.spec("IndexerCore test", () => {
 	o("stopProcessing", async function () {
 		const queue: EventQueue = downcast({_eventQueue: [], clear: spy()})
 		const deferred = defer()
+		const transaction = {abort: noOp}
 
 		const core = makeCore({
 			queue,
 			db: {
 				key: aes256RandomKey(),
 				iv: fixedIv,
-				dbFacade: ({createTransaction: () => deferred.promise}: any),
+				dbFacade: ({createTransaction: () => deferred.promise, createTransactionSync: () => transaction}: any),
 				initialized: Promise.resolve()
 			}
 		})
 
-		const result = core._writeIndexUpdate((null: any), (null: any))
+		const result = core._writeIndexUpdate(({
+			move: [],
+			delete: {
+				searchMetaRowToEncInstanceIds: new Map(),
+				encInstanceIds: [],
+			},
+			create: {
+				encInstanceIdToElementData: new Map(),
+				indexMap: new Map(),
+			},
+		}: any), (null: any))
 		core.stopProcessing()
 		o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
 
 		try {
-			deferred.resolve({abort: noOp})
+			deferred.resolve(transaction)
 			await result
 			o(false).equals(true)("Should throw an error")
 		} catch (e) {

@@ -34,6 +34,7 @@ import {
 	getDiffInDays,
 	getEventEnd,
 	getEventStart,
+	getStartOfTheWeekOffsetForUser,
 	parseTime,
 	timeString,
 	timeStringFromParts
@@ -56,9 +57,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const summary = stream("")
 	const calendarArray = Array.from(calendars.values())
 	const selectedCalendar = stream(calendarArray[0])
-	const startDatePicker = new DatePicker("dateFrom_label", "emptyString_msg", true)
+	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
+	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true)
 	startDatePicker.setDate(getStartOfDay(date))
-	const endDatePicker = new DatePicker("dateTo_label", "emptyString_msg", true)
+	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
 	const endTime = stream()
@@ -69,7 +71,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const repeatPickerAttrs = createRepeatingDatePicker()
 	const repeatIntervalPickerAttrs = createIntervalPicker()
 	const endTypePickerAttrs = createEndTypePicker()
-	const repeatEndDatePicker = new DatePicker("emptyString_msg", "emptyString_msg", true)
+	const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg", true)
 	const endCountPickerAttrs = createEndCountPicker()
 
 	const alarmPickerAttrs = []

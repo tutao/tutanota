@@ -23,9 +23,12 @@ import {Const} from "./api/common/TutanotaConstants"
 import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
+import {Logger, replaceNativeLogger} from "./api/common/Logger"
 
 assertMainOrNodeBoot()
 bootFinished()
+
+replaceNativeLogger(window, new Logger())
 
 // TODO: define type definition for top-level views. Maybe it's CurrentView?
 type View = Object

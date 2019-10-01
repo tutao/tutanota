@@ -25,5 +25,9 @@ export function changeColorTheme(theme: string): Promise<void> {
  * Get device logs. Returns URI of the file
  */
 export function getDeviceLogs(): Promise<FileReference> {
-	return nativeApp.invokeNative(new Request("getLog", [])).then(uriToFileRef)
+	return nativeApp.invokeNative(new Request("getDeviceLog", [])).then(uriToFileRef)
+}
+
+export function getDesktopLogs(): Promise<Array<string>> {
+	return nativeApp.invokeNative(new Request("getLog", []))
 }

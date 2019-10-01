@@ -4,63 +4,160 @@
 	(global.DOMPurify = factory());
 }(this, (function () { 'use strict';
 
-var html = ['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr'];
+var freeze$1 = Object.freeze || function (x) {
+  return x;
+};
+
+var html = freeze$1(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']);
 
 // SVG
-var svg = ['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'audio', 'canvas', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'video', 'view', 'vkern'];
+var svg = freeze$1(['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'audio', 'canvas', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'video', 'view', 'vkern']);
 
-var svgFilters = ['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence'];
+var svgFilters = freeze$1(['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence']);
 
-var mathMl = ['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmuliscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mpspace', 'msqrt', 'mystyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover'];
+var mathMl = freeze$1(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover']);
 
-var text = ['#text'];
+var text = freeze$1(['#text']);
 
-var html$1 = ['accept', 'action', 'align', 'alt', 'autocomplete', 'background', 'bgcolor', 'border', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'coords', 'crossorigin', 'datetime', 'default', 'dir', 'disabled', 'download', 'enctype', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'integrity', 'ismap', 'label', 'lang', 'list', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'multiple', 'name', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'type', 'usemap', 'valign', 'value', 'width', 'xmlns'];
+var freeze$2 = Object.freeze || function (x) {
+  return x;
+};
 
-var svg$1 = ['accent-height', 'accumulate', 'additivive', 'alignment-baseline', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'specularconstant', 'specularexponent', 'spreadmethod', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'tabindex', 'targetx', 'targety', 'transform', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan'];
+var html$1 = freeze$2(['accept', 'action', 'align', 'alt', 'autocomplete', 'background', 'bgcolor', 'border', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'coords', 'crossorigin', 'datetime', 'default', 'dir', 'disabled', 'download', 'enctype', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'integrity', 'ismap', 'label', 'lang', 'list', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'name', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'type', 'usemap', 'valign', 'value', 'width', 'xmlns']);
 
-var mathMl$1 = ['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns'];
+var svg$1 = freeze$2(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'specularconstant', 'specularexponent', 'spreadmethod', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'tabindex', 'targetx', 'targety', 'transform', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
 
-var xml = ['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink'];
+var mathMl$1 = freeze$2(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
+
+var xml = freeze$2(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
+
+var hasOwnProperty = Object.hasOwnProperty;
+var setPrototypeOf = Object.setPrototypeOf;
+
+var _ref$1 = typeof Reflect !== 'undefined' && Reflect;
+var apply$1 = _ref$1.apply;
+
+if (!apply$1) {
+  apply$1 = function apply(fun, thisValue, args) {
+    return fun.apply(thisValue, args);
+  };
+}
 
 /* Add properties to a lookup table */
 function addToSet(set, array) {
+  if (setPrototypeOf) {
+    // Make 'in' and truthy checks like Boolean(set.constructor)
+    // independent of any properties defined on Object.prototype.
+    // Prevent prototype setters from intercepting set as a this value.
+    setPrototypeOf(set, null);
+  }
+
   var l = array.length;
   while (l--) {
-    if (typeof array[l] === 'string') {
-      array[l] = array[l].toLowerCase();
+    var element = array[l];
+    if (typeof element === 'string') {
+      var lcElement = element.toLowerCase();
+      if (lcElement !== element) {
+        // Config presets (e.g. tags.js, attrs.js) are immutable.
+        if (!Object.isFrozen(array)) {
+          array[l] = lcElement;
+        }
+
+        element = lcElement;
+      }
     }
-    set[array[l]] = true;
+
+    set[element] = true;
   }
+
   return set;
 }
 
 /* Shallow clone an object */
 function clone(object) {
   var newObject = {};
+
   var property = void 0;
   for (property in object) {
-    if (Object.prototype.hasOwnProperty.call(object, property)) {
+    if (apply$1(hasOwnProperty, object, [property])) {
       newObject[property] = object[property];
     }
   }
+
   return newObject;
 }
 
-var MUSTACHE_EXPR = /\{\{[\s\S]*|[\s\S]*\}\}/gm; // Specify template detection regex for SAFE_FOR_TEMPLATES mode
-var ERB_EXPR = /<%[\s\S]*|[\s\S]*%>/gm;
-var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-escape
-var ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
-var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
-var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g; // eslint-disable-line no-control-regex
+var seal = Object.seal || function (x) {
+  return x;
+};
+
+var MUSTACHE_EXPR = seal(/\{\{[\s\S]*|[\s\S]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+var ERB_EXPR = seal(/<%[\s\S]*|[\s\S]*%>/gm);
+var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
+var ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
+var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+);
+var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
+var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g // eslint-disable-line no-control-regex
+);
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+var _ref = typeof Reflect !== 'undefined' && Reflect;
+var apply = _ref.apply;
+
+var arraySlice = Array.prototype.slice;
+var freeze = Object.freeze;
+
 var getGlobal = function getGlobal() {
   return typeof window === 'undefined' ? null : window;
+};
+
+if (!apply) {
+  apply = function apply(fun, thisValue, args) {
+    return fun.apply(thisValue, args);
+  };
+}
+
+/**
+ * Creates a no-op policy for internal use only.
+ * Don't export this function outside this module!
+ * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {Document} document The document object (to determine policy name suffix)
+ * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * are not supported).
+ */
+var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, document) {
+  if ((typeof trustedTypes === 'undefined' ? 'undefined' : _typeof(trustedTypes)) !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
+    return null;
+  }
+
+  // Allow the callers to control the unique policy name
+  // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
+  // Policy creation with duplicate names throws in Trusted Types.
+  var suffix = null;
+  var ATTR_NAME = 'data-tt-policy-suffix';
+  if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
+    suffix = document.currentScript.getAttribute(ATTR_NAME);
+  }
+
+  var policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+
+  try {
+    return trustedTypes.createPolicy(policyName, {
+      createHTML: function createHTML(html$$1) {
+        return html$$1;
+      }
+    });
+  } catch (error) {
+    // Policy creation failed (most likely another DOMPurify script has
+    // already run). Skip creating the policy, as this will only cause errors
+    // if TT are enforced.
+    console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
+    return null;
+  }
 };
 
 function createDOMPurify() {
@@ -74,7 +171,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '1.0.8';
+  DOMPurify.version = '2.0.3';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -91,8 +188,9 @@ function createDOMPurify() {
   }
 
   var originalDocument = window.document;
-  var useDOMParser = false; // See comment below
-  var removeTitle = false; // See comment below
+  var useDOMParser = false;
+  var removeSVGAttr = false;
+  var removeTitle = false;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -103,7 +201,8 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       Text = window.Text,
       Comment = window.Comment,
-      DOMParser = window.DOMParser;
+      DOMParser = window.DOMParser,
+      TrustedTypes = window.TrustedTypes;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -118,6 +217,9 @@ function createDOMPurify() {
       document = template.content.ownerDocument;
     }
   }
+
+  var trustedTypesPolicy = _createTrustedTypesPolicy(TrustedTypes, originalDocument);
+  var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   var _document = document,
       implementation = _document.implementation,
@@ -141,6 +243,7 @@ function createDOMPurify() {
       IS_SCRIPT_OR_DATA$$1 = IS_SCRIPT_OR_DATA,
       ATTR_WHITESPACE$$1 = ATTR_WHITESPACE;
   var IS_ALLOWED_URI$$1 = IS_ALLOWED_URI;
+
   /**
    * We consider the elements and attributes below to be safe. Ideally
    * don't add any new ones but feel free to remove unwanted ones.
@@ -188,12 +291,14 @@ function createDOMPurify() {
    * document.body. By default, browsers might move them to document.head */
   var FORCE_BODY = false;
 
-  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
+  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
+   * string (or a TrustedHTML object if Trusted Types are supported).
    * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
    */
   var RETURN_DOM = false;
 
-  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
+  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
+   * string  (or a TrustedHTML object if Trusted Types are supported) */
   var RETURN_DOM_FRAGMENT = false;
 
   /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
@@ -201,6 +306,10 @@ function createDOMPurify() {
    * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
    * DOMPurify. */
   var RETURN_DOM_IMPORT = false;
+
+  /* Try to return a Trusted Type object instead of a string, retrun a string in
+   * case Trusted Types are not supported  */
+  var RETURN_TRUSTED_TYPE = false;
 
   /* Output should be free from DOM clobbering attacks? */
   var SANITIZE_DOM = true;
@@ -216,13 +325,14 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['audio', 'head', 'math', 'script', 'style', 'template', 'svg', 'video']);
+  var FORBID_CONTENTS = addToSet({}, ['audio', 'colgroup', 'head', 'math', 'script', 'style', 'template', 'thead', 'svg', 'video']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
 
   /* Attributes safe for values like "javascript:" */
-  var URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'summary', 'title', 'value', 'style', 'xmlns']);
+  var URI_SAFE_ATTRIBUTES = null;
+  var DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'summary', 'title', 'value', 'style', 'xmlns']);
 
   /* Keep a reference to config to pass to hooks */
   var CONFIG = null;
@@ -239,13 +349,19 @@ function createDOMPurify() {
    */
   // eslint-disable-next-line complexity
   var _parseConfig = function _parseConfig(cfg) {
+    if (CONFIG && CONFIG === cfg) {
+      return;
+    }
+
     /* Shield configuration object from tampering */
-    if ((typeof cfg === 'undefined' ? 'undefined' : _typeof(cfg)) !== 'object') {
+    if (!cfg || (typeof cfg === 'undefined' ? 'undefined' : _typeof(cfg)) !== 'object') {
       cfg = {};
     }
+
     /* Set configuration parameters */
     ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS) : DEFAULT_ALLOWED_TAGS;
     ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR) : DEFAULT_ALLOWED_ATTR;
+    URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR) : DEFAULT_URI_SAFE_ATTRIBUTES;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
@@ -258,6 +374,7 @@ function createDOMPurify() {
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
     RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT || false; // Default false
+    RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
@@ -281,16 +398,19 @@ function createDOMPurify() {
         addToSet(ALLOWED_TAGS, html);
         addToSet(ALLOWED_ATTR, html$1);
       }
+
       if (USE_PROFILES.svg === true) {
         addToSet(ALLOWED_TAGS, svg);
         addToSet(ALLOWED_ATTR, svg$1);
         addToSet(ALLOWED_ATTR, xml);
       }
+
       if (USE_PROFILES.svgFilters === true) {
         addToSet(ALLOWED_TAGS, svgFilters);
         addToSet(ALLOWED_ATTR, svg$1);
         addToSet(ALLOWED_ATTR, xml);
       }
+
       if (USE_PROFILES.mathMl === true) {
         addToSet(ALLOWED_TAGS, mathMl);
         addToSet(ALLOWED_ATTR, mathMl$1);
@@ -303,14 +423,18 @@ function createDOMPurify() {
       if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
         ALLOWED_TAGS = clone(ALLOWED_TAGS);
       }
+
       addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
     }
+
     if (cfg.ADD_ATTR) {
       if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
         ALLOWED_ATTR = clone(ALLOWED_ATTR);
       }
+
       addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
     }
+
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
     }
@@ -325,15 +449,16 @@ function createDOMPurify() {
       addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
     }
 
-    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
+    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
     if (ALLOWED_TAGS.table) {
       addToSet(ALLOWED_TAGS, ['tbody']);
+      delete FORBID_TAGS.tbody;
     }
 
     // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
-    if (Object && 'freeze' in Object) {
-      Object.freeze(cfg);
+    if (freeze) {
+      freeze(cfg);
     }
 
     CONFIG = cfg;
@@ -348,8 +473,8 @@ function createDOMPurify() {
     DOMPurify.removed.push({ element: node });
     try {
       node.parentNode.removeChild(node);
-    } catch (err) {
-      node.outerHTML = '';
+    } catch (error) {
+      node.outerHTML = emptyHTML;
     }
   };
 
@@ -365,12 +490,13 @@ function createDOMPurify() {
         attribute: node.getAttributeNode(name),
         from: node
       });
-    } catch (err) {
+    } catch (error) {
       DOMPurify.removed.push({
         attribute: null,
         from: node
       });
     }
+
     node.removeAttribute(name);
   };
 
@@ -383,19 +509,27 @@ function createDOMPurify() {
   var _initDocument = function _initDocument(dirty) {
     /* Create a HTML document */
     var doc = void 0;
+    var leadingWhitespace = void 0;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
+    } else {
+      /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
+      var matches = dirty.match(/^[\s]+/);
+      leadingWhitespace = matches && matches[0];
+      if (leadingWhitespace) {
+        dirty = dirty.slice(leadingWhitespace.length);
+      }
     }
 
     /* Use DOMParser to workaround Firefox bug (see comment below) */
     if (useDOMParser) {
       try {
         doc = new DOMParser().parseFromString(dirty, 'text/html');
-      } catch (err) {}
+      } catch (error) {}
     }
 
-    /* Remove title to fix an mXSS bug in older MS Edge */
+    /* Remove title to fix a mXSS bug in older MS Edge */
     if (removeTitle) {
       addToSet(FORBID_TAGS, ['title']);
     }
@@ -408,7 +542,11 @@ function createDOMPurify() {
           body = _doc.body;
 
       body.parentNode.removeChild(body.parentNode.firstElementChild);
-      body.outerHTML = dirty;
+      body.outerHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+    }
+
+    if (leadingWhitespace) {
+      doc.body.insertBefore(document.createTextNode(leadingWhitespace), doc.body.childNodes[0] || null);
     }
 
     /* Work on whole document or just its body */
@@ -422,24 +560,34 @@ function createDOMPurify() {
   //
   // So we feature detect the Firefox bug and use the DOMParser if necessary.
   //
-  // MS Edge, in older versions, is affected by an mXSS behavior. The second
-  // check tests for the behavior and fixes it if necessary.
+  // Chrome 77 and other versions ship an mXSS bug that caused a bypass to
+  // happen. We now check for the mXSS trigger and react accordingly.
   if (DOMPurify.isSupported) {
     (function () {
       try {
-        var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
+        var doc = _initDocument('<svg><p><textarea><img src="</textarea><img src=x abc=1//">');
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
         }
-      } catch (err) {}
+      } catch (error) {}
     })();
+
     (function () {
       try {
         var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').textContent.match(/<\/title/)) {
+        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
           removeTitle = true;
         }
-      } catch (err) {}
+      } catch (error) {}
+    })();
+
+    (function () {
+      try {
+        var doc = _initDocument('<svg></p></svg>');
+        if (doc.querySelector('svg p')) {
+          removeSVGAttr = true;
+        }
+      } catch (error) {}
     })();
   }
 
@@ -465,9 +613,11 @@ function createDOMPurify() {
     if (elm instanceof Text || elm instanceof Comment) {
       return false;
     }
+
     if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function') {
       return true;
     }
+
     return false;
   };
 
@@ -509,6 +659,7 @@ function createDOMPurify() {
    * @param   {Node} currentNode to check for permission to exist
    * @return  {Boolean} true if node was killed, false if left alive
    */
+  // eslint-disable-next-line complexity
   var _sanitizeElements = function _sanitizeElements(currentNode) {
     var content = void 0;
 
@@ -535,9 +686,33 @@ function createDOMPurify() {
       /* Keep content except for black-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && typeof currentNode.insertAdjacentHTML === 'function') {
         try {
-          currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
-        } catch (err) {}
+          var htmlToInsert = currentNode.innerHTML;
+          currentNode.insertAdjacentHTML('AfterEnd', trustedTypesPolicy ? trustedTypesPolicy.createHTML(htmlToInsert) : htmlToInsert);
+        } catch (error) {}
       }
+
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove in case a noscript/noembed XSS is suspected */
+    if (tagName === 'noscript' && currentNode.innerHTML.match(/<\/noscript/i)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    if (tagName === 'noembed' && currentNode.innerHTML.match(/<\/noembed/i)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove in case an mXSS is suspected */
+    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode.innerHTML === 'undefined' && removeSVGAttr)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -578,16 +753,11 @@ function createDOMPurify() {
    * @param  {string} value Attribute value.
    * @return {Boolean} Returns true if `value` is valid, otherwise false.
    */
+  // eslint-disable-next-line complexity
   var _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
     /* Make sure attribute cannot clobber */
     if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
       return false;
-    }
-
-    /* Sanitize attribute content to be template-safe */
-    if (SAFE_FOR_TEMPLATES) {
-      value = value.replace(MUSTACHE_EXPR$$1, ' ');
-      value = value.replace(ERB_EXPR$$1, ' ');
     }
 
     /* Allow valid data-* attributes: At least one character after "-"
@@ -611,7 +781,7 @@ function createDOMPurify() {
       // This attribute is safe
       /* Keep image data URIs alive if src/xlink:href is allowed */
       /* Further prevent gadget XSS for dynamically built script tags */
-    } else if ((lcName === 'src' || lcName === 'xlink:href') && lcTag !== 'script' && value.indexOf('data:') === 0 && DATA_URI_TAGS[lcTag]) {
+    } else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && value.indexOf('data:') === 0 && DATA_URI_TAGS[lcTag]) {
       // This attribute is safe
       /* Allow unknown protocols: This provides support for links that
         are handled by protocol handlers which may be unknown ahead of
@@ -626,6 +796,7 @@ function createDOMPurify() {
     } else {
       return false;
     }
+
     return true;
   };
 
@@ -637,7 +808,7 @@ function createDOMPurify() {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param  {Node} node to sanitize
+   * @param  {Node} currentNode to sanitize
    */
   // eslint-disable-next-line complexity
   var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
@@ -682,13 +853,18 @@ function createDOMPurify() {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
+      /* Check for possible Chrome mXSS */
+      if (removeSVGAttr && value.match(/<\//)) {
+        _forceRemove(currentNode);
+      }
+
       /* Remove attribute */
       // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
       // remove a "name" attribute from an <img> tag that has an "id"
       // attribute at the time.
       if (lcName === 'name' && currentNode.nodeName === 'IMG' && attributes.id) {
         idAttr = attributes.id;
-        attributes = Array.prototype.slice.apply(attributes);
+        attributes = apply(arraySlice, attributes, []);
         _removeAttribute('id', currentNode);
         _removeAttribute(name, currentNode);
         if (attributes.indexOf(idAttr) > l) {
@@ -697,7 +873,7 @@ function createDOMPurify() {
       } else if (
       // This works around a bug in Safari, where input[type=file]
       // cannot be dynamically set after type has been removed
-      currentNode.nodeName === 'INPUT' && lcName === 'type' && value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
+      currentNode.nodeName === 'INPUT' && lcName === 'type' && value === 'file' && hookEvent.keepAttr && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
         continue;
       } else {
         // This avoids a crash in Safari v9.0 with double-ids.
@@ -706,12 +882,19 @@ function createDOMPurify() {
         if (name === 'id') {
           currentNode.setAttribute(name, '');
         }
+
         _removeAttribute(name, currentNode);
       }
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
         continue;
+      }
+
+      /* Sanitize attribute content to be template-safe */
+      if (SAFE_FOR_TEMPLATES) {
+        value = value.replace(MUSTACHE_EXPR$$1, ' ');
+        value = value.replace(ERB_EXPR$$1, ' ');
       }
 
       /* Is `value` valid for this attribute? */
@@ -728,8 +911,9 @@ function createDOMPurify() {
           /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
           currentNode.setAttribute(name, value);
         }
+
         DOMPurify.removed.pop();
-      } catch (err) {}
+      } catch (error) {}
     }
 
     /* Execute a hook if present */
@@ -810,10 +994,12 @@ function createDOMPurify() {
         if (typeof dirty === 'string') {
           return window.toStaticHTML(dirty);
         }
+
         if (_isNode(dirty)) {
           return window.toStaticHTML(dirty.outerHTML);
         }
       }
+
       return dirty;
     }
 
@@ -835,13 +1021,16 @@ function createDOMPurify() {
       if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
         /* Node is already a body, use as is */
         body = importedNode;
+      } else if (importedNode.nodeName === 'HTML') {
+        body = importedNode;
       } else {
+        // eslint-disable-next-line unicorn/prefer-node-append
         body.appendChild(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
-      if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
-        return dirty;
+      if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && RETURN_TRUSTED_TYPE && dirty.indexOf('<') === -1) {
+        return trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
       }
 
       /* Initialize the document to work on */
@@ -849,7 +1038,7 @@ function createDOMPurify() {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : '';
+        return RETURN_DOM ? null : emptyHTML;
       }
     }
 
@@ -884,6 +1073,8 @@ function createDOMPurify() {
       oldNode = currentNode;
     }
 
+    oldNode = null;
+
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {
       return dirty;
@@ -895,6 +1086,7 @@ function createDOMPurify() {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
+          // eslint-disable-next-line unicorn/prefer-node-append
           returnNode.appendChild(body.firstChild);
         }
       } else {
@@ -913,7 +1105,15 @@ function createDOMPurify() {
       return returnNode;
     }
 
-    return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Sanitize final string template-safe */
+    if (SAFE_FOR_TEMPLATES) {
+      serializedHTML = serializedHTML.replace(MUSTACHE_EXPR$$1, ' ');
+      serializedHTML = serializedHTML.replace(ERB_EXPR$$1, ' ');
+    }
+
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
   };
 
   /**
@@ -952,6 +1152,7 @@ function createDOMPurify() {
     if (!CONFIG) {
       _parseConfig({});
     }
+
     var lcTag = tag.toLowerCase();
     var lcName = attr.toLowerCase();
     return _isValidAttribute(lcTag, lcName, value);
@@ -968,6 +1169,7 @@ function createDOMPurify() {
     if (typeof hookFunction !== 'function') {
       return;
     }
+
     hooks[entryPoint] = hooks[entryPoint] || [];
     hooks[entryPoint].push(hookFunction);
   };

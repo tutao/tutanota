@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.59.14",
+	"version": "3.59.17",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -17,9 +17,8 @@
 	"dependencies": {
 		"autolinker": "3.0.5",
 		"bluebird": "3.5.2",
-		"dompurify": "1.0.8",
+		"dompurify": "2.0.3",
 		"mithril": "2.0.4",
-		"pako": "1.0.10",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
 		"systemjs": "0.20.19"

@@ -264,3 +264,16 @@ export function getMailBodyText(body: MailBody): string {
 export function getMailHeaders(headers: MailHeaders): string {
 	return headers.compressedHeaders || headers.headers || ""
 }
+
+
+export function errorToString(error: Error): string {
+	let errorString = error.name ? error.name : "?"
+	if (error.message) {
+		errorString += `\n Error message: ${error.message}`
+	}
+	if (error.stack) {
+		// the error id is included in the stacktrace
+		errorString += `\nStacktrace: \n${error.stack}`
+	}
+	return errorString
+}

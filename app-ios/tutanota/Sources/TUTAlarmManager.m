@@ -10,6 +10,7 @@
 #import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTErrorFactory.h"
 #import "Utils/TUTUtils.h"
+#import "Utils/TUTLog.h"
 #import "Keychain/TUTKeychainManager.h"
 #import "Alarms/TUTMissedNotification.h"
 #import "Alarms/TUTAlarmModel.h"
@@ -53,10 +54,10 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         dispatch_group_enter(group);
         [self scheduleLocalAlarm:alarmNotification handler: ^(NSError * _Nullable error) {
             if (error) {
-                NSLog(@"schedule error %@", error);
+                TUTLog(@"schedule error %@", error);
                 completionHandler();
             } else {
-                NSLog(@"schedule success");
+                TUTLog(@"schedule success");
                 
             }
             dispatch_group_leave(group);
@@ -86,12 +87,12 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     
     [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         if (error) {
-            NSLog(@"Notification confirmation failed: %@", error);
+            TUTLog(@"Notification confirmation failed: %@", error);
             completionHandler(error);
             return;
         }
         let statusCode = ((NSHTTPURLResponse *) response).statusCode;
-        NSLog(@"sent confirmation with status code %ld", statusCode);
+        TUTLog(@"sent confirmation with status code %ld", statusCode);
         if (statusCode == 200) {
             completionHandler(nil);
         } else {
@@ -103,13 +104,13 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 - (void)fetchMissedNotifications:(NSString *)changeTime :(void(^)(NSError *error))completionHandler {
     let sseInfo = self.userPreference.getSseInfo;
     if (!sseInfo){
-        NSLog(@"No stored SSE info");
+        TUTLog(@"No stored SSE info");
         completionHandler(nil);
         return;
     }
     
     if (changeTime && changeTime.integerValue <= self.lastProcessedChangeTime) {
-        NSLog(@"Already processed notification with changeTime %@, ignoring", changeTime);
+        TUTLog(@"Already processed notification with changeTime %@, ignoring", changeTime);
         completionHandler(nil);
         return;
     }
@@ -126,7 +127,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     
     [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         let httpResponse = (NSHTTPURLResponse *) response;
-        NSLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
+        TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
         if (error) {
             completionHandler(error);
         } if (httpResponse.statusCode == 404) {
@@ -138,7 +139,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             NSError *jsonError;
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
             if (jsonError) {
-                NSLog(@"Failed to parse response for the missed notification request %@", jsonError);
+                TUTLog(@"Failed to parse response for the missed notification request %@", jsonError);
                 return;
             }
             let missedNotification = [TUTMissedNotification fromJSON:json];
@@ -259,13 +260,13 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                                                [occurrences addObject:occurrenceIdentifier];
                                            }];
             [notificationCenter removePendingNotificationRequestsWithIdentifiers:occurrences];
-            NSLog(@"Cancelling a repeat notification %@", alarmIdentifier);
+            TUTLog(@"Cancelling a repeat notification %@", alarmIdentifier);
         } else {
             let occurrenceIdentifier = [self occurrenceIdentifier:alarmIdentifier occurrence:0];
             NSMutableArray *occurrences = [NSMutableArray new];
             [occurrences addObject:occurrenceIdentifier];
             [notificationCenter removePendingNotificationRequestsWithIdentifiers:occurrences];
-            NSLog(@"Cancelling a single notification %@", alarmIdentifier);
+            TUTLog(@"Cancelling a single notification %@", alarmIdentifier);
         }
         
         [savedNotifications removeObject:alarmNotification];
@@ -284,12 +285,12 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             var sessionKey = [TUTAes128Facade decryptKey:encSessionKey
                                        withEncryptionKey:pushIdentifierSessionSessionKey error:&error];
             if (error){
-                NSLog(@"Failed to decrypt key %@ %@", notificationSessionKey.pushIdentifier.elementId, error);
+                TUTLog(@"Failed to decrypt key %@ %@", notificationSessionKey.pushIdentifier.elementId, error);
             }
             return sessionKey;
         }
     }
-    NSLog(@"Failed to resolve session key %@, last error: %@", alarmNotification.alarmInfo.alarmIdentifier, error);
+    TUTLog(@"Failed to resolve session key %@, last error: %@", alarmNotification.alarmInfo.alarmIdentifier, error);
     return nil;
 }
 
@@ -330,7 +331,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     let endValue = [repeatRule getEndValueDec:sessionKey error:error];
     
     if (*error) {
-        NSLog(@"Could not decrypt repeating alarm %@", *error);
+        TUTLog(@"Could not decrypt repeating alarm %@", *error);
         return;
     }
     
@@ -380,10 +381,10 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     let identifier = [self occurrenceIdentifier:alarmIdentifier occurrence:occurrence];
     let request = [UNNotificationRequest requestWithIdentifier:identifier content:content trigger:notificationTrigger];
     // Schedule the request with the system.
-    NSLog(@"Scheduling a notification %@ at: %@", identifier, dateComponents);
+    TUTLog(@"Scheduling a notification %@ at: %@", identifier, dateComponents);
     [notificationCenter addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
         if (error) {
-            NSLog(@"Failed to schedule a notification: %@", error);
+            TUTLog(@"Failed to schedule a notification: %@", error);
         }
     }];
 }
@@ -395,7 +396,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 }
 
 -(void)rescheduleEvents {
-    NSLog(@"Re-scheduling alarms");
+    TUTLog(@"Re-scheduling alarms");
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         let savedNotifications = [self->_userPreference getRepeatingAlarmNotifications];
         foreach(notification, savedNotifications) {
@@ -403,7 +404,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             let sessionKey = [self resolveSessionKey:notification];
             let alarmIdentifier = notification.alarmInfo.alarmIdentifier;
             if (!sessionKey) {
-                NSLog(@"Failed to rsolve session key for notification %@", alarmIdentifier);
+                TUTLog(@"Failed to rsolve session key for notification %@", alarmIdentifier);
                 continue;
             }
             
@@ -413,7 +414,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
             let repeatRule = notification.repeatRule;
             let summary = [notification getSummaryDec:sessionKey error:&error];
             if (error) {
-                NSLog(@"Failed to decrypt notification %@ %@", alarmIdentifier, error);
+                TUTLog(@"Failed to decrypt notification %@ %@", alarmIdentifier, error);
                 continue;
             }
             [self scheduleRepeatingAlarmEventWithTime:startDate

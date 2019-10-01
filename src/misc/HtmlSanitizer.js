@@ -22,10 +22,13 @@ class HtmlSanitizer {
 		} else {
 			return
 		}
-		this.purifier.addHook('afterSanitizeElements', (currentNode, data, config) => {
+		// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
+		this.purifier.addHook('afterSanitizeAttributes', (currentNode, data, config) => {
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
-				let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
+				let allowedClasses = [
+					"tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"
+				]
 				if (currentNode.classList) {
 					let cl = currentNode.classList;
 					for (let i = cl.length; i > 0; i--) {
@@ -83,8 +86,8 @@ class HtmlSanitizer {
 
 		return {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
-			ADD_URI_SAFE_ATTR: ['poster'], // for video element
-			FORBID_TAGS: ['style'] // prevent loading of external fonts
+			ADD_URI_SAFE_ATTR: ['poster'], // poster for video element.
+			FORBID_TAGS: ['style'], // prevent loading of external fonts
 		}
 	}
 
@@ -125,6 +128,11 @@ class HtmlSanitizer {
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
 					htmlNode.setAttribute("cid", cid)
 					htmlNode.classList.add("tutanota-placeholder")
+				} else if (this._blockExternalContent && attribute.name === "srcset") {
+					this._externalContent.push(attribute.value)
+					htmlNode.removeAttribute("srcset")
+					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
+					htmlNode.style["max-width"] = "100px"
 				} else if (this._blockExternalContent && !attribute.value.startsWith("data:")) {
 					this._externalContent.push(attribute.value)
 					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
@@ -133,6 +141,7 @@ class HtmlSanitizer {
 				}
 			}
 		})
+
 	}
 
 	_removeStyleImage(htmlNode, styleAttributeName: string) {

@@ -132,6 +132,8 @@ type WorkerRequestType = 'setup'
 	| 'scheduleAlarmsForNewDevice'
 	| 'loadAlarmEvents'
 	| 'getDomainValidationRecord'
+	| 'visibilityChange'
+	| 'getLog'
 type MainRequestType = 'execNative'
 	| 'entityEvent'
 	| 'error'
@@ -177,7 +179,8 @@ type NativeRequestType = 'init'
 	| 'enableAutoLaunch'
 	| 'disableAutoLaunch'
 	| 'sendSocketMessage'
-	| 'getLog'
+	| 'getDeviceLog' // for mobile apps
+	| 'getLog' // for desktop
 
 type JsRequestType = 'createMailEditor'
 	| 'handleBackPress'

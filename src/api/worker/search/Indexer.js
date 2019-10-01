@@ -202,6 +202,10 @@ export class Indexer {
 		this._core.queue.start()
 	}
 
+	onVisibilityChanged(visible: boolean) {
+		this._core.onVisibilityChanged(visible)
+	}
+
 	_reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled;
 		return this._mail.disableMailIndexing().then(() => {

@@ -428,6 +428,11 @@ export const WeekStart = Object.freeze({
 	SUNDAY: '1',
 })
 
+export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStartEnum {
+	return downcast(userSettings.startOfTheWeek)
+}
+
+
 export type WeekStartEnum = $Values<typeof WeekStart>
 
 export const SECOND_MS = 1000

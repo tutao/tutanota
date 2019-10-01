@@ -20,6 +20,8 @@
 #import "TUTUserPreferenceFacade.h"
 #import "TUTAlarmManager.h"
 #import "Keychain/TUTKeychainManager.h"
+#import "TUTLog.h"
+#import "Utils/TUTLog.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -110,9 +112,9 @@ typedef void(^VoidCallback)(void);
 	[self loadMainPageWithParams:nil];
     [self.appDelegate.alarmManager fetchMissedNotifications:nil :^(NSError *error) {
         if (error) {
-            NSLog(@"Failed to fetch/process missed notifications: %@", error);
+            TUTLog(@"Failed to fetch/process missed notifications: %@", error);
         } else {
-            NSLog(@"Successfully processed missed notifications");
+            TUTLog(@"Successfully processed missed notifications");
         }
     }];
     [self.appDelegate.alarmManager rescheduleEvents];
@@ -154,10 +156,10 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"openFileChooser" isEqualToString:type]) {
 		NSDictionary *rectDict = arguments[0];
 		let rect = CGRectMake(
-							  ((NSNumber *) rectDict[@"x"]).doubleValue,
-							  ((NSNumber *) rectDict[@"y"]).doubleValue,
-							  ((NSNumber *) rectDict[@"width"]).doubleValue,
-							  ((NSNumber *) rectDict[@"height"]).doubleValue
+							  ((NSNumber *) rectDict[@"x"]).floatValue,
+							  ((NSNumber *) rectDict[@"y"]).floatValue,
+							  ((NSNumber *) rectDict[@"width"]).floatValue,
+							  ((NSNumber *) rectDict[@"height"]).floatValue
 							  );
 		[_fileChooser openWithAnchorRect:rect completion: sendResponseBlock];
 	} else if ([@"getName" isEqualToString:type]) {
@@ -230,9 +232,27 @@ typedef void(^VoidCallback)(void);
 				[self sendResponseWithId:requestId value:NSNull.null];
 			}
 		}];
+    } else if ([@"getDeviceLog" isEqualToString:type]) {
+        let entries = TUTLogger.sharedInstance.entries;
+        NSError *error;
+        let directory = [TUTFileUtil getDecryptedFolder:&error];
+        if (error) {
+            [self sendErrorResponseWithId:requestId value:error];
+            return;
+        }
+        let fileName = [NSString stringWithFormat:@"%d_device_tutanota.log", (int) NSDate.date.timeIntervalSince1970];
+        let filePath = [directory stringByAppendingPathComponent:fileName];
+        let stringContent = [entries componentsJoinedByString:@"\n"];
+        let bytes = [TUTEncodingConverter stringToBytes:stringContent];
+        [bytes writeToFile:filePath options: NSDataWritingAtomic error:&error];
+        if (error) {
+            [self sendErrorResponseWithId:requestId value:error];
+            return;
+        }
+        [self sendResponseWithId:requestId value:filePath];
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
-		NSLog(@"%@", message);
+		TUTLog(@"%@", message);
 		let error = [NSError errorWithDomain:@"tutanota" code:5 userInfo:@{@"message":message}];
 		[self sendErrorResponseWithId:requestId value:error];
 	}
@@ -332,9 +352,19 @@ typedef void(^VoidCallback)(void);
 - (void)webView:(WKWebView *)webView
 decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
 decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-	if ([[navigationAction.request.URL absoluteString] hasPrefix:[self appUrl].absoluteString]) {
+    
+    var requestUrl = navigationAction.request.URL;
+    
+	if ([requestUrl.scheme isEqualToString:@"file"]  // check if request url is the appUrl possible with query parameters
+        && [requestUrl.path isEqualToString:self.appUrl.path]) {
 		decisionHandler(WKNavigationActionPolicyAllow);
-	} else {
+    } else if([requestUrl.scheme isEqualToString:@"file"] && [requestUrl.absoluteString hasPrefix:self.appUrl.absoluteString]) {
+        // If the app is removed from memory, the URL won't point to the file but will have additional path.
+        // We ignore additional path for now.
+        decisionHandler(WKNavigationActionPolicyCancel);
+        var params = [NSString stringWithFormat:@"?%@", navigationAction.request.URL.query];
+        [self loadMainPageWithParams:params];
+    } else {
 		decisionHandler(WKNavigationActionPolicyCancel);
 		[[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:NULL];
 	}

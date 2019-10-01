@@ -22,6 +22,7 @@
 #import "TUTEncodingConverter.h"
 #import "TUTFileUtil.h"
 #import "TUTErrorFactory.h"
+#import "../Utils/TUTLog.h"
 
 #import "Swiftier.h"
 
@@ -359,7 +360,7 @@ static NSInteger const RSA_KEY_LENGTH_IN_BITS = 2048;
 	while (errorCode != 0) {
 		ERR_error_string( errorCode, messageBuffer);
 		let errorString = [NSString stringWithFormat:@"Error: %@ <%i|%s>", msg, errorCode, messageBuffer ];
-		NSLog(@"%@", errorString);
+		TUTLog(@"%@", errorString);
 		[errors addObject:errorString];
 		errorCode = (int) ERR_get_error();
 	}

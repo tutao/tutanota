@@ -15,6 +15,7 @@ import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import {Logger, replaceNativeLogger} from "../api/common/Logger"
 
 const oldLog = console.log
 const oldError = console.error
@@ -23,6 +24,9 @@ const oldWarn = console.warn
 ;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
 ;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
 ;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
+
+const logger = new Logger()
+replaceNativeLogger(global, logger, true)
 
 global.btoa = str => Buffer.from(str, 'binary').toString('base64')
 global.atob = str => Buffer.from(str, 'base64').toString('binary')
