@@ -113,6 +113,10 @@ class HtmlSanitizer {
 			if (htmlNode.style.filter) {
 				this._removeStyleImage(htmlNode, "filter")
 			}
+			// Disallow position because you can do bad things with it and it also messes up layout
+			if (htmlNode.style.position) {
+				htmlNode.style.removeProperty("position")
+			}
 		}
 	}
 
