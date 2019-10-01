@@ -11,7 +11,6 @@ import {
 } from "../../common/utils/Encoding"
 import {random} from "./Randomizer"
 import {aes128Decrypt, aes128Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
-import {valueToDefault} from "./CryptoFacade"
 import EC from "../../common/EntityConstants"
 import {assertWorkerOrNode} from "../../Env"
 import {uncompress} from "../lz4"
@@ -222,4 +221,23 @@ export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
 
 export function encryptString(sk: Aes128Key, value: string): Uint8Array {
 	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
+}
+
+export function valueToDefault(type: ValueTypeEnum) {
+	switch (type) {
+		case ValueType.String:
+			return ""
+		case ValueType.Number:
+			return "0"
+		case ValueType.Bytes:
+			return new Uint8Array(0)
+		case ValueType.Date:
+			return new Date()
+		case ValueType.Boolean:
+			return false
+		case ValueType.CompressedString:
+			return ""
+		default:
+			throw new ProgrammingError(`${type} is not a valid value type`)
+	}
 }

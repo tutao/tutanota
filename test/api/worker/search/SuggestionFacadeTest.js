@@ -7,7 +7,7 @@ import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {SuggestionFacade} from "../../../../src/api/worker/search/SuggestionFacade"
 import {SearchTermSuggestionsOS} from "../../../../src/api/worker/search/DbFacade"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 
 
 o.spec("SuggestionFacade test", () => {
@@ -19,7 +19,7 @@ o.spec("SuggestionFacade test", () => {
 		db = {
 			key: aes256RandomKey(),
 			iv: fixedIv,
-			dbFacade: ({}:any),
+			dbFacade: ({}: any),
 			initialized: Promise.resolve()
 		}
 		facade = new SuggestionFacade(ContactTypeRef, db)

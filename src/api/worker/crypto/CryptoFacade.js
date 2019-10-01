@@ -1,13 +1,10 @@
 // @flow
-import {base64ToUint8Array, hexToUint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
-import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {hexToPrivateKey, privateKeyToHex, rsaDecrypt} from "./Rsa"
-import {random} from "./Randomizer"
+import {rsaDecrypt} from "./Rsa"
 import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -21,84 +18,36 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import {uint8ArrayToBitArray} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
-import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import {uncompress} from "../lz4"
 import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
 
-const Type = EC.Type
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
+import {
+	aes256DecryptKey,
+	aes256EncryptKey,
+	decrypt256Key,
+	decryptKey,
+	decryptRsaKey,
+	encrypt256Key,
+	encryptKey,
+	encryptRsaKey
+} from "./KeyCryptoUtils.js"
 
 assertWorkerOrNode()
 
 export {decryptAndMapToInstance, encryptAndMapToLiteral, encryptValue, decryptValue, encryptBytes, encryptString}
+export {encryptKey, decryptKey, encrypt256Key, decrypt256Key, encryptRsaKey, decryptRsaKey, aes256EncryptKey, aes256DecryptKey}
 
 // stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 // so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
 // this especially improves the performance when indexing mail bodys
 let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
-
-export function valueToDefault(type: ValueTypeEnum) {
-	switch (type) {
-		case ValueType.String:
-			return ""
-		case ValueType.Number:
-			return "0"
-		case ValueType.Bytes:
-			return new Uint8Array(0)
-		case ValueType.Date:
-			return new Date()
-		case ValueType.Boolean:
-			return false
-		case ValueType.CompressedString:
-			return ""
-		default:
-			throw new ProgrammingError(`${type} is not a valid value type`)
-	}
-}
-
-export const fixedIv = hexToUint8Array('88888888888888888888888888888888')
-
-export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
-	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key | Aes256Key {
-	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
-}
-
-export function encrypt256Key(encryptionKey: Aes128Key, key: Aes256Key): Uint8Array {
-	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function aes256EncryptKey(encryptionKey: Aes256Key, key: Aes128Key): Uint8Array {
-	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Aes128Key {
-	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false))
-}
-
-export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
-	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
-}
-
-export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv: ?Uint8Array): Uint8Array {
-	return aes128Encrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv ? iv : random.generateRandomData(IV_BYTE_LENGTH), true, false)
-}
-
-export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uint8Array): PrivateKey {
-	return hexToPrivateKey(uint8ArrayToHex(aes128Decrypt(encryptionKey, encryptedPrivateKey, true)))
-}
 
 export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
 	if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
@@ -161,8 +110,9 @@ const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
  * * the decrypted _ownerEncSessionKey, if it is available
  * * the public decrypted session key, otherwise
  *
+ * @param typeModel: the type model of the instance
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
- *
+ * @param sessionKeyLoaders sessionKeyLoader to resolve the key
  */
 export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessionKeyLoaders: ?ResolveSessionKeyLoaders): Promise<?Aes128Key> {
 	return Promise.resolve().then(() => {
@@ -279,8 +229,9 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 
 /**
  * Updates the given public permission with the given symmetric key for faster access.
- * @param permission The permission.
+ * @param typeModel: the type model of the instance
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
+ * @param permission The permission.
  * @param bucketPermission The bucket permission.
  * @param permissionOwnerGroupKey The symmetric group key for the owner group on the permission.
  * @param permissionGroupKey The symmetric group key of the group in the permission.

@@ -6,7 +6,7 @@ import {aes256RandomKey} from "../../src/api/worker/crypto/Aes"
 import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbTransaction} from "../../src/api/worker/search/DbFacade"
-import {fixedIv} from "../../src/api/worker/crypto/CryptoFacade"
+import {fixedIv} from "../../src/api/worker/crypto/CryptoUtils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.

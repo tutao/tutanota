@@ -1,3 +1,4 @@
+'use strict';
 var SecureRandom = require('../SecureRandom.js').SecureRandom
 
 // Copyright (c) 2005  Tom Wu
@@ -85,12 +86,10 @@ function am3(i, x, w, j, c, n) {
 if (j_lm && (typeof navigator === "object" && navigator.appName == "Microsoft Internet Explorer")) {
 	BigInteger.prototype.am = am2;
 	dbits = 30;
-}
-else if (j_lm && (typeof navigator === "object" && navigator.appName != "Netscape")) {
+} else if (j_lm && (typeof navigator === "object" && navigator.appName != "Netscape")) {
 	BigInteger.prototype.am = am1;
 	dbits = 26;
-}
-else { // Mozilla/Netscape seems to prefer am3
+} else { // Mozilla/Netscape seems to prefer am3
 	BigInteger.prototype.am = am3;
 	dbits = 28;
 }
@@ -186,8 +185,7 @@ function bnpFromString(s, b) {
 		} else if (sh + k > this.DB) {
 			this[this.t - 1] |= (x & ((1 << (this.DB - sh)) - 1)) << sh;
 			this[this.t++] = (x >> (this.DB - sh));
-		}
-		else {
+		} else {
 			this[this.t - 1] |= x << sh;
 		}
 		sh += k;
@@ -235,8 +233,7 @@ function bnToString(b) {
 			if (p < k) {
 				d = (this[i] & ((1 << p) - 1)) << (k - p);
 				d |= this[--i] >> (p += this.DB - k);
-			}
-			else {
+			} else {
 				d = (this[i] >> (p -= k)) & km;
 				if (p <= 0) {
 					p += this.DB;
@@ -375,8 +372,7 @@ function bnpSubTo(a, r) {
 			c >>= this.DB;
 		}
 		c += this.s;
-	}
-	else {
+	} else {
 		c += this.s;
 		while (i < a.t) {
 			c -= a[i];
@@ -440,8 +436,7 @@ function bnpDivRemTo(m, q, r) {
 	if (nsh > 0) {
 		pm.lShiftTo(nsh, y);
 		pt.lShiftTo(nsh, r);
-	}
-	else {
+	} else {
 		pm.copyTo(y);
 		pt.copyTo(r);
 	}
@@ -697,8 +692,7 @@ function bnIntValue() {
 		if (this.t == 1) {
 			return this[0] - this.DV;
 		} else if (this.t == 0) return -1;
-	}
-	else if (this.t == 1) {
+	} else if (this.t == 1) {
 		return this[0];
 	} else if (this.t == 0) return 0;
 	// assumes 16 < DB < 32
@@ -799,8 +793,7 @@ function bnpFromNumber(a, b, c) {
 				if (this.bitLength() > a) this.subTo(BigInteger.ONE.shiftLeft(a - 1), this);
 			}
 		}
-	}
-	else {
+	} else {
 		// new BigInteger(int,RNG)
 		var x = new Array(), t = a & 7;
 		x.length = (a >> 3) + 1;
@@ -823,8 +816,7 @@ function bnToByteArray() {
 			if (p < 8) {
 				d = (this[i] & ((1 << p) - 1)) << (8 - p);
 				d |= this[--i] >> (p += this.DB - 8);
-			}
-			else {
+			} else {
 				d = (this[i] >> (p -= 8)) & 0xff;
 				if (p <= 0) {
 					p += this.DB;
@@ -859,8 +851,7 @@ function bnpBitwiseTo(a, op, r) {
 		f = a.s & this.DM;
 		for (i = m; i < this.t; ++i) r[i] = op(this[i], f);
 		r.t = this.t;
-	}
-	else {
+	} else {
 		f = this.s & this.DM;
 		for (i = m; i < a.t; ++i) r[i] = op(f, a[i]);
 		r.t = a.t;
@@ -1030,8 +1021,7 @@ function bnpAddTo(a, r) {
 			c >>= this.DB;
 		}
 		c += this.s;
-	}
-	else {
+	} else {
 		c += this.s;
 		while (i < a.t) {
 			c += a[i];
@@ -1315,8 +1305,7 @@ function bnGCD(a) {
 		if (x.compareTo(y) >= 0) {
 			x.subTo(y, x);
 			x.rShiftTo(1, x);
-		}
-		else {
+		} else {
 			y.subTo(x, y);
 			y.rShiftTo(1, y);
 		}
@@ -1354,8 +1343,7 @@ function bnModInverse(m) {
 					b.subTo(m, b);
 				}
 				a.rShiftTo(1, a);
-			}
-			else if (!b.isEven()) b.subTo(m, b);
+			} else if (!b.isEven()) b.subTo(m, b);
 			b.rShiftTo(1, b);
 		}
 		while (v.isEven()) {
@@ -1366,16 +1354,14 @@ function bnModInverse(m) {
 					d.subTo(m, d);
 				}
 				c.rShiftTo(1, c);
-			}
-			else if (!d.isEven()) d.subTo(m, d);
+			} else if (!d.isEven()) d.subTo(m, d);
 			d.rShiftTo(1, d);
 		}
 		if (u.compareTo(v) >= 0) {
 			u.subTo(v, u);
 			if (ac) a.subTo(c, a);
 			b.subTo(d, b);
-		}
-		else {
+		} else {
 			v.subTo(u, v);
 			if (ac) c.subTo(a, c);
 			d.subTo(b, d);
@@ -1545,12 +1531,10 @@ function pkcs1pad2(s, n) {
 		var c = s.charCodeAt(i--);
 		if (c < 128) { // encode using utf-8
 			ba[--n] = c;
-		}
-		else if ((c > 127) && (c < 2048)) {
+		} else if ((c > 127) && (c < 2048)) {
 			ba[--n] = (c & 63) | 128;
 			ba[--n] = (c >> 6) | 192;
-		}
-		else {
+		} else {
 			ba[--n] = (c & 63) | 128;
 			ba[--n] = ((c >> 6) & 63) | 128;
 			ba[--n] = (c >> 12) | 224;
@@ -1586,8 +1570,7 @@ function RSASetPublic(N, E) {
 	if (N != null && E != null && N.length > 0 && E.length > 0) {
 		this.n = parseBigInt(N, 16);
 		this.e = parseInt(E, 16);
-	}
-	else {
+	} else {
 		alert("Invalid RSA public key");
 	}
 }
@@ -1641,12 +1624,10 @@ function pkcs1unpad2(d, n) {
 		var c = b[i] & 255;
 		if (c < 128) { // utf-8 decode
 			ret += String.fromCharCode(c);
-		}
-		else if ((c > 191) && (c < 224)) {
+		} else if ((c > 191) && (c < 224)) {
 			ret += String.fromCharCode(((c & 31) << 6) | (b[i + 1] & 63));
 			++i;
-		}
-		else {
+		} else {
 			ret += String.fromCharCode(((c & 15) << 12) | ((b[i + 1] & 63) << 6) | (b[i + 2] & 63));
 			i += 2;
 		}
@@ -1660,8 +1641,7 @@ function RSASetPrivate(N, E, D) {
 		this.n = parseBigInt(N, 16);
 		this.e = parseInt(E, 16);
 		this.d = parseBigInt(D, 16);
-	}
-	else {
+	} else {
 		alert("Invalid RSA private key");
 	}
 }
@@ -1677,8 +1657,7 @@ function RSASetPrivateEx(N, E, D, P, Q, DP, DQ, C) {
 		this.dmp1 = parseBigInt(DP, 16);
 		this.dmq1 = parseBigInt(DQ, 16);
 		this.coeff = parseBigInt(C, 16);
-	}
-	else {
+	} else {
 		alert("Invalid RSA private key");
 	}
 }
@@ -1939,68 +1918,69 @@ RSAKey.prototype.decrypt = RSADecrypt;
 ////////////////////////////////////////////////////////////////////////////////////////
 
 //globals
-bpe = 0;         //bits stored per array element
-mask = 0;        //AND this with an array element to chop it down to bpe bits
-radix = mask + 1;  //equals 2^bpe.  A single 1 bit to the left of the last bit of mask.
+var bpe = 0;         //bits stored per array element
+var mask = 0;        //AND this with an array element to chop it down to bpe bits
+var radix = mask + 1;  //equals 2^bpe.  A single 1 bit to the left of the last bit of mask.
 
 //the digits for converting to different bases
-digitsStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_=!@#$%^&*()[]{}|;:,.<>/?`~ \\\'\"+-';
+const digitsStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_=!@#$%^&*()[]{}|;:,.<>/?`~ \\\'\"+-';
 
 //initialize the global variables
 for (bpe = 0; (1 << (bpe + 1)) > (1 << bpe); bpe++) ;  //bpe=number of bits in the mantissa on this platform
 bpe >>= 1;                   //bpe=number of bits in one element of the array representing the bigInt
 mask = (1 << bpe) - 1;           //AND the mask with an integer to get its bpe least significant bits
 radix = mask + 1;              //2^bpe.  a single 1 bit to the left of the first bit of mask
-one = int2bigInt(1, 1, 1);     //constant used in powMod_()
+const one = int2bigInt(1, 1, 1);     //constant used in powMod_()
 
 //the following global variables are scratchpad memory to
 //reduce dynamic memory allocation in the inner loop
-t = new Array(0);
-ss = t;       //used in mult_()
-s0 = t;       //used in multMod_(), squareMod_()
-s1 = t;       //used in powMod_(), multMod_(), squareMod_()
-s2 = t;       //used in powMod_(), multMod_()
-s3 = t;       //used in powMod_()
-s4 = t;
-s5 = t; //used in mod_()
-s6 = t;       //used in bigInt2str()
-s7 = t;       //used in powMod_()
-T = t;        //used in GCD_()
-sa = t;       //used in mont_()
-mr_x1 = t;
-mr_r = t;
-mr_a = t;                                      //used in millerRabin()
-eg_v = t;
-eg_u = t;
-eg_A = t;
-eg_B = t;
-eg_C = t;
-eg_D = t;               //used in eGCD_(), inverseMod_()
-md_q1 = t;
-md_q2 = t;
-md_q3 = t;
-md_r = t;
-md_r1 = t;
-md_r2 = t;
-md_tt = t; //used in mod_()
+var t = new Array(0);
+var ss = t;       //used in mult_()
+var s0 = t;       //used in multMod_(), squareMod_()
+var s1 = t;       //used in powMod_(), multMod_(), squareMod_()
+var s2 = t;       //used in powMod_(), multMod_()
+var s3 = t;       //used in powMod_()
+var s4 = t;
+var s5 = t; //used in mod_()
+var s6 = t;       //used in bigInt2str()
+var s7 = t;       //used in powMod_()
+var T = t;        //used in GCD_()
+var sa = t;       //used in mont_()
+var mr_x1 = t;
+var mr_r = t;
+var mr_a = t;                                      //used in millerRabin()
+var eg_v = t;
+var eg_u = t;
+var eg_A = t;
+var eg_B = t;
+var eg_C = t;
+var eg_D = t;               //used in eGCD_(), inverseMod_()
+var md_q1 = t;
+var md_q2 = t;
+var md_q3 = t;
+var md_r = t;
+var md_r1 = t;
+var md_r2 = t;
+var md_tt = t; //used in mod_()
 
-primes = t;
-pows = t;
-s_i = t;
-s_i2 = t;
-s_R = t;
-s_rm = t;
-s_q = t;
-s_n1 = t;
-s_a = t;
-s_r2 = t;
-s_n = t;
-s_b = t;
-s_d = t;
-s_x1 = t;
-s_x2 = t, s_aa = t; //used in randTruePrime_()
+var primes = t;
+var pows = t;
+var s_i = t;
+var s_i2 = t;
+var s_R = t;
+var s_rm = t;
+var s_q = t;
+var s_n1 = t;
+var s_a = t;
+var s_r2 = t;
+var s_n = t;
+var s_b = t;
+var s_d = t;
+var s_x1 = t;
+var s_x2 = t;
+var s_aa = t; //used in randTruePrime_()
 
-rpprb = t; //used in randProbPrimeRounds() (which also uses "primes")
+var rpprb = t; //used in randProbPrimeRounds() (which also uses "primes")
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2659,8 +2639,7 @@ function negative(x) {
 //x and y are nonnegative bigInts
 //shift is a nonnegative integer
 function greaterShift(x, y, shift) {
-	var i, kx = x.length, ky = y.length;
-	k = ((kx + shift) < ky) ? (kx + shift) : ky;
+	var i, kx = x.length, ky = y.length, k = ((kx + shift) < ky) ? (kx + shift) : ky;
 	for (i = ky - 1 - shift; i < kx && i >= 0; i++)
 		if (x[i] > 0) {
 			return 1;
@@ -2796,7 +2775,7 @@ function modInt(x, n) {
 //Pad the array with leading zeros so that it has at least minSize elements.
 //There will always be at least one leading 0 element.
 function int2bigInt(t, bits, minSize) {
-	var i, k;
+	var i, k, buff;
 	k = Math.ceil(bits / bpe) + 1;
 	k = minSize > k ? minSize : k;
 	buff = new Array(k);
@@ -2923,8 +2902,7 @@ function bigInt2str(x, base) {
 		for (i = x.length - 1; i > 0; i--)
 			s += x[i] + ',';
 		s += x[0];
-	}
-	else { //return it in the given base
+	} else { //return it in the given base
 		while (!isZero(s6)) {
 			t = divInt_(s6, base);  //t=s6 % base; s6=floor(s6/base);
 			s = digitsStr.substring(t, t + 1) + s;
@@ -2938,7 +2916,7 @@ function bigInt2str(x, base) {
 
 //returns a duplicate of bigInt x
 function dup(x) {
-	var i;
+	var i, buff;
 	buff = new Array(x.length);
 	copy_(buff, x);
 	return buff;

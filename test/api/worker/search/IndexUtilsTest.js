@@ -18,7 +18,7 @@ import {
 } from "../../../../src/api/worker/search/IndexUtils"
 import {aes256Decrypt, aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {base64ToUint8Array, utf8Uint8ArrayToString} from "../../../../src/api/common/utils/Encoding"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
@@ -65,7 +65,10 @@ o.spec("Index Utils", () => {
 		const meta: SearchIndexMetaDataRow = {
 			id: 3,
 			word: "asdsadasds",
-			rows: [{app: 1, type: 64, key: 3, size: 10, oldestElementTimestamp: 6}, {app: 2, type: 66, key: 4, size: 8, oldestElementTimestamp: 15}]
+			rows: [
+				{app: 1, type: 64, key: 3, size: 10, oldestElementTimestamp: 6},
+				{app: 2, type: 66, key: 4, size: 8, oldestElementTimestamp: 15}
+			]
 		}
 		const encryptedMeta = encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)

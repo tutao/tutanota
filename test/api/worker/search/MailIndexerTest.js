@@ -5,7 +5,13 @@ import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {MailStateEnum, OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
-import {FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
+import {
+	FULL_INDEXED_TIMESTAMP,
+	GroupType,
+	MailState,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {aes256RandomKey} from "../../../../src/api/worker/crypto/Aes"
 import {createUser} from "../../../../src/api/entities/sys/User"
@@ -22,7 +28,7 @@ import {createMailFolder} from "../../../../src/api/entities/tutanota/MailFolder
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {browserDataStub, makeCore, mock, replaceAllMaps, spy} from "../../TestUtils"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import type {FutureBatchActions} from "../../../../src/api/worker/search/EventQueue"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {getDayShifted, getStartOfDay} from "../../../../src/api/common/utils/DateUtils"
