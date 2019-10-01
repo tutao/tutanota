@@ -132,7 +132,7 @@ declare class Promise<+R> {
 // 	declare function gzip()
 // }
 
-declare module 'pako_inflate' {
+declare module 'pako' {
 	declare type ZlibInflateOptions = {windowBits?: number, dictionary?: any}
 
 	declare export class Inflate {

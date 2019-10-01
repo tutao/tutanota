@@ -64,7 +64,7 @@ Module._resolveFilename = function (request, parent, isMain) {
 	if (request === '@hot') return request
 
 	// Hack because there's no such node module, it's just a file
-	if (request === "pako_inflate") {
+	if (request === "pako") {
 		const filePath = path.resolve(__dirname, "../../libs/pako_inflate.js")
 		return resolveFilenameNode(filePath)
 	}
