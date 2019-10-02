@@ -173,7 +173,6 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"changeTheme" isEqualToString:type]) {
         _darkTheme = [@"dark" isEqual:arguments[0]];
         [self setNeedsStatusBarAppearanceUpdate];
-		// No-op for now
 		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"aesEncryptFile" isEqualToString:type]) {
 		[_crypto aesEncryptFileWithKey:arguments[0] atPath:arguments[1] completion:sendResponseBlock];
