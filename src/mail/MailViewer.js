@@ -448,7 +448,7 @@ export class MailViewer {
 			if (this._mailBody) {
 				Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
 					if (confirmed) {
-						this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false).html))
+						this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), false, isTutanotaTeamMail(mail)).html))
 						this._contentBlocked = false
 						this._domBodyDeferred = defer()
 						this._replaceInlineImages()
@@ -476,7 +476,7 @@ export class MailViewer {
 	_loadMailBody(mail: Mail): Promise<Array<string>> {
 		return load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
-			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true)
+			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true, isTutanotaTeamMail(mail))
 
 			/**
 			 * check if we need to improve contrast for dark theme.
@@ -773,7 +773,8 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let prefix = "Re: "
-				let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix + this.mail.subject
+				let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
+					+ this.mail.subject
 				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 					+ this.mail.sender.address + ":";
 				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
