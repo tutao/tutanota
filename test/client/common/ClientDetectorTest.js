@@ -397,4 +397,12 @@ o.spec("ClientDetector test", function () {
 		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36", "Linux")
 		o(client.isSupportedBrowserVersion()).equals(true)
 	})
+
+	o("detect iPadOS", function() {
+		// Use hack with TouchEvent to detect iPad
+		window.TouchEvent = function () {}
+		client.init("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 (KHTML, like Gecko)", "MacIntel")
+		o(client.device).equals(DeviceType.IPAD)
+		window.TouchEvent = undefined
+	})
 })
