@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
-import {getCalendarMonth, getStartOfWeek, getWeekNumber, parseTime} from "../../../src/calendar/CalendarUtils"
+import {getCalendarMonth, getStartOfWeek, getWeekNumber, parseTime, timeStringFromParts} from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("calendar utils tests", function () {
@@ -133,11 +133,22 @@ o.spec("calendar utils tests", function () {
 	o.spec("parseTimeTo", function () {
 		o("parses full 24H time", function () {
 			o(parseTime("12:45")).deepEquals({hours: 12, minutes: 45})
+			o(parseTime("1245")).deepEquals({hours: 12, minutes: 45})
+			o(parseTime("2359")).deepEquals({hours: 23, minutes: 59})
+			o(parseTime("0000")).deepEquals({hours: 0, minutes: 0})
+			o(parseTime("0623")).deepEquals({hours: 6, minutes: 23})
+			o(parseTime("08:09")).deepEquals({hours: 8, minutes: 9})
 		})
 
 		o("parses partial 24H time", function () {
 			o(parseTime("12")).deepEquals({hours: 12, minutes: 0})
+			o(parseTime("1:2")).deepEquals({hours: 1, minutes: 2})
+			o(parseTime("102")).deepEquals({hours: 1, minutes: 2})
+			o(parseTime("17")).deepEquals({hours: 17, minutes: 0})
+			o(parseTime("6")).deepEquals({hours: 6, minutes: 0})
+			o(parseTime("955")).deepEquals({hours: 9, minutes: 55})
 			o(parseTime("12:3")).deepEquals({hours: 12, minutes: 3})
+			o(parseTime("809")).deepEquals({hours: 8, minutes: 9})
 		})
 
 		o("not parses incorrect time", function () {
@@ -147,9 +158,15 @@ o.spec("calendar utils tests", function () {
 			o(parseTime(":2")).deepEquals(null)
 			o(parseTime("25:03")).deepEquals(null)
 			o(parseTime("22:93")).deepEquals(null)
+			o(parseTime("24")).deepEquals(null)
+			o(parseTime("13pm")).deepEquals(null)
+			o(parseTime("263PM")).deepEquals(null)
+			o(parseTime("1403PM")).deepEquals(null)
+			o(parseTime("14:03:33PM")).deepEquals(null)
 		})
 
 		o("parses AM/PM time", function () {
+			o(parseTime("7PM")).deepEquals({hours: 19, minutes: 0})
 			o(parseTime("11PM")).deepEquals({hours: 23, minutes: 0})
 			o(parseTime("12PM")).deepEquals({hours: 12, minutes: 0})
 			o(parseTime("11:30PM")).deepEquals({hours: 23, minutes: 30})
@@ -157,9 +174,31 @@ o.spec("calendar utils tests", function () {
 			o(parseTime("12:30AM")).deepEquals({hours: 0, minutes: 30})
 			o(parseTime("3:30AM")).deepEquals({hours: 3, minutes: 30})
 			o(parseTime("3:30PM")).deepEquals({hours: 15, minutes: 30})
+			o(parseTime("9:37am")).deepEquals({hours: 9, minutes: 37})
+			o(parseTime("1:59pm")).deepEquals({hours: 13, minutes: 59})
+			o(parseTime("3:30 AM")).deepEquals({hours: 3, minutes: 30})
+			o(parseTime("3:30 PM")).deepEquals({hours: 15, minutes: 30})
+			o(parseTime("9:37 am")).deepEquals({hours: 9, minutes: 37})
+			o(parseTime("1:59 pm")).deepEquals({hours: 13, minutes: 59})
+			o(parseTime("9:37 a.m.")).deepEquals({hours: 9, minutes: 37})
+			o(parseTime("1:59 p.m.")).deepEquals({hours: 13, minutes: 59})
+			o(parseTime("1052 P.M.")).deepEquals({hours: 22, minutes: 52})
+			o(parseTime("1052 A.M.")).deepEquals({hours: 10, minutes: 52})
+			o(parseTime("948 P.M.")).deepEquals({hours: 21, minutes: 48})
+			o(parseTime("948 A.M.")).deepEquals({hours: 9, minutes: 48})
 		})
 	})
 
+	o.spec("timeStringFromParts", function () {
+		o("works", function () {
+			o(timeStringFromParts(0, 0, true)).equals("12:00 am")
+			o(timeStringFromParts(12, 0, true)).equals("12:00 pm")
+			o(timeStringFromParts(10, 55, true)).equals("10:55 am")
+			o(timeStringFromParts(10, 55, false)).equals("10:55")
+			o(timeStringFromParts(22, 55, true)).equals("10:55 pm")
+			o(timeStringFromParts(22, 55, false)).equals("22:55")
+		})
+	})
 	o.spec("getStartOfWeek", function () {
 		o("works", function () {
 			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
