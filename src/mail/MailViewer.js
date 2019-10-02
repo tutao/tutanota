@@ -71,7 +71,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
-import {theme, themeId} from "../gui/theme"
+import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -469,12 +469,11 @@ export class MailViewer {
 			 * OR
 			 * there is a font tag with the color attribute set
 			 */
-			this._contrastFixNeeded = themeId() === 'dark'
-				&& (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
+			this._contrastFixNeeded = (
+				'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+				|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+			)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
 
 			this._contentBlocked = sanitizeResult.externalContent.length > 0
@@ -757,7 +756,8 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let prefix = "Re: "
-				let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix + this.mail.subject
+				let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
+					+ this.mail.subject
 				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
 					+ this.mail.sender.address + ":";
 				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
