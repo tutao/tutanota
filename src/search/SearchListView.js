@@ -43,6 +43,8 @@ export class SearchListView {
 	oncreate: Function;
 	onremove: Function;
 	_lastType: TypeRef<Mail> | TypeRef<Contact>;
+	// Contains load more results even when searchModel doesn't.
+	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: ?SearchResult;
 
 	constructor(searchView: SearchView) {
