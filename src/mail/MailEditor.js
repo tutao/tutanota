@@ -88,7 +88,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {attachDropdown} from "../gui/base/DropdownN"
+import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
@@ -617,7 +617,18 @@ export class MailEditor {
 					m.redraw()
 				})
 				this._editor.initialized.promise.then(() => {
-					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages)
+					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages, (file, event, dom) => {
+						createDropdown(() => [
+							{
+								label: "download_action",
+								click: () => {
+									fileController.downloadAndOpen(file, true)
+									              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+								},
+								type: ButtonType.Dropdown
+							}
+						])(event, dom)
+					})
 				})
 			})
 		}
@@ -680,7 +691,7 @@ export class MailEditor {
 	}
 
 	_getAttachmentButtons(): Array<ButtonAttrs> {
-		return this._attachments.map(file => {
+		return this._attachments.filter((item) => item.cid == null).map(file => {
 			let lazyButtonAttrs: ButtonAttrs[] = []
 
 			lazyButtonAttrs.push({
@@ -705,12 +716,6 @@ export class MailEditor {
 				type: ButtonType.Secondary,
 				click: () => {
 					remove(this._attachments, file)
-					const dom = this._domElement
-					const cid = file.cid
-					if (cid && dom) {
-						const image = dom.querySelector(`img[cid="${cid}"]`)
-						image && image.remove()
-					}
 					this._mailChanged = true
 					m.redraw()
 				}

@@ -87,6 +87,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
+import {createDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
 
@@ -451,7 +452,18 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages)
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
+					createDropdown(() => [
+						{
+							label: "download_action",
+							click: () => {
+								fileController.downloadAndOpen(file, true)
+								              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							},
+							type: ButtonType.Dropdown
+						}
+					])(event, dom)
+				})
 			})
 		})
 	}
@@ -994,6 +1006,7 @@ export class MailViewer {
 	}
 
 	_createAttachmentsButtons(files: TutanotaFile[]): Button[] {
+		files = files.filter((item) => item.cid == null)
 		let buttons
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
 		if (isAndroidApp()) {
