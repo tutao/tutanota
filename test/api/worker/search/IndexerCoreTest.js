@@ -23,7 +23,12 @@ import {
 	typeRefToTypeInfo
 } from "../../../../src/api/worker/search/IndexUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../../../../src/api/worker/crypto/Aes"
-import {base64ToUint8Array, generatedIdToTimestamp, timestampToGeneratedId, uint8ArrayToBase64} from "../../../../src/api/common/utils/Encoding"
+import {
+	base64ToUint8Array,
+	generatedIdToTimestamp,
+	timestampToGeneratedId,
+	uint8ArrayToBase64
+} from "../../../../src/api/common/utils/Encoding"
 import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import {makeCore, spy} from "../../TestUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
@@ -303,7 +308,10 @@ o.spec("IndexerCore test", () => {
 			{
 				id: metaId,
 				word: encWord,
-				rows: [{app: 1, type: 1, key: 1, size: 2, oldestElementTimestamp: 1}, {app: 1, type: 1, key: 2, size: 1, oldestElementTimestamp: 10}]
+				rows: [
+					{app: 1, type: 1, key: 1, size: 2, oldestElementTimestamp: 1},
+					{app: 1, type: 1, key: 2, size: 1, oldestElementTimestamp: 10}
+				]
 			})
 		const core = makeCore()
 		const encodedMetaData = encryptMetaData(core.db.key, metaData)
@@ -490,7 +498,17 @@ o.spec("IndexerCore test", () => {
 			o(Array.from(transaction.getSync(SearchIndexOS, searchIndexKey)))
 				.deepEquals(Array.from(appendBinaryBlocks([newEntry], existingBlock)))
 
-			const expectedMeta = Object.assign({}, searchIndexMeta, {rows: [{app: appId, type: typeId, key: 1, size: 2, oldestElementTimestamp: 1}]})
+			const expectedMeta = Object.assign({}, searchIndexMeta, {
+				rows: [
+					{
+						app: appId,
+						type: typeId,
+						key: 1,
+						size: 2,
+						oldestElementTimestamp: 1
+					}
+				]
+			})
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, metaId))).deepEquals(expectedMeta)
 
 		})
@@ -550,7 +568,8 @@ o.spec("IndexerCore test", () => {
 
 			await core._insertNewIndexEntries(indexUpdate, transaction)
 
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks(newEntries.map(e => e.entry), existingRow)))
+			o(Array.from(transaction.getSync(SearchIndexOS, 1)))
+				.deepEquals(Array.from(appendBinaryBlocks(newEntries.map(e => e.entry), existingRow)))
 			searchIndexMeta.rows[0].size = 800
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
 		})
@@ -572,7 +591,8 @@ o.spec("IndexerCore test", () => {
 
 			await core._insertNewIndexEntries(indexUpdate, transaction)
 
-			o(Array.from(transaction.getSync(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks(newEntries.map(e => e.entry), existingRow)))
+			o(Array.from(transaction.getSync(SearchIndexOS, 1)))
+				.deepEquals(Array.from(appendBinaryBlocks(newEntries.map(e => e.entry), existingRow)))
 			searchIndexMeta.rows[0].size = 800
 			searchIndexMeta.rows[0].oldestElementTimestamp = 201
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
@@ -686,9 +706,27 @@ o.spec("IndexerCore test", () => {
 			compareBinaryBlocks(transaction.getSync(SearchIndexOS, 5), appendBinaryBlocks(thirdRow.map(e => e.entry)))
 			searchIndexMeta.rows = [
 				{app: contactTypeInfo.appId, type: contactTypeInfo.typeId, key: 2, size: 800, oldestElementTimestamp: 500},
-				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 3, size: firstRow.length, oldestElementTimestamp: firstRow[0].timestamp},
-				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 4, size: secondRow.length, oldestElementTimestamp: secondRow[0].timestamp},
-				{app: mailTypeInfo.appId, type: mailTypeInfo.typeId, key: 5, size: thirdRow.length, oldestElementTimestamp: thirdRow[0].timestamp},
+				{
+					app: mailTypeInfo.appId,
+					type: mailTypeInfo.typeId,
+					key: 3,
+					size: firstRow.length,
+					oldestElementTimestamp: firstRow[0].timestamp
+				},
+				{
+					app: mailTypeInfo.appId,
+					type: mailTypeInfo.typeId,
+					key: 4,
+					size: secondRow.length,
+					oldestElementTimestamp: secondRow[0].timestamp
+				},
+				{
+					app: mailTypeInfo.appId,
+					type: mailTypeInfo.typeId,
+					key: 5,
+					size: thirdRow.length,
+					oldestElementTimestamp: thirdRow[0].timestamp
+				},
 			]
 			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
@@ -806,7 +844,9 @@ o.spec("IndexerCore test", () => {
 
 		const listId = "list-id"
 		const elementData: ElementDataDbRow = [
-			listId, aes256Encrypt(core.db.key, new Uint8Array([metaRowId, anotherMetaRowId]), random.generateRandomData(IV_BYTE_LENGTH), true, false), groupId
+			listId, aes256Encrypt(core.db.key, new Uint8Array([
+				metaRowId, anotherMetaRowId
+			]), random.generateRandomData(IV_BYTE_LENGTH), true, false), groupId
 		]
 		const otherId = new Uint8Array(16).fill(88)
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(metaRowId, [
@@ -879,7 +919,7 @@ o.spec("IndexerCore test", () => {
 			db: {
 				key: aes256RandomKey(),
 				iv: fixedIv,
-				dbFacade: ({createTransaction: () => deferred.promise, createTransactionSync: () => transaction}: any),
+				dbFacade: ({createTransaction: () => deferred.promise}: any),
 				initialized: Promise.resolve()
 			}
 		})
