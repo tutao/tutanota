@@ -47,7 +47,7 @@ class HtmlSanitizer {
 					|| currentNode.tagName.toLowerCase() === "area"
 					|| currentNode.tagName.toLowerCase() === "form")) {
 					const href = currentNode.getAttribute("href")
-					if (isAllowedLink(href)) {
+					if (!href || isAllowedLink(href)) {
 						currentNode.setAttribute('rel', 'noopener noreferrer')
 						currentNode.setAttribute('target', '_blank')
 					} else {
