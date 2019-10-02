@@ -306,7 +306,7 @@ class ClientDetector {
 		this.device = DeviceType.DESKTOP
 		if (this.userAgent.match(/iPad.*AppleWebKit/) != null
 			// iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
-			|| /Macintosh; Intel Mac OS X.*AppleWebKit/ && window.TouchEvent) {
+			|| /Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent) {
 			this.device = DeviceType.IPAD
 		} else if (this.userAgent.match(/iPhone.*AppleWebKit/) != null) {
 			this.device = DeviceType.IPHONE
