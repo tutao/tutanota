@@ -48,6 +48,7 @@ typedef void(^VoidCallback)(void);
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @property (readonly, nonnull) TUTKeychainManager *keychainManager;
+@property BOOL darkTheme;
 @end
 
 @implementation TUTViewController
@@ -64,6 +65,7 @@ typedef void(^VoidCallback)(void);
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
         _keychainManager = [TUTKeychainManager new];
+        _darkTheme = NO;
 	}
 	return self;
 }
@@ -169,6 +171,8 @@ typedef void(^VoidCallback)(void);
 	} else if ([@"getMimeType" isEqualToString:type]) {
 		[_fileUtil getMimeTypeForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"changeTheme" isEqualToString:type]) {
+        _darkTheme = [@"dark" isEqual:arguments[0]];
+        [self setNeedsStatusBarAppearanceUpdate];
 		// No-op for now
 		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"aesEncryptFile" isEqualToString:type]) {
@@ -454,6 +458,19 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 
 - (TUTAppDelegate *)appDelegate {
     return (TUTAppDelegate *) UIApplication.sharedApplication.delegate;
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    if (_darkTheme) {
+        return UIStatusBarStyleLightContent;
+    } else {
+        // Since iOS 13 UIStatusBarStyleDefault respects dark mode and we just want dark text
+        if (@available(iOS 13, *)) {
+            return UIStatusBarStyleDarkContent;
+        } else {
+            return UIStatusBarStyleDefault;
+        }
+    }
 }
 
 @end
