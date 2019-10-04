@@ -30,7 +30,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
  * resolution on any type of device.
  */
-export class ViewSlider {
+export class ViewSlider implements IViewSlider {
 	columns: ViewColumn[];
 	_mainColumn: ViewColumn;
 	focusedColumn: ViewColumn;
@@ -285,6 +285,15 @@ export class ViewSlider {
 			return this.columns[visibleColumnIndex - 1]
 		}
 		return null
+	}
+
+	isFirstBackgroundColumnFocused() {
+		return this.columns.filter(column => column.columnType === ColumnType.Background)
+			.indexOf(this.focusedColumn) === 0
+	}
+
+	isForegroundColumnFocused() {
+		return this.focusedColumn && this.focusedColumn.columnType === ColumnType.Foreground
 	}
 
 	allColumnsVisible(): boolean {
