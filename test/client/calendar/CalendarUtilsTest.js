@@ -163,6 +163,7 @@ o.spec("calendar utils tests", function () {
 			o(parseTime("263PM")).deepEquals(null)
 			o(parseTime("1403PM")).deepEquals(null)
 			o(parseTime("14:03:33PM")).deepEquals(null)
+			o(parseTime("9:37 acme")).deepEquals(null)
 		})
 
 		o("parses AM/PM time", function () {

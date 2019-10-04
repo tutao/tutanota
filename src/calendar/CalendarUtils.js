@@ -39,18 +39,18 @@ export function generateUid(event: CalendarEvent, timestamp: number): string {
  * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
  */
 export function parseTime(timeString: string): ?{hours: number, minutes: number} {
-	var suffix = null
-	var hours = NaN
-	var minutes = NaN
+	let suffix  // am/pm indicator or undefined
+	let hours   // numeric hours
+	let minutes // numeric minutes
 	// See if the time includes a colon separating hh:mm
-	var mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a.m.|p.m.)?$/i)
+	let mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
 	if (mt != null) {
 		suffix = mt[3]
 		hours = parseInt(mt[1], 10)
 		minutes = parseInt(mt[2], 10)
 	} else {
 		// Interpret 127am as 1:27am or 2311 as 11:11pm, e.g.
-		mt = timeString.match(/^(\d{1,4})\s*(am|pm|a.m.|p.m.)?$/i)
+		mt = timeString.match(/^(\d{1,4})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
 		if (mt != null) {
 			suffix = mt[2]
 			const digits = mt[1]
