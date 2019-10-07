@@ -760,6 +760,10 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
+		if (logins.getUserController().props.sendPlaintextOnly) {
+			this._editor.removeAllFormatting()
+		}
+
 		// _tempBody is only set until the editor is initialized. It might not be the case when
 		// assigning a mail to another user because editor is not shown and we cannot
 		// wait for the editor to be initialized.
