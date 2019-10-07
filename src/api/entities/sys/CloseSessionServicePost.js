@@ -2,9 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const DeleteSessionServicePostTypeRef: TypeRef<DeleteSessionServicePost> = new TypeRef("sys", "DeleteSessionServicePost")
+export const CloseSessionServicePostTypeRef: TypeRef<CloseSessionServicePost> = new TypeRef("sys", "CloseSessionServicePost")
 export const _TypeModel: TypeModel = {
-	"name": "DeleteSessionServicePost",
+	"name": "CloseSessionServicePost",
 	"since": 50,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 1595,
@@ -47,6 +47,6 @@ export const _TypeModel: TypeModel = {
 	"version": "50"
 }
 
-export function createDeleteSessionServicePost(values?: $Shape<$Exact<DeleteSessionServicePost>>): DeleteSessionServicePost {
-	return Object.assign(create(_TypeModel, DeleteSessionServicePostTypeRef), values)
+export function createCloseSessionServicePost(values?: $Shape<$Exact<CloseSessionServicePost>>): CloseSessionServicePost {
+	return Object.assign(create(_TypeModel, CloseSessionServicePostTypeRef), values)
 }

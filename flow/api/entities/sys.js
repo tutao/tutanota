@@ -1702,8 +1702,8 @@ type CustomDomainCheckReturn = {
 	missingRecords: DnsRecord[];
 }
 
-type DeleteSessionServicePost = {
-	_type: TypeRef<DeleteSessionServicePost>;
+type CloseSessionServicePost = {
+	_type: TypeRef<CloseSessionServicePost>;
 	_format: NumberString;
 	accessToken: string;
 

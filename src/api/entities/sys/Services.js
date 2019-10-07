@@ -41,5 +41,5 @@ export const SysService = {
 	UpgradePriceService: "upgradepriceservice",
 	AlarmService: "alarmservice",
 	CustomDomainCheckService: "customdomaincheckservice",
-	DeleteSessionService: "deletesessionservice"
+	CloseSessionService: "closesessionservice"
 }
