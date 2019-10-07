@@ -13,7 +13,7 @@ import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
 import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {SysService} from "../entities/sys/Services"
-import {createDeleteSessionServicePost} from "../entities/sys/DeleteSessionServicePost"
+import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
 
 assertMainOrNode()
 
@@ -137,8 +137,8 @@ export class UserController implements IUserController {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 			if (sendBeacon) {
 				try {
-					const path = `/rest/sys/${SysService.DeleteSessionService}`
-					const requestObject = createDeleteSessionServicePost({
+					const path = `/rest/sys/${SysService.CloseSessionService}`
+					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId
 					})
