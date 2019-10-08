@@ -108,7 +108,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 	close() {
 		let promise = Promise.resolve()
 		if (this._upgradeData.newAccountData && logins.isUserLoggedIn()) {
-			promise = worker.logout(false)
+			promise = logins.logout(false)
 		}
 		promise.then(() => {
 			this._pageActionHandler.showNext(this._upgradeData)

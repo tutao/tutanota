@@ -132,10 +132,8 @@ let initialized = lang.init(en).then(() => {
 					forceLogin(args, requestedPath)
 				} else if (!requireLogin && logins.isUserLoggedIn()) {
 					logginOut()
-					return workerPromise.then(worker => {
-						return worker.logout(false).then(function () {
-							windowFacade.reload(args)
-						})
+					return logins.logout(false).then(() => {
+						windowFacade.reload(args)
 					})
 				} else {
 					let promise
