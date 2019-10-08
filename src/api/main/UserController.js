@@ -130,7 +130,7 @@ export class UserController implements IUserController {
 		}).return()
 	}
 
-	deleteSession(sync: boolean): Promise<void> {
+	deleteSession(): Promise<void> {
 		if (this.persistentSession) return Promise.resolve()
 
 		return new Promise((resolve, reject) => {
@@ -154,7 +154,7 @@ export class UserController implements IUserController {
 				// Fall back to sync XHR if
 				const path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
 				const xhr = new XMLHttpRequest()
-				xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
+				xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliability when invoked in onunload
 				xhr.setRequestHeader('accessToken', this.accessToken)
 				xhr.setRequestHeader('v', SessionModelType.version)
 				xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed

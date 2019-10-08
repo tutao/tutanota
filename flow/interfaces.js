@@ -46,7 +46,7 @@ interface IUserController {
 
 	entityEventsReceived($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>;
 
-	deleteSession(sync: boolean): Promise<void>;
+	deleteSession(): Promise<void>;
 }
 
 interface ILoginViewController {

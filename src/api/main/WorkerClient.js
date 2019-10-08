@@ -199,8 +199,8 @@ export class WorkerClient {
 
 	logout(sync: boolean): Promise<void> {
 		return Promise.all([
-			logins.deleteSession(sync),
-			this._postRequest(new Request('reset', arguments))
+			sync ? logins.deleteSession() : this._postRequest(new Request('deleteSession', [logins.getUserController().accessToken])),
+			this._postRequest(new Request('reset', []))
 		]).return()
 	}
 

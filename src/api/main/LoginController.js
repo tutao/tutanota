@@ -60,9 +60,9 @@ export class LoginController {
 		}
 	}
 
-	deleteSession(sync: boolean): Promise<void> {
+	deleteSession(): Promise<void> {
 		if (this._userController) {
-			return this._userController.deleteSession(sync).then(() => {
+			return this._userController.deleteSession().then(() => {
 				this.setUserController(null)
 			})
 		} else {
