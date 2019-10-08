@@ -169,7 +169,7 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 		return new WizardDialog(wizardPages, () => {
 			let promise
 			if (logins.isUserLoggedIn()) {
-				promise = worker.logout(false)
+				promise = logins.logout(false)
 			} else {
 				promise = Promise.resolve()
 			}

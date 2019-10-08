@@ -316,7 +316,7 @@ export class ContactFormRequestDialog {
 								                                                  })
 							                                     })
 							                                     .finally(e => {
-								                                     return worker.logout(false)
+								                                     return logins.logout(false)
 							                                     }))
 					                                     })
 					                                     .then(() => {

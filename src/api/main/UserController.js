@@ -14,6 +14,7 @@ import {isUpdateForTypeRef} from "./EventController"
 import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {SysService} from "../entities/sys/Services"
 import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
+import {worker} from "./WorkerClient"
 
 assertMainOrNode()
 
@@ -130,14 +131,22 @@ export class UserController implements IUserController {
 		}).return()
 	}
 
-	deleteSession(): Promise<void> {
+	deleteSession(sync: boolean): Promise<void> {
 		if (this.persistentSession) return Promise.resolve()
+		if (sync) {
+			return this.deleteSessionSync()
+		} else {
+			return worker.deleteSession(this.accessToken).then(() => worker.reset())
+		}
+	}
 
+
+	deleteSessionSync() {
 		return new Promise((resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 			if (sendBeacon) {
 				try {
-					const path = `/rest/sys/${SysService.CloseSessionService}`
+					const path = `${getHttpOrigin()}/rest/sys/${SysService.CloseSessionService}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId
