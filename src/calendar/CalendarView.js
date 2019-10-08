@@ -10,12 +10,11 @@ import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
-import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse, TimeFormat} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, OperationType, reverse, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
@@ -35,7 +34,6 @@ import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import {createGroupColor} from "../api/entities/tutanota/GroupColor"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -49,6 +47,7 @@ import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
+import {CalendarEventInviteTypeRef} from "../api/entities/tutanota/CalendarEventInvite"
 
 
 export type CalendarInfo = {
@@ -239,7 +238,9 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
-
+		loadAll(CalendarEventInviteTypeRef, logins.getUserController().user._id).then(r =>
+			console.log(r)
+		)
 		// load all calendars. if there is no calendar yet, create one
 		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
 			if (calendarInfos.size === 0) {

@@ -1119,3 +1119,24 @@ type CalendarEventIndexRef = {
 
 	list: Id;
 }
+
+type CalendarEventInvite = {
+	_type: TypeRef<CalendarEventInvite>;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	invitor: string;
+	status: NumberString;
+
+	event: IdTuple;
+}
+
+type CreateCalendarInvitePost = {
+	_type: TypeRef<CreateCalendarInvitePost>;
+	_format: NumberString;
+	invitee: string;
+	invitor: string;
+
+	event: IdTuple;
+}
