@@ -36,7 +36,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createNotificationSessionKey(values?: $Shape<$Exact<NotificationSessionKey>>): NotificationSessionKey {

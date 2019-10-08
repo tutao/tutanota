@@ -238,7 +238,7 @@ export class ExternalLoginView {
 		}
 		windowFacade.addOnlineListener(() => {
 			console.log("online")
-			worker.tryReconnectEventBus(true, true)
+			worker.tryReconnectEventBus(true, true, 2000)
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log("offline")
@@ -281,21 +281,26 @@ export class ExternalLoginView {
 		this._helpText = "sendingSms_msg"
 		this._sendSmsAllowed = false
 		m.redraw()
-		return worker.sendExternalPasswordSms(this._userId, this._salt, phoneNumberId, lang.code, this._symKeyForPasswordTransmission).then(result => {
-			this._symKeyForPasswordTransmission = result.symKeyForPasswordTransmission
-			this._helpText = "smsSent_msg"
-			setTimeout(() => {
-				this._sendSmsAllowed = true
-				this._helpText = "smsResent_msg"
-				m.redraw()
-			}, 60000)
-		}).catch(TooManyRequestsError, e => {
-			this._helpText = "smsSentOften_msg"
-		}).catch(AccessExpiredError, e => {
-			this._errorMessageId = "expiredLink_msg"
-		}).catch(InternalServerError, e => {
-			this._helpText = "smsError_msg"
-		}).finally(() => m.redraw())
+		return worker.sendExternalPasswordSms(this._userId, this._salt, phoneNumberId, lang.code, this._symKeyForPasswordTransmission)
+		             .then(result => {
+			             this._symKeyForPasswordTransmission = result.symKeyForPasswordTransmission
+			             this._helpText = "smsSent_msg"
+			             setTimeout(() => {
+				             this._sendSmsAllowed = true
+				             this._helpText = "smsResent_msg"
+				             m.redraw()
+			             }, 60000)
+		             })
+		             .catch(TooManyRequestsError, e => {
+			             this._helpText = "smsSentOften_msg"
+		             })
+		             .catch(AccessExpiredError, e => {
+			             this._errorMessageId = "expiredLink_msg"
+		             })
+		             .catch(InternalServerError, e => {
+			             this._helpText = "smsError_msg"
+		             })
+		             .finally(() => m.redraw())
 	}
 
 }

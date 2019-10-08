@@ -12,7 +12,15 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 608, "since": 14, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 608,
+			"since": 14,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 606, "since": 14, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
@@ -23,8 +31,24 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 609, "since": 14, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 607, "since": 14, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 609,
+			"since": 14,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 607,
+			"since": 14,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"compressedHeaders": {
 			"name": "compressedHeaders",
 			"id": 990,
@@ -34,7 +58,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
-		"headers": {"name": "headers", "id": 611, "since": 14, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": true}
+		"headers": {
+			"name": "headers",
+			"id": 611,
+			"since": 14,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": true
+		}
 	},
 	"associations": {},
 	"app": "tutanota",

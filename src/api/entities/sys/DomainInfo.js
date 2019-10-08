@@ -23,7 +23,15 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"domain": {"name": "domain", "id": 698, "since": 9, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
-		"validatedMxRecord": {"name": "validatedMxRecord", "id": 699, "since": 9, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false}
+		"validatedMxRecord": {
+			"name": "validatedMxRecord",
+			"id": 699,
+			"since": 9,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"catchAllMailGroup": {
@@ -58,7 +66,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {

@@ -1701,3 +1701,11 @@ type CustomDomainCheckReturn = {
 	invalidRecords: DnsRecord[];
 	missingRecords: DnsRecord[];
 }
+
+type CloseSessionServicePost = {
+	_type: TypeRef<CloseSessionServicePost>;
+	_format: NumberString;
+	accessToken: string;
+
+	sessionId: IdTuple;
+}

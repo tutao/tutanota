@@ -13,12 +13,28 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1533, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"elementId": {"name": "elementId", "id": 1534, "since": 48, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"listId": {"name": "listId", "id": 1535, "since": 48, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false}
+		"elementId": {
+			"name": "elementId",
+			"id": 1534,
+			"since": 48,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"listId": {
+			"name": "listId",
+			"id": 1535,
+			"since": 48,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createCalendarEventRef(values?: $Shape<$Exact<CalendarEventRef>>): CalendarEventRef {

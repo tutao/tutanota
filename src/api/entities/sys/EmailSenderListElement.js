@@ -13,13 +13,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 950, "since": 13, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"hashedValue": {"name": "hashedValue", "id": 951, "since": 13, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"hashedValue": {
+			"name": "hashedValue",
+			"id": 951,
+			"since": 13,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"type": {"name": "type", "id": 953, "since": 13, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"value": {"name": "value", "id": 952, "since": 13, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {

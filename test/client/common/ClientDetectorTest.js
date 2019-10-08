@@ -6,11 +6,14 @@ import {BrowserType, DeviceType} from "../../../src/misc/ClientConstants"
 
 o.spec("ClientDetector test", function () {
 	o("ClientDetector detect chrome windows", () => {
+		// Even though TouchEvent is defined for Chrome, it should not be consider mobile verson
+		window.TouchEvent = function () {}
 		client.init("Mozilla/5.0 (Windows NT 6.2 WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/30.0.1295.0 Safari/537.15", "Linux")
 		o(client.browser).equals(BrowserType.CHROME)
 		o(client.browserVersion).equals(30)
 		o(client.device).equals(DeviceType.DESKTOP)
 		o(client.isMobileDevice()).equals(false)
+		window.touchEvent = undefined
 	})
 
 	o("ClientDetector detect firefox linux", () => {
@@ -396,5 +399,13 @@ o.spec("ClientDetector test", function () {
 	o("newer Chrome is supported", function () {
 		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36", "Linux")
 		o(client.isSupportedBrowserVersion()).equals(true)
+	})
+
+	o("detect iPadOS", function () {
+		// Use hack with TouchEvent to detect iPad
+		window.TouchEvent = function () {}
+		client.init("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 (KHTML, like Gecko)", "MacIntel")
+		o(client.device).equals(DeviceType.IPAD)
+		window.TouchEvent = undefined
 	})
 })

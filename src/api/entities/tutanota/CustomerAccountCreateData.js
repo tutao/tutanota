@@ -31,7 +31,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"authToken": {"name": "authToken", "id": 650, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
+		"authToken": {
+			"name": "authToken",
+			"id": 650,
+			"since": 16,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"code": {"name": "code", "id": 873, "since": 24, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
 		"date": {"name": "date", "id": 651, "since": 16, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
 		"lang": {"name": "lang", "id": 652, "since": 16, "type": "String", "cardinality": "One", "final": false, "encrypted": false},
@@ -82,7 +90,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "InternalGroupData",
 			"final": false
 		},
-		"userData": {"name": "userData", "id": 653, "since": 16, "type": "AGGREGATION", "cardinality": "One", "refType": "UserAccountUserData", "final": false},
+		"userData": {
+			"name": "userData",
+			"id": 653,
+			"since": 16,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "UserAccountUserData",
+			"final": false
+		},
 		"userGroupData": {
 			"name": "userGroupData",
 			"id": 656,

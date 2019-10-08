@@ -12,6 +12,8 @@ import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
 import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
+import {SysService} from "../entities/sys/Services"
+import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
 
 assertMainOrNode()
 
@@ -130,30 +132,49 @@ export class UserController implements IUserController {
 
 	deleteSession(sync: boolean): Promise<void> {
 		if (this.persistentSession) return Promise.resolve()
-		const path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
 
-		return Promise.fromCallback((callback) => {
-			const xhr = new XMLHttpRequest()
-			xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
-			xhr.setRequestHeader('accessToken', this.accessToken)
-			xhr.setRequestHeader('v', SessionModelType.version)
-			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
-				if (xhr.status === 200) {
-					console.log("deleted session")
-					callback(null)
-				} else if (xhr.status === 401) {
-					console.log("authentication failed => session is already deleted")
-					callback(null)
-				} else {
-					console.error("could not delete session " + xhr.status)
-					callback("could not delete session " + xhr.status)
+		return new Promise((resolve, reject) => {
+			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
+			if (sendBeacon) {
+				try {
+					const path = `/rest/sys/${SysService.CloseSessionService}`
+					const requestObject = createCloseSessionServicePost({
+						accessToken: this.accessToken,
+						sessionId: this.sessionId
+					})
+					delete requestObject["_type"] // Remove extra field which is not part of the data model
+					const queued = sendBeacon.call(navigator, path, JSON.stringify(requestObject))
+					console.log("queued closing session: ", queued)
+					resolve()
+				} catch (e) {
+					console.log("Failed to send beacon", e)
+					reject(e)
 				}
+			} else {
+				// Fall back to sync XHR if
+				const path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
+				const xhr = new XMLHttpRequest()
+				xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
+				xhr.setRequestHeader('accessToken', this.accessToken)
+				xhr.setRequestHeader('v', SessionModelType.version)
+				xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
+					if (xhr.status === 200) {
+						console.log("deleted session")
+						resolve()
+					} else if (xhr.status === 401) {
+						console.log("authentication failed => session is already deleted")
+						resolve()
+					} else {
+						console.error("could not delete session " + xhr.status)
+						reject(new Error("could not delete session " + xhr.status))
+					}
+				}
+				xhr.onerror = function () {
+					console.error("failed to request delete session")
+					reject(new Error("failed to request delete session"))
+				}
+				xhr.send()
 			}
-			xhr.onerror = function () {
-				console.error("failed to request delete session")
-				callback("failed to request delete session")
-			}
-			xhr.send()
 		})
 	}
 

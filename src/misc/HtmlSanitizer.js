@@ -1,12 +1,15 @@
 // @flow
 import DOMPurify from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
+import {client} from "./ClientDetector"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + ReplacementImage.replace(/"/g, "'").replace(/#/g, "%23")
 
 const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // background attribute is deprecated but still used in common browsers
+
+type SanitizeConfig = {allowRelativeLinks?: boolean} & SanitizeConfigBase
 
 class HtmlSanitizer {
 
@@ -23,7 +26,7 @@ class HtmlSanitizer {
 			return
 		}
 		// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
-		this.purifier.addHook('afterSanitizeAttributes', (currentNode, data, config) => {
+		this.purifier.addHook('afterSanitizeAttributes', (currentNode, data, config: SanitizeConfig) => {
 				// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 				// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
 				let allowedClasses = [
@@ -45,8 +48,14 @@ class HtmlSanitizer {
 					currentNode.tagName.toLowerCase() === "a"
 					|| currentNode.tagName.toLowerCase() === "area"
 					|| currentNode.tagName.toLowerCase() === "form")) {
-					currentNode.setAttribute('rel', 'noopener noreferrer')
-					currentNode.setAttribute('target', '_blank')
+					const href = currentNode.getAttribute("href")
+					if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
+						currentNode.setAttribute('rel', 'noopener noreferrer')
+						currentNode.setAttribute('target', '_blank')
+					} else {
+						console.log("Relative/invalid URL", currentNode, href)
+						currentNode.href = "#"
+					}
 				}
 
 				return currentNode;
@@ -59,8 +68,8 @@ class HtmlSanitizer {
 	 * @param  html The html content to sanitize.
 	 * @param  blockExternalContent True if external content should be blocked
 	 */
-	sanitize(html: string, blockExternalContent: boolean): SanitizeResult {
-		const config = this._prepareSanitize(html, blockExternalContent)
+	sanitize(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false): SanitizeResult {
+		const config = this._prepareSanitize(html, blockExternalContent, allowRelativeLinks)
 
 		let cleanHtml = this.purifier.sanitize(html, config)
 		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids}
@@ -72,13 +81,14 @@ class HtmlSanitizer {
 	 * @param blockExternalContent
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
-	sanitizeFragment(html: string, blockExternalContent: boolean): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
+	sanitizeFragment(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false
+	): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
-			Object.assign({}, this._prepareSanitize(html, blockExternalContent), {RETURN_DOM_FRAGMENT: true})
+			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {RETURN_DOM_FRAGMENT: true})
 		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
 	}
 
-	_prepareSanitize(html: string, blockExternalContent: boolean): SanitizeConfigBase {
+	_prepareSanitize(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean): SanitizeConfig {
 		// must be set for use in dompurify hook
 		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
@@ -88,6 +98,7 @@ class HtmlSanitizer {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
 			ADD_URI_SAFE_ATTR: ['poster'], // poster for video element.
 			FORBID_TAGS: ['style'], // prevent loading of external fonts
+			allowRelativeLinks,
 		}
 	}
 
@@ -112,6 +123,10 @@ class HtmlSanitizer {
 			}
 			if (htmlNode.style.filter) {
 				this._removeStyleImage(htmlNode, "filter")
+			}
+			// Disallow position because you can do bad things with it and it also messes up layout
+			if (htmlNode.style.position) {
+				htmlNode.style.removeProperty("position")
 			}
 		}
 	}
@@ -168,6 +183,17 @@ class HtmlSanitizer {
 	}
 }
 
+function isAllowedLink(link: string): boolean {
+	if (client.isIE()) { // No support for creating URLs in IE11
+		return true
+	}
+	try {
+		// We create URL without explicit base (second argument). It is an error for relative links
+		return new URL(link).protocol !== "file"
+	} catch (e) {
+		return false
+	}
+}
 
 export function stringifyFragment(fragment: DocumentFragment): string {
 	let div = document.createElement("div")

@@ -68,7 +68,7 @@ export class RestClient {
 						}, Number(retryAfter) * 1000)
 						console.log(`rate limited request to ${path}, retry after ${retryAfter}s`)
 					} else {
-						console.log("failed request", method, url, headers, body)
+						console.log("failed request", method, url, xhr.status, xhr.statusText, headers, body)
 						reject(handleRestError(xhr.status, `${xhr.statusText} | ${method} ${path}`))
 					}
 				}

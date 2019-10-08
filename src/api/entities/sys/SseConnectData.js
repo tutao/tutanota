@@ -12,8 +12,24 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 1353, "since": 32, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"identifier": {"name": "identifier", "id": 1354, "since": 32, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
+		"_format": {
+			"name": "_format",
+			"id": 1353,
+			"since": 32,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"identifier": {
+			"name": "identifier",
+			"id": 1354,
+			"since": 32,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"userIds": {
@@ -27,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "49"
+	"version": "50"
 }
 
 export function createSseConnectData(values?: $Shape<$Exact<SseConnectData>>): SseConnectData {

@@ -276,6 +276,8 @@ class ClientDetector {
 	}
 
 	extractIosVersion() {
+		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
+		// from Webkit version but maybe we don't need that for now.
 		const versionIndex = this.userAgent.indexOf(" OS ")
 		if (versionIndex !== -1) {
 			this.browser = BrowserType.SAFARI
@@ -302,7 +304,9 @@ class ClientDetector {
 
 	_setDeviceInfo() {
 		this.device = DeviceType.DESKTOP
-		if (this.userAgent.match(/iPad.*AppleWebKit/) != null) {
+		if (this.userAgent.match(/iPad.*AppleWebKit/) != null
+			// iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
+			|| /Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent) {
 			this.device = DeviceType.IPAD
 		} else if (this.userAgent.match(/iPhone.*AppleWebKit/) != null) {
 			this.device = DeviceType.IPHONE

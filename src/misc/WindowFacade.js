@@ -178,7 +178,7 @@ class WindowFacade {
 
 	_onUnload() {
 		if (this.windowCloseConfirmation) {
-			this._worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+			this._worker.logout(true)
 		}
 	}
 
@@ -190,7 +190,7 @@ class WindowFacade {
 	addOfflineListener(listener: Function) {
 		window.addEventListener("offline", listener)
 	}
-	
+
 	reload(args: {[string]: any}) {
 		if (isApp()) {
 			if (!args.hasOwnProperty("noAutoLogin")) {

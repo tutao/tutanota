@@ -173,28 +173,23 @@ export class DbFacade {
 	 * @pre open() must have been called before, but the promise does not need to have returned.
 	 */
 	createTransaction(readOnly: boolean, objectStores: ObjectStoreName[]): Promise<DbTransaction> {
-		return this._db.getAsync().then(() => this.createTransactionSync(readOnly, objectStores))
-	}
-
-	createTransactionSync(readOnly: boolean, objectStores: Array<ObjectStoreName>): DbTransaction {
-
-		const db = this._db.getLoaded()
-		try {
-			const idbTransaction = db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite")
-			const transaction = new IndexedDbTransaction(idbTransaction, () => {
-				this.indexingSupported = false
-				this._db.reset()
+		return this._db.getAsync().then((db) => {
+			try {
+				const idbTransaction = db.transaction((objectStores: string[]), readOnly ? "readonly" : "readwrite")
+				const transaction = new IndexedDbTransaction(idbTransaction, () => {
+					this.indexingSupported = false
+					this._db.reset()
 				})
-			this._activeTransactions++
-			transaction.wait().finally(() => {
-				this._activeTransactions--
-			})
-			return transaction
-		} catch (e) {
-			throw new DbError("could not create transaction", e)
-		}
+				this._activeTransactions++
+				transaction.wait().finally(() => {
+					this._activeTransactions--
+				})
+				return transaction
+			} catch (e) {
+				throw new DbError("could not create transaction", e)
+			}
+		})
 	}
-
 }
 
 type DbRequest = {
@@ -243,7 +238,7 @@ export class IndexedDbTransaction implements DbTransaction {
 				let keys = []
 				let request = (this._transaction.objectStore(objectStore): any).openCursor()
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "getAll().onError "  + objectStore, callback)
+					this._handleDbError(event, request, "getAll().onError " + objectStore, callback)
 				}
 				request.onsuccess = (event) => {
 					let cursor = request.result
@@ -284,7 +279,7 @@ export class IndexedDbTransaction implements DbTransaction {
 
 	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
-				   .then(result => result || [])
+		           .then(result => result || [])
 	}
 
 	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
@@ -294,7 +289,7 @@ export class IndexedDbTransaction implements DbTransaction {
 					? this._transaction.objectStore(objectStore).put(value, key)
 					: this._transaction.objectStore(objectStore).put(value)
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "put().onerror "  + objectStore, callback)
+					this._handleDbError(event, request, "put().onerror " + objectStore, callback)
 				}
 				request.onsuccess = (event) => {
 					callback(null, event.target.result)
@@ -311,13 +306,13 @@ export class IndexedDbTransaction implements DbTransaction {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 				request.onerror = (event) => {
-					this._handleDbError(event, request, "delete().onerror "  + objectStore, callback)
+					this._handleDbError(event, request, "delete().onerror " + objectStore, callback)
 				}
 				request.onsuccess = (event) => {
 					callback()
 				}
 			} catch (e) {
-				this._handleDbError(e, null, ".delete().catch "  + objectStore, callback)
+				this._handleDbError(e, null, ".delete().catch " + objectStore, callback)
 			}
 		})
 	}

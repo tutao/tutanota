@@ -11,7 +11,17 @@ export const _TypeModel: TypeModel = {
 	"rootId": "CHR1dGFub3RhAAPE",
 	"versioned": false,
 	"encrypted": false,
-	"values": {"_format": {"name": "_format", "id": 965, "since": 33, "type": "Number", "cardinality": "One", "final": false, "encrypted": false}},
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 965,
+			"since": 33,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
+	},
 	"associations": {
 		"calendarData": {
 			"name": "calendarData",

@@ -211,7 +211,7 @@ declare interface IDOMPurify {
 
 	sanitize(html: string | HTMLElement, options?: SanitizeConfigBase): string;
 
-	addHook(hook: DOMPurifyHooks, (node: HTMLElement, data: Object, config: SanitizeConfig) => HTMLElement): void;
+	addHook<T : SanitizeConfigBase>(hook: DOMPurifyHooks, (node: HTMLElement, data: Object, config: T) => HTMLElement): void;
 
 	isSupported: boolean;
 }

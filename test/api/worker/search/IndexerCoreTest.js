@@ -919,7 +919,7 @@ o.spec("IndexerCore test", () => {
 			db: {
 				key: aes256RandomKey(),
 				iv: fixedIv,
-				dbFacade: ({createTransaction: () => deferred.promise, createTransactionSync: () => transaction}: any),
+				dbFacade: ({createTransaction: () => deferred.promise}: any),
 				initialized: Promise.resolve()
 			}
 		})
