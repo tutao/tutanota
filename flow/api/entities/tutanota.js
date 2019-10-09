@@ -1108,3 +1108,17 @@ type InvitationPostData = {
 	internalKeyData: InternalRecipientKeyData[];
 	sharedGroupData: SharedGroupData;
 }
+
+type InvitationPutData = {
+	_type: TypeRef<InvitationPutData>;
+	_format: NumberString;
+
+	invite: IdTuple;
+}
+
+type InvitationDeleteData = {
+	_type: TypeRef<InvitationDeleteData>;
+	_format: NumberString;
+
+	invite: IdTuple;
+}

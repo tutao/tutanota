@@ -27,7 +27,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createDnsRecord(values?: $Shape<$Exact<DnsRecord>>): DnsRecord {

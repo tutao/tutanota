@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createSecondFactorAuthGetReturn(values?: $Shape<$Exact<SecondFactorAuthGetReturn>>): SecondFactorAuthGetReturn {

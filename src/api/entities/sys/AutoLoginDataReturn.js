@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createAutoLoginDataReturn(values?: $Shape<$Exact<AutoLoginDataReturn>>): AutoLoginDataReturn {

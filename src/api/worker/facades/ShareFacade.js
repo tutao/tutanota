@@ -24,7 +24,7 @@ export class ShareFacade {
 
 	_loginFacade: LoginFacade;
 
-	constructor(loginFacade: LoginFace) {
+	constructor(loginFacade: LoginFacade) {
 		this._loginFacade = loginFacade
 	}
 

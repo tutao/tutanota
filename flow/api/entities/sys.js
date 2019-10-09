@@ -52,6 +52,7 @@ type GroupMembership = {
 	_type: TypeRef<GroupMembership>;
 	_id: Id;
 	admin: boolean;
+	capability: NumberString;
 	groupType: ?NumberString;
 	symEncGKey: Uint8Array;
 
@@ -330,6 +331,7 @@ type GroupMember = {
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	capability: NumberString;
 
 	group: Id;
 	user: Id;
@@ -1721,4 +1723,27 @@ type CloseSessionServicePost = {
 	accessToken: string;
 
 	sessionId: IdTuple;
+}
+
+type IncomingInvite = {
+	_type: TypeRef<IncomingInvite>;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	pubEncGKey: Uint8Array;
+	pubKeyVersion: NumberString;
+
+	groupInfo: IdTuple;
+	groupInvitation: IdTuple;
+}
+
+type UserGroupRoot = {
+	_type: TypeRef<UserGroupRoot>;
+	_format: NumberString;
+	_id: Id;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+
+	invites: Id;
 }

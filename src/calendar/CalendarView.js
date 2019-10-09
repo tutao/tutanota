@@ -688,7 +688,7 @@ export class CalendarView implements CurrentView {
 						})
 					} else if (update.operation === OperationType.DELETE) {
 						const found = findAndRemove(this._calendarInvitations, (invitation) => {
-							isSameId(invitation.invite._id, [update.instanceListId, update.instanceId])
+							return isSameId(invitation.invite._id, [update.instanceListId, update.instanceId])
 						})
 						if (found) {
 							m.redraw()

@@ -200,7 +200,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "36"
+	"version": "37"
 }
 
 export function createMail(values?: $Shape<$Exact<Mail>>): Mail {

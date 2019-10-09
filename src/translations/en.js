@@ -1050,7 +1050,5 @@ module.exports = {
 		"calendarInvitations_label": "Invitations",
 		"accept_action": "Accept",
 		"decline_action": "Decline"
-
-
 	}
 }

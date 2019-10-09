@@ -14,6 +14,15 @@ export const _TypeModel: TypeModel = {
 	"values": {
 		"_id": {"name": "_id", "id": 26, "since": 1, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"admin": {"name": "admin", "id": 28, "since": 1, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
+		"capability": {
+			"name": "capability",
+			"id": 1620,
+			"since": 51,
+			"type": "Number",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"groupType": {
 			"name": "groupType",
 			"id": 1030,
@@ -58,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createGroupMembership(values?: $Shape<$Exact<GroupMembership>>): GroupMembership {

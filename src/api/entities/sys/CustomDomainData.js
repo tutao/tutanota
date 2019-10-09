@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createCustomDomainData(values?: $Shape<$Exact<CustomDomainData>>): CustomDomainData {

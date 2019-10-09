@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createSwitchAccountTypeData(values?: $Shape<$Exact<SwitchAccountTypeData>>): SwitchAccountTypeData {

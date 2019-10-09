@@ -12,15 +12,47 @@ export const _TypeModel: TypeModel = {
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_format": {"name": "_format", "id": 199, "since": 1, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_format": {
+			"name": "_format",
+			"id": 199,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"_id": {"name": "_id", "id": 197, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_ownerGroup": {"name": "_ownerGroup", "id": 1018, "since": 17, "type": "GeneratedId", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"_permissions": {"name": "_permissions", "id": 198, "since": 1, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"capability": {"name": "capability", "id": 1596, "since": 50, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1018,
+			"since": 17,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_permissions": {
+			"name": "_permissions",
+			"id": 198,
+			"since": 1,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"capability": {
+			"name": "capability",
+			"id": 1601,
+			"since": 51,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"invitedMailAddress": {
 			"name": "invitedMailAddress",
-			"id": 1595,
-			"since": 50,
+			"id": 1600,
+			"since": 51,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -50,7 +82,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createGroupInvitation(values?: $Shape<$Exact<GroupInvitation>>): GroupInvitation {

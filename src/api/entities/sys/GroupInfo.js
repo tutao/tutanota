@@ -104,7 +104,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "50"
+	"version": "51"
 }
 
 export function createGroupInfo(values?: $Shape<$Exact<GroupInfo>>): GroupInfo {

@@ -13,9 +13,33 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 992, "since": 37, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"bucketEncGInfoKey": {"name": "bucketEncGInfoKey", "id": 995, "since": 37, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"bucketEncGKey": {"name": "bucketEncGKey", "id": 994, "since": 37, "type": "Bytes", "cardinality": "One", "final": false, "encrypted": false},
-		"capability": {"name": "capability", "id": 993, "since": 37, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"bucketEncGInfoKey": {
+			"name": "bucketEncGInfoKey",
+			"id": 995,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"bucketEncGKey": {
+			"name": "bucketEncGKey",
+			"id": 994,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"capability": {
+			"name": "capability",
+			"id": 993,
+			"since": 37,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"group": {"name": "group", "id": 996, "since": 37, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false}
 	},
 	"associations": {},
