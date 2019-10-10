@@ -50,7 +50,8 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			} else {
 				this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
 				this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null, this._upgradeData.upgradeType == UpgradeType.Signup)
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null,
+					this._upgradeData.upgradeType === UpgradeType.Signup)
 					.then(success => {
 						if (success) {
 							this._pageActionHandler.showNext(this._upgradeData)
@@ -118,14 +119,15 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			if (logins.isUserLoggedIn()) {
 				payPalRequestUrl.getAsync()
 			}
-			this._paymentMethodInput = new PaymentMethodInput(data.options, this._invoiceDataInput.selectedCountry, data.accountingInfo, payPalRequestUrl)
-			this._availablePaymentMethods = this._paymentMethodInput.getAvailablePaymentMethods()
+			this._paymentMethodInput = new PaymentMethodInput(data.options, this._invoiceDataInput.selectedCountry, neverNull(data.accountingInfo), payPalRequestUrl)
+			this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 			this._paymentMethodSelector = new SegmentControl(this._availablePaymentMethods, this._selectedPaymentMethod, 130)
 				.setSelectionChangedHandler((selectedItem) => {
 					this._selectedPaymentMethod(selectedItem)
 					this._paymentMethodInput.updatePaymentMethod(selectedItem.value)
 				})
-			let initialItem = this._availablePaymentMethods.find(item => item.value === data.paymentData.paymentMethod) || this._availablePaymentMethods[0]
+			let initialItem = this._availablePaymentMethods.find(item => item.value === data.paymentData.paymentMethod)
+				|| this._availablePaymentMethods[0]
 			this._selectedPaymentMethod(initialItem)
 			this._paymentMethodInput.updatePaymentMethod(initialItem.value, data.paymentData)
 		})
@@ -156,20 +158,24 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 				             })
 			             } else {
 				             if (statusCode === PaymentDataResultType.INVALID_VATID_NUMBER) {
-					             Dialog.error(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+					             Dialog.error(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
 					             Dialog.error("creditCardCVVInvalid_msg");
 				             } else if (statusCode === PaymentDataResultType.PAYMENT_PROVIDER_NOT_AVAILABLE) {
 					             Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.OTHER_PAYMENT_ACCOUNT_REJECTED) {
-					             Dialog.error(() => lang.get("paymentAccountRejected_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+					             Dialog.error(() => lang.get("paymentAccountRejected_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DATE_INVALID) {
 					             Dialog.error("creditCardExprationDateInvalid_msg");
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_NUMBER_INVALID) {
-					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " " + lang.get("accountWasStillCreated_msg") : ""))
+					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " "
+						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.COULD_NOT_VERIFY_VATID) {
 					             Dialog.error(() => lang.get("invalidVatIdValidationFailed_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))

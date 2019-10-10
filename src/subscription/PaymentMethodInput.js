@@ -7,16 +7,15 @@ import {CountryType} from "../api/common/CountryList"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardInput} from "./CreditCardInput"
-import MessageBox from "../gui/base/MessageBox"
 import {PayPalLogo} from "../gui/base/icons/Icons"
 import {load} from "../api/main/Entity"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
-import {neverNull} from "../api/common/utils/Utils"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
+import {MessageBoxN} from "../gui/base/MessageBoxN"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -31,11 +30,11 @@ export class PaymentMethodInput {
 	_selectedPaymentMethod: PaymentMethodTypeEnum;
 	_subscriptionOptions: SubscriptionOptions;
 	_payPalRequestUrl: LazyLoaded<string>;
-	_accountingInfo: ?AccountingInfo;
+	_accountingInfo: AccountingInfo;
 	oncreate: Function;
 	onremove: Function;
 
-	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: ?AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
+	constructor(subscriptionOptions: SubscriptionOptions, selectedCountry: Stream<?Country>, accountingInfo: AccountingInfo, payPalRequestUrl: LazyLoaded<string>) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions;
 		this._creditCardComponent = new CreditCardInput()
@@ -71,19 +70,17 @@ export class PaymentMethodInput {
 							}
 						}, m("img[src=" + PayPalLogo + "]")),
 					),
-					m(".small.pt.center", this.isPaypalAssigned() ? lang.get("paymentDataPayPalFinished_msg", {"{accountAddress}": neverNull(this._accountingInfo).paymentMethodInfo}) : lang.get("paymentDataPayPalLogin_msg"))
+					m(".small.pt.center", this.isPaypalAssigned() ? lang.get("paymentDataPayPalFinished_msg", {"{accountAddress}": this._accountingInfo.paymentMethodInfo}) : lang.get("paymentDataPayPalLogin_msg"))
 				]
 			},
 		}
-		const messageBox = new MessageBox(() => {
-			const country = this._selectedCountry()
-			return country && country.t === CountryType.OTHER
-				? lang.get("paymentMethodNotAvailable_msg")
-				: lang.get("paymentMethodOnAccount_msg")
-		}, "content-message-bg", 16)
+
 		this._invoiceComponent = {
 			view: () => {
-				return m(".flex-center", m(messageBox))
+				return m(".flex-center", m(MessageBoxN, {
+					label: this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg",
+					marginTop: 16
+				}))
 			}
 		}
 
@@ -95,7 +92,20 @@ export class PaymentMethodInput {
 	}
 
 	isPaypalAssigned() {
-		return this._accountingInfo && this._accountingInfo.paypalBillingAgreement != null
+		return this._accountingInfo.paypalBillingAgreement != null
+	}
+
+	isOnAccountAllowed(): boolean {
+		const country = this._selectedCountry()
+		if (!country) {
+			return false
+		} else if (this._accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
+			return true
+		} else if (this._subscriptionOptions.businessUse() && country.t !== CountryType.OTHER) {
+			return true
+		} else {
+			return false
+		}
 	}
 
 	validatePaymentData(): ?TranslationKey {
@@ -103,9 +113,7 @@ export class PaymentMethodInput {
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
-			if (this._subscriptionOptions.businessUse() && country && country.t === CountryType.OTHER) {
-				return "paymentMethodNotAvailable_msg"
-			} else if (!this._subscriptionOptions.businessUse()) {
+			if (!this.isOnAccountAllowed()) {
 				return "paymentMethodNotAvailable_msg"
 			}
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
@@ -150,13 +158,14 @@ export class PaymentMethodInput {
 		}
 	}
 
-	getAvailablePaymentMethods(): Array<{name: string, value: PaymentMethodTypeEnum}> {
+	getVisiblePaymentMethods(): Array<{name: string, value: PaymentMethodTypeEnum}> {
 		const availablePaymentMethods = [
 			{name: lang.get("paymentMethodCreditCard_label"), value: PaymentMethodType.CreditCard},
 			{name: "PayPal", value: PaymentMethodType.Paypal}
 		]
 
-		if (this._subscriptionOptions.businessUse()) {
+		// show bank transfer in case of business use, even if it is not available for the selected country
+		if (this._subscriptionOptions.businessUse() || this._accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodOnAccount_label"),
 				value: PaymentMethodType.Invoice
