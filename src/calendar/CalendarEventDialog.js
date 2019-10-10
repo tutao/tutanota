@@ -16,8 +16,8 @@ import {erase, load} from "../api/main/Entity"
 
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -462,18 +462,6 @@ export function createEndCountPicker(): DropDownSelectorAttrs<number> {
 		icon: Icons.Edit,
 	}
 }
-
-const AlarmInterval = Object.freeze({
-	FIVE_MINUTES: "5M",
-	TEN_MINUTES: "10M",
-	THIRTY_MINUTES: "30M",
-	ONE_HOUR: "1H",
-	ONE_DAY: "1D",
-	TWO_DAYS: "2D",
-	THREE_DAYS: "3D",
-	ONE_WEEK: "1W",
-})
-type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 
 
 

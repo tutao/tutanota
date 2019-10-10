@@ -1,21 +1,19 @@
 // @flow
 
-import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import {app} from 'electron'
 import crypto from 'crypto'
 import http from 'http'
 import https from 'https'
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
 import {SseError} from "../../api/common/error/SseError"
-import {isMailAddress} from "../../misc/FormatValidator"
 import {downcast, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
-import DesktopUtils from "../DesktopUtils"
-import {NotificationResult} from "../DesktopNotifier"
+import type {DesktopConfigHandler} from "../DesktopConfigHandler"
+import {NotificationResult} from "../DesktopConstants"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
+import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 
 export type SseInfo = {|
 	identifier: string,
@@ -79,6 +77,8 @@ export class DesktopSseClient {
 			userIds = this._connectedSseInfo.userIds
 			if (!userIds.includes(userId)) {
 				userIds.push(userId)
+			} else {
+				return Promise.resolve()
 			}
 		}
 		const sseInfo = {identifier, sseOrigin, userIds}
@@ -126,7 +126,7 @@ export class DesktopSseClient {
 				                       "Keep-Alive": "header",
 				                       "Accept": "text/event-stream"
 			                       },
-			                       method: "GET",
+			                       method: "GET"
 		                       })
 		                       .on('response', res => {
 			                       if (res.statusCode === 403) { // invalid userids
@@ -198,38 +198,37 @@ export class DesktopSseClient {
 	}
 
 	_handlePushMessage(pm: PushMessage, failedToConfirm: boolean = false): Promise<void> {
-		console.warn("handling push message:", JSON.stringify(pm, null, 2))
-		return new Promise(resolve => {
-			if (this._lastProcessedChangeTime >= parseInt(pm.changeTime)) {
-				console.warn("already processed notification, ignoring: " + this._lastProcessedChangeTime)
-				resolve()
-			}
-			let notificationInfos: Array<NotificationInfo>
-			let changeTime: string
-			let confirmationId: string
-			let alarmNotifications: Array<AlarmNotification>
 
-			let p: Promise<MissedNotification> = failedToConfirm || pm.hasAlarmNotifications
+		if (this._lastProcessedChangeTime >= parseInt(pm.changeTime)) {
+			console.warn("already processed notification, ignoring: " + this._lastProcessedChangeTime)
+			return Promise.resolve()
+		}
+
+		let notificationInfos: Array<NotificationInfo>
+		let changeTime: string
+		let confirmationId: string
+		let alarmNotifications: Array<AlarmNotification>
+
+		return Promise
+			.resolve()
+			.then(() => (failedToConfirm || pm.hasAlarmNotifications)
 				? this._downloadMissedNotification()
-				: Promise.resolve(downcast<MissedNotification>(pm))
-
-			p.then(mn => {
+				: downcast(Promise.resolve(pm)))
+			.then(mn => {
 				notificationInfos = mn.notificationInfos
 				changeTime = mn.changeTime
 				confirmationId = mn.confirmationId
 				alarmNotifications = mn.alarmNotifications || []
 			})
-			 .then(() => console.log("scheduling confirmation for", confirmationId))
-			 .then(() => this._sendConfirmation(confirmationId, changeTime))
-			 .then(() => {
-				 this._lastProcessedChangeTime = parseInt(changeTime)
-				 notificationInfos.forEach(ni => this._handleNotificationInfo(pm.title, ni))
-				 alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
-			 })
-			 .catch(PreconditionFailedError, () => this._handlePushMessage(pm, true))
-			 .catch(FileNotFoundError, e => console.log('404:', e))
-			resolve(downcast(p))
-		})
+			.then(() => console.log("scheduling confirmation for", confirmationId))
+			.then(() => this._sendConfirmation(confirmationId, changeTime))
+			.then(() => {
+				this._lastProcessedChangeTime = parseInt(changeTime)
+				notificationInfos.forEach(ni => this._handleNotificationInfo(pm.title, ni))
+				alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
+			})
+			.catch(PreconditionFailedError, () => this._handlePushMessage(pm, true))
+			.catch(FileNotFoundError, e => console.log('404:', e))
 	}
 
 	_handleNotificationInfo(title: string, ni: NotificationInfo): void {
@@ -266,8 +265,11 @@ export class DesktopSseClient {
 					resolve()
 				} else if (res.statusCode === 412) {
 					reject(new PreconditionFailedError(""))
+				} else if (res.statusCode === 404) {
+					console.log("tried to confirm outdated or nonexistent missedNotification")
+					resolve()
 				} else {
-					reject(`failure response for confirmation: ${res.statusCode}`)
+					reject(`failure response for confirmation for Id ${confirmationId}: ${res.statusCode}`)
 				}
 			}).on('error', e => {
 				console.error("failed to send push message confirmation:", e.message)
@@ -296,6 +298,7 @@ export class DesktopSseClient {
 			                .on('response', res => {
 				                if (res.statusCode === 404) {
 					                fail(req, res, new FileNotFoundError("no missed notification"))
+					                return
 				                }
 				                if (res.statusCode !== 200) {
 					                fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
@@ -373,19 +376,6 @@ export class PushMessage {
 		let obj
 		try {
 			obj = JSON.parse(json)
-			DesktopUtils.checkDataFormat(obj, {
-				title: {type: 'string'},
-				confirmationId: {type: 'string'},
-				hasAlarmNotifications: {type: 'boolean'},
-				changeTime: {type: 'string', assert: v => !isNaN(parseInt(v))},
-				notificationInfos: [
-					{
-						address: {type: 'string', assert: v => isMailAddress(v, true)},
-						counter: {type: 'number', assert: v => v > 0},
-						userId: {type: 'string'}
-					}
-				]
-			})
 		} catch (e) {
 			throw new SseError(`push message type error: ${e.message}`)
 		}
@@ -410,51 +400,6 @@ export class MissedNotification {
 		let obj
 		try {
 			obj = JSON.parse(json)
-			// DesktopUtils.checkDataFormat(obj, {
-			// 	_format: {type: 'string'},
-			// 	_id: [{type: 'string'}],
-			// 	_ownerEncSessionKey: {type: 'string', optional: true},
-			// 	_ownerGroup: {type: 'string'},
-			// 	_permissions: {type: 'string'},
-			// 	changeTime: {type: 'string', assert: v => !isNaN(parseInt(v))},
-			// 	confirmationId: {type: 'string'},
-			// 	alarmNotifications: [
-			// 		{
-			// 			_id: {type: 'string'},
-			// 			eventEnd: {type: 'string'},
-			// 			eventStart: {type: 'string'},
-			// 			operation: {type: 'string'},
-			// 			summary: {type: 'string'},
-			// 			alarmInfo: {
-			// 				_id: {type: 'string'},
-			// 				alarmIdentifier: {type: 'string'},
-			// 				trigger: {type: 'string'},
-			// 				calendarRef: {
-			// 					_id: {type: 'string'},
-			// 					elementId: {type: 'string'},
-			// 					listId: {type: 'string'}
-			// 				}
-			// 			},
-			// 			notificationSessionKeys: [
-			// 				{
-			// 					_id: {type: 'string'},
-			// 					pushIdentifierSessionEncSessionKey: {type: 'string'},
-			// 					pushIdentifier: [{type: 'string'}],
-			// 				}
-			// 			],
-			// 			repeatRule: {
-			// 				_id: {type: 'string'},
-			// 				endType: {type: 'string'},
-			// 				endValue: {type: 'string', optional: true},
-			// 				frequency: {type: 'string'},
-			// 				interval: {type: 'string'},
-			// 				timeZone: {type: 'string'},
-			// 			},
-			// 			user: {type: 'string'}
-			// 		}
-			// 	],
-			// 	notificationInfos: [{address: {type: 'string'}, counter: {type: 'number'}, userId: {type: 'string'}}]
-			// })
 		} catch (e) {
 			throw new SseError(`missed notification type error: ${e.message}`)
 		}

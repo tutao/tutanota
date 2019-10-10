@@ -10,6 +10,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		'../api/common/error/UpdateError',
 		'./DesktopNotifier',
 		'../TutanotaConstants',
+		"./DesktopConstants",
 		'../EntityFunctions',
 		'./utils/Encoding',
 		'../error/CryptoError',

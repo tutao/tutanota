@@ -4,7 +4,6 @@ import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import u2f from '../misc/u2f-api.js'
-import {lang} from './DesktopLocalizationProvider.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
@@ -13,7 +12,7 @@ const MINIMUM_WINDOW_SIZE: number = 350
 
 export type UserInfo = {|
 	userId: string,
-	mailAddress: string
+	mailAddress?: string
 |}
 
 export class ApplicationWindow {
@@ -130,15 +129,9 @@ export class ApplicationWindow {
 			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
 		    .on('crashed', () => wm.recreateWindow(this))
-		/**
-		 * we need two conditions for the context menu to work on every window
-		 * 1. the preload script must have run already on this window
-		 * 2. the first web app instance must have sent the translations to the node thread
-		 * dom-ready is after preload and after the index.html was loaded into the webContents,
-		 * but may be before any javascript ran
-		 */
+
 		this._browserWindow.webContents.on('dom-ready', () => {
-			lang.initialized.promise.then(() => this.sendMessageToWebContents('setup-context-menu', []))
+			this.sendMessageToWebContents('setup-context-menu', [])
 		})
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
@@ -177,6 +170,13 @@ export class ApplicationWindow {
 	openMailBox(info: UserInfo, path?: ?string): Promise<void> {
 		return this._ipc.initialized(this.id).then(() =>
 			this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
+		).then(() => this.show())
+	}
+
+	// open at date?
+	openCalendar(info: UserInfo): Promise<void> {
+		return this._ipc.initialized(this.id).then(() =>
+			this._ipc.sendRequest(this.id, 'openCalendar', [info.userId])
 		).then(() => this.show())
 	}
 

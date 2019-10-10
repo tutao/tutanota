@@ -126,6 +126,13 @@ export class WindowManager {
 		w.openMailBox(info, null)
 	}
 
+	openCalendar(info: UserInfo) {
+		let w = windows.find(w => w.getUserId() === info.userId)
+			|| windows.find(w => w.getUserInfo() === null)
+			|| this.newWindow(true, true)
+		w.openCalendar(info)
+	}
+
 	recreateWindow(w: ApplicationWindow): void {
 		console.log("browserWindow crashed, trying to reopen at", w.getPath())
 		const lastPath = w.getPath()

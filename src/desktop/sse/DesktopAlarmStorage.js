@@ -1,10 +1,11 @@
 // @flow
 import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
-import {defer} from "../../api/common/utils/Utils"
+import {defer, downcast} from "../../api/common/utils/Utils"
 import crypto from 'crypto'
 import {CryptoError} from '../../api/common/error/CryptoError'
-import {DesktopConfigHandler} from "../DesktopConfigHandler"
+import type {DesktopConfigHandler} from "../DesktopConfigHandler"
+import type {TimeoutData} from "./DesktopAlarmScheduler"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
@@ -110,23 +111,49 @@ export class DesktopAlarmStorage {
 
 	/**
 	 * get a B64 encoded sessionKey from memory or decrypt it from disk storage
-	 * @param pushIdentifierId pushIdentifier that identifies the correct key
-	 * @returns {*}
+	 * @param sessionKeys array of notificationSessionKeys
 	 */
-	resolvePushIdentifierSessionKey(pushIdentifierId: string): Promise<string> {
-		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
-		return this._sessionKeysB64[pushIdentifierId]
-			? Promise.resolve(this._sessionKeysB64[pushIdentifierId])
-			: this._initialized.promise
-			      .then(pw => {
-				      const decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
-				      this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
-				      return decryptedKeyB64
-			      })
+	resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
+		return new Promise((resolve, reject) => {
+			this._initialized.promise.then(pw => {
+				const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
+				for (let i = 0; i < sessionKeys.length; i++) {
+					const notificationSessionKey = sessionKeys[i]
+					const pushIdentifierId = notificationSessionKey.pushIdentifier[1]
+					if (this._sessionKeysB64[pushIdentifierId]) {
+						resolve({
+							piSk: this._sessionKeysB64[pushIdentifierId],
+							piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
+						})
+						return
+					} else {
+						if (keys[pushIdentifierId] == null) {
+							sessionKeys.splice(i--, 1)
+							continue
+						}
+						let decryptedKeyB64
+						try {
+							decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
+						} catch (e) {
+							console.log("could not decrypt pushIdentifierSessionKey, trying next one...")
+							sessionKeys.splice(i--, 1)
+							continue
+						}
+						this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
+						resolve({
+							piSk: decryptedKeyB64,
+							piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
+						})
+						break
+					}
+				}
+				reject("could not resolve pushIdentifierSessionKey")
+			})
+		})
 	}
 
-	storeScheduledAlarms(scheduledNotifications: {[string]: {timeout: TimeoutID, an: AlarmNotification}}): Promise<void> {
-		return this._conf.setDesktopConfig('scheduledAlarms', Object.values(scheduledNotifications).map(val => val.an))
+	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}): Promise<void> {
+		return this._conf.setDesktopConfig('scheduledAlarms', Object.values(scheduledNotifications).map(val => downcast(val).an))
 	}
 
 	getScheduledAlarms(): Array<AlarmNotification> {

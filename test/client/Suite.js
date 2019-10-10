@@ -23,19 +23,21 @@ import "./calendar/CalendarImporterTest"
 
 import o from "ospec/ospec.js"
 
-// node(() => {
-// 	require("./desktop/DesktopUtilsTest.js")
-// 	require("./desktop/DesktopConfigHandlerTest")
-// 	require("./desktop/ElectronUpdaterTest")
-// 	require("./desktop/DesktopNotifierTest")
-// 	require("./desktop/DesktopWindowManagerTest.js")
-// 	require("./desktop/DesktopTrayTest.js")
-// 	require("./desktop/ApplicationWindowTest.js")
-// 	require("./desktop/DesktopSseClientTest.js")
-// 	require("./desktop/DesktopDownloadManagerTest.js")
-// 	require("./desktop/IPCTest.js")
-// 	require("./desktop/SocketeerTest.js")
-// })()
+node(() => {
+	require("./desktop/DesktopUtilsTest.js")
+	require("./desktop/DesktopConfigHandlerTest")
+	require("./desktop/ElectronUpdaterTest")
+	require("./desktop/DesktopNotifierTest")
+	require("./desktop/DesktopWindowManagerTest.js")
+	require("./desktop/DesktopTrayTest.js")
+	require("./desktop/ApplicationWindowTest.js")
+	require("./desktop/sse/DesktopSseClientTest.js")
+	require("./desktop/sse/DesktopAlarmStorageTest.js")
+	require("./desktop/sse/DesktopAlarmSchedulerTest.js")
+	require("./desktop/DesktopDownloadManagerTest.js")
+	require("./desktop/IPCTest.js")
+	require("./desktop/SocketeerTest.js")
+})()
 
 o.run()
 

@@ -73,6 +73,7 @@ o.spec("ContactUtilsTest", function () {
 
 	o("formatNewBirthdayTest", function () {
 		lang.setLanguage({code: "en", languageTag: "en"})
+		lang.updateFormats({})
 		let bday = createBirthday()
 		bday.day = "12"
 		bday.month = "10"
@@ -98,6 +99,7 @@ o.spec("ContactUtilsTest", function () {
 		bday.year = "2009"
 
 		lang.setLanguage({code: "de", languageTag: "de"})
+		lang.updateFormats({})
 		o(formatBirthdayNumeric(bday)).equals("2009-10-12")
 
 		bday.day = "9"

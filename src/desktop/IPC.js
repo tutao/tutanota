@@ -11,7 +11,7 @@ import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autola
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
-import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
+import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
