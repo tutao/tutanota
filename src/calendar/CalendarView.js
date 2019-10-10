@@ -402,7 +402,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_acceptInvite(invitation: CalendarInvitation) {
-
+		worker.acceptGroupInvitation(invitation.invite)
 	}
 
 	_denyInvite(invitation: CalendarInvitation) {

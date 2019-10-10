@@ -1731,7 +1731,8 @@ type IncomingInvite = {
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	pubEncGKey: Uint8Array;
+	bucketEncGroupKey: Uint8Array;
+	pubEncBucketKey: Uint8Array;
 	pubKeyVersion: NumberString;
 
 	groupInfo: IdTuple;

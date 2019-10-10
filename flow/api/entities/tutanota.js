@@ -1112,6 +1112,7 @@ type InvitationPostData = {
 type InvitationPutData = {
 	_type: TypeRef<InvitationPutData>;
 	_format: NumberString;
+	userGroupEncGroupKey: Uint8Array;
 
 	invite: IdTuple;
 }

@@ -40,8 +40,17 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"pubEncGKey": {
-			"name": "pubEncGKey",
+		"bucketEncGroupKey": {
+			"name": "bucketEncGroupKey",
+			"id": 1609,
+			"since": 51,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"pubEncBucketKey": {
+			"name": "pubEncBucketKey",
 			"id": 1608,
 			"since": 51,
 			"type": "Bytes",
@@ -51,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"pubKeyVersion": {
 			"name": "pubKeyVersion",
-			"id": 1609,
+			"id": 1610,
 			"since": 51,
 			"type": "Number",
 			"cardinality": "One",
@@ -62,7 +71,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"groupInfo": {
 			"name": "groupInfo",
-			"id": 1611,
+			"id": 1612,
 			"since": 51,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -72,7 +81,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"groupInvitation": {
 			"name": "groupInvitation",
-			"id": 1610,
+			"id": 1611,
 			"since": 51,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

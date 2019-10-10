@@ -540,6 +540,10 @@ export class WorkerClient {
 	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
 		return this._queue.postMessage(new Request("sendGroupInvitation", [groupId, recipients, shareCapability]))
 	}
+
+	acceptGroupInvitation(invitation: IncomingInvite): Promise<void> {
+		return this._queue.postMessage(new Request("acceptGroupInvitation", [invitation]))
+	}
 }
 
 export const worker = new WorkerClient()

@@ -315,6 +315,9 @@ export class WorkerImpl {
 			sendGroupInvitation: (message: Request) => {
 				return locator.share.sendGroupInvitation(...message.args)
 			},
+			acceptGroupInvitation: (message: Request) => {
+				return locator.share.acceptGroupInvitation(...message.args)
+			}
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
