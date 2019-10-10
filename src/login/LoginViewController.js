@@ -80,7 +80,7 @@ export class LoginViewController implements ILoginViewController {
 					                          .then(newCredentials => {
 						                          deviceConfig.set(newCredentials)
 					                          })
-					                          .finally(() => worker.logout(false))
+					                          .finally(() => logins.logout(false))
 				             }
 			             })
 			             .catch(ignored => {

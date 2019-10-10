@@ -14,6 +14,7 @@ import {isUpdateForTypeRef} from "./EventController"
 import {UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {SysService} from "../entities/sys/Services"
 import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
+import {worker} from "./WorkerClient"
 
 assertMainOrNode()
 
@@ -132,12 +133,20 @@ export class UserController implements IUserController {
 
 	deleteSession(sync: boolean): Promise<void> {
 		if (this.persistentSession) return Promise.resolve()
+		if (sync) {
+			return this.deleteSessionSync()
+		} else {
+			return worker.deleteSession(this.accessToken).then(() => worker.reset())
+		}
+	}
 
+
+	deleteSessionSync() {
 		return new Promise((resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 			if (sendBeacon) {
 				try {
-					const path = `/rest/sys/${SysService.CloseSessionService}`
+					const path = `${getHttpOrigin()}/rest/sys/${SysService.CloseSessionService}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId
@@ -154,7 +163,7 @@ export class UserController implements IUserController {
 				// Fall back to sync XHR if
 				const path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
 				const xhr = new XMLHttpRequest()
-				xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
+				xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliability when invoked in onunload
 				xhr.setRequestHeader('accessToken', this.accessToken)
 				xhr.setRequestHeader('v', SessionModelType.version)
 				xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed

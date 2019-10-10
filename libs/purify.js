@@ -171,7 +171,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '2.0.3';
+  DOMPurify.version = '2.0.4';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -575,7 +575,7 @@ function createDOMPurify() {
     (function () {
       try {
         var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
+        if (/<\/title/.test(doc.querySelector('title').innerHTML)) {
           removeTitle = true;
         }
       } catch (error) {}
@@ -614,7 +614,7 @@ function createDOMPurify() {
       return false;
     }
 
-    if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function') {
+    if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string') {
       return true;
     }
 
@@ -696,23 +696,23 @@ function createDOMPurify() {
     }
 
     /* Remove in case a noscript/noembed XSS is suspected */
-    if (tagName === 'noscript' && currentNode.innerHTML.match(/<\/noscript/i)) {
+    if (tagName === 'noscript' && /<\/noscript/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if (tagName === 'noembed' && currentNode.innerHTML.match(/<\/noembed/i)) {
+    if (tagName === 'noembed' && /<\/noembed/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
 
     /* Remove in case an mXSS is suspected */
-    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
+    if (currentNode.namespaceURI && /svg|math/i.test(currentNode.namespaceURI) && currentNode.textContent && new RegExp('</' + tagName, 'i').test(currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode.innerHTML === 'undefined' && removeSVGAttr)) {
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.querySelectorAll('template') || currentNode.querySelectorAll('svg') || currentNode.querySelectorAll('math'))) {
       _forceRemove(currentNode);
       return true;
     }
@@ -853,9 +853,11 @@ function createDOMPurify() {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
-      /* Check for possible Chrome mXSS */
-      if (removeSVGAttr && value.match(/<\//)) {
-        _forceRemove(currentNode);
+      /* Check for possible Chrome mXSS, least aggressively */
+      if (ALLOWED_TAGS.svg && !FORBID_TAGS.svg || ALLOWED_TAGS.math && !FORBID_TAGS.math) {
+        if (removeSVGAttr && /<\//.test(value)) {
+          _forceRemove(currentNode);
+        }
       }
 
       /* Remove attribute */

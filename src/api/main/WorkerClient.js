@@ -196,13 +196,6 @@ export class WorkerClient {
 		                                       }))
 	}
 
-	logout(sync: boolean): Promise<void> {
-		return Promise.all([
-			logins.deleteSession(sync),
-			this._postRequest(new Request('reset', arguments))
-		]).return()
-	}
-
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
 		return this._postRequest(new Request('resumeSession', arguments)).then(loginData => {
 			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, credentials.accessToken, true)
@@ -502,6 +495,10 @@ export class WorkerClient {
 
 	resetSession() {
 		return this._queue.postMessage(new Request("resetSession", []))
+	}
+
+	reset() {
+		return this._postRequest(new Request('reset', []))
 	}
 
 	createCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {

@@ -8,6 +8,7 @@ import {reloadNative} from "../native/SystemApp"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNodeBoot()
 
@@ -131,7 +132,7 @@ class WindowFacade {
 			e.returnValue = m
 			return m
 		} else {
-			this._worker.logout(true)
+			logins.logout(true)
 		}
 	}
 
@@ -178,7 +179,7 @@ class WindowFacade {
 
 	_onUnload() {
 		if (this.windowCloseConfirmation) {
-			this._worker.logout(true)
+			logins.logout(true)
 		}
 	}
 
