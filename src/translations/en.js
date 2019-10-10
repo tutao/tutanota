@@ -1026,7 +1026,7 @@ module.exports = {
 		"automatic_label": "Automatic",
 		"settingsForDevice_label": "Settings for this device",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
-		"permissions_label": "Permissions"
+		"permissions_label": "Permissions",
 		"color_label": "Color",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importCalendar_label": "Importing calendar",

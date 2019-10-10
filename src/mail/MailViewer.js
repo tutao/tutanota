@@ -227,22 +227,6 @@ export class MailViewer {
 		if (mail.state === MailState.DRAFT) {
 			actions.add(new Button('edit_action', () => this._editDraft(), () => Icons.Edit))
 		} else {
-			let loadExternalContentButton = new Button('contentBlocked_msg', () => {
-				if (this._mailBody) {
-					Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
-						if (confirmed) {
-							this._htmlBody = urlify(htmlSanitizer.sanitize(neverNull(this._mailBody).text, false).text)
-							this._contentBlocked = false
-							m.redraw()
-						}
-					})
-				}
-			}, () => Icons.Picture)
-			loadExternalContentButton.setIsVisibleHandler(() => this._contentBlocked)
-
-			let restrictedParticipants = mail.restrictions && mail.restrictions.participantGroupInfos.length > 0
-
-			actions.add(loadExternalContentButton)
 			if (!this._isAnnouncement()) {
 				actions.add(new Button('reply_action', () => this._reply(false), () => Icons.Reply))
 				let userController = logins.getUserController()
