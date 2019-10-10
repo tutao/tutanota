@@ -97,22 +97,6 @@ o.spec("ContactUtilsTest", function () {
 		bday.day = "12"
 		bday.month = "10"
 		bday.year = "2009"
-
-		lang.setLanguage({code: "de", languageTag: "de"})
-		lang.updateFormats({})
-		o(formatBirthdayNumeric(bday)).equals("2009-10-12")
-
-		bday.day = "9"
-		bday.month = "07"
-		bday.year = null
-
-		o(formatBirthdayNumeric(bday)).equals("07-09")
-
-		bday.day = "09"
-		bday.month = "7"
-		bday.year = null
-
-		o(formatBirthdayNumeric(bday)).equals("07-09")
 	})
 
 })
