@@ -312,7 +312,6 @@ type GroupInvitation = {
 	invitedMailAddress: string;
 
 	group: Id;
-	invitor: Id;
 }
 
 type MailAddressToGroup = {
@@ -1737,6 +1736,7 @@ type IncomingInvite = {
 
 	groupInfo: IdTuple;
 	groupInvitation: IdTuple;
+	inviterGroupInfo: IdTuple;
 }
 
 type UserGroupRoot = {

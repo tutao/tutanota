@@ -7,14 +7,14 @@ export const _TypeModel: TypeModel = {
 	"name": "InvitationDeleteData",
 	"since": 37,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1005,
-	"rootId": "CHR1dGFub3RhAAPt",
+	"id": 1007,
+	"rootId": "CHR1dGFub3RhAAPv",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1006,
+			"id": 1008,
 			"since": 37,
 			"type": "Number",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"invite": {
 			"name": "invite",
-			"id": 1007,
+			"id": 1009,
 			"since": 37,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

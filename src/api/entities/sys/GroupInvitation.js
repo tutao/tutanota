@@ -69,16 +69,6 @@ export const _TypeModel: TypeModel = {
 			"refType": "Group",
 			"final": false,
 			"external": false
-		},
-		"invitor": {
-			"name": "invitor",
-			"id": 201,
-			"since": 1,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"refType": "User",
-			"final": false,
-			"external": false
 		}
 	},
 	"app": "sys",

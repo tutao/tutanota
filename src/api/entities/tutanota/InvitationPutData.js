@@ -7,23 +7,32 @@ export const _TypeModel: TypeModel = {
 	"name": "InvitationPutData",
 	"since": 37,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1001,
-	"rootId": "CHR1dGFub3RhAAPp",
+	"id": 1002,
+	"rootId": "CHR1dGFub3RhAAPq",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1002,
+			"id": 1003,
 			"since": 37,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
+		"sharedGroupEncInviteeGroupInfoKey": {
+			"name": "sharedGroupEncInviteeGroupInfoKey",
+			"id": 1005,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"userGroupEncGroupKey": {
 			"name": "userGroupEncGroupKey",
-			"id": 1003,
+			"id": 1004,
 			"since": 37,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -34,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"invite": {
 			"name": "invite",
-			"id": 1004,
+			"id": 1006,
 			"since": 37,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

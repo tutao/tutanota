@@ -40,7 +40,16 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"group": {"name": "group", "id": 996, "since": 37, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false}
+		"group": {"name": "group", "id": 997, "since": 37, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false},
+		"groupEncInviterGroupInfoKey": {
+			"name": "groupEncInviterGroupInfoKey",
+			"id": 996,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {},
 	"app": "tutanota",

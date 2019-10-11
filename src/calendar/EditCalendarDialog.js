@@ -8,7 +8,7 @@ import {lang} from "../misc/LanguageViewModel"
 
 type CalendarProperties = {name: string, color: string}
 
-export function showEditCalendarDialog({name, color}: CalendarProperties, edit: boolean, okAction: ((Dialog, CalendarProperties) => mixed)) {
+export function showEditCalendarDialog({name, color}: CalendarProperties, edit: boolean, shared: boolean, okAction: ((Dialog, CalendarProperties) => mixed)) {
 	const nameStream = stream(name)
 	let colorPickerDom: ?HTMLInputElement
 	const colorStream = stream("#" + color)
@@ -19,7 +19,8 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, edit: 
 			view: () => m(".flex.col", [
 				m(TextFieldN, {
 					value: nameStream,
-					label: "name_label"
+					label: "name_label",
+					disabled: shared
 				}),
 				m("label.mt.mb-s", lang.get("color_label")),
 				m("input", {

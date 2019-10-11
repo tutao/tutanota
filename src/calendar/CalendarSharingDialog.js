@@ -50,13 +50,14 @@ type CalendarSharingDialogAttrs = {
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
 		.then(groupDetails => {
-			Dialog.showActionDialog({
+			const dialog = Dialog.showActionDialog({
 					title: () => lang.get("sharing_label"),
 					type: DialogType.EditLarge,
 					child: () => m(CalendarSharingDialogContent, {
 						groupDetails,
 						sendInviteHandler: (recipients, capability) => {
 							showProgressDialog("calendarInvitationProgress_msg", worker.sendGroupInvitation(groupInfo.group, recipients, capability))
+								.then(() => dialog.close())
 						}
 					}),
 					okAction: null

@@ -1098,6 +1098,7 @@ type SharedGroupData = {
 	bucketEncGKey: Uint8Array;
 	capability: NumberString;
 	group: Id;
+	groupEncInviterGroupInfoKey: Uint8Array;
 
 }
 
@@ -1112,6 +1113,7 @@ type InvitationPostData = {
 type InvitationPutData = {
 	_type: TypeRef<InvitationPutData>;
 	_format: NumberString;
+	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
 	userGroupEncGroupKey: Uint8Array;
 
 	invite: IdTuple;

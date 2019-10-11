@@ -23,78 +23,84 @@ assertWorkerOrNode()
 
 export class ShareFacade {
 
-    _loginFacade: LoginFacade;
+	_loginFacade: LoginFacade;
 
-    constructor(loginFacade: LoginFacade) {
-        this._loginFacade = loginFacade
-    }
-
-
-    sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
-        return this.resolveGroupKeys(groupId).then(groupKeys => {
-            const bucketKey = aes128RandomKey()
-            const sharedGroupData = createSharedGroupData({
-                bucketEncGInfoKey: encryptKey(bucketKey, groupKeys.groupInfoKey),
-                bucketEncGKey: encryptKey(bucketKey, groupKeys.groupKey),
-                capability: shareCapability,
-                group: groupId
-            })
-
-            const invitationData = createInvitationPostData({
-                sharedGroupData,
-                internalKeyData: []
-            })
-
-            const notFoundRecipients: Array<string> = []
-            return Promise.each(recipients, (recipient) => {
-                return encryptBucketKeyForInternalRecipient(bucketKey, recipient, notFoundRecipients).then(keyData => {
-                    if (keyData) {
-                        invitationData.internalKeyData.push(keyData)
-                    }
-                })
-            }).then(() => {
-                if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
-                return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.POST, invitationData)
-            })
-        })
-    }
-
-    resolveGroupKeys(groupId: Id): Promise<{ groupKey: Aes128Key, groupInfoKey: Aes128Key }> {
-        return load(GroupTypeRef, groupId).then(group => {
-            return load(GroupInfoTypeRef, group.groupInfo).then(groupInfo => {
-                return resolveSessionKey(GroupInfoTypeModel, groupInfo).then(groupInfoKey => {
-                    return {
-                        groupKey: this._loginFacade.getGroupKey(groupId),
-                        groupInfoKey: neverNull(groupInfoKey)
-                    }
-                })
-            })
-        })
-    }
+	constructor(loginFacade: LoginFacade) {
+		this._loginFacade = loginFacade
+	}
 
 
-    acceptGroupInvitation(invitation: IncomingInvite): Promise<void> {
-        const pubEncryptedBucketKey = invitation.pubEncBucketKey
-        const ownerGroupId = neverNull(invitation._ownerGroup)
-        const ownerGroupSymKey = this._loginFacade.getGroupKey(ownerGroupId)
-        return load(GroupTypeRef, ownerGroupId).then(ownerGroup => {
-            // load private key
-            const keypair = ownerGroup.keys[0]
-            return decryptRsaKey(ownerGroupSymKey, keypair.symEncPrivKey)
-        }).then(privateKey => {
-            // decryp group key
-            return rsaDecrypt(privateKey, pubEncryptedBucketKey)
-        }).then(decryptedBytes => {
-            const bucketKey = uint8ArrayToBitArray(decryptedBytes)
-            const invitationGroupKey = decryptKey(bucketKey, invitation.bucketEncGroupKey)
-            // encrypt group key with usergroup sym key
-            const userGroupEncInvGroupKey = encryptKey(ownerGroupSymKey, invitationGroupKey)
-            // call invitation service
-            const serviceData = createInvitationPutData()
-            serviceData.userGroupEncGroupKey = userGroupEncInvGroupKey
-            serviceData.invite = invitation._id
-            return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.PUT, serviceData)
-        })
-    }
+	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+		return this.resolveGroupKeys(groupId).then(groupKeys => {
+			return resolveSessionKey(GroupInfoTypeModel, neverNull(this._loginFacade._userGroupInfo)).then(userGroupInfoSessionKey => {
+				const bucketKey = aes128RandomKey()
+				const sharedGroupData = createSharedGroupData({
+					bucketEncGInfoKey: encryptKey(bucketKey, groupKeys.groupInfoKey),
+					bucketEncGKey: encryptKey(bucketKey, groupKeys.groupKey),
+					capability: shareCapability,
+					group: groupId,
+					groupEncInviterGroupInfoKey: encryptKey(groupKeys.groupKey, neverNull(userGroupInfoSessionKey))
+				})
+
+				const invitationData = createInvitationPostData({
+					sharedGroupData,
+					internalKeyData: []
+				})
+
+				const notFoundRecipients: Array<string> = []
+				return Promise.each(recipients, (recipient) => {
+					return encryptBucketKeyForInternalRecipient(bucketKey, recipient, notFoundRecipients).then(keyData => {
+						if (keyData) {
+							invitationData.internalKeyData.push(keyData)
+						}
+					})
+				}).then(() => {
+					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
+					return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.POST, invitationData)
+				})
+			})
+		})
+	}
+
+	resolveGroupKeys(groupId: Id): Promise<{groupKey: Aes128Key, groupInfoKey: Aes128Key}> {
+		return load(GroupTypeRef, groupId).then(group => {
+			return load(GroupInfoTypeRef, group.groupInfo).then(groupInfo => {
+				return resolveSessionKey(GroupInfoTypeModel, groupInfo).then(groupInfoKey => {
+					return {
+						groupKey: this._loginFacade.getGroupKey(groupId),
+						groupInfoKey: neverNull(groupInfoKey)
+					}
+				})
+			})
+		})
+	}
+
+
+	acceptGroupInvitation(invitation: IncomingInvite): Promise<void> {
+		const pubEncryptedBucketKey = invitation.pubEncBucketKey
+		const ownerGroupId = neverNull(invitation._ownerGroup)
+		const ownerGroupSymKey = this._loginFacade.getGroupKey(ownerGroupId)
+		return load(GroupTypeRef, ownerGroupId).then(ownerGroup => {
+			// load private key
+			const keypair = ownerGroup.keys[0]
+			return decryptRsaKey(ownerGroupSymKey, keypair.symEncPrivKey)
+		}).then(privateKey => {
+			// decryp group key
+			return rsaDecrypt(privateKey, pubEncryptedBucketKey)
+		}).then(decryptedBytes => {
+			return resolveSessionKey(GroupInfoTypeModel, neverNull(this._loginFacade._userGroupInfo)).then(userGroupInfoSessionKey => {
+				const bucketKey = uint8ArrayToBitArray(decryptedBytes)
+				const invitationGroupKey = decryptKey(bucketKey, invitation.bucketEncGroupKey)
+				// encrypt group key with usergroup sym key
+				const userGroupEncInvGroupKey = encryptKey(ownerGroupSymKey, invitationGroupKey)
+				// call invitation service
+				const serviceData = createInvitationPutData()
+				serviceData.userGroupEncGroupKey = userGroupEncInvGroupKey
+				serviceData.invite = invitation._id
+				serviceData.sharedGroupEncInviteeGroupInfoKey = encryptKey(invitationGroupKey, neverNull(userGroupInfoSessionKey))
+				return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.PUT, serviceData)
+			})
+		})
+	}
 
 }
