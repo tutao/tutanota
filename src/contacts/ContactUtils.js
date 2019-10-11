@@ -182,7 +182,7 @@ export function getContactDisplayName(contact: Contact): string {
 
 export function getContactListName(contact: Contact): string {
 	let name = `${contact.firstName} ${contact.lastName}`.trim()
-	if (name.length == 0) {
+	if (name.length === 0) {
 		name = contact.company.trim()
 	}
 	return name
