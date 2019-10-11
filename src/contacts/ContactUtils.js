@@ -93,27 +93,16 @@ export function getContactSocialTypeLabel(type: ContactSocialTypeEnum, custom: s
  * Missing fields are sorted below existing fields
  */
 export function compareContacts(contact1: Contact, contact2: Contact) {
-	let c1First = contact1.firstName.trim()
-	let c2First = contact2.firstName.trim()
-	let c1Last = contact1.lastName.trim()
-	let c2Last = contact2.lastName.trim()
+	let c1Name = getContactListName(contact1)
+	let c2Name = getContactListName(contact2)
 	let c1MailLength = contact1.mailAddresses.length
 	let c2MailLength = contact2.mailAddresses.length
-	if (c1First && !c2First) {
+	if (c1Name && !c2Name) {
 		return -1
-	} else if (c2First && !c1First) {
+	} else if (c2Name && !c1Name) {
 		return 1
 	} else {
-		let result = (c1First).localeCompare(c2First)
-		if (result === 0) {
-			if (c1Last && !c2Last) {
-				return -1
-			} else if (c2Last && !c1Last) {
-				return 1
-			} else {
-				result = (c1Last).localeCompare(c2Last)
-			}
-		}
+		let result = (c1Name).localeCompare(c2Name)
 		if (result === 0) {// names are equal or no names in contact
 			if (c1MailLength > 0 && c2MailLength === 0) {
 				return -1
@@ -189,6 +178,14 @@ export function getContactDisplayName(contact: Contact): string {
 	} else {
 		return `${contact.firstName} ${contact.lastName}`.trim()
 	}
+}
+
+export function getContactListName(contact: Contact): string {
+	let name = `${contact.firstName} ${contact.lastName}`.trim()
+	if (name.length == 0) {
+		name = contact.company.trim()
+	}
+	return name
 }
 
 export function formatBirthdayNumeric(birthday: Birthday): string {
