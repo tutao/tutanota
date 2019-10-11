@@ -22,7 +22,7 @@ import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import {theme} from "../gui/theme"
-
+import {getContactListName} from "../contacts/ContactUtils.js"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState,
@@ -180,7 +180,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 			let contact = ((result: any): Contact)
 			return [
 				m(".top.flex-space-between",
-					m(".name", contact.firstName + " " + contact.lastName),
+					m(".name", getContactListName(contact)),
 				),
 				m(".bottom.flex-space-between",
 					m("small.mail-address", (contact.mailAddresses && contact.mailAddresses.length
