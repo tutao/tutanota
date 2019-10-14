@@ -5,7 +5,7 @@ import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
-import {CloseEventBusOption} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
@@ -220,7 +220,7 @@ class WindowFacade {
 							if (document.hidden) {
 								this._worker.closeEventBus(CloseEventBusOption.Pause)
 							}
-						}, 30 * 1000)
+						}, 30 * SECOND_MS)
 					}
 				} else {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground
