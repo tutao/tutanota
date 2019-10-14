@@ -19,4 +19,3 @@ type TutanotaServiceEnum =
 	| "contactformaccountservice"
 	| "listunsubscribeservice"
 	| "calendarservice"
-	| "createcalendarinviteservice"

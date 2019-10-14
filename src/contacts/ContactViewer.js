@@ -207,8 +207,8 @@ export class ContactViewer {
 
 	_writeMail(mailAddress: string) {
 		let editor = new MailEditor(mailModel.getUserMailboxDetails())
-		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "",
-			getEmailSignature(), null)
+		const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
+		editor.initWithTemplate([{name, address: mailAddress}], "", getEmailSignature(), null)
 		      .then(() => {
 			      editor.show()
 		      })

@@ -1,11 +1,11 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {containsEventOfType, neverNull} from "../api/common/utils/Utils"
+import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -27,14 +27,13 @@ import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
-import {noOp} from "../api/common/utils/Utils"
-import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
 	folders: MailFolder[],
 	mailGroupInfo: GroupInfo,
-	mailGroup: Group
+	mailGroup: Group,
+	mailboxGroupRoot: MailboxGroupRoot,
 }
 
 export type MailboxCounters = {
@@ -75,22 +74,26 @@ export class MailModel {
 	_init(): Promise<void> {
 		let mailGroupMemberships = logins.getUserController().getMailGroupMemberships()
 		this._initialization = Promise.all(mailGroupMemberships.map(mailGroupMembership => {
-			return Promise.all([
-				load(MailboxGroupRootTypeRef, mailGroupMembership.group)
-					.then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox)),
-				load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
-				load(GroupTypeRef, mailGroupMembership.group)
-			]).spread((mailbox, mailGroupInfo, mailGroup) => {
-				return this._loadFolders(neverNull(mailbox.systemFolders).folders, true).then(folders => {
-					return {
-						mailbox,
-						folders,
-						mailGroupInfo,
-						mailGroup
-					}
+				return Promise.all([
+					load(MailboxGroupRootTypeRef, mailGroupMembership.group),
+					load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
+					load(GroupTypeRef, mailGroupMembership.group)
+				]).spread((mailboxGroupRoot, mailGroupInfo, mailGroup) => {
+					return load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then((mailbox) => {
+						return this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
+						           .then((folders) => {
+							           return {
+								           mailbox,
+								           folders,
+								           mailGroupInfo,
+								           mailGroup,
+								           mailboxGroupRoot
+							           }
+						           })
+					})
 				})
 			})
-		})).then(details => {
+		).then(details => {
 			this.mailboxDetails(details)
 		}).return()
 		return this._initialization

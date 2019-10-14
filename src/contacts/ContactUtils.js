@@ -2,7 +2,7 @@
 import {lang} from "../misc/LanguageViewModel.js"
 import type {ContactAddressTypeEnum, ContactPhoneNumberTypeEnum, ContactSocialTypeEnum} from "../api/common/TutanotaConstants"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../api/common/TutanotaConstants"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, Mode} from "../api/Env"
 import {createRestriction} from "../search/SearchUtils"
 import {load, loadAll, loadRoot} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -18,6 +18,9 @@ import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth, formatSortableDate} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {DbError} from "../api/common/error/DbError"
+import {isMailAddress} from "../misc/FormatValidator"
+import {findRecipients} from "../native/ContactApp"
+import {ContactSuggestion} from "../mail/MailEditor"
 
 assertMainOrNode()
 
@@ -153,6 +156,44 @@ export function searchForContacts(query: string, field: string, minSuggestionCou
 			             })
 		             }).filter(contact => contact != null)
 	             })
+}
+
+export function getContactSuggestions(text: string): Promise<ContactSuggestion[]> {
+	let query = text.trim().toLowerCase()
+	if (isMailAddress(query, false)) {
+		return Promise.resolve([])
+	}
+
+	// ensure match word order for email addresses mainly
+	let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
+		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+	})
+
+	return contactsPromise
+		.map(contact => {
+			let name = `${contact.firstName} ${contact.lastName}`.trim()
+			let mailAddresses = []
+			if (name.toLowerCase().indexOf(query) !== -1) {
+				mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
+			} else {
+				mailAddresses = contact.mailAddresses.filter(ma => {
+					return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
+				})
+			}
+			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
+		})
+		.reduce((a, b) => a.concat(b), [])
+		.then(suggestions => {
+			if (env.mode === Mode.App) {
+				return findRecipients(query, 10, suggestions).then(() => suggestions)
+			} else {
+				return suggestions
+			}
+		})
+		.then(suggestions => {
+			return suggestions.sort((suggestion1, suggestion2) =>
+				suggestion1.name.localeCompare(suggestion2.name))
+		})
 }
 
 /**

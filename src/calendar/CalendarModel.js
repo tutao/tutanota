@@ -1,10 +1,10 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
+import {copyEvent, getAllDayDateUTC, getTimeZone} from "./CalendarUtils"
 import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {clone, defer, downcast} from "../api/common/utils/Utils"
+import {clone, defer, downcast, neverNull} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -22,7 +22,7 @@ import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
 import {getElementId} from "../api/common/EntityFunctions"
-import {load} from "../api/main/Entity"
+import {erase, load, loadAll} from "../api/main/Entity"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {formatDateWithWeekdayAndTime, formatTime} from "../misc/Formatter"
@@ -38,6 +38,11 @@ import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRo
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {CalendarInfo} from "./CalendarView"
 import * as PromiseUtils from "../api/common/utils/PromiseUtils"
+import {mailModel} from "../mail/MailModel"
+import {FileTypeRef} from "../api/entities/tutanota/File"
+import {parseCalendarFile} from "./CalendarImporter"
+import {module as replaced} from "@hot"
+import {CalendarEventUpdateTypeRef} from "../api/entities/tutanota/CalendarEventUpdate"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -294,6 +299,52 @@ class CalendarModel {
 		}
 	}
 
+	_processCalendarReplies() {
+		loadAll(CalendarEventUpdateTypeRef, neverNull(mailModel.getUserMailboxDetails().mailboxGroupRoot.calendarEventUpdates).list)
+			.then((invites) => {
+				return Promise.each(invites, (invite) => {
+					return this._processCalendarReply(invite)
+				})
+			})
+	}
+
+	_processCalendarReply(update: CalendarEventUpdate) {
+		return load(FileTypeRef, update.file)
+			.then((file) => worker.downloadFileContent(file))
+			.then((dataFile: DataFile) => parseCalendarFile(dataFile))
+			.then((parsedCalendarData) => {
+				if (parsedCalendarData.method === "REPLY") {
+					// Process it
+					if (parsedCalendarData.contents.length > 0) {
+						const replyEvent = parsedCalendarData.contents[0].event
+						return worker.getEventByUid(neverNull(replyEvent.uid)).then((dbEvent) => {
+							const replyAttendee = replyEvent.attendees[0]
+							if (dbEvent && replyAttendee) {
+								const dbAttendee = dbEvent.attendees.find((a) =>
+									replyAttendee.address.address === a.address.address)
+								if (dbAttendee) {
+									dbAttendee.status = replyAttendee.status
+									const updatedEvent = copyEvent(dbEvent, {})
+									console.log("updating event with reply status", updatedEvent.uid, updatedEvent._id)
+									return worker.createCalendarEvent(updatedEvent, [], dbEvent)
+								} else {
+									console.log("Attendee was not found", dbEvent._id, replyAttendee)
+								}
+							} else {
+								console.log("event was not found", replyEvent.uid)
+							}
+						})
+					}
+				}
+			})
+			.then(() => erase(update))
+	}
+
+	init(): Promise<void> {
+		return this.scheduleAlarmsLocally()
+		           .then(() => this._processCalendarReplies())
+	}
+
 	scheduleAlarmsLocally(): Promise<void> {
 		if (this._localAlarmsEnabled()) {
 			return worker.loadAlarmEvents()
@@ -393,6 +444,14 @@ class CalendarModel {
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)
 				&& (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)) {
 				getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
+			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData)
+				&& entityEventData.operation === OperationType.CREATE) {
+				console.log("create for invite", entityEventData)
+				load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
+					.then((invite) => this._processCalendarReply(invite))
+					.catch(NotFoundError, (e) => {
+						console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
+					})
 			}
 		}
 	}
@@ -403,3 +462,7 @@ class CalendarModel {
 }
 
 export const calendarModel = new CalendarModel(new Notifications(), locator.eventController)
+
+if (replaced) {
+	Object.assign(calendarModel, replaced.calendarModel)
+}

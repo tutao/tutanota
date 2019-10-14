@@ -20,6 +20,5 @@ export const TutanotaService = {
 	LocalAdminGroupService: "localadmingroupservice",
 	ContactFormAccountService: "contactformaccountservice",
 	ListUnsubscribeService: "listunsubscribeservice",
-	CalendarService: "calendarservice",
-	CreateCalendarInviteService: "createcalendarinviteservice"
+	CalendarService: "calendarservice"
 }

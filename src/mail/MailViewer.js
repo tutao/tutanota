@@ -434,17 +434,17 @@ export class MailViewer {
 											attendees: [updatedAttendee]
 										})
 										const mailEditor = new MailEditor(mailModel.getUserMailboxDetails())
-										mailEditor.initWithTemplate(null, event.organizer, "Accepted invitation for " + event.summary, "")
+										mailEditor.initWithTemplate([{name: null, address: neverNull(event.organizer)}],
+											"Accepted invitation for " + event.summary, "", false,)
 										          .then(() => {
 											          mailEditor.attachFiles([makeInvitationCalendarFile(newEvent, "REPLY")])
 											          return mailEditor.send()
 										          })
-										          .then(loadCalendarInfo)
-										          .then((calendarInfo) => {
-											          // TODO: find existing event
-											          newEvent._ownerGroup = Array.from(calendarInfo.values())[0].groupInfo.group
-											          worker.createCalendarEvent(newEvent, [], null)
-										          })
+										// .then((calendarInfo) => {
+										//     // TODO: find existing event
+										//     newEvent._ownerGroup = Array.from(calendarInfo.values())[0].groupInfo.group
+										//     worker.createCalendarEvent(newEvent, [], null)
+										// })
 									}
 								}))
 								: null,
@@ -582,22 +582,6 @@ export class MailViewer {
 										                       }
 										                       break
 									                       case "REPLY":
-										                       if (parsedCalendarData.contents.length > 0) {
-											                       const replyEvent = parsedCalendarData.contents[0].event
-											                       worker.getEventByUid(neverNull(replyEvent.uid)).then((dbEvent) => {
-												                       const replyAttendee = replyEvent.attendees[0]
-												                       if (dbEvent && replyAttendee) {
-													                       const dbAttendee = dbEvent.attendees.find((a) =>
-														                       replyAttendee.address.address === a.address.address)
-													                       if (dbAttendee) {
-														                       dbAttendee.status = replyAttendee.status
-														                       copyEvent(dbEvent, {})
-														                       // TODO: alarms
-														                       worker.createCalendarEvent(dbEvent, [], dbEvent)
-													                       }
-												                       }
-											                       })
-										                       }
 										                       break
 								                       }
 							                       } catch (e) {

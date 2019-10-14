@@ -70,13 +70,13 @@ export class BubbleTextField<T> {
 
 	_domSuggestions: HTMLElement;
 
-	constructor(label: string, bubbleHandler: BubbleHandler<T, any>) {
+	constructor(labelIdOrLabelTextFunction: string | lazy<string>, bubbleHandler: BubbleHandler<T, any>) {
 		this.loading = null
 		this.suggestions = []
 		this.selectedSuggestion = null
 		this.suggestionAnimation = Promise.resolve()
 		this.previousQuery = ""
-		this.textField = new TextField(label)
+		this.textField = new TextField(labelIdOrLabelTextFunction)
 		this.textField.value.map(value => {
 			this._updateSuggestions()
 		})

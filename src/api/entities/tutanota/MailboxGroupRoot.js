@@ -42,6 +42,15 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"calendarEventUpdates": {
+			"name": "calendarEventUpdates",
+			"id": 1024,
+			"since": 37,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "CalendarEventUpdateList",
+			"final": true
+		},
 		"contactFormUserContactForm": {
 			"name": "contactFormUserContactForm",
 			"id": 748,

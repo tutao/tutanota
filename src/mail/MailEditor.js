@@ -8,9 +8,9 @@ import type {Language, TranslationKey} from "../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
-import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
+import type {CalendarMethodEnum, ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	ALLOWED_IMAGE_FORMATS,
+	ALLOWED_IMAGE_FORMATS, CalendarMethod,
 	ConversationType,
 	FeatureType,
 	MAX_ATTACHMENT_SIZE,
@@ -74,7 +74,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
+import {getContactSuggestions, LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -100,8 +100,10 @@ import {getTimeZone} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
+type EditorAttachment = TutanotaFile | DataFile | FileReference
 type MailEditorHooks = {
-	beforeSent?: (editor: MailEditor, recipients: Array<RecipientInfo>, body: string) => string,
+	beforeSave?: (editor: MailEditor, recipients: Array<RecipientInfo>, body: string) => string,
+	beforeSent?: (editor: MailEditor, attachments: Array<TutanotaFile>) => {calendarFileMethods: Array<[IdTuple, CalendarMethodEnum]>},
 	afterSent?: (editor: MailEditor) => mixed,
 }
 
@@ -120,7 +122,7 @@ export class MailEditor {
 	_confidentialButtonState: boolean;
 	_editor: Editor;
 	_tempBody: ?string; // only defined till the editor is initialized
-	view: Function;
+	view: (Vnode<any>) => VirtualElement | VirtualElement[];
 	_domElement: HTMLElement;
 	_domCloseButton: HTMLElement;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
@@ -133,7 +135,7 @@ export class MailEditor {
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
-	hooks: MailEditorHooks
+	hooks: MailEditorHooks;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -142,9 +144,10 @@ export class MailEditor {
 	 */
 	constructor(mailboxDetails: MailboxDetail) {
 		this.conversationType = ConversationType.NEW
-		this.toRecipients = new BubbleTextField("to_label", new MailBubbleHandler(this))
-		this.ccRecipients = new BubbleTextField("cc_label", new MailBubbleHandler(this))
-		this.bccRecipients = new BubbleTextField("bcc_label", new MailBubbleHandler(this))
+		const bubbleCreator = this.createBubble.bind(this)
+		this.toRecipients = new BubbleTextField("to_label", new MailBubbleHandler(bubbleCreator))
+		this.ccRecipients = new BubbleTextField("cc_label", new MailBubbleHandler(bubbleCreator))
+		this.bccRecipients = new BubbleTextField("bcc_label", new MailBubbleHandler(bubbleCreator))
 		this._replyTos = []
 		this._mailAddressToPasswordField = new Map()
 		this._attachments = []
@@ -501,18 +504,18 @@ export class MailEditor {
 			})
 	}
 
-	initWithTemplate(recipientName: ?string, recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
-		let recipients = []
-		if (recipientMailAddress) {
+	initWithTemplate(recipients: $ReadOnlyArray<{name: ?string, address: string}>, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
+		let toRecipients = []
+		recipients.forEach((r) => {
 			let recipient = createMailAddress()
-			recipient.address = recipientMailAddress
-			recipient.name = (recipientName ? recipientName : "")
-			recipients.push(recipient)
-		}
-		if (recipientMailAddress) {
+			recipient.address = r.address
+			recipient.name = r.name || ""
+			toRecipients.push(recipient)
+		})
+		if (toRecipients.length) {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
-		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), recipients, [], [], [], subject, bodyText, [])
+		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), toRecipients, [], [], [], subject, bodyText, [])
 		return Promise.resolve()
 	}
 
@@ -848,9 +851,13 @@ export class MailEditor {
 					let send = this
 						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
 						.then((recipients) => {
-							const beforeSentHook = this.hooks.beforeSent
-							if (beforeSentHook) {
-								this._editor.setHTML(beforeSentHook(this, recipients, this._editor.getHTML()))
+							const beforeSaveHook = this.hooks.beforeSave
+							if (beforeSaveHook) {
+								if (this._tempBody) {
+									this._tempBody = beforeSaveHook(this, recipients, this._tempBody)
+								} else {
+									this._editor.setHTML(beforeSaveHook(this, recipients, this._editor.getHTML()))
+								}
 							}
 							return this.saveDraft(true, false)
 							           .return(recipients)
@@ -872,9 +879,12 @@ export class MailEditor {
 
 							return sendMail.then(ok => {
 								if (ok) {
+									const beforeSentHook = this.hooks.beforeSent
 									return this._updateContacts(resolvedRecipients)
-									           .then(() => worker.sendMailDraft(neverNull(this.draft), resolvedRecipients,
-										           this._selectedNotificationLanguage()))
+									           .then(() => beforeSentHook && beforeSentHook(this, downcast(this._attachments))
+										           || ({calendarFileMethods: []}))
+									           .then(({calendarFileMethods}) => worker.sendMailDraft(neverNull(this.draft), resolvedRecipients,
+										           this._selectedNotificationLanguage(), calendarFileMethods))
 									           .then(() => this._updatePreviousMail())
 									           .then(() => this._updateExternalLanguage())
 									           .then(() => this.hooks.afterSent && this.hooks.afterSent(this))
@@ -1154,7 +1164,7 @@ export class MailEditor {
 			signature += "<br>Tutanota version: " + env.versionNumber
 			signature += "<br>Time zone: " + getTimeZone()
 			signature += "<br>User agent:<br>" + navigator.userAgent
-			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+			editor.initWithTemplate([{name: null, address: "premium@tutao.de"}], "", signature, true).then(() => {
 				editor.show()
 			})
 		})
@@ -1170,7 +1180,7 @@ export class MailEditor {
 				'{username}': username,
 				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
-			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+			editor.initWithTemplate([], lang.get("invitationMailSubject_msg"), body, false).then(() => {
 				editor.show()
 			})
 		})
@@ -1208,55 +1218,23 @@ export class ContactSuggestion implements Suggestion {
 
 }
 
-class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
-	suggestionHeight: number;
-	_mailEditor: MailEditor;
+type BubbleCreator = (name: ?string, mailAddress: string, contact: ?Contact) => Bubble<RecipientInfo>
 
-	constructor(mailEditor: MailEditor) {
-		this._mailEditor = mailEditor
+export class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
+	suggestionHeight: number;
+	_bubbleCreator: BubbleCreator;
+
+	constructor(bubbleCreator: BubbleCreator) {
+		this._bubbleCreator = bubbleCreator
 		this.suggestionHeight = ContactSuggestionHeight
 	}
 
 	getSuggestions(text: string): Promise<ContactSuggestion[]> {
-		let query = text.trim().toLowerCase()
-		if (isMailAddress(query, false)) {
-			return Promise.resolve([])
-		}
-
-		// ensure match word order for email addresses mainly
-		let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
-			return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
-		})
-
-		return contactsPromise
-			.map(contact => {
-				let name = `${contact.firstName} ${contact.lastName}`.trim()
-				let mailAddresses = []
-				if (name.toLowerCase().indexOf(query) !== -1) {
-					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
-				} else {
-					mailAddresses = contact.mailAddresses.filter(ma => {
-						return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
-					})
-				}
-				return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
-			})
-			.reduce((a, b) => a.concat(b), [])
-			.then(suggestions => {
-				if (env.mode === Mode.App) {
-					return findRecipients(query, 10, suggestions).then(() => suggestions)
-				} else {
-					return suggestions
-				}
-			})
-			.then(suggestions => {
-				return suggestions.sort((suggestion1, suggestion2) =>
-					suggestion1.name.localeCompare(suggestion2.name))
-			})
+		return getContactSuggestions(text)
 	}
 
 	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
-		return this._mailEditor.createBubble(suggestion.name, suggestion.mailAddress, suggestion.contact)
+		return this._bubbleCreator(suggestion.name, suggestion.mailAddress, suggestion.contact)
 	}
 
 	createBubblesFromText(text: string): Bubble<RecipientInfo>[] {
@@ -1292,7 +1270,7 @@ class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestio
 		const nameAndMailAddress = stringToNameAndMailAddress(text)
 		if (nameAndMailAddress) {
 			let name = (nameAndMailAddress.name) ? nameAndMailAddress.name : null // name will be resolved with contact
-			return this._mailEditor.createBubble(name, nameAndMailAddress.mailAddress, null)
+			return this._bubbleCreator(name, nameAndMailAddress.mailAddress, null)
 		} else {
 			return null
 		}

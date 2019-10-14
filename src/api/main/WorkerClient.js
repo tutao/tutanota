@@ -11,7 +11,7 @@ import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
 import type {
 	AccountTypeEnum,
-	BookingItemFeatureTypeEnum,
+	BookingItemFeatureTypeEnum, CalendarMethodEnum,
 	CloseEventBusOptionEnum,
 	ConversationTypeEnum,
 	EntropySrcEnum
@@ -234,8 +234,8 @@ export class WorkerClient {
 		return this._postRequest(new Request('updateMailDraft', arguments))
 	}
 
-	sendMailDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string): Promise<void> {
-		return this._postRequest(new Request('sendMailDraft', arguments))
+	sendMailDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string, calendarMethods: Array<[IdTuple, CalendarMethodEnum]> = []): Promise<void> {
+		return this._postRequest(new Request('sendMailDraft', [draft, recipientInfos, language, calendarMethods]))
 	}
 
 	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
@@ -533,7 +533,6 @@ export class WorkerClient {
 	}
 
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
-		console.log("getEventByUid")
 		return this._queue.postMessage(new Request("getEventByUid", [uid]))
 	}
 

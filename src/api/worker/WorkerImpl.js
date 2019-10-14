@@ -296,8 +296,7 @@ export class WorkerImpl {
 			},
 			getEventByUid: (message: Request) => {
 				return locator.calendar.getEventByUid(...message.args)
-			}
-
+			},
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));

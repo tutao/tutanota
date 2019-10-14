@@ -618,6 +618,7 @@ type SendDraftData = {
 	senderNameUnencrypted: ?string;
 
 	attachmentKeyData: AttachmentKeyData[];
+	calendarMethods: CalendarFileMethod[];
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	mail: IdTuple;
@@ -752,6 +753,7 @@ type MailboxGroupRoot = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 
+	calendarEventUpdates: ?CalendarEventUpdateList;
 	contactFormUserContactForm: ?IdTuple;
 	mailbox: Id;
 	participatingContactForms: IdTuple[];
@@ -1120,23 +1122,20 @@ type CalendarEventIndexRef = {
 	list: Id;
 }
 
-type CalendarEventInvite = {
-	_type: TypeRef<CalendarEventInvite>;
+type CalendarEventUpdate = {
+	_type: TypeRef<CalendarEventUpdate>;
 	_format: NumberString;
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	invitor: string;
-	status: NumberString;
 
-	event: IdTuple;
+	file: IdTuple;
 }
 
-type CreateCalendarInvitePost = {
-	_type: TypeRef<CreateCalendarInvitePost>;
-	_format: NumberString;
-	invitee: string;
-	invitor: string;
+type CalendarFileMethod = {
+	_type: TypeRef<CalendarFileMethod>;
+	_id: Id;
+	method: NumberString;
 
-	event: IdTuple;
+	file: IdTuple;
 }

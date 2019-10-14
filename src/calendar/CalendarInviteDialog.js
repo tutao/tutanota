@@ -1,58 +1,36 @@
 //@flow
 
 import {getDefaultSender} from "../mail/MailUtils"
-import {neverNull} from "../api/common/utils/Utils"
 import {mailModel} from "../mail/MailModel"
-import {makeInvitationCalendarFile} from "./CalendarImporter"
-import {MailEditor} from "../mail/MailEditor"
-import {worker} from "../api/main/WorkerClient"
 import {calendarAttendeeStatusDescription, copyEvent, formatEventDuration} from "./CalendarUtils"
 import {theme} from "../gui/theme"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import {CalendarAttendeeStatus, CalendarMethod, getAttendeeStatus} from "../api/common/TutanotaConstants"
+import {worker} from "../api/main/WorkerClient"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
-import {CalendarAttendeeStatus, getAttendeeStatus} from "../api/common/TutanotaConstants"
+import {makeInvitationCalendarFile} from "./CalendarImporter"
+import {neverNull} from "../api/common/utils/Utils"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {MailEditor} from "../mail/MailEditor"
 
-export function showCalendarInviteDialog(existingEvent: CalendarEvent, alarms: Array<AlarmInfo>) {
+export function sendCalendarInvite(existingEvent: CalendarEvent, alarms: Array<AlarmInfo>, recipients: $ReadOnlyArray<MailAddress>) {
 	const sender = getDefaultSender(mailModel.getUserMailboxDetails())
 
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	editor.initWithTemplate(null, null, `You're invited to "${existingEvent.summary}"`, "", false)
-	let newEvent: CalendarEvent
+	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})),
+		`You're invited to "${existingEvent.summary}"`, makeInviteEmailBody(existingEvent), false)
+	const inviteFile = makeInvitationCalendarFile(existingEvent, "REQUEST")
+	inviteFile.mimeType = "text/calendar"
+	editor.attachFiles([inviteFile])
 	editor.hooks = {
-		beforeSent: (editor, recipients, html) => {
-			const newAttendees = recipients
-				.filter((recipientInfo: RecipientInfo) =>
-					existingEvent.attendees.find((attendee) => attendee.address.address === recipientInfo.mailAddress) == null)
-				.map((recipientInfo) => createCalendarEventAttendee({
-					address: createMailAddress({
-						address: recipientInfo.mailAddress,
-						name: recipientInfo.name,
-						contact: recipientInfo.contact && recipientInfo.contact._id
-					}),
-					status: CalendarAttendeeStatus.NEEDS_ACTION
-				}))
-			// TODO: should send another id here, otherwise it's very buggy with entity updates
-			newEvent = copyEvent(existingEvent, {
-				attendees: existingEvent.attendees.concat(newAttendees),
-				organizer: existingEvent.organizer || sender,
-			})
-
-			const inviteFile = makeInvitationCalendarFile(neverNull(newEvent), "REQUEST")
-
-			inviteFile.mimeType = "text/calendar"
-			editor.attachFiles([inviteFile])
-			return makeInviteEmailBody(newEvent, html)
-		},
-		afterSent: () => {
-			worker.createCalendarEvent(newEvent, alarms, existingEvent)
+		beforeSent(editor: MailEditor, attachments: Array<TutanotaFile>) {
+			return {calendarFileMethods: [[attachments[0]._id, CalendarMethod.REQUEST]]}
 		}
 	}
-
-	editor.show()
+	editor.send()
 }
 
-function makeInviteEmailBody(event: CalendarEvent, message: string) {
+function makeInviteEmailBody(event: CalendarEvent, message: string = "") {
 	return `<div style="max-width: 685px; margin: 0 auto">
   <h2 style="text-align: center">You're invited to the "${event.summary}"</h2>
   ${message}

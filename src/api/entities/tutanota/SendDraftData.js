@@ -69,6 +69,15 @@ export const _TypeModel: TypeModel = {
 			"refType": "AttachmentKeyData",
 			"final": true
 		},
+		"calendarMethods": {
+			"name": "calendarMethods",
+			"id": 1020,
+			"since": 37,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "CalendarFileMethod",
+			"final": true
+		},
 		"internalRecipientKeyData": {
 			"name": "internalRecipientKeyData",
 			"id": 553,

@@ -24,7 +24,7 @@ export type ExpanderPanelAttrs = {
 	class?: string,
 }
 
-class _ExpanderButton {
+export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 	_domIcon: ?HTMLElement;
 
 	view(vnode: Vnode<ExpanderAttrs>) {
@@ -70,11 +70,11 @@ class _ExpanderButton {
 
 }
 
-class _ExpanderPanel {
+export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
 	_domPanel: HTMLElement;
 
 	view(vnode: Vnode<ExpanderPanelAttrs>) {
-		return m(".expander-panel.overflow-hidden", [
+		return m(".expander-panel" + (vnode.attrs.expanded() ? "" : ".overflow-hidden"), [
 			vnode.attrs.expanded() ? m("div", {
 				oncreate: vnode => {
 					this._domPanel = vnode.dom
@@ -101,5 +101,3 @@ class _ExpanderPanel {
 	}
 }
 
-export const ExpanderButtonN: Class<MComponent<ExpanderAttrs>> = _ExpanderButton
-export const ExpanderPanelN: Class<MComponent<ExpanderPanelAttrs>> = _ExpanderPanel

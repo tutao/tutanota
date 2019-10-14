@@ -47,7 +47,6 @@ import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
-import {CalendarEventInviteTypeRef} from "../api/entities/tutanota/CalendarEventInvite"
 
 
 export type CalendarInfo = {
@@ -237,10 +236,6 @@ export class CalendarView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
-
-		loadAll(CalendarEventInviteTypeRef, logins.getUserController().user._id).then(r =>
-			console.log(r)
-		)
 		// load all calendars. if there is no calendar yet, create one
 		this._calendarInfos = this._loadGroupRoots().then(calendarInfos => {
 			if (calendarInfos.size === 0) {

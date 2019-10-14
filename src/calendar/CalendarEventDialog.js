@@ -18,7 +18,7 @@ import {erase, load} from "../api/main/Entity"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, getAttendeeStatus, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -43,8 +43,13 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
-import {showCalendarInviteDialog} from "./CalendarInviteDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {getDefaultSender} from "../mail/MailUtils"
+import {mailModel} from "../mail/MailModel"
+import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
+import {getCleanedMailAddress} from "../misc/Formatter"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {sendCalendarInvite} from "./CalendarInviteDialog"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -239,6 +244,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const attendeesExpanded = stream(false)
 
+	const attendees = existingEvent && existingEvent.attendees.slice() || []
+	const organizer = existingEvent && existingEvent.organizer || getDefaultSender(mailModel.getUserMailboxDetails())
+	const inviteFieldValue = stream("")
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
@@ -289,7 +298,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					m(".flex-grow.ml-s", renderStopConditionValue()),
 				])
 				: null,
-			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
+			m("", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
@@ -307,67 +316,70 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				value: notesValue,
 				type: Type.Area
 			}),
-			existingEvent ?
+			[
+				m(".mt", "Organizer: " + organizer),
 				[
-					existingEvent.organizer
-						? m(".mt", "Organizer: " + existingEvent.organizer)
-						: null,
-					existingEvent.attendees.length > 0
-						? [
-							m(ExpanderButtonN, {
-								label: () => "attendees",
-								expanded: attendeesExpanded,
-							}),
-							m(ExpanderPanelN, {
-								expanded: attendeesExpanded,
-								class: ".flex.col",
-							}, existingEvent.attendees.map(a => m(".flex", [
-								m(".flex-grow", {
-										style: {
-											height: px(size.button_height),
-											"lineHeight": px(size.button_height),
-										},
-									},
-									`${a.address.name} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
-								m(ButtonN, {
-									label: "remove_action",
-									// TODO
-									click: noOp,
-									icon: () => Icons.Cancel,
-									type: ButtonType.Action,
-								}),
-							]))),
-						]
-						: null,
-					m(".mr-negative-s.float-right.flex-end-on-child", [
-						m(ButtonN, {
-							label: "delete_action",
-							type: ButtonType.Primary,
-							click: () => {
-								let p = neverNull(existingEvent).repeatRule
-									? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
-									: Promise.resolve(true)
-								p.then((answer) => {
-									if (answer) {
-										erase(existingEvent).catch(NotFoundError, noOp)
-										dialog.close()
+					m(ExpanderButtonN, {
+						label: () => "attendees",
+						expanded: attendeesExpanded,
+					}),
+					m(ExpanderPanelN, {
+						expanded: attendeesExpanded,
+					}, [
+						m(TextFieldN, {
+							label: () => "Invite",
+							value: inviteFieldValue,
+							keyHandler: (keyPress) => {
+								if (keyPress.keyCode === 13) {
+									const address = getCleanedMailAddress(inviteFieldValue())
+									if (address) {
+										attendees.push(createCalendarEventAttendee({
+											address: createMailAddress({address,}),
+											status: CalendarAttendeeStatus.NEEDS_ACTION,
+										}))
+										inviteFieldValue("")
 									}
-								})
+									return false
+								}
+								return true
 							}
 						}),
-						m(ButtonN, {
-							label: () => "invite",
-							type: ButtonType.Primary,
-							click: () => {
-								const safeExistingEvent = neverNull(existingEvent)
-								const {groupRoot} = neverNull(calendars.get(neverNull(safeExistingEvent._ownerGroup)))
-								showCalendarInviteDialog(safeExistingEvent, exisingAlarms)
-							}
-						}),
-					])
-				]
-				: null
-			,
+						attendees.map(a => m(".flex", [
+							m(".flex-grow", {
+									style: {
+										height: px(size.button_height),
+										"lineHeight": px(size.button_height),
+									},
+								},
+								`${a.address.name} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
+							m(ButtonN, {
+								label: "remove_action",
+								// TODO
+								click: noOp,
+								icon: () => Icons.Cancel,
+								type: ButtonType.Action,
+							}),
+						]))
+					]),
+				],
+				m(".mr-negative-s.float-right.flex-end-on-child", [
+					m(ButtonN, {
+						label: "delete_action",
+						type: ButtonType.Primary,
+						click: () => {
+							let p = neverNull(existingEvent).repeatRule
+								? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
+								: Promise.resolve(true)
+							p.then((answer) => {
+								if (answer) {
+									erase(existingEvent).catch(NotFoundError, noOp)
+									dialog.close()
+								}
+							})
+						}
+					}),
+				])
+			]
 		]),
 		okAction: () => {
 			const newEvent = createCalendarEvent()
@@ -444,7 +456,17 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					newAlarms.push(newAlarm)
 				}
 			}
+			newEvent.attendees = attendees
+
+			// We also need to send out updates of event
+
 			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
+			      .then(() => {
+				      const newAttendees = existingEvent ? attendees.filter(f => !existingEvent.attendees.includes(f)) : attendees
+				      if (newAttendees.length) {
+					      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
+				      }
+			      })
 
 			dialog.close()
 		}

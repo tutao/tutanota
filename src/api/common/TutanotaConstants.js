@@ -444,3 +444,16 @@ export type CalendarAttendeeStatusEnum = $Values<typeof CalendarAttendeeStatus>
 export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatusEnum {
 	return downcast(attendee.status)
 }
+
+export const CalendarMethod = Object.freeze({
+	PUBLISH: "0",
+	REQUEST: "1",
+	REPLY: "2",
+	ADD: "3",
+	CANCEL: "4",
+	REFRESH: "5",
+	COUNTER: "6",
+	DECLINECOUNTER: "7"
+})
+
+export type CalendarMethodEnum = $Values<typeof CalendarMethod>

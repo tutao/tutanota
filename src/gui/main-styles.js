@@ -1072,6 +1072,16 @@ styles.registerStyle('main', () => {
 			'box-shadow': '0 7px 8px -4px rgba(0,0,0,.2),0 12px 17px 2px rgba(0,0,0,.14),0 5px 22px 4px rgba(0,0,0,.12)'
 		},
 
+		'.block-list': {
+			'list-style': 'none',
+			padding: 0,
+		},
+
+		'.block-list li': {
+			display: 'block',
+		},
+
+
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths
 		"@media (max-width: 400px)": { // currently used for the reminder dialog

@@ -208,31 +208,38 @@ export class LoginViewController implements ILoginViewController {
 		}
 
 		// do not return the promise. loading of dialogs can be executed in parallel
-		checkApprovalStatus(true).then(() => {
-			return this._showUpgradeReminder()
-		}).then(() => {
-			return this._checkStorageWarningLimit()
-		}).then(() => {
-			secondFactorHandler.setupAcceptOtherClientLoginListener()
-		}).then(() => {
-			if (!isAdminClient()) {
-				return mailModel.init()
-			}
-		}).then(() => logins.loginComplete()).then(() => {
+		checkApprovalStatus(true)
+			.then(() => {
+				return this._showUpgradeReminder()
+			})
+			.then(() => {
+				return this._checkStorageWarningLimit()
+			})
+			.then(() => {
+				secondFactorHandler.setupAcceptOtherClientLoginListener()
+			})
+			.then(() => {
+				if (!isAdminClient()) {
+					return mailModel.init()
+				}
+			})
+			.then(() => logins.loginComplete()).then(() => {
 			// don't wait for it, just invoke
 			if (isApp()) {
 				fileApp.clearFileData()
 				       .catch((e) => console.log("Failed to clean file data", e))
 			}
-		}).then(() => {
-			if (logins.isGlobalAdminUserLoggedIn()) {
-				let receiveInfoData = createReceiveInfoServiceData()
-				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
-			}
-		}).then(() => calendarModel.scheduleAlarmsLocally())
-		                         .then(() => lang.updateFormats({
-			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
-		                         }))
+		})
+			.then(() => {
+				if (logins.isGlobalAdminUserLoggedIn()) {
+					let receiveInfoData = createReceiveInfoServiceData()
+					return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
+				}
+			})
+			.then(() => calendarModel.init())
+			.then(() => lang.updateFormats({
+				hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
+			}))
 	}
 
 	_showUpgradeReminder(): Promise<void> {

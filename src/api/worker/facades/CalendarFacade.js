@@ -33,9 +33,14 @@ import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostRet
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
 import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
 import {hash} from "../crypto/Sha256"
-import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
+import {base64ToBase64Url, int8ArrayToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
 
 assertWorkerOrNode()
+
+function hashUid(uid: string): Uint8Array {
+	return hash(stringToUtf8Uint8Array(uid))
+}
+
 
 export class CalendarFacade {
 
@@ -55,6 +60,7 @@ export class CalendarFacade {
 			.then(() => {
 				if (event._ownerGroup == null) throw new Error("No _ownerGroup is set on the event")
 				if (event.uid == null) throw new Error("no uid set on the event")
+				event.hashedUid = hashUid(event.uid)
 				if (oldEvent) {
 					return erase(oldEvent).catch(NotFoundError, noOp)
 				}
@@ -85,6 +91,7 @@ export class CalendarFacade {
 							event.alarmInfos.push([userAlarmInfoListId, id])
 						})
 
+
 						return setup(listId, event)
 					})
 					.then(() => {
@@ -93,6 +100,21 @@ export class CalendarFacade {
 								.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
 						}
 					})
+			})
+			.then(() => {
+				const {hashedUid} = event
+				if (hashedUid == null) {
+					console.log("no hashed UID?!", event)
+					return
+				}
+				console.log("event.uid", event.uid)
+				console.log("hashedUid", event.hashedUid)
+				console.log("hashedUid base64", uint8ArrayToBase64(hashedUid))
+				console.log("hashedUid bas64url", base64ToBase64Url(uint8ArrayToBase64(hashedUid)))
+				console.log("hashedUid customString", uint8arrayToCustomId(hashedUid))
+				this.getEventByUid(neverNull(event.uid))
+				    .then((event) => console.log("found event by uid", event))
+				    .catch(NotFoundError, (e) => console.log("Not found event by uid"))
 			})
 	}
 
@@ -198,19 +220,19 @@ export class CalendarFacade {
 		return Promise
 			.reduce(calendarMemberships, (acc, membership) => {
 				// short-circuit if we find the thing
-				return acc || load(CalendarGroupRootTypeRef, membership.group).then((groupRoot) => {
-					load(CalendarEventUidIndexTypeRef, [
-						neverNull(groupRoot.index).list,
-						uint8arrayToCustomId(hash(stringToUtf8Uint8Array(uid)))
-					]).catch(NotFoundError, () => null)
-				})
+				return acc || load(CalendarGroupRootTypeRef, membership.group)
+					.then((groupRoot) =>
+						load(CalendarEventUidIndexTypeRef, [
+							neverNull(groupRoot.index).list,
+							uint8arrayToCustomId(hashUid(uid))
+						]))
+					.catch(NotFoundError, () => null)
 			}, null)
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return load(CalendarEventTypeRef, indexEntry.calendarEvent)
 				}
 			})
-
 	}
 }
 
