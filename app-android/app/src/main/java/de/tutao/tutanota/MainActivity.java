@@ -37,6 +37,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import org.jdeferred.Deferred;
+import org.jdeferred.DoneCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -167,6 +168,24 @@ public class MainActivity extends Activity {
 		} else {
 			startWebApp(queryParameters);
 		}
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		Log.d(TAG, "onStart");
+		nativeImpl.getWebAppInitialized().then(__ -> {
+			nativeImpl.sendRequest(JsRequest.visibilityChange, new Object[]{true});
+		});
+	}
+
+	@Override
+	protected void onStop() {
+		Log.d(TAG, "onStop");
+		nativeImpl.getWebAppInitialized().then(__ -> {
+			nativeImpl.sendRequest(JsRequest.visibilityChange, new Object[]{false});
+		});
+		super.onStop();
 	}
 
 	private void startWebApp(List<String> queryParams) {

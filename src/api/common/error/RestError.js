@@ -1,99 +1,136 @@
 // @flow
 import {TutanotaError} from "./TutanotaError"
 
+export class ConnectionError extends TutanotaError {
+	static CODE = 0
+	constructor(msg: string) {
+		super("ConnectionError", msg)
+	}
+}
+
 export class BadRequestError extends TutanotaError {
+	static CODE = 400
 	constructor(msg: string) {
 		super("BadRequestError", msg)
 	}
 }
 
 export class NotAuthenticatedError extends TutanotaError {
+	static CODE = 401
 	constructor(msg: string) {
 		super("NotAuthenticatedError", msg)
 	}
 }
 
-export class SessionExpiredError extends TutanotaError {
-	constructor(msg: string) {
-		super("SessionExpiredError", msg)
-	}
-}
-
 export class NotAuthorizedError extends TutanotaError {
+	static CODE = 403
 	constructor(msg: string) {
 		super("NotAuthorizedError", msg)
 	}
 }
 
 export class NotFoundError extends TutanotaError {
+	static CODE = 404
 	constructor(msg: string) {
 		super("NotFoundError", msg)
 	}
 }
 
 export class MethodNotAllowedError extends TutanotaError {
+	static CODE = 405
 	constructor(msg: string) {
 		super("MethodNotAllowedError", msg)
 	}
 }
 
 export class PreconditionFailedError extends TutanotaError {
+	static CODE = 412
 	constructor(msg: string) {
 		super("PreconditionFailedError", msg)
 	}
 }
 
 export class TooManyRequestsError extends TutanotaError {
+	static CODE = 429
 	constructor(msg: string) {
 		super("TooManyRequestsError", msg)
 	}
 }
 
+export class SessionExpiredError extends TutanotaError {
+	static CODE = 440
+	constructor(msg: string) {
+		super("SessionExpiredError", msg)
+	}
+}
+
 export class AccessDeactivatedError extends TutanotaError {
+	static CODE = 470
 	constructor(msg: string) {
 		super("AccessDeactivatedError", msg)
 	}
 }
 
 export class AccessExpiredError extends TutanotaError {
+	static CODE = 471
 	constructor(msg: string) {
 		super("AccessExpiredError", msg)
 	}
 }
 
 export class AccessBlockedError extends TutanotaError {
+	static CODE = 472
 	constructor(msg: string) {
 		super("AccessBlockedError", msg)
 	}
 }
 
 export class InvalidDataError extends TutanotaError {
+	static CODE = 473
 	constructor(msg: string) {
 		super("InvalidDataError", msg)
 	}
 }
 
 export class InvalidSoftwareVersionError extends TutanotaError {
+	static CODE = 474
 	constructor(msg: string) {
 		super("InvalidSoftwareVersionError", msg)
 	}
 }
 
-export class InsufficientStorageError extends TutanotaError {
-	constructor(msg: string) {
-		super("InsufficientStorageError", msg)
-	}
-}
-
 export class LimitReachedError extends TutanotaError {
+	static CODE = 475
 	constructor(msg: string) {
 		super("LimitReachedError", msg)
 	}
 }
 
+export class InternalServerError extends TutanotaError {
+	static CODE = 500
+	constructor(msg: string) {
+		super("InternalServerError", msg)
+	}
+}
+
 export class BadGatewayError extends TutanotaError {
+	static CODE = 502
 	constructor(msg: string) {
 		super("BadGatewayError", msg)
+	}
+}
+
+export class ServiceUnavailableError extends TutanotaError {
+	static CODE = 503
+	constructor(msg: string) {
+		super("ServiceUnavailableError", msg)
+	}
+}
+
+export class InsufficientStorageError extends TutanotaError {
+	static CODE = 507
+	constructor(msg: string) {
+		super("InsufficientStorageError", msg)
 	}
 }
 
@@ -103,73 +140,49 @@ export class ResourceError extends TutanotaError {
 	}
 }
 
-export class ConnectionError extends TutanotaError {
-	constructor(msg: string) {
-		super("ConnectionError", msg)
-	}
-}
-
-export class InternalServerError extends TutanotaError {
-	constructor(msg: string) {
-		super("InternalServerError", msg)
-	}
-}
-
-export class RestConstraintError extends TutanotaError {
-	constructor(msg: string) {
-		super("RestConstraintError", msg)
-	}
-}
-
-export class ServiceUnavailableError extends TutanotaError {
-	constructor(msg: string) {
-		super("ServiceUnavailableError", msg)
-	}
-}
-
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
 export function handleRestError(errorCode: number, message: string) {
 	message = `${errorCode}: ${message}`
 	switch (errorCode) {
-		case 0:
+		case ConnectionError.CODE:
 			return new ConnectionError(message);
-		case 400:
+		case BadRequestError.CODE:
 			return new BadRequestError(message);
-		case 401:
+		case NotAuthenticatedError.CODE:
 			return new NotAuthenticatedError(message);
-		case 403:
+		case NotAuthorizedError.CODE:
 			return new NotAuthorizedError(message);
-		case 404:
+		case NotFoundError.CODE:
 			return new NotFoundError(message);
-		case 405:
+		case MethodNotAllowedError.CODE:
 			return new MethodNotAllowedError(message);
-		case 412:
+		case PreconditionFailedError.CODE:
 			return new PreconditionFailedError(message);
-		case 429:
+		case TooManyRequestsError.CODE:
 			return new TooManyRequestsError(message);
-		case 440:
+		case SessionExpiredError.CODE:
 			return new SessionExpiredError(message);
-		case 470:
+		case AccessDeactivatedError.CODE:
 			return new AccessDeactivatedError(message);
-		case 471:
+		case AccessExpiredError.CODE:
 			return new AccessExpiredError(message);
-		case 472:
+		case AccessBlockedError.CODE:
 			return new AccessBlockedError(message);
-		case 473:
+		case InvalidDataError.CODE:
 			return new InvalidDataError(message);
-		case 474:
+		case InvalidSoftwareVersionError.CODE:
 			return new InvalidSoftwareVersionError(message);
-		case 475:
+		case LimitReachedError.CODE:
 			return new LimitReachedError(message);
-		case 500:
+		case InternalServerError.CODE:
 			return new InternalServerError(message);
-		case 503:
-			return new ServiceUnavailableError(message);
-		case 502:
+		case BadGatewayError.CODE:
 			return new BadGatewayError(message);
-		case 507:
+		case ServiceUnavailableError.CODE:
+			return new ServiceUnavailableError(message);
+		case InsufficientStorageError.CODE:
 			return new InsufficientStorageError(message);
 		default:
 			return new ResourceError(message);
