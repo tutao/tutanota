@@ -71,7 +71,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
-import {theme, themeId} from "../gui/theme"
+import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -87,6 +87,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
+import {createDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
 
@@ -128,7 +129,8 @@ export class MailViewer {
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime = 0;
-	_lastTouchStart: {x: number, y: number, time: number}
+	_lastTouchStart: {x: number, y: number, time: number};
+	_domForScrolling: ?HTMLElement
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -364,6 +366,9 @@ export class MailViewer {
 									this._lastTouchStart.y = touch.clientY
 									this._lastTouchStart.time = Date.now()
 								},
+								oncreate: vnode => {
+									this._domForScrolling = vnode.dom
+								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
 										this._handleDoubleTap(event, (e) => this._handleAnchorClick(e, true), () => this._rescale(true))
@@ -451,7 +456,18 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages)
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
+					createDropdown(() => [
+						{
+							label: "download_action",
+							click: () => {
+								fileController.downloadAndOpen(file, true)
+								              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							},
+							type: ButtonType.Dropdown
+						}
+					])(event, dom)
+				})
 			})
 		})
 	}
@@ -469,12 +485,11 @@ export class MailViewer {
 			 * OR
 			 * there is a font tag with the color attribute set
 			 */
-			this._contrastFixNeeded = themeId() === 'dark'
-				&& (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
+			this._contrastFixNeeded = (
+				'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+				|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+			)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
 
 			this._contentBlocked = sanitizeResult.externalContent.length > 0
@@ -986,8 +1001,8 @@ export class MailViewer {
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domBodyDeferred.promise.isFulfilled()) {
-			const dom = this._domBodyDeferred.promise.value()
+		if (this._domForScrolling) {
+			const dom = this._domForScrolling
 			if (this._scrollAnimation.isFulfilled()) {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
@@ -995,6 +1010,7 @@ export class MailViewer {
 	}
 
 	_createAttachmentsButtons(files: TutanotaFile[]): Button[] {
+		files = files.filter((item) => item.cid == null)
 		let buttons
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
 		if (isAndroidApp()) {

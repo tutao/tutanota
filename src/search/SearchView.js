@@ -24,11 +24,11 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
-import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
-import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {getFolderName, getSortedCustomFolders, getSortedSystemFolders, newMail} from "../mail/MailUtils"
+import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
@@ -41,6 +41,8 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
+import {ButtonN} from "../gui/base/ButtonN"
+import {PermissionError} from "../api/common/error/PermissionError"
 
 assertMainOrNode()
 
@@ -206,7 +208,20 @@ export class SearchView implements CurrentView {
 		], "ContactView")
 
 		this.view = (): VirtualElement => {
-			return m("#search.main-view", m(this.viewSlider))
+			const restriction = getRestriction(m.route.get())
+			return m("#search.main-view", [
+				m(this.viewSlider),
+				isSameTypeRef(restriction.type, MailTypeRef)
+					? m(ButtonN, {
+						click: () => {
+							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
+						},
+						label: "newMail_action",
+						type: ButtonType.Floating,
+						icon: () => Icons.Edit
+					})
+					: null
+			])
 		}
 		this._setupShortcuts()
 
