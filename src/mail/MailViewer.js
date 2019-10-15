@@ -129,7 +129,8 @@ export class MailViewer {
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime = 0;
-	_lastTouchStart: {x: number, y: number, time: number}
+	_lastTouchStart: {x: number, y: number, time: number};
+	_domForScrolling: ?HTMLElement
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -364,6 +365,9 @@ export class MailViewer {
 									this._lastTouchStart.x = touch.clientX
 									this._lastTouchStart.y = touch.clientY
 									this._lastTouchStart.time = Date.now()
+								},
+								oncreate: vnode => {
+									this._domForScrolling = vnode.dom
 								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
@@ -997,8 +1001,8 @@ export class MailViewer {
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domBodyDeferred.promise.isFulfilled()) {
-			const dom = this._domBodyDeferred.promise.value()
+		if (this._domForScrolling) {
+			const dom = this._domForScrolling
 			if (this._scrollAnimation.isFulfilled()) {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
