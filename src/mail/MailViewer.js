@@ -100,6 +100,7 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 
 const DOUBLE_TAP_TIME_MS = 350
+const SCROLL_FACTOR = 4/5
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -961,14 +962,16 @@ export class MailViewer {
 	scrollUp(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.max(0, current - 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.max(0, current - toScroll))
 		})
 	}
 
 	scrollDown(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
 		})
 	}
 
