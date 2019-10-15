@@ -39,9 +39,6 @@ import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {InlineImages} from "./MailViewer"
-import {MailEditor} from "./MailEditor"
-import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
-import {PermissionError} from "../api/common/error/PermissionError"
 
 assertMainOrNode()
 
@@ -529,21 +526,3 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 
-/**
- * open a MailEditor
- * @param mailboxDetails details to use when sending an email
- * @returns {*}
- * @private
- * @throws PermissionError
- */
-export function newMail(mailboxDetails: MailboxDetail): Promise<MailEditor> {
-	return checkApprovalStatus(false).then(sendAllowed => {
-		if (sendAllowed) {
-			let editor = new MailEditor(mailboxDetails)
-			editor.initWithTemplate(null, null, "", "<br/>" + getEmailSignature())
-			editor.show()
-			return editor
-		}
-		return Promise.reject(new PermissionError("not allowed to send mail"))
-	})
-}

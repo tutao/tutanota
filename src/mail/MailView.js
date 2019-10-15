@@ -20,7 +20,7 @@ import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {debounceStart, lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
-import {MailEditor} from "./MailEditor"
+import {MailEditor, newMail} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
@@ -38,7 +38,6 @@ import {
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	newMail,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"

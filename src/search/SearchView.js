@@ -24,7 +24,7 @@ import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
-import {getFolderName, getSortedCustomFolders, getSortedSystemFolders, newMail} from "../mail/MailUtils"
+import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
 import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
@@ -43,6 +43,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
+import {newMail} from "../mail/MailEditor"
 
 assertMainOrNode()
 

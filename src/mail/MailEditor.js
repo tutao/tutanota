@@ -1292,3 +1292,22 @@ class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestio
 		}
 	}
 }
+
+/**
+ * open a MailEditor
+ * @param mailboxDetails details to use when sending an email
+ * @returns {*}
+ * @private
+ * @throws PermissionError
+ */
+export function newMail(mailboxDetails: MailboxDetail): Promise<MailEditor> {
+	return checkApprovalStatus(false).then(sendAllowed => {
+		if (sendAllowed) {
+			let editor = new MailEditor(mailboxDetails)
+			editor.initWithTemplate(null, null, "", "<br/>" + getEmailSignature())
+			editor.show()
+			return editor
+		}
+		return Promise.reject(new PermissionError("not allowed to send mail"))
+	})
+}
