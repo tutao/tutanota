@@ -97,7 +97,7 @@ function spyify<T>(obj: T): T {
  * @param template
  * @returns {cls}
  */
-function classify(template: {prototype: {}, statics: {}}): (*)=>void {
+function classify(template: {prototype: {}, statics: {}}): (?*, ?*)=>void {
 
 	const cls = function () {
 		cls.mockedInstances.push(this)
