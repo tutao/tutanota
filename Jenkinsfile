@@ -69,6 +69,13 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						unstash 'bundles'
+					   	withCredentials([usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR')]){
+							sh '''
+								export JENKINS=TRUE;
+								export APPLEID=${APPLEIDVAR};
+								export APPLEIDPASS=${APPLEIDPASSVAR};
+								node dist -em '''
+						}
 						sh 'node dist -em'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'mac_installer_test'
