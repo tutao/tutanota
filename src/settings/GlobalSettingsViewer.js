@@ -266,6 +266,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						]),
 					])
 				},
+				allowOkWithReturn: true,
 				okAction: () => dialog.close(),
 				allowCancel: false
 			})

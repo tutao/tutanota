@@ -141,6 +141,7 @@ export class ContactFormEditor {
 				Dialog.showActionDialog({
 					title: lang.get("responsiblePersons_label"),
 					child: {view: () => m(dropdown)},
+					allowOkWithReturn: true,
 					okAction: addResponsiblePersonOkAction
 				})
 			}
@@ -193,6 +194,7 @@ export class ContactFormEditor {
 					Dialog.showActionDialog({
 						title: lang.get("addLanguage_action"),
 						child: {view: () => m(tagName)},
+						allowOkWithReturn: true,
 						okAction: addLanguageOkAction
 					})
 				}, DefaultAnimationTime)// wait till the dropdown is hidden

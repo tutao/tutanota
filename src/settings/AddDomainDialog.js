@@ -38,6 +38,7 @@ export function showAddDomainDialog(customerInfo: CustomerInfo, domainDnsStatus:
 			m(".mt-l", lang.get("addCustomDomainValidationRecord_msg")),
 			createDnsRecordTable([expectedValidationRecord])
 		],
+		allowOkWithReturn: true,
 		okAction: () => {
 			let cleanDomainName = domainName().trim().toLowerCase()
 			if (!isDomainName(cleanDomainName)) {

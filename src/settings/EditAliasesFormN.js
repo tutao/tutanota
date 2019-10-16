@@ -148,6 +148,7 @@ class _EditAliasesForm {
 						]
 					},
 					validator: () => form.getErrorMessageId(),
+					allowOkWithReturn: true,
 					okAction: addEmailAliasOkAction
 				})
 			})

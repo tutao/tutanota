@@ -422,14 +422,15 @@ export class Dialog {
 		validator?: validator,
 		okAction: null | (Dialog) => mixed,
 		allowCancel?: boolean,
+		allowOkWithReturn?: boolean,
 		okActionTextId?: TranslationKey,
 		cancelAction?: ?(Dialog) => mixed,
 		cancelActionTextId?: TranslationKey,
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
+		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
+			Object.assign({}, {allowCancel: true, allowOkWithReturn: false, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {
@@ -475,6 +476,15 @@ export class Dialog {
 			})
 		}
 
+		if (allowOkWithReturn) {
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: doAction,
+				help: "ok_action"
+			})
+		}
+
 		return dialog.show()
 	}
 
@@ -500,6 +510,7 @@ export class Dialog {
 				title: lang.getMaybeLazy(titleId),
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
+				allowOkWithReturn: true,
 				okAction: dialog => {
 					resolve(result())
 					dialog.close()
@@ -600,6 +611,7 @@ export class Dialog {
 		const dialog = Dialog.showActionDialog({
 			title: lang.get("password_label"),
 			child: {view: () => m(TextFieldN, textFieldAttrs)},
+			allowOkWithReturn: true,
 			okAction: () => out(value()),
 			allowCancel: props.allowCancel,
 			cancelAction: () => dialog.close()
