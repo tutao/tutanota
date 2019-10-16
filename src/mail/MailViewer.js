@@ -507,7 +507,7 @@ export class MailViewer {
 	}
 
 
-	_loadAttachments(mail: Mail, inlineFileIds: Promise<Array<Id>>): Promise<InlineImages> {
+	_loadAttachments(mail: Mail, inlineCids: Promise<Array<string>>): Promise<InlineImages> {
 		if (mail.attachments.length === 0) {
 			this._loadingAttachments = false
 			return Promise.resolve({})
@@ -516,11 +516,11 @@ export class MailViewer {
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
 			              .then(files => {
 				              this._attachments = files
-				              this._attachmentButtons = this._createAttachmentsButtons(files)
-				              this._loadingAttachments = false
-				              m.redraw()
-				              return inlineFileIds.then((inlineFileIds) => {
-					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
+				              return inlineCids.then((inlineCids) => {
+					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
+					              this._loadingAttachments = false
+					              m.redraw()
+					              const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
 					              const inlineImages: InlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
@@ -1009,8 +1009,9 @@ export class MailViewer {
 		}
 	}
 
-	_createAttachmentsButtons(files: TutanotaFile[]): Button[] {
-		files = files.filter((item) => item.cid == null)
+	_createAttachmentsButtons(files: $ReadOnlyArray<TutanotaFile>, inlineCids: $ReadOnlyArray<Id>): Button[] {
+		// Only show file buttons which do not correspond to inline images in HTML
+		files = files.filter((item) => inlineCids.includes(item.cid) === false)
 		let buttons
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
 		if (isAndroidApp()) {

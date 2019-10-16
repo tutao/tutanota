@@ -128,6 +128,7 @@ export class MailEditor {
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
+	_mentionedInlineImages: Array<string>
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -149,6 +150,7 @@ export class MailEditor {
 		this._showToolbar = false
 		this._objectURLs = []
 		this._blockExternalContent = true
+		this._mentionedInlineImages = []
 
 		let props = logins.getUserController().props
 
@@ -234,7 +236,9 @@ export class MailEditor {
 		}
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html, isPaste) => {
-			return htmlSanitizer.sanitizeFragment(html, !isPaste && this._blockExternalContent).html
+			const sanitized = htmlSanitizer.sanitizeFragment(html, !isPaste && this._blockExternalContent)
+			this._mentionedInlineImages = sanitized.inlineImageCids
+			return sanitized.html
 		})
 		const attachImageHandler = isApp() ?
 			null
@@ -691,43 +695,47 @@ export class MailEditor {
 	}
 
 	_getAttachmentButtons(): Array<ButtonAttrs> {
-		return this._attachments.filter((item) => item.cid == null).map(file => {
-			let lazyButtonAttrs: ButtonAttrs[] = []
+		return this
+			._attachments
+			// Only show file buttons which do not correspond to inline images in HTML
+			.filter((item) => this._mentionedInlineImages.includes(item.cid) === false)
+			.map(file => {
+				let lazyButtonAttrs: ButtonAttrs[] = []
 
-			lazyButtonAttrs.push({
-				label: "download_action",
-				type: ButtonType.Secondary,
-				click: () => {
-					if (file._type === 'FileReference') {
-						return fileApp.open((file: FileReference))
-						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-					} else if (file._type === "DataFile") {
-						return fileController.open(file)
-					} else {
-						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
-						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+				lazyButtonAttrs.push({
+					label: "download_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						if (file._type === 'FileReference') {
+							return fileApp.open((file: FileReference))
+							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+						} else if (file._type === "DataFile") {
+							return fileController.open(file)
+						} else {
+							fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+						}
+
 					}
+				})
 
-				}
+				lazyButtonAttrs.push({
+					label: "remove_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						remove(this._attachments, file)
+						this._mailChanged = true
+						m.redraw()
+					}
+				})
+
+				return attachDropdown({
+					label: () => file.name,
+					icon: () => Icons.Attachment,
+					type: ButtonType.Bubble,
+					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+				}, () => lazyButtonAttrs)
 			})
-
-			lazyButtonAttrs.push({
-				label: "remove_action",
-				type: ButtonType.Secondary,
-				click: () => {
-					remove(this._attachments, file)
-					this._mailChanged = true
-					m.redraw()
-				}
-			})
-
-			return attachDropdown({
-				label: () => file.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-			}, () => lazyButtonAttrs)
-		})
 	}
 
 	_onAttachImageClicked(ev: Event) {
