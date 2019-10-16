@@ -1139,3 +1139,10 @@ type CalendarFileMethod = {
 
 	file: IdTuple;
 }
+
+type CalendarEventUpdateList = {
+	_type: TypeRef<CalendarEventUpdateList>;
+	_id: Id;
+
+	list: Id;
+}
