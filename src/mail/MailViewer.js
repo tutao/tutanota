@@ -21,7 +21,7 @@ import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {CalendarAttendeeStatus, ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
+import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
@@ -30,7 +30,7 @@ import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../api/Env"
 import {htmlSanitizer, stringifyFragment} from "../misc/HtmlSanitizer"
 import {Dialog} from "../gui/base/Dialog"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, downcast, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
+import {defer, getMailBodyText, getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {addAll, contains} from "../api/common/utils/ArrayUtils"
 import {startsWith} from "../api/common/utils/StringUtils"
@@ -87,12 +87,6 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
-import {makeInvitationCalendarFile, parseCalendarFile} from "../calendar/CalendarImporter"
-import {loadCalendarInfo} from "../calendar/CalendarModel"
-import {attachDropdown} from "../gui/base/DropdownN"
-import {calendarAttendeeStatusDescription, copyEvent, formatEventDuration, getCalendarName} from "../calendar/CalendarUtils"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 
 assertMainOrNode()
 
@@ -126,7 +120,6 @@ export class MailViewer {
 	_filesExpanded: Stream<boolean>;
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
-	_calendarEvent: ?CalendarEvent;
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -219,7 +212,7 @@ export class MailViewer {
 		}), differentSenderBubble != null, {'padding-top': px(26)})
 
 		let actions = new ActionBar()
-		actions.add(this._createLoadExternalContentButton(mail))
+		actions.add(this._createLoadExternalContentButton())
 		if (mail.state === MailState.DRAFT) {
 			actions.add(new Button('edit_action', () => this._editDraft(), () => Icons.Edit))
 		} else {
@@ -347,7 +340,6 @@ export class MailViewer {
 							]),
 							this._renderAttachments(),
 							m("hr.hr.mt"),
-							this._renderCalendarEvent()
 						]),
 
 						m("#mail-body.body.rel.plr-l.scroll-x.pt-s.pb-floating.selectable.touch-callout.break-word-links.margin-are-inset-lr"
@@ -386,92 +378,6 @@ export class MailViewer {
 		this._setupShortcuts()
 	}
 
-	_renderCalendarEvent() {
-		const event = this._calendarEvent
-		if (!event) return null
-
-		const mailAddreses = getEnabledMailAddresses(mailModel.getUserMailboxDetails())
-		const thisAttendee = event.attendees.find(a => mailAddreses.includes(a.address.address))
-
-		return event
-			? m(".flex.mt-s", {
-				style: {
-					"box-shadow": `0 1px 2px 1px ${theme.header_box_shadow_bg}`,
-					padding: px(size.vpad_small),
-					paddingBottom: "0",
-					borderRadius: px(4),
-				}
-			}, [
-				m(Icon, {
-					icon: BootIcons.Calendar,
-					class: "icon-xl",
-				}),
-				m(".flex.col.mb-s.flex-grow", [
-					m(".ml-s.b", event.summary),
-					m(".flex", [m(".calendar-invite-field.ml-s", "When:"), m(".ml-s", formatEventDuration(event))]),
-					event.location ? m(".flex", [m(".calendar-invite-field.ml-s", "Where:"), m(".ml-s", event.location)]) : null,
-					m(".flex", m(".calendar-invite-field.ml-s", "Who:"),
-						event.organizer ? m(".ml-s", event.organizer + " (organizer)") : ""),
-					event.attendees.map(({address, status}) => m(".flex", m(".calendar-invite-field.ml-s",),
-						m(".ml-s", `${address.name} ${address.address} ${calendarAttendeeStatusDescription(downcast(status))}`))),
-					m(".align-self-end.flex.items-end",
-						[
-							thisAttendee
-								? m(".mlr", {style: {width: "200px"}}, m(DropDownSelectorN, {
-									label: () => "Your response",
-									items: [
-										{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
-										{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
-										{name: "No", value: CalendarAttendeeStatus.DECLINED}
-									],
-									selectedValue: stream(thisAttendee.status),
-									selectionChangedHandler: (selectedResponse) => {
-										const updatedAttendee = createCalendarEventAttendee({
-											address: thisAttendee.address,
-											status: selectedResponse
-										})
-										const newEvent = copyEvent(event, {
-											attendees: [updatedAttendee]
-										})
-										const mailEditor = new MailEditor(mailModel.getUserMailboxDetails())
-										mailEditor.initWithTemplate([{name: null, address: neverNull(event.organizer)}],
-											"Accepted invitation for " + event.summary, "", false,)
-										          .then(() => {
-											          mailEditor.attachFiles([makeInvitationCalendarFile(newEvent, "REPLY")])
-											          return mailEditor.send()
-										          })
-										// .then((calendarInfo) => {
-										//     // TODO: find existing event
-										//     newEvent._ownerGroup = Array.from(calendarInfo.values())[0].groupInfo.group
-										//     worker.createCalendarEvent(newEvent, [], null)
-										// })
-									}
-								}))
-								: null,
-							m(ButtonN, attachDropdown({
-									label: () => "Add to the calendar",
-									type: ButtonType.Secondary,
-								},
-								() => loadCalendarInfo()
-									.then((calendarInfo) => {
-										return Array.from(calendarInfo.values()).map(({groupRoot, groupInfo}) => {
-											return {
-												label: () => getCalendarName(groupInfo.name),
-												click: () => {
-													event._ownerGroup = groupRoot._id
-													worker.createCalendarEvent(event, [], null)
-												},
-												type: ButtonType.Dropdown,
-											}
-										})
-									})
-							))
-						]),
-				]),
-			])
-			: null
-	}
-
 	_createAssignActionButton(mail: Mail): Button {
 		// remove the current mailbox/owner from the recipients list.
 		const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
@@ -488,7 +394,7 @@ export class MailViewer {
 		return createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250)
 	}
 
-	_createLoadExternalContentButton(mail: Mail): Button {
+	_createLoadExternalContentButton(): Button {
 		let loadExternalContentButton = new Button('contentBlocked_msg', () => {
 			if (this._mailBody) {
 				Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
@@ -565,32 +471,6 @@ export class MailViewer {
 				              this._attachmentButtons = this._createAttachmentsButtons(files)
 				              this._loadingAttachments = false
 				              m.redraw()
-
-				              const icsFiles = files.filter(f => f.name.endsWith(".ics"))
-				              Promise.each(icsFiles, (file) => {
-					              return !this._calendarEvent
-						              && worker.downloadFileContent(file)
-						                       .then((dataFile) => {
-							                       try {
-								                       const parsedCalendarData = parseCalendarFile(dataFile)
-								                       switch (parsedCalendarData.method) {
-									                       case "PUBLISH":
-									                       case "REQUEST":
-										                       if (parsedCalendarData.contents.length > 0) {
-											                       this._calendarEvent = parsedCalendarData.contents[0].event
-											                       m.redraw()
-										                       }
-										                       break
-									                       case "REPLY":
-										                       break
-								                       }
-							                       } catch (e) {
-								                       console.log(e)
-							                       }
-
-						                       })
-				              })
-
 				              return inlineFileIds.then((inlineFileIds) => {
 					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
 					              const inlineImages: InlineImages = {}
