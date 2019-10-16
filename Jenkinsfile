@@ -76,7 +76,6 @@ pipeline {
 								export APPLEIDPASS=${APPLEIDPASSVAR};
 								node dist -em '''
 						}
-						sh 'node dist -em'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'mac_installer_test'
                             stash includes: 'desktop/*', name:'mac_installer'
