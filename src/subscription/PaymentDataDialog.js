@@ -16,6 +16,7 @@ import {serviceRequest} from "../api/main/Entity"
 import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
+import {neverNull} from "../api/common/utils/Utils"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -34,8 +35,8 @@ export function show(accountingInfo: AccountingInfo): Promise<boolean> {
 		paymentInterval: stream(Number(accountingInfo.paymentInterval)),
 	}
 
-	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), accountingInfo, payPalRequestUrl)
-	const availablePaymentMethods = paymentMethodInput.getAvailablePaymentMethods()
+	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
+	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
 
 	const paymentMethod = getPaymentMethodType(accountingInfo)
 	const selectedPaymentMethod = stream(paymentMethod)

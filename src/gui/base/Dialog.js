@@ -44,7 +44,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?(e: Event) => void;
+	_closeHandler: ?() => void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
@@ -169,7 +169,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: ?(e: Event) => void): Dialog {
+	setCloseHandler(closeHandler: ?() => void): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -196,16 +196,16 @@ export class Dialog {
 	/**
 	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
 	 */
-	onClose(e: Event): void {
+	onClose(): void {
 		if (this._closeHandler) {
-			this._closeHandler(e)
+			this._closeHandler()
 		} else {
 			this.close()
 		}
 	}
 
 	popState(e: Event): boolean {
-		this.onClose(e)
+		this.onClose()
 		return false
 	}
 

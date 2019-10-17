@@ -46,17 +46,17 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"bluebird": "3.5.2",
 			"node-forge": "0.9.1",
 			"winreg": "1.2.4",
-			"keytar": "4.13.0",
-			"pako": "1.0.10"
+			"keytar": "4.13.0"
 		},
 		"build": {
-			"electronVersion": "6.0.10",
+			"electronVersion": "6.0.12",
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
 			"artifactName": "${name}-${os}.${ext}",
+			"afterSign": sign ? "buildSrc/notarize.js" : undefined,
 			"protocols": [
 				{
 					"name": "Mailto Links",
@@ -102,6 +102,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
+				"hardenedRuntime": true,
+				"gatekeeperAssess": false,
+				"entitlements": "buildSrc/mac-entitlements.plist",
+				"entitlementsInherit": "buildSrc/mac-entitlements.plist",
 				"icon": path.join(path.dirname(iconPath), "logo-solo-red.png.icns"),
 				"extendInfo": {
 					"LSUIElement": 1 //hide dock icon on startup
@@ -109,6 +113,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"target": [
 					{
 						"target": "zip",
+						"arch": "x64"
+					},
+					{
+						"target": "dmg",
 						"arch": "x64"
 					}
 				]

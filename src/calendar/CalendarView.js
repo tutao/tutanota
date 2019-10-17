@@ -454,7 +454,17 @@ export class CalendarView implements CurrentView {
 
 	_newEvent(date?: ?Date) {
 		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
-		p.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
+		p.then(calendars => showCalendarEventDialog(date || this._getNextHalfHour(), calendars))
+	}
+
+	_getNextHalfHour() {
+		let date: Date = new Date()
+		if (date.getMinutes() > 30) {
+			date.setHours(date.getHours() + 1, 0)
+		} else {
+			date.setMinutes(30)
+		}
+		return date
 	}
 
 	view() {

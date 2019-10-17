@@ -191,6 +191,7 @@ type JsRequestType = 'createMailEditor'
 	| 'openFindInPage'
 	| 'reportError'
 	| 'openCalendar'
+	| 'visibilityChange'
 
 type WebContentsMessage
 	= 'setup-context-menu'

@@ -20,9 +20,8 @@ import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {debounceStart, lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
-import {MailEditor} from "./MailEditor"
+import {MailEditor, newMail} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
-import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
@@ -32,7 +31,6 @@ import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	getEmailSignature,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -550,22 +548,8 @@ export class MailView implements CurrentView {
 		]).setColors(ButtonColors.Nav)
 	}
 
-	/**
-	 * open a MailEditor
-	 * @returns {*}
-	 * @private
-	 * @throws PermissionError
-	 */
 	_newMail(): Promise<MailEditor> {
-		return checkApprovalStatus(false).then(sendAllowed => {
-			if (sendAllowed) {
-				let editor = new MailEditor(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
-				editor.initWithTemplate(null, null, "", "<br/>" + getEmailSignature())
-				editor.show()
-				return editor
-			}
-			return Promise.reject(new PermissionError("not allowed to send mail"))
-		})
+		return newMail(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
 	}
 
 	_checkFolderName(name: string, mailGroupId: Id): ?string {

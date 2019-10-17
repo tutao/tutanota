@@ -16,7 +16,7 @@ import {
 	MAX_BASE64_IMAGE_SIZE
 } from "../api/common/TutanotaConstants"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp, isDesktop} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
 import {serviceRequest} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
@@ -467,15 +467,48 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 }
 
 
-export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages) {
+export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,
+                                            onContext: (TutanotaFile, Event, HTMLElement) => mixed) {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
 	imageElements.forEach((imageElement) => {
 		const cid = imageElement.getAttribute("cid")
 		if (cid) {
-			if (inlineImages[cid]) {
+			const inlineImage = inlineImages[cid]
+			if (inlineImage) {
 				imageElement.setAttribute("src", inlineImages[cid].url)
 				imageElement.classList.remove("tutanota-placeholder")
+
+				if (isApp()) { // Add long press action for apps
+					let timeoutId: ?TimeoutID
+					let startCoords: ?{x: number, y: number}
+					imageElement.addEventListener("touchstart", (e: TouchEvent) => {
+						const touch = e.touches[0]
+						if (!touch) return
+						startCoords = {x: touch.clientX, y: touch.clientY}
+						timeoutId = setTimeout(() => {
+							onContext(inlineImage.file, e, imageElement)
+						}, 800)
+					})
+					imageElement.addEventListener("touchmove", (e: TouchEvent) => {
+						const touch = e.touches[0]
+						if (!touch || !startCoords || !timeoutId) return
+						if (Math.abs(touch.clientX - startCoords.x) > 40 || Math.abs(touch.clientY - startCoords.y) > 40) {
+							clearTimeout(timeoutId)
+						}
+					})
+
+					imageElement.addEventListener("touchend", (e: TouchEvent) => {
+						timeoutId && clearTimeout(timeoutId)
+					})
+				}
+
+				if (isDesktop()) { // add right click action for desktop apps
+					imageElement.addEventListener("contextmenu", (e: MouseEvent) => {
+						onContext(inlineImage.file, e, imageElement)
+						e.preventDefault()
+					})
+				}
 			}
 		}
 	})
@@ -491,3 +524,5 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 	})
 	return domClone
 }
+
+

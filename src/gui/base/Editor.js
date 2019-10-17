@@ -257,4 +257,11 @@ export class Editor implements ImageHandler {
 	isAttached() {
 		return this._squire != null
 	}
+
+	removeAllFormatting() {
+		// Create a range which contains the whole editor
+		const range = document.createRange()
+		range.selectNode(this._squire.getRoot())
+		this._squire.removeAllFormatting(range)
+	}
 }
