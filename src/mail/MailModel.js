@@ -5,7 +5,7 @@ import {containsEventOfType, neverNull} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {getElementId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -29,6 +29,7 @@ import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import {noOp} from "../api/common/utils/Utils"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
+import {getFromMap} from "../api/common/utils/MapUtils"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -177,10 +178,8 @@ export class MailModel {
 				throw new ProgrammingError("tried to delete mail without folder")
 			} else if (isFinalDelete(folder)) {
 				buckets.trash.push(mail)
-			} else if (buckets.move.has(folder._id)) {
-				neverNull(buckets.move.get(folder._id)).push(mail)
 			} else {
-				buckets.move.set(folder._id, [mail])
+				getFromMap(buckets.move, folder._id, () => []).push(mail)
 			}
 			return buckets
 		}, {trash: [], move: moveMap})
@@ -188,6 +187,8 @@ export class MailModel {
 		let promises = []
 		if (mailBuckets.trash.length > 0) {
 			let deleteMailData = createDeleteMailData()
+			const trashFolder = neverNull(this.getMailFolder(getElementId(mailBuckets.trash[0])))
+			deleteMailData.folder = trashFolder._id
 			deleteMailData.mails.push(...mailBuckets.trash.map(m => m._id))
 			promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
 				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
