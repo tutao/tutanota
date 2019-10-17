@@ -460,7 +460,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 			// We also need to send out updates of event
 
-			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
+			worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
 			      .then(() => {
 				      const newAttendees = existingEvent ? attendees.filter(f => !existingEvent.attendees.includes(f)) : attendees
 				      if (newAttendees.length) {
