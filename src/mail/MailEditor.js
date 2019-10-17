@@ -74,7 +74,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
+import {LazyContactListId, searchForContacts, getContactListName} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -1232,7 +1232,7 @@ class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestio
 
 		return contactsPromise
 			.map(contact => {
-				let name = `${contact.firstName} ${contact.lastName}`.trim()
+				let name = getContactListName(contact)
 				let mailAddresses = []
 				if (name.toLowerCase().indexOf(query) !== -1) {
 					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
