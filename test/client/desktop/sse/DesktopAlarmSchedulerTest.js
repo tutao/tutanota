@@ -6,9 +6,12 @@ import {MAX_SAFE_DELAY} from "../../../../src/desktop/sse/DesktopAlarmScheduler"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
+const oldTimezone = process.env.TZ
+
+o.before(() => process.env.TZ = 'Europe/Berlin')
+o.after(() => process.env.TZ = oldTimezone)
 
 o.spec("DesktopAlarmSchedulerTest", () => {
-
 	n.startGroup(__filename, [
 		"./DesktopConstants", "../DesktopConstants",
 		"../../api/common/TutanotaConstants", "../TutanotaConstants",
