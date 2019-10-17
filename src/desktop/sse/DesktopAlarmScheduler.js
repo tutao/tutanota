@@ -178,12 +178,14 @@ export function occurrenceIterator() {
 		} else if (this.repeatRule.endType === EndType.UntilDate) {
 			maxOccurrences = Infinity
 			lastOccurrenceDate = new Date(parseInt(this.repeatRule.endValue))
+			lastOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 1)
 		}
 		occurrenceIncrement = this.repeatRule.frequency
 		occurrenceInterval = parseInt(this.repeatRule.interval)
 	}
 
 	return {
+		firstOccurrence,
 		maxOccurrences,
 		lastOccurrenceDate,
 		occurrenceIncrement,
@@ -203,11 +205,19 @@ export function occurrenceIterator() {
 					case RepeatPeriod.WEEKLY:
 						newOccurrence.setDate(newOccurrence.getDate() + this.occurrenceInterval * 7)
 						break
-					case RepeatPeriod.MONTHLY:
-						newOccurrence.setMonth(newOccurrence.getMonth() + this.occurrenceInterval)
+					case RepeatPeriod.MONTHLY: {
+						const newMonth = newOccurrence.getMonth() + this.occurrenceInterval
+						const daysInNewMonth = new Date(newOccurrence.getFullYear(), newMonth + 1, 0).getDate()
+						const newDay = Math.min(firstOccurrence.getDate(), daysInNewMonth)
+						newOccurrence.setMonth(newMonth, newDay)
+					}
 						break
 					case RepeatPeriod.ANNUALLY:
-						newOccurrence.setFullYear(newOccurrence.getFullYear() + this.occurrenceInterval)
+						const newYear = newOccurrence.getFullYear() + this.occurrenceInterval
+						const newMonth = newOccurrence.getMonth()
+						const daysInNewMonth = new Date(newYear, newMonth + 1, 0).getDate()
+						const newDay = Math.min(firstOccurrence.getDate(), daysInNewMonth)
+						newOccurrence.setFullYear(newYear, newMonth, newDay)
 						break
 				}
 
