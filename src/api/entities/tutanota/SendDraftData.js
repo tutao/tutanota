@@ -71,7 +71,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"calendarMethods": {
 			"name": "calendarMethods",
-			"id": 1020,
+			"id": 1021,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

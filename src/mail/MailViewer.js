@@ -87,7 +87,8 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
-import {CALENDAR_MIME_TYPE, showEventDetailsFromFile} from "../calendar/CalendarUtils"
+import {CALENDAR_MIME_TYPE} from "../calendar/CalendarUtils"
+import {showEventDetailsFromFile} from "../calendar/CalendarInvites"
 
 assertMainOrNode()
 

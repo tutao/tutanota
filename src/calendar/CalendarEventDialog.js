@@ -28,7 +28,7 @@ import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {
 	calendarAttendeeStatusDescription,
-	createRepeatRuleWithValues,
+	createRepeatRuleWithValues, filterInt,
 	generateUid,
 	getAllDayDateUTC,
 	getCalendarName,
@@ -49,7 +49,7 @@ import {mailModel} from "../mail/MailModel"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {sendCalendarInvite, sendCalendarInviteResponse} from "./CalendarInvites"
+import {sendCalendarInvite, sendCalendarInviteResponse, sendCalendarUpdate} from "./CalendarInvites"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -429,93 +429,123 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			]
 		]),
 		okAction: () => {
-			const newEvent = createCalendarEvent()
-			let startDate = neverNull(startDatePicker.date())
-			const parsedStartTime = parseTime(startTime())
-			const parsedEndTime = parseTime(endTime())
-			let endDate = neverNull(endDatePicker.date())
-
-			if (allDay()) {
-				startDate = getAllDayDateUTC(startDate)
-				endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
-			} else {
-				if (!parsedStartTime || !parsedEndTime) {
-					Dialog.error("timeFormatInvalid_msg")
+			(isOwnEvent || existingEvent && !existingEvent._id
+					? Promise.resolve(true)
+					// TODO: translate
+					: Dialog.confirm(() => "Updates to the event will be visible only in this calendar")
+			).then((shouldUpdate) => {
+				if (!shouldUpdate) {
 					return
 				}
-				startDate.setHours(parsedStartTime.hours)
-				startDate.setMinutes(parsedStartTime.minutes)
+				const newEvent = createCalendarEvent()
+				let startDate = neverNull(startDatePicker.date())
+				const parsedStartTime = parseTime(startTime())
+				const parsedEndTime = parseTime(endTime())
+				let endDate = neverNull(endDatePicker.date())
 
-				// End date is never actually included in the event. For the whole day event the next day
-				// is the boundary. For the timed one the end time is the boundary.
-				endDate.setHours(parsedEndTime.hours)
-				endDate.setMinutes(parsedEndTime.minutes)
-			}
-
-			if (endDate.getTime() <= startDate.getTime()) {
-				Dialog.error('startAfterEnd_label')
-				return
-			}
-			newEvent.startTime = startDate
-			newEvent.description = notesValue()
-			newEvent.summary = summary()
-			newEvent.location = locationValue()
-			newEvent.endTime = endDate
-			newEvent._ownerGroup = selectedCalendar().groupRoot._id
-			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
-			newEvent.organizer = organizer
-			const repeatFrequency = repeatPickerAttrs.selectedValue()
-			if (repeatFrequency == null) {
-				newEvent.repeatRule = null
-			} else {
-				const interval = repeatIntervalPickerAttrs.selectedValue() || 1
-				const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
-				newEvent.repeatRule = repeatRule
-
-				const stopType = neverNull(endTypePickerAttrs.selectedValue())
-				repeatRule.endType = stopType
-				if (stopType === EndType.Count) {
-					let count = endCountPickerAttrs.selectedValue()
-					if (isNaN(count) || Number(count) < 1) {
-						repeatRule.endType = EndType.Never
-					} else {
-						repeatRule.endValue = String(count)
-					}
-				} else if (stopType === EndType.UntilDate) {
-					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
-					if (repeatEndDate.getTime() < getEventStart(newEvent)) {
-						Dialog.error("startAfterEnd_label")
+				if (allDay()) {
+					startDate = getAllDayDateUTC(startDate)
+					endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
+				} else {
+					if (!parsedStartTime || !parsedEndTime) {
+						Dialog.error("timeFormatInvalid_msg")
 						return
-					} else {
-						// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
-						// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
-						// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
-						// regular events it is just a timestamp.
-						repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
+					}
+					startDate.setHours(parsedStartTime.hours)
+					startDate.setMinutes(parsedStartTime.minutes)
+
+					// End date is never actually included in the event. For the whole day event the next day
+					// is the boundary. For the timed one the end time is the boundary.
+					endDate.setHours(parsedEndTime.hours)
+					endDate.setMinutes(parsedEndTime.minutes)
+				}
+
+				if (endDate.getTime() <= startDate.getTime()) {
+					Dialog.error('startAfterEnd_label')
+					return
+				}
+				newEvent.startTime = startDate
+				newEvent.description = notesValue()
+				newEvent.summary = summary()
+				newEvent.location = locationValue()
+				newEvent.endTime = endDate
+				newEvent._ownerGroup = selectedCalendar().groupRoot._id
+				newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
+				newEvent.organizer = organizer
+				const repeatFrequency = repeatPickerAttrs.selectedValue()
+				if (repeatFrequency == null) {
+					newEvent.repeatRule = null
+				} else {
+					const interval = repeatIntervalPickerAttrs.selectedValue() || 1
+					const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
+					newEvent.repeatRule = repeatRule
+
+					const stopType = neverNull(endTypePickerAttrs.selectedValue())
+					repeatRule.endType = stopType
+					if (stopType === EndType.Count) {
+						let count = endCountPickerAttrs.selectedValue()
+						if (isNaN(count) || Number(count) < 1) {
+							repeatRule.endType = EndType.Never
+						} else {
+							repeatRule.endValue = String(count)
+						}
+					} else if (stopType === EndType.UntilDate) {
+						const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
+						if (repeatEndDate.getTime() < getEventStart(newEvent)) {
+							Dialog.error("startAfterEnd_label")
+							return
+						} else {
+							// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
+							// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
+							// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
+							// regular events it is just a timestamp.
+							repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
+						}
 					}
 				}
-			}
-			const newAlarms = []
-			for (let pickerAttrs of alarmPickerAttrs) {
-				const alarmValue = pickerAttrs.selectedValue()
-				if (alarmValue) {
-					const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-					newAlarms.push(newAlarm)
+				const newAlarms = []
+				for (let pickerAttrs of alarmPickerAttrs) {
+					const alarmValue = pickerAttrs.selectedValue()
+					if (alarmValue) {
+						const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+						newAlarms.push(newAlarm)
+					}
 				}
-			}
-			newEvent.attendees = attendees
+				newEvent.attendees = attendees
+				newEvent.sequence = String(filterInt(newEvent.sequence) + 1)
 
-			worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
-			      .then(() => {
-				      if (isOwnEvent) {
-					      const newAttendees = existingEvent ? attendees.filter(f => !existingEvent.attendees.includes(f)) : attendees
-					      if (newAttendees.length) {
-						      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
-					      }
-				      }
-			      })
-
-			dialog.close()
+				let newAttendees = []
+				let existingAttendees = []
+				if (isOwnEvent) {
+					if (existingEvent) {
+						attendees.forEach((a) => {
+							if (existingEvent.attendees.includes(a)) {
+								existingAttendees.push(a)
+							} else {
+								newAttendees.push(a)
+							}
+						})
+					} else {
+						newAttendees = attendees
+					}
+				}
+				// TODO: translate
+				return (existingAttendees.length
+						? Dialog.confirm(() => "Send out event update?")
+						: Promise.resolve(false)
+				).then((shouldSendOutUpdates) => {
+					worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
+					      .then(() => {
+						      if (newAttendees.length) {
+							      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
+						      }
+						      if (shouldSendOutUpdates) {
+							      sendCalendarUpdate(newEvent, existingAttendees.map(a => a.address))
+						      }
+					      })
+					dialog.close()
+				})
+			})
 		}
 	})
 }

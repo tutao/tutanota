@@ -7,24 +7,24 @@ export const _TypeModel: TypeModel = {
 	"name": "CalendarEventUidIndex",
 	"since": 37,
 	"type": "LIST_ELEMENT_TYPE",
-	"id": 998,
-	"rootId": "CHR1dGFub3RhAAPm",
+	"id": 999,
+	"rootId": "CHR1dGFub3RhAAPn",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1002,
+			"id": 1003,
 			"since": 37,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"_id": {"name": "_id", "id": 1000, "since": 37, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 1001, "since": 37, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1003,
+			"id": 1004,
 			"since": 37,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1001,
+			"id": 1002,
 			"since": 37,
 			"type": "GeneratedId",
 			"cardinality": "One",
@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"calendarEvent": {
 			"name": "calendarEvent",
-			"id": 1004,
+			"id": 1005,
 			"since": 37,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",

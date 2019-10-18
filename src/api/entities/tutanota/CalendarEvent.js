@@ -70,6 +70,7 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": true
 		},
+		"sequence": {"name": "sequence", "id": 997, "since": 37, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
 		"startTime": {"name": "startTime", "id": 942, "since": 33, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
 		"summary": {"name": "summary", "id": 940, "since": 33, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
 		"uid": {"name": "uid", "id": 988, "since": 35, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
@@ -77,7 +78,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"attendees": {
 			"name": "attendees",
-			"id": 997,
+			"id": 998,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

@@ -1018,6 +1018,7 @@ type CalendarEvent = {
 	hashedUid: ?Uint8Array;
 	location: string;
 	organizer: ?string;
+	sequence: NumberString;
 	startTime: Date;
 	summary: string;
 	uid: ?string;

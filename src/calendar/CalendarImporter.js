@@ -144,7 +144,8 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: string)
 	const stringValue = makeInvitationCalendar(env.versionNumber, event, method)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
-	tmpFile.name = "invite.ics"
+	const date = new Date()
+	tmpFile.name = `${method.toLowerCase()}-${date.getFullYear()}${date.getMonth() + 1}${date.getDate()}.ics`
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
 	return createDataFile(tmpFile, data)

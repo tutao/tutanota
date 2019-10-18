@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"index": {
 			"name": "index",
-			"id": 1008,
+			"id": 1009,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",

@@ -11,13 +11,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {formatDate, formatDateTime, formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {worker} from "../api/main/WorkerClient"
-import {parseCalendarFile} from "./CalendarImporter"
 import {loadCalendarInfo} from "./CalendarModel"
-import {showCalendarEventDialog} from "./CalendarEventDialog"
-import m from "mithril"
-import {ParserError} from "../misc/parsing"
-import {Dialog} from "../gui/base/Dialog"
-import {all as promiseAll} from "../api/common/utils/PromiseUtils"
 
 export const CALENDAR_EVENT_HEIGHT = size.calendar_line_height + 2
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -69,7 +63,7 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	return {hours, minutes}
 }
 
-export function filterInt(value: string) {
+export function filterInt(value: string): number {
 	if (/^\d+$/.test(value)) {
 		return parseInt(value, 10);
 	} else {
@@ -442,43 +436,4 @@ export function copyEvent(event: CalendarEvent, updatedFields: $Shape<CalendarEv
 	newEvent._ownerEncSessionKey = null
 	downcast(newEvent)._permissions = null
 	return newEvent
-}
-
-function loadOrCreateCalendarInfo() {
-	return loadCalendarInfo()
-		.then((calendarInfo) =>
-			calendarInfo.size && calendarInfo || worker.addCalendar("").then(() => loadCalendarInfo()))
-}
-
-export function showEventDetailsFromFile(firstCalendarFile: TutanotaFile) {
-	worker.downloadFileContent(firstCalendarFile)
-	      .then((fileData) => {
-		      try {
-			      const {contents} = parseCalendarFile(fileData)
-			      const eventWithAlarms = contents[0]
-			      if (eventWithAlarms && eventWithAlarms.event.uid) {
-				      return promiseAll(
-					      worker.getEventByUid(eventWithAlarms.event.uid),
-					      loadOrCreateCalendarInfo(),
-				      ).then(([existingEvent, calendarInfo]) => {
-					      if (!existingEvent) {
-						      showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event)
-					      } else {
-						      m.route.set(`/calendar/month/${DateTime.fromJSDate(existingEvent.startTime).toISODate()}`)
-						      showCalendarEventDialog(existingEvent.startTime, calendarInfo, existingEvent)
-					      }
-				      })
-			      } else {
-				      // TODO translate
-				      Dialog.error(() => "Couldn't open event")
-			      }
-		      } catch (e) {
-			      if (e instanceof ParserError) {
-				      // TODO translate
-				      Dialog.error(() => "Couldn't open event")
-			      } else {
-				      throw e
-			      }
-		      }
-	      })
 }

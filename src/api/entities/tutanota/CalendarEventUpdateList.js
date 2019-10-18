@@ -7,14 +7,14 @@ export const _TypeModel: TypeModel = {
 	"name": "CalendarEventUpdateList",
 	"since": 37,
 	"type": "AGGREGATED_TYPE",
-	"id": 1021,
-	"rootId": "CHR1dGFub3RhAAP9",
+	"id": 1022,
+	"rootId": "CHR1dGFub3RhAAP-",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1022,
+			"id": 1023,
 			"since": 37,
 			"type": "CustomId",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"list": {
 			"name": "list",
-			"id": 1023,
+			"id": 1024,
 			"since": 37,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
