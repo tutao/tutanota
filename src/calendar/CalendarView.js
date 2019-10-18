@@ -489,7 +489,11 @@ export class CalendarView implements CurrentView {
 			const urlDateParam = args.date
 			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
-				const date = DateTime.fromISO(urlDateParam).toJSDate()
+				const luxonDate = DateTime.fromISO(urlDateParam)
+				let date = new Date()
+				if (luxonDate.isValid) {
+					date = luxonDate.toJSDate()
+				}
 				if (this.selectedDate().getTime() !== date.getTime()) {
 					this.selectedDate(date)
 					m.redraw()
