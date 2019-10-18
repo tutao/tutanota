@@ -87,11 +87,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
-import {loadCalendarInfo} from "../calendar/CalendarModel"
-import {parseCalendarFile} from "../calendar/CalendarImporter"
-import {ParserError} from "../misc/parsing"
-import {showCalendarEventDialog} from "../calendar/CalendarEventDialog"
-import {DateTime} from "luxon"
+import {CALENDAR_MIME_TYPE, showEventDetailsFromFile} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -310,7 +306,7 @@ export class MailViewer {
 
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
-			const firstCalendarFile = this._attachments.find(a => a.mimeType && a.mimeType.startsWith("text/calendar"))
+			const firstCalendarFile = this._attachments.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 			return [
 				m("#mail-viewer.fill-absolute"
 					+ (client.isMobileDevice() ? ".scroll.overflow-x-hidden" : ".flex.flex-column"),
@@ -347,42 +343,15 @@ export class MailViewer {
 							this._renderAttachments(),
 							m("hr.hr.mt"),
 							firstCalendarFile
-								// TODO: resposne?
-								? m(ButtonN, {
-									label: () => "View/Add event",
-									type: ButtonType.Secondary,
-									click: () => {
-										worker.downloadFileContent(firstCalendarFile)
-										      .then((fileData) => {
-											      try {
-												      const {contents} = parseCalendarFile(fileData)
-												      const eventWithAlarms = contents[0]
-												      if (eventWithAlarms && eventWithAlarms.event.uid) {
-													      worker.getEventByUid(eventWithAlarms.event.uid)
-													            .then((event) => {
-														            if (!event) {
-															            loadCalendarInfo()
-																            .then((calendarInfo) => {
-																	            // TODO: handle no calendars case
-																            	showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event)
-																            })
-														            } else {
-															            m.route.set(`/calendar/month/${DateTime.fromJSDate(event.startTime).toISODate()}`)
-														            }
-													            })
-												      } else {
-													      // TODO: show message
-												      }
-											      } catch (e) {
-												      if (e instanceof ParserError) {
-													      // TODO: show message
-												      } else {
-													      throw e
-												      }
-											      }
-										      })
-									}
-								})
+								? m(".flex.flex-end", [
+									m(ButtonN, {
+										label: () => "View/Add event",
+										type: ButtonType.Secondary,
+										click: () => {
+											showEventDetailsFromFile(firstCalendarFile)
+										}
+									}),
+								])
 								: null,
 						]),
 

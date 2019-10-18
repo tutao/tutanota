@@ -7,7 +7,7 @@ import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/util
 import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
 import {generateEventElementId, isAllDayEvent, isLongEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
-import {generateUid, getTimeZone} from "./CalendarUtils"
+import {CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {loadAll, loadMultiple} from "../api/main/Entity"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
@@ -129,7 +129,7 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
-	tmpFile.mimeType = "text/calendar"
+	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
 	return fileController.open(createDataFile(tmpFile, data))
 }
@@ -145,7 +145,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: string)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = "invite.ics"
-	tmpFile.mimeType = "text/calendar"
+	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
 	return createDataFile(tmpFile, data)
 }

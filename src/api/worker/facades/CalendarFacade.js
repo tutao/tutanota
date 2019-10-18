@@ -101,21 +101,6 @@ export class CalendarFacade {
 						}
 					})
 			})
-			.then(() => {
-				const {hashedUid} = event
-				if (hashedUid == null) {
-					console.log("no hashed UID?!", event)
-					return
-				}
-				console.log("event.uid", event.uid)
-				console.log("hashedUid", event.hashedUid)
-				console.log("hashedUid base64", uint8ArrayToBase64(hashedUid))
-				console.log("hashedUid bas64url", base64ToBase64Url(uint8ArrayToBase64(hashedUid)))
-				console.log("hashedUid customString", uint8arrayToCustomId(hashedUid))
-				this.getEventByUid(neverNull(event.uid))
-				    .then((event) => console.log("found event by uid", event))
-				    .catch(NotFoundError, (e) => console.log("Not found event by uid"))
-			})
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {

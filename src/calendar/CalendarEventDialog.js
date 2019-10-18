@@ -15,7 +15,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, load} from "../api/main/Entity"
 
-import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {clone, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
@@ -44,12 +44,12 @@ import {TimePicker} from "../gui/base/TimePicker"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {getDefaultSender} from "../mail/MailUtils"
+import {getDefaultSender, getSenderName} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {sendCalendarInvite} from "./CalendarInviteDialog"
+import {sendCalendarInvite, sendCalendarInviteResponse} from "./CalendarInvites"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -115,7 +115,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	alarmPickerAttrs.push(createAlarmPicker())
 
 	const user = logins.getUserController().user
-	const exisingAlarms = []
 
 	if (existingEvent) {
 		summary(existingEvent.summary)
@@ -148,7 +147,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		for (let alarmInfoId of existingEvent.alarmInfos) {
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
-					exisingAlarms.push(userAlarmInfo.alarmInfo)
 					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
@@ -244,15 +242,62 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const attendeesExpanded = stream(false)
 
+	const defaultSender = getDefaultSender(mailModel.getUserMailboxDetails())
 	const attendees = existingEvent && existingEvent.attendees.slice() || []
-	const organizer = existingEvent && existingEvent.organizer || getDefaultSender(mailModel.getUserMailboxDetails())
+	const organizer = existingEvent && existingEvent.organizer || defaultSender
+	const isOwnEvent = organizer === defaultSender
 	const inviteFieldValue = stream("")
+
+	const participationStatus = stream()
+	// TODO: can participate as alias
+	if (existingEvent && !isOwnEvent) {
+		const ownAttendee = attendees.find(a => a.address.address === defaultSender)
+
+		let defaultValue = CalendarAttendeeStatus.NEEDS_ACTION
+		if (ownAttendee) {
+			defaultValue = getAttendeeStatus(ownAttendee)
+			participationStatus(defaultValue)
+		}
+		stream.scan((acc, value) => {
+			if (acc !== value && value !== CalendarAttendeeStatus.NEEDS_ACTION) {
+				if (ownAttendee) {
+					ownAttendee.status = participationStatus()
+				} else {
+					attendees.push(createCalendarEventAttendee({
+						address: createMailAddress({
+							name: "",
+							address: defaultSender
+						}),
+						status: participationStatus()
+					}))
+				}
+				const eventClone = clone(existingEvent)
+				eventClone.attendees = attendees
+				sendCalendarInviteResponse(eventClone, createMailAddress({
+					name: getSenderName(mailModel.getUserMailboxDetails()),
+					address: defaultSender,
+				}), participationStatus())
+			}
+		}, defaultValue, participationStatus)
+	}
+
+
+	function addAttendee() {
+		const address = getCleanedMailAddress(inviteFieldValue())
+		if (address) {
+			attendees.push(createCalendarEventAttendee({
+				address: createMailAddress({address,}),
+				status: CalendarAttendeeStatus.NEEDS_ACTION,
+			}))
+			inviteFieldValue("")
+		}
+	}
 
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
-			oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
-			onremove: vnode => windowCloseUnsubscribe()
+			oncreate: () => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
+			onremove: () => windowCloseUnsubscribe()
 		}, [
 			m(TextFieldN, {
 				label: "title_placeholder",
@@ -327,18 +372,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						expanded: attendeesExpanded,
 					}, [
 						m(TextFieldN, {
+							class: "mt-negative-s",
 							label: () => "Invite",
 							value: inviteFieldValue,
 							keyHandler: (keyPress) => {
 								if (keyPress.keyCode === 13) {
-									const address = getCleanedMailAddress(inviteFieldValue())
-									if (address) {
-										attendees.push(createCalendarEventAttendee({
-											address: createMailAddress({address,}),
-											status: CalendarAttendeeStatus.NEEDS_ACTION,
-										}))
-										inviteFieldValue("")
-									}
+									addAttendee()
 									return false
 								}
 								return true
@@ -351,17 +390,25 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 										"lineHeight": px(size.button_height),
 									},
 								},
-								`${a.address.name} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
-							m(ButtonN, {
-								label: "remove_action",
-								// TODO
-								click: noOp,
-								icon: () => Icons.Cancel,
-								type: ButtonType.Action,
-							}),
+								`${a.address.name || ""} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
 						]))
 					]),
 				],
+				!isOwnEvent
+					? [
+						m(DropDownSelectorN, {
+							label: () => "Your decision",
+							items: [
+								// TODO: translate
+								{name: "Not selected", value: CalendarAttendeeStatus.NEEDS_ACTION},
+								{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
+								{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
+								{name: "No", value: CalendarAttendeeStatus.DECLINED},
+							],
+							selectedValue: participationStatus,
+						})
+					]
+					: null,
 				m(".mr-negative-s.float-right.flex-end-on-child", [
 					m(ButtonN, {
 						label: "delete_action",
@@ -414,9 +461,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			newEvent.summary = summary()
 			newEvent.location = locationValue()
 			newEvent.endTime = endDate
-			const groupRoot = selectedCalendar().groupRoot
 			newEvent._ownerGroup = selectedCalendar().groupRoot._id
 			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
+			newEvent.organizer = organizer
 			const repeatFrequency = repeatPickerAttrs.selectedValue()
 			if (repeatFrequency == null) {
 				newEvent.repeatRule = null
@@ -458,13 +505,13 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}
 			newEvent.attendees = attendees
 
-			// We also need to send out updates of event
-
 			worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
 			      .then(() => {
-				      const newAttendees = existingEvent ? attendees.filter(f => !existingEvent.attendees.includes(f)) : attendees
-				      if (newAttendees.length) {
-					      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
+				      if (isOwnEvent) {
+					      const newAttendees = existingEvent ? attendees.filter(f => !existingEvent.attendees.includes(f)) : attendees
+					      if (newAttendees.length) {
+						      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
+					      }
 				      }
 			      })
 
