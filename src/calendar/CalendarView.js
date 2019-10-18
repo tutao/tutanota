@@ -51,6 +51,8 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 
 
+export const LIMIT_PAST_EVENTS_YEARS = 100
+
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
 	shortEvents: Array<CalendarEvent>,
@@ -629,6 +631,10 @@ export class CalendarView implements CurrentView {
 	}
 
 	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+			console.log("repeating event is too far into the past", event)
+			return
+		}
 		addDaysForRecurringEvent(this._eventsForDays, event, month, getTimeZone())
 	}
 

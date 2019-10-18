@@ -45,6 +45,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
+import {LIMIT_PAST_EVENTS_YEARS} from "./CalendarView"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -167,8 +168,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	})
 
+	let eventTooOld: boolean = false
 	stream.scan((oldStartDate, startDate) => {
 		const endDate = endDatePicker.date()
+		eventTooOld = (!!startDate && -DateTime.fromJSDate(startDate).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS)
 		if (startDate && endDate) {
 			const diff = getDiffInDays(endDate, neverNull(oldStartDate))
 			endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
@@ -267,7 +270,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		newEvent._ownerGroup = selectedCalendar().groupRoot._id
 		newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
 		const repeatFrequency = repeatPickerAttrs.selectedValue()
-		if (repeatFrequency == null) {
+		if (repeatFrequency == null || eventTooOld) {
 			newEvent.repeatRule = null
 		} else {
 			const interval = repeatIntervalPickerAttrs.selectedValue() || 1
@@ -351,17 +354,21 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				checked: allDay,
 				label: () => lang.get("allDay_label"),
 			}),
-			m(".flex", [
-				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
-				m(".flex-grow.ml-s"
-					+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
-			]),
-			repeatPickerAttrs.selectedValue()
-				? m(".flex", [
-					m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
-					m(".flex-grow.ml-s", renderStopConditionValue()),
-				])
-				: null,
+			eventTooOld
+				? null
+				: [
+					m(".flex", [
+						m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
+						m(".flex-grow.ml-s"
+							+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
+					]),
+					repeatPickerAttrs.selectedValue()
+						? m(".flex", [
+							m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
+							m(".flex-grow.ml-s", renderStopConditionValue()),
+						])
+						: null
+				],
 			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
