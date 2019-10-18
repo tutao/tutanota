@@ -22,6 +22,7 @@ export class ViewColumn {
 	_domColumn: ?HTMLElement;
 	view: Function;
 	isInForeground: boolean;
+	visible: boolean;
 
 	/**
 	 * Create a view column.
@@ -40,10 +41,12 @@ export class ViewColumn {
 		this.width = minWidth
 		this.offset = 0
 		this.isInForeground = false
+		this.visible = false
 
 		this.view = (vnode: VirtualElement) => {
 			let zIndex = this.columnType === ColumnType.Foreground ? ".z3" : ".z1"
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
+					"aria-hidden": this.visible ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
 						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ?
@@ -60,7 +63,6 @@ export class ViewColumn {
 	}
 
 	setWidth(width: number) {
-		//console.log("view column width update", this.width, width)
 		this.width = width
 	}
 

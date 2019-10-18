@@ -700,7 +700,6 @@ styles.registerStyle('main', () => {
 			'border-width': '0px 0px 1px 0px',
 			'border-color': theme.content_border,
 			'padding-bottom': '1px',
-			'outline': 'none',
 			'z-index': 1,
 			'background-color': theme.content_bg,
 			'border-radius': `${size.border_radius}px ${size.border_radius}px 0 0`,
@@ -712,14 +711,12 @@ styles.registerStyle('main', () => {
 			'border-width': '0px 0px 2px 0px',
 			'border-color': `${theme.content_accent}`,
 			'padding-bottom': '0px',
-			'outline': 'none',
 		},
 
 		'button, .nav-button': {
 			position: 'relative',
 			border: 0,
 			cursor: 'pointer',
-			outline: 'none',
 			overflow: 'hidden',
 			'white-space': 'nowrap',
 			margin: 0, // for safari
@@ -843,7 +840,6 @@ styles.registerStyle('main', () => {
 			padding: 0,
 			margin: 0, // for safari browser
 			background: 'transparent',
-			outline: 'none',
 			width: "100%",
 			overflow: 'hidden',
 			color: theme.content_fg,
