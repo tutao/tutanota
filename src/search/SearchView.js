@@ -49,6 +49,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
+import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
 
