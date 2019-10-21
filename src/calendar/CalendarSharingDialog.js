@@ -12,7 +12,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
-import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
+import {createRecipientInfo, getDefaultSender, getDisplayText, getSenderName} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -28,6 +28,8 @@ import {getCalendarName} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {px} from "../gui/size"
+import {MailEditor} from "../mail/MailEditor"
+import {mailModel} from "../mail/MailModel"
 
 
 type GroupMemberInfo = {
@@ -47,6 +49,23 @@ type CalendarSharingDialogAttrs = {
 }
 
 
+function sendShareNotificationEmail(groupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
+	const editor = new MailEditor(mailModel.getUserMailboxDetails())
+	const subject = lang.get("shareCalendarEmailSubject")
+	const body = lang.get("shareCalendarEmailBody", {
+		// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
+		"{senderName}": `${getSenderName(mailModel.getUserMailboxDetails())} &lt;${getDefaultSender(mailModel.getUserMailboxDetails())}&gt;`,
+		"{calendarName}": groupInfo.name
+	})
+	// Sending notifications as bcc so that invited people don't see each other
+	const bcc = recipients.map(({name, mailAddress}) => ({
+		name,
+		address: mailAddress
+	}))
+	editor.initWithTemplate({bcc}, subject, body, true)
+	editor.send(false)
+}
+
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
 		.then(groupDetails => {
@@ -56,7 +75,9 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 					child: () => m(CalendarSharingDialogContent, {
 						groupDetails,
 						sendInviteHandler: (recipients, capability) => {
-							showProgressDialog("calendarInvitationProgress_msg", worker.sendGroupInvitation(groupInfo.group, recipients, capability))
+							showProgressDialog("calendarInvitationProgress_msg",
+								worker.sendGroupInvitation(groupInfo.group, recipients, capability)
+								      .then(() => sendShareNotificationEmail(groupInfo, recipients)))
 								.then(() => dialog.close())
 						}
 					}),

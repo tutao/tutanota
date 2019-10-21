@@ -1038,6 +1038,8 @@ module.exports = {
 		"sharedCalendars_label": "Shared calendars",
 		"calendarInvitations_label": "Invitations",
 		"accept_action": "Accept",
-		"decline_action": "Decline"
+		"decline_action": "Decline",
+		"shareCalendarEmailSubject": "You are invited to share the calendar",
+		"shareCalendarEmailBody": "{senderName} shared calendar \"{calendarName}\" with you.\nTo accept or reject the invite check your Calendars."
 	}
 }
