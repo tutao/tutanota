@@ -94,7 +94,7 @@ export class Dialog {
 								let bgcolor = theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
-								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
+								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
 								animation = Promise.all([
 									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
 									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
@@ -231,14 +231,17 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
 				dialog.close()
 				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
-			const lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			let lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			if (infoToAppend) {
+				lines.push(infoToAppend)
+			}
 			const buttonAttrs: ButtonAttrs = {
 				label: "ok_action",
 				click: closeAction,
@@ -430,7 +433,13 @@ export class Dialog {
 	|}): Dialog {
 		let dialog: Dialog
 		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, allowOkWithReturn: false, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
+			Object.assign({}, {
+				allowCancel: true,
+				allowOkWithReturn: false,
+				okActionTextId: "ok_action",
+				cancelActionTextId: "cancel_action",
+				type: DialogType.EditSmall
+			}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {

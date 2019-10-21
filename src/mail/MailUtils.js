@@ -1,7 +1,12 @@
 // @flow
 import m from "mithril"
 import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientInfo"
-import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
+import {
+	fullNameToFirstAndLastName,
+	getDomainWithoutSubdomains,
+	mailAddressToFirstAndLastName,
+	stringToNameAndMailAddress
+} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
@@ -173,6 +178,13 @@ export function getSenderOrRecipientHeadingTooltip(mail: Mail): string {
 
 export function isTutanotaTeamMail(mail: Mail): boolean {
 	return mail.confidential && (mail.state === MailState.RECEIVED) && endsWith(mail.sender.address, "@tutao.de")
+}
+
+// the server sets differentEnvelopeSender if it's different, but we only want to act if they're from different domains
+export function hasDifferentEnvelopeSender(mail: Mail): boolean {
+	return (mail.differentEnvelopeSender != null
+		&& getDomainWithoutSubdomains(mail.differentEnvelopeSender)
+		!== getDomainWithoutSubdomains(mail.sender.address))
 }
 
 export function isExcludedMailAddress(mailAddress: string) {
