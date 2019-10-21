@@ -265,6 +265,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		dateEnd,
 		`DTSTAMP:${formatDateTimeUTC(now)}`,
 		`UID:${event.uid ? event.uid : generateUid(event, now.getTime())}`, // legacy: only generate uid for older calendar events.
+		`SEQUENCE:${event.sequence}`,
 		`SUMMARY:${escapeSemicolons(event.summary)}`,
 	]
 		.concat(event.description && event.description !== "" ? `DESCRIPTION:${escapeSemicolons(event.description)}` : [])

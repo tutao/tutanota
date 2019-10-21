@@ -114,6 +114,9 @@ export function showEventDetailsFromFile(firstCalendarFile: TutanotaFile) {
 					      if (!existingEvent) {
 						      showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event)
 					      } else {
+						      if (eventWithAlarms.event.sequence > existingEvent.sequence) {
+						      	worker.createCalendarEvent(eventWithAlarms.event, existingEvent.alarmInfo, existingEvent)
+						      }
 						      m.route.set(`/calendar/month/${DateTime.fromJSDate(existingEvent.startTime).toISODate()}`)
 						      showCalendarEventDialog(existingEvent.startTime, calendarInfo, existingEvent)
 					      }

@@ -24,6 +24,7 @@ import type {ParsedCalendarData} from "./CalendarImporter"
 import {parstatToCalendarAttendeeStatus} from "./CalendarImporter"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {filterInt} from "./CalendarUtils"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
 	const year = parseInt(dateString.slice(0, 4))
@@ -138,7 +139,7 @@ export const propertySequenceParser: Parser<[
 	?[string, Array<[string, string, string]>],
 	string,
 	string
-	]> =
+]> =
 	combineParsers(
 		parsePropertyName,
 		maybeParse(parsePropertyParameters),
@@ -403,6 +404,16 @@ export function parseCalendarEvents(icalObject: ICalObject): ParsedCalendarData 
 			if (typeof descriptionProp.value !== "string") throw new ParserError("DESCRIPTION value is not a string")
 			event.description = descriptionProp.value
 		}
+		const sequenceProp = eventObj.properties.find(p => p.name === "SEQUENCE")
+		if (sequenceProp) {
+			const sequenceNumber = filterInt(sequenceProp.value)
+			if (Number.isNaN(sequenceNumber)) {
+				throw new ParserError("SEQUENCE value is not a number")
+			}
+			// Convert it back to NumberString. Could use original one but this feels more robust.
+			event.sequence = String(sequenceNumber)
+		}
+
 		const alarms = []
 		eventObj.children.forEach((alarmChild) => {
 			if (alarmChild.type === "VALARM") {

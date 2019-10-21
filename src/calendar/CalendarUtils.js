@@ -63,6 +63,10 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 	return {hours, minutes}
 }
 
+/**
+ * Stricter version of parseInt() from MDN. parseInt() allows some arbitrary characters at the end of the string.
+ * Returns NaN in case there's anything non-number in the string.
+ */
 export function filterInt(value: string): number {
 	if (/^\d+$/.test(value)) {
 		return parseInt(value, 10);
