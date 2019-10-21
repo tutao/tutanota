@@ -807,7 +807,7 @@ export class MailEditor {
 		return (this._allRecipients().find(r => isExternal(r)) != null)
 	}
 
-	send() {
+	send(showProgress: boolean = true) {
 		return Promise
 			.resolve()
 			.then(() => {
@@ -886,7 +886,9 @@ export class MailEditor {
 						.catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
 						.catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 
-					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
+					return showProgress
+						? showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
+						: send
 				}
 			})
 			.catch(UserError, e => Dialog.error(e.message))
