@@ -26,7 +26,7 @@ import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
 import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
-import * as WhitelabelBuyDialog from "./WhitelabelBuyDialog"
+import * as WhitelabelAndSharingBuyDialog from "./WhitelabelAndSharingBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
@@ -49,6 +49,7 @@ import {
 	getTotalAliases,
 	getTotalStorageCapacity,
 	isWhitelabelActive,
+	isSharingActive,
 	SubscriptionType
 } from "./SubscriptionUtils"
 
@@ -73,6 +74,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_groupsField: TextField;
 	_contactFormsField: TextField;
 	_whitelabelField: TextField;
+	_sharingField: TextField;
 	_periodEndDate: Date;
 	_nextPeriodPriceVisible: boolean;
 	_customer: ?Customer;
@@ -212,10 +214,16 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._contactFormsField._injectionsRight = () => [m(addContactFormAction), m(editContactFormsAction)]
 
 		this._whitelabelField = new TextField("whitelabel_label").setValue(lang.get("loading_msg")).setDisabled()
-		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit, false)
-		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel, false)
+		const enableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(true), () => Icons.Edit, false)
+		const disableWhiteLabelAction = createNotAvailableForFreeButton("whitelabelDomain_label", () => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(false), () => Icons.Cancel, false)
 		this._whitelabelField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking)
 			=== 0) ? m(enableWhiteLabelAction) : m(disableWhiteLabelAction)
+
+		this._sharingField = new TextField("sharingFeature_label").setValue(lang.get("loading_msg")).setDisabled()
+		const enableSharingAction = createNotAvailableForFreeButton("sharingFeature_label", () => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(true), () => Icons.Edit, false)
+		const disableSharingAction = createNotAvailableForFreeButton("sharingFeature_label", () => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(false), () => Icons.Cancel, false)
+		this._sharingField._injectionsRight = () => (getCurrentCount(BookingItemFeatureType.Sharing, this._lastBooking)
+			=== 0) ? m(enableSharingAction) : m(disableSharingAction)
 
 		let deleteButton = new Button("adminDeleteAccount_action", () => {
 			showDeleteAccountDialog()
@@ -239,6 +247,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m(this._emailAliasField),
 				m(this._groupsField),
 				m(this._whitelabelField),
+				m(this._sharingField),
 				m(this._contactFormsField),
 				m(".flex-space-between.items-center.mt-l.mb", [
 					m(".h4", lang.get('adminDeleteAccount_action')),
@@ -370,6 +379,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 									this._updateAliasField(customer, customerInfo),
 									this._updateGroupsField(),
 									this._updateWhitelabelField(),
+									this._updateSharingField(),
 									this._updateContactFormsField()
 								]
 							).then(() => m.redraw())
@@ -440,6 +450,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			this._whitelabelField.setValue(lang.get("active_label"))
 		} else {
 			this._whitelabelField.setValue(lang.get("deactivated_label"))
+		}
+		return Promise.resolve()
+	}
+
+	_updateSharingField(): Promise<void> {
+		if (isSharingActive(this._lastBooking)) {
+			this._sharingField.setValue(lang.get("active_label"))
+		} else {
+			this._sharingField.setValue(lang.get("deactivated_label"))
 		}
 		return Promise.resolve()
 	}

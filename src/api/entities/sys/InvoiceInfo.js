@@ -68,6 +68,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"specialPriceSharingPerUser": {
+			"name": "specialPriceSharingPerUser",
+			"id": 1623,
+			"since": 51,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"specialPriceUserSingle": {
 			"name": "specialPriceUserSingle",
 			"id": 758,

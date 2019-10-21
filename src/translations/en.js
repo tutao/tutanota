@@ -84,7 +84,6 @@ module.exports = {
 		"back_action": "Back",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Birthday",
-		"bookingItemUsersIncludingWhitelabel_label": "Users incl. whitelabel feature",
 		"bookingItemUsers_label": "Users",
 		"bookingOrder_label": "Booking",
 		"bookingSummary_label": "Booking summary",
@@ -1025,8 +1024,8 @@ module.exports = {
 		"automatic_label": "Automatic",
 		"settingsForDevice_label": "Settings for this device",
 		"showingEventsUntil_msg": "Showing events until {untilDay}.",
-		"permissions_label": "Berechtigungen",
 		"sharing_label": "Sharing",
+		"permissions_label": "Permissions",
 		"inviteRecipients_label": "Invitation recipients",
 		"pendingInvites_label": "Pending invites",
 		"calendarShareCapabilityInvite_label": "Make changes and manage shares",
@@ -1038,6 +1037,11 @@ module.exports = {
 		"sharedCalendars_label": "Shared calendars",
 		"calendarInvitations_label": "Invitations",
 		"accept_action": "Accept",
-		"decline_action": "Decline"
+		"decline_action": "Decline",
+		"sharingFeature_label": "Sharing feature",
+		"sharingBooking_label": "Sharing feature for {1} users",
+		"cancelSharingBooking_label": "Cancel sharing feature for {1} users",
+		"bookingItemUsersIncluding_label": "Users incl.:",
+		"sharedCalendarExisting_msg": "You have still shared calendars. Please remove all shares first.",
 	}
 }

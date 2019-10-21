@@ -88,7 +88,6 @@ module.exports = {
 		"back_action": "Zurück",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Geburtstag",
-		"bookingItemUsersIncludingWhitelabel_label": "Benutzer inkl. Whitelabel-Feature",
 		"bookingItemUsers_label": "Benutzer",
 		"bookingOrder_label": "Buchung",
 		"bookingSummary_label": "Buchungsübersicht",
@@ -1030,7 +1029,7 @@ module.exports = {
 		"automatic_label": "Automatisch",
 		"settingsForDevice_label": "Einstellungen für dieses Gerät",
 		"showingEventsUntil_msg": "Zeigt alle Ereignisse bis {untilDay} an.",
-		"sharing_label": "Teilen",
+		"sharing_label": "Freigaben",
 		"inviteRecipients_label": "Einladungs-Empfänger",
 		"pendingInvites_label": "Offene Einladungen",
 		"calendarShareCapabilityInvite_label": "Termine ändern und Freigabe verwalten",
@@ -1042,6 +1041,11 @@ module.exports = {
 		"sharedCalendars_label": "Geteilte Kalender",
 		"calendarInvitations_label": "Kalendar-Einladungen",
 		"accept_action": "Annehmen",
-		"decline_action": "Ablehnen"
+		"decline_action": "Ablehnen",
+		"sharingFeature_label": "Teilen-Funktion",
+		"sharingBooking_label": "Teilen-Funktion für {1} Benutzer",
+		"cancelSharingBooking_label": "Abbestellung von Teilen-Funktion für {1} Benutzer",
+		"bookingItemUsersIncluding_label": "Benutzer incl.:",
+		"sharedCalendarExisting_msg": "Du hast noch geteilte Kalender. Bitte entferne erst alle Freigaben.",
 	}
 }

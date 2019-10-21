@@ -964,6 +964,7 @@ type InvoiceInfo = {
 	specialPriceBrandingPerUser: ?NumberString;
 	specialPriceContactFormSingle: ?NumberString;
 	specialPriceSharedGroupSingle: ?NumberString;
+	specialPriceSharingPerUser: ?NumberString;
 	specialPriceUserSingle: ?NumberString;
 	specialPriceUserTotal: ?NumberString;
 
