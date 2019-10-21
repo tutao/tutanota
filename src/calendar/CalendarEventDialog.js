@@ -47,6 +47,8 @@ import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
 import {LIMIT_PAST_EVENTS_YEARS} from "./CalendarView"
 
+const TIMESTAMP_ZERO_YEAR = 1970
+
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
 // allDay event just points us to the correct date.
@@ -170,6 +172,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	let eventTooOld: boolean = false
 	stream.scan((oldStartDate, startDate) => {
+		// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
+		// tackle because it is a rare case.
+		if (startDate && startDate.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+			const thisYear = (new Date()).getFullYear()
+			let newDate = new Date(startDate)
+			newDate.setFullYear(thisYear)
+			startDatePicker.setDate(newDate)
+			return newDate
+		}
 		const endDate = endDatePicker.date()
 		eventTooOld = (!!startDate && -DateTime.fromJSDate(startDate).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS)
 		if (startDate && endDate) {
