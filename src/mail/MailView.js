@@ -560,7 +560,7 @@ export class MailView implements CurrentView {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				let editor = new MailEditor(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
-				editor.initWithTemplate(null, null, "", "<br/>" + getEmailSignature())
+				editor.initWithTemplate({}, "", "<br/>" + getEmailSignature())
 				editor.show()
 				return editor
 			}

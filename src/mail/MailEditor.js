@@ -8,14 +8,27 @@ import type {Language, TranslationKey} from "../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
 import {formatStorageSize} from "../misc/Formatter"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
+	FeatureType,
+	MAX_ATTACHMENT_SIZE,
+	OperationType,
+	ReplyType
+} from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
-import {AccessBlockedError, ConnectionError, NotFoundError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
+import {
+	AccessBlockedError,
+	ConnectionError,
+	NotFoundError,
+	PreconditionFailedError,
+	TooManyRequestsError
+} from "../api/common/error/RestError"
 import {UserError} from "../api/common/error/UserError"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import {assertMainOrNode, isApp, Mode} from "../api/Env"
@@ -82,6 +95,9 @@ import {getTimeZone} from "../calendar/CalendarUtils"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
 
 assertMainOrNode()
+
+type RecipientList = $ReadOnlyArray<{name: ?string, address: string}>
+type Recipients = {to?: RecipientList, cc?: RecipientList, bcc?: RecipientList}
 
 export class MailEditor {
 	dialog: Dialog;
@@ -475,18 +491,19 @@ export class MailEditor {
 			})
 	}
 
-	initWithTemplate(recipientName: ?string, recipientMailAddress: ?string, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
-		let recipients = []
-		if (recipientMailAddress) {
-			let recipient = createMailAddress()
-			recipient.address = recipientMailAddress
-			recipient.name = (recipientName ? recipientName : "")
-			recipients.push(recipient)
+	initWithTemplate(recipients: Recipients, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
+		function toMailAddress({name, address}: {name: ?string, address: string}) {
+			return createMailAddress({name: name || "", address})
 		}
-		if (recipientMailAddress) {
+
+		const toRecipients = recipients.to ? recipients.to.map(toMailAddress) : []
+		const ccRecipients = recipients.cc ? recipients.cc.map(toMailAddress) : []
+		const bccRecipients = recipients.bcc ? recipients.bcc.map(toMailAddress) : []
+		if (toRecipients.length) {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
-		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), recipients, [], [], [], subject, bodyText, [])
+		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), toRecipients, ccRecipients,
+			bccRecipients, [], subject, bodyText, [])
 		return Promise.resolve()
 	}
 
@@ -741,7 +758,7 @@ export class MailEditor {
 		// _tempBody is only set until the editor is initialized. It might not be the case when
 		// assigning a mail to another user because editor is not shown and we cannot
 		// wait for the editor to be initialized.
-		const body = this._tempBody || replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML
+		const body = this._tempBody == null ? replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML : this._tempBody
 		let promise = null
 		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body,
 			this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId,
@@ -1122,7 +1139,7 @@ export class MailEditor {
 			signature += "<br>Tutanota version: " + env.versionNumber
 			signature += "<br>Time zone: " + getTimeZone()
 			signature += "<br>User agent:<br>" + navigator.userAgent
-			editor.initWithTemplate(null, "premium@tutao.de", "", signature, true).then(() => {
+			editor.initWithTemplate({to: [{name: null, address: "premium@tutao.de"}]}, "", signature, true).then(() => {
 				editor.show()
 			})
 		})
@@ -1138,7 +1155,7 @@ export class MailEditor {
 				'{username}': username,
 				'{githubLink}': "https://github.com/tutao/tutanota"
 			})
-			editor.initWithTemplate(null, null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+			editor.initWithTemplate({}, lang.get("invitationMailSubject_msg"), body, false).then(() => {
 				editor.show()
 			})
 		})
