@@ -1046,6 +1046,10 @@ module.exports = {
 		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator.",
 		"decline_action": "Decline",
 		"shareCalendarEmailSubject": "You are invited to share the calendar",
-		"shareCalendarEmailBody": "{senderName} shared calendar \"{calendarName}\" with you.\nTo accept or reject the invite check your Calendars."
+		"shareCalendarEmailBody": "{senderName} shared calendar \"{calendarName}\" with you.\nTo accept or reject the invite check your Calendars.",
+		"acceptCalendarEmailSubject": "Calendar is shared now",
+		"acceptCalendarEmailBody": "{user} accepted your sharing proposal and has access to your calendar \"{calendarName}\" now.",
+		"rejectCalendarEmailSubject": "Calendar sharing has been declined",
+		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\"."
 	}
 }

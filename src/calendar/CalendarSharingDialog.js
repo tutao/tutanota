@@ -57,7 +57,7 @@ function sendShareNotificationEmail(groupInfo: GroupInfo, recipients: Array<Reci
 	const body = lang.get("shareCalendarEmailBody", {
 		// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
 		"{senderName}": `${getSenderName(mailModel.getUserMailboxDetails())} &lt;${getDefaultSender(mailModel.getUserMailboxDetails())}&gt;`,
-		"{calendarName}": groupInfo.name
+		"{calendarName}": getCalendarName(groupInfo.name)
 	})
 	// Sending notifications as bcc so that invited people don't see each other
 	const bcc = recipients.map(({name, mailAddress}) => ({

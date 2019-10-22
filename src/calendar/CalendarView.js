@@ -50,9 +50,11 @@ import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
-import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
+import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import {createRecipientInfo} from "../mail/MailUtils"
+import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 
 
 export type CalendarInfo = {
@@ -394,10 +396,18 @@ export class CalendarView implements CurrentView {
 
 	_acceptInvite(invitation: ReceivedGroupInvitation) {
 		worker.acceptGroupInvitation(invitation)
+		      .then(() => {
+			      sendAcceptNotificationEmail(invitation.sharedGroupName,
+				      createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+		      })
 	}
 
 	_rejectInvite(invitation: ReceivedGroupInvitation) {
 		worker.rejectGroupInvitation(invitation)
+		      .then(() => {
+			      sendRejectNotificationEmail(invitation.sharedGroupName,
+				      createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+		      })
 	}
 
 

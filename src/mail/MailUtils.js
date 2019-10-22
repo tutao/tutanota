@@ -179,6 +179,9 @@ export function isExcludedMailAddress(mailAddress: string) {
 	return mailAddress === "no-reply@tutao.de"
 }
 
+/**
+ * @return {string} default mail address
+ */
 export function getDefaultSenderFromUser(): string {
 	let props = logins.getUserController().props
 	return (props.defaultSender
