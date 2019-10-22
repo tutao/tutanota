@@ -31,6 +31,7 @@ o.spec("CalendarImporterTest", function () {
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
 				"UID:test@tutanota.com",
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 				"LOCATION:Some location",
@@ -50,9 +51,10 @@ o.spec("CalendarImporterTest", function () {
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART:20190813`,
-				`DTEND:20190913`,
+				`DTEND:20190914`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 				"END:VEVENT"
@@ -87,6 +89,7 @@ o.spec("CalendarImporterTest", function () {
 				"DTEND:20190913T030600Z",
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"DESCRIPTION:Descr \\\\ \\; \\n",
 
@@ -119,13 +122,14 @@ o.spec("CalendarImporterTest", function () {
 						frequency: RepeatPeriod.WEEKLY,
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=WEEKLY;INTERVAL=3",
 				"END:VEVENT"
@@ -146,13 +150,14 @@ o.spec("CalendarImporterTest", function () {
 						endValue: "100",
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART;TZID=${zone}:20190813T050600`,
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
 				"END:VEVENT"
@@ -180,6 +185,7 @@ o.spec("CalendarImporterTest", function () {
 				`DTEND;TZID=${zone}:20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z",
 				"END:VEVENT"
@@ -191,23 +197,24 @@ o.spec("CalendarImporterTest", function () {
 					_id: ["123", "456"],
 					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
-					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13, zone}).toJSDate()),
-					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15, zone}).toJSDate()),
+					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13}).toJSDate()),
+					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15}).toJSDate()),
 					repeatRule: createRepeatRule({
 						endType: EndType.UntilDate,
 						interval: "3",
 						frequency: RepeatPeriod.MONTHLY,
 						// Beginning of 20th will be displayed to the user as 19th
-						endValue: String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 9, day: 20, zone}).toJSDate()).getTime()),
+						endValue: String(getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 9, day: 20}).toJSDate()).getTime()),
 						timeZone: zone,
 					}),
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART:20190813`,
 				`DTEND:20190815`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919",
 				"END:VEVENT"
@@ -228,29 +235,34 @@ o.spec("CalendarImporterTest", function () {
 				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:test@tutanota.com`,
+				"SEQUENCE:0",
 				"SUMMARY:Word \\\\ \\; \\n",
 				"RRULE:FREQ=WEEKLY;INTERVAL=3",
 				"END:VEVENT",
 				"END:VCALENDAR"
-			].join("\r\n"))[0]
-		).deepEquals([
+			].join("\r\n"))
+		).deepEquals(
 			{
-				event: createCalendarEvent({
-					summary: "Word \\ ; \n",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					uid: "test@tutanota.com",
-					repeatRule: createRepeatRule({
-						endType: EndType.Never,
-						interval: "3",
-						frequency: RepeatPeriod.WEEKLY,
-						timeZone: zone,
-					})
-				}),
-				alarms: []
-			},
+				method: "PUBLISH",
+				contents: [
+					{
+						event: createCalendarEvent({
+							summary: "Word \\ ; \n",
+							startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+							endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+							uid: "test@tutanota.com",
+							repeatRule: createRepeatRule({
+								endType: EndType.Never,
+								interval: "3",
+								frequency: RepeatPeriod.WEEKLY,
+								timeZone: zone,
+							})
+						}),
+						alarms: []
+					},
 
-		][0])
+				]
+			})
 	})
 
 	o("parse calendar with alarm in the future", function () {
@@ -272,20 +284,23 @@ o.spec("CalendarImporterTest", function () {
 				"END:VALARM",
 				"END:VEVENT",
 				"END:VCALENDAR"
-			].join("\r\n"))[0]
-		).deepEquals([
-			{
-				event: createCalendarEvent({
-					summary: "Word \\ ; \n",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					uid: "test@tutanota.com",
-					repeatRule: null,
-				}),
-				alarms: []
-			},
+			].join("\r\n"))
+		).deepEquals({
+			method: "PUBLISH",
+			contents: [
+				{
+					event: createCalendarEvent({
+						summary: "Word \\ ; \n",
+						startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						uid: "test@tutanota.com",
+						repeatRule: null,
+					}),
+					alarms: []
+				},
 
-		][0])
+			]
+		})
 	})
 
 	o("roundtrip export -> import", function () {
@@ -309,6 +324,7 @@ o.spec("CalendarImporterTest", function () {
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
 					uid: "test@tutanota.com",
+					sequence: "1",
 				}),
 				alarms: []
 			},
@@ -319,6 +335,7 @@ o.spec("CalendarImporterTest", function () {
 					summary: "Word \\ ; \n alarms",
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+					sequence: "2",
 				}),
 				alarms: [alarmOne, alarmTwo]
 			},
@@ -367,7 +384,10 @@ o.spec("CalendarImporterTest", function () {
 			}
 		})
 		const parsed = parseCalendarStringData(serialized)
-		o(parsed).deepEquals(eventsWithoutIds)
+		o(parsed).deepEquals({
+			method: "PUBLISH",
+			contents: eventsWithoutIds,
+		})
 	})
 
 	o("roundtrip import -> export", function () {
@@ -381,6 +401,7 @@ DTSTART:20190813T030600Z
 DTEND:20190913T030600Z
 DTSTAMP:20190813T140100Z
 UID:test@tutanota.com
+SEQUENCE:1
 SUMMARY:Word \\\\ \\; \\n simple
 DESCRIPTION:Descr \\\\ \\; \\n
 END:VEVENT
@@ -389,6 +410,7 @@ DTSTART:20190813T030600Z
 DTEND:20190913T030600Z
 DTSTAMP:20190813T140100Z
 UID:123456@tutanota.com
+SEQUENCE:0
 SUMMARY:Word \\\\ \\; \\n alarms
 BEGIN:VALARM
 ACTION:DISPLAY
@@ -406,6 +428,7 @@ DTSTART;TZID=Europe/Berlin:20190813T050600
 DTEND;TZID=Europe/Berlin:20190913T050600
 DTSTAMP:20190813T140100Z
 UID:123456@tutanota.com
+SEQUENCE:2
 SUMMARY:Word \\\\ \\; \\n repeating
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z
 END:VEVENT
@@ -414,6 +437,7 @@ DTSTART:20190813
 DTEND:20190815
 DTSTAMP:20190813T140100Z
 UID:b64lookingValue==
+SEQUENCE:0
 SUMMARY:Word \\\\ \\; \\n
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919
 END:VEVENT
