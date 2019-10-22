@@ -10,7 +10,6 @@ const webFrame = require('electron').webFrame
 const clipboard = remote.require('electron').clipboard
 const PreloadImports = remote.require('./PreloadImports.js').default
 const lang = PreloadImports.lang
-const localShortcut = PreloadImports.localShortcut
 const Menu = remote.Menu
 const MenuItem = remote.MenuItem
 
@@ -23,14 +22,6 @@ let pasteItem, copyItem, copyLinkItem: MenuItem
 let hoverUrl: string = "" // for the link popup
 let urlToCopy: string = "" // for the context menu
 
-if (process.platform === 'darwin') {
-	//MacOS needs special shortcut handling, these menu accelerators only work when the context menu is open.
-	//thus we register them as browserwindow-local shortcuts on the node side
-	localShortcut.register(remote.getCurrentWindow(), 'Command+C', () => copy(false))
-	localShortcut.register(remote.getCurrentWindow(), 'Command+X', () => document.execCommand('cut'))
-	localShortcut.register(remote.getCurrentWindow(), 'Command+V', () => document.execCommand('paste'))
-	localShortcut.register(remote.getCurrentWindow(), 'Command+A', () => document.execCommand('selectAll'))
-}
 
 // copy function
 function copy(copyLink: boolean) {
