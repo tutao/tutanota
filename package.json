@@ -20,7 +20,8 @@
 		"mithril": "2.0.4",
 		"qrcode-svg": "1.0.0",
 		"squire-rte": "1.9.0",
-		"systemjs": "0.20.19"
+		"systemjs": "0.20.19",
+		"luxon": "^1.15.0"
 	},
 	"devDependencies": {
 		"babel-core": "6.26.3",
@@ -46,7 +47,6 @@
 		"fs-extra": "7.0.1",
 		"glob": "7.1.3",
 		"js-yaml": "3.13.1",
-		"luxon": "^1.15.0",
 		"mithril-node-render": "2.3.0",
 		"mockery": "^2.1.0",
 		"node-forge": "0.9.1",
