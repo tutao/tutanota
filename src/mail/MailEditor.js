@@ -10,7 +10,7 @@ import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import {isMailAddress} from "../misc/FormatValidator"
 import type {CalendarMethodEnum, ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
-	ALLOWED_IMAGE_FORMATS, CalendarMethod,
+	ALLOWED_IMAGE_FORMATS,
 	ConversationType,
 	FeatureType,
 	MAX_ATTACHMENT_SIZE,
@@ -74,7 +74,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {getContactSuggestions, LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
+import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -1215,7 +1215,44 @@ export class ContactSuggestion implements Suggestion {
 			m(".name", this.mailAddress),
 		])
 	}
+}
 
+function getContactSuggestions(text: string): Promise<ContactSuggestion[]> {
+	let query = text.trim().toLowerCase()
+	if (isMailAddress(query, false)) {
+		return Promise.resolve([])
+	}
+
+	// ensure match word order for email addresses mainly
+	let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
+		return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+	})
+
+	return contactsPromise
+		.map(contact => {
+			let name = `${contact.firstName} ${contact.lastName}`.trim()
+			let mailAddresses = []
+			if (name.toLowerCase().indexOf(query) !== -1) {
+				mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
+			} else {
+				mailAddresses = contact.mailAddresses.filter(ma => {
+					return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
+				})
+			}
+			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
+		})
+		.reduce((a, b) => a.concat(b), [])
+		.then(suggestions => {
+			if (env.mode === Mode.App) {
+				return findRecipients(query, 10, suggestions).then(() => suggestions)
+			} else {
+				return suggestions
+			}
+		})
+		.then(suggestions => {
+			return suggestions.sort((suggestion1, suggestion2) =>
+				suggestion1.name.localeCompare(suggestion2.name))
+		})
 }
 
 type BubbleCreator = (name: ?string, mailAddress: string, contact: ?Contact) => Bubble<RecipientInfo>
