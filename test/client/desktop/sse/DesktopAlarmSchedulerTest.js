@@ -348,7 +348,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Oct 24 2019 10:00'),
 			mkDate('Oct 25 2019 10:00'),
 			mkDate('Oct 26 2019 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Oct 20 2019 10:00'),
@@ -366,7 +366,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Oct 24 2019 10:00'),
 			mkDate('Oct 25 2019 10:00'),
 			mkDate('Oct 26 2019 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Oct 20 2019 10:00'),
@@ -384,7 +384,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Oct 28 2019 10:00'),
 			mkDate('Oct 30 2019 10:00'),
 			mkDate('Nov 01 2019 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Oct 20 2019 10:00'),
@@ -402,7 +402,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Nov 17 2019 10:00'),
 			mkDate('Nov 24 2019 10:00'),
 			mkDate('Dec 01 2019 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Oct 31 2019 10:00'),
@@ -420,7 +420,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Feb 29 2020 10:00'),
 			mkDate('Mar 31 2020 10:00'),
 			mkDate('Apr 30 2020 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Feb 29 2020 10:00'),
@@ -438,7 +438,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Feb 29 2024 10:00'),
 			mkDate('Feb 28 2025 10:00'),
 			mkDate('Feb 28 2026 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		//test EndType.UntilDate
 		testOccurrenceArray(occurrenceIterator, {
@@ -454,7 +454,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Oct 21 2019 10:00'),
 			mkDate('Oct 22 2019 10:00'),
 			mkDate('Oct 23 2019 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Feb 29 2020 10:00'),
@@ -470,7 +470,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Mar 14 2020 10:00'),
 			mkDate('Mar 21 2020 10:00'),
 			mkDate('Mar 28 2020 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: new Date(2020, 1, 29, 10),
@@ -486,7 +486,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Apr 29 2020 10:00'),
 			mkDate('May 29 2020 10:00'),
 			mkDate('Jun 29 2020 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {
 			startTime: mkDate('Feb 29 2020 10:00'),
@@ -503,7 +503,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Feb 28 2023 10:00'),
 			mkDate('Feb 29 2024 10:00'),
 			mkDate('Feb 28 2025 10:00')
-		])
+		].map(d => d.toISOString()))
 
 		// non-repeating
 		testOccurrenceArray(occurrenceIterator, {
@@ -511,7 +511,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			endTime: mkDate('Mar 1 2020 12:00'),
 			trigger: "5M",
 			endType: null,
-		}, [mkDate('Feb 29 2020 10:00')])
+		}, [mkDate('Feb 29 2020 10:00').toISOString()])
 	})
 })
 
@@ -524,7 +524,7 @@ function testOccurrenceArray(occurrenceIterator, anOpts, expectedOccurrences) {
 	an[Symbol.iterator] = occurrenceIterator
 	const occurrences = []
 	for (const occurrence of downcast(an)) {
-		occurrences.push(occurrence.toString())
+		occurrences.push(occurrence.toISOString())
 	}
 	o(occurrences).deepEquals(expectedOccurrences)
 }
