@@ -7,7 +7,6 @@ const path = require('path')
  */
 
 module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
-	sign = false
 	return {
 		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",
