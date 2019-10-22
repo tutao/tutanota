@@ -188,7 +188,7 @@ function buildDesktopClient() {
 		} else if (options.stage === "test") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop", "-test"))
+					options.desktop, "https://test.tutanota.com/desktop", "-test"))
 		} else if (options.stage === "prod") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
