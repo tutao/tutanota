@@ -4,10 +4,9 @@ import {lang} from "../../misc/LanguageViewModel"
 import {AlarmInterval, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {decryptAndMapToInstance} from "../../api/worker/crypto/InstanceMapper"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
-import {_TypeModel} from "../../api/entities/sys/AlarmNotification"
+import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
 import {decrypt256Key} from "../../api/worker/crypto/KeyCryptoUtils"
 import {last} from "../../api/common/utils/ArrayUtils"
-import {downcast} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from "../DesktopNotifier"
 import {NotificationResult} from "../DesktopConstants"
 import type {WindowManager} from "../DesktopWindowManager"
@@ -31,21 +30,24 @@ export const TRIGGER_TIMES_IN_MS = {
 	[AlarmInterval.ONE_WEEK]: 1000 * 60 * 60 * 24 * 7,
 }
 const MAX_SCHEDULED_OCCURRENCES = 10
-let setTimeout = global.setTimeout
-let clearTimeout = global.clearTimeout
-let now = global.Date.now
+const defaultTimeProvider = {
+	setTimeout: global.setTimeout,
+	clearTimeout: global.clearTimeout,
+	now: global.Date.now
+}
+let {now, setTimeout, clearTimeout} = defaultTimeProvider
 
 export class DesktopAlarmScheduler {
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
 	_alarmStorage: DesktopAlarmStorage;
-	_scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}
+	_scheduledNotifications: {[alarmIdentifier: string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}
 
-	constructor(wm: WindowManager, notifier: DesktopNotifier, alarmStorage: DesktopAlarmStorage, timeProvider: any = {
-		setTimeout,
-		clearTimeout,
-		now,
-	}) {
+	constructor(wm: WindowManager,
+	            notifier: DesktopNotifier,
+	            alarmStorage: DesktopAlarmStorage,
+	            timeProvider: typeof defaultTimeProvider = defaultTimeProvider
+	) {
 		this._wm = wm
 		this._notifier = notifier
 		this._alarmStorage = alarmStorage
@@ -67,11 +69,11 @@ export class DesktopAlarmScheduler {
 			    .then(({piSk, piSkEncSk}) => {
 				    const piSkBuffer = Buffer.from(piSk, 'base64')
 				    const piSkEncSkBuffer = Buffer.from(piSkEncSk, 'base64')
-				    const piSkArray = uint8ArrayToBitArray(Uint8Array.from(piSkBuffer))
+				    const keyArray = uint8ArrayToBitArray(Uint8Array.from(piSkBuffer))
 				    const piSkEncSkArray = Uint8Array.from(piSkEncSkBuffer)
-				    return decrypt256Key(piSkArray, piSkEncSkArray)
+				    return decrypt256Key(keyArray, piSkEncSkArray)
 			    })
-			    .then(sk => decryptAndMapToInstance(_TypeModel, an, sk))
+			    .then(sk => decryptAndMapToInstance(AlarmNotificationTypeModel, an, sk))
 			    .then(decAn => {
 				    const identifier = decAn.alarmInfo.alarmIdentifier
 				    if (!this._scheduledNotifications[identifier]) {
@@ -80,8 +82,8 @@ export class DesktopAlarmScheduler {
 				    return decAn
 			    })
 			    .then(decAn => this._scheduleAlarms(decAn))
-			    .catch(e => console.error("failed to schedule alarm!", e))
 			    .then(() => this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications))
+			    .catch(e => console.error("failed to schedule alarm!", e))
 		} else if (an.operation === OperationType.DELETE) {
 			console.log(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
 			this._cancelAlarms(an)
@@ -100,54 +102,50 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
-	_scheduleAlarms(decAn: AlarmNotification): Promise<void> {
-		return new Promise(resolve => {
-			const identifier = decAn.alarmInfo.alarmIdentifier
-			decAn[Symbol.iterator] = occurrenceIterator
-			let hasScheduledAlarms = false
-			let mightNeedIntermediateSchedule = false
-			for (const occurrence of downcast(decAn)) {
-				if (this._scheduledNotifications[identifier].timeouts.length >= MAX_SCHEDULED_OCCURRENCES) break
-				const reminderTime = occurrence.getTime() - TRIGGER_TIMES_IN_MS[decAn.alarmInfo.trigger]
-				const lastTimeInArray = (last(this._scheduledNotifications[identifier].timeouts) || {time: 0}).time
-				if (reminderTime <= now() || reminderTime < lastTimeInArray) continue
-				const reminderDelay = reminderTime - now()
-				if (reminderDelay >= MAX_SAFE_DELAY) {
-					mightNeedIntermediateSchedule = true
-					break
-				}
-				hasScheduledAlarms = true
-				const id = setTimeout(() => {
-					clearTimeout(this._scheduledNotifications[identifier].timeouts.shift().id)
-					this._scheduleAlarms(decAn)
-					this._notifier.submitGroupedNotification(
-						lang.get('reminder_label'),
-						`${occurrence.toLocaleString()} ${decAn.summary}`,
-						identifier,
-						res => {
-							if (res === NotificationResult.Click) {
-								this._wm.openCalendar({userId: decAn.user})
-							}
+	_scheduleAlarms(decAn: AlarmNotification): void {
+		const identifier = decAn.alarmInfo.alarmIdentifier
+		let hasScheduledAlarms = false
+		let mightNeedIntermediateSchedule = false
+		for (const occurrence of Object.assign({}, decAn, {[Symbol.iterator]: occurrenceIterator})) {
+			if (this._scheduledNotifications[identifier].timeouts.length >= MAX_SCHEDULED_OCCURRENCES) break
+			const reminderTime = occurrence.getTime() - TRIGGER_TIMES_IN_MS[decAn.alarmInfo.trigger]
+			const lastTimeInArray = (last(this._scheduledNotifications[identifier].timeouts) || {time: 0}).time
+			if (reminderTime <= now() || reminderTime < lastTimeInArray) continue
+			const reminderDelay = reminderTime - now()
+			if (reminderDelay >= MAX_SAFE_DELAY) {
+				mightNeedIntermediateSchedule = true
+				break
+			}
+			hasScheduledAlarms = true
+			const id = setTimeout(() => {
+				clearTimeout(this._scheduledNotifications[identifier].timeouts.shift().id)
+				this._scheduleAlarms(decAn)
+				this._notifier.submitGroupedNotification(
+					lang.get('reminder_label'),
+					`${occurrence.toLocaleString()} ${decAn.summary}`,
+					identifier,
+					res => {
+						if (res === NotificationResult.Click) {
+							this._wm.openCalendar({userId: decAn.user})
 						}
-					)
-				}, reminderDelay)
-				this._scheduledNotifications[identifier].timeouts.push({id: id, time: reminderTime})
-			}
-			// the next alarm was too far in the future for 31bit milliseconds (~25 days)
-			if (!hasScheduledAlarms && mightNeedIntermediateSchedule) {
-				const id = setTimeout(() => {
-					clearTimeout(this._scheduledNotifications[identifier].timeouts.shift().id)
-					console.log("intermediate alarm timeout, rescheduling")
-					this._scheduleAlarms(decAn)
-				}, MAX_SAFE_DELAY)
-				this._scheduledNotifications[identifier].timeouts.push({id: id, time: now() + MAX_SAFE_DELAY})
-			}
-			console.log("scheduled", this._scheduledNotifications[identifier].timeouts.length, "alarm timeouts for ", decAn.alarmInfo.alarmIdentifier)
-			if (this._scheduledNotifications[identifier].timeouts.length === 0) {
-				delete this._scheduledNotifications[identifier]
-			}
-			resolve()
-		})
+					}
+				)
+			}, reminderDelay)
+			this._scheduledNotifications[identifier].timeouts.push({id: id, time: reminderTime})
+		}
+		// the next alarm was too far in the future for 31bit milliseconds (~25 days)
+		if (!hasScheduledAlarms && mightNeedIntermediateSchedule) {
+			const id = setTimeout(() => {
+				clearTimeout(this._scheduledNotifications[identifier].timeouts.shift().id)
+				console.log("intermediate alarm timeout, rescheduling")
+				this._scheduleAlarms(decAn)
+			}, MAX_SAFE_DELAY)
+			this._scheduledNotifications[identifier].timeouts.push({id: id, time: now() + MAX_SAFE_DELAY})
+		}
+		console.log("scheduled", this._scheduledNotifications[identifier].timeouts.length, "alarm timeouts for ", decAn.alarmInfo.alarmIdentifier)
+		if (this._scheduledNotifications[identifier].timeouts.length === 0) {
+			delete this._scheduledNotifications[identifier]
+		}
 	}
 
 	/**
@@ -178,7 +176,7 @@ export function occurrenceIterator() {
 		} else if (this.repeatRule.endType === EndType.UntilDate) {
 			maxOccurrences = Infinity
 			lastOccurrenceDate = new Date(parseInt(this.repeatRule.endValue))
-			lastOccurrenceDate.setDate(lastOccurrenceDate.getDate() + 1)
+			lastOccurrenceDate.setDate(lastOccurrenceDate.getDate())
 		}
 		occurrenceIncrement = this.repeatRule.frequency
 		occurrenceInterval = parseInt(this.repeatRule.interval)
@@ -194,7 +192,7 @@ export function occurrenceIterator() {
 		lastYieldedOccurrence: null,
 		nextYieldedOccurrence: firstOccurrence,
 
-		next: function () {
+		next() {
 			let newOccurrence
 			if (this.numYieldedOccurrences < maxOccurrences && !!this.nextYieldedOccurrence) {
 				newOccurrence = new Date(this.nextYieldedOccurrence.getTime())

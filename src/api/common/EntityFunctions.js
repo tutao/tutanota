@@ -76,7 +76,7 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	let pathPrefix = env.adminTypes.includes(typeRef.app + "/" + typeRef.type)
+	const pathPrefix = env.adminTypes.includes(typeRef.app + "/" + typeRef.type)
 		? "admin/"
 		: env.rootPathPrefix
 
@@ -364,8 +364,9 @@ export function getEtId(entity: Element): Id {
 
 export function getLetId(entity: ListElement): IdTuple {
 	if (typeof entity._id === "undefined") {
-		throw new Error("listId is not defined for " + (typeof (entity: any)._type
-		=== 'undefined' ? JSON.stringify(entity) : (entity: any)))
+		throw new Error("listId is not defined for " + (typeof (entity: any)._type === 'undefined'
+			? JSON.stringify(entity)
+			: (entity: any)))
 	}
 	return entity._id
 }

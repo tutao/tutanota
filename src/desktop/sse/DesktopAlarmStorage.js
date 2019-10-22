@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
+import {elementIdPart} from "../../api/common/EntityFunctions"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
@@ -36,7 +37,7 @@ export class DesktopAlarmStorage {
 	init(): Promise<void> {
 		return keytar.findPassword(SERVICE_NAME)
 		             .then(pw => pw
-			             ? Promise.resolve(pw)
+			             ? pw
 			             : this._generateAndStoreDeviceKey()
 		             )
 		             .then(pw => this._initialized.resolve(pw))
@@ -45,6 +46,7 @@ export class DesktopAlarmStorage {
 	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
 		const key = crypto.randomBytes(32).toString('base64')
+		// save key entry in keychain
 		return keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, key)
 		             .then(() => keytar.findPassword(SERVICE_NAME))
 		             .then(pw => {
@@ -85,9 +87,9 @@ export class DesktopAlarmStorage {
 		const deviceKeyBuffer = Buffer.from(deviceKeyB64, 'base64')
 		const decipher = crypto.createDecipheriv(ALGORITHM, deviceKeyBuffer, ivBuffer)
 		const keyToDecryptBuffer = Buffer.from(keyToDecrypt.encKeyB64, 'base64')
-		let decryptedKeyB64 = decipher.update(keyToDecryptBuffer)
-		decryptedKeyB64 = Buffer.concat([decryptedKeyB64, decipher.final()])
-		return decryptedKeyB64.toString('base64')
+		let decryptedKeyBuffer = decipher.update(keyToDecryptBuffer)
+		decryptedKeyBuffer = Buffer.concat([decryptedKeyBuffer, decipher.final()])
+		return decryptedKeyBuffer.toString('base64')
 	}
 
 	/**
@@ -114,41 +116,37 @@ export class DesktopAlarmStorage {
 	 * @param sessionKeys array of notificationSessionKeys
 	 */
 	resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
-		return new Promise((resolve, reject) => {
-			this._initialized.promise.then(pw => {
-				const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
-				for (let i = 0; i < sessionKeys.length; i++) {
-					const notificationSessionKey = sessionKeys[i]
-					const pushIdentifierId = notificationSessionKey.pushIdentifier[1]
-					if (this._sessionKeysB64[pushIdentifierId]) {
-						resolve({
-							piSk: this._sessionKeysB64[pushIdentifierId],
-							piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
-						})
-						return
-					} else {
-						if (keys[pushIdentifierId] == null) {
-							sessionKeys.splice(i--, 1)
-							continue
-						}
-						let decryptedKeyB64
-						try {
-							decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
-						} catch (e) {
-							console.log("could not decrypt pushIdentifierSessionKey, trying next one...")
-							sessionKeys.splice(i--, 1)
-							continue
-						}
-						this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
-						resolve({
-							piSk: decryptedKeyB64,
-							piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
-						})
-						break
+		return this._initialized.promise.then(pw => {
+			const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
+			for (let i = 0; i < sessionKeys.length; i++) {
+				const notificationSessionKey = sessionKeys[i]
+				const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
+				if (this._sessionKeysB64[pushIdentifierId]) {
+					return {
+						piSk: this._sessionKeysB64[pushIdentifierId],
+						piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
+					}
+				} else {
+					if (keys[pushIdentifierId] == null) {
+						sessionKeys.splice(i--, 1)
+						continue
+					}
+					let decryptedKeyB64
+					try {
+						decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
+					} catch (e) {
+						console.log("could not decrypt pushIdentifierSessionKey, trying next one...")
+						sessionKeys.splice(i--, 1)
+						continue
+					}
+					this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
+					return {
+						piSk: decryptedKeyB64,
+						piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
 					}
 				}
-				reject("could not resolve pushIdentifierSessionKey")
-			})
+			}
+			throw new Error("could not resolve pushIdentifierSessionKey")
 		})
 	}
 
