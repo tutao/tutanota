@@ -256,8 +256,8 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
 
 		const an = createAlarmNotification({
-			startTime: new Date(2019, 9, 20, 10),
-			endTime: new Date(2019, 9, 20, 12),
+			startTime: mkDate('Oct 20 2019 10:00'),
+			endTime: mkDate('Oct 20 2019 12:00'),
 			trigger: "5M",
 			endType: EndType.Never,
 			endValue: null,
@@ -267,12 +267,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 		scheduler.handleAlarmNotification(an)
 
 		setTimeout(() => {
+			const notifyTime = mkDate('Oct 20 2019 09:55').getTime()
 			timeProviderMock.tickOnce()
 			o(timeProviderMock.setTimeout.callCount).equals(2)
 			o(timeProviderMock.clearTimeout.callCount).equals(1)
-			o(timeProviderMock.executedTimeouts[0].when).equals(1571558100000)
+			o(timeProviderMock.executedTimeouts[0].when).equals(notifyTime)
 			o(timeProviderMock.timeouts.length).equals(1)
-			o(timeProviderMock.timeouts[0].when).equals(1571558100000 + MAX_SAFE_DELAY)
+			o(timeProviderMock.timeouts[0].when).equals(notifyTime + MAX_SAFE_DELAY)
 			done()
 		}, 10)
 	})
@@ -321,10 +322,6 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			done()
 		}, 30)
 
-	})
-
-	o("do alarms at the right times", done => {
-		done()
 	})
 
 	o("alarm occurrences", () => {
