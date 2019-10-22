@@ -341,13 +341,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.DAILY,
 			interval: '1'
 		}, [
-			'Sun Oct 20 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Mon Oct 21 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Tue Oct 22 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Wed Oct 23 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Thu Oct 24 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Fri Oct 25 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Sat Oct 26 2019 10:00:00 GMT+0200 (GMT+02:00)'
+			mkDate('Oct 20 2019 10:00'),
+			mkDate('Oct 21 2019 10:00'),
+			mkDate('Oct 22 2019 10:00'),
+			mkDate('Oct 23 2019 10:00'),
+			mkDate('Oct 24 2019 10:00'),
+			mkDate('Oct 25 2019 10:00'),
+			mkDate('Oct 26 2019 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -359,13 +359,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.DAILY,
 			interval: '1'
 		}, [
-			'Sun Oct 20 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Mon Oct 21 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Tue Oct 22 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Wed Oct 23 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Thu Oct 24 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Fri Oct 25 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Sat Oct 26 2019 10:00:00 GMT+0200 (GMT+02:00)'
+			mkDate('Oct 20 2019 10:00'),
+			mkDate('Oct 21 2019 10:00'),
+			mkDate('Oct 22 2019 10:00'),
+			mkDate('Oct 23 2019 10:00'),
+			mkDate('Oct 24 2019 10:00'),
+			mkDate('Oct 25 2019 10:00'),
+			mkDate('Oct 26 2019 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -377,13 +377,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.DAILY,
 			interval: '2'
 		}, [
-			'Sun Oct 20 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Tue Oct 22 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Thu Oct 24 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Sat Oct 26 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Mon Oct 28 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Wed Oct 30 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Fri Nov 01 2019 10:00:00 GMT+0100 (GMT+01:00)'
+			mkDate('Oct 20 2019 10:00'),
+			mkDate('Oct 22 2019 10:00'),
+			mkDate('Oct 24 2019 10:00'),
+			mkDate('Oct 26 2019 10:00'),
+			mkDate('Oct 28 2019 10:00'),
+			mkDate('Oct 30 2019 10:00'),
+			mkDate('Nov 01 2019 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -395,13 +395,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.WEEKLY,
 			interval: '1'
 		}, [
-			'Sun Oct 20 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Sun Oct 27 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Nov 03 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Nov 10 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Nov 17 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Nov 24 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Dec 01 2019 10:00:00 GMT+0100 (GMT+01:00)'
+			mkDate('Oct 20 2019 10:00'),
+			mkDate('Oct 27 2019 10:00'),
+			mkDate('Nov 03 2019 10:00'),
+			mkDate('Nov 10 2019 10:00'),
+			mkDate('Nov 17 2019 10:00'),
+			mkDate('Nov 24 2019 10:00'),
+			mkDate('Dec 01 2019 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -413,13 +413,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.MONTHLY,
 			interval: '1'
 		}, [
-			'Thu Oct 31 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Nov 30 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Tue Dec 31 2019 10:00:00 GMT+0100 (GMT+01:00)',
-			'Fri Jan 31 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Tue Mar 31 2020 10:00:00 GMT+0200 (GMT+02:00)',
-			'Thu Apr 30 2020 10:00:00 GMT+0200 (GMT+02:00)'
+			mkDate('Oct 31 2019 10:00'),
+			mkDate('Nov 30 2019 10:00'),
+			mkDate('Dec 31 2019 10:00'),
+			mkDate('Jan 31 2020 10:00'),
+			mkDate('Feb 29 2020 10:00'),
+			mkDate('Mar 31 2020 10:00'),
+			mkDate('Apr 30 2020 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -431,13 +431,13 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.ANNUALLY,
 			interval: '1'
 		}, [
-			'Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Feb 28 2021 10:00:00 GMT+0100 (GMT+01:00)',
-			'Mon Feb 28 2022 10:00:00 GMT+0100 (GMT+01:00)',
-			'Tue Feb 28 2023 10:00:00 GMT+0100 (GMT+01:00)',
-			'Thu Feb 29 2024 10:00:00 GMT+0100 (GMT+01:00)',
-			'Fri Feb 28 2025 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Feb 28 2026 10:00:00 GMT+0100 (GMT+01:00)'
+			mkDate('Feb 29 2020 10:00'),
+			mkDate('Feb 28 2021 10:00'),
+			mkDate('Feb 28 2022 10:00'),
+			mkDate('Feb 28 2023 10:00'),
+			mkDate('Feb 29 2024 10:00'),
+			mkDate('Feb 28 2025 10:00'),
+			mkDate('Feb 28 2026 10:00')
 		])
 
 		//test EndType.UntilDate
@@ -450,10 +450,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.DAILY,
 			interval: '1'
 		}, [
-			'Sun Oct 20 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Mon Oct 21 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Tue Oct 22 2019 10:00:00 GMT+0200 (GMT+02:00)',
-			'Wed Oct 23 2019 10:00:00 GMT+0200 (GMT+02:00)'
+			mkDate('Oct 20 2019 10:00'),
+			mkDate('Oct 21 2019 10:00'),
+			mkDate('Oct 22 2019 10:00'),
+			mkDate('Oct 23 2019 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -465,11 +465,11 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.WEEKLY,
 			interval: '1'
 		}, [
-			'Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Mar 07 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Mar 14 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Mar 21 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sat Mar 28 2020 10:00:00 GMT+0100 (GMT+01:00)'
+			mkDate('Feb 29 2020 10:00'),
+			mkDate('Mar 07 2020 10:00'),
+			mkDate('Mar 14 2020 10:00'),
+			mkDate('Mar 21 2020 10:00'),
+			mkDate('Mar 28 2020 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -481,11 +481,11 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.MONTHLY,
 			interval: '1'
 		}, [
-			'Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Mar 29 2020 10:00:00 GMT+0200 (GMT+02:00)',
-			'Wed Apr 29 2020 10:00:00 GMT+0200 (GMT+02:00)',
-			'Fri May 29 2020 10:00:00 GMT+0200 (GMT+02:00)',
-			'Mon Jun 29 2020 10:00:00 GMT+0200 (GMT+02:00)'
+			mkDate('Feb 29 2020 10:00'),
+			mkDate('Mar 29 2020 10:00'),
+			mkDate('Apr 29 2020 10:00'),
+			mkDate('May 29 2020 10:00'),
+			mkDate('Jun 29 2020 10:00')
 		])
 
 		testOccurrenceArray(occurrenceIterator, {
@@ -497,12 +497,12 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			frequency: RepeatPeriod.ANNUALLY,
 			interval: '1'
 		}, [
-			'Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)',
-			'Sun Feb 28 2021 10:00:00 GMT+0100 (GMT+01:00)',
-			'Mon Feb 28 2022 10:00:00 GMT+0100 (GMT+01:00)',
-			'Tue Feb 28 2023 10:00:00 GMT+0100 (GMT+01:00)',
-			'Thu Feb 29 2024 10:00:00 GMT+0100 (GMT+01:00)',
-			'Fri Feb 28 2025 10:00:00 GMT+0100 (GMT+01:00)'
+			mkDate('Feb 29 2020 10:00'),
+			mkDate('Feb 28 2021 10:00'),
+			mkDate('Feb 28 2022 10:00'),
+			mkDate('Feb 28 2023 10:00'),
+			mkDate('Feb 29 2024 10:00'),
+			mkDate('Feb 28 2025 10:00')
 		])
 
 		// non-repeating
@@ -511,7 +511,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			endTime: mkDate('Mar 1 2020 12:00'),
 			trigger: "5M",
 			endType: null,
-		}, ['Sat Feb 29 2020 10:00:00 GMT+0100 (GMT+01:00)'])
+		}, [mkDate('Feb 29 2020 10:00')])
 	})
 })
 
