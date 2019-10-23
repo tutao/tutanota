@@ -119,7 +119,7 @@ export function showEventDetailsFromFile(firstCalendarFile: TutanotaFile) {
 							      .resolve(eventWithAlarms.event.sequence > existingEvent.sequence
 								      ? worker.createCalendarEvent(eventWithAlarms.event, existingEvent.alarmInfo, existingEvent)
 								      : null)
-							      .then(() => showCalendarEventDialog(existingEvent.startTime, calendarInfo, existingEvent))
+							      .then(() => showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event))
 					      }
 				      })
 			      } else {
