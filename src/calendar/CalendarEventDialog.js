@@ -15,7 +15,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {erase, load} from "../api/main/Entity"
 
-import {clone, downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
@@ -28,7 +28,8 @@ import {logins} from "../api/main/LoginController"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {
 	calendarAttendeeStatusDescription,
-	createRepeatRuleWithValues, filterInt,
+	createRepeatRuleWithValues,
+	filterInt,
 	generateUid,
 	getAllDayDateUTC,
 	getCalendarName,
@@ -44,7 +45,7 @@ import {TimePicker} from "../gui/base/TimePicker"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {getDefaultSender, getSenderName} from "../mail/MailUtils"
+import {getDefaultSenderFromUser, getEnabledMailAddresses} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {getCleanedMailAddress} from "../misc/Formatter"
@@ -242,43 +243,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	const attendeesExpanded = stream(false)
 
-	const defaultSender = getDefaultSender(mailModel.getUserMailboxDetails())
+	const mailAddresses = getEnabledMailAddresses(mailModel.getUserMailboxDetails())
 	const attendees = existingEvent && existingEvent.attendees.slice() || []
-	const organizer = existingEvent && existingEvent.organizer || defaultSender
-	const isOwnEvent = organizer === defaultSender
+	const organizer = stream(existingEvent && existingEvent.organizer || getDefaultSenderFromUser())
+	const isOwnEvent = mailAddresses.includes(organizer())
 	const inviteFieldValue = stream("")
 
 	const participationStatus = stream()
-	// TODO: can participate as alias
+	let ownAttendee
 	if (existingEvent && !isOwnEvent) {
-		const ownAttendee = attendees.find(a => a.address.address === defaultSender)
-
-		let defaultValue = CalendarAttendeeStatus.NEEDS_ACTION
-		if (ownAttendee) {
-			defaultValue = getAttendeeStatus(ownAttendee)
-			participationStatus(defaultValue)
-		}
-		stream.scan((acc, value) => {
-			if (acc !== value && value !== CalendarAttendeeStatus.NEEDS_ACTION) {
-				if (ownAttendee) {
-					ownAttendee.status = participationStatus()
-				} else {
-					attendees.push(createCalendarEventAttendee({
-						address: createMailAddress({
-							name: "",
-							address: defaultSender
-						}),
-						status: participationStatus()
-					}))
-				}
-				const eventClone = clone(existingEvent)
-				eventClone.attendees = attendees
-				sendCalendarInviteResponse(eventClone, createMailAddress({
-					name: getSenderName(mailModel.getUserMailboxDetails()),
-					address: defaultSender,
-				}), participationStatus())
-			}
-		}, defaultValue, participationStatus)
+		ownAttendee = attendees.find(a => mailAddresses.includes(a.address.address))
+		participationStatus(ownAttendee ? getAttendeeStatus(ownAttendee) : CalendarAttendeeStatus.NEEDS_ACTION)
+	} else {
+		ownAttendee = null
 	}
 
 
@@ -361,190 +338,205 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				value: notesValue,
 				type: Type.Area
 			}),
+			isOwnEvent
+				? m(DropDownSelectorN, {
+					// TODO: translate
+					label: () => "Organizer",
+					items: getEnabledMailAddresses(mailModel.getUserMailboxDetails())
+						.map(mailAddress => ({
+							name: mailAddress,
+							value: mailAddress
+						})),
+					selectedValue: organizer,
+				})
+				: m(".col.mt", [
+					// TODO: translate
+					m(".small", "Organizer"),
+					m("", organizer())
+				]),
 			[
-				m(".mt", "Organizer: " + organizer),
-				[
-					m(ExpanderButtonN, {
-						label: () => "attendees",
-						expanded: attendeesExpanded,
-					}),
-					m(ExpanderPanelN, {
-						expanded: attendeesExpanded,
-					}, [
-						m(TextFieldN, {
-							class: "mt-negative-s",
-							label: () => "Invite",
-							value: inviteFieldValue,
-							keyHandler: (keyPress) => {
-								if (keyPress.keyCode === 13) {
-									addAttendee()
-									return false
-								}
-								return true
+				m(ExpanderButtonN, {
+					label: () => "attendees",
+					expanded: attendeesExpanded,
+				}),
+				m(ExpanderPanelN, {
+					expanded: attendeesExpanded,
+				}, [
+					m(TextFieldN, {
+						class: "mt-negative-s",
+						label: () => "Invite",
+						value: inviteFieldValue,
+						keyHandler: (keyPress) => {
+							if (keyPress.keyCode === 13) {
+								addAttendee()
+								return false
 							}
-						}),
-						attendees.map(a => m(".flex", [
-							m(".flex-grow", {
-									style: {
-										height: px(size.button_height),
-										"lineHeight": px(size.button_height),
-									},
-								},
-								`${a.address.name || ""} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
-						]))
-					]),
-				],
-				!isOwnEvent
-					? [
-						m(DropDownSelectorN, {
-							label: () => "Your decision",
-							items: [
-								// TODO: translate
-								{name: "Not selected", value: CalendarAttendeeStatus.NEEDS_ACTION},
-								{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
-								{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
-								{name: "No", value: CalendarAttendeeStatus.DECLINED},
-							],
-							selectedValue: participationStatus,
-						})
-					]
-					: null,
-				m(".mr-negative-s.float-right.flex-end-on-child", [
-					m(ButtonN, {
-						label: "delete_action",
-						type: ButtonType.Primary,
-						click: () => {
-							let p = neverNull(existingEvent).repeatRule
-								? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
-								: Promise.resolve(true)
-							p.then((answer) => {
-								if (answer) {
-									erase(existingEvent).catch(NotFoundError, noOp)
-									dialog.close()
-								}
-							})
+							return true
 						}
 					}),
-				])
-			]
+					attendees.map(a => m(".flex", [
+						m(".flex-grow", {
+								style: {
+									height: px(size.button_height),
+									"lineHeight": px(size.button_height),
+								},
+							},
+							`${a.address.name || ""} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
+					]))
+				]),
+			],
+			!isOwnEvent
+				? [
+					m(DropDownSelectorN, {
+						label: () => "Your decision",
+						items: [
+							// TODO: translate
+							{name: "Not selected", value: CalendarAttendeeStatus.NEEDS_ACTION, selectable: false},
+							{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
+							{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
+							{name: "No", value: CalendarAttendeeStatus.DECLINED},
+						],
+						selectedValue: participationStatus,
+					})
+				]
+				: null,
+			m(".mr-negative-s.float-right.flex-end-on-child", [
+				m(ButtonN, {
+					label: "delete_action",
+					type: ButtonType.Primary,
+					click: () => {
+						let p = neverNull(existingEvent).repeatRule
+							? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
+							: Promise.resolve(true)
+						p.then((answer) => {
+							if (answer) {
+								erase(existingEvent).catch(NotFoundError, noOp)
+								dialog.close()
+							}
+						})
+					}
+				}),
+			])
 		]),
 		okAction: () => {
-			(isOwnEvent || existingEvent && !existingEvent._id
-					? Promise.resolve(true)
-					// TODO: translate
-					: Dialog.confirm(() => "Updates to the event will be visible only in this calendar")
-			).then((shouldUpdate) => {
-				if (!shouldUpdate) {
+			const newEvent = createCalendarEvent()
+			let startDate = neverNull(startDatePicker.date())
+			const parsedStartTime = parseTime(startTime())
+			const parsedEndTime = parseTime(endTime())
+			let endDate = neverNull(endDatePicker.date())
+
+			if (allDay()) {
+				startDate = getAllDayDateUTC(startDate)
+				endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
+			} else {
+				if (!parsedStartTime || !parsedEndTime) {
+					Dialog.error("timeFormatInvalid_msg")
 					return
 				}
-				const newEvent = createCalendarEvent()
-				let startDate = neverNull(startDatePicker.date())
-				const parsedStartTime = parseTime(startTime())
-				const parsedEndTime = parseTime(endTime())
-				let endDate = neverNull(endDatePicker.date())
+				startDate.setHours(parsedStartTime.hours)
+				startDate.setMinutes(parsedStartTime.minutes)
 
-				if (allDay()) {
-					startDate = getAllDayDateUTC(startDate)
-					endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
-				} else {
-					if (!parsedStartTime || !parsedEndTime) {
-						Dialog.error("timeFormatInvalid_msg")
-						return
-					}
-					startDate.setHours(parsedStartTime.hours)
-					startDate.setMinutes(parsedStartTime.minutes)
+				// End date is never actually included in the event. For the whole day event the next day
+				// is the boundary. For the timed one the end time is the boundary.
+				endDate.setHours(parsedEndTime.hours)
+				endDate.setMinutes(parsedEndTime.minutes)
+			}
 
-					// End date is never actually included in the event. For the whole day event the next day
-					// is the boundary. For the timed one the end time is the boundary.
-					endDate.setHours(parsedEndTime.hours)
-					endDate.setMinutes(parsedEndTime.minutes)
-				}
+			if (endDate.getTime() <= startDate.getTime()) {
+				Dialog.error('startAfterEnd_label')
+				return
+			}
+			newEvent.startTime = startDate
+			newEvent.description = notesValue()
+			newEvent.summary = summary()
+			newEvent.location = locationValue()
+			newEvent.endTime = endDate
+			newEvent._ownerGroup = selectedCalendar().groupRoot._id
+			newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
+			newEvent.organizer = organizer()
+			const repeatFrequency = repeatPickerAttrs.selectedValue()
+			if (repeatFrequency == null) {
+				newEvent.repeatRule = null
+			} else {
+				const interval = repeatIntervalPickerAttrs.selectedValue() || 1
+				const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
+				newEvent.repeatRule = repeatRule
 
-				if (endDate.getTime() <= startDate.getTime()) {
-					Dialog.error('startAfterEnd_label')
-					return
-				}
-				newEvent.startTime = startDate
-				newEvent.description = notesValue()
-				newEvent.summary = summary()
-				newEvent.location = locationValue()
-				newEvent.endTime = endDate
-				newEvent._ownerGroup = selectedCalendar().groupRoot._id
-				newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
-				newEvent.organizer = organizer
-				const repeatFrequency = repeatPickerAttrs.selectedValue()
-				if (repeatFrequency == null) {
-					newEvent.repeatRule = null
-				} else {
-					const interval = repeatIntervalPickerAttrs.selectedValue() || 1
-					const repeatRule = createRepeatRuleWithValues(repeatFrequency, interval)
-					newEvent.repeatRule = repeatRule
-
-					const stopType = neverNull(endTypePickerAttrs.selectedValue())
-					repeatRule.endType = stopType
-					if (stopType === EndType.Count) {
-						let count = endCountPickerAttrs.selectedValue()
-						if (isNaN(count) || Number(count) < 1) {
-							repeatRule.endType = EndType.Never
-						} else {
-							repeatRule.endValue = String(count)
-						}
-					} else if (stopType === EndType.UntilDate) {
-						const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
-						if (repeatEndDate.getTime() < getEventStart(newEvent)) {
-							Dialog.error("startAfterEnd_label")
-							return
-						} else {
-							// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
-							// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
-							// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
-							// regular events it is just a timestamp.
-							repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
-						}
-					}
-				}
-				const newAlarms = []
-				for (let pickerAttrs of alarmPickerAttrs) {
-					const alarmValue = pickerAttrs.selectedValue()
-					if (alarmValue) {
-						const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
-						newAlarms.push(newAlarm)
-					}
-				}
-				newEvent.attendees = attendees
-				newEvent.sequence = String(filterInt(newEvent.sequence) + 1)
-
-				let newAttendees = []
-				let existingAttendees = []
-				if (isOwnEvent) {
-					if (existingEvent) {
-						attendees.forEach((a) => {
-							if (existingEvent.attendees.includes(a)) {
-								existingAttendees.push(a)
-							} else {
-								newAttendees.push(a)
-							}
-						})
+				const stopType = neverNull(endTypePickerAttrs.selectedValue())
+				repeatRule.endType = stopType
+				if (stopType === EndType.Count) {
+					let count = endCountPickerAttrs.selectedValue()
+					if (isNaN(count) || Number(count) < 1) {
+						repeatRule.endType = EndType.Never
 					} else {
-						newAttendees = attendees
+						repeatRule.endValue = String(count)
+					}
+				} else if (stopType === EndType.UntilDate) {
+					const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
+					if (repeatEndDate.getTime() < getEventStart(newEvent)) {
+						Dialog.error("startAfterEnd_label")
+						return
+					} else {
+						// We have to save repeatEndDate in the same way we save start/end times because if one is timzone
+						// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
+						// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
+						// regular events it is just a timestamp.
+						repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
 					}
 				}
-				// TODO: translate
-				return (existingAttendees.length
-						? Dialog.confirm(() => "Send out event update?")
-						: Promise.resolve(false)
-				).then((shouldSendOutUpdates) => {
-					worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
-					      .then(() => {
-						      if (newAttendees.length) {
-							      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
-						      }
-						      if (shouldSendOutUpdates) {
-							      sendCalendarUpdate(newEvent, existingAttendees.map(a => a.address))
-						      }
-					      })
-					dialog.close()
-				})
+			}
+			const newAlarms = []
+			for (let pickerAttrs of alarmPickerAttrs) {
+				const alarmValue = pickerAttrs.selectedValue()
+				if (alarmValue) {
+					const newAlarm = createCalendarAlarm(generateEventElementId(Date.now()), alarmValue)
+					newAlarms.push(newAlarm)
+				}
+			}
+			newEvent.attendees = attendees
+			newEvent.sequence = String(filterInt(newEvent.sequence) + 1)
+
+			let newAttendees = []
+			let existingAttendees = []
+			if (isOwnEvent) {
+				if (existingEvent) {
+					attendees.forEach((a) => {
+						if (existingEvent.attendees.includes(a)) {
+							existingAttendees.push(a)
+						} else {
+							newAttendees.push(a)
+						}
+					})
+				} else {
+					newAttendees = attendees
+				}
+			} else {
+				if (ownAttendee && participationStatus() !== CalendarAttendeeStatus.NEEDS_ACTION
+					&& ownAttendee.status !== participationStatus()) {
+					ownAttendee.status = participationStatus()
+
+					newEvent.attendees = attendees
+					sendCalendarInviteResponse(newEvent, createMailAddress({
+						name: ownAttendee.address.name,
+						address: ownAttendee.address.address,
+					}), participationStatus())
+				}
+			}
+			// TODO: translate
+			return (existingAttendees.length
+					? Dialog.confirm(() => "Send out event update?")
+					: Promise.resolve(false)
+			).then((shouldSendOutUpdates) => {
+				worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
+				      .then(() => {
+					      if (newAttendees.length) {
+						      sendCalendarInvite(newEvent, newAlarms, newAttendees.map(a => a.address))
+					      }
+					      if (shouldSendOutUpdates) {
+						      sendCalendarUpdate(newEvent, existingAttendees.map(a => a.address))
+					      }
+				      })
+				dialog.close()
 			})
 		}
 	})
