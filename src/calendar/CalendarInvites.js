@@ -17,6 +17,11 @@ import {DateTime} from "luxon"
 import {Dialog} from "../gui/base/Dialog"
 import {ParserError} from "../misc/parsing"
 import {loadCalendarInfo} from "./CalendarModel"
+import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
+import {load, loadMultiple} from "../api/main/Entity"
+import type {CalendarInfo} from "./CalendarView"
+import {AlarmInfoTypeRef} from "../api/entities/sys/AlarmInfo"
+import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 
 
 export function sendCalendarInvite(existingEvent: CalendarEvent, alarms: Array<AlarmInfo>, recipients: $ReadOnlyArray<MailAddress>) {
@@ -52,6 +57,16 @@ export function sendCalendarUpdate(event: CalendarEvent, recipients: $ReadOnlyAr
 	sendCalendarFile(editor, file, CalendarMethod.PUBLISH)
 }
 
+export function sendCalendarCancellation(event: CalendarEvent, recipients: $ReadOnlyArray<MailAddress>) {
+	const editor = new MailEditor(mailModel.getUserMailboxDetails())
+	// TODO: translate
+	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})), `Event cancelled: ${event.summary}`,
+		makeCancellationEmailBody(event, ""))
+
+	const file = makeInvitationCalendarFile(event, IcalendarCalendarMethod.CANCEL)
+	sendCalendarFile(editor, file, CalendarMethod.CANCEL)
+}
+
 function sendCalendarFile(editor: MailEditor, responseFile: DataFile, method: CalendarMethodEnum) {
 	editor.attachFiles([responseFile])
 	editor.hooks = {
@@ -63,6 +78,24 @@ function sendCalendarFile(editor: MailEditor, responseFile: DataFile, method: Ca
 }
 
 function makeInviteEmailBody(event: CalendarEvent, message: string) {
+	return `<div style="max-width: 685px; margin: 0 auto">
+  <h2 style="text-align: center">${message}</h2>
+  <div style="margin: 0 auto">
+    <div style="display: flex"><div style="min-width: 80px">When:</div>${formatEventDuration(event)}</div>
+    <div style="display: flex"><div style="min-width: 80px">Who:</div>${event.organizer ? event.organizer + " (organizer)" : ""}</div>
+    ${event.attendees.map((a) =>
+		"<div style='margin-left: 80px'>" + (a.address.name || "") + " " + a.address.address + " "
+		+ calendarAttendeeStatusDescription(getAttendeeStatus(a)) + "</div>")
+	       .join("\n")}
+  </div>
+  <hr style="border: 0; height: 1px; background-color: #ddd">
+  <img style="max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
+  		src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(theme.logo))}"
+  		alt="logo"/>
+</div>`
+}
+
+function makeCancellationEmailBody(event: CalendarEvent, message: string) {
 	return `<div style="max-width: 685px; margin: 0 auto">
   <h2 style="text-align: center">${message}</h2>
   <div style="margin: 0 auto">

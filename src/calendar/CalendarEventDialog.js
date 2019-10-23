@@ -50,7 +50,7 @@ import {mailModel} from "../mail/MailModel"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {sendCalendarInvite, sendCalendarInviteResponse, sendCalendarUpdate} from "./CalendarInvites"
+import {sendCalendarCancellation, sendCalendarInvite, sendCalendarInviteResponse, sendCalendarUpdate} from "./CalendarInvites"
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -356,6 +356,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				]),
 			[
 				m(ExpanderButtonN, {
+					// TODO: translate
 					label: () => "attendees",
 					expanded: attendeesExpanded,
 				}),
@@ -364,6 +365,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}, [
 					m(TextFieldN, {
 						class: "mt-negative-s",
+						// TODO: translate
 						label: () => "Invite",
 						value: inviteFieldValue,
 						keyHandler: (keyPress) => {
@@ -382,6 +384,16 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 								},
 							},
 							`${a.address.name || ""} ${a.address.address} ${calendarAttendeeStatusDescription(getAttendeeStatus(a))}`),
+						isOwnEvent
+							? m(ButtonN, {
+								label: "delete_action",
+								type: ButtonType.Action,
+								icon: () => Icons.Cancel,
+								click: () => {
+									remove(attendees, a)
+								}
+							})
+							: null
 					]))
 				]),
 			],
@@ -400,23 +412,28 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					})
 				]
 				: null,
-			m(".mr-negative-s.float-right.flex-end-on-child", [
-				m(ButtonN, {
-					label: "delete_action",
-					type: ButtonType.Primary,
-					click: () => {
-						let p = neverNull(existingEvent).repeatRule
-							? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
-							: Promise.resolve(true)
-						p.then((answer) => {
-							if (answer) {
-								erase(existingEvent).catch(NotFoundError, noOp)
-								dialog.close()
-							}
-						})
-					}
-				}),
-			])
+			existingEvent && existingEvent._id
+				? m(".mr-negative-s.float-right.flex-end-on-child", [
+					m(ButtonN, {
+						label: "delete_action",
+						type: ButtonType.Primary,
+						click: () => {
+							let p = neverNull(existingEvent).repeatRule
+								? Dialog.confirm("deleteRepeatingEventConfirmation_msg")
+								: Promise.resolve(true)
+							p.then((answer) => {
+								if (answer) {
+									if (isOwnEvent && existingEvent.attendees.length) {
+										sendCalendarCancellation(existingEvent, existingEvent.attendees.map(a => a.address))
+									}
+									erase(existingEvent).catch(NotFoundError, noOp)
+									dialog.close()
+								}
+							})
+						}
+					}),
+				])
+				: null
 		]),
 		okAction: () => {
 			const newEvent = createCalendarEvent()
@@ -536,6 +553,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					      }
 					      if (shouldSendOutUpdates) {
 						      sendCalendarUpdate(newEvent, existingAttendees.map(a => a.address))
+					      }
+					      if (existingEvent) {
+						      const removedAttendees = existingEvent.attendees.filter(att => !attendees.includes(att))
+						      if (removedAttendees.length > 0) {
+							      sendCalendarCancellation(existingEvent, removedAttendees.map(a => a.address))
+						      }
 					      }
 				      })
 				dialog.close()
