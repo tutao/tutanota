@@ -20,6 +20,7 @@ import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
+import type {DropdownItem} from "./DropDownSelectorN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
 
 assertMainOrNode()
@@ -94,7 +95,7 @@ export class Dialog {
 								let bgcolor = theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
-								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
+								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
 								animation = Promise.all([
 									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
 									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
@@ -554,7 +555,9 @@ export class Dialog {
 	 * @param dropdownWidth width of the dropdown
 	 * @returns A promise resolving to the selected item. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showDropDownSelectionDialog<T>(titleId: TranslationKey, label: TranslationKey, infoMsgId: ?TranslationKey, items: {name: string, value: T}[], selectedValue: Stream<T>, dropdownWidth: ?number): Promise<T> {
+	static showDropDownSelectionDialog<T>(titleId: TranslationKey, label: TranslationKey, infoMsgId: ?TranslationKey,
+	                                      items: $ReadOnlyArray<DropdownItem<T>>, selectedValue: Stream<T>, dropdownWidth: ?number
+	): Promise<T> {
 		return new Promise(resolve => {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),

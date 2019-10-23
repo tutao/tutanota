@@ -17,6 +17,7 @@ import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import type {DropdownItem} from "../gui/base/DropDownSelectorN"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
@@ -40,11 +41,15 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 	const selectedTab = stream(editSegment)
 	const segmentControl = new SegmentControl([editSegment, previewSegment], selectedTab)
 
-	const sortedLanguages: {name: string, value: string}[] = languages.slice()
-	                                                                  .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-	                                                                  .map(language => {
-		                                                                  return {name: lang.get(language.textId), value: language.code}
-	                                                                  })
+	const sortedLanguages: $ReadOnlyArray<DropdownItem<string>> =
+		languages.slice()
+		         .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+		         .map(language => {
+			         return {
+				         name: lang.get(language.textId),
+				         value: language.code
+			         }
+		         })
 	const selectedLanguage = sortedLanguages.find(({value}) => value === template.language)
 	const selectedLanguageStream: Stream<string> = stream(selectedLanguage && selectedLanguage.value)
 	const subject = stream(template.subject)
@@ -116,7 +121,8 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 				return
 			}
 			showProgressDialog("pleaseWait_msg", customerProperties.getAsync().then((customerProperties) => {
-				if (customerProperties.notificationMailTemplates.filter((t) => t !== existingTemplate && t.language === selectedLanguageStream()).length > 0) {
+				if (customerProperties.notificationMailTemplates.filter((t) => t !== existingTemplate && t.language
+					=== selectedLanguageStream()).length > 0) {
 					Dialog.error("templateLanguageExists_msg")
 					return
 				}

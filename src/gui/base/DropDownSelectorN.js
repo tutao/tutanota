@@ -13,9 +13,16 @@ import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNode()
 
+export type DropdownItem<T> = {
+	name: string,
+	value: T,
+	/*default interpreted as "true"*/
+	selectable?: boolean,
+}
+
 export type DropDownSelectorAttrs<T> = {
 	label: TranslationKey | lazy<string>,
-	items: {name: string, value: T}[],
+	items: $ReadOnlyArray<DropdownItem<T>>,
 	selectedValue: Stream<?T>,
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
@@ -46,21 +53,23 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 
 	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
 		return createDropdown(() => {
-			return a.items.map(item => {
-				return {
-					label: () => item.name,
-					click: () => {
-						if (a.selectionChangedHandler) {
-							a.selectionChangedHandler(item.value)
-						} else {
-							a.selectedValue(item.value)
-							m.redraw()
-						}
-					},
-					type: ButtonType.Dropdown,
-					isSelected: () => a.selectedValue() === item.value
-				}
-			})
+			return a.items
+			        .filter(item => item.selectable !== false)
+			        .map(item => {
+				        return {
+					        label: () => item.name,
+					        click: () => {
+						        if (a.selectionChangedHandler) {
+							        a.selectionChangedHandler(item.value)
+						        } else {
+							        a.selectedValue(item.value)
+							        m.redraw()
+						        }
+					        },
+					        type: ButtonType.Dropdown,
+					        isSelected: () => a.selectedValue() === item.value
+				        }
+			        })
 		}, a.dropdownWidth)
 	}
 
