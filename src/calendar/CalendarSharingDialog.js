@@ -18,16 +18,15 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {GroupInvitationTypeRef} from "../api/entities/sys/GroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
 import {ShareCapability} from "../api/common/TutanotaConstants"
 import {isSameId} from "../api/common/EntityFunctions"
-import {logins} from "../api/main/LoginController"
 import {getCalendarName} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {px} from "../gui/size"
+import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 
 
 type GroupMemberInfo = {
@@ -38,7 +37,7 @@ type GroupDetails = {
 	info: GroupInfo,
 	group: Group,
 	memberInfos: Array<GroupMemberInfo>,
-	invitations: Array<GroupInvitation>
+	invitations: Array<SentGroupInvitation>
 }
 
 type CalendarSharingDialogAttrs = {
@@ -51,13 +50,14 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
 		.then(groupDetails => {
 			const dialog = Dialog.showActionDialog({
-					title: () => lang.get("sharing_label"),
+					title: () => getCalendarName(groupInfo.name),
 					type: DialogType.EditLarge,
 					child: () => m(CalendarSharingDialogContent, {
 						groupDetails,
 						sendInviteHandler: (recipients, capability) => {
-							showProgressDialog("calendarInvitationProgress_msg", worker.sendGroupInvitation(groupInfo.group, recipients, capability))
-								.then(() => dialog.close())
+							showProgressDialog("calendarInvitationProgress_msg",
+								worker.sendGroupInvitation(groupInfo, getCalendarName(groupInfo.name), recipients, capability)
+							).then(() => dialog.close())
 						}
 					}),
 					okAction: null
@@ -70,7 +70,7 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 	return load(GroupTypeRef, groupInfo.group).then(group => {
 		return Promise.all([
-				loadAll(GroupInvitationTypeRef, group.invitations),
+				loadAll(SentGroupInvitationTypeRef, group.invitations),
 				loadGroupMembers(group)
 			]
 		).then(([invitations, memberInfos]) => {
@@ -101,12 +101,11 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 
 	constructor() {
 		this._capapility = stream(ShareCapability.Read)
-		this._invitePeopleValueTextField = new BubbleTextField("inviteRecipients_label", new MailAddressBubbleHandler(this))
+		this._invitePeopleValueTextField = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler(this))
 	}
 
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
 		return m(".flex.col", [
-			m(".h4.mt-l", lang.get("calendarInvitationLabel", {"{calendarName}": getCalendarName(vnode.attrs.groupDetails.info.name)})),
 			m(this._invitePeopleValueTextField),
 			m(DropDownSelectorN, {
 				label: "permissions_label",
@@ -131,13 +130,13 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 					})
 				)
 			),
-			m(".h4.mt-l", lang.get("pendingInvites_label")),
+			m(".h4.mt-l", lang.get("pendingShare_label")),
 			m(TableN, {
-				columnHeadingTextIds: ["mailAddress_label", "permissions_label"],
+				columnHeadingTextIds: ["recipients_label", "permissions_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: vnode.attrs.groupDetails.invitations.map((invitation) => {
 					return {
-						cells: [invitation.invitedMailAddress, getCapabilityText(downcast(invitation.capability))], actionButtonAttrs: {
+						cells: [invitation.inviteeMailAddress, getCapabilityText(downcast(invitation.capability))], actionButtonAttrs: {
 							label: "more_label",
 							click: () => {},
 							icon: () => Icons.More,
@@ -147,14 +146,14 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				showActionButtonColumn: true,
 			}),
 
-			m(".h4.mt-l", lang.get("groupMembers_label")),
+			m(".h4.mt-l", lang.get("sharing_label")),
 			m(TableN, {
-				columnHeadingTextIds: ["mailAddress_label", "permissions_label"],
+				columnHeadingTextIds: ["recipients_label", "permissions_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: vnode.attrs.groupDetails.memberInfos.map((memberInfo) => {
 					return {
 						cells: [
-							getMemberText(memberInfo),
+							getMemberText(vnode.attrs.groupDetails.group, memberInfo),
 							getCapabilityText(downcast(memberInfo.member.capability))
 						], actionButtonAttrs: {
 							label: "more_label",
@@ -203,9 +202,10 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 
 }
 
-function getMemberText(memberInfo: GroupMemberInfo): string {
+function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string {
+	const sharedGroupUser = sharedGroup.user
 	return getGroupInfoDisplayName(memberInfo.info)
-		+ (isSameId(logins.getUserController().userGroupInfo._id, memberInfo.info._id) ? ` (${lang.get("owner_label")})` : "")
+		+ ((sharedGroupUser && isSameId(memberInfo.member.user, sharedGroupUser)) ? ` (${lang.get("owner_label")})` : "")
 }
 
 

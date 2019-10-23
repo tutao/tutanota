@@ -1,10 +1,5 @@
 // @flow
-import {
-	uint8ArrayToBase64,
-	base64ToBase64Url,
-	base64ToUint8Array,
-	uint8ArrayToArrayBuffer
-} from "../../common/utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"

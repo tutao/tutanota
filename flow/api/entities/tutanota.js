@@ -1094,34 +1094,37 @@ type CalendarPostReturn = {
 type SharedGroupData = {
 	_type: TypeRef<SharedGroupData>;
 	_id: Id;
-	bucketEncGInfoKey: Uint8Array;
-	bucketEncGKey: Uint8Array;
+	bucketEncInvitationSessionKey: Uint8Array;
 	capability: NumberString;
-	group: Id;
-	groupEncInviterGroupInfoKey: Uint8Array;
+	sessionEncInviterName: Uint8Array;
+	sessionEncSharedGroupKey: Uint8Array;
+	sessionEncSharedGroupName: Uint8Array;
+	sharedGroup: Id;
+	sharedGroupEncInviterGroupInfoKey: Uint8Array;
+	sharedGroupEncSharedGroupInfoKey: Uint8Array;
 
 }
 
-type InvitationPostData = {
-	_type: TypeRef<InvitationPostData>;
+type GroupInvitationPostData = {
+	_type: TypeRef<GroupInvitationPostData>;
 	_format: NumberString;
 
 	internalKeyData: InternalRecipientKeyData[];
 	sharedGroupData: SharedGroupData;
 }
 
-type InvitationPutData = {
-	_type: TypeRef<InvitationPutData>;
+type GroupInvitationPutData = {
+	_type: TypeRef<GroupInvitationPutData>;
 	_format: NumberString;
 	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
 	userGroupEncGroupKey: Uint8Array;
 
-	invite: IdTuple;
+	receivedInvitation: IdTuple;
 }
 
-type InvitationDeleteData = {
-	_type: TypeRef<InvitationDeleteData>;
+type GroupInvitationDeleteData = {
+	_type: TypeRef<GroupInvitationDeleteData>;
 	_format: NumberString;
 
-	invite: IdTuple;
+	receivedInvitation: IdTuple;
 }

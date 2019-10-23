@@ -1,11 +1,9 @@
 //@flow
 import {assertWorkerOrNode} from "../../Env"
-import {load, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {createInvitationPostData} from "../../entities/tutanota/InvitationPostData"
-import {decryptKey, decryptRsaKey, encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
-import {_TypeModel as GroupInfoTypeModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {GroupTypeRef} from "../../entities/sys/Group"
+import {encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {_TypeModel as GroupInfoTypeModel} from "../../entities/sys/GroupInfo"
 import {aes128RandomKey} from "../crypto/Aes"
 import type {ShareCapabilityEnum} from "../../common/TutanotaConstants"
 import {createSharedGroupData} from "../../entities/tutanota/SharedGroupData"
@@ -14,9 +12,10 @@ import {neverNull} from "../../common/utils/Utils"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
 import {LoginFacade} from "./LoginFacade"
-import {rsaDecrypt} from "../crypto/Rsa"
-import {createInvitationPutData} from "../../entities/tutanota/InvitationPutData"
-import {uint8ArrayToBitArray} from "../crypto/CryptoUtils"
+import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
+import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvitationPostData"
+import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
+import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvitationDeleteData"
 
 assertWorkerOrNode()
 
@@ -30,19 +29,24 @@ export class ShareFacade {
 	}
 
 
-	sendGroupInvitation(groupId: Id, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
-		return this.resolveGroupKeys(groupId).then(groupKeys => {
-			return resolveSessionKey(GroupInfoTypeModel, neverNull(this._loginFacade._userGroupInfo)).then(userGroupInfoSessionKey => {
+	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+		const sharedGroupKey = this._loginFacade.getGroupKey(sharedGroupInfo.group)
+		return resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo()).then(userGroupInfoSessionKey => {
+			return resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo).then(sharedGroupInfoSessionKey => {
 				const bucketKey = aes128RandomKey()
+				const invitationSessionKey = aes128RandomKey()
 				const sharedGroupData = createSharedGroupData({
-					bucketEncGInfoKey: encryptKey(bucketKey, groupKeys.groupInfoKey),
-					bucketEncGKey: encryptKey(bucketKey, groupKeys.groupKey),
+					sessionEncInviterName: encryptString(invitationSessionKey, this._loginFacade.getUserGroupInfo().name),
+					sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey)),
+					sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupName),
+					bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
+					sharedGroupEncInviterGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
+					sharedGroupEncSharedGroupInfoKey: encryptKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey)),
 					capability: shareCapability,
-					group: groupId,
-					groupEncInviterGroupInfoKey: encryptKey(groupKeys.groupKey, neverNull(userGroupInfoSessionKey))
+					sharedGroup: sharedGroupInfo.group
 				})
 
-				const invitationData = createInvitationPostData({
+				const invitationData = createGroupInvitationPostData({
 					sharedGroupData,
 					internalKeyData: []
 				})
@@ -56,51 +60,29 @@ export class ShareFacade {
 					})
 				}).then(() => {
 					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
-					return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.POST, invitationData)
-				})
-			})
-		})
-	}
-
-	resolveGroupKeys(groupId: Id): Promise<{groupKey: Aes128Key, groupInfoKey: Aes128Key}> {
-		return load(GroupTypeRef, groupId).then(group => {
-			return load(GroupInfoTypeRef, group.groupInfo).then(groupInfo => {
-				return resolveSessionKey(GroupInfoTypeModel, groupInfo).then(groupInfoKey => {
-					return {
-						groupKey: this._loginFacade.getGroupKey(groupId),
-						groupInfoKey: neverNull(groupInfoKey)
-					}
+					return serviceRequestVoid(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData)
 				})
 			})
 		})
 	}
 
 
-	acceptGroupInvitation(invitation: IncomingInvite): Promise<void> {
-		const pubEncryptedBucketKey = invitation.pubEncBucketKey
-		const ownerGroupId = neverNull(invitation._ownerGroup)
-		const ownerGroupSymKey = this._loginFacade.getGroupKey(ownerGroupId)
-		return load(GroupTypeRef, ownerGroupId).then(ownerGroup => {
-			// load private key
-			const keypair = ownerGroup.keys[0]
-			return decryptRsaKey(ownerGroupSymKey, keypair.symEncPrivKey)
-		}).then(privateKey => {
-			// decryp group key
-			return rsaDecrypt(privateKey, pubEncryptedBucketKey)
-		}).then(decryptedBytes => {
-			return resolveSessionKey(GroupInfoTypeModel, neverNull(this._loginFacade._userGroupInfo)).then(userGroupInfoSessionKey => {
-				const bucketKey = uint8ArrayToBitArray(decryptedBytes)
-				const invitationGroupKey = decryptKey(bucketKey, invitation.bucketEncGroupKey)
-				// encrypt group key with usergroup sym key
-				const userGroupEncInvGroupKey = encryptKey(ownerGroupSymKey, invitationGroupKey)
-				// call invitation service
-				const serviceData = createInvitationPutData()
-				serviceData.userGroupEncGroupKey = userGroupEncInvGroupKey
-				serviceData.invite = invitation._id
-				serviceData.sharedGroupEncInviteeGroupInfoKey = encryptKey(invitationGroupKey, neverNull(userGroupInfoSessionKey))
-				return serviceRequestVoid(TutanotaService.InvitationService, HttpMethod.PUT, serviceData)
-			})
+	acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
+		return resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo()).then(userGroupInfoSessionKey => {
+			const sharedGroupKey = uint8ArrayToBitArray(invitation.sharedGroupKey)
+			const serviceData = createGroupInvitationPutData()
+			serviceData.receivedInvitation = invitation._id
+			serviceData.userGroupEncGroupKey = encryptKey(this._loginFacade.getUserGroupKey(), sharedGroupKey)
+			serviceData.sharedGroupEncInviteeGroupInfoKey = encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+			return serviceRequestVoid(TutanotaService.GroupInvitationService, HttpMethod.PUT, serviceData)
 		})
+	}
+
+	rejectGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
+		const serviceData = createGroupInvitationDeleteData({
+			receivedInvitation: invitation._id
+		})
+		return serviceRequestVoid(TutanotaService.GroupInvitationService, HttpMethod.DELETE, serviceData)
 	}
 
 }

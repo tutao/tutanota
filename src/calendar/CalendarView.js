@@ -51,7 +51,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
-import {IncomingInviteTypeRef} from "../api/entities/sys/IncomingInvite"
+import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 
 
@@ -73,11 +73,6 @@ const CalendarViewTypeByValue = reverse(CalendarViewType)
 
 export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
 
-type CalendarInvitation = {
-	invite: IncomingInvite,
-	name: string
-}
-
 export class CalendarView implements CurrentView {
 
 	sidebarColumn: ViewColumn
@@ -91,7 +86,7 @@ export class CalendarView implements CurrentView {
 	_currentViewType: CalendarViewTypeEnum
 	_hiddenCalendars: Set<Id>
 
-	_calendarInvitations: Array<CalendarInvitation>
+	_calendarInvitations: Array<ReceivedGroupInvitation>
 
 	constructor() {
 		const calendarViewValues = [
@@ -157,7 +152,7 @@ export class CalendarView implements CurrentView {
 				m(".folders", {style: {color: theme.navigation_button}}, [
 					m(".folder-row.flex-space-between.button-height.plr-l", [
 						m("small.b.align-self-center.ml-negative-xs",
-							lang.get("sharedCalendars_label").toLocaleUpperCase())
+							lang.get("otherCalendars_label").toLocaleUpperCase())
 					]),
 					this._renderCalendars(true)
 				]),
@@ -311,18 +306,9 @@ export class CalendarView implements CurrentView {
 
 	_updateCalendarInvitations(): Promise<void> {
 		return load(UserGroupRootTypeRef, logins.getUserController().userGroupInfo.group).then(userGroupRoot => {
-			return loadAll(IncomingInviteTypeRef, userGroupRoot.invites).then(calendarInvitations => {
-				return Promise.map(calendarInvitations, (invitation) => {
-					return load(GroupInfoTypeRef, invitation.groupInfo).then(groupInfo => {
-						return {
-							invite: invitation,
-							name: getCalendarName(groupInfo.name)
-						}
-					})
-				}).then(invitations => {
-					this._calendarInvitations = invitations
-					m.redraw()
-				})
+			return loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations).then(calendarInvitations => {
+				this._calendarInvitations = calendarInvitations
+				m.redraw()
 			})
 		})
 	}
@@ -378,8 +364,8 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderCalendarInvitations(): Children {
-		return this._calendarInvitations.map((invitation) => m(".folder-row.flex-start.plr-l", [
-			m(".flex.flex-grow.center-vertically.button-height", m(".pl-m.b", invitation.name)),
+		return this._calendarInvitations.map((receivedInvitation) => m(".folder-row.flex-start.plr-l", [
+			m(".flex.flex-grow.center-vertically.button-height", m(".pl-m.b", receivedInvitation.sharedGroupName)),
 			m(ButtonN, attachDropdown({
 					label: "more_label",
 					click: noOp,
@@ -387,12 +373,12 @@ export class CalendarView implements CurrentView {
 				}, () => [
 					{
 						label: "accept_action",
-						click: () => this._acceptInvite(invitation),
+						click: () => this._acceptInvite(receivedInvitation),
 						type: ButtonType.Dropdown,
 					},
 					{
-						label: "decline_action",
-						click: () => this._denyInvite(invitation),
+						label: "reject_action",
+						click: () => this._rejectInvite(receivedInvitation),
 						type: ButtonType.Dropdown,
 					}
 				].filter(Boolean)
@@ -400,12 +386,12 @@ export class CalendarView implements CurrentView {
 		]))
 	}
 
-	_acceptInvite(invitation: CalendarInvitation) {
-		worker.acceptGroupInvitation(invitation.invite)
+	_acceptInvite(invitation: ReceivedGroupInvitation) {
+		worker.acceptGroupInvitation(invitation)
 	}
 
-	_denyInvite(invitation: CalendarInvitation) {
-
+	_rejectInvite(invitation: ReceivedGroupInvitation) {
+		worker.rejectGroupInvitation(invitation)
 	}
 
 
@@ -689,20 +675,15 @@ export class CalendarView implements CurrentView {
 							}
 						})
 					}
-				} else if (isUpdateForTypeRef(IncomingInviteTypeRef, update)) {
+				} else if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
-						load(IncomingInviteTypeRef, [update.instanceListId, update.instanceId]).then(invite => {
-							return load(GroupInfoTypeRef, invite.groupInfo).then(groupInfo => {
-								this._calendarInvitations.push({
-									invite: invite,
-									name: getCalendarName(groupInfo.name)
-								})
-								m.redraw()
-							})
+						load(ReceivedGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(invitation => {
+							this._calendarInvitations.push(invitation)
+							m.redraw()
 						})
 					} else if (update.operation === OperationType.DELETE) {
 						const found = findAndRemove(this._calendarInvitations, (invitation) => {
-							return isSameId(invitation.invite._id, [update.instanceListId, update.instanceId])
+							return isSameId(invitation._id, [update.instanceListId, update.instanceId])
 						})
 						if (found) {
 							m.redraw()

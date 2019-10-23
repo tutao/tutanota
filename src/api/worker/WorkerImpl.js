@@ -318,6 +318,9 @@ export class WorkerImpl {
 			acceptGroupInvitation: (message: Request) => {
 				return locator.share.acceptGroupInvitation(...message.args)
 			},
+			rejectGroupInvitation: (message: Request) => {
+				return locator.share.rejectGroupInvitation(...message.args)
+			},
 
 		})
 

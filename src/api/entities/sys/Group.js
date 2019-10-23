@@ -108,7 +108,7 @@ export const _TypeModel: TypeModel = {
 			"since": 1,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "GroupInvitation",
+			"refType": "SentGroupInvitation",
 			"final": true,
 			"external": false
 		},
