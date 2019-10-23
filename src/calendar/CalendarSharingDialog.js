@@ -27,6 +27,9 @@ import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {px} from "../gui/size"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
+import {PreconditionFailedError} from "../api/common/error/RestError"
+import {showSharingBuyDialog} from "../subscription/WhitelabelAndSharingBuyDialog"
+import {logins} from "../api/main/LoginController"
 
 
 type GroupMemberInfo = {
@@ -58,6 +61,19 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 							showProgressDialog("calendarInvitationProgress_msg",
 								worker.sendGroupInvitation(groupInfo, getCalendarName(groupInfo.name), recipients, capability)
 							).then(() => dialog.close())
+							 .catch(PreconditionFailedError, e => {
+								 if (logins.getUserController().isGlobalAdmin()) {
+									 Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+									       .then(confirmed => {
+										       if (confirmed) {
+											       showSharingBuyDialog(true)
+										       }
+									       })
+								 } else {
+									 Dialog.error("sharingFeatureNotOrderedUser_msg")
+								 }
+
+							 })
 						}
 					}),
 					okAction: null

@@ -1042,5 +1042,8 @@ module.exports = {
 		"cancelSharingBooking_label": "Cancel sharing feature for {1} users",
 		"bookingItemUsersIncluding_label": "Users incl.:",
 		"sharedCalendarExisting_msg": "You have still shared calendars. Please remove all shares first.",
+		"sharingFeatureNotOrderedAdmin_msg": "To share a calendar you have to order the sharing feature. Would you like to order it now?",
+		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator."
+
 	}
 }

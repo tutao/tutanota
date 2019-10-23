@@ -373,7 +373,13 @@ export class CalendarView implements CurrentView {
 				}, () => [
 					{
 						label: "accept_action",
-						click: () => this._acceptInvite(receivedInvitation),
+						click: () => {
+							if (logins.getUserController().isFreeAccount()) {
+								showNotAvailableForFreeDialog(true)
+							} else {
+								this._acceptInvite(receivedInvitation)
+							}
+						},
 						type: ButtonType.Dropdown,
 					},
 					{
@@ -434,7 +440,13 @@ export class CalendarView implements CurrentView {
 								     {
 									     label: "sharing_label",
 									     icon: () => Icons.ContactImport,
-									     click: () => showCalendarSharingDialog(groupInfo),
+									     click: () => {
+										     if (logins.getUserController().isFreeAccount()) {
+											     showNotAvailableForFreeDialog(false)
+										     } else {
+											     showCalendarSharingDialog(groupInfo)
+										     }
+									     },
 									     type: ButtonType.Dropdown,
 								     },
 								     isApp()
