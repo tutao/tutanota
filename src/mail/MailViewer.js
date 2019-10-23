@@ -346,7 +346,7 @@ export class MailViewer {
 							firstCalendarFile
 								? m(".flex.flex-end", [
 									m(ButtonN, {
-										label: () => "View/Add event",
+										label: "viewOrAddEvent_action",
 										type: ButtonType.Secondary,
 										click: () => {
 											showEventDetailsFromFile(firstCalendarFile)

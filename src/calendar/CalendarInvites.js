@@ -22,16 +22,18 @@ import {load, loadMultiple} from "../api/main/Entity"
 import type {CalendarInfo} from "./CalendarView"
 import {AlarmInfoTypeRef} from "../api/entities/sys/AlarmInfo"
 import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
+import {lang} from "../misc/LanguageViewModel"
 
 
 export function sendCalendarInvite(existingEvent: CalendarEvent, alarms: Array<AlarmInfo>, recipients: $ReadOnlyArray<MailAddress>) {
 	existingEvent.organizer = existingEvent.organizer || getDefaultSender(mailModel.getUserMailboxDetails())
 
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	// TODO: translate
+	const message = lang.get("eventInviteMail_msg", {"{event}": existingEvent.summary})
 	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})),
-		`You're invited to "${existingEvent.summary}"`,
-		makeInviteEmailBody(existingEvent, `You are invited to ${existingEvent.summary}`), false)
+		message,
+		makeInviteEmailBody(existingEvent, message),
+		false)
 	const inviteFile = makeInvitationCalendarFile(existingEvent, IcalendarCalendarMethod.REQUEST)
 	sendCalendarFile(editor, inviteFile, CalendarMethod.REQUEST)
 }
@@ -42,15 +44,17 @@ export function sendCalendarInviteResponse(event: CalendarEvent, sender: MailAdd
 		throw new Error("Cannot send calendar invitation response without organizer")
 	}
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	editor.initWithTemplate([{name: "", address: organizer}], `${sender.name || sender.address} replied to calendar invitation`,
-		makeResponseEmailBody(event, sender, status), false)
+	const message = lang.get("repliedToEventInvite_msg", {"{sender}": sender.name || sender.address})
+	editor.initWithTemplate([{name: "", address: organizer}],
+		message,
+		makeResponseEmailBody(event, message, sender, status), false)
 	const responseFile = makeInvitationCalendarFile(event, IcalendarCalendarMethod.REPLY)
 	sendCalendarFile(editor, responseFile, CalendarMethod.REPLY)
 }
 
 export function sendCalendarUpdate(event: CalendarEvent, recipients: $ReadOnlyArray<MailAddress>) {
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})), `Event update: ${event.summary}`,
+	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})), lang.get("eventUpdated_msg", {"event": event.summary}),
 		makeInviteEmailBody(event, ""))
 
 	const file = makeInvitationCalendarFile(event, IcalendarCalendarMethod.PUBLISH)
@@ -59,9 +63,12 @@ export function sendCalendarUpdate(event: CalendarEvent, recipients: $ReadOnlyAr
 
 export function sendCalendarCancellation(event: CalendarEvent, recipients: $ReadOnlyArray<MailAddress>) {
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	// TODO: translate
-	editor.initWithTemplate(recipients.map(({name, address}) => ({name, address})), `Event cancelled: ${event.summary}`,
-		makeCancellationEmailBody(event, ""))
+	// TODO: pass as bcc
+	editor.initWithTemplate(recipients.map(({name, address}) => ({
+			name,
+			address
+		})), lang.get("eventCancelled_msg", {"event": event.summary}),
+		makeInviteEmailBody(event, ""))
 
 	const file = makeInvitationCalendarFile(event, IcalendarCalendarMethod.CANCEL)
 	sendCalendarFile(editor, file, CalendarMethod.CANCEL)
@@ -77,12 +84,21 @@ function sendCalendarFile(editor: MailEditor, responseFile: DataFile, method: Ca
 	editor.send()
 }
 
+function organizerLine(event: CalendarEvent) {
+	return `<div style="display: flex"><div style="min-width: 80px">${lang.get("who_label")}:</div>${
+		event.organizer ? `${event.organizer} (${lang.get("organizer_label")})` : ""}</div>`
+}
+
+function whenLine(event: CalendarEvent): string {
+	return `<div style="display: flex"><div style="min-width: 80px">${lang.get("when_label")}:</div>${formatEventDuration(event)}</div>`
+}
+
 function makeInviteEmailBody(event: CalendarEvent, message: string) {
 	return `<div style="max-width: 685px; margin: 0 auto">
   <h2 style="text-align: center">${message}</h2>
   <div style="margin: 0 auto">
-    <div style="display: flex"><div style="min-width: 80px">When:</div>${formatEventDuration(event)}</div>
-    <div style="display: flex"><div style="min-width: 80px">Who:</div>${event.organizer ? event.organizer + " (organizer)" : ""}</div>
+    ${whenLine(event)}
+    ${organizerLine(event)}
     ${event.attendees.map((a) =>
 		"<div style='margin-left: 80px'>" + (a.address.name || "") + " " + a.address.address + " "
 		+ calendarAttendeeStatusDescription(getAttendeeStatus(a)) + "</div>")
@@ -95,29 +111,11 @@ function makeInviteEmailBody(event: CalendarEvent, message: string) {
 </div>`
 }
 
-function makeCancellationEmailBody(event: CalendarEvent, message: string) {
+function makeResponseEmailBody(event: CalendarEvent, message: string, sender: MailAddress, status: CalendarAttendeeStatusEnum): string {
 	return `<div style="max-width: 685px; margin: 0 auto">
   <h2 style="text-align: center">${message}</h2>
   <div style="margin: 0 auto">
-    <div style="display: flex"><div style="min-width: 80px">When:</div>${formatEventDuration(event)}</div>
-    <div style="display: flex"><div style="min-width: 80px">Who:</div>${event.organizer ? event.organizer + " (organizer)" : ""}</div>
-    ${event.attendees.map((a) =>
-		"<div style='margin-left: 80px'>" + (a.address.name || "") + " " + a.address.address + " "
-		+ calendarAttendeeStatusDescription(getAttendeeStatus(a)) + "</div>")
-	       .join("\n")}
-  </div>
-  <hr style="border: 0; height: 1px; background-color: #ddd">
-  <img style="max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
-  		src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(theme.logo))}"
-  		alt="logo"/>
-</div>`
-}
-
-function makeResponseEmailBody(event: CalendarEvent, sender: MailAddress, status: CalendarAttendeeStatusEnum): string {
-	return `<div style="max-width: 685px; margin: 0 auto">
-  <h2 style="text-align: center">Response to the "${event.summary}"</h2>
-  <div style="margin: 0 auto">
-  <div style="display: flex">Who:<div style='margin-left: 80px'>${sender.name + " " + sender.address
+  <div style="display: flex">${lang.get("who_label")}:<div style='margin-left: 80px'>${sender.name + " " + sender.address
 	} ${calendarAttendeeStatusDescription(status)}</div></div>
   </div>
   <hr style="border: 0; height: 1px; background-color: #ddd">
@@ -169,13 +167,11 @@ export function showEventDetailsFromFile(firstCalendarFile: TutanotaFile) {
 					      }
 				      })
 			      } else {
-				      // TODO translate
-				      Dialog.error(() => "Couldn't open event")
+				      Dialog.error("cannotOpenEvent_msg")
 			      }
 		      } catch (e) {
 			      if (e instanceof ParserError) {
-				      // TODO translate
-				      Dialog.error(() => "Couldn't open event")
+				      Dialog.error("cannotOpenEvent_msg")
 			      } else {
 				      throw e
 			      }

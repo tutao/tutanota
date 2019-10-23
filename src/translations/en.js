@@ -1015,6 +1015,19 @@ module.exports = {
 		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
 		"automatic_label": "Automatic",
 		"settingsForDevice_label": "Settings for this device",
-		"showingEventsUntil_msg": "Showing events until {untilDay}."
+		"showingEventsUntil_msg": "Showing events until {untilDay}.",
+		"organizer_label": "Organizer",
+		"attendees_label": "Attendees",
+		"invite_action": "Invite",
+		"maybe_label": "Maybe",
+		"sendEventUpdate_msg": "Send out event update?",
+		"eventInviteMail_msg": "You're invited to {event}",
+		"repliedToEventInvite_msg": "{sender} replied to calendar invitation",
+		"eventUpdated_msg": "Event updated {event}",
+		"eventCancelled_msg": "Event cancelled {event}",
+		"cannotOpenEvent_msg": "Couldn't open the event",
+		"viewOrAddEvent_action": "View/Add event",
+		"who_label": "Who",
+		"when_label": "When",
 	}
 }

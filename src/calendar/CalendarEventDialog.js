@@ -270,6 +270,16 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	}
 
+	const participationDropdownAttrs = {
+		label: () => "Your decision",
+		items: [
+			{name: lang.get("noSelection_msg"), value: CalendarAttendeeStatus.NEEDS_ACTION, selectable: false},
+			{name: lang.get("yes_label"), value: CalendarAttendeeStatus.ACCEPTED},
+			{name: lang.get("maybe_label"), value: CalendarAttendeeStatus.TENTATIVE},
+			{name: lang.get("no_label"), value: CalendarAttendeeStatus.DECLINED},
+		],
+		selectedValue: participationStatus,
+	}
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
@@ -340,8 +350,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}),
 			isOwnEvent
 				? m(DropDownSelectorN, {
-					// TODO: translate
-					label: () => "Organizer",
+					label: "organizer_label",
 					items: getEnabledMailAddresses(mailModel.getUserMailboxDetails())
 						.map(mailAddress => ({
 							name: mailAddress,
@@ -350,14 +359,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					selectedValue: organizer,
 				})
 				: m(".col.mt", [
-					// TODO: translate
-					m(".small", "Organizer"),
+					m(".small", lang.get("organizer_label")),
 					m("", organizer())
 				]),
 			[
 				m(ExpanderButtonN, {
-					// TODO: translate
-					label: () => "attendees",
+					label: "attendees_label",
 					expanded: attendeesExpanded,
 				}),
 				m(ExpanderPanelN, {
@@ -365,8 +372,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}, [
 					m(TextFieldN, {
 						class: "mt-negative-s",
-						// TODO: translate
-						label: () => "Invite",
+						label: "invite_action",
 						value: inviteFieldValue,
 						keyHandler: (keyPress) => {
 							if (keyPress.keyCode === 13) {
@@ -398,19 +404,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				]),
 			],
 			!isOwnEvent
-				? [
-					m(DropDownSelectorN, {
-						label: () => "Your decision",
-						items: [
-							// TODO: translate
-							{name: "Not selected", value: CalendarAttendeeStatus.NEEDS_ACTION, selectable: false},
-							{name: "Yes", value: CalendarAttendeeStatus.ACCEPTED},
-							{name: "Maybe", value: CalendarAttendeeStatus.TENTATIVE},
-							{name: "No", value: CalendarAttendeeStatus.DECLINED},
-						],
-						selectedValue: participationStatus,
-					})
-				]
+				? m(DropDownSelectorN, participationDropdownAttrs)
 				: null,
 			existingEvent && existingEvent._id
 				? m(".mr-negative-s.float-right.flex-end-on-child", [
@@ -541,9 +535,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					}), participationStatus())
 				}
 			}
-			// TODO: translate
 			return (existingAttendees.length
-					? Dialog.confirm(() => "Send out event update?")
+					? Dialog.confirm("sendEventUpdate_msg")
 					: Promise.resolve(false)
 			).then((shouldSendOutUpdates) => {
 				worker.createCalendarEvent(newEvent, newAlarms, existingEvent && existingEvent._id ? existingEvent : null)
