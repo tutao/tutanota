@@ -494,7 +494,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}
 			}
 			newEvent.attendees = attendees
-			newEvent.sequence = String(filterInt(newEvent.sequence) + 1)
+			if (existingEvent) {
+				newEvent.sequence = String(filterInt(existingEvent.sequence) + 1)
+			}
 
 			let newAttendees = []
 			let existingAttendees = []

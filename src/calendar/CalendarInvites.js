@@ -105,21 +105,34 @@ export function showEventDetailsFromFile(firstCalendarFile: TutanotaFile) {
 	      .then((fileData) => {
 		      try {
 			      const {contents} = parseCalendarFile(fileData)
-			      const eventWithAlarms = contents[0]
-			      if (eventWithAlarms && eventWithAlarms.event.uid) {
+			      const parsedEventWithAlarms = contents[0]
+			      if (parsedEventWithAlarms && parsedEventWithAlarms.event.uid) {
+				      const parsedEvent = parsedEventWithAlarms.event
 				      return promiseAll(
-					      worker.getEventByUid(eventWithAlarms.event.uid),
+					      worker.getEventByUid(parsedEventWithAlarms.event.uid),
 					      loadOrCreateCalendarInfo(),
-				      ).then(([existingEvent, calendarInfo]) => {
+				      ).then(([existingEvent, calendarInfo]: [?CalendarEvent, Map<Id, CalendarInfo>]) => {
 					      if (!existingEvent) {
-						      showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event)
+						      showCalendarEventDialog(parsedEvent.startTime, calendarInfo, parsedEvent)
 					      } else {
 						      m.route.set(`/calendar/month/${DateTime.fromJSDate(existingEvent.startTime).toISODate()}`)
-						      Promise
-							      .resolve(eventWithAlarms.event.sequence > existingEvent.sequence
-								      ? worker.createCalendarEvent(eventWithAlarms.event, existingEvent.alarmInfo, existingEvent)
-								      : null)
-							      .then(() => showCalendarEventDialog(eventWithAlarms.event.startTime, calendarInfo, eventWithAlarms.event))
+						      if (parsedEvent.sequence > existingEvent.sequence) {
+							      parsedEvent._id = existingEvent._id
+							      parsedEvent._ownerGroup = existingEvent._ownerGroup
+							      Promise.resolve(
+								      existingEvent.alarmInfos.length
+									      ? loadMultiple(AlarmInfoTypeRef,
+									      listIdPart(existingEvent.alarmInfos[0]), existingEvent.alarmInfos.map(elementIdPart))
+									      : []
+							      ).then((alarmInfos) => {
+								      worker.createCalendarEvent(parsedEvent, alarmInfos, existingEvent)
+								            .then(() => load(CalendarEventTypeRef, existingEvent._id))
+								            .then(() => showCalendarEventDialog(parsedEvent.startTime, calendarInfo, parsedEvent))
+							      })
+
+						      } else {
+							      showCalendarEventDialog(existingEvent.startTime, calendarInfo, existingEvent)
+						      }
 					      }
 				      })
 			      } else {
