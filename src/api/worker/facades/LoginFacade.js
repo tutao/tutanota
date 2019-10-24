@@ -22,7 +22,16 @@ import {
 	uint8ArrayToBitArray,
 	uint8ArrayToKey
 } from "../crypto/CryptoUtils"
-import {aes256DecryptKey, aes256EncryptKey, decrypt256Key, decryptKey, encrypt256Key, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
+import {
+	aes256DecryptKey,
+	aes256EncryptKey,
+	decrypt256Key,
+	decryptKey,
+	encrypt256Key,
+	encryptBytes,
+	encryptKey,
+	encryptString
+} from "../crypto/CryptoFacade"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey, aes256RandomKey} from "../crypto/Aes"
@@ -692,6 +701,11 @@ export class LoginFacade {
 			deleteData.recoverCodeVerifier = recoverCodeVerifier
 			return serviceRequestVoid(SysService.ResetFactorsService, HttpMethod.DELETE, deleteData, null, null)
 		})
+	}
+
+
+	getUserGroupInfo(): GroupInfo {
+		return neverNull(this._userGroupInfo)
 	}
 }
 

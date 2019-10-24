@@ -110,7 +110,8 @@ export const BookingItemFeatureType = Object.freeze({
 	ContactForm: '5',
 	WhitelabelChild: '6',
 	LocalAdminGroup: '7',
-	Discount: '8'
+	Discount: '8',
+	Sharing: '9'
 })
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
 

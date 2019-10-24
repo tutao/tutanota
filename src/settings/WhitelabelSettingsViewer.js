@@ -47,7 +47,7 @@ import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeButtonAttrs} from "../subscription/PriceUtils"
-import * as WhitelabelBuyDialog from "../subscription/WhitelabelBuyDialog"
+import * as WhitelabelBuyDialog from "../subscription/WhitelabelAndSharingBuyDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
@@ -228,8 +228,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._lastBooking = bookings.length === 1 ? bookings[0] : null
 						const whitelabelActive = isWhitelabelActive(this._lastBooking)
 
-						const enableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.show(true), () => Icons.Edit, false)
-						const disableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.show(false), () => Icons.Cancel, false)
+						const enableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.showWhitelabelBuyDialog(true), () => Icons.Edit, false)
+						const disableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.showWhitelabelBuyDialog(false), () => Icons.Cancel, false)
 
 						this._whitelabelStatusField.value(whitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"))
 						this._whitelabelStatusField.injectionsRight = () => whitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)
@@ -255,7 +255,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							if (logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog(false)
 							} else {
-								const whitelabelEnabledPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(true) : WhitelabelBuyDialog.show(true)
+								const whitelabelEnabledPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(true) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
 								whitelabelEnabledPromise.then(enabled => {
 									if (enabled) {
 										SetCustomDomainCertificateDialog.show(customerInfo, whitelabelConfig)
@@ -562,7 +562,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 
 			const whitelabelEnabledPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
-				Promise.resolve(true) : WhitelabelBuyDialog.show(true)
+				Promise.resolve(true) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
 			whitelabelEnabledPromise.then(enabled => {
 				if (enabled) {
 					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)

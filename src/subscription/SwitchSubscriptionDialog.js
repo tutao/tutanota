@@ -15,7 +15,7 @@ import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {buyAliases} from "./EmailAliasOptionsDialog"
 import {buyStorage} from "./StorageCapacityOptionsDialog"
-import {buyWhitelabel} from "./WhitelabelBuyDialog"
+import {buySharing, buyWhitelabel} from "./WhitelabelAndSharingBuyDialog"
 import {changeSubscriptionInterval} from "./SubscriptionViewer"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {SubscriptionType} from "./SubscriptionUtils"
@@ -267,6 +267,7 @@ function switchSubscription(
 				promise = showProgressDialog("pleaseWait_msg", buyAliases(0)
 					.then(() => buyStorage(0))
 					.then(() => buyWhitelabel(false))
+					.then(() => buySharing(false))
 					.then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
 					.then(() => dialog.close())
 			}

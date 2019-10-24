@@ -302,16 +302,17 @@ type CustomerInfo = {
 	takeoverCustomer: ?Id;
 }
 
-type GroupInvitation = {
-	_type: TypeRef<GroupInvitation>;
+type SentGroupInvitation = {
+	_type: TypeRef<SentGroupInvitation>;
 	_format: NumberString;
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	capability: NumberString;
-	invitedMailAddress: string;
+	inviteeMailAddress: string;
 
-	group: Id;
+	sentInvitation: ?IdTuple;
+	sharedGroup: Id;
 }
 
 type MailAddressToGroup = {
@@ -964,6 +965,7 @@ type InvoiceInfo = {
 	specialPriceBrandingPerUser: ?NumberString;
 	specialPriceContactFormSingle: ?NumberString;
 	specialPriceSharedGroupSingle: ?NumberString;
+	specialPriceSharingPerUser: ?NumberString;
 	specialPriceUserSingle: ?NumberString;
 	specialPriceUserTotal: ?NumberString;
 
@@ -1724,19 +1726,20 @@ type CloseSessionServicePost = {
 	sessionId: IdTuple;
 }
 
-type IncomingInvite = {
-	_type: TypeRef<IncomingInvite>;
+type ReceivedGroupInvitation = {
+	_type: TypeRef<ReceivedGroupInvitation>;
+	_errors: Object;
 	_format: NumberString;
 	_id: IdTuple;
+	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	bucketEncGroupKey: Uint8Array;
-	pubEncBucketKey: Uint8Array;
-	pubKeyVersion: NumberString;
+	inviterMailAddress: string;
+	inviterName: string;
+	sharedGroupKey: Uint8Array;
+	sharedGroupName: string;
 
-	groupInfo: IdTuple;
-	groupInvitation: IdTuple;
-	inviterGroupInfo: IdTuple;
+	sentInvitation: IdTuple;
 }
 
 type UserGroupRoot = {
@@ -1746,5 +1749,5 @@ type UserGroupRoot = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 
-	invites: Id;
+	invitations: Id;
 }

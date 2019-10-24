@@ -109,9 +109,15 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
     if (_isSinglePriceType(price.currentPriceThisPeriod, price.futurePriceNextPeriod, featureType)) {
         if (featureType === BookingItemFeatureType.Users) {
             if (count > 0) {
-                let brandingPrice = _getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding)
-                if (brandingPrice > 0) {
-                    return count + " " + lang.get("bookingItemUsersIncludingWhitelabel_label")
+	            let additionalFeatures = []
+                if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Branding) > 0) {
+                	additionalFeatures.push(lang.get("whitelabel_label"))
+                }
+	            if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing) > 0) {
+		            additionalFeatures.push(lang.get("sharingFeature_label"))
+	            }
+                if (additionalFeatures.length > 0) {
+                    return count + " " + lang.get("bookingItemUsersIncluding_label") + " " + additionalFeatures.join(", ")
                 } else {
                     return count + " " + lang.get("bookingItemUsers_label")
                 }
@@ -126,6 +132,12 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
             } else {
                 return lang.get("cancelWhitelabelBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Branding)).count})
             }
+        } else if (featureType === BookingItemFeatureType.Sharing) {
+	        if (count > 0) {
+		        return lang.get("sharingBooking_label", {"{1}": neverNull(getPriceItem(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing)).count})
+	        } else {
+		        return lang.get("cancelSharingBooking_label", {"{1}": neverNull(getPriceItem(price.currentPriceNextPeriod, BookingItemFeatureType.Sharing)).count})
+	        }
         } else if (featureType === BookingItemFeatureType.ContactForm) {
             if (count > 0) {
                 return count + " " + lang.get("contactForm_label")
@@ -134,13 +146,13 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
             }
         } else if (featureType === BookingItemFeatureType.SharedMailGroup) {
             if (count > 0) {
-                return count + " " + lang.get((count == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
+                return count + " " + lang.get((count === 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
             } else {
                 return lang.get("cancelSharedMailbox_label")
             }
         } else if (featureType === BookingItemFeatureType.LocalAdminGroup) {
             if (count > 0) {
-                return count + " " + lang.get((count == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
+                return count + " " + lang.get((count === 1) ? "localAdminGroup_label" : "localAdminGroups_label")
             } else {
                 return lang.get("cancelLocalAdminGroup_label")
             }
@@ -240,6 +252,7 @@ function _getPriceFromPriceData(priceData: ?PriceData, featureType: NumberString
     let itemPrice = item ? Number(item.price) : 0
     if (featureType === BookingItemFeatureType.Users) {
         itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Branding)
+	    itemPrice += _getPriceFromPriceData(priceData, BookingItemFeatureType.Sharing)
     }
     return itemPrice
 }

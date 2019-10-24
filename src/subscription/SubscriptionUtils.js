@@ -122,6 +122,10 @@ export function isWhitelabelActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Branding, lastBooking) !== 0
 }
 
+export function isSharingActive(lastBooking: ?Booking): boolean {
+	return getCurrentCount(BookingItemFeatureType.Sharing, lastBooking) !== 0
+}
+
 export function getIncludedAliases(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
 }

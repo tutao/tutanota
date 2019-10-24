@@ -13,18 +13,9 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 992, "since": 37, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"bucketEncGInfoKey": {
-			"name": "bucketEncGInfoKey",
-			"id": 995,
-			"since": 37,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"bucketEncGKey": {
-			"name": "bucketEncGKey",
-			"id": 994,
+		"bucketEncInvitationSessionKey": {
+			"name": "bucketEncInvitationSessionKey",
+			"id": 997,
 			"since": 37,
 			"type": "Bytes",
 			"cardinality": "One",
@@ -40,10 +31,54 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"group": {"name": "group", "id": 997, "since": 37, "type": "GeneratedId", "cardinality": "One", "final": false, "encrypted": false},
-		"groupEncInviterGroupInfoKey": {
-			"name": "groupEncInviterGroupInfoKey",
+		"sessionEncInviterName": {
+			"name": "sessionEncInviterName",
 			"id": 996,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"sessionEncSharedGroupKey": {
+			"name": "sessionEncSharedGroupKey",
+			"id": 994,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"sessionEncSharedGroupName": {
+			"name": "sessionEncSharedGroupName",
+			"id": 995,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"sharedGroup": {
+			"name": "sharedGroup",
+			"id": 1000,
+			"since": 37,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"sharedGroupEncInviterGroupInfoKey": {
+			"name": "sharedGroupEncInviterGroupInfoKey",
+			"id": 998,
+			"since": 37,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
+		"sharedGroupEncSharedGroupInfoKey": {
+			"name": "sharedGroupEncSharedGroupInfoKey",
+			"id": 999,
 			"since": 37,
 			"type": "Bytes",
 			"cardinality": "One",
