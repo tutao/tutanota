@@ -1,7 +1,6 @@
 // @flow
 import {Request} from '../api/common/WorkerProtocol.js'
 import {lang} from "../misc/LanguageViewModel"
-import * as localShortcut from 'electron-localshortcut'
 import {isMailAddress} from "../misc/FormatValidator"
 import type {Socketeer} from "./Socketeer"
 
@@ -23,7 +22,6 @@ function keep(socketeer: Socketeer) {
 const PreloadImports = {
 	startClient: (cb: (string)=>void) => sock.startClient(cb),
 	isMailAddress,
-	localShortcut,
 	Request,
 	lang,
 	keep
