@@ -5,7 +5,8 @@ import n from '../../nodemocker'
 o.spec("DesktopAlarmStorageTest", () => {
 	n.startGroup(__filename, [
 		"./TutanotaError",
-		"./utils/Encoding",
+		"../error/CryptoError",
+		"../../api/common/utils/Encoding",
 		"../../api/common/error/CryptoError",
 		"./StringUtils",
 		"./EntityConstants",
@@ -23,6 +24,8 @@ o.spec("DesktopAlarmStorageTest", () => {
 	const entityFunctions = {}
 	const wm = {}
 	const conf = {}
+	const aes = {}
+	const cryptoUtils = {}
 
 	const standardMocks = () => {
 		// node modules
@@ -32,6 +35,9 @@ o.spec("DesktopAlarmStorageTest", () => {
 
 		// our modules
 		const entityFunctionMock = n.mock("../EntityFunctions", entityFunctions).set()
+		n.mock('../../api/common/EntityFunctions', entityFunctions).set()
+		const aesMock = n.mock('../../api/worker/crypto/Aes', aes).set()
+		const cryptoUtilsMock = n.mock('../../api/worker/crypto/CryptoUtils', cryptoUtils).set()
 
 		// instances
 		const wmMock = n.mock('__wm', wm).set()
@@ -42,11 +48,14 @@ o.spec("DesktopAlarmStorageTest", () => {
 			keytarMock,
 			cryptoMock,
 			confMock,
-			wmMock
+			wmMock,
+			aesMock,
+			cryptoUtilsMock,
+			entityFunctionMock
 		}
 	}
 
-	o("init", () => {
+	o.only("init", () => {
 		const {confMock} = standardMocks()
 
 		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')

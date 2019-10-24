@@ -7,22 +7,20 @@ import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {elementIdPart} from "../../api/common/EntityFunctions"
+import {aes256Decrypt, aes256Encrypt} from "../../api/worker/crypto/Aes"
+import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
-const ALGORITHM = 'aes-256-cbc'
-type EncryptedKey = {
-	encKeyB64: string,
-	ivB64: string
-}
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
  */
 export class DesktopAlarmStorage {
-	_initialized: DeferredObject<string>;
+	_initialized: DeferredObject<BitArray>;
 	_conf: DesktopConfigHandler;
-	_sessionKeysB64: {[string]: string};
+	_sessionKeysB64: {[pushIdentifierId: string]: string};
 
 	constructor(conf: DesktopConfigHandler) {
 		this._conf = conf
@@ -40,7 +38,7 @@ export class DesktopAlarmStorage {
 			             ? pw
 			             : this._generateAndStoreDeviceKey()
 		             )
-		             .then(pw => this._initialized.resolve(pw))
+		             .then(pw => this._initialized.resolve(uint8ArrayToBitArray(base64ToUint8Array(pw))))
 	}
 
 	_generateAndStoreDeviceKey(): Promise<string> {
@@ -58,41 +56,6 @@ export class DesktopAlarmStorage {
 	}
 
 	/**
-	 * encrypts a key with the device key using aes-256-cbc
-	 * @param keyToEncrypt B64 encoded key to encrypt
-	 * @param deviceKeyB64 key used to encrypt
-	 * @returns Promise<EncryptedKey> the B64 encoded encrypted key and its iv
-	 * @private
-	 */
-	_encryptKey(keyToEncrypt: string, deviceKeyB64: string): EncryptedKey {
-		const ivBuffer = crypto.randomBytes(16)
-		const keyBuffer = Buffer.from(deviceKeyB64, 'base64')
-		const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, ivBuffer)
-		let encryptedKeyB64 = cipher.update(Buffer.from(keyToEncrypt, 'base64'), 'latin1' /* ignored! */, 'base64')
-		encryptedKeyB64 += cipher.final('base64')
-		return {
-			encKeyB64: encryptedKeyB64, ivB64: ivBuffer.toString('base64')
-		}
-	}
-
-	/**
-	 * decrypts an encrypted key with the device key using aes-256-cbc
-	 * @param keyToDecrypt encrypted key and iv
-	 * @param deviceKeyB64 the key used for decryption
-	 * @returns Promise<string> B64 representation of the decrypted key
-	 * @private
-	 */
-	_decryptKey(keyToDecrypt: EncryptedKey, deviceKeyB64: string): string {
-		const ivBuffer = Buffer.from(keyToDecrypt.ivB64, 'base64')
-		const deviceKeyBuffer = Buffer.from(deviceKeyB64, 'base64')
-		const decipher = crypto.createDecipheriv(ALGORITHM, deviceKeyBuffer, ivBuffer)
-		const keyToDecryptBuffer = Buffer.from(keyToDecrypt.encKeyB64, 'base64')
-		let decryptedKeyBuffer = decipher.update(keyToDecryptBuffer)
-		decryptedKeyBuffer = Buffer.concat([decryptedKeyBuffer, decipher.final()])
-		return decryptedKeyBuffer.toString('base64')
-	}
-
-	/**
 	 * encrypt & store a session key to disk
 	 * @param pushIdentifierId pushIdentifier the key belongs to
 	 * @param pushIdentifierSessionKeyB64 unencrypted B64 encoded key to store
@@ -104,7 +67,13 @@ export class DesktopAlarmStorage {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
 			return this._initialized.promise
 			           .then(pw => {
-				           keys[pushIdentifierId] = this._encryptKey(pushIdentifierSessionKeyB64, pw)
+				           keys[pushIdentifierId] = uint8ArrayToBase64(aes256Encrypt(
+					           pw,
+					           Buffer.from(pushIdentifierSessionKeyB64, 'base64'),
+					           crypto.randomBytes(16),
+					           false,
+					           false
+				           ))
 				           return this._conf.setDesktopConfig('pushEncSessionKeys', keys)
 			           })
 		}
@@ -133,7 +102,12 @@ export class DesktopAlarmStorage {
 					}
 					let decryptedKeyB64
 					try {
-						decryptedKeyB64 = this._decryptKey(keys[pushIdentifierId], pw)
+						decryptedKeyB64 = uint8ArrayToBase64(aes256Decrypt(
+							pw,
+							base64ToUint8Array(keys[pushIdentifierId]),
+							false,
+							false
+						))
 					} catch (e) {
 						console.log("could not decrypt pushIdentifierSessionKey, trying next one...")
 						sessionKeys.splice(i--, 1)
