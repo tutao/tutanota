@@ -55,7 +55,7 @@ o.spec("DesktopAlarmStorageTest", () => {
 		}
 	}
 
-	o.only("init", () => {
+	o("init", () => {
 		const {confMock} = standardMocks()
 
 		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')

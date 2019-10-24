@@ -347,22 +347,23 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			mkDate('Oct 26 2019 10:00')
 		].map(d => d.toISOString()))
 
+		// repeats span the end of DST
 		testOccurrenceArray(occurrenceIterator, {
-			startTime: mkDate('Oct 20 2019 10:00'),
-			endTime: mkDate('Oct 21 2019 12:00'),
+			startTime: mkDate('Oct 25 2019 10:00'),
+			endTime: mkDate('Oct 26 2019 12:00'),
 			trigger: "5M",
 			endType: EndType.Count,
 			endValue: 7,
 			frequency: RepeatPeriod.DAILY,
 			interval: '1'
 		}, [
-			mkDate('Oct 20 2019 10:00'),
-			mkDate('Oct 21 2019 10:00'),
-			mkDate('Oct 22 2019 10:00'),
-			mkDate('Oct 23 2019 10:00'),
-			mkDate('Oct 24 2019 10:00'),
 			mkDate('Oct 25 2019 10:00'),
-			mkDate('Oct 26 2019 10:00')
+			mkDate('Oct 26 2019 10:00'),
+			mkDate('Oct 27 2019 10:00'),
+			mkDate('Oct 28 2019 10:00'),
+			mkDate('Oct 29 2019 10:00'),
+			mkDate('Oct 30 2019 10:00'),
+			mkDate('Oct 31 2019 10:00')
 		].map(d => d.toISOString()))
 
 		testOccurrenceArray(occurrenceIterator, {

@@ -87,17 +87,19 @@ export class DesktopAlarmStorage {
 	resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
 		return this._initialized.promise.then(pw => {
 			const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
-			for (let i = 0; i < sessionKeys.length; i++) {
+			let ret = null
+			// find a working sessionkey and delete all the others
+			for (let i = sessionKeys.length - 1; i >= 0; i--) {
 				const notificationSessionKey = sessionKeys[i]
 				const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
 				if (this._sessionKeysB64[pushIdentifierId]) {
-					return {
+					ret = {
 						piSk: this._sessionKeysB64[pushIdentifierId],
 						piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
 					}
 				} else {
 					if (keys[pushIdentifierId] == null) {
-						sessionKeys.splice(i--, 1)
+						sessionKeys.splice(i, 1)
 						continue
 					}
 					let decryptedKeyB64
@@ -109,16 +111,19 @@ export class DesktopAlarmStorage {
 							false
 						))
 					} catch (e) {
-						console.log("could not decrypt pushIdentifierSessionKey, trying next one...")
-						sessionKeys.splice(i--, 1)
+						console.warn("could not decrypt pushIdentifierSessionKey, trying next one...")
+						sessionKeys.splice(i, 1)
 						continue
 					}
 					this._sessionKeysB64[pushIdentifierId] = decryptedKeyB64
-					return {
+					ret = {
 						piSk: decryptedKeyB64,
 						piSkEncSk: notificationSessionKey.pushIdentifierSessionEncSessionKey
 					}
 				}
+			}
+			if (ret) {
+				return ret
 			}
 			throw new Error("could not resolve pushIdentifierSessionKey")
 		})
