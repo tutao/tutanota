@@ -214,3 +214,12 @@ export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator
 		array.push(element)
 	}
 }
+
+
+export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
+	const zipped = []
+	for (let i = 0; i < Math.min(arr1.length, arr2.length); i++) {
+		zipped.push([arr1[i], arr2[i]])
+	}
+	return zipped
+}

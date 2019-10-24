@@ -1,12 +1,12 @@
 //@flow
 
-import {erase, serviceRequest, setup} from "../EntityWorker"
+import {erase, serviceRequest, setup, update} from "../EntityWorker"
 import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
-import {findAllAndRemove} from "../../common/utils/ArrayUtils"
-import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
+import {zip} from "../../common/utils/ArrayUtils"
+import {elementIdPart, HttpMethod, listIdPart} from "../../common/EntityFunctions"
 import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
@@ -46,42 +46,81 @@ export class CalendarFacade {
 
 	createCalendarEvent(event: CalendarEvent, alarmInfos: Array<AlarmInfo>, oldEvent: ?CalendarEvent): Promise<void> {
 		const user = this._loginFacade.getLoggedInUser()
-		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
 		let p = Promise.resolve()
-		const alarmNotifications: Array<AlarmNotification> = []
 		// delete old calendar event
 		if (oldEvent) {
 			p = erase(oldEvent).catch(NotFoundError, noOp)
 		}
 
-		return p
-			.then(() => Promise.map(alarmInfos, (alarmInfo) => {
-					const newAlarm = createUserAlarmInfo()
-					newAlarm._ownerGroup = user.userGroup.group
-					newAlarm.alarmInfo = alarmInfo
-					newAlarm.alarmInfo.calendarRef = Object.assign(createCalendarEventRef(), {
-						listId: listIdPart(event._id),
-						elementId: elementIdPart(event._id)
-					})
-					const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
-					alarmNotifications.push(alarmNotification)
-					return setup(userAlarmInfoListId, newAlarm)
-				})
-			)
-			.then(newUserAlarmElementIds => {
-				findAllAndRemove(event.alarmInfos, (userAlarmInfoId) => isSameId(userAlarmInfoListId, listIdPart(userAlarmInfoId)))
-				newUserAlarmElementIds.forEach((id) => {
-					event.alarmInfos.push([userAlarmInfoListId, id])
-				})
+		return p.then(() => this._createAlarms(user, event, alarmInfos))
+		        .then(userAlarmIdsWithAlarmNotifications => {
+			        event.alarmInfos.length = 0
+			        userAlarmIdsWithAlarmNotifications.forEach(([id]) => {
+				        event.alarmInfos.push(id)
+			        })
 
-				return setup(listIdPart(event._id), event)
+			        return setup(listIdPart(event._id), event)
+				        .then(() => {
+					        const alarmNotifications = userAlarmIdsWithAlarmNotifications
+						        .map(([_id, alarmNotification]) => alarmNotification)
+					        if (alarmNotifications.length > 0) {
+						        return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+							        .then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+					        }
+				        })
+		        })
+	}
+
+	updateCalendarEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent, existingUserAlarms: Array<UserAlarmInfo>): Promise<void> {
+		newEvent._id = existingEvent._id
+		newEvent._ownerEncSessionKey = existingEvent._ownerEncSessionKey
+		newEvent._permissions = existingEvent._permissions
+		const alarmsAreTheSame = newAlarms.length === existingUserAlarms.length
+			&& zip(newAlarms, existingUserAlarms).every(([left, right]) => this._alarmsAreEqual(left, right.alarmInfo))
+		let p: Promise<?Array<[IdTuple, AlarmNotification]>> = Promise.resolve(null)
+		if (newEvent.summary !== existingEvent.summary || !alarmsAreTheSame) {
+			// Delete own alarms
+			p = Promise.all(existingUserAlarms.map(erase))
+			           .then(() => this._createAlarms(this._loginFacade.getLoggedInUser(), newEvent, newAlarms))
+		}
+		return p.then(userAlarmIdsWithAlarmNotifications => {
+			if (userAlarmIdsWithAlarmNotifications) {
+				newEvent.alarmInfos = userAlarmIdsWithAlarmNotifications.map(([id]) => id)
+			}
+
+			return update(newEvent)
+				.then(() => {
+					if (userAlarmIdsWithAlarmNotifications) {
+						const alarmNotifications = userAlarmIdsWithAlarmNotifications
+							.map(([_id, alarmNotification]) => alarmNotification)
+						if (alarmNotifications.length > 0) {
+							return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+								.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+						}
+					}
+				})
+		})
+	}
+
+	_alarmsAreEqual(left: AlarmInfo, right: AlarmInfo): boolean {
+		return left.trigger === right.trigger
+	}
+
+	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {
+		const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
+		return Promise
+			.map(alarmInfos, (alarmInfo) => {
+				const newAlarm = createUserAlarmInfo()
+				newAlarm._ownerGroup = user.userGroup.group
+				newAlarm.alarmInfo = alarmInfo
+				newAlarm.alarmInfo.calendarRef = createCalendarEventRef({
+					listId: listIdPart(event._id),
+					elementId: elementIdPart(event._id)
+				})
+				const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
+				return setup(userAlarmInfoListId, newAlarm).then((id) => ([[userAlarmInfoListId, id], alarmNotification]))
 			})
-			.then(() => {
-				if (alarmNotifications.length > 0) {
-					return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-						.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
-				}
-			})
+
 	}
 
 	_sendAlarmNotifications(alarmNotifications: Array<AlarmNotification>, pushIdentifierList: Array<PushIdentifier>): Promise<void> {
@@ -188,7 +227,7 @@ export type EventWithAlarmInfo = {
 }
 
 function createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {
-	return Object.assign(createAlarmNotification(), {
+	return createAlarmNotification({
 		alarmInfo: createAlarmInfoForAlarmInfo(alarmInfo),
 		repeatRule: event.repeatRule && createRepeatRuleForCalendarRepeatRule(event.repeatRule),
 		notificationSessionKeys: [],

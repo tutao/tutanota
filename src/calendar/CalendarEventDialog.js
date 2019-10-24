@@ -52,6 +52,16 @@ import {windowFacade} from "../misc/WindowFacade"
 // e.g. there's an allDay event in Europe/Berlin at 2nd of may. We encode it as:
 // {startTime: new Date(Date.UTC(2019, 04, 2, 0, 0, 0, 0)), {endTime: new Date(Date.UTC(2019, 04, 3, 0, 0, 0, 0))}}
 // We check the condition with time == 0 and take a UTC date (which is [2-3) so full day on the 2nd of May). We
+function _repeatRulesEqual(repeatRule: ?CalendarRepeatRule, repeatRule2: ?CalendarRepeatRule): boolean {
+	return (repeatRule == null && repeatRule2 == null) ||
+		(repeatRule != null && repeatRule2 != null &&
+			repeatRule.endType === repeatRule2.endType &&
+			repeatRule.endValue === repeatRule2.endValue &&
+			repeatRule.frequency === repeatRule2.frequency &&
+			repeatRule.interval === repeatRule2.interval &&
+			repeatRule.timeZone === repeatRule2.timeZone)
+}
+
 // interpret it as full day in Europe/Berlin, not in the UTC.
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent ?: CalendarEvent) {
 	const summary = stream("")
@@ -110,7 +120,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	alarmPickerAttrs.push(createAlarmPicker())
 
-	let loadedUserAlarmInfo: ?UserAlarmInfo = null
+	const loadedUserAlarmInfo: Array<UserAlarmInfo> = []
 	const user = logins.getUserController().user
 
 	if (existingEvent) {
@@ -144,7 +154,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		for (let alarmInfoId of existingEvent.alarmInfos) {
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
-					loadedUserAlarmInfo = userAlarmInfo
+					loadedUserAlarmInfo.push(userAlarmInfo)
 					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
@@ -306,8 +316,16 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}
 		}
 
-		createEventId(newEvent, groupRoot)
-		worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
+		if (existingEvent == null
+			|| existingEvent._ownerGroup !== newEvent._ownerGroup
+			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
+			|| !_repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)) {
+			createEventId(newEvent, groupRoot)
+			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
+		} else {
+			worker.updateCalendarEvent(newEvent, newAlarms, existingEvent, loadedUserAlarmInfo)
+		}
+
 
 		dialog.close()
 	}
