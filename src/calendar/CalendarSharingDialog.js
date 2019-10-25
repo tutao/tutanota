@@ -16,20 +16,24 @@ import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {remove} from "../api/common/utils/ArrayUtils"
+import {findAndRemove, remove} from "../api/common/utils/ArrayUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
-import {ShareCapability} from "../api/common/TutanotaConstants"
-import {isSameId} from "../api/common/EntityFunctions"
-import {getCalendarName} from "./CalendarUtils"
+import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
+import {getElementId, isSameId} from "../api/common/EntityFunctions"
+import {getCalendarName, hasCapabilityOnGroup} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {px} from "../gui/size"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
-import {PreconditionFailedError} from "../api/common/error/RestError"
+import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showSharingBuyDialog} from "../subscription/WhitelabelAndSharingBuyDialog"
 import {logins} from "../api/main/LoginController"
+import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
+import type {EntityEventsListener} from "../api/main/EventController"
+import {isUpdateForTypeRef} from "../api/main/EventController"
+import {locator} from "../api/main/MainLocator"
 
 
 type GroupMemberInfo = {
@@ -40,7 +44,7 @@ type GroupDetails = {
 	info: GroupInfo,
 	group: Group,
 	memberInfos: Array<GroupMemberInfo>,
-	invitations: Array<SentGroupInvitation>
+	sentGroupInvitations: Array<SentGroupInvitation>
 }
 
 type CalendarSharingDialogAttrs = {
@@ -52,6 +56,57 @@ type CalendarSharingDialogAttrs = {
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
 		.then(groupDetails => {
+
+			const eventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
+				updates.forEach(update => {
+						if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
+							//ignore events of differen group here
+							console.log("received update for different group", eventOwnerGroupId)
+							return
+						}
+						if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
+							if (update.operation === OperationType.CREATE
+								&& isSameId(update.instanceListId, groupDetails.group.invitations)) {
+								load(SentGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
+									if (instance) {
+										groupDetails.sentGroupInvitations.push(instance)
+										m.redraw()
+									}
+								}).catch(NotFoundError, e => console.log("sent invitation not found", update))
+							}
+							if (update.operation === OperationType.DELETE) {
+								findAndRemove(groupDetails.sentGroupInvitations, (sentGroupInvitation) => isSameId(getElementId(sentGroupInvitation), update.instanceId))
+								m.redraw()
+							}
+						} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
+							console.log("update received in share dialog", update)
+							if (update.operation === OperationType.CREATE
+								&& isSameId(update.instanceListId, groupDetails.group.members)) {
+								load(GroupMemberTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
+									if (instance) {
+										return loadGroupInfoForMember(instance).then(groupMemberInfo => {
+											console.log("new member", groupMemberInfo)
+											groupDetails.memberInfos.push(groupMemberInfo)
+											m.redraw()
+										})
+									}
+								}).catch(NotFoundError, e => console.log("group member not found", update))
+							}
+							if (update.operation === OperationType.DELETE) {
+								findAndRemove(groupDetails.memberInfos, (memberInfo) => isSameId(getElementId(memberInfo.member), update.instanceId))
+								m.redraw()
+							}
+						}
+					}
+				)
+			}
+			locator.eventController.addEntityListener(eventListener)
+
+			const unsubscribeEventListener = () => {
+				locator.eventController.removeEntityListener(eventListener)
+			}
+
+
 			const dialog = Dialog.showActionDialog({
 					title: () => getCalendarName(groupInfo.name),
 					type: DialogType.EditLarge,
@@ -60,26 +115,32 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 						sendInviteHandler: (recipients, capability) => {
 							showProgressDialog("calendarInvitationProgress_msg",
 								worker.sendGroupInvitation(groupInfo, getCalendarName(groupInfo.name), recipients, capability)
-							).then(() => dialog.close())
-							 .catch(PreconditionFailedError, e => {
-								 if (logins.getUserController().isGlobalAdmin()) {
-									 Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
-									       .then(confirmed => {
-										       if (confirmed) {
-											       showSharingBuyDialog(true)
-										       }
-									       })
-								 } else {
-									 Dialog.error("sharingFeatureNotOrderedUser_msg")
-								 }
+							).catch(PreconditionFailedError, e => {
+								if (logins.getUserController().isGlobalAdmin()) {
+									Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+									      .then(confirmed => {
+										      if (confirmed) {
+											      showSharingBuyDialog(true)
+										      }
+									      })
+								} else {
+									Dialog.error("sharingFeatureNotOrderedUser_msg")
+								}
 
-							 })
+							}).catch(RecipientsNotFoundError, e => {
+								let invalidRecipients = e.message.join("\n")
+								return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+									+ invalidRecipients)
+							})
 						}
 					}),
-					okAction: null
+					okAction: null,
+					cancelAction: () => unsubscribeEventListener()
 				}
 			)
+
 		}))
+
 }
 
 
@@ -90,7 +151,7 @@ function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 				loadGroupMembers(group)
 			]
 		).then(([invitations, memberInfos]) => {
-			return {group, info: groupInfo, memberInfos, invitations}
+			return {group, info: groupInfo, memberInfos, sentGroupInvitations: invitations}
 		})
 	})
 }
@@ -99,21 +160,24 @@ function loadGroupMembers(group: Group): Promise<Array<GroupMemberInfo>> {
 	return loadAll(GroupMemberTypeRef, group.members)
 		.then((members) => Promise
 			.map(members, (member) =>
-				load(GroupInfoTypeRef, member.userGroupInfo)
-					.then((userGroupInfo) => {
-						return {
-							member: member,
-							info: userGroupInfo
-						}
-					})
+				loadGroupInfoForMember(member)
 			))
+}
+
+function loadGroupInfoForMember(groupMember: GroupMember): Promise<GroupMemberInfo> {
+	return load(GroupInfoTypeRef, groupMember.userGroupInfo)
+		.then((userGroupInfo) => {
+			return {
+				member: groupMember,
+				info: userGroupInfo
+			}
+		})
 }
 
 
 class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAttrs> {
 	_invitePeopleValueTextField: BubbleTextField<RecipientInfo>;
 	_capapility: Stream<ShareCapabilityEnum>;
-
 
 	constructor() {
 		this._capapility = stream(ShareCapability.Read)
@@ -150,12 +214,16 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 			m(TableN, {
 				columnHeadingTextIds: ["recipients_label", "permissions_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: vnode.attrs.groupDetails.invitations.map((invitation) => {
+				lines: vnode.attrs.groupDetails.sentGroupInvitations.map((sentGroupInvitation) => {
 					return {
-						cells: [invitation.inviteeMailAddress, getCapabilityText(downcast(invitation.capability))], actionButtonAttrs: {
-							label: "more_label",
-							click: () => {},
-							icon: () => Icons.More,
+						cells: [sentGroupInvitation.inviteeMailAddress, getCapabilityText(downcast(sentGroupInvitation.capability))],
+						actionButtonAttrs: {
+							label: "remove_action",
+							click: () => {
+								worker.rejectGroupInvitation(neverNull(sentGroupInvitation.receivedInvitation))
+							},
+							icon: () => Icons.Cancel,
+							isVisible: () => this._isDeleteInvitationButtonVisible(vnode.attrs.groupDetails.group, sentGroupInvitation)
 						}
 					}
 				}),
@@ -172,11 +240,12 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 							getMemberText(vnode.attrs.groupDetails.group, memberInfo),
 							getCapabilityText(downcast(memberInfo.member.capability))
 						], actionButtonAttrs: {
-							label: "more_label",
+							label: "delete_action",
+							icon: () => Icons.Cancel,
 							click: () => {
-
+								worker.removeUserFromGroup(memberInfo.member.user, vnode.attrs.groupDetails.group._id)
 							},
-							icon: () => Icons.More,
+							isVisible: () => this._isDeleteMembershipVisible(vnode.attrs.groupDetails.group, memberInfo)
 						}
 					}
 				}),
@@ -186,7 +255,18 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 	}
 
 
-	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo> {
+	_isDeleteInvitationButtonVisible(group: Group, sentGroupInvitation: SentGroupInvitation): boolean {
+		return hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Invite)
+			|| isSharedGroupOwner(group, logins.getUserController().user._id)
+	}
+
+	_isDeleteMembershipVisible(group: Group, memberInfo: GroupMemberInfo): boolean {
+		return (hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Invite)
+			|| isSameId(logins.getUserController().user._id, memberInfo.member.user))
+			&& !isSharedGroupOwner(group, memberInfo.member.user)
+	}
+
+	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
 		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
 		let bubbleWrapper = {}
 		bubbleWrapper.buttonAttrs = attachDropdown({
@@ -216,12 +296,16 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 		return buttonAttrs
 	}
 
+
 }
 
 function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string {
-	const sharedGroupUser = sharedGroup.user
 	return getGroupInfoDisplayName(memberInfo.info)
-		+ ((sharedGroupUser && isSameId(memberInfo.member.user, sharedGroupUser)) ? ` (${lang.get("owner_label")})` : "")
+		+ (isSharedGroupOwner(sharedGroup, memberInfo.member.user) ? ` (${lang.get("owner_label")})` : "")
+}
+
+function isSharedGroupOwner(sharedGroup: Group, userId: Id): boolean {
+	return !!(sharedGroup.user && isSameId(sharedGroup.user, userId))
 }
 
 

@@ -52,7 +52,7 @@ type GroupMembership = {
 	_type: TypeRef<GroupMembership>;
 	_id: Id;
 	admin: boolean;
-	capability: NumberString;
+	capability: ?NumberString;
 	groupType: ?NumberString;
 	symEncGKey: Uint8Array;
 
@@ -311,7 +311,7 @@ type SentGroupInvitation = {
 	capability: NumberString;
 	inviteeMailAddress: string;
 
-	sentInvitation: ?IdTuple;
+	receivedInvitation: ?IdTuple;
 	sharedGroup: Id;
 }
 
@@ -331,7 +331,7 @@ type GroupMember = {
 	_id: IdTuple;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	capability: NumberString;
+	capability: ?NumberString;
 
 	group: Id;
 	user: Id;

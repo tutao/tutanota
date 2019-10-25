@@ -6,7 +6,7 @@ import {px, size} from "../size"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {ButtonN, ButtonType, isVisible} from "./ButtonN"
 import {neverNull} from "../../api/common/utils/Utils"
 import {createDropdown} from "./DropdownN"
 import {Icons} from "./icons/Icons"
@@ -99,7 +99,7 @@ class _Table {
 				style: {
 					width: px(size.button_height),
 				}
-			}, (lineAttrs.actionButtonAttrs) ? [
+			}, (lineAttrs.actionButtonAttrs && isVisible(lineAttrs.actionButtonAttrs)) ? [
 				m("", {
 					style: {
 						position: 'relative',

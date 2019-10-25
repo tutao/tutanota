@@ -545,8 +545,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("acceptGroupInvitation", [invitation]))
 	}
 
-	rejectGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
-		return this._queue.postMessage(new Request("rejectGroupInvitation", [invitation]))
+	rejectGroupInvitation(receivedGroupInvitaitonId: IdTuple): Promise<void> {
+		return this._queue.postMessage(new Request("rejectGroupInvitation", [receivedGroupInvitaitonId]))
 	}
 }
 

@@ -15,11 +15,11 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse, TimeFormat} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getCalendarName, getEventStart, getMonth, getTimeZone, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
+import {getCalendarName, getEventStart, getMonth, getTimeZone, hasCapabilityOnGroup, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -60,6 +60,7 @@ export type CalendarInfo = {
 	shortEvents: Array<CalendarEvent>,
 	longEvents: Array<CalendarEvent>,
 	groupInfo: GroupInfo,
+	group: Group,
 	shared: boolean
 }
 
@@ -397,7 +398,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_rejectInvite(invitation: ReceivedGroupInvitation) {
-		worker.rejectGroupInvitation(invitation)
+		worker.rejectGroupInvitation(invitation._id)
 	}
 
 
@@ -405,90 +406,100 @@ export class CalendarView implements CurrentView {
 		return this._calendarInfos.isFulfilled() ?
 			Array.from(this._calendarInfos.value().values())
 			     .filter(calendarInfo => calendarInfo.shared === shared)
-			     .map(({groupRoot, groupInfo}) => {
+			     .map((calendarInfo) => {
 				     const {userSettingsGroupRoot} = logins.getUserController()
-				     const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === groupInfo.group)
+				     const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === calendarInfo.groupInfo.group)
 				     const colorValue = "#" + (existingGroupColor ? existingGroupColor.color : defaultCalendarColor)
+				     const groupRootId = calendarInfo.groupRoot._id
 				     return m(".folder-row.flex-start.plr-l",
 					     [
 						     m(".flex.flex-grow.center-vertically.button-height", [
 							     m(".calendar-checkbox", {
-								     onclick: () => this._hiddenCalendars.has(groupRoot._id)
-									     ? this._hiddenCalendars.delete(groupRoot._id)
-									     : this._hiddenCalendars.add(groupRoot._id),
+								     onclick: () => this._hiddenCalendars.has(groupRootId)
+									     ? this._hiddenCalendars.delete(groupRootId)
+									     : this._hiddenCalendars.add(groupRootId),
 								     style: {
 									     "border-color": colorValue,
-									     "background": this._hiddenCalendars.has(groupRoot._id) ? "" : colorValue,
+									     "background": this._hiddenCalendars.has(groupRootId) ? "" : colorValue,
 									     "margin-left": "-4px", // .folder-row > a adds -10px margin to other items but it has 6px padding
 									     "transition": "all 0.3s",
 									     "cursor": "pointer",
 								     }
 							     }),
-							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(groupInfo.name))
+							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(calendarInfo.groupInfo.name))
 						     ]),
-						     m(ButtonN, attachDropdown({
-								     label: "more_label",
-								     click: noOp,
-								     icon: () => Icons.More
-							     }, () => [
-								     {
-									     label: "edit_action",
-									     icon: () => Icons.Edit,
-									     click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot, shared),
-									     type: ButtonType.Dropdown,
-								     },
-								     {
-									     label: "sharing_label",
-									     icon: () => Icons.ContactImport,
-									     click: () => {
-										     if (logins.getUserController().isFreeAccount()) {
-											     showNotAvailableForFreeDialog(false)
-										     } else {
-											     showCalendarSharingDialog(groupInfo)
-										     }
-									     },
-									     type: ButtonType.Dropdown,
-								     },
-								     isApp()
-									     ? null
-									     : {
-										     label: "import_action",
-										     icon: () => Icons.Import,
-										     click: () => showCalendarImportDialog(groupRoot),
-										     type: ButtonType.Dropdown,
-									     },
-								     isApp()
-									     ? null
-									     : {
-										     label: "export_action",
-										     icon: () => Icons.Export,
-										     click: () => {
-											     const alarmInfoList = logins.getUserController().user.alarmInfoList
-											     alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
-										     },
-										     type: ButtonType.Dropdown,
-									     },
-								     {
-									     label: "delete_action",
-									     icon: () => Icons.Trash,
-									     click: () => {
-										     Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": getCalendarName(groupInfo.name)}))
-										           .then((confirmed) => {
-											           if (confirmed) {
-												           serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
-													           groupRootId: groupRoot._id
-												           }))
-											           }
-										           })
-									     },
-									     type: ButtonType.Dropdown,
-								     },
-							     ].filter(Boolean)
-						     )),
+						     this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupColor, userSettingsGroupRoot, shared)
 					     ])
 			     })
 			: null
 	}
+
+	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
+		const {group, groupInfo, groupRoot} = calendarInfo
+		return m(ButtonN, attachDropdown({
+				label: "more_label",
+				click: noOp,
+				icon: () => Icons.More
+			}, () => [
+				{
+					label: "edit_action",
+					icon: () => Icons.Edit,
+					click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot, sharedCalendar),
+					type: ButtonType.Dropdown,
+				},
+				{
+					label: "sharing_label",
+					icon: () => Icons.ContactImport,
+					click: () => {
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(false)
+						} else {
+							showCalendarSharingDialog(groupInfo)
+						}
+					},
+					type: ButtonType.Dropdown,
+				},
+				isApp()
+					? null
+					: {
+						label: "import_action",
+						icon: () => Icons.Import,
+						click: () => showCalendarImportDialog(groupRoot),
+						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Write),
+						type: ButtonType.Dropdown,
+					},
+				isApp()
+					? null
+					: {
+						label: "export_action",
+						icon: () => Icons.Export,
+						click: () => {
+							const alarmInfoList = logins.getUserController().user.alarmInfoList
+							alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
+						},
+						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
+						type: ButtonType.Dropdown,
+					},
+				{
+					label: "delete_action",
+					icon: () => Icons.Trash,
+					click: () => {
+						Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": getCalendarName(groupInfo.name)}))
+						      .then((confirmed) => {
+							      if (confirmed) {
+								      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
+									      groupRootId: groupRoot._id
+								      }))
+							      }
+						      })
+					},
+					isVisible: () => !sharedCalendar,
+					type: ButtonType.Dropdown,
+				},
+			].filter(Boolean)
+		))
+	}
+
 
 	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot, shared: boolean) {
 		showEditCalendarDialog({
@@ -587,7 +598,7 @@ export class CalendarView implements CurrentView {
 			// events anyway.
 			const startId = getEventElementMinId(month.start.getTime() - DAY_IN_MILLIS)
 			const endId = geEventElementMaxId(month.end.getTime() + DAY_IN_MILLIS)
-			return Promise.map(calendarInfos.values(), ({groupRoot, groupInfo, longEvents, shared}) => {
+			return Promise.map(calendarInfos.values(), ({group, groupRoot, groupInfo, longEvents, shared}) => {
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
@@ -606,6 +617,7 @@ export class CalendarView implements CurrentView {
 					calendarInfos.set(groupRoot._id, {
 							groupRoot,
 							groupInfo,
+							group,
 							shortEvents: shortEventsResult.elements,
 							longEvents,
 							shared
@@ -643,6 +655,7 @@ export class CalendarView implements CurrentView {
 								              groupInfo,
 								              shortEvents: [],
 								              longEvents: [],
+								              group: group,
 								              shared: !isSameId(group.user, userId)
 							              })
 						              })

@@ -1,8 +1,8 @@
 //@flow
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
-import type {EventTextTimeOptionEnum, RepeatPeriodEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, EventTextTimeOption, getWeekStart, WeekStart} from "../api/common/TutanotaConstants"
+import type {EventTextTimeOptionEnum, RepeatPeriodEnum, ShareCapabilityEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, EventTextTimeOption, getWeekStart, GroupType, WeekStart} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -12,6 +12,7 @@ import {formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
+import {isSameId} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -434,4 +435,16 @@ export function isLongEvent(event: CalendarEvent): boolean {
 export function createEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
 	const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
+}
+
+
+export function hasCapabilityOnGroup(user: User, group: Group, requiredCapability: ShareCapabilityEnum): boolean {
+	if (group.type !== GroupType.Calendar) {
+		return false
+	}
+	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
+	if (membership) {
+		return membership.capability != null && Number(requiredCapability) >= Number(membership.capability)
+	}
+	return false
 }

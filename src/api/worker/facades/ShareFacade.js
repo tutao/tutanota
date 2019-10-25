@@ -78,9 +78,9 @@ export class ShareFacade {
 		})
 	}
 
-	rejectGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
+	rejectGroupInvitation(receivedGroupInvitaitonId: IdTuple): Promise<void> {
 		const serviceData = createGroupInvitationDeleteData({
-			receivedInvitation: invitation._id
+			receivedInvitation: receivedGroupInvitaitonId
 		})
 		return serviceRequestVoid(TutanotaService.GroupInvitationService, HttpMethod.DELETE, serviceData)
 	}

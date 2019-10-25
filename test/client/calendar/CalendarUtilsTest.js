@@ -1,8 +1,12 @@
 // @flow
 import o from "ospec/ospec.js"
 import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
-import {getCalendarMonth, getStartOfWeek, getWeekNumber, parseTime} from "../../../src/calendar/CalendarUtils"
+import {getCalendarMonth, getStartOfWeek, getWeekNumber, hasCapabilityOnGroup, parseTime} from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
+import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
+import {createGroup} from "../../../src/api/entities/sys/Group"
+import {createUser} from "../../../src/api/entities/sys/User"
+import {GroupType, ShareCapability} from "../../../src/api/common/TutanotaConstants"
 
 o.spec("calendar utils tests", function () {
 	o.spec("getCalendarMonth", function () {
@@ -175,6 +179,62 @@ o.spec("calendar utils tests", function () {
 			o(getWeekNumber(new Date(2018, 0, 1))).equals(1)
 		})
 	})
+
+	o.spec("capability", function () {
+		let user;
+		let ownerUser;
+		let group;
+		let groupMembership;
+		let groupOwnerMembership;
+		o.before(function () {
+			group = createGroup({_id: "g1", type: GroupType.Calendar, user: "groupOwner"})
+			groupMembership = createGroupMembership({group: group._id})
+			groupOwnerMembership = createGroupMembership({group: group._id})
+			ownerUser = createUser({_id: "groupOwner", memberships: [groupOwnerMembership]})
+			user = createUser({_id: "groupMember", memberships: [groupMembership]})
+		})
+
+		o("hasCapability - Invite", function () {
+			groupMembership.capability = ShareCapability.Invite
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(true)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(true)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(true)
+		})
+
+		o("hasCapability - Write", function () {
+			groupMembership.capability = ShareCapability.Write
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(true)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(true)
+		})
+
+		o("hasCapability - Read", function () {
+			groupMembership.capability = ShareCapability.Read
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(true)
+		})
+
+		o("hasCapability - Null", function () {
+			groupMembership.capability = null
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(false)
+		})
+
+		o("hasCapability - Owner", function () {
+			groupMembership.capability = null
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Invite)).equals(true)
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Write)).equals(true)
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Read)).equals(true)
+		})
+		o("hasCapability - no membership", function () {
+			user.memberships = []
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Invite)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Write)).equals(false)
+			o(hasCapabilityOnGroup(user, group, ShareCapability.Read)).equals(false)
+		})
+	})
 })
 
 
@@ -182,3 +242,5 @@ function toCalendarString(calenderMonth: CalendarMonth) {
 	return calenderMonth.weekdays.join(",") + "\n"
 		+ calenderMonth.weeks.map(w => w.map(d => d.day).join(",")).join("\n")
 }
+
+
