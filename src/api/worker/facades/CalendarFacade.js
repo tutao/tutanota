@@ -5,8 +5,7 @@ import {assertWorkerOrNode} from "../../Env"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
 import type {LoginFacade} from "./LoginFacade"
 import {neverNull, noOp} from "../../common/utils/Utils"
-import {zip} from "../../common/utils/ArrayUtils"
-import {elementIdPart, HttpMethod, listIdPart} from "../../common/EntityFunctions"
+import {elementIdPart, HttpMethod, isSameId, listIdPart} from "../../common/EntityFunctions"
 import {load, loadAll, serviceRequestVoid} from "../../worker/EntityWorker"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
@@ -71,39 +70,34 @@ export class CalendarFacade {
 		        })
 	}
 
-	updateCalendarEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent, existingUserAlarms: Array<UserAlarmInfo>): Promise<void> {
+	updateCalendarEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, existingEvent: CalendarEvent): Promise<void> {
 		newEvent._id = existingEvent._id
 		newEvent._ownerEncSessionKey = existingEvent._ownerEncSessionKey
 		newEvent._permissions = existingEvent._permissions
-		const alarmsAreTheSame = newAlarms.length === existingUserAlarms.length
-			&& zip(newAlarms, existingUserAlarms).every(([left, right]) => this._alarmsAreEqual(left, right.alarmInfo))
-		let p: Promise<?Array<[IdTuple, AlarmNotification]>> = Promise.resolve(null)
-		if (newEvent.summary !== existingEvent.summary || !alarmsAreTheSame) {
-			// Delete own alarms
-			p = Promise.all(existingUserAlarms.map(erase))
-			           .then(() => this._createAlarms(this._loginFacade.getLoggedInUser(), newEvent, newAlarms))
-		}
-		return p.then(userAlarmIdsWithAlarmNotifications => {
-			if (userAlarmIdsWithAlarmNotifications) {
-				newEvent.alarmInfos = userAlarmIdsWithAlarmNotifications.map(([id]) => id)
-			}
+		const user = this._loginFacade.getLoggedInUser()
+		return Promise
+			.resolve()
+			.then(() => this._createAlarms(user, newEvent, newAlarms))
+			.then(userAlarmIdsWithAlarmNotifications => {
+				const userAlarmInfoListId = neverNull(user.alarmInfoList).alarms
+				// Remove all alarms which belongs to the current user. We need to be careful about other users' alarms.
+				newEvent.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
+				if (userAlarmIdsWithAlarmNotifications) {
+					newEvent.alarmInfos.push(...userAlarmIdsWithAlarmNotifications.map(([id]) => id))
+				}
 
-			return update(newEvent)
-				.then(() => {
-					if (userAlarmIdsWithAlarmNotifications) {
-						const alarmNotifications = userAlarmIdsWithAlarmNotifications
-							.map(([_id, alarmNotification]) => alarmNotification)
-						if (alarmNotifications.length > 0) {
-							return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
-								.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+				return update(newEvent)
+					.then(() => {
+						if (userAlarmIdsWithAlarmNotifications) {
+							const alarmNotifications = userAlarmIdsWithAlarmNotifications
+								.map(([_id, alarmNotification]) => alarmNotification)
+							if (alarmNotifications.length > 0) {
+								return loadAll(PushIdentifierTypeRef, neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list)
+									.then((pushIdentifierList) => this._sendAlarmNotifications(alarmNotifications, pushIdentifierList))
+							}
 						}
-					}
-				})
-		})
-	}
-
-	_alarmsAreEqual(left: AlarmInfo, right: AlarmInfo): boolean {
-		return left.trigger === right.trigger
+					})
+			})
 	}
 
 	_createAlarms(user: User, event: CalendarEvent, alarmInfos: Array<AlarmInfo>): Promise<Array<[IdTuple, AlarmNotification]>> {

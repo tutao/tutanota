@@ -120,7 +120,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 	alarmPickerAttrs.push(createAlarmPicker())
 
-	const loadedUserAlarmInfo: Array<UserAlarmInfo> = []
 	const user = logins.getUserController().user
 
 	if (existingEvent) {
@@ -154,7 +153,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		for (let alarmInfoId of existingEvent.alarmInfos) {
 			if (isSameId(listIdPart(alarmInfoId), neverNull(user.alarmInfoList).alarms)) {
 				load(UserAlarmInfoTypeRef, alarmInfoId).then((userAlarmInfo) => {
-					loadedUserAlarmInfo.push(userAlarmInfo)
 					lastThrow(alarmPickerAttrs).selectedValue(downcast(userAlarmInfo.alarmInfo.trigger))
 					m.redraw()
 				})
@@ -323,7 +321,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			createEventId(newEvent, groupRoot)
 			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
 		} else {
-			worker.updateCalendarEvent(newEvent, newAlarms, existingEvent, loadedUserAlarmInfo)
+			worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)
 		}
 
 

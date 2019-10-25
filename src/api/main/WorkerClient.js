@@ -506,8 +506,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("createCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
-	updateCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent, oldUserAlarms: Array<UserAlarmInfo>) {
-		return this._queue.postMessage(new Request("updateCalendarEvent", [event, alarmInfo, oldEvent, oldUserAlarms]))
+	updateCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("updateCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
 	addCalendar(name: string): Promise<Group> {
