@@ -159,7 +159,7 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".content-bg.overflow-hidden.pb-2", {
+			return m(".elevated-bg.overflow-hidden.pb-2", {
 					style: {
 						"top": '0px',
 						"position": client.browser === BrowserType.SAFARI

@@ -259,10 +259,12 @@ styles.registerStyle('main', () => {
 		'.content-accent-fg': {color: theme.content_accent},
 		'.svg-content-fg path': {fill: theme.content_fg},
 		'.content-bg': {'background-color': theme.content_bg,},
+
 		'.content-hover:hover': {
 			color: theme.content_accent,
 		},
 		'.content-message-bg': {'background-color': theme.content_message_bg},
+		'.elevated-bg': {'background-color': theme.elevated_bg || theme.content_bg},
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
@@ -686,7 +688,7 @@ styles.registerStyle('main', () => {
 			position: 'absolute',
 			width: 0,
 			height: 0,
-			'background-color': theme.content_bg,
+			'background-color': theme.elevated_bg || theme.content_bg,
 			overflow: 'hidden' // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
 		},
 		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
@@ -701,7 +703,7 @@ styles.registerStyle('main', () => {
 			'border-color': theme.content_border,
 			'padding-bottom': '1px',
 			'z-index': 1,
-			'background-color': theme.content_bg,
+			'background-color': theme.elevated_bg || theme.content_bg,
 			'border-radius': `${size.border_radius}px ${size.border_radius}px 0 0`,
 			color: theme.content_fg,
 		},

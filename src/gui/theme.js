@@ -19,9 +19,11 @@ export type Theme = {
 	content_button_selected: string,
 	content_button_icon: string,
 	content_button_icon_selected: string,
+	content_button_bg?: string,
 	content_accent: string,
 	content_border: string,
 	content_message_bg: string,
+
 
 	header_bg: string,
 	header_box_shadow_bg: string,
@@ -35,10 +37,12 @@ export type Theme = {
 	list_border: string,
 
 	modal_bg: string,
+	elevated_bg?: string,
 
 	navigation_bg: string,
 	navigation_border: string,
 	navigation_button: string,
+	navigation_button_bg?: string,
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
@@ -127,6 +131,7 @@ function getLightTheme() {
 		list_border: grey_dark,
 
 		modal_bg: grey_darkest,
+		elevated_bg: light,
 
 		navigation_bg: grey_lighter,
 		navigation_border: grey_dark,
@@ -138,34 +143,39 @@ function getLightTheme() {
 }
 
 function getDarkTheme(): Theme {
-
-	const lightest = '#fff'
-	const lighter = '#c5c7c7'
-	const light = '#B0B0B0'
+	// Assuming the background is black #000000 (rgb(0,0,0)) and text is white #000000 (rgb(255, 255, 255)) and recommended opacity of 87%
+	// we get (x1 being foreground, x2 being background, x3 being result)
+	// x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
+	// rgb(221, 221, 221) = #DDDDDD
+	// https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
+	const lightest = '#DDDDDD'
+	const light = '#999999'
 	const grey = '#909090'
 
-	const dark_lightest = '#5e5c5c'
-	const dark_lighter = '#4a4a4a'
-	const dark = '#3b3a3a'
-	const dark_darkest = '#222222'
+	//#999999 // button text
 
-	const cyan = '#76cbda'
+	const dark_lightest = '#4e4e4e'
+	const dark_lighter = '#232323'
+	const dark = '#222222'
+	const dark_darkest = '#111111'
+
+	const cyan = '#00FFCA'
 
 	return {
 		logo: LogoSvg.Cyan,
 
-
 		button_bubble_bg: dark_lightest,
-		button_bubble_fg: lighter,
+		button_bubble_fg: light,
 
-		content_fg: lighter,
+		content_fg: lightest,
 		content_button: light,
 		content_button_selected: cyan,
-		content_button_icon: dark_lighter,
-		content_button_icon_selected: lightest,
+		content_button_bg: dark_lightest,
+		content_button_icon: lightest,
+		content_button_icon_selected: dark_lighter,
 		content_accent: cyan,
-		content_bg: dark_lighter,
-		content_border: light,
+		content_bg: dark_darkest,
+		content_border: dark_lightest,
 		content_message_bg: dark_lightest,
 
 
@@ -174,17 +184,19 @@ function getDarkTheme(): Theme {
 		header_button: light,
 		header_button_selected: cyan,
 
-		list_bg: dark,
+		list_bg: dark_darkest,
 		list_alternate_bg: dark_lighter,
 		list_accent_fg: cyan,
 		list_message_bg: dark_lightest,
-		list_border: dark,
+		list_border: dark_lightest,
 
 		modal_bg: dark_darkest,
+		elevated_bg: dark_lighter,
 
-		navigation_bg: dark_lightest,
-		navigation_border: dark,
-		navigation_button: light,
+		navigation_bg: dark_lighter,
+		navigation_border: dark_lightest,
+		navigation_button: lightest,
+		navigation_button_bg: cyan,
 		navigation_button_icon: dark_lighter,
 		navigation_button_selected: cyan,
 		navigation_button_icon_selected: lightest,

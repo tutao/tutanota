@@ -40,6 +40,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 			return {
 				button: theme.navigation_button,
 				button_selected: theme.navigation_button_selected,
+				button_bg: theme.navigation_button_bg || theme.navigation_button,
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 				border: theme.navigation_bg
@@ -49,6 +50,7 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 			return {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
+				button_bg: theme.content_button_bg || theme.content_button,
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
 				border: theme.content_bg
@@ -102,7 +104,8 @@ class _Button {
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 				class: this.getWrapperClasses(a).join(' '),
 				style: {
-					borderColor: getColors(a.colors).border
+					// huge hack like everything else around toggle to get border color matching the dialog background
+					borderColor: type === ButtonType.Toggle ? (theme.elevated_bg || theme.content_bg) : getColors(a.colors).border
 				},
 				oncreate: (vnode) => {
 					if (type !== ButtonType.Toggle) {
@@ -152,6 +155,8 @@ class _Button {
 			return 'initial'
 		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
+		} else if (type === ButtonType.Action || type === ButtonType.Dropdown) {
+			return getColors(a.colors).button_bg
 		} else {
 			return getColors(a.colors).button
 		}

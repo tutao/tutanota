@@ -44,12 +44,14 @@ function getColors(buttonColors: ButtonColorEnum) {
 			return {
 				button: theme.navigation_button,
 				button_selected: theme.navigation_button_selected,
+				button_bg: theme.navigation_button_bg || theme.navigation_button,
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 			}
 		case ButtonColors.Content:
 			return {
 				button: theme.content_button,
+				button_bg: theme.content_button_bg || theme.content_button,
 				button_selected: theme.content_button_selected,
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
@@ -151,6 +153,8 @@ export class Button {
 			return 'initial'
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).button_selected
+		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown) {
+			return getColors(this._colors).button_bg
 		} else {
 			return getColors(this._colors).button
 		}
@@ -226,7 +230,7 @@ export class Button {
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
 		} else if (this._type === ButtonType.Login || this._type === ButtonType.Accent) {
-			color = theme.content_button_icon
+			color = theme.content_bg
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
 			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
 		} else {

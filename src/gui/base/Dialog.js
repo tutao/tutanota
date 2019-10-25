@@ -91,7 +91,7 @@ export class Dialog {
 								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
 								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
 							} else {
-								let bgcolor = theme.content_bg
+								let bgcolor = theme.elevated_bg || theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
 								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
@@ -143,7 +143,7 @@ export class Dialog {
 	}
 
 	_getDialogStyle(dialogType: DialogTypeEnum) {
-		let dialogStyle = ".dialog.content-bg.flex-grow"
+		let dialogStyle = ".dialog.elevated-bg.flex-grow"
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress"
 		} else if (dialogType === DialogType.Alert) {
@@ -214,7 +214,7 @@ export class Dialog {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
-		let bgcolor = theme.content_bg
+		let bgcolor = theme.elevated_bg || theme.content_bg
 		if (this._domDialog) {
 			return Promise.all([
 				animations.add(this._domDialog.children, opacity(1, 0, true)),
@@ -432,11 +432,10 @@ export class Dialog {
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
+		const {title, child, okAction, validator, allowCancel, allowOkWithReturn,okActionTextId, cancelActionTextId, cancelAction, type} =
 			Object.assign({}, {
 				allowCancel: true,
-				allowOkWithReturn: false,
-				okActionTextId: "ok_action",
+				allowOkWithReturn: false,okActionTextId: "ok_action",
 				cancelActionTextId: "cancel_action",
 				type: DialogType.EditSmall
 			}, props)
