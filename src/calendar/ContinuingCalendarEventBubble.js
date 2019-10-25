@@ -1,7 +1,7 @@
 //@flow
 
 import m from "mithril"
-import {eventEndsAfterDay, eventStartsBefore, getEventText} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
 import type {EventTextTimeOptionEnum} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
@@ -37,7 +37,7 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 					onEventClicked: () => attrs.onEventClicked(attrs.event),
 					noBorderLeft: startsBefore,
 					noBorderRight: endsAfter,
-					hasAlarm: attrs.event.alarmInfos.length > 0
+					hasAlarm:  hasAlarmsForTheUser(attrs.event)
 				}),
 			),
 			endsAfter

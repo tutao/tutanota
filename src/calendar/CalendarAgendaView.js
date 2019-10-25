@@ -6,7 +6,7 @@ import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDate, formatDateWithWeekday} from "../misc/Formatter"
-import {eventEndsAfterDay, eventStartsBefore, getEventColor, getEventText} from "./CalendarUtils"
+import {eventEndsAfterDay, eventStartsBefore, getEventColor, getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {px, size} from "../gui/size"
@@ -98,7 +98,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 										text: getEventText(ev, textOption),
 										secondLineText: ev.location,
 										color: getEventColor(ev, attrs.groupColors),
-										hasAlarm: ev.alarmInfos.length > 0 && !startsBefore,
+										hasAlarm: !startsBefore && hasAlarmsForTheUser(ev),
 										onEventClicked: () => attrs.onEventClicked(ev),
 										height: 38,
 										verticalPadding: 2
