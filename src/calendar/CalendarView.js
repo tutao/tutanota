@@ -19,7 +19,7 @@ import {defaultCalendarColor, GroupType, OperationType, reverse, TimeFormat} fro
 import {locator} from "../api/main/MainLocator"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getCalendarName, getEventStart, getMonth, getTimeZone, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
+import {getCalendarName, getEventStart, getMonth, getTimeZone, isSameEvent, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -726,9 +726,11 @@ export class CalendarView implements CurrentView {
 				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
 					return
 				}
+				findAndRemove(calendarInfo.shortEvents, (el) => isSameEvent(el, event))
 				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
+				findAndRemove(calendarInfo.longEvents, (el) => isSameEvent(el, event))
 				calendarInfo.longEvents.push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
 					const loadedMonth = getMonth(new Date(firstDayTimestamp))

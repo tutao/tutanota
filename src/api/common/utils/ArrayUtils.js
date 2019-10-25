@@ -198,23 +198,27 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 	}, [])
 }
 
-export function insertIntoSortedArray<T>(element: T, array: Array<T>, comparator: (left: T, right: T) => number) {
+export function insertIntoSortedArray<T>(element: T, array: Array<T>,
+                                         comparator: (left: T, right: T) => number,
+                                         replaceIf: (newElement: T, existing: T) => boolean = () => false) {
 	if (array.length === 0) {
 		array.push(element)
 	} else if (comparator(element, lastThrow(array)) >= 0) {
+		if (replaceIf(element, lastThrow(array))) {
+			array.pop()
+		}
 		array.push(element)
 	} else {
 		for (let i = 0; i < array.length; i++) {
 			const compareResult = comparator(element, array[i])
 			if (compareResult < 0) {
-				array.splice(i, 0, element)
+				const replaceIfResult = replaceIf(element, array[i])
+				array.splice(i, replaceIfResult ? 1 : 0, element)
 				return
 			}
 		}
-		array.push(element)
 	}
 }
-
 
 export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 	const zipped = []

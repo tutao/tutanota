@@ -12,6 +12,7 @@ import {formatTime} from "../misc/Formatter"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
+import {isSameId} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -434,4 +435,9 @@ export function isLongEvent(event: CalendarEvent): boolean {
 export function createEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
 	const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
+}
+
+
+export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean {
+	return isSameId(left._id, right._id)
 }
