@@ -33,11 +33,12 @@ function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
 }
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
-	const calculationDate = getStartOfDay(getEventStart(event))
+	const eventStart = getEventStart(event)
+	const calculationDate = getStartOfDay(eventStart)
 	const eventEndDate = getEventEnd(event);
 
 	// only add events when the start time is inside this month
-	if (getEventStart(event).getTime() < month.start.getTime() || getEventStart(event).getTime() >= month.end.getTime()) {
+	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
 		return
 	}
 
