@@ -263,7 +263,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('updatePaymentData', arguments))
 	}
 
-	downloadInvoice(invoice: Invoice): Promise<DataFile> {
+	downloadInvoice(invoiceNumber: string): Promise<DataFile> {
 		return this._postRequest(new Request('downloadInvoice', arguments))
 	}
 

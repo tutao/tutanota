@@ -1020,6 +1020,10 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"about_label": "Über",
+		"currentBalance_label": "Aktueller Kontostand",
+		"postings_label": "Buchungen",
+
+		"about_label": "Über",
 		"color_label": "Farbe",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importCalendar_label": "Kalender wird importiert",

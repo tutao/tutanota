@@ -1,7 +1,7 @@
 //@flow
 import {restClient} from "./RestClient"
 import {locator} from "../WorkerLocator"
-import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
+import {decryptAndMapToInstance, encryptAndMapToLiteral, resolveServiceSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
