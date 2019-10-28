@@ -33,7 +33,10 @@ export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | Moni
 				                 .then(data => {
 					                 if (responseTypeRef) {
 						                 return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
-							                 return decryptAndMapToInstance(responseTypeModel, JSON.parse(((data: any): string)), sk)
+							                 let instance = JSON.parse(((data: any): string))
+							                 return resolveServiceSessionKey(responseTypeModel, instance).then(resolvedSessionKey => {
+								                 return decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ? resolvedSessionKey : sk)
+							                 })
 						                 })
 					                 }
 				                 })

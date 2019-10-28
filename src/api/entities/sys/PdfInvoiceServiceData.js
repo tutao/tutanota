@@ -20,6 +20,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"invoiceNumber": {
+			"name": "invoiceNumber",
+			"id": 1600,
+			"since": 50,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -28,7 +37,7 @@ export const _TypeModel: TypeModel = {
 			"id": 779,
 			"since": 9,
 			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"refType": "Invoice",
 			"final": false,
 			"external": false

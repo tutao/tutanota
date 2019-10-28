@@ -985,14 +985,17 @@ type SwitchAccountTypeData = {
 type PdfInvoiceServiceData = {
 	_type: TypeRef<PdfInvoiceServiceData>;
 	_format: NumberString;
+	invoiceNumber: string;
 
-	invoice: IdTuple;
+	invoice: ?IdTuple;
 }
 
 type PdfInvoiceServiceReturn = {
 	_type: TypeRef<PdfInvoiceServiceReturn>;
 	_errors: Object;
 	_format: NumberString;
+	_ownerAsyncEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
 	data: Uint8Array;
 
 }

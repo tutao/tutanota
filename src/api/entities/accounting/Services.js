@@ -1,3 +1,5 @@
 // @flow
 
-export const AccountingService = {}
+export const AccountingService = {
+	CustomerAccountService: "customeraccountservice"
+}

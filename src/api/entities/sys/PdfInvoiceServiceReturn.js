@@ -20,7 +20,26 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
-		}, "data": {"name": "data", "id": 782, "since": 9, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": true}
+		},
+		"_ownerAsyncEncSessionKey": {
+			"name": "_ownerAsyncEncSessionKey",
+			"id": 1602,
+			"since": 50,
+			"type": "Bytes",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1601,
+			"since": 50,
+			"type": "GeneratedId",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"data": {"name": "data", "id": 782, "since": 9, "type": "Bytes", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",

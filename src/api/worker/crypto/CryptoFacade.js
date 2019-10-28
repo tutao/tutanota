@@ -141,7 +141,6 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 				key = base64ToUint8Array(instance.ownerEncSessionKey)
 			}
 			return Promise.resolve(decryptKey(gk, key))
-
 		} else {
 			return loaders.loadPermissions(instance._permissions).then((listPermissions: Permission[]) => {
 				let userGroupIds = locator.login.getAllGroupIds()
@@ -225,6 +224,33 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 		console.log("failed to resolve session key", e)
 		throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
 	})
+}
+
+/**
+ * Returns the session key for the provided service response:
+ * * null, if the instance is unencrypted
+ * * the decrypted _ownerAsyncEncSessionKey, if it is available
+ *
+ * @param instance The unencrypted (client-side) or encrypted (server-side) instance
+ *
+ */
+export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object): Promise<?Aes128Key> {
+	if (instance._ownerAsyncEncSessionKey) {
+		return load(GroupTypeRef, instance._ownerGroup).then(group => {
+			let keypair = group.keys[0]
+			let gk = locator.login.getGroupKey(instance._ownerGroup)
+			let privKey
+			try {
+				privKey = decryptRsaKey(gk, keypair.symEncPrivKey)
+			} catch (e) {
+				console.log("failed to decrypt rsa key for group with id " + group._id)
+				throw e
+			}
+			return rsaDecrypt(privKey, base64ToUint8Array(instance._ownerAsyncEncSessionKey))
+				.then(decryptedBytes => uint8ArrayToBitArray(decryptedBytes))
+		})
+	}
+	return Promise.resolve(null)
 }
 
 /**
