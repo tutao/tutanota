@@ -51,6 +51,8 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 
 
+export const LIMIT_PAST_EVENTS_YEARS = 100
+
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
 	shortEvents: Array<CalendarEvent>,
@@ -487,7 +489,11 @@ export class CalendarView implements CurrentView {
 			const urlDateParam = args.date
 			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
-				const date = DateTime.fromISO(urlDateParam).toJSDate()
+				const luxonDate = DateTime.fromISO(urlDateParam)
+				let date = new Date()
+				if (luxonDate.isValid) {
+					date = luxonDate.toJSDate()
+				}
 				if (this.selectedDate().getTime() !== date.getTime()) {
 					this.selectedDate(date)
 					m.redraw()
@@ -629,6 +635,10 @@ export class CalendarView implements CurrentView {
 	}
 
 	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+			console.log("repeating event is too far into the past", event)
+			return
+		}
 		addDaysForRecurringEvent(this._eventsForDays, event, month, getTimeZone())
 	}
 
