@@ -56,7 +56,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 
 assertMainOrNode()
 
-type MailFolderRowData = {id: Id, button: NavButtonAttrs}
+type MailFolderRowData = {id: Id, button: NavButtonAttrs, folder: MailFolder}
 
 type MailboxExpander = {
 	expanderButton: ExpanderButton,
@@ -357,7 +357,6 @@ export class MailView implements CurrentView {
 	}
 
 	createMailBoxExpanderButton(mailGroupId: Id): ExpanderButton {
-		let folderMoreButton = this.createFolderMoreButton(mailGroupId)
 		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
 			view: () => {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
@@ -383,12 +382,14 @@ export class MailView implements CurrentView {
 						                                   ]
 						                                   : []
 					                                   )
-					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button}) => {
+					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button, folder}) => {
 						                                   const count = groupCounters[id]
 						                                   return m(MailFolderComponent, {
 							                                   count,
 							                                   button,
-							                                   rightButton: isNavButtonSelected(button) ? folderMoreButton : null,
+							                                   rightButton: isNavButtonSelected(button)
+								                                   ? this.createFolderMoreButton(mailGroupId, folder)
+								                                   : null,
 							                                   key: id
 						                                   })
 					                                   })))
@@ -510,7 +511,7 @@ export class MailView implements CurrentView {
 				}
 			}
 
-			return {id: folder.mails, button}
+			return {id: folder.mails, button, folder}
 		})
 	}
 
@@ -526,22 +527,22 @@ export class MailView implements CurrentView {
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
-	createFolderMoreButton(mailGroupId: Id) {
+	createFolderMoreButton(mailGroupId: Id, folder: MailFolder) {
 		return createDropDownButton("more_label", () => Icons.More, () => [
 			new Button('rename_action', () => {
 				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
-					getFolderName(this.selectedFolder), (name) => this._checkFolderName(name, mailGroupId))
+					getFolderName(folder), (name) => this._checkFolderName(name, mailGroupId))
 				             .then((newName) => {
-					             let renamedFolder = Object.assign({}, this.selectedFolder, {name: newName})
+					             let renamedFolder = Object.assign({}, folder, {name: newName})
 					             return update(renamedFolder)
 				             })
 			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
-					{"{1}": getFolderName(this.selectedFolder)}))
+					{"{1}": getFolderName(folder)}))
 				      .then(confirmed => {
 					      if (confirmed) {
-						      this._finallyDeleteCustomMailFolder()
+						      this._finallyDeleteCustomMailFolder(folder)
 					      }
 				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
@@ -562,12 +563,15 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	_finallyDeleteCustomMailFolder() {
+	_finallyDeleteCustomMailFolder(folder: MailFolder) {
+		if (folder.folderType !== MailFolderType.CUSTOM) {
+			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
+		}
 		//TODO make DeleteMailFolderData unencrypted in next model version
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.mailList.list.selectNone()
 		let deleteMailFolderData = createDeleteMailFolderData()
-		deleteMailFolderData.folders.push(this.selectedFolder._id)
+		deleteMailFolderData.folders.push(folder._id)
 		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy": any))
 			.catch(NotFoundError, e => console.log("mail folder already deleted"))
 			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
@@ -621,11 +625,14 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	_finallyDeleteAllMailsInSelectedFolder() {
+	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder) {
+		if (folder.folderType !== MailFolderType.TRASH && folder.folderType !== MailFolderType.SPAM) {
+			throw new Error(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
+		}
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.mailList.list.selectNone()
 		let deleteMailData = createDeleteMailData()
-		deleteMailData.folder = this.selectedFolder._id
+		deleteMailData.folder = folder._id
 		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
 			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}
