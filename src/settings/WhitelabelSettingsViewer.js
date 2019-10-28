@@ -379,6 +379,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								let dialog = Dialog.showActionDialog({
 									title: lang.get("imprintUrl_label"),
 									child: {view: () => m(imprintUrl)},
+									allowOkWithReturn: true,
 									okAction: (ok) => {
 										if (ok) {
 											neverNull(whitelabelConfig).imprintUrl = imprintUrl.value() ? imprintUrl.value() : null
@@ -394,6 +395,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								let dialog = Dialog.showActionDialog({
 									title: lang.get("privacyLink_label"),
 									child: {view: () => m(privacyUrl)},
+									allowOkWithReturn: true,
 									okAction: (ok) => {
 										if (ok) {
 											neverNull(whitelabelConfig).privacyStatementUrl = privacyUrl.value() ? privacyUrl.value() : null

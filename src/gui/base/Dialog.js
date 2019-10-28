@@ -94,7 +94,7 @@ export class Dialog {
 								let bgcolor = theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
-								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
+								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
 								animation = Promise.all([
 									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
 									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
@@ -231,14 +231,17 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
 				dialog.close()
 				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
-			const lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			let lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			if (infoToAppend) {
+				lines.push(infoToAppend)
+			}
 			const buttonAttrs: ButtonAttrs = {
 				label: "ok_action",
 				click: closeAction,
@@ -422,14 +425,21 @@ export class Dialog {
 		validator?: validator,
 		okAction: null | (Dialog) => mixed,
 		allowCancel?: boolean,
+		allowOkWithReturn?: boolean,
 		okActionTextId?: TranslationKey,
 		cancelAction?: ?(Dialog) => mixed,
 		cancelActionTextId?: TranslationKey,
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
+		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
+			Object.assign({}, {
+				allowCancel: true,
+				allowOkWithReturn: false,
+				okActionTextId: "ok_action",
+				cancelActionTextId: "cancel_action",
+				type: DialogType.EditSmall
+			}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {
@@ -475,6 +485,15 @@ export class Dialog {
 			})
 		}
 
+		if (allowOkWithReturn) {
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: doAction,
+				help: "ok_action"
+			})
+		}
+
 		return dialog.show()
 	}
 
@@ -500,6 +519,7 @@ export class Dialog {
 				title: lang.getMaybeLazy(titleId),
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
+				allowOkWithReturn: true,
 				okAction: dialog => {
 					resolve(result())
 					dialog.close()
@@ -600,6 +620,7 @@ export class Dialog {
 		const dialog = Dialog.showActionDialog({
 			title: lang.get("password_label"),
 			child: {view: () => m(TextFieldN, textFieldAttrs)},
+			allowOkWithReturn: true,
 			okAction: () => out(value()),
 			allowCancel: props.allowCancel,
 			cancelAction: () => dialog.close()

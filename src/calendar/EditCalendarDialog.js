@@ -15,6 +15,7 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, edit: 
 
 	Dialog.showActionDialog({
 		title: () => lang.get(edit ? "edit_action" : "add_action"),
+		allowOkWithReturn: true,
 		child: {
 			view: () => m(".flex.col", [
 				m(TextFieldN, {

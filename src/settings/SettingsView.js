@@ -274,6 +274,7 @@ export class SettingsView implements CurrentView {
 							Dialog.showActionDialog({
 								title: () => lang.get("about_label"),
 								child: () => m(AboutDialog),
+								allowOkWithReturn: true,
 								okAction: (dialog) => dialog.close(),
 								allowCancel: false,
 							})
