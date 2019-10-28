@@ -1,11 +1,11 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {containsEventOfType, neverNull} from "../api/common/utils/Utils"
+import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {getElementId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
@@ -27,8 +27,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
-import {noOp} from "../api/common/utils/Utils"
-import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {getFromMap} from "../api/common/utils/MapUtils"
 
 export type MailboxDetail = {
@@ -187,7 +185,7 @@ export class MailModel {
 		let promises = []
 		if (mailBuckets.trash.length > 0) {
 			let deleteMailData = createDeleteMailData()
-			const trashFolder = neverNull(this.getMailFolder(getElementId(mailBuckets.trash[0])))
+			const trashFolder = neverNull(this.getMailFolder(getListId(mailBuckets.trash[0])))
 			deleteMailData.folder = trashFolder._id
 			deleteMailData.mails.push(...mailBuckets.trash.map(m => m._id))
 			promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
