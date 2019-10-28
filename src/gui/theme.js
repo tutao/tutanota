@@ -19,7 +19,7 @@ export type Theme = {
 	content_button_selected: string,
 	content_button_icon: string,
 	content_button_icon_selected: string,
-	content_button_bg?: string,
+	content_button_icon_bg?: string,
 	content_accent: string,
 	content_border: string,
 	content_message_bg: string,
@@ -42,7 +42,7 @@ export type Theme = {
 	navigation_bg: string,
 	navigation_border: string,
 	navigation_button: string,
-	navigation_button_bg?: string,
+	navigation_button_icon_bg?: string,
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
@@ -58,7 +58,8 @@ export let theme: Theme = getTheme()
 export let defaultTheme: Theme = getLightTheme()
 
 themeId.map(() => {
-	theme = Object.assign(theme, getTheme())
+	// Always overwrite light theme so that optional things are not kept when switching
+	theme = Object.assign(getLightTheme(), getTheme())
 })
 
 function getThemeId(): ThemeId {
@@ -88,6 +89,9 @@ export function updateCustomTheme(updatedTheme: Object) {
 	themeId('custom')
 }
 
+export function getButtonIconBackground(): string {
+	return theme.content_button_icon_bg || theme.content_button
+}
 
 function getLightTheme() {
 	const light = '#ffffff'
@@ -149,8 +153,8 @@ function getDarkTheme(): Theme {
 	// rgb(221, 221, 221) = #DDDDDD
 	// https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
 	const lightest = '#DDDDDD'
+	const lighter = '#aeaeae'
 	const light = '#999999'
-	const grey = '#909090'
 
 	//#999999 // button text
 
@@ -165,12 +169,12 @@ function getDarkTheme(): Theme {
 		logo: LogoSvg.Cyan,
 
 		button_bubble_bg: dark_lightest,
-		button_bubble_fg: light,
+		button_bubble_fg: lightest,
 
 		content_fg: lightest,
-		content_button: light,
+		content_button: lighter,
 		content_button_selected: cyan,
-		content_button_bg: dark_lightest,
+		content_button_icon_bg: dark_lightest,
 		content_button_icon: lightest,
 		content_button_icon_selected: dark_lighter,
 		content_accent: cyan,
@@ -181,7 +185,7 @@ function getDarkTheme(): Theme {
 
 		header_bg: dark,
 		header_box_shadow_bg: dark_darkest,
-		header_button: light,
+		header_button: lighter,
 		header_button_selected: cyan,
 
 		list_bg: dark_darkest,
@@ -195,10 +199,10 @@ function getDarkTheme(): Theme {
 
 		navigation_bg: dark_lighter,
 		navigation_border: dark_lightest,
-		navigation_button: lightest,
-		navigation_button_bg: cyan,
+		navigation_button: lighter,
+		navigation_button_icon_bg: cyan,
 		navigation_button_icon: dark_lighter,
 		navigation_button_selected: cyan,
-		navigation_button_icon_selected: lightest,
+		navigation_button_icon_selected: lighter,
 	}
 }

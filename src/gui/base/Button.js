@@ -9,7 +9,7 @@ import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {theme} from "../theme"
+import {getButtonIconBackground, theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
 
 assertMainOrNodeBoot()
@@ -31,6 +31,7 @@ export type ButtonTypeEnum = $Values<typeof ButtonType>;
 export const ButtonColors = Object.freeze({
 	Nav: 'nav',
 	Content: 'content',
+	Elevated: 'elevated',
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
@@ -44,14 +45,23 @@ function getColors(buttonColors: ButtonColorEnum) {
 			return {
 				button: theme.navigation_button,
 				button_selected: theme.navigation_button_selected,
-				button_bg: theme.navigation_button_bg || theme.navigation_button,
+				button_icon_bg: theme.navigation_button_icon_bg || theme.navigation_button,
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
+			}
+		case ButtonColors.Elevated:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: getButtonIconBackground(),
+				icon: theme.content_button_icon,
+				icon_selected: theme.content_button_icon_selected,
+				border: theme.elevated_bg || theme.elevated_bg
 			}
 		case ButtonColors.Content:
 			return {
 				button: theme.content_button,
-				button_bg: theme.content_button_bg || theme.content_button,
+				button_icon_bg: getButtonIconBackground(),
 				button_selected: theme.content_button_selected,
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
@@ -121,7 +131,7 @@ export class Button {
 				}, [
 					this.getIcon(),
 					this._getLabelElement(),
-					(this._staticRightText) ? m(".pl-s", this._staticRightText) : null
+					(this._staticRightText) ? m(".pl-s", {style: this._getLabelStyle()}, this._staticRightText) : null
 				])
 			)
 		}
@@ -154,7 +164,7 @@ export class Button {
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).button_selected
 		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown) {
-			return getColors(this._colors).button_bg
+			return getColors(this._colors).button_icon_bg
 		} else {
 			return getColors(this._colors).button
 		}

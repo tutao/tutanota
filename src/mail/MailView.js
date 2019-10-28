@@ -524,7 +524,7 @@ export class MailView implements CurrentView {
 					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
 					             mailGroupId)
 			             })
-		}, () => Icons.Add).setColors(ButtonColors.Nav)
+		}, () => Icons.Add).setColors(ButtonColors.Content)
 	}
 
 	createFolderMoreButton(mailGroupId: Id, folder: MailFolder) {
@@ -546,7 +546,7 @@ export class MailView implements CurrentView {
 					      }
 				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
-		]).setColors(ButtonColors.Nav)
+		]).setColors(ButtonColors.Content)
 	}
 
 	_newMail(): Promise<MailEditor> {

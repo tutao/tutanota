@@ -776,7 +776,7 @@ styles.registerStyle('main', () => {
 			'background-color': theme.content_button_selected
 		},
 		'.off': {
-			'background-color': theme.content_button
+			'background-color': theme.content_button_icon_bg
 		},
 
 		'.segmentControl': {
@@ -1114,7 +1114,7 @@ styles.registerStyle('main', () => {
 		'.date-selected': {
 			'border-radius': '50%',
 			background: theme.content_accent,
-			color: theme.content_button_icon,
+			color: theme.content_bg,
 		},
 		'.date-current': {
 			'border-radius': '50%',

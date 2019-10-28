@@ -97,6 +97,7 @@ import {DbError} from "../api/common/error/DbError"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 import {getTimeZone} from "../calendar/CalendarUtils"
+import {ButtonColors} from "../gui/base/Button"
 
 assertMainOrNode()
 
@@ -715,8 +716,7 @@ export class MailEditor {
 							fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 						}
-
-					}
+					},
 				})
 
 				lazyButtonAttrs.push({
@@ -734,6 +734,7 @@ export class MailEditor {
 					icon: () => Icons.Attachment,
 					type: ButtonType.Bubble,
 					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+					colors: ButtonColors.Elevated,
 				}, () => lazyButtonAttrs)
 			})
 	}
@@ -1005,6 +1006,7 @@ export class MailEditor {
 			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 			type: ButtonType.TextBubble,
 			isSelected: () => false,
+			color: ButtonColors.Elevated
 		}, () => {
 			if (recipientInfo.resolveContactPromise) {
 				return recipientInfo.resolveContactPromise.then(contact => {
