@@ -159,6 +159,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 						m.render(vnode.dom, [
 							m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
 								oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
+								tabindex: -1,
+								"aria-hidden": "true",
 								style: {
 									height: px(this._config.rowHeight),
 									transform: `translateY(-${this._config.rowHeight}px)`,
@@ -169,6 +171,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							}, this._config.swipe.renderLeftSpacer()),
 							m(".swipe-spacer.flex.items-center.pl-l.red", {
 								oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
+								tabindex: -1,
+								"aria-hidden": "true",
 								style: {
 									height: px(this._config.rowHeight),
 									transform: `translateY(-${this._config.rowHeight}px)`,
@@ -187,6 +191,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 										return m("li.list-row.pl.pr-l"
 											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
+											tabIndex: 0,
 											style: {
 												transform: `translateY(-${this._config.rowHeight}px)`,
 												paddingTop: px(15),

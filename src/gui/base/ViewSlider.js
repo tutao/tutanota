@@ -122,6 +122,8 @@ export class ViewSlider implements IViewSlider {
 
 		this._visibleBackgroundColumns = visibleColumns
 
+		this.columns.forEach(column => column.visible = (column === this.focusedColumn || visibleColumns.includes(column)))
+
 		if (this.allColumnsVisible()) {
 			this.focusedColumn.isInForeground = false
 			this._isModalBackgroundVisible = false
@@ -213,7 +215,10 @@ export class ViewSlider implements IViewSlider {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;
-		}).finally(() => m.redraw()) // for updating header bar after animation
+		}).finally(() => {
+			m.redraw()
+			viewColumn._domColumn && viewColumn._domColumn.focus()
+		}) // for updating header bar after animation
 	}
 
 	/**
@@ -224,7 +229,9 @@ export class ViewSlider implements IViewSlider {
 			easingFunction: ease.inOut
 		}).finally(() => {
 			// replace the visible column
-			this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
+			const [removed] = this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
+			removed.visible = false
+			nextVisibleViewColumn.visible = true
 		})
 	}
 
@@ -236,6 +243,7 @@ export class ViewSlider implements IViewSlider {
 		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
 		const oldOffset = colRect.left + colRect.width
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
+		foregroundColumn.visible = toForeground
 
 		this._isModalBackgroundVisible = toForeground
 		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
