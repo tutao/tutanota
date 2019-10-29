@@ -107,7 +107,7 @@ export class Dropdown {
 
 		const _inputField = (): VirtualElement | null => {
 			return this._isFilterable
-				? m("input.dropdown-bar.doNotClose.pl-l.button-height.abs"
+				? m("input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs"
 					+ (this._alignRight ? ".right" : ""), {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: (vnode) => {
@@ -165,7 +165,7 @@ export class Dropdown {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix", {
+			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix", {
 					oncreate: (vnode) => {
 						this._domDropdown = vnode.dom
 					},

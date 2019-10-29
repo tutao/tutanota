@@ -122,6 +122,7 @@ export class CalendarView implements CurrentView {
 							icon: () => viewType.icon,
 							href: m.route.get(),
 							isSelectedPrefix: viewType.href,
+							colors: ButtonColors.Nav,
 							// Close side menu
 							click: () => {
 								this._setUrl(viewType.value, this.selectedDate())
@@ -138,6 +139,7 @@ export class CalendarView implements CurrentView {
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
 								label: "addCalendar_action",
+								colors: ButtonColors.Nav,
 								click: () => this._onPressedAddCalendar(),
 								icon: () => Icons.Add
 							})
@@ -351,6 +353,7 @@ export class CalendarView implements CurrentView {
 						]),
 						m(ButtonN, attachDropdown({
 								label: "more_label",
+								colors: ButtonColors.Nav,
 								click: noOp,
 								icon: () => Icons.More
 							}, () => [

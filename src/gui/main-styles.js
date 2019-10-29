@@ -6,6 +6,7 @@ import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/Env"
 import {theme} from "./theme.js"
 import {BrowserType} from "../misc/ClientConstants"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground} from "./theme"
 
 assertMainOrNodeBoot()
 
@@ -264,7 +265,7 @@ styles.registerStyle('main', () => {
 			color: theme.content_accent,
 		},
 		'.content-message-bg': {'background-color': theme.content_message_bg},
-		'.elevated-bg': {'background-color': theme.elevated_bg || theme.content_bg},
+		'.elevated-bg': {'background-color': getElevatedBackground()},
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
@@ -586,7 +587,7 @@ styles.registerStyle('main', () => {
 			top: px(0),
 			left: px(3),
 			color: theme.navigation_button_icon,
-			background: theme.navigation_button,
+			background: getNavButtonIconBackground(),
 			"padding-left": px(4),
 			"padding-right": px(4),
 			"border-radius": px(8),
@@ -688,7 +689,6 @@ styles.registerStyle('main', () => {
 			position: 'absolute',
 			width: 0,
 			height: 0,
-			'background-color': theme.elevated_bg || theme.content_bg,
 			overflow: 'hidden' // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
 		},
 		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
@@ -703,7 +703,6 @@ styles.registerStyle('main', () => {
 			'border-color': theme.content_border,
 			'padding-bottom': '1px',
 			'z-index': 1,
-			'background-color': theme.elevated_bg || theme.content_bg,
 			'border-radius': `${size.border_radius}px ${size.border_radius}px 0 0`,
 			color: theme.content_fg,
 		},
@@ -776,7 +775,7 @@ styles.registerStyle('main', () => {
 			'background-color': theme.content_button_selected
 		},
 		'.off': {
-			'background-color': theme.content_button_icon_bg
+			'background-color': getContentButtonIconBackground()
 		},
 
 		'.segmentControl': {
@@ -1114,11 +1113,11 @@ styles.registerStyle('main', () => {
 		'.date-selected': {
 			'border-radius': '50%',
 			background: theme.content_accent,
-			color: theme.content_bg,
+			color: theme.content_button_icon_selected,
 		},
 		'.date-current': {
 			'border-radius': '50%',
-			background: theme.navigation_button,
+			background: getContentButtonIconBackground(),
 			color: theme.navigation_button_icon,
 		},
 

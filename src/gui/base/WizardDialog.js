@@ -8,7 +8,7 @@ import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import {Icon} from "./Icon"
-import {getButtonIconBackground, theme} from "../theme"
+import {getContentButtonIconBackground, theme} from "../theme"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 
@@ -167,7 +167,7 @@ class WizardPagingButton {
 	view(vnode: Vnode<WizardPagingButtonAttrs>) {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
-		const filledBg = getButtonIconBackground()
+		const filledBg = getContentButtonIconBackground()
 		return m(".button-content.flex-center.items-center", {
 				style: {
 					marginTop: "-22px",

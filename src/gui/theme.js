@@ -89,8 +89,16 @@ export function updateCustomTheme(updatedTheme: Object) {
 	themeId('custom')
 }
 
-export function getButtonIconBackground(): string {
-	return theme.content_button_icon_bg || theme.content_button
+export function getContentButtonIconBackground(): string {
+	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg
+}
+
+export function getNavButtonIconBackground(): string {
+	return theme.navigation_button_icon_bg || theme.navigation_button // fallback for the new color content_button_icon_bg
+}
+
+export function getElevatedBackground(): string {
+	return theme.elevated_bg || theme.content_bg
 }
 
 function getLightTheme() {
@@ -200,8 +208,8 @@ function getDarkTheme(): Theme {
 		navigation_bg: dark_lighter,
 		navigation_border: dark_lightest,
 		navigation_button: lighter,
-		navigation_button_icon_bg: cyan,
-		navigation_button_icon: dark_lighter,
+		navigation_button_icon_bg: dark_lightest,
+		navigation_button_icon: lightest,
 		navigation_button_selected: cyan,
 		navigation_button_icon_selected: lighter,
 	}

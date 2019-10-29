@@ -9,8 +9,10 @@ import {modal} from "./Modal"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {getButtonIconBackground, theme} from "../theme"
+import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
+import type {ButtonColorEnum} from "./ButtonN"
+import {ButtonColors, getColors} from "./ButtonN"
 
 assertMainOrNodeBoot()
 
@@ -28,48 +30,10 @@ export const ButtonType = Object.freeze({
 })
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = Object.freeze({
-	Nav: 'nav',
-	Content: 'content',
-	Elevated: 'elevated',
-})
-export type ButtonColorEnum = $Values<typeof ButtonColors>;
-
 const TRUE_CLOSURE: lazy<boolean> = () => true
 
 const FALSE_CLOSURE: lazy<boolean> = () => false
 
-function getColors(buttonColors: ButtonColorEnum) {
-	switch (buttonColors) {
-		case ButtonColors.Nav:
-			return {
-				button: theme.navigation_button,
-				button_selected: theme.navigation_button_selected,
-				button_icon_bg: theme.navigation_button_icon_bg || theme.navigation_button,
-				icon: theme.navigation_button_icon,
-				icon_selected: theme.navigation_button_icon_selected,
-			}
-		case ButtonColors.Elevated:
-			return {
-				button: theme.content_button,
-				button_selected: theme.content_button_selected,
-				button_icon_bg: getButtonIconBackground(),
-				icon: theme.content_button_icon,
-				icon_selected: theme.content_button_icon_selected,
-				border: theme.elevated_bg || theme.elevated_bg
-			}
-		case ButtonColors.Content:
-			return {
-				button: theme.content_button,
-				button_icon_bg: getButtonIconBackground(),
-				button_selected: theme.content_button_selected,
-				icon: theme.content_button_icon,
-				icon_selected: theme.content_button_icon_selected,
-			}
-		default:
-			throw new Error("Illegal action button color: " + buttonColors)
-	}
-}
 
 /**
  * A button.
@@ -163,7 +127,7 @@ export class Button {
 			return 'initial'
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).button_selected
-		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown) {
+		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown || this._type === ButtonType.ActionLarge) {
 			return getColors(this._colors).button_icon_bg
 		} else {
 			return getColors(this._colors).button
@@ -240,7 +204,7 @@ export class Button {
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
 		} else if (this._type === ButtonType.Login || this._type === ButtonType.Accent) {
-			color = theme.content_bg
+			color = theme.content_button_icon_selected
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
 			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
 		} else {

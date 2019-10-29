@@ -97,7 +97,7 @@ import {DbError} from "../api/common/error/DbError"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 import {getTimeZone} from "../calendar/CalendarUtils"
-import {ButtonColors} from "../gui/base/Button"
+import {ButtonColors} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

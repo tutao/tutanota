@@ -6,7 +6,7 @@ import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {getButtonIconBackground, theme} from "../theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, theme} from "../theme"
 import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
 
@@ -35,13 +35,13 @@ export const ButtonColors = Object.freeze({
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-function getColors(buttonColors: ?ButtonColorEnum) {
+export function getColors(buttonColors: ?ButtonColorEnum) {
 	switch (buttonColors) {
 		case ButtonColors.Nav:
 			return {
 				button: theme.navigation_button,
 				button_selected: theme.navigation_button_selected,
-				button_icon_bg: theme.navigation_button_icon_bg || theme.navigation_button,
+				button_icon_bg: getNavButtonIconBackground(),
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 				border: theme.navigation_bg
@@ -50,17 +50,17 @@ function getColors(buttonColors: ?ButtonColorEnum) {
 			return {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
-				button_icon_bg: getButtonIconBackground(),
+				button_icon_bg: getContentButtonIconBackground(),
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
-				border: theme.elevated_bg || theme.elevated_bg
+				border: getElevatedBackground()
 			}
 		case ButtonColors.Content:
 		default:
 			return {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
-				button_icon_bg: getButtonIconBackground(),
+				button_icon_bg: getContentButtonIconBackground(),
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
 				border: theme.content_bg
@@ -164,7 +164,7 @@ class _Button {
 			return 'initial'
 		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
-		} else if (type === ButtonType.Action || type === ButtonType.Dropdown) {
+		} else if (type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.ActionLarge) {
 			return getColors(a.colors).button_icon_bg
 		} else {
 			return getColors(a.colors).button
@@ -251,7 +251,7 @@ class _Button {
 		} else if ([ButtonType.Toggle].includes(type)) {
 			color = theme.content_button_icon
 		} else if (type === ButtonType.Login) {
-			color = theme.content_bg
+			color = theme.content_button_icon_selected
 		} else if (type === ButtonType.Bubble || type === ButtonType.TextBubble) {
 			color = theme.content_fg
 		} else {

@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
-import {theme} from "../theme"
+import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -91,7 +91,7 @@ export class Dialog {
 								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
 								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
 							} else {
-								let bgcolor = theme.elevated_bg || theme.content_bg
+								let bgcolor = getElevatedBackground()
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
 								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
@@ -214,7 +214,7 @@ export class Dialog {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
-		let bgcolor = theme.elevated_bg || theme.content_bg
+		let bgcolor = getElevatedBackground()
 		if (this._domDialog) {
 			return Promise.all([
 				animations.add(this._domDialog.children, opacity(1, 0, true)),
@@ -391,7 +391,7 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=" + HabReminderImage + "].dialog-img.pb", {
+							m("img[src=" + HabReminderImage + "].dialog-img.mb.bg-white.border-radius", {
 								style: {
 									'min-width': '150px'
 								}

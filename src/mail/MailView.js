@@ -3,7 +3,8 @@ import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonColors, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {ButtonColors} from "../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonN} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -524,7 +525,7 @@ export class MailView implements CurrentView {
 					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
 					             mailGroupId)
 			             })
-		}, () => Icons.Add).setColors(ButtonColors.Content)
+		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
 	createFolderMoreButton(mailGroupId: Id, folder: MailFolder) {
@@ -546,7 +547,7 @@ export class MailView implements CurrentView {
 					      }
 				      })
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
-		]).setColors(ButtonColors.Content)
+		]).setColors(ButtonColors.Nav)
 	}
 
 	_newMail(): Promise<MailEditor> {
