@@ -609,6 +609,9 @@ styles.registerStyle('main', () => {
 		'.nofocus:focus': {
 			outline: 'none'
 		},
+		'.input': {
+			outline: 'none',
+		},
 
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
