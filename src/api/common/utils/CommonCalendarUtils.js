@@ -14,6 +14,22 @@ export function isAllDayEventByTimes(startTime: Date, endTime: Date): boolean {
 		&& endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0
 }
 
+/**
+ * @param localDate
+ * @returns {Date} a Date with a unix timestamp corresponding to 00:00 UTC for localDate's Day in the local time zone
+ */
+export function getAllDayDateUTC(localDate: Date): Date {
+	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
+}
+
+/**
+ * @param utcDate a Date with a unix timestamp corresponding to 00:00 UTC for a given Day
+ * @returns {Date} a Date with a unix timestamp corresponding to 00:00 for that day in the local time zone
+ */
+export function getAllDayDateLocal(utcDate: Date): Date {
+	return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate())
+}
+
 export function generateEventElementId(timestamp: number): string {
 	const randomDay = Math.floor((Math.random() * DAYS_SHIFTED_MS)) * 2
 	return createEventElementId(timestamp, randomDay - DAYS_SHIFTED_MS)

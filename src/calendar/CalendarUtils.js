@@ -118,11 +118,7 @@ export function shouldDefaultToAmPmTimeFormat(): boolean {
 	return lang.code === "en"
 }
 
-export function getAllDayDateUTC(localDate: Date): Date {
-	return new Date(Date.UTC(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0, 0))
-}
-
-export function getAllDayDateLocal(utcDate: Date, timeZone: string): Date {
+export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date {
 	return DateTime.fromObject({
 		year: utcDate.getUTCFullYear(),
 		month: utcDate.getUTCMonth() + 1,
@@ -322,8 +318,8 @@ function getCalculationEvent(event: CalendarEvent, handleAsAllDay: boolean): Cal
 	if (handleAsAllDay) {
 		const calcDate = clone(event)
 		if (isAllDayEvent(event)) {
-			calcDate.startTime = getAllDayDateLocal(event.startTime, timeZone)
-			calcDate.endTime = getAllDayDateLocal(event.endTime, timeZone)
+			calcDate.startTime = getAllDayDateForTimezone(event.startTime, timeZone)
+			calcDate.endTime = getAllDayDateForTimezone(event.endTime, timeZone)
 		} else {
 			calcDate.startTime = getStartOfDay(event.startTime)
 			calcDate.endTime = getStartOfNextDay(event.endTime)
@@ -432,7 +428,7 @@ export function getWeekNumber(startOfTheWeek: Date): number {
 
 export function getEventEnd(event: CalendarEvent): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.endTime, getTimeZone())
+		return getAllDayDateForTimezone(event.endTime, getTimeZone())
 	} else {
 		return event.endTime
 	}
@@ -440,7 +436,7 @@ export function getEventEnd(event: CalendarEvent): Date {
 
 export function getEventStart(event: CalendarEvent): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateLocal(event.startTime, getTimeZone())
+		return getAllDayDateForTimezone(event.startTime, getTimeZone())
 	} else {
 		return event.startTime
 	}

@@ -12,6 +12,7 @@ import {NotificationResult} from "../DesktopConstants"
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import {downcast} from "../../api/common/utils/Utils"
+import {getAllDayDateLocal, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 
 export type TimeoutData = {
 	id: TimeoutID,
@@ -170,7 +171,10 @@ export function occurrenceIterator() {
 	let lastOccurrenceDate: Date = new Date(MAX_SAFE_DATE)
 	let occurrenceIncrement = null
 	let occurrenceInterval = null
-	let firstOccurrence: Date = this.eventStart
+	let isAllDayEvent = isAllDayEventByTimes(this.eventStart, this.eventEnd)
+	let firstOccurrence: Date = isAllDayEvent
+		? getAllDayDateLocal(this.eventStart)
+		: this.eventStart
 
 	if (this.repeatRule) {
 		if (this.repeatRule.endType === EndType.Never) {
@@ -179,7 +183,9 @@ export function occurrenceIterator() {
 			maxOccurrences = this.repeatRule.endValue
 		} else if (this.repeatRule.endType === EndType.UntilDate) {
 			maxOccurrences = Infinity
-			lastOccurrenceDate = new Date(parseInt(this.repeatRule.endValue))
+			lastOccurrenceDate = isAllDayEvent
+				? getAllDayDateLocal(new Date(parseInt(this.repeatRule.endValue)))
+				: new Date(parseInt(this.repeatRule.endValue))
 			lastOccurrenceDate.setDate(lastOccurrenceDate.getDate())
 		}
 		occurrenceIncrement = this.repeatRule.frequency

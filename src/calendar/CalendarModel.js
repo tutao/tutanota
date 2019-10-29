@@ -1,6 +1,6 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, getTimeZone, isLongEvent} from "./CalendarUtils"
+import {getAllDayDateForTimezone, getEventEnd, getEventStart, getTimeZone, isLongEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
@@ -8,7 +8,7 @@ import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
+import {getAllDayDateUTC, isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -71,7 +71,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	} else if (repeatRule.endType === EndType.UntilDate) {
 		// See CalendarEventDialog for an explanation why it's needed
 		if (allDay) {
-			repeatEndTime = getAllDayDateLocal(new Date(Number(repeatRule.endValue)), timeZone)
+			repeatEndTime = getAllDayDateForTimezone(new Date(Number(repeatRule.endValue)), timeZone)
 		} else {
 			repeatEndTime = new Date(Number(repeatRule.endValue))
 		}
@@ -172,10 +172,10 @@ export function iterateEventOccurrences(
 	let futureOccurrences = 0
 
 	const isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
-	const calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart, localTimeZone) : eventStart
+	const calcEventStart = isAllDayEvent ? getAllDayDateForTimezone(eventStart, localTimeZone) : eventStart
 	const endDate = endType === EndType.UntilDate
 		? isAllDayEvent
-			? getAllDayDateLocal(new Date(endValue), localTimeZone)
+			? getAllDayDateForTimezone(new Date(endValue), localTimeZone)
 			: new Date(endValue)
 		: null
 
