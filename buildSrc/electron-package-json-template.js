@@ -17,9 +17,18 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 			"start": "electron ."
 		},
 		"tutao-config": {
-			"pubKeyUrl": nameSuffix === '-test'
-				? "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub-test.pem"
-				: "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
+			"pubKeys": [
+				"-----BEGIN PUBLIC KEY-----\n"
+				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhFrLW999Y/ODqGfGKSzh\n"
+				+ "7SFm6UgIj5scpb1r+KmEgVr/3zmd973+u2z5gG/wtayUbdVUGlzTgxqTE76BGTBR\n"
+				+ "szq932uTsPfjRbtbyjIOzfzPvkyAB1Ew91gQk5ubrO1VCbXAZyuFi7RxDibuklLO\n"
+				+ "lzHyjKyEIVTTdOqOTE+mg/vr41MxDW0X4nZw5MT1mIV/aYGeOSdtNdFsL69aR+d7\n"
+				+ "KufD43J60FUS9G0tf4KmyQInmGqC8MSXCO0SMwwEJZDxDzkBsSensKfS0HzIjCXS\n"
+				+ "or/Ahu6RwhEhjm7MyXbhiDyis+kGHSfatsO5KWWuZ4xgCEUO0L6vMQwr5M/qYOj1\n"
+				+ "7QIDAQAB\n"
+				+ "-----END PUBLIC KEY-----",
+				"key2"
+			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",

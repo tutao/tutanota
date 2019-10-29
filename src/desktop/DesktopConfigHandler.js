@@ -16,8 +16,7 @@ export type DesktopConfigKey
 	| 'scheduledAlarms'
 
 export type BuildConfigKey
-	= "pubKeyUrl"
-	| "pollingInterval"
+	= "pollingInterval"
 	| "checkUpdateSignature"
 	| "appUserModelId"
 	| "initialSseConnectTimeoutInSeconds"

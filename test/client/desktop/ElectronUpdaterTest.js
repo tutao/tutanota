@@ -19,94 +19,20 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		'./utils/ArrayUtils',
 		'./Utils',
 		'./MapUtils'
-	], 500)
-
-	const response200 = {
-		statusCode: 200,
-		on: (ev: string, cb: (any)=>{}) => {
-			switch (ev) {
-				case 'error':
-					return n.spyify(response200)
-				case 'data':
-					setTimeout(() => cb(Buffer.from('-----BEGIN PUBLIC KEY-----\n')), 5)
-					setTimeout(() => cb(Buffer.from('notakey\n')), 10)
-					setTimeout(() => cb(Buffer.from('-----END PUBLIC KEY-----')), 15)
-					return n.spyify(response200)
-				case 'end':
-					setTimeout(() => cb(), 15)
-					return n.spyify(response200)
-				default:
-					throw new Error(`unexpected response event ${ev}`)
-			}
-		}
-	}
-
-	const response400 = {
-		responseCode: 400,
-		on: (ev: string, cb: (any)=>{}) => {
-			switch (ev) {
-				case 'error':
-					return n.spyify(response400)
-				case 'data':
-					return n.spyify(response400)
-				case 'end':
-					setTimeout(() => cb(), 15)
-					return n.spyify(response400)
-				default:
-					throw new Error(`unexpected response event ${ev}`)
-			}
-		}
-	}
-
-	const conn200 = {
-		on: (ev: string, cb: (any)=>{}) => {
-			switch (ev) {
-				case 'error':
-					return n.spyify(conn200)
-				case 'response':
-					setTimeout(() => cb(n.spyify(response200)), 10)
-					return n.spyify(conn200)
-				default:
-					throw new Error(`unexpected connection event ${ev}`)
-			}
-		},
-		end: () => {
-		}
-	}
-
-	const conn400 = {
-		on: (ev: string, cb: (any)=>{}) => {
-			switch (ev) {
-				case 'error':
-					return n.spyify(conn400)
-				case 'response':
-					setTimeout(() => cb(n.spyify(response400)), 10)
-					return n.spyify(conn400)
-				default:
-					throw new Error(`unexpected connection event ${ev}`)
-			}
-		},
-		end: () => {
-		}
-	}
+	], 2000)
 
 	const electron = {
 		app: {
 			getPath: (path: string) => `/mock-${path}/`,
 			getVersion: (): string => "3.45.0"
-		},
-		net: {
-			request: (url: string) => n.spyify(conn200)
 		}
 	}
 
-	const key = {
-		verify: (pem) => true
-	}
-
+	const rightKey = {verify: () => true}
+	const wrongKey = {verify: () => false}
 	const nodeForge = {
 		pki: {
-			publicKeyFromPem: (pem: string) => n.spyify(key)
+			publicKeyFromPem: (pem: string) => n.spyify(pem === "yes" ? rightKey : wrongKey)
 		}
 	}
 
@@ -135,10 +61,10 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			return n.spyify(autoUpdater)
 		},
 		checkForUpdates: () => {
-			setImmediate(() => autoUpdater.callbacks['update-available']({
+			setTimeout(() => autoUpdater.callbacks['update-available']({
 				sha512: 'sha512',
 				signature: 'signature',
-			}))
+			}), 90)
 			return Promise.resolve()
 		},
 		downloadUpdate: () => {
@@ -189,8 +115,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			switch (key) {
 				case 'checkUpdateSignature':
 					return true
-				case 'pubKeyUrl':
-					return 'https://b.s'
+				case 'pubKeys':
+					return ['yes', 'no']
 				case 'pollingInterval':
 					return 300
 				case 'iconName':
@@ -204,7 +130,6 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	o("update is available", done => {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const electronMock = n.mock('electron', electron).set()
 		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
 
 		//mock our modules
@@ -229,19 +154,18 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		o(confMock.on.callCount).equals(1)
 
 		setTimeout(() => {
-			//request key
-			o(electronMock.net.request.callCount).equals(1)
-			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn200).end.callCount).equals(1)
-			o(n.spyify(conn200).on.callCount).equals(2)
-			o(n.spyify(response200).on.callCount).equals(3)
+			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
 
 			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(1)
-			o(forgeMock.pki.publicKeyFromPem.args[0]).equals('-----BEGIN PUBLIC KEY-----\nnotakey\n-----END PUBLIC KEY-----')
-			o(n.spyify(key).verify.callCount).equals(1)
-			o(n.spyify(key).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(key).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
+
+			o(n.spyify(rightKey).verify.callCount).equals(1)
+			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+
+			o(n.spyify(wrongKey).verify.callCount).equals(1)
+			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
 			// show notification
 			o(notifierMock.showOneShot.callCount).equals(1)
@@ -285,18 +209,12 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		upd.start()
 
 		setTimeout(() => {
-			//request key
-			o(electronMock.net.request.callCount).equals(1)
-			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn200).end.callCount).equals(1)
-			o(n.spyify(conn200).on.callCount).equals(2)
-			o(n.spyify(response200).on.callCount).equals(3)
-
 			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
 
 			// don't check signature
 			o(forgeMock.pki.publicKeyFromPem.callCount).equals(0)
-			o(n.spyify(key).verify.callCount).equals(0)
+			o(n.spyify(rightKey).verify.callCount).equals(0)
+			o(n.spyify(wrongKey).verify.callCount).equals(0)
 
 			// don't show notification
 			o(notifierMock.showOneShot.callCount).equals(0)
@@ -352,19 +270,17 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			o(confMock.removeListener.callCount).equals(2)
 			o(confMock.on.callCount).equals(2)
 
-			//request key
-			o(electronMock.net.request.callCount).equals(1)
-			o(electronMock.net.request.args[0]).equals('https://b.s')
-			o(n.spyify(conn200).end.callCount).equals(1)
-			o(n.spyify(conn200).on.callCount).equals(2)
-			o(n.spyify(response200).on.callCount).equals(3)
-
 			// check signature
-			o(forgeMock.pki.publicKeyFromPem.callCount).equals(1)
-			o(forgeMock.pki.publicKeyFromPem.args[0]).equals('-----BEGIN PUBLIC KEY-----\nnotakey\n-----END PUBLIC KEY-----')
-			o(n.spyify(key).verify.callCount).equals(1)
-			o(n.spyify(key).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
-			o(n.spyify(key).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
+			o(forgeMock.pki.publicKeyFromPem.args[0]).equals('no')
+
+			o(n.spyify(rightKey).verify.callCount).equals(1)
+			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+
+			o(n.spyify(wrongKey).verify.callCount).equals(1)
+			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
 
 			// show notification
 			o(notifierMock.showOneShot.callCount).equals(1)
@@ -392,7 +308,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 					                         setTimeout(() => autoUpdater.callbacks['update-available']({
 						                         sha512: 'sha512',
 						                         signature: 'signature',
-					                         }), 30)
+					                         }), 90)
 					                         return Promise.resolve()
 				                         },
 				                         downloadUpdate: () => {
@@ -421,7 +337,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const notifierMock = n.mock('__notifier', notifier).set()
 
 		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
-		const upd = new ElectronUpdater(confMock, notifierMock, 10)
+		const upd = new ElectronUpdater(confMock, notifierMock, 100)
 
 		upd.start()
 
@@ -450,7 +366,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	})
 
 	o("shut down autoUpdater after 5 errors", done => {
-		const RETRY_INTERVAL = 50
+		const RETRY_INTERVAL = 150
 		const MAX_NUM_ERRORS = 5
 		let threw = false
 		//mock node modules
@@ -488,10 +404,70 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		upd.start()
 
 		setTimeout(() => {
+			upd._stopPolling()
 			o(autoUpdaterMock.removeAllListeners.callCount).equals(4)
 			o(threw).equals(true)
 			done()
 		}, RETRY_INTERVAL * (MAX_NUM_ERRORS + 1))
+	})
 
+	o("works if second key is right one", done => {
+
+		//mock node modules
+		const forgeMock = n.mock('node-forge', nodeForge).with({
+			publicKeyFromPem: (pem: string) => n.spyify(pem === "no" ? rightKey : wrongKey)
+		}).set()
+		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+
+		//mock our modules
+		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('../misc/LanguageViewModel', lang).set()
+
+		//mock instances
+		const confMock = n.mock('__conf', conf).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+
+		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
+		const upd = new ElectronUpdater(confMock, notifierMock)
+
+		o(autoUpdaterMock.on.callCount).equals(5)
+		o(autoUpdaterMock.logger).equals(null)
+
+		upd.start()
+
+		// there is only one enableAutoUpdate listener
+		o(confMock.removeListener.callCount).equals(1)
+		o(confMock.removeListener.args[0]).equals('enableAutoUpdate')
+		o(confMock.on.callCount).equals(1)
+
+		setTimeout(() => {
+			o(autoUpdaterMock.checkForUpdates.callCount).equals(1)
+
+			// check signature
+			o(forgeMock.pki.publicKeyFromPem.callCount).equals(2)
+			o(forgeMock.pki.publicKeyFromPem.args[0]).equals("no")
+
+			o(n.spyify(rightKey).verify.callCount).equals(1)
+			o(n.spyify(rightKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(rightKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+
+			o(n.spyify(wrongKey).verify.callCount).equals(1)
+			o(n.spyify(wrongKey).verify.args[0]).equals(Buffer.from('sha512', 'base64').toString('binary'))
+			o(n.spyify(wrongKey).verify.args[1]).equals(Buffer.from('signature', 'base64').toString('binary'))
+
+			// show notification
+			o(notifierMock.showOneShot.callCount).equals(1)
+			o(notifierMock.showOneShot.args[0]).deepEquals({
+				title: 'updateAvailable_label',
+				body: 'clickToUpdate_msg',
+				icon: 'this is an icon'
+			})
+
+			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
+			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
+			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
+			upd._stopPolling()
+			done()
+		}, 190)
 	})
 })
