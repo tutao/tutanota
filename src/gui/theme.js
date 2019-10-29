@@ -171,7 +171,7 @@ function getDarkTheme(): Theme {
 	const dark = '#222222'
 	const dark_darkest = '#111111'
 
-	const cyan = '#00FFCA'
+	const green = '#00FFCA'
 
 	return {
 		logo: LogoSvg.Cyan,
@@ -181,11 +181,11 @@ function getDarkTheme(): Theme {
 
 		content_fg: lightest,
 		content_button: lighter,
-		content_button_selected: cyan,
+		content_button_selected: green,
 		content_button_icon_bg: dark_lightest,
 		content_button_icon: lightest,
 		content_button_icon_selected: dark_lighter,
-		content_accent: cyan,
+		content_accent: green,
 		content_bg: dark_darkest,
 		content_border: dark_lightest,
 		content_message_bg: dark_lightest,
@@ -194,11 +194,11 @@ function getDarkTheme(): Theme {
 		header_bg: dark,
 		header_box_shadow_bg: dark_darkest,
 		header_button: lighter,
-		header_button_selected: cyan,
+		header_button_selected: green,
 
 		list_bg: dark_darkest,
 		list_alternate_bg: dark_lighter,
-		list_accent_fg: cyan,
+		list_accent_fg: green,
 		list_message_bg: dark_lightest,
 		list_border: dark_lightest,
 
@@ -210,7 +210,7 @@ function getDarkTheme(): Theme {
 		navigation_button: lighter,
 		navigation_button_icon_bg: dark_lightest,
 		navigation_button_icon: lightest,
-		navigation_button_selected: cyan,
+		navigation_button_selected: green,
 		navigation_button_icon_selected: lighter,
 	}
 }

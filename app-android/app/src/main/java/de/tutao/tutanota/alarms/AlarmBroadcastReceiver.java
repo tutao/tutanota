@@ -48,7 +48,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 						.setContentTitle(context.getString(R.string.reminder_label))
 						.setContentText(contentText)
 						.setDefaults(NotificationCompat.DEFAULT_ALL)
-						.setColor(context.getResources().getColor(R.color.colorPrimary))
+						.setColor(context.getResources().getColor(R.color.red))
 						.setContentIntent(openCalendarIntent(context, intent))
 						.setAutoCancel(true)
 						.build());
