@@ -315,6 +315,22 @@ styles.registerStyle('main', () => {
 			'-webkit-overflow-scrolling': 'touch',
 			'-ms-overflow-style': '-ms-autohiding-scrollbar',
 		},
+		'*': {
+			"scrollbar-color": `${theme.content_button} transparent`,
+			"scrollbar-width": "thin",
+		},
+		'::-webkit-scrollbar': !client.isMobileDevice()
+			? {
+				background: "transparent",
+				width: "8px"
+			}
+			: null,
+		'::-webkit-scrollbar-thumb': !client.isMobileDevice()
+			? {
+				background: theme.content_button,
+				"border-radius": "4px",
+			}
+			: null,
 		'.center': {'text-align': 'center'}, //TODO: migrate to .text-center
 		'.text-center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
