@@ -128,8 +128,9 @@ function createHtml(env) {
 			`window.whitelabelCustomizations = null`,
 			`window.env = ${JSON.stringify(env, null, 2)}`,
 			`System.config(env.systemConfig)`,
-			`System.import("src/system-resolve.js")`
-			+ (options.watch ? `.then(function() { System.import('src/bootstrapHotReload.js') })` : `;System.import('src/app.js')`)
+			`System.import("src/system-resolve.js").then(function() {
+				return System.import(${options.watch ? "'src/bootstrapHotReload.js'" : "'src/app.js'"})
+			})`
 		].join("\n")),
 		LaunchHtml.renderHtml(imports, env).then((content) => _writeFile(`./build/${filenamePrefix}.html`, content))
 	])
