@@ -5,9 +5,9 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {Button, ButtonType} from "../gui/base/Button"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
+import {ButtonColors} from "../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
-import {isNavButtonSelected, isSelectedPrefix, NavButtonN} from "../gui/base/NavButtonN"
+import {isNavButtonSelected, isSelectedPrefix} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {MailViewer} from "./MailViewer"
@@ -55,7 +55,7 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
-import {animations, opacity} from "../gui/animation/Animations"
+import {MailFolderView} from "./MailFolderView"
 
 assertMainOrNode()
 
@@ -367,7 +367,7 @@ export class MailView implements CurrentView {
 					this._mailboxExpanders[mailGroupId].systemFolderButtons
 					                                   .map(({id, button}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(MailFolderComponent, {
+						                                   return m(MailFolderView, {
 							                                   count: count,
 							                                   button,
 							                                   rightButton: null,
@@ -387,7 +387,7 @@ export class MailView implements CurrentView {
 					                                   )
 					                                   .concat(this._mailboxExpanders[mailGroupId].customFolderButtons.map(({id, button, folder}) => {
 						                                   const count = groupCounters[id]
-						                                   return m(MailFolderComponent, {
+						                                   return m(MailFolderView, {
 							                                   count,
 							                                   button,
 							                                   rightButton: isNavButtonSelected(button)
@@ -688,40 +688,5 @@ export class MailView implements CurrentView {
 			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
 			content: this._actionBar()
 		}) : null
-	}
-}
-
-class MailFolderComponent implements MComponent<{count: number, button: NavButtonAttrs, rightButton: ?ButtonAttrs}> {
-	_hovered: boolean = false;
-
-	view(vnode): ?Children {
-		const {count, button, rightButton} = vnode.attrs
-
-		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [
-			count > 0
-				?
-				m(".folder-counter.z2", {
-					onmouseenter: () => {
-						this._hovered = true
-					},
-					onmouseleave: () => {
-						this._hovered = false
-					}
-				}, count < 99 || this._hovered ? count : "99+")
-				: null,
-			m(NavButtonN, button),
-			rightButton
-				? m(ButtonN, Object.assign({}, rightButton, {
-					oncreate: vnode => {
-						vnode.dom.style.opacity = 0
-						return animations.add(vnode.dom, opacity(0, 1, true))
-					},
-					onbeforeremove: vnode => {
-						vnode.dom.style.opacity = 1
-						return animations.add(vnode.dom, opacity(1, 0, true))
-					}
-				}))
-				: null
-		])
 	}
 }
