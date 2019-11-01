@@ -3,8 +3,9 @@ import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {ButtonColors} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonN} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -52,8 +53,9 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {throttleRoute} from "../misc/RouteChange"
-import {animations, opacity} from "../gui/animation/Animations"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
+import {attachDropdown} from "../gui/base/DropdownN"
+import {animations, opacity} from "../gui/animation/Animations"
 
 assertMainOrNode()
 
@@ -528,26 +530,40 @@ export class MailView implements CurrentView {
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
-	createFolderMoreButton(mailGroupId: Id, folder: MailFolder) {
-		return createDropDownButton("more_label", () => Icons.More, () => [
-			new Button('rename_action', () => {
-				return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
-					getFolderName(folder), (name) => this._checkFolderName(name, mailGroupId))
-				             .then((newName) => {
-					             let renamedFolder = Object.assign({}, folder, {name: newName})
-					             return update(renamedFolder)
-				             })
-			}, () => Icons.Edit).setType(ButtonType.Dropdown),
-			new Button('delete_action', () => {
-				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
-					{"{1}": getFolderName(folder)}))
-				      .then(confirmed => {
-					      if (confirmed) {
-						      this._finallyDeleteCustomMailFolder(folder)
-					      }
-				      })
-			}, () => Icons.Trash).setType(ButtonType.Dropdown)
-		]).setColors(ButtonColors.Nav)
+	createFolderMoreButton(mailGroupId: Id, folder: MailFolder): ButtonAttrs {
+		return attachDropdown({
+			label: "more_label",
+			icon: () => Icons.More,
+			colors: ButtonColors.Nav
+		}, () => [
+			{
+				label: "rename_action",
+				icon: () => Icons.Edit,
+				type: ButtonType.Dropdown,
+				click: () => {
+					return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null,
+						getFolderName(folder), (name) => this._checkFolderName(name, mailGroupId))
+					             .then((newName) => {
+						             let renamedFolder = Object.assign({}, folder, {name: newName})
+						             return update(renamedFolder)
+					             })
+				}
+			},
+			{
+				label: "delete_action",
+				icon: () => Icons.Trash,
+				type: ButtonType.Dropdown,
+				click: () => {
+					Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg",
+						{"{1}": getFolderName(folder)}))
+					      .then(confirmed => {
+						      if (confirmed) {
+							      this._finallyDeleteCustomMailFolder(folder)
+						      }
+					      })
+				}
+			}
+		])
 	}
 
 	_newMail(): Promise<MailEditor> {
@@ -675,11 +691,12 @@ export class MailView implements CurrentView {
 	}
 }
 
-class MailFolderComponent implements MComponent<{count: number, button: NavButtonAttrs, rightButton: ?Button}> {
+class MailFolderComponent implements MComponent<{count: number, button: NavButtonAttrs, rightButton: ?ButtonAttrs}> {
 	_hovered: boolean = false;
 
 	view(vnode): ?Children {
 		const {count, button, rightButton} = vnode.attrs
+
 		return m(".folder-row.plr-l.flex.flex-row" + (isNavButtonSelected(button) ? ".row-selected" : ""), {}, [
 			count > 0
 				?
@@ -694,8 +711,7 @@ class MailFolderComponent implements MComponent<{count: number, button: NavButto
 				: null,
 			m(NavButtonN, button),
 			rightButton
-				? m(rightButton, {
-					// Setting initial opacity here because oncreate is called too late and it's blinking
+				? m(ButtonN, Object.assign({}, rightButton, {
 					oncreate: vnode => {
 						vnode.dom.style.opacity = 0
 						return animations.add(vnode.dom, opacity(0, 1, true))
@@ -704,7 +720,7 @@ class MailFolderComponent implements MComponent<{count: number, button: NavButto
 						vnode.dom.style.opacity = 1
 						return animations.add(vnode.dom, opacity(1, 0, true))
 					}
-				})
+				}))
 				: null
 		])
 	}
