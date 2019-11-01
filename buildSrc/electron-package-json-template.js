@@ -6,7 +6,7 @@ const path = require('path')
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
+module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notarize) {
 	return {
 		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",
@@ -54,7 +54,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
 			"artifactName": "${name}-${os}.${ext}",
-			"afterSign": sign ? "buildSrc/notarize.js" : undefined,
+			"afterSign": notarize ? "buildSrc/notarize.js" : undefined,
 			"protocols": [
 				{
 					"name": "Mailto Links",
@@ -100,7 +100,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
-				"hardenedRuntime" : true,
+				"hardenedRuntime": true,
 				"gatekeeperAssess": false,
 				"entitlements": "buildSrc/mac-entitlements.plist",
 				"entitlementsInherit": "buildSrc/mac-entitlements.plist",

@@ -3,7 +3,7 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, updateUrl, nameSuffix) {
+function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
@@ -17,7 +17,8 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		nameSuffix !== "-snapshot"
+		nameSuffix !== "-snapshot",
+		notarize
 	)
 	console.log("updateUrl is", updateUrl)
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')

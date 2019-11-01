@@ -178,9 +178,9 @@ function buildDesktopClient() {
 		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 		if (options.stage === "release") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", ""))
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", "",  /*notarize*/true))
 				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test"))
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test",  /*notarize*/false))
 		} else if (options.stage === "local") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
