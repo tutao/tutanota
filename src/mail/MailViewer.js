@@ -186,7 +186,7 @@ export class MailViewer {
 			.setType(ButtonType.Bubble)
 		let differentSenderBubble = (hasDifferentEnvelopeSender(this.mail)) ?
 			new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
-				() => Dialog.error("envelopeSenderInfo_msg", this.mail.sender.address), () => Icons.Warning).setType(ButtonType.Bubble)
+				() => Dialog.error("envelopeSenderInfo_msg", neverNull(this.mail.differentEnvelopeSender)), () => Icons.Warning).setType(ButtonType.Bubble)
 			: null
 		let toRecipientBubbles = this.mail.toRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false),
