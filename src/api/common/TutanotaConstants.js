@@ -437,9 +437,9 @@ export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStartEnum
 export type WeekStartEnum = $Values<typeof WeekStart>
 
 export const ShareCapability = Object.freeze({
-	Invite: '0',
+	Read: '0',
 	Write: '1',
-	Read: '2'
+	Invite: '2'
 })
 
 export type ShareCapabilityEnum = $Values<typeof ShareCapability>

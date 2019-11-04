@@ -444,7 +444,7 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 	}
 	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
 	if (membership) {
-		return membership.capability != null && Number(requiredCapability) >= Number(membership.capability)
+		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
 	}
 	return false
 }

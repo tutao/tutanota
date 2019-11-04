@@ -224,9 +224,9 @@ o.spec("calendar utils tests", function () {
 
 		o("hasCapability - Owner", function () {
 			groupMembership.capability = null
-			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Invite)).equals(true)
-			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Write)).equals(true)
-			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Read)).equals(true)
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Invite)).equals(false)
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Write)).equals(false)
+			o(hasCapabilityOnGroup(ownerUser, group, ShareCapability.Read)).equals(false)
 		})
 		o("hasCapability - no membership", function () {
 			user.memberships = []
