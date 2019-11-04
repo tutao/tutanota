@@ -8,8 +8,7 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import de.tutao.tutanota.*;
-import de.tutao.tutanota.push.SseStorage;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +16,20 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
+
+import de.tutao.tutanota.AndroidKeyStoreFacade;
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.OperationType;
+import de.tutao.tutanota.Utils;
+import de.tutao.tutanota.push.SseStorage;
 
 public class AlarmNotificationsManager {
 	private static final String TAG = "AlarmNotificationsMngr";
@@ -170,6 +182,10 @@ public class AlarmNotificationsManager {
 		List<AlarmNotification> alarmNotifications = this.readSavedAlarmNotifications();
 		int indexOfExistingRepeatingAlarm = alarmNotifications.indexOf(alarmNotification);
 
+		// For cancellation we make alarms which are almost the same. Intent#filterEquals checks that action, data, type, class, and categories are the same.
+		// It doesn't check extras. "data" (read: uri) is the only significant part. It is made up of alarm identifier and occurrence. We provide other fields
+		// as a filler but this doesn't make a difference.
+		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
 		if (indexOfExistingRepeatingAlarm == -1) {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
 			PendingIntent pendingIntent = makeAlarmPendingIntent(0,
@@ -177,10 +193,10 @@ public class AlarmNotificationsManager {
 			getAlarmManager().cancel(pendingIntent);
 		} else {
 			AlarmNotification savedAlarmNotification = alarmNotifications.get(indexOfExistingRepeatingAlarm);
-			byte[] sessionKey = resolveSessionKey(alarmNotification, pushKeyResolver);
+			byte[] sessionKey = resolveSessionKey(savedAlarmNotification, pushKeyResolver);
 			if (sessionKey != null) {
 				try {
-					this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
+					this.iterateAlarmOccurrences(savedAlarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
 						Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier() + " # " + occurrence);
 						getAlarmManager().cancel(makeAlarmPendingIntent(occurrence,
 								alarmNotification.getAlarmInfo().getIdentifier(), "", new Date(), ""));
