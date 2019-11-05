@@ -1,7 +1,11 @@
 package de.tutao.tutanota.push;
 
 import android.annotation.TargetApi;
-import android.app.*;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.BroadcastReceiver;
@@ -24,19 +28,19 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.ServiceCompat;
 import android.text.TextUtils;
 import android.util.Log;
-import de.tutao.tutanota.Crypto;
-import de.tutao.tutanota.MainActivity;
-import de.tutao.tutanota.R;
-import de.tutao.tutanota.Utils;
-import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
-import de.tutao.tutanota.alarms.AlarmNotification;
-import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,6 +54,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.MainActivity;
+import de.tutao.tutanota.R;
+import de.tutao.tutanota.Utils;
+import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
+import de.tutao.tutanota.alarms.AlarmNotification;
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+
+import static de.tutao.tutanota.Utils.atLeastNougat;
 import static de.tutao.tutanota.Utils.atLeastOreo;
 import static de.tutao.tutanota.alarms.AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID;
 
@@ -177,6 +190,7 @@ public final class PushNotificationService extends JobService {
 				if (dissmissAddrs != null) {
 					for (String addr : dissmissAddrs) {
 						aliasNotification.remove(addr);
+						getNotificationManager().cancel(notificationId(addr));
 					}
 				}
 			}
@@ -185,7 +199,7 @@ public final class PushNotificationService extends JobService {
 			} else {
 				boolean allAreZero = true;
 				for (LocalNotificationInfo info : aliasNotification.values()) {
-					if (info.counter > 1) {
+					if (info.counter > 0) {
 						allAreZero = false;
 						break;
 					}
@@ -196,7 +210,8 @@ public final class PushNotificationService extends JobService {
 					for (LocalNotificationInfo info : aliasNotification.values()) {
 						if (info.counter > 0) {
 							sendSummaryNotification(getNotificationManager(),
-									info.message, info.notificationInfo);
+									info.message, info.notificationInfo, false);
+							break;
 						}
 					}
 				}
@@ -404,7 +419,7 @@ public final class PushNotificationService extends JobService {
 			break;
 		}
 		this.lastProcessedChangeTime = Long.parseLong(changeTime);
-		
+
 		handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
 		if (alarmNotifications != null) {
 			handleAlarmNotifications(alarmNotifications);
@@ -443,6 +458,10 @@ public final class PushNotificationService extends JobService {
 
 	private void handleNotificationInfos(NotificationManager notificationManager, PushMessage pushMessage,
 										 List<PushMessage.NotificationInfo> notificationInfos) {
+		if (notificationInfos.isEmpty()) {
+			return;
+		}
+
 		for (int i = 0; i < notificationInfos.size(); i++) {
 			PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
 
@@ -474,14 +493,14 @@ public final class PushNotificationService extends JobService {
 					.setContentIntent(intentOpenMailbox(notificationInfo, false))
 					.setGroup(NOTIFICATION_EMAIL_GROUP)
 					.setAutoCancel(true)
-					.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY);
+					.setGroupAlertBehavior(atLeastNougat() ? NotificationCompat.GROUP_ALERT_CHILDREN : NotificationCompat.GROUP_ALERT_SUMMARY)
+					.setDefaults(Notification.DEFAULT_ALL);
 
 			notificationManager.notify(notificationId, notificationBuilder.build());
-
-			sendSummaryNotification(notificationManager, pushMessage.getTitle(),
-					notificationInfo);
-
 		}
+
+		sendSummaryNotification(notificationManager, pushMessage.getTitle(),
+				notificationInfos.get(0), true);
 	}
 
 	private void scheduleJobFinish() {
@@ -511,7 +530,8 @@ public final class PushNotificationService extends JobService {
 
 	private void sendSummaryNotification(NotificationManager notificationManager,
 										 String title,
-										 PushMessage.NotificationInfo notificationInfo) {
+										 PushMessage.NotificationInfo notificationInfo,
+										 boolean sound) {
 		int summaryCounter = 0;
 		ArrayList<String> addresses = new ArrayList<>();
 		NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
@@ -539,7 +559,12 @@ public final class PushNotificationService extends JobService {
 				.setContentIntent(intentOpenMailbox(notificationInfo, true))
 				.setDeleteIntent(intentForDelete(addresses))
 				.setAutoCancel(true)
-				.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
+				// We need to update summary without sound when one of the alarms is cancelled
+				// but we need to use sound if it's API < N because GROUP_ALERT_CHILDREN doesn't
+				// work with sound there (pehaps summary consumes it somehow?) and we must do
+				// summary with sound instead on the old versions.
+				.setDefaults(sound ? NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE : 0)
+				.setGroupAlertBehavior(atLeastNougat() ? NotificationCompat.GROUP_ALERT_CHILDREN : NotificationCompat.GROUP_ALERT_SUMMARY)
 				.build();
 		notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
 	}
@@ -678,6 +703,15 @@ final class LocalNotificationInfo {
 
 	LocalNotificationInfo incremented(int by) {
 		return new LocalNotificationInfo(message, counter + by, notificationInfo);
+	}
+
+	@Override
+	public String toString() {
+		return "LocalNotificationInfo{" +
+				"message='" + message + '\'' +
+				", counter=" + counter +
+				", notificationInfo=" + notificationInfo +
+				'}';
 	}
 }
 
