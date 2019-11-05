@@ -343,7 +343,8 @@ export class IndexedDbTransaction implements DbTransaction {
 			"\ncustom.target: " + customTargetEntries +
 			"\ncustom.target.error: " + customTargetErrorEntries
 
-		event.stopPropagation()
+		// In some cases it's not available on Firefox 70
+		if (typeof event.stopPropagation === "function") event.stopPropagation()
 		if (customTarget && customTarget.error
 			&& (customTarget.error.name === "UnknownError"
 				|| (typeof customTarget.error.message === "string" && customTarget.error.message.includes("UnknownError")))) {
