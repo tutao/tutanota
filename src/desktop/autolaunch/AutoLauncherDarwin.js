@@ -7,18 +7,12 @@ export function isAutoLaunchEnabled(): Promise<boolean> {
 
 export function enableAutoLaunch(): Promise<void> {
 	return isAutoLaunchEnabled().then(enabled => {
-		if (enabled) {
-			return
-		}
-		app.setLoginItemSettings({openAtLogin: true})
+		if (!enabled) app.setLoginItemSettings({openAtLogin: true})
 	})
 }
 
 export function disableAutoLaunch(): Promise<void> {
 	return isAutoLaunchEnabled().then(enabled => {
-		if (enabled) {
-			return
-		}
-		app.setLoginItemSettings({openAtLogin: false})
+		if (enabled) app.setLoginItemSettings({openAtLogin: false})
 	})
 }
