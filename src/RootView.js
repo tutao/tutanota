@@ -16,7 +16,7 @@ class RootView {
 		this.viewCache = {}
 
 		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
-		let onmousedown = () => {
+		let onmousedown = (e) => {
 			styles.registerStyle("outline", () => ({
 				"*": {
 					outline: "none",
@@ -24,6 +24,10 @@ class RootView {
 			}))
 			// remove event listener after the first click to not re-register style
 			onmousedown = null
+			// It is important to not redraw at this point because click event may be lost otherwise and saved login button would not be
+			// actually pressed. It's unclear why but preventing redraw (this way or setting listener manually) helps.
+			// It's also useless to redraw for this click handler because we just want to add a global style definition.
+			e.redraw = false
 		}
 
 
