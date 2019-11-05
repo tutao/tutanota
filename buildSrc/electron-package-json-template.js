@@ -27,7 +27,15 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				+ "or/Ahu6RwhEhjm7MyXbhiDyis+kGHSfatsO5KWWuZ4xgCEUO0L6vMQwr5M/qYOj1\n"
 				+ "7QIDAQAB\n"
 				+ "-----END PUBLIC KEY-----",
-				"key2"
+				"-----BEGIN PUBLIC KEY-----\n"
+				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk4NkSbs41KjuNZfFco2l\n"
+				+ "unXXFOIkrdBfDmIiVfVTYagEk2cN9HkjCkiNsHucLHPuHb0reHsaxrDVE1lWGTPI\n"
+				+ "0Lh5diLYdxJ+AGy/8j9jsO51hONqTujdD0mJs14YkVfOUXyHQh1z6WJCLc9jrN9+\n"
+				+ "3dgKOlQRYW2mYise8ggYYcrRs/CY40s3/cQvrFSprFMPS6E+9lmIDp0hPKr9q90t\n"
+				+ "IXmzihQyc8Q0VmAfCqEwUtx6RY6BGkqKiDoMh4Qs5ZwFxhoSfgrJiwBmv0HcX1yv\n"
+				+ "QGNSdxrpLuMA/afCPdf49x3iwy+p+paXHKirgM5z6rnikk10Lko7dNXV0735PsZd\n"
+				+ "dQIDAQAB\n"
+				+ "-----END PUBLIC KEY-----"
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"preloadjs": "./src/desktop/preload.js",
