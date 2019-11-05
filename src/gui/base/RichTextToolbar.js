@@ -5,7 +5,7 @@ import type {Editor} from './Editor.js'
 import stream from "mithril/stream/stream.js"
 import {numberRange} from "../../api/common/utils/ArrayUtils"
 import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "./ButtonN"
 import {size} from '../size.js'
 import {noOp} from "../../api/common/utils/Utils"
 import {attachDropdown} from "./DropdownN"
@@ -42,6 +42,7 @@ export class RichTextToolbar {
 			type: ButtonType.Toggle,
 			noBubble: true,
 			isSelected: () => editor.hasStyle(o.style),
+			colors: ButtonColors.Elevated,
 		}))
 
 		const alignToggleAttrs = [
@@ -60,6 +61,7 @@ export class RichTextToolbar {
 			icon: () => o.icon,
 			type: ButtonType.Toggle,
 			isSelected: () => false,
+			colors: ButtonColors.Elevated,
 		}))
 
 		styleToggleAttrs.unshift({
@@ -77,7 +79,8 @@ export class RichTextToolbar {
 			noBubble: true,
 			isSelected: () => {
 				return editor.styles.listing === 'ul'
-			}
+			},
+			colors: ButtonColors.Elevated,
 		}, {
 			label: "emptyString_msg",
 			title: () => lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)",
@@ -91,7 +94,8 @@ export class RichTextToolbar {
 			icon: () => Icons.ListOrdered,
 			type: ButtonType.Toggle,
 			noBubble: true,
-			isSelected: () => editor.styles.listing === 'ol'
+			isSelected: () => editor.styles.listing === 'ol',
+			colors: ButtonColors.Elevated,
 		})
 		const attachHandler = attachFileHandler
 		if (attachHandler) {
@@ -100,7 +104,8 @@ export class RichTextToolbar {
 				title: "insertImage_action",
 				click: (ev) => attachHandler(ev, editor),
 				type: ButtonType.Toggle,
-				icon: () => Icons.Picture
+				icon: () => Icons.Picture,
+				colors: ButtonColors.Elevated,
 			})
 		}
 
@@ -121,6 +126,7 @@ export class RichTextToolbar {
 			},
 			type: ButtonType.Toggle,
 			noBubble: true,
+			colors: ButtonColors.Elevated,
 		}, () => alignToggleAttrs, () => true, 2 * size.hpad_large + size.button_height,)
 
 		const removeFormattingButtonAttrs = {
@@ -130,6 +136,7 @@ export class RichTextToolbar {
 			type: ButtonType.Toggle,
 			click: () => editor._squire.removeAllFormatting(),
 			noBubble: true,
+			colors: ButtonColors.Elevated,
 		}
 
 		const sizeButtonAttrs = attachDropdown({
@@ -139,6 +146,7 @@ export class RichTextToolbar {
 			type: ButtonType.Toggle,
 			click: noOp,
 			noBubble: true,
+			colors: ButtonColors.Elevated,
 		}, () => numberRange(8, 144).map(n => {
 			return {
 				label: () => n.toString(),
@@ -159,7 +167,7 @@ export class RichTextToolbar {
 				this.selectedSize(size.font_size_base)
 			}
 
-			return m(".content-bg.overflow-hidden.pb-2", {
+			return m(".elevated-bg.overflow-hidden.pb-2", {
 					style: {
 						"top": '0px',
 						"position": client.browser === BrowserType.SAFARI

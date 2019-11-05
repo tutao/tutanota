@@ -22,7 +22,7 @@ import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
 import {theme} from "../gui/theme"
-import {ButtonColors} from "../gui/base/Button"
+import {ButtonColors} from "../gui/base/ButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -101,15 +101,17 @@ export class MailListView implements Component {
 	}
 
 	view(): Children {
+		// Save the folder before showing the dialog so that there's no chance that it will change
+		const folder = this.mailView.selectedFolder
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
 			colors: ButtonColors.Nav,
 			click: () => {
-				Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(this.mailView.selectedFolder)}))
+				Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(folder)}))
 				      .then(confirmed => {
 					      if (confirmed) {
-						      this.mailView._finallyDeleteAllMailsInSelectedFolder()
+						      this.mailView._finallyDeleteAllMailsInSelectedFolder(folder)
 					      }
 				      })
 			}

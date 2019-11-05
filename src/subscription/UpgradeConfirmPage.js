@@ -60,7 +60,8 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 					return this.close()
 				})
 				.catch(PreconditionFailedError, e => {
-					Dialog.error(() => lang.get("paymentProviderTransactionFailedError_msg") + ((data.upgradeType === UpgradeType.Signup) ? " "
+					Dialog.error(() => lang.get("paymentProviderTransactionFailedError_msg")
+						+ ((data.upgradeType === UpgradeType.Signup) ? " "
 						+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 				.catch(BadGatewayError, e => {
@@ -82,7 +83,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 					? [
 						m(".flex-space-around.flex-wrap", [
 							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-								m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}})),
+								m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}})),
 						]),
 						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))
 					]
@@ -97,7 +98,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 								m(this._paymentMethodField),
 							]),
 							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-								m("img[src=" + HabReminderImage + "].pt", {style: {width: "200px"}}))
+								m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
 						]),
 						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(upgradeButton)))
 					]
@@ -145,7 +146,8 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		const netOrGross = this._upgradeData.options.businessUse()
 			? lang.get("net_label")
 			: lang.get("gross_label")
-		this._priceField.setValue(formatPrice(Number(this._upgradeData.price), true) + " " + (this._upgradeData.options.paymentInterval() === 12
+		this._priceField.setValue(formatPrice(Number(this._upgradeData.price), true) + " "
+			+ (this._upgradeData.options.paymentInterval() === 12
 			? lang.get("pricing.perYear_label")
 			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		if (this._upgradeData.priceNextYear) {

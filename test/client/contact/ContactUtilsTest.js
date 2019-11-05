@@ -26,6 +26,8 @@ o.spec("ContactUtilsTest", function () {
 			c2.mailAddresses.push(m)
 		}
 		let result = compareContacts(c1, c2)
+		// We should use Mithril's ability to print messages instead of this log when it will work again (and the moment of writing it's
+		// fixed but not released: https://github.com/MithrilJS/mithril.js/issues/2391
 		if (result != expectedResult) {
 			console.log("error >>>>>>>", "'" + c1Firstname + "'", "'" + c1Lastname + "'", c1MailAddress, "'" + c2Firstname + "'", "'"
 				+ c2Lastname + "'", c2MailAddress, "expected:", expectedResult, "result", result)

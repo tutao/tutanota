@@ -72,7 +72,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(sanitized).equals("");
 
 		sanitized = htmlSanitizer.sanitize(" ", true).text;
-		o(sanitized).equals(" ");
+		o(sanitized).equals("");
 
 		sanitized = htmlSanitizer.sanitize("yo", true).text;
 		o(sanitized).equals("yo");

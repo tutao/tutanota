@@ -6,7 +6,7 @@ import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {theme} from "../theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, theme} from "../theme"
 import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
 
@@ -30,25 +30,37 @@ export const ButtonColors = Object.freeze({
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
+	Elevated: 'elevated',
 
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
-function getColors(buttonColors: ?ButtonColorEnum) {
+export function getColors(buttonColors: ?ButtonColorEnum) {
 	switch (buttonColors) {
 		case ButtonColors.Nav:
 			return {
 				button: theme.navigation_button,
 				button_selected: theme.navigation_button_selected,
+				button_icon_bg: getNavButtonIconBackground(),
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 				border: theme.navigation_bg
+			}
+		case ButtonColors.Elevated:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: getContentButtonIconBackground(),
+				icon: theme.content_button_icon,
+				icon_selected: theme.content_button_icon_selected,
+				border: getElevatedBackground()
 			}
 		case ButtonColors.Content:
 		default:
 			return {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
+				button_icon_bg: getContentButtonIconBackground(),
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
 				border: theme.content_bg
@@ -112,7 +124,7 @@ class _Button {
 			}, [
 				this.getIcon(a),
 				this._getLabelElement(a),
-				(a.staticRightText) ? m(".pl-s", a.staticRightText) : null
+				(a.staticRightText) ? m(".pl-s", {style: this._getLabelStyle(a)}, a.staticRightText) : null
 			])
 		)
 	}
@@ -152,6 +164,8 @@ class _Button {
 			return 'initial'
 		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
+		} else if (type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.ActionLarge) {
+			return getColors(a.colors).button_icon_bg
 		} else {
 			return getColors(a.colors).button
 		}
@@ -234,8 +248,10 @@ class _Button {
 		let color
 		if (type === ButtonType.Primary || type === ButtonType.Secondary) {
 			color = theme.content_accent
-		} else if ([ButtonType.Login, ButtonType.Toggle].includes(type)) {
+		} else if ([ButtonType.Toggle].includes(type)) {
 			color = theme.content_button_icon
+		} else if (type === ButtonType.Login) {
+			color = theme.content_button_icon_selected
 		} else if (type === ButtonType.Bubble || type === ButtonType.TextBubble) {
 			color = theme.content_fg
 		} else {

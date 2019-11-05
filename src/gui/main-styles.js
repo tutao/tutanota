@@ -6,6 +6,7 @@ import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/Env"
 import {theme} from "./theme.js"
 import {BrowserType} from "../misc/ClientConstants"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground} from "./theme"
 
 assertMainOrNodeBoot()
 
@@ -259,10 +260,12 @@ styles.registerStyle('main', () => {
 		'.content-accent-fg': {color: theme.content_accent},
 		'.svg-content-fg path': {fill: theme.content_fg},
 		'.content-bg': {'background-color': theme.content_bg,},
+
 		'.content-hover:hover': {
 			color: theme.content_accent,
 		},
 		'.content-message-bg': {'background-color': theme.content_message_bg},
+		'.elevated-bg': {'background-color': getElevatedBackground()},
 		'.list-bg': {'background-color': theme.list_bg},
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
@@ -584,7 +587,7 @@ styles.registerStyle('main', () => {
 			top: px(0),
 			left: px(3),
 			color: theme.navigation_button_icon,
-			background: theme.navigation_button,
+			background: getNavButtonIconBackground(),
 			"padding-left": px(4),
 			"padding-right": px(4),
 			"border-radius": px(8),
@@ -605,6 +608,9 @@ styles.registerStyle('main', () => {
 		'.hide-outline': {outline: 'none'},
 		'.nofocus:focus': {
 			outline: 'none'
+		},
+		'.input': {
+			outline: 'none',
 		},
 
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
@@ -686,7 +692,6 @@ styles.registerStyle('main', () => {
 			position: 'absolute',
 			width: 0,
 			height: 0,
-			'background-color': theme.content_bg,
 			overflow: 'hidden' // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
 		},
 		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
@@ -700,9 +705,7 @@ styles.registerStyle('main', () => {
 			'border-width': '0px 0px 1px 0px',
 			'border-color': theme.content_border,
 			'padding-bottom': '1px',
-			'outline': 'none',
 			'z-index': 1,
-			'background-color': theme.content_bg,
 			'border-radius': `${size.border_radius}px ${size.border_radius}px 0 0`,
 			color: theme.content_fg,
 		},
@@ -712,14 +715,12 @@ styles.registerStyle('main', () => {
 			'border-width': '0px 0px 2px 0px',
 			'border-color': `${theme.content_accent}`,
 			'padding-bottom': '0px',
-			'outline': 'none',
 		},
 
 		'button, .nav-button': {
 			position: 'relative',
 			border: 0,
 			cursor: 'pointer',
-			outline: 'none',
 			overflow: 'hidden',
 			'white-space': 'nowrap',
 			margin: 0, // for safari
@@ -777,7 +778,7 @@ styles.registerStyle('main', () => {
 			'background-color': theme.content_button_selected
 		},
 		'.off': {
-			'background-color': theme.content_button
+			'background-color': getContentButtonIconBackground()
 		},
 
 		'.segmentControl': {
@@ -843,7 +844,6 @@ styles.registerStyle('main', () => {
 			padding: 0,
 			margin: 0, // for safari browser
 			background: 'transparent',
-			outline: 'none',
 			width: "100%",
 			overflow: 'hidden',
 			color: theme.content_fg,
@@ -1116,11 +1116,11 @@ styles.registerStyle('main', () => {
 		'.date-selected': {
 			'border-radius': '50%',
 			background: theme.content_accent,
-			color: theme.content_button_icon,
+			color: theme.content_button_icon_selected,
 		},
 		'.date-current': {
 			'border-radius': '50%',
-			background: theme.navigation_button,
+			background: getContentButtonIconBackground(),
 			color: theme.navigation_button_icon,
 		},
 

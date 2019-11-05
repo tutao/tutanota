@@ -74,7 +74,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
+import {LazyContactListId, searchForContacts, getContactListName} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -97,6 +97,7 @@ import {DbError} from "../api/common/error/DbError"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 import {getTimeZone} from "../calendar/CalendarUtils"
+import {ButtonColors} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -715,8 +716,7 @@ export class MailEditor {
 							fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 						}
-
-					}
+					},
 				})
 
 				lazyButtonAttrs.push({
@@ -734,6 +734,7 @@ export class MailEditor {
 					icon: () => Icons.Attachment,
 					type: ButtonType.Bubble,
 					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+					colors: ButtonColors.Elevated,
 				}, () => lazyButtonAttrs)
 			})
 	}
@@ -1005,6 +1006,7 @@ export class MailEditor {
 			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 			type: ButtonType.TextBubble,
 			isSelected: () => false,
+			color: ButtonColors.Elevated
 		}, () => {
 			if (recipientInfo.resolveContactPromise) {
 				return recipientInfo.resolveContactPromise.then(contact => {
@@ -1232,7 +1234,7 @@ class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestio
 
 		return contactsPromise
 			.map(contact => {
-				let name = `${contact.firstName} ${contact.lastName}`.trim()
+				let name = getContactListName(contact)
 				let mailAddresses = []
 				if (name.toLowerCase().indexOf(query) !== -1) {
 					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))

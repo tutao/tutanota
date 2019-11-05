@@ -57,7 +57,7 @@ export const overlay = {
 		}
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
-		return m(".abs.list-bg", {
+		return m(".abs.elevated-bg", {
 			key,
 			style: {
 				width: attrs.position.width,

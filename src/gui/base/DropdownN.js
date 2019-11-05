@@ -69,7 +69,7 @@ export class DropdownN {
 
 		const _inputField = () => {
 			return this._isFilterable
-				? m("input.dropdown-bar.doNotClose.pl-l.button-height.abs", {
+				? m("input.dropdown-bar.elevated-bg.doNotClose.pl-l.button-height.abs", {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: (vnode) => {
 							this._domInput = vnode.dom
@@ -132,7 +132,7 @@ export class DropdownN {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix", {
+			return m(".dropdown-panel.elevated-bg.border-radius.backface_fix", {
 					oncreate: vnode => this._domDropdown = vnode.dom,
 					onkeypress: e => {
 						if (this._domInput) {

@@ -462,11 +462,11 @@ public final class PushNotificationService extends JobService {
 
 			NotificationCompat.Builder notificationBuilder =
 					new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
-							.setLights(getResources().getColor(R.color.colorPrimary), 1000, 1000);
+							.setLights(getResources().getColor(R.color.red), 1000, 1000);
 			ArrayList<String> addresses = new ArrayList<>();
 			addresses.add(notificationInfo.getAddress());
 			notificationBuilder.setContentTitle(pushMessage.getTitle())
-					.setColor(getResources().getColor(R.color.colorPrimary))
+					.setColor(getResources().getColor(R.color.red))
 					.setContentText(notificationContent(notificationInfo.getAddress()))
 					.setNumber(counterPerAlias.counter)
 					.setSmallIcon(R.drawable.ic_status)
@@ -533,7 +533,7 @@ public final class PushNotificationService extends JobService {
 				.setSmallIcon(R.drawable.ic_status)
 				.setGroup(NOTIFICATION_EMAIL_GROUP)
 				.setGroupSummary(true)
-				.setColor(getResources().getColor(R.color.colorPrimary))
+				.setColor(getResources().getColor(R.color.red))
 				.setNumber(summaryCounter)
 				.setStyle(inboxStyle)
 				.setContentIntent(intentOpenMailbox(notificationInfo, true))

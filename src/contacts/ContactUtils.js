@@ -13,7 +13,6 @@ import {logins} from "../api/main/LoginController"
 import {asyncFindAndMap, neverNull} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {compareOldestFirst, sortCompareByReverseId} from "../api/common/EntityFunctions"
-import {locator} from "../api/main/MainLocator"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {formatDate, formatDateWithMonth, formatSortableDate} from "../misc/Formatter"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -99,19 +98,27 @@ export function compareContacts(contact1: Contact, contact2: Contact) {
 	let c2Last = contact2.lastName.trim()
 	let c1MailLength = contact1.mailAddresses.length
 	let c2MailLength = contact2.mailAddresses.length
+	// If the contact doesn't have either the first or the last name, use company as the first name. We cannot just make a string out of it
+	// and compare it because we would lose priority of first name over last name and set name over unset name.
+	if (!c1First && !c1Last) {
+		c1First = contact1.company
+	}
+	if (!c2First && !c2Last) {
+		c2First = contact2.company
+	}
 	if (c1First && !c2First) {
 		return -1
 	} else if (c2First && !c1First) {
 		return 1
 	} else {
-		let result = (c1First).localeCompare(c2First)
+		let result = c1First.localeCompare(c2First)
 		if (result === 0) {
 			if (c1Last && !c2Last) {
 				return -1
 			} else if (c2Last && !c1Last) {
 				return 1
 			} else {
-				result = (c1Last).localeCompare(c2Last)
+				result = c1Last.localeCompare(c2Last)
 			}
 		}
 		if (result === 0) {// names are equal or no names in contact
@@ -189,6 +196,14 @@ export function getContactDisplayName(contact: Contact): string {
 	} else {
 		return `${contact.firstName} ${contact.lastName}`.trim()
 	}
+}
+
+export function getContactListName(contact: Contact): string {
+	let name = `${contact.firstName} ${contact.lastName}`.trim()
+	if (name.length === 0) {
+		name = contact.company.trim()
+	}
+	return name
 }
 
 export function formatBirthdayNumeric(birthday: Birthday): string {

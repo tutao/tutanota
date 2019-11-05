@@ -153,6 +153,7 @@ export class SecondFactorHandler {
 				}
 				this._waitingForSecondFactorDialog = Dialog.showActionDialog({
 					title: "",
+					allowOkWithReturn: true,
 					child: {
 						view: () => m("", [
 							(u2fSupport && keyForThisDomainExisting)

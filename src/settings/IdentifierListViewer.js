@@ -208,6 +208,7 @@ export class IdentifierListViewer {
 				title: lang.get("notificationSettings_action"),
 				child: form,
 				validator: () => this._validateAddNotificationEmailAddressInput(mailAddress()),
+				allowOkWithReturn: true,
 				okAction: addNotificationEmailAddressOkAction
 			})
 		}

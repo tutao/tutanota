@@ -8,7 +8,7 @@ const requiredEntities = fs.readdirSync('./src/api/entities/sys/')
 const languageFiles = fs.readdirSync('./src/translations/')
                         .map(fn => path.join('./src/translations', fn))
 
-function build(dirname, version, targets, updateUrl, nameSuffix) {
+function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
@@ -22,7 +22,8 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		nameSuffix !== "-snapshot"
+		nameSuffix !== "-snapshot",
+		notarize
 	)
 	console.log("updateUrl is", updateUrl)
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')

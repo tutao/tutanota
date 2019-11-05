@@ -52,7 +52,8 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog
+	showDeleteConfirmationDialog,
+	hasDifferentEnvelopeSender
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -100,6 +101,7 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 
 const DOUBLE_TAP_TIME_MS = 350
+const SCROLL_FACTOR = 4 / 5
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -182,9 +184,9 @@ export class MailViewer {
 				getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null,
 			() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250)
 			.setType(ButtonType.Bubble)
-		let differentSenderBubble = (this._isEnvelopeSenderVisible()) ?
+		let differentSenderBubble = (hasDifferentEnvelopeSender(this.mail)) ?
 			new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
-				() => Dialog.error("envelopeSenderInfo_msg"), () => Icons.Warning).setType(ButtonType.Bubble)
+				() => Dialog.error("envelopeSenderInfo_msg", neverNull(this.mail.differentEnvelopeSender)), () => Icons.Warning).setType(ButtonType.Bubble)
 			: null
 		let toRecipientBubbles = this.mail.toRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false),
@@ -222,7 +224,7 @@ export class MailViewer {
 					(replyToBubbles.length > 0) ?
 						m(".flex-start.flex-wrap.ml-negative-bubble", replyToBubbles.map(b => m(b))) : null,
 				])
-		}), differentSenderBubble != null, {'padding-top': px(26)})
+		}), false, {'padding-top': px(26)})
 
 		let actions = new ActionBar()
 		actions.add(this._createLoadExternalContentButton(mail))
@@ -333,6 +335,9 @@ export class MailViewer {
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
 										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
 											this._tutaoBadge(),
+											hasDifferentEnvelopeSender(this.mail)
+												? m(Icon, {icon: Icons.Warning, style: {fill: theme.navigation_button}})
+												: null,
 											getSenderOrRecipientHeading(this.mail, false)
 										]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
@@ -738,9 +743,7 @@ export class MailViewer {
 	}
 
 	_isEnvelopeSenderVisible(): boolean {
-		return (this.mail.differentEnvelopeSender != null
-			&& getDomainWithoutSubdomains(this.mail.differentEnvelopeSender)
-			!== getDomainWithoutSubdomains(this.mail.sender.address))
+		return hasDifferentEnvelopeSender(this.mail)
 	}
 
 	_markUnread(unread: boolean) {
@@ -961,14 +964,16 @@ export class MailViewer {
 	scrollUp(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.max(0, current - 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.max(0, current - toScroll))
 		})
 	}
 
 	scrollDown(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
 		})
 	}
 
