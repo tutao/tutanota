@@ -755,7 +755,7 @@ module.exports = {
 		"recommendedDmarcRecord_msg": "Wij raden aan om bij de volgende TXT keuze DMARC te selecteren maar u mag ook uw eigen instelling kiezen:",
 		"recoverAccountAccess_action": "Toegang tot account kwijt",
 		"recoverResetFactors_action": "Reset tweede factor",
-		"recoverSetNewPassword_action": "Stel een nieuw paswoord in.",
+		"recoverSetNewPassword_action": "Stel een nieuw wachtwoord in.",
 		"recoveryCodeEmpty_msg": "Voer a.u.b. een herstelcode in",
 		"recoveryCode_label": "Herstelcode",
 		"recoveryCode_msg": "Neem a.u.b. een minuutje om uw herstelcode te noteren. De herstelcode is de enige optie om uw wachtwoord of tweede factor te resetten als u er een van verliest.",
