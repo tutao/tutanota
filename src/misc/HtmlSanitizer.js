@@ -106,25 +106,28 @@ class HtmlSanitizer {
 		if (htmlNode.attributes) {
 			this._replaceAttributeValue(htmlNode);
 		}
-		if (htmlNode.style && this._blockExternalContent) {
-			if (htmlNode.style.backgroundImage) {
-				//console.log(htmlNode.style.backgroundImage)
-				this._replaceStyleImage(htmlNode, "backgroundImage", false)
-				htmlNode.style.backgroundRepeat = "no-repeat"
-			}
-			if (htmlNode.style.listStyleImage) {
-				this._replaceStyleImage(htmlNode, "listStyleImage", true)
-			}
-			if (htmlNode.style.content) {
-				this._replaceStyleImage(htmlNode, "content", true)
-			}
-			if (htmlNode.style.cursor) {
-				this._removeStyleImage(htmlNode, "cursor")
-			}
-			if (htmlNode.style.filter) {
-				this._removeStyleImage(htmlNode, "filter")
+		if (htmlNode.style) {
+			if (this._blockExternalContent) {
+				if (htmlNode.style.backgroundImage) {
+					//console.log(htmlNode.style.backgroundImage)
+					this._replaceStyleImage(htmlNode, "backgroundImage", false)
+					htmlNode.style.backgroundRepeat = "no-repeat"
+				}
+				if (htmlNode.style.listStyleImage) {
+					this._replaceStyleImage(htmlNode, "listStyleImage", true)
+				}
+				if (htmlNode.style.content) {
+					this._replaceStyleImage(htmlNode, "content", true)
+				}
+				if (htmlNode.style.cursor) {
+					this._removeStyleImage(htmlNode, "cursor")
+				}
+				if (htmlNode.style.filter) {
+					this._removeStyleImage(htmlNode, "filter")
+				}
 			}
 			// Disallow position because you can do bad things with it and it also messes up layout
+			// Do this unconditionally, independent from the external content blocking.
 			if (htmlNode.style.position) {
 				htmlNode.style.removeProperty("position")
 			}
