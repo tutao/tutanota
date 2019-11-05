@@ -37,7 +37,8 @@ export type TableAttrs = {
 export type CellTextData = {
 	main: string,
 	info: ?string,
-	click?: clickHandler
+	click?: clickHandler,
+	mainStyle?: string
 }
 
 export type TableLineAttrs = {
@@ -81,7 +82,10 @@ class _Table {
 		if (typeof lineAttrs.cells == "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>
 				m("td", [
-					m(".text-ellipsis.pr.pt-s" + columnWidths[index] + ((bold) ? ".b" : "") + (cellTextData.click ? ".click" : ""), {
+					m(".text-ellipsis.pr.pt-s" + columnWidths[index]
+						+ ((bold) ? ".b" : "")
+						+ (cellTextData.click ? ".click" : ""
+							+ (cellTextData.mainStyle ? cellTextData.mainStyle : "")), {
 						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
 						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
 					}, cellTextData.main), m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {

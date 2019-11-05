@@ -1048,6 +1048,8 @@ module.exports = {
 		"bookingItemUsersIncluding_label": "Benutzer incl.:",
 		"sharedCalendarExisting_msg": "Du hast noch geteilte Kalender. Bitte entferne erst alle Freigaben.",
 		"sharingFeatureNotOrderedAdmin_msg": "Die Freigabe eines Kalenders ist nur mit gebuchter Freigabe-Funktion möglich. Möchtest du diese jetzt buchen?",
-		"sharingFeatureNotOrderedUser_msg": "Die Freigabe eines Kalenders ist nur mit gebuchter Freigabe-Funktion möglich. Bitte wende dich an deinen Administrator."
+		"sharingFeatureNotOrderedUser_msg": "Die Freigabe eines Kalenders ist nur mit gebuchter Freigabe-Funktion möglich. Bitte wende dich an deinen Administrator.",
+		"member_label": "Mitglied",
+		"invited_label": "Eingeladen"
 	}
 }

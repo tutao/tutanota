@@ -1028,9 +1028,9 @@ module.exports = {
 		"permissions_label": "Permissions",
 		"shareWithEmailRecipient_label": "Share with email recipient",
 		"pendingShare_label": "Pending shares",
-		"calendarShareCapabilityInvite_label": "Make changes and manage shares",
-		"calendarShareCapabilityWrite_label": "Make changes to events",
-		"calendarShareCapabilityRead_label": "Show all event details",
+		"calendarShareCapabilityInvite_label": "Write and manage sharing",
+		"calendarShareCapabilityWrite_label": "Read and Write",
+		"calendarShareCapabilityRead_label": "Read only",
 		"owner_label": "Owner",
 		"calendarInvitationProgress_msg": "Sending invitation.",
 		"otherCalendars_label": "Other calendars",
@@ -1043,7 +1043,10 @@ module.exports = {
 		"bookingItemUsersIncluding_label": "Users incl.:",
 		"sharedCalendarExisting_msg": "You have still shared calendars. Please remove all shares first.",
 		"sharingFeatureNotOrderedAdmin_msg": "To share a calendar you have to order the sharing feature. Would you like to order it now?",
-		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator."
-
+		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator.",
+		"member_label": "Member",
+		"invited_label": "Invited",
+		"participants_label": "Participants",
+		"addShare_action": "Add share"
 	}
 }

@@ -6,6 +6,7 @@ import stream from "mithril/stream/stream.js"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {load, loadAll} from "../api/main/Entity"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {downcast, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
@@ -15,7 +16,7 @@ import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
 import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonType} from "../gui/base/ButtonN"
 import {findAndRemove, remove} from "../api/common/utils/ArrayUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {GroupTypeRef} from "../api/entities/sys/Group"
@@ -25,7 +26,6 @@ import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {getCalendarName, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {px} from "../gui/size"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showSharingBuyDialog} from "../subscription/WhitelabelAndSharingBuyDialog"
@@ -48,8 +48,7 @@ type GroupDetails = {
 }
 
 type CalendarSharingDialogAttrs = {
-	groupDetails: GroupDetails,
-	sendInviteHandler(recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): void,
+	groupDetails: GroupDetails
 }
 
 
@@ -109,30 +108,9 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 
 			const dialog = Dialog.showActionDialog({
 					title: () => getCalendarName(groupInfo.name),
-					type: DialogType.EditLarge,
+					type: DialogType.EditMedium,
 					child: () => m(CalendarSharingDialogContent, {
-						groupDetails,
-						sendInviteHandler: (recipients, capability) => {
-							showProgressDialog("calendarInvitationProgress_msg",
-								worker.sendGroupInvitation(groupInfo, getCalendarName(groupInfo.name), recipients, capability)
-							).catch(PreconditionFailedError, e => {
-								if (logins.getUserController().isGlobalAdmin()) {
-									Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
-									      .then(confirmed => {
-										      if (confirmed) {
-											      showSharingBuyDialog(true)
-										      }
-									      })
-								} else {
-									Dialog.error("sharingFeatureNotOrderedUser_msg")
-								}
-
-							}).catch(RecipientsNotFoundError, e => {
-								let invalidRecipients = e.message.join("\n")
-								return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-									+ invalidRecipients)
-							})
-						}
+						groupDetails
 					}),
 					okAction: null,
 					cancelAction: () => unsubscribeEventListener()
@@ -176,86 +154,71 @@ function loadGroupInfoForMember(groupMember: GroupMember): Promise<GroupMemberIn
 
 
 class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAttrs> {
-	_invitePeopleValueTextField: BubbleTextField<RecipientInfo>;
-	_capapility: Stream<ShareCapabilityEnum>;
 
 	constructor() {
-		this._capapility = stream(ShareCapability.Read)
-		this._invitePeopleValueTextField = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler(this))
 	}
 
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
 		return m(".flex.col", [
-			m(this._invitePeopleValueTextField),
-			m(DropDownSelectorN, {
-				label: "permissions_label",
-				items: [
-					{name: getCapabilityText(ShareCapability.Invite), value: ShareCapability.Invite},
-					{name: getCapabilityText(ShareCapability.Write), value: ShareCapability.Write},
-					{name: getCapabilityText(ShareCapability.Read), value: ShareCapability.Read},
-				],
-				selectedValue: this._capapility,
-				dropdownWidth: 300
-			}),
-			m(".flex-center.full-width.pt",
-				m("", {
-						style: {
-							width: px(260)
-						}
-					},
-					m(ButtonN, {
-						label: "send_action",
-						click: () => vnode.attrs.sendInviteHandler(this._invitePeopleValueTextField.bubbles.map(b => b.entity), this._capapility()),
-						type: ButtonType.Login
-					})
-				)
-			),
-			m(".h4.mt-l", lang.get("pendingShare_label")),
 			m(TableN, {
-				columnHeadingTextIds: ["recipients_label", "permissions_label"],
+				columnHeadingTextIds: ["participants_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: vnode.attrs.groupDetails.sentGroupInvitations.map((sentGroupInvitation) => {
-					return {
-						cells: [sentGroupInvitation.inviteeMailAddress, getCapabilityText(downcast(sentGroupInvitation.capability))],
-						actionButtonAttrs: {
-							label: "remove_action",
-							click: () => {
-								worker.rejectGroupInvitation(neverNull(sentGroupInvitation.receivedInvitation))
-							},
-							icon: () => Icons.Cancel,
-							isVisible: () => this._isDeleteInvitationButtonVisible(vnode.attrs.groupDetails.group, sentGroupInvitation)
-						}
-					}
-				}),
+				lines: this._renderMemberInfos(vnode.attrs.groupDetails).concat(this._renderGroupInvitations(vnode.attrs.groupDetails)),
 				showActionButtonColumn: true,
-			}),
-
-			m(".h4.mt-l", lang.get("sharing_label")),
-			m(TableN, {
-				columnHeadingTextIds: ["recipients_label", "permissions_label"],
-				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: vnode.attrs.groupDetails.memberInfos.map((memberInfo) => {
-					return {
-						cells: [
-							getMemberText(vnode.attrs.groupDetails.group, memberInfo),
-							getCapabilityText(this._getMemberCabability(memberInfo, vnode.attrs.groupDetails))
-						], actionButtonAttrs: {
-							label: "delete_action",
-							icon: () => Icons.Cancel,
-							click: () => {
-								worker.removeUserFromGroup(memberInfo.member.user, vnode.attrs.groupDetails.group._id)
-							},
-							isVisible: () => this._isDeleteMembershipVisible(vnode.attrs.groupDetails.group, memberInfo)
-						}
-					}
-				}),
-				showActionButtonColumn: true,
+				addButtonAttrs: {
+					label: "addShare_action",
+					click: () => showAddShareDialog(vnode.attrs.groupDetails.info),
+					icon: () => Icons.Add
+				},
 			})
 		])
 	}
 
+	_renderGroupInvitations(groupDetails: GroupDetails): Array<TableLineAttrs> {
+		return groupDetails.sentGroupInvitations.map((sentGroupInvitation) => {
+			return {
+				cells: () => [
+					{
+						main: sentGroupInvitation.inviteeMailAddress,
+						info: lang.get("invited_label") + ", " + getCapabilityText(downcast(sentGroupInvitation.capability)),
+						mainStyle: ".i"
+					}
+				],
+				actionButtonAttrs: {
+					label: "remove_action",
+					click: () => {
+						worker.rejectGroupInvitation(neverNull(sentGroupInvitation.receivedInvitation))
+					},
+					icon: () => Icons.Cancel,
+					isVisible: () => this._isDeleteInvitationButtonVisible(groupDetails.group, sentGroupInvitation)
+				}
+			}
+		})
+	}
 
-	_getMemberCabability(memberInfo: GroupMemberInfo, groupDetails: GroupDetails) : ?ShareCapabilityEnum {
+	_renderMemberInfos(groupDetails: GroupDetails): Array<TableLineAttrs> {
+		return groupDetails.memberInfos.map((memberInfo) => {
+			return {
+				cells: () => [
+					{
+						main: getDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
+						info: (isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("member_label"))
+							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))
+					}
+				], actionButtonAttrs: {
+					label: "delete_action",
+					icon: () => Icons.Cancel,
+					click: () => {
+						worker.removeUserFromGroup(memberInfo.member.user, groupDetails.group._id)
+					},
+					isVisible: () => this._isDeleteMembershipVisible(groupDetails.group, memberInfo)
+				}
+			}
+		})
+	}
+
+
+	_getMemberCabability(memberInfo: GroupMemberInfo, groupDetails: GroupDetails): ?ShareCapabilityEnum {
 		if (isSharedGroupOwner(groupDetails.group, memberInfo.member.user)) {
 			return ShareCapability.Invite
 		}
@@ -273,45 +236,12 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 			&& !isSharedGroupOwner(group, memberInfo.member.user)
 	}
 
-	createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
-		let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
-		let bubbleWrapper = {}
-		bubbleWrapper.buttonAttrs = attachDropdown({
-			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
-			type: ButtonType.TextBubble,
-			isSelected: () => false,
-		}, () => {
-			return this._createBubbleContextButtons(recipientInfo.name, mailAddress)
-		})
-		bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
-		return bubbleWrapper.bubble
-	}
-
-
-	_createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | string> {
-		let buttonAttrs = [mailAddress]
-		buttonAttrs.push({
-			label: "remove_action",
-			type: ButtonType.Secondary,
-			click: () => {
-				const bubbleToRemove = this._invitePeopleValueTextField.bubbles.find((bubble) => bubble.entity.mailAddress == mailAddress)
-				if (bubbleToRemove) {
-					remove(this._invitePeopleValueTextField.bubbles, bubbleToRemove)
-				}
-			}
-		})
-		return buttonAttrs
-	}
-
 
 }
 
 function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string {
 	return getGroupInfoDisplayName(memberInfo.info)
-		+ (isSharedGroupOwner(sharedGroup, memberInfo.member.user) ? ` (${lang.get("owner_label")})` : "")
 }
-
-
 
 
 function getCapabilityText(capability: ?ShareCapabilityEnum): string {
@@ -326,3 +256,101 @@ function getCapabilityText(capability: ?ShareCapabilityEnum): string {
 			return lang.get("comboBoxSelectionNone_msg")
 	}
 }
+
+
+function showAddShareDialog(sharedGroupInfo: GroupInfo) {
+	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({
+		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
+			let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
+			let bubbleWrapper = {}
+			bubbleWrapper.buttonAttrs = attachDropdown({
+				label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+				type: ButtonType.TextBubble,
+				isSelected: () => false,
+			}, () => {
+				return this._createBubbleContextButtons(recipientInfo.name, mailAddress)
+			})
+			bubbleWrapper.bubble = new Bubble(recipientInfo, neverNull(bubbleWrapper.buttonAttrs), mailAddress)
+			return bubbleWrapper.bubble
+		},
+
+		_createBubbleContextButtons(name: string, mailAddress: string): Array<ButtonAttrs | string> {
+			let buttonAttrs = [mailAddress]
+			buttonAttrs.push({
+				label: "remove_action",
+				type: ButtonType.Secondary,
+				click: () => {
+					const bubbleToRemove = invitePeopleValueTextField.bubbles.find((bubble) => bubble.entity.mailAddress == mailAddress)
+					if (bubbleToRemove) {
+						remove(invitePeopleValueTextField.bubbles, bubbleToRemove)
+					}
+				}
+			})
+			return buttonAttrs
+		}
+
+	}))
+	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
+
+
+	let dialog = Dialog.showActionDialog({
+		type: DialogType.EditLarger,
+		title: () => lang.get("addShare_action"),
+		child: () => [
+			m(invitePeopleValueTextField),
+			m(DropDownSelectorN, {
+				label: "permissions_label",
+				items: [
+					{name: getCapabilityText(ShareCapability.Invite), value: ShareCapability.Invite},
+					{name: getCapabilityText(ShareCapability.Write), value: ShareCapability.Write},
+					{name: getCapabilityText(ShareCapability.Read), value: ShareCapability.Read},
+				],
+				selectedValue: capapility,
+				dropdownWidth: 300
+			})
+		],
+		okAction: () => {
+			invitePeopleValueTextField.createBubbles()
+			if (invitePeopleValueTextField.bubbles.length === 0) {
+				return Dialog.error("noRecipients_msg")
+			} else {
+				sendCalendarInvitation(sharedGroupInfo, invitePeopleValueTextField.bubbles.map(b => b.entity), capapility())
+					.then(success => {
+							console.log("success", success)
+							if (success) {
+								dialog.close()
+							}
+						}
+					)
+			}
+
+		},
+	}).setCloseHandler(() => {
+		dialog.close()
+	})
+
+}
+
+
+function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<boolean> {
+	return showProgressDialog("calendarInvitationProgress_msg",
+		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
+	).then(() => true)
+	 .catch(PreconditionFailedError, e => {
+		 if (logins.getUserController().isGlobalAdmin()) {
+			 return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+			              .then(confirmed => {
+				              if (confirmed) {
+					              showSharingBuyDialog(true)
+				              }
+			              }).return(false)
+		 } else {
+			 return Dialog.error("sharingFeatureNotOrderedUser_msg").return(false)
+		 }
+	 }).catch(RecipientsNotFoundError, e => {
+			let invalidRecipients = e.message.join("\n")
+			return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+				+ invalidRecipients).return(false)
+		})
+}
+
