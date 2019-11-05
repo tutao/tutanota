@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import de.tutao.tutanota.push.PushNotificationService;
+import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
 /**
@@ -282,7 +282,7 @@ public final class Native {
 			notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()));
 			emailAddesses.add(addressesArray.getString(i));
 		}
-		activity.startService(PushNotificationService.notificationDismissedIntent(activity,
+		activity.startService(LocalNotificationsFacade.notificationDismissedIntent(activity,
 				emailAddesses, "Native", false));
 	}
 

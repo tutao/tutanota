@@ -1,10 +1,5 @@
 package de.tutao.tutanota.push;
 
-import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
@@ -12,19 +7,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.media.AudioAttributes;
-import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.ServiceCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -48,40 +34,27 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
-import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
-import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 
-import static de.tutao.tutanota.Utils.atLeastNougat;
 import static de.tutao.tutanota.Utils.atLeastOreo;
-import static de.tutao.tutanota.alarms.AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID;
 
 public final class PushNotificationService extends JobService {
 
-	protected static final String TAG = "PushNotificationService";
+	private static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
+	private static final String TAG = "PushNotificationService";
 	private static final String SSE_INFO_EXTRA = "sseInfo";
-	public static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
-	public static final String HEARTBEAT_TIMEOUT_IN_SECONDS_KEY = "heartbeatTimeoutInSeconds";
-	public static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
-	private static final String PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent";
-	public static final long[] VIBRATION_PATTERN = {100, 200, 100, 200};
-	public static final String NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email";
-	public static final int SUMMARY_NOTIFICATION_ID = 45;
 
 	private final LooperThread looperThread = new LooperThread(this::connect);
 	private final SseStorage sseStorage = new SseStorage(this);
-	private final AtomicReference<HttpURLConnection> httpsURLConnectionRef =
-			new AtomicReference<>(null);
+	private final AtomicReference<HttpURLConnection> httpsURLConnectionRef = new AtomicReference<>(null);
 	private final Crypto crypto = new Crypto(this);
 	private AlarmNotificationsManager alarmNotificationsManager;
 	private volatile SseInfo connectedSseInfo;
@@ -89,9 +62,9 @@ public final class PushNotificationService extends JobService {
 	private ConnectivityManager connectivityManager;
 	private volatile JobParameters jobParameters;
 	private long lastProcessedChangeTime = 0;
+	private LocalNotificationsFacade localNotificationsFacade;
 
-	private final Map<String, LocalNotificationInfo> aliasNotification =
-			new ConcurrentHashMap<>();
+	private BroadcastReceiver networkReceiver;
 
 	public static Intent startIntent(Context context, @Nullable SseInfo sseInfo, String sender) {
 		Intent intent = new Intent(context, PushNotificationService.class);
@@ -103,26 +76,16 @@ public final class PushNotificationService extends JobService {
 	}
 
 
-	public static Intent notificationDismissedIntent(Context context,
-													 ArrayList<String> emailAddresses,
-													 String sender,
-													 boolean isSummary) {
-		Intent deleteIntent = new Intent(context, PushNotificationService.class);
-		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses);
-		deleteIntent.putExtra("sender", sender);
-		deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary);
-		return deleteIntent;
-	}
-
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		this.connectedSseInfo = sseStorage.getSseInfo();
 		alarmNotificationsManager = new AlarmNotificationsManager(this, sseStorage);
+		localNotificationsFacade = new LocalNotificationsFacade(this);
 		looperThread.start();
 
-		registerReceiver(new BroadcastReceiver() {
+		networkReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				HttpURLConnection connection = httpsURLConnectionRef.get();
@@ -136,87 +99,25 @@ public final class PushNotificationService extends JobService {
 					}
 				}
 			}
-		}, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+		};
+		registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
 		if (atLeastOreo()) {
-			createNotificationChannels();
+			localNotificationsFacade.createNotificationChannels();
 			Log.d(TAG, "Starting foreground");
-			startForeground(1, new NotificationCompat
-					.Builder(this, PERSISTENT_NOTIFICATION_CHANNEL_ID)
-					.setContentTitle("Notification service")
-					.setSmallIcon(R.drawable.ic_status)
-					.build());
+			startForeground(1, localNotificationsFacade.makeConnectionNotification());
 		}
 	}
 
-	@TargetApi(Build.VERSION_CODES.O)
-	private void createNotificationChannels() {
-		NotificationChannel notificationsChannel = new NotificationChannel(
-				EMAIL_NOTIFICATION_CHANNEL_ID, getString(R.string.notificationChannelEmail_label),
-				NotificationManager.IMPORTANCE_DEFAULT);
-		notificationsChannel.setShowBadge(true);
-		Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-		AudioAttributes att = new AudioAttributes.Builder()
-				.setUsage(AudioAttributes.USAGE_NOTIFICATION)
-				.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-				.build();
-		notificationsChannel.setSound(ringtoneUri, att);
-		notificationsChannel.setVibrationPattern(VIBRATION_PATTERN);
-		notificationsChannel.enableLights(true);
-		notificationsChannel.setLightColor(Color.RED);
-		notificationsChannel.setShowBadge(true);
-		getNotificationManager().createNotificationChannel(notificationsChannel);
-
-		NotificationChannel serviceNotificationChannel = new NotificationChannel(
-				PERSISTENT_NOTIFICATION_CHANNEL_ID, "Notification service",
-				NotificationManager.IMPORTANCE_LOW);
-		getNotificationManager().createNotificationChannel(serviceNotificationChannel);
-
-
-	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(TAG, "Received onStartCommand, sender: "
-				+ (intent == null ? null : intent.getStringExtra("sender")));
+		Log.d(TAG, "Received onStartCommand, sender: " + (intent == null ? null : intent.getStringExtra("sender")));
 
-		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
+		if (intent != null && intent.hasExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
 			ArrayList<String> dissmissAddrs =
-					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA);
-			if (intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)) {
-				// If the user clicked on summary directly, reset counter for all notifications
-				aliasNotification.clear();
-			} else {
-				if (dissmissAddrs != null) {
-					for (String addr : dissmissAddrs) {
-						aliasNotification.remove(addr);
-						getNotificationManager().cancel(notificationId(addr));
-					}
-				}
-			}
-			if (aliasNotification.isEmpty()) {
-				getNotificationManager().cancel(SUMMARY_NOTIFICATION_ID);
-			} else {
-				boolean allAreZero = true;
-				for (LocalNotificationInfo info : aliasNotification.values()) {
-					if (info.counter > 0) {
-						allAreZero = false;
-						break;
-					}
-				}
-				if (allAreZero) {
-					getNotificationManager().cancel(SUMMARY_NOTIFICATION_ID);
-				} else {
-					for (LocalNotificationInfo info : aliasNotification.values()) {
-						if (info.counter > 0) {
-							sendSummaryNotification(getNotificationManager(),
-									info.message, info.notificationInfo, false);
-							break;
-						}
-					}
-				}
-			}
-
+					intent.getStringArrayListExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA);
+			localNotificationsFacade.notificationDismissed(dissmissAddrs, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false));
 			return START_STICKY;
 		}
 
@@ -284,7 +185,6 @@ public final class PushNotificationService extends JobService {
 			Log.d(TAG, "sse info not available skip reconnect");
 			return;
 		}
-		NotificationManager notificationManager = getNotificationManager();
 
 		try {
 			URL url = new URL(connectedSseInfo.getSseOrigin() + "/sse?_body=" + requestJson(connectedSseInfo));
@@ -327,7 +227,7 @@ public final class PushNotificationService extends JobService {
 					continue;
 				}
 
-				handlePushNotification(notificationManager, event);
+				handlePushNotification(event);
 				Log.d(TAG, "Executing jobFinished after receiving notifications");
 				finishJobIfNeeded();
 			}
@@ -363,7 +263,7 @@ public final class PushNotificationService extends JobService {
 		}
 	}
 
-	private void handlePushNotification(NotificationManager notificationManager, String event) throws IOException, PreconditionFailedException {
+	private void handlePushNotification(String event) throws IOException {
 		PushMessage pushMessage;
 		try {
 			pushMessage = PushMessage.fromJson(event);
@@ -392,14 +292,7 @@ public final class PushNotificationService extends JobService {
 					return;
 				} catch (IllegalArgumentException e) {
 					Log.w(TAG, e);
-					AlarmBroadcastReceiver.createNotificationChannel(getNotificationManager(), this);
-					Notification notification = new NotificationCompat.Builder(this, ALARM_NOTIFICATION_CHANNEL_ID)
-							.setSmallIcon(R.drawable.ic_status)
-							.setContentTitle("Could not schedule the alarm")
-							.setContentText("Please update the application")
-							.setDefaults(NotificationCompat.DEFAULT_ALL)
-							.build();
-					getNotificationManager().notify(1000, notification);
+					localNotificationsFacade.showErrorNotification();
 					return;
 				}
 			} else {
@@ -420,7 +313,7 @@ public final class PushNotificationService extends JobService {
 		}
 		this.lastProcessedChangeTime = Long.parseLong(changeTime);
 
-		handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
+		handleNotificationInfos(pushMessage, notificationInfos);
 		if (alarmNotifications != null) {
 			handleAlarmNotifications(alarmNotifications);
 		}
@@ -456,51 +349,9 @@ public final class PushNotificationService extends JobService {
 				"/rest/sys/missednotification/A/" + customId);
 	}
 
-	private void handleNotificationInfos(NotificationManager notificationManager, PushMessage pushMessage,
+	private void handleNotificationInfos(PushMessage pushMessage,
 										 List<PushMessage.NotificationInfo> notificationInfos) {
-		if (notificationInfos.isEmpty()) {
-			return;
-		}
-
-		for (int i = 0; i < notificationInfos.size(); i++) {
-			PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
-
-			LocalNotificationInfo counterPerAlias =
-					aliasNotification.get(notificationInfo.getAddress());
-			if (counterPerAlias == null) {
-				counterPerAlias = new LocalNotificationInfo(
-						pushMessage.getTitle(),
-						notificationInfo.getCounter(), notificationInfo);
-			} else {
-				counterPerAlias = counterPerAlias.incremented(notificationInfo.getCounter());
-			}
-			aliasNotification.put(notificationInfo.getAddress(), counterPerAlias);
-
-			int notificationId = notificationId(notificationInfo.getAddress());
-
-
-			NotificationCompat.Builder notificationBuilder =
-					new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
-							.setLights(getResources().getColor(R.color.red), 1000, 1000);
-			ArrayList<String> addresses = new ArrayList<>();
-			addresses.add(notificationInfo.getAddress());
-			notificationBuilder.setContentTitle(pushMessage.getTitle())
-					.setColor(getResources().getColor(R.color.red))
-					.setContentText(notificationContent(notificationInfo.getAddress()))
-					.setNumber(counterPerAlias.counter)
-					.setSmallIcon(R.drawable.ic_status)
-					.setDeleteIntent(this.intentForDelete(addresses))
-					.setContentIntent(intentOpenMailbox(notificationInfo, false))
-					.setGroup(NOTIFICATION_EMAIL_GROUP)
-					.setAutoCancel(true)
-					.setGroupAlertBehavior(atLeastNougat() ? NotificationCompat.GROUP_ALERT_CHILDREN : NotificationCompat.GROUP_ALERT_SUMMARY)
-					.setDefaults(Notification.DEFAULT_ALL);
-
-			notificationManager.notify(notificationId, notificationBuilder.build());
-		}
-
-		sendSummaryNotification(notificationManager, pushMessage.getTitle(),
-				notificationInfos.get(0), true);
+		localNotificationsFacade.sendEmailNotifications(pushMessage.getTitle(), notificationInfos);
 	}
 
 	private void scheduleJobFinish() {
@@ -524,85 +375,6 @@ public final class PushNotificationService extends JobService {
 		}
 	}
 
-	private int notificationId(String address) {
-		return Math.abs(1 + address.hashCode());
-	}
-
-	private void sendSummaryNotification(NotificationManager notificationManager,
-										 String title,
-										 PushMessage.NotificationInfo notificationInfo,
-										 boolean sound) {
-		int summaryCounter = 0;
-		ArrayList<String> addresses = new ArrayList<>();
-		NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-
-		for (Map.Entry<String, LocalNotificationInfo> entry : aliasNotification.entrySet()) {
-			int count = entry.getValue().counter;
-			if (count > 0) {
-				summaryCounter += count;
-				inboxStyle.addLine(notificationContent(entry.getKey()));
-				addresses.add(entry.getKey());
-			}
-		}
-
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this, EMAIL_NOTIFICATION_CHANNEL_ID)
-				.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL);
-
-		Notification notification = builder.setContentTitle(title)
-				.setContentText(notificationContent(notificationInfo.getAddress()))
-				.setSmallIcon(R.drawable.ic_status)
-				.setGroup(NOTIFICATION_EMAIL_GROUP)
-				.setGroupSummary(true)
-				.setColor(getResources().getColor(R.color.red))
-				.setNumber(summaryCounter)
-				.setStyle(inboxStyle)
-				.setContentIntent(intentOpenMailbox(notificationInfo, true))
-				.setDeleteIntent(intentForDelete(addresses))
-				.setAutoCancel(true)
-				// We need to update summary without sound when one of the alarms is cancelled
-				// but we need to use sound if it's API < N because GROUP_ALERT_CHILDREN doesn't
-				// work with sound there (pehaps summary consumes it somehow?) and we must do
-				// summary with sound instead on the old versions.
-				.setDefaults(sound ? NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE : 0)
-				.setGroupAlertBehavior(atLeastNougat() ? NotificationCompat.GROUP_ALERT_CHILDREN : NotificationCompat.GROUP_ALERT_SUMMARY)
-				.build();
-		notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
-	}
-
-	private PendingIntent intentForDelete(ArrayList<String> addresses) {
-		Intent deleteIntent = new Intent(this, PushNotificationService.class);
-		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses);
-		return PendingIntent.getService(
-				this.getApplicationContext(),
-				notificationId("dismiss" + TextUtils.join("+", addresses)),
-				deleteIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT);
-	}
-
-	private PendingIntent intentOpenMailbox(PushMessage.NotificationInfo notificationInfo,
-											boolean isSummary) {
-		Intent openMailboxIntent = new Intent(this, MainActivity.class);
-		openMailboxIntent.setAction(MainActivity.OPEN_USER_MAILBOX_ACTION);
-		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
-				notificationInfo.getAddress());
-		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
-				notificationInfo.getUserId());
-		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary);
-		return PendingIntent.getActivity(
-				this,
-				notificationId(notificationInfo.getAddress() + "@isSummary" + isSummary),
-				openMailboxIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT);
-	}
-
-	@NonNull
-	private String notificationContent(String address) {
-		return aliasNotification.get(address).counter + " " + address;
-	}
-
-	private NotificationManager getNotificationManager() {
-		return (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-	}
 
 	private void sendConfirmation(String confirmationId, String changeTime) throws PreconditionFailedException {
 		Log.d(TAG, "Sending confirmation");
@@ -665,56 +437,10 @@ public final class PushNotificationService extends JobService {
 		crypto.getRandomizer().nextBytes(bytes);
 		return Utils.base64ToBase64Url(Utils.bytesToBase64(bytes));
 	}
-}
-
-final class LooperThread extends Thread {
-
-	private volatile Handler handler;
-	private Runnable initRunnable;
-
-	LooperThread(Runnable initRunnable) {
-		this.initRunnable = initRunnable;
-	}
 
 	@Override
-	public void run() {
-		Log.d(PushNotificationService.TAG, "LooperThread is started");
-		Looper.prepare();
-		handler = new Handler();
-		handler.post(initRunnable);
-		Looper.loop();
-	}
-
-	public Handler getHandler() {
-		return handler;
+	public void onDestroy() {
+		unregisterReceiver(networkReceiver);
+		super.onDestroy();
 	}
 }
-
-final class LocalNotificationInfo {
-	final String message;
-	final int counter;
-	final PushMessage.NotificationInfo notificationInfo;
-
-	LocalNotificationInfo(String message, int counter, PushMessage.NotificationInfo notificationInfo) {
-		this.message = message;
-		this.counter = counter;
-		this.notificationInfo = notificationInfo;
-	}
-
-	LocalNotificationInfo incremented(int by) {
-		return new LocalNotificationInfo(message, counter + by, notificationInfo);
-	}
-
-	@Override
-	public String toString() {
-		return "LocalNotificationInfo{" +
-				"message='" + message + '\'' +
-				", counter=" + counter +
-				", notificationInfo=" + notificationInfo +
-				'}';
-	}
-}
-
-final class PreconditionFailedException extends Exception {
-}
-
