@@ -442,9 +442,17 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 	if (group.type !== GroupType.Calendar) {
 		return false
 	}
+
+	if (isSharedGroupOwner(group, user._id)) {
+		return true;
+	}
 	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
 	if (membership) {
 		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
 	}
 	return false
+}
+
+export function isSharedGroupOwner(sharedGroup: Group, userId: Id): boolean {
+	return !!(sharedGroup.user && isSameId(sharedGroup.user, userId))
 }

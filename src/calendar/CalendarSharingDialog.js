@@ -22,7 +22,7 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
-import {getCalendarName, hasCapabilityOnGroup} from "./CalendarUtils"
+import {getCalendarName, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {px} from "../gui/size"
@@ -238,7 +238,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 					return {
 						cells: [
 							getMemberText(vnode.attrs.groupDetails.group, memberInfo),
-							getCapabilityText(downcast(memberInfo.member.capability))
+							getCapabilityText(this._getMemberCabability(memberInfo, vnode.attrs.groupDetails))
 						], actionButtonAttrs: {
 							label: "delete_action",
 							icon: () => Icons.Cancel,
@@ -254,6 +254,13 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 		])
 	}
 
+
+	_getMemberCabability(memberInfo: GroupMemberInfo, groupDetails: GroupDetails) : ?ShareCapabilityEnum {
+		if (isSharedGroupOwner(groupDetails.group, memberInfo.member.user)) {
+			return ShareCapability.Invite
+		}
+		return downcast(memberInfo.member.capability)
+	}
 
 	_isDeleteInvitationButtonVisible(group: Group, sentGroupInvitation: SentGroupInvitation): boolean {
 		return hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Invite)
@@ -304,12 +311,10 @@ function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string 
 		+ (isSharedGroupOwner(sharedGroup, memberInfo.member.user) ? ` (${lang.get("owner_label")})` : "")
 }
 
-function isSharedGroupOwner(sharedGroup: Group, userId: Id): boolean {
-	return !!(sharedGroup.user && isSameId(sharedGroup.user, userId))
-}
 
 
-function getCapabilityText(capability: ShareCapabilityEnum): string {
+
+function getCapabilityText(capability: ?ShareCapabilityEnum): string {
 	switch (capability) {
 		case ShareCapability.Invite:
 			return lang.get("calendarShareCapabilityInvite_label")
@@ -318,6 +323,6 @@ function getCapabilityText(capability: ShareCapabilityEnum): string {
 		case ShareCapability.Read:
 			return lang.get("calendarShareCapabilityRead_label")
 		default:
-			return String(capability)
+			return lang.get("comboBoxSelectionNone_msg")
 	}
 }
