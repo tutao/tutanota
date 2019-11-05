@@ -37,6 +37,7 @@ node(() => {
 	require("./desktop/DesktopDownloadManagerTest.js")
 	require("./desktop/IPCTest.js")
 	require("./desktop/SocketeerTest.js")
+	require("./desktop/autolaunch/AutoLauncherTest.js")
 })()
 
 o.run()
