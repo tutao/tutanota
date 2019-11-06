@@ -161,7 +161,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
 		return m(".flex.col", [
 			m(TableN, {
-				columnHeadingTextIds: ["participants_label"],
+				columnHeading: [() => lang.get("participants_label", {"{name}": getCalendarName(vnode.attrs.groupDetails.info.name)})],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: this._renderMemberInfos(vnode.attrs.groupDetails).concat(this._renderGroupInvitations(vnode.attrs.groupDetails)),
 				showActionButtonColumn: true,

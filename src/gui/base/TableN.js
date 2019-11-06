@@ -14,20 +14,20 @@ import {Icons} from "./icons/Icons"
 assertMainOrNode()
 
 export const ColumnWidth = Object.freeze({
-	Small: 'column-width-small', // the column has a fixed small width
-	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
+	Small: '.column-width-small', // the column has a fixed small width
+	Largest: '.column-width-largest', // all Largest columns equally share the rest of the available width
 })
 export type ColumnWidthEnum = $Values<typeof ColumnWidth>
 
 /**
- * @param columnHeadingTextIds The texts that shall appear as headers of each column.
+ * @param columnHeading The texts that shall appear as headers of each column. Either a textId or function that returns the translation
  * @param columnWidths The sizes of the columns in px. If 0 is specified the column shares the remaining space with all other '0' width columns.
  * @param showActionButtonColumn True if addButton is specified or the table lines may contain action buttons.
  * @param addButton If set, this button appears beside the expander button.
  * @param lines the lines of the table
  */
 export type TableAttrs = {
-	columnHeadingTextIds: TranslationKey[],
+	columnHeading: Array<lazy<string> | TranslationKey>,
 	columnWidths: ColumnWidthEnum[],
 	showActionButtonColumn: boolean,
 	addButtonAttrs?: ?ButtonAttrs,
@@ -63,7 +63,7 @@ class _Table {
 			m("table.table", [
 				[
 					this._createLine({
-						cells: a.columnHeadingTextIds.map(textId => lang.get(textId)),
+						cells: a.columnHeading.map(textIdOrFunction => lang.getMaybeLazy(textIdOrFunction)),
 						actionButtonAttrs: (loading) ? null : a.addButtonAttrs
 					}, a.showActionButtonColumn, a.columnWidths, true)
 				].concat(lineAttrs)

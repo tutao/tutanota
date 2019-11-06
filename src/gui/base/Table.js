@@ -6,14 +6,9 @@ import {Button} from "./Button"
 import {px, size} from "../size"
 import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
+import type {ColumnWidthEnum} from "./TableN"
 
 assertMainOrNode()
-
-export const ColumnWidth = Object.freeze({
-	Small: 'column-width-small', // the column has a fixed small width
-	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
-})
-export type ColumnWidthEnum = $Values<typeof ColumnWidth>;
 
 /**
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.
@@ -55,7 +50,7 @@ export class Table {
 	}
 
 	_createLine(texts: string[], showActionButtonColumn: boolean, actionButton: ?Button, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
-		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index]
+		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s" + columnWidths[index]
 			+ ((bold) ? ".b" : ""), {
 			title: text, // show the text as tooltip, so ellipsed lines can be shown
 		}, text))

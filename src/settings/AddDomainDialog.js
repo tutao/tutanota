@@ -84,7 +84,7 @@ export function showAddDomainDialog(customerInfo: CustomerInfo, domainDnsStatus:
 
 export function createDnsRecordTable(records: DnsRecord[]) {
 	return m(TableN, {
-		columnHeadingTextIds: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
+		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
 		showActionButtonColumn: false,
 		lines: records.map(r => ({cells: [DnsRecordTypeToName[r.type], (r.subdomain ? r.subdomain : "@"), r.value]}))

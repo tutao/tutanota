@@ -30,9 +30,8 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {createRowActions, TableN} from "../gui/base/TableN"
+import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
-import {ColumnWidth} from "../gui/base/Table"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
@@ -191,7 +190,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const inboxRulesTableAttrs: TableAttrs = {
-			columnHeadingTextIds: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
+			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: addInboxRuleButtonAttrs,

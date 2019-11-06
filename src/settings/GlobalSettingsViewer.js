@@ -92,7 +92,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 		this.view = () => {
 			const spamRuleTableAttrs = {
-				columnHeadingTextIds: ["emailSenderRule_label", "emailSender_label"],
+				columnHeading: ["emailSenderRule_label", "emailSender_label"],
 				columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
 				showActionButtonColumn: true,
 				addButtonAttrs: {
@@ -104,7 +104,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			}
 
 			const customDomainTableAttrs = {
-				columnHeadingTextIds: ["adminCustomDomain_label", "catchAllMailbox_label"],
+				columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				showActionButtonColumn: true,
 				addButtonAttrs: {
@@ -122,7 +122,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			}
 
 			const auditLogTableAttrs = {
-				columnHeadingTextIds: ["action_label", "modified_label", "time_label"],
+				columnHeading: ["action_label", "modified_label", "time_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
 				showActionButtonColumn: true,
 				lines: this._auditLogLines()

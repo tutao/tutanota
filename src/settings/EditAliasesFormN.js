@@ -2,7 +2,8 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {Dialog} from "../gui/base/Dialog"
-import {ColumnWidth} from "../gui/base/Table"
+import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
+import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError} from "../api/common/error/RestError"
@@ -16,8 +17,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getAvailableDomains} from "./AddUserDialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {TableN} from "../gui/base/TableN"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -49,7 +48,7 @@ class _EditAliasesForm {
 		}
 
 		const aliasesTableAttrs: TableAttrs = {
-			columnHeadingTextIds: ["emailAlias_label", "state_label"],
+			columnHeading: ["emailAlias_label", "state_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: addAliasButtonAttrs,
@@ -156,7 +155,8 @@ class _EditAliasesForm {
 
 	_getNbrOfAliases() {
 		worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
-			const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.usedAliases))
+			const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
+				- Number(mailAddressAliasServiceReturn.usedAliases))
 			if (this._nbrOfAliases !== newNbr) {
 				this._nbrOfAliases = newNbr
 				m.redraw()

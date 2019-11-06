@@ -63,7 +63,7 @@ export class EditSecondFactorsForm {
 	view() {
 		const lnk = lang.getInfoLink('2FA_link')
 		const secondFactorTableAttrs: TableAttrs = {
-			columnHeadingTextIds: ["name_label", "type_label"],
+			columnHeading: ["name_label", "type_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 			lines: this._2FALineAttrs(),
 			showActionButtonColumn: true,

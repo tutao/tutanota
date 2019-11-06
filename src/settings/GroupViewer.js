@@ -16,7 +16,8 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
-import {ColumnWidth, Table} from "../gui/base/Table"
+import {Table} from "../gui/base/Table"
+import {ColumnWidth} from "../gui/base/TableN"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import TableLine from "../gui/base/TableLine"
 import {logins} from "../api/main/LoginController"
@@ -206,40 +207,40 @@ export class GroupViewer {
 
 	_showAddMember(): void {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
-					// remove all users that are already member
-					let globalAdmin = logins.isGlobalAdminUserLoggedIn()
-					let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
-					let availableUserGroupInfos = userGroupInfos.filter(g => {
-						if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
-							return false
-						} else {
-							return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
-						}
-					})
-					if (availableUserGroupInfos.length > 0) {
-						availableUserGroupInfos.sort(compareGroupInfos)
-						let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
-							return {name: getGroupInfoDisplayName(g), value: g}
-						}), stream(availableUserGroupInfos[0]), 250)
-						let addUserToGroupOkAction = (dialog) => {
-							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
-								.then(userGroup => {
-									return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
-										worker.addUserToGroup(user, this.groupInfo.group)
-									})
-								}))
-							dialog.close()
-						}
-
-						Dialog.showActionDialog({
-							title: lang.get("addUserToGroup_label"),
-							child: {view: () => m(dropdown)},
-							okAction: addUserToGroupOkAction
-						})
+			return loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
+				// remove all users that are already member
+				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+				let localAdminGroupIds = logins.getUserController().getLocalAdminGroupMemberships().map(gm => gm.group)
+				let availableUserGroupInfos = userGroupInfos.filter(g => {
+					if (!globalAdmin && localAdminGroupIds.indexOf(g.localAdmin) === -1) {
+						return false
+					} else {
+						return !g.deleted && (this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null)
 					}
 				})
+				if (availableUserGroupInfos.length > 0) {
+					availableUserGroupInfos.sort(compareGroupInfos)
+					let dropdown = new DropDownSelector("userSettings_label", null, availableUserGroupInfos.map(g => {
+						return {name: getGroupInfoDisplayName(g), value: g}
+					}), stream(availableUserGroupInfos[0]), 250)
+					let addUserToGroupOkAction = (dialog) => {
+						showProgressDialog("pleaseWait_msg", load(GroupTypeRef, dropdown.selectedValue().group)
+							.then(userGroup => {
+								return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
+									worker.addUserToGroup(user, this.groupInfo.group)
+								})
+							}))
+						dialog.close()
+					}
+
+					Dialog.showActionDialog({
+						title: lang.get("addUserToGroup_label"),
+						child: {view: () => m(dropdown)},
+						okAction: addUserToGroupOkAction
+					})
+				}
 			})
+		})
 	}
 
 	_updateMembers(): void {

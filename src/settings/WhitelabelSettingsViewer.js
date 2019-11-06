@@ -514,7 +514,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				m(ExpanderButtonN, {label: "show_action", expanded: this._notificationEmailsExpanded})
 			]),
 			m(ExpanderPanelN, {expanded: this._notificationEmailsExpanded}, m(TableN, {
-				columnHeadingTextIds: ["language_label", "subject_label"],
+				columnHeading: ["language_label", "subject_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				showActionButtonColumn: true,
 				addButtonAttrs: {

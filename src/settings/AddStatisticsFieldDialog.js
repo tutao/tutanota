@@ -6,7 +6,8 @@ import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InputFieldType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {ColumnWidth, Table} from "../gui/base/Table"
+import {Table} from "../gui/base/Table"
+
 import {createInputField} from "../api/entities/tutanota/InputField"
 import {createName} from "../api/entities/tutanota/Name"
 import {Button} from "../gui/base/Button"
@@ -15,6 +16,7 @@ import {remove} from "../api/common/utils/ArrayUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {defer} from "../api/common/utils/Utils"
 import stream from "mithril/stream/stream.js"
+import {ColumnWidth} from "../gui/base/TableN"
 
 assertMainOrNode()
 

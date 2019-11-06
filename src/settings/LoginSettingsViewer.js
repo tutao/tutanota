@@ -111,14 +111,14 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const activeSessionTableAttrs: TableAttrs = {
-			columnHeadingTextIds: ["client_label", "lastAccess_label", "IpAddress_label"],
+			columnHeading: ["client_label", "lastAccess_label", "IpAddress_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			lines: this._activeSessionsTableLines(),
 		}
 
 		const closedSessionTableAttrs: TableAttrs = {
-			columnHeadingTextIds: ["client_label", "lastAccess_label", "IpAddress_label"],
+			columnHeading: ["client_label", "lastAccess_label", "IpAddress_label"],
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			lines: this._closedSessionsTableLines(),
