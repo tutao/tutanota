@@ -309,9 +309,7 @@ public final class PushNotificationService extends JobService {
 			Log.d(TAG, "SSE connection established, listening for events");
 			while ((event = reader.readLine()) != null) {
 				Log.d(TAG, "Stopping foreground");
-				synchronized (this) {
-					failedConnectionAttempts = 0;
-				}
+				failedConnectionAttempts = 0;
 				ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
 
 				if (!event.startsWith("data: ")) {
@@ -350,17 +348,16 @@ public final class PushNotificationService extends JobService {
 			int delayBoundary = (int) (timeoutInSeconds * 1.5);
 			int delay = (random.nextInt(timeoutInSeconds) + delayBoundary) / 2;
 
-			synchronized (this) {
-				if (failedConnectionAttempts > RECONNECTION_ATTEMPTS) {
-					Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up");
-					finishJobIfNeeded();
-					stopForeground(true);
-				} else if (this.hasNetworkConnection()) {
-					Log.e(TAG, "error opening sse, rescheduling after " + delay, exception);
-					reschedule(delay);
-				} else {
-					Log.e(TAG, "network is not connected, do not reschedule ", exception);
-				}
+			failedConnectionAttempts++;
+			if (failedConnectionAttempts > RECONNECTION_ATTEMPTS) {
+				Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up");
+				finishJobIfNeeded();
+				stopForeground(true);
+			} else if (this.hasNetworkConnection()) {
+				Log.e(TAG, "error opening sse, rescheduling after " + delay, exception);
+				reschedule(delay);
+			} else {
+				Log.e(TAG, "network is not connected, do not reschedule ", exception);
 			}
 		} finally {
 			if (reader != null) {
