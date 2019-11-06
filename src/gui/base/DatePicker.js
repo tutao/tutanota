@@ -17,8 +17,6 @@ import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common
 import type {CalendarDay} from "../../calendar/CalendarUtils"
 import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import {DateTime} from "luxon"
-import {logins} from "../../api/main/LoginController"
-import {getStartOfTheWeekOffset} from "../../calendar/CalendarUtils"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -37,7 +35,7 @@ export class DatePicker {
 	_forceCompact: boolean;
 	_startOfTheWeekOffset: number
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false, disabled: boolean = false) {
 		this.date = stream(null)
 		this._forceCompact = forceCompact
 		this._startOfTheWeekOffset = startOfTheWeekOffset
@@ -55,7 +53,10 @@ export class DatePicker {
 				return lang.get(nullSelectionTextId)
 			}
 		})
-		this.input._injectionsRight = () => forceCompact || client.isMobileDevice() ? [m(pickerButton)] : null
+		if (disabled) {
+			this.input.setDisabled()
+		}
+		this.input._injectionsRight = () => (forceCompact || client.isMobileDevice()) && !disabled ? [m(pickerButton)] : null
 		this.input.onUpdate(value => {
 			try {
 				if (value.trim().length > 0) {

@@ -9,6 +9,7 @@ export type CheckboxAttrs = {
 	label: lazy<string | VirtualElement>,
 	checked: Stream<boolean>,
 	helpLabel?: lazy<string>,
+	disabled?: boolean,
 }
 
 export class _Checkbox {
@@ -25,7 +26,7 @@ export class _Checkbox {
 		return m(".checkbox.click.pt", {
 			onclick: (e: MouseEvent) => {
 				if (e.target !== this._domInput) {
-					this.toggle(e, a.checked) // event is bubbling in IE besides we invoke e.stopPropagation()
+					this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()
 				}
 			},
 		}, [
@@ -36,7 +37,7 @@ export class _Checkbox {
 				// the real checkbox is transparent and only used to allow keyboard focusing and selection
 				m("input[type=checkbox]", {
 					oncreate: (vnode) => this._domInput = vnode.dom,
-					onchange: (e) => this.toggle(e, a.checked),
+					onchange: (e) => this.toggle(e, a),
 					checked: a.checked(),
 					onfocus: () => this.focused(true),
 					onblur: () => this.focused(false),
@@ -56,7 +57,7 @@ export class _Checkbox {
 					icon: a.checked() ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
 					class: this.focused() ? "svg-content-accent-fg" : "svg-content-fg",
 					oncreate: (vnode) => this._domIcon = vnode.dom,
-					onclick: (e) => this.toggle(e, a.checked),
+					onclick: (e) => this.toggle(e, a)
 				}),
 				m(".pl", {
 					class: this.focused() ? "content-accent-fg" : "content-fg",
@@ -66,8 +67,10 @@ export class _Checkbox {
 		])
 	}
 
-	toggle(event: MouseEvent, checked: Stream<boolean>) {
-		checked(!checked())
+	toggle(event: MouseEvent, attrs: CheckboxAttrs) {
+		if (!attrs.disabled) {
+			attrs.checked(!attrs.checked())
+		}
 		event.stopPropagation()
 		if (this._domInput) {
 			this._domInput.focus()

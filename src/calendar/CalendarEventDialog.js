@@ -17,7 +17,7 @@ import {erase, load} from "../api/main/Entity"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod, TimeFormat} from "../api/common/TutanotaConstants"
+import {EndType, RepeatPeriod, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -35,6 +35,7 @@ import {
 	getEventEnd,
 	getEventStart,
 	getStartOfTheWeekOffsetForUser,
+	hasCapabilityOnGroup,
 	parseTime,
 	timeString,
 	timeStringFromParts
@@ -55,12 +56,21 @@ import {windowFacade} from "../misc/WindowFacade"
 // interpret it as full day in Europe/Berlin, not in the UTC.
 export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarInfo>, existingEvent ?: CalendarEvent) {
 	const summary = stream("")
-	const calendarArray = Array.from(calendars.values())
+	let calendarArray = Array.from(calendars.values())
+	let readOnly = false
+	if (!existingEvent) {
+		calendarArray = calendarArray.filter(calendarInfo => hasCapabilityOnGroup(logins.getUserController().user, calendarInfo.group, ShareCapability.Write))
+	} else {
+		const calendarInfoForEvent = calendars.get(neverNull(existingEvent._ownerGroup))
+		if (calendarInfoForEvent) {
+			readOnly = !hasCapabilityOnGroup(logins.getUserController().user, calendarInfoForEvent.group, ShareCapability.Write)
+		}
+	}
 	const selectedCalendar = stream(calendarArray[0])
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
-	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true)
+	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true, readOnly)
 	startDatePicker.setDate(getStartOfDay(date))
-	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true)
+	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true, readOnly)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
 	const endTime = stream()
@@ -68,9 +78,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const locationValue = stream("")
 	const notesValue = stream("")
 
-	const repeatPickerAttrs = createRepeatingDatePicker()
-	const repeatIntervalPickerAttrs = createIntervalPicker()
-	const endTypePickerAttrs = createEndTypePicker()
+	const repeatPickerAttrs = createRepeatingDatePicker(readOnly)
+	const repeatIntervalPickerAttrs = createIntervalPicker(readOnly)
+	const endTypePickerAttrs = createEndTypePicker(readOnly)
 	const repeatEndDatePicker = new DatePicker(startOfTheWeekOffset, "emptyString_msg", "emptyString_msg", true)
 	const endCountPickerAttrs = createEndCountPicker()
 
@@ -325,7 +335,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					if (client.isMobileDevice() && Date.now() - now < 1000) {
 						input.blur()
 					}
-				}
+				},
+				disabled: readOnly
 			}),
 			m(".flex", [
 				m(".flex-grow.mr-s", m(startDatePicker)),
@@ -334,6 +345,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						value: startTime,
 						onselected: onStartTimeSelected,
 						amPmFormat: amPmFormat,
+						disabled: readOnly
 					}))
 					: null
 			]),
@@ -344,12 +356,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						value: endTime,
 						onselected: endTime,
 						amPmFormat: amPmFormat,
+						disabled: readOnly
 					}))
 					: null
 			]),
 			m(CheckboxN, {
 				checked: allDay,
-				label: () => lang.get("allDay_label"),
+				disabled: readOnly,
+				label: () => lang.get("allDay_label")
 			}),
 			m(".flex", [
 				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
@@ -370,17 +384,20 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}),
 				selectedValue: selectedCalendar,
 				icon: Icons.Edit,
+				disabled: readOnly
 			}: DropDownSelectorAttrs<CalendarInfo>)),
 			m(TextFieldN, {
 				label: "location_label",
-				value: locationValue
+				value: locationValue,
+				disabled: readOnly
 			}),
 			m(TextFieldN, {
 				label: "description_label",
 				value: notesValue,
-				type: Type.Area
+				type: Type.Area,
+				disabled: readOnly
 			}),
-			existingEvent ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
+			existingEvent && !readOnly ? m(".mr-negative-s.float-right.flex-end-on-child", m(ButtonN, {
 				label: "delete_action",
 				type: ButtonType.Primary,
 				click: () => {
@@ -396,7 +413,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				}
 			})) : null,
 		]),
-		okAction: (dialog) => requestAnimationFrame(() => okAction(dialog))
+		okAction: readOnly ? null : (dialog) => requestAnimationFrame(() => okAction(dialog))
+
 	})
 }
 
@@ -408,7 +426,7 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 }
 
 
-function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
+function createRepeatingDatePicker(disabled: boolean): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 	const repeatValues = [
 		{name: lang.get("calendarRepeatIntervalNoRepeat_label"), value: null},
 		{name: lang.get("calendarRepeatIntervalDaily_label"), value: RepeatPeriod.DAILY},
@@ -422,6 +440,7 @@ function createRepeatingDatePicker(): DropDownSelectorAttrs<?RepeatPeriodEnum> {
 		items: repeatValues,
 		selectedValue: stream(repeatValues[0].value),
 		icon: Icons.Edit,
+		disabled
 	}
 }
 
@@ -430,16 +449,17 @@ const intervalValues = numberRange(1, 256).map(n => {
 })
 
 
-function createIntervalPicker(): DropDownSelectorAttrs<number> {
+function createIntervalPicker(disabled: boolean): DropDownSelectorAttrs<number> {
 	return {
 		label: "interval_title",
 		items: intervalValues,
 		selectedValue: stream(intervalValues[0].value),
 		icon: Icons.Edit,
+		disabled
 	}
 }
 
-function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
+function createEndTypePicker(disabled: boolean): DropDownSelectorAttrs<EndTypeEnum> {
 	const stopConditionValues = [
 		{name: lang.get("calendarRepeatStopConditionNever_label"), value: EndType.Never},
 		{name: lang.get("calendarRepeatStopConditionOccurrences_label"), value: EndType.Count},
@@ -450,7 +470,8 @@ function createEndTypePicker(): DropDownSelectorAttrs<EndTypeEnum> {
 		label: () => lang.get("calendarRepeatStopCondition_label"),
 		items: stopConditionValues,
 		selectedValue: stream(stopConditionValues[0].value),
-		icon: Icons.Edit
+		icon: Icons.Edit,
+		disabled
 	}
 }
 

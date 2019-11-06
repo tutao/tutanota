@@ -25,6 +25,7 @@ export type DropDownSelectorAttrs<T> = {
 	helpLabel?: lazy<string>,
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,
+	disabled?: boolean,
 }
 
 export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>> {
@@ -36,11 +37,13 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 			value: stream(this.valueToText(a, a.selectedValue()) || ""),
 			helpLabel: a.helpLabel,
 			disabled: true,
-			injectionsRight: () => m(ButtonN, {
-				label: a.label,
-				icon: () => a.icon ? a.icon : Icons.Edit,
-				click: this.createDropdown(a)
-			})
+			injectionsRight: () => a.disabled
+				? null
+				: m(ButtonN, {
+					label: a.label,
+					icon: () => a.icon ? a.icon : Icons.Edit,
+					click: this.createDropdown(a),
+				})
 		})
 	}
 
