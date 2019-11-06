@@ -1,7 +1,11 @@
 package de.tutao.tutanota.push;
 
 import android.annotation.TargetApi;
-import android.app.*;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.BroadcastReceiver;
@@ -24,19 +28,19 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.ServiceCompat;
 import android.text.TextUtils;
 import android.util.Log;
-import de.tutao.tutanota.Crypto;
-import de.tutao.tutanota.MainActivity;
-import de.tutao.tutanota.R;
-import de.tutao.tutanota.Utils;
-import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
-import de.tutao.tutanota.alarms.AlarmNotification;
-import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,6 +53,14 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.MainActivity;
+import de.tutao.tutanota.R;
+import de.tutao.tutanota.Utils;
+import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
+import de.tutao.tutanota.alarms.AlarmNotification;
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
 import static de.tutao.tutanota.alarms.AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID;
@@ -64,6 +76,7 @@ public final class PushNotificationService extends JobService {
 	public static final long[] VIBRATION_PATTERN = {100, 200, 100, 200};
 	public static final String NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email";
 	public static final int SUMMARY_NOTIFICATION_ID = 45;
+	public static final int RECONNECTION_ATTEMPTS = 3;
 
 	private final LooperThread looperThread = new LooperThread(this::connect);
 	private final SseStorage sseStorage = new SseStorage(this);
@@ -76,6 +89,7 @@ public final class PushNotificationService extends JobService {
 	private ConnectivityManager connectivityManager;
 	private volatile JobParameters jobParameters;
 	private long lastProcessedChangeTime = 0;
+	private int failedConnectionAttempts = 0;
 
 	private final Map<String, LocalNotificationInfo> aliasNotification =
 			new ConcurrentHashMap<>();
@@ -131,7 +145,9 @@ public final class PushNotificationService extends JobService {
 			startForeground(1, new NotificationCompat
 					.Builder(this, PERSISTENT_NOTIFICATION_CHANNEL_ID)
 					.setContentTitle("Notification service")
+					.setContentText("Syncing notifications")
 					.setSmallIcon(R.drawable.ic_status)
+					.setProgress(0, 0, true)
 					.build());
 		}
 	}
@@ -293,6 +309,7 @@ public final class PushNotificationService extends JobService {
 			Log.d(TAG, "SSE connection established, listening for events");
 			while ((event = reader.readLine()) != null) {
 				Log.d(TAG, "Stopping foreground");
+				failedConnectionAttempts = 0;
 				ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
 
 				if (!event.startsWith("data: ")) {
@@ -331,7 +348,12 @@ public final class PushNotificationService extends JobService {
 			int delayBoundary = (int) (timeoutInSeconds * 1.5);
 			int delay = (random.nextInt(timeoutInSeconds) + delayBoundary) / 2;
 
-			if (this.hasNetworkConnection()) {
+			failedConnectionAttempts++;
+			if (failedConnectionAttempts > RECONNECTION_ATTEMPTS) {
+				Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up");
+				finishJobIfNeeded();
+				stopForeground(true);
+			} else if (this.hasNetworkConnection()) {
 				Log.e(TAG, "error opening sse, rescheduling after " + delay, exception);
 				reschedule(delay);
 			} else {
@@ -404,7 +426,7 @@ public final class PushNotificationService extends JobService {
 			break;
 		}
 		this.lastProcessedChangeTime = Long.parseLong(changeTime);
-		
+
 		handleNotificationInfos(notificationManager, pushMessage, notificationInfos);
 		if (alarmNotifications != null) {
 			handleAlarmNotifications(alarmNotifications);
