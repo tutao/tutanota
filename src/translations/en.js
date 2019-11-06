@@ -1046,7 +1046,10 @@ module.exports = {
 		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator.",
 		"member_label": "Member",
 		"invited_label": "Invited",
-		"participants_label": "Participants",
-		"addShare_action": "Add share"
+		"participants_label": "Participants of calendar {name}",
+		"addShare_action": "Add share",
+		"addShareWarning_msg": "When sharing a calendar all members of the group will be able to see your name and email addresses associated with your mailbox.",
+		"acceptShareWarning_msg": "When becoming a member of a calendar group all members will be to see your name and email addresses associated with your mailbox."
+
 	}
 }

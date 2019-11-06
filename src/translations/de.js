@@ -1050,6 +1050,8 @@ module.exports = {
 		"sharingFeatureNotOrderedAdmin_msg": "Die Freigabe eines Kalenders ist nur mit gebuchter Freigabe-Funktion möglich. Möchtest du diese jetzt buchen?",
 		"sharingFeatureNotOrderedUser_msg": "Die Freigabe eines Kalenders ist nur mit gebuchter Freigabe-Funktion möglich. Bitte wende dich an deinen Administrator.",
 		"member_label": "Mitglied",
-		"invited_label": "Eingeladen"
+		"invited_label": "Eingeladen",
+		"addShareWarning_msg": "Durch die Freigabe eines Kalenders werden der Name und alle E-Mail-Adressen deiner Mailbox für die Gruppenmitglieder sichtbar.",
+		"acceptShareWarning_msg": "Durch Beitreten der Kalendar-Gruppe wird der Name und alle E-Mail-Adressen deiner Mailbox für die Gruppenmitglieder sichtbar."
 	}
 }

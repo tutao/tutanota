@@ -107,7 +107,7 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 
 
 			const dialog = Dialog.showActionDialog({
-					title: () => getCalendarName(groupInfo.name),
+					title: lang.get("sharing_label"),
 					type: DialogType.EditMedium,
 					child: () => m(CalendarSharingDialogContent, {
 						groupDetails
@@ -159,7 +159,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 	}
 
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
-		return m(".flex.col", [
+		return m(".flex.col.pt-s", [
 			m(TableN, {
 				columnHeading: [() => lang.get("participants_label", {"{name}": getCalendarName(vnode.attrs.groupDetails.info.name)})],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
@@ -168,7 +168,8 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				addButtonAttrs: {
 					label: "addShare_action",
 					click: () => showAddShareDialog(vnode.attrs.groupDetails.info),
-					icon: () => Icons.Add
+					icon: () => Icons.Add,
+					isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, vnode.attrs.groupDetails.group, ShareCapability.Invite)
 				},
 			})
 		])
@@ -294,9 +295,10 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 
 
 	let dialog = Dialog.showActionDialog({
-		type: DialogType.EditLarger,
+		type: DialogType.EditMedium,
 		title: () => lang.get("addShare_action"),
 		child: () => [
+			m(".pt", lang.get("addShareWarning_msg")),
 			m(invitePeopleValueTextField),
 			m(DropDownSelectorN, {
 				label: "permissions_label",
