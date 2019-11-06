@@ -270,6 +270,13 @@ o.spec("HtmlSanitizerTest", browser(function () {
 			.equals('<a href="/relative" rel="noopener noreferrer" target="_blank">text</a>')
 	})
 
+	o("filter out position css", function () {
+		o(htmlSanitizer.sanitize(`<div style="color: red; position: absolute;"></div>`, true).text)
+			.equals(`<div style="color: red;"></div>`)
+		o(htmlSanitizer.sanitize(`<div style="color: red; position: absolute;"></div>`, false).text)
+			.equals(`<div style="color: red;"></div>`)
+	})
+
 
 }))
 
