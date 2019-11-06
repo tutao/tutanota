@@ -54,7 +54,9 @@ public final class LocalNotificationsFacade {
 		return new NotificationCompat
 				.Builder(context, PERSISTENT_NOTIFICATION_CHANNEL_ID)
 				.setContentTitle("Notification service")
+				.setContentText("Syncing notifications")
 				.setSmallIcon(R.drawable.ic_status)
+				.setProgress(0, 0, true)
 				.build();
 	}
 
