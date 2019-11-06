@@ -82,7 +82,7 @@ export class WizardDialog<T> {
 
 		const headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [backButtonAttrs],
-			right: this._currentPage.isNextAvailable() ? [nextButtonAttrs] : [],
+			right: [nextButtonAttrs],
 			middle: () => this._currentPage.headerTitle()
 		}
 		let windowCloseUnsubscribe
