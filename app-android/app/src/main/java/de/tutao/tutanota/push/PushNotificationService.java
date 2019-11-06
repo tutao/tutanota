@@ -255,6 +255,8 @@ public final class PushNotificationService extends JobService {
 				if (httpURLConnection != null && httpURLConnection.getResponseCode() == 403) {
 					Log.e(TAG, "not authorized to connect, disable reconnect");
 					sseStorage.clear();
+					finishJobIfNeeded();
+					stopForeground(true);
 					return;
 				}
 			} catch (IOException e) {
@@ -265,11 +267,12 @@ public final class PushNotificationService extends JobService {
 
 			failedConnectionAttempts++;
 			if (failedConnectionAttempts > RECONNECTION_ATTEMPTS) {
+				failedConnectionAttempts = 0;
 				Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up");
 				finishJobIfNeeded();
 				stopForeground(true);
 			} else if (this.hasNetworkConnection()) {
-				Log.e(TAG, "error opening sse, rescheduling after " + delay, exception);
+				Log.e(TAG, "error opening sse, rescheduling after " + delay + ", failedConnectionAttempts: " + failedConnectionAttempts, exception);
 				reschedule(delay);
 			} else {
 				Log.e(TAG, "network is not connected, do not reschedule ", exception);
