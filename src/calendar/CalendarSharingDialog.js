@@ -23,7 +23,7 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
-import {getCalendarName, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
+import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
@@ -245,20 +245,6 @@ function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string 
 }
 
 
-function getCapabilityText(capability: ?ShareCapabilityEnum): string {
-	switch (capability) {
-		case ShareCapability.Invite:
-			return lang.get("calendarShareCapabilityInvite_label")
-		case ShareCapability.Write:
-			return lang.get("calendarShareCapabilityWrite_label")
-		case ShareCapability.Read:
-			return lang.get("calendarShareCapabilityRead_label")
-		default:
-			return lang.get("comboBoxSelectionNone_msg")
-	}
-}
-
-
 function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({
 		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
@@ -298,7 +284,7 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 		type: DialogType.EditMedium,
 		title: () => lang.get("addShare_action"),
 		child: () => [
-			m(".pt", lang.get("addShareWarning_msg")),
+			m(".pt", lang.get("shareCalendarWarning_msg")),
 			m(invitePeopleValueTextField),
 			m(DropDownSelectorN, {
 				label: "permissions_label",

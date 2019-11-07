@@ -2,7 +2,14 @@
 import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {EventTextTimeOptionEnum, RepeatPeriodEnum, ShareCapabilityEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
-import {defaultCalendarColor, EventTextTimeOption, getWeekStart, GroupType, WeekStart} from "../api/common/TutanotaConstants"
+import {
+	defaultCalendarColor,
+	EventTextTimeOption,
+	getWeekStart,
+	GroupType,
+	ShareCapability,
+	WeekStart
+} from "../api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {clone, neverNull} from "../api/common/utils/Utils"
 import {createCalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
@@ -455,4 +462,17 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 
 export function isSharedGroupOwner(sharedGroup: Group, userId: Id): boolean {
 	return !!(sharedGroup.user && isSameId(sharedGroup.user, userId))
+}
+
+export function getCapabilityText(capability: ?ShareCapabilityEnum): string {
+	switch (capability) {
+		case ShareCapability.Invite:
+			return lang.get("calendarShareCapabilityInvite_label")
+		case ShareCapability.Write:
+			return lang.get("calendarShareCapabilityWrite_label")
+		case ShareCapability.Read:
+			return lang.get("calendarShareCapabilityRead_label")
+		default:
+			return lang.get("comboBoxSelectionNone_msg")
+	}
 }

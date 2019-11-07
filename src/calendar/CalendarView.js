@@ -19,7 +19,15 @@ import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability
 import {locator} from "../api/main/MainLocator"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getCalendarName, getEventStart, getMonth, getTimeZone, hasCapabilityOnGroup, shouldDefaultToAmPmTimeFormat} from "./CalendarUtils"
+import {
+	getCalendarName,
+	getCapabilityText,
+	getEventStart,
+	getMonth,
+	getTimeZone,
+	hasCapabilityOnGroup,
+	shouldDefaultToAmPmTimeFormat
+} from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -53,6 +61,9 @@ import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
+import {getDisplayText} from "../mail/MailUtils"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 
 export type CalendarInfo = {
@@ -349,7 +360,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_showCreateCalendarDialog() {
-		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, false, false, (dialog, properties) => {
+		showEditCalendarDialog({name: "", color: Math.random().toString(16).slice(-6)}, "add_action", false, (dialog, properties) => {
 			dialog.close()
 			worker.addCalendar(properties.name)
 			      .then((group) => {
@@ -393,12 +404,53 @@ export class CalendarView implements CurrentView {
 		]))
 	}
 
-	_acceptInvite(invitation: ReceivedGroupInvitation) {
-		worker.acceptGroupInvitation(invitation)
+	_confirmAcceptInvite(invitation: ReceivedGroupInvitation) {
+		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
+		const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === invitation.sharedGroup)
+		const color = existingGroupColor ? existingGroupColor.color : Math.random().toString(16).slice(-6)
+
+		showEditCalendarDialog({
+			name: invitation.sharedGroupName,
+			color: color
+		}, "invitation_label", true, (dialog, properties) => {
+			dialog.close()
+			this._acceptInvite(invitation).then(() => {
+				// color always set for existing calendar
+				if (existingGroupColor) {
+					existingGroupColor.color = properties.color
+				} else {
+					const groupColor = Object.assign(createGroupColor(), {
+						group: invitation.sharedGroup,
+						color: properties.color
+					})
+					userSettingsGroupRoot.groupColors.push(groupColor)
+				}
+
+				return update(userSettingsGroupRoot)
+			})
+		}, 'accept_action', () => {
+			return [
+				m(".pt.selectable", lang.get("shareCalendarWarning_msg")),
+				m(TextFieldN, {
+					value: stream(getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false)),
+					label: "sender_label",
+					disabled: true
+				}),
+				m(TextFieldN, {
+					value: stream(getCapabilityText(downcast(invitation.capability))),
+					label: "permissions_label",
+					disabled: true
+				})
+			]
+		})
 	}
 
-	_rejectInvite(invitation: ReceivedGroupInvitation) {
-		worker.rejectGroupInvitation(invitation._id)
+	_acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
+		return worker.acceptGroupInvitation(invitation)
+	}
+
+	_rejectInvite(invitation: ReceivedGroupInvitation): Promise<void> {
+		return worker.rejectGroupInvitation(invitation._id)
 	}
 
 
@@ -506,7 +558,7 @@ export class CalendarView implements CurrentView {
 			name: getCalendarName(groupInfo.name),
 			color: colorValue.substring(1),
 
-		}, true, shared, (dialog, properties) => {
+		}, "edit_action", shared, (dialog, properties) => {
 			if (!shared) {
 				groupInfo.name = properties.name
 				update(groupInfo)
@@ -669,6 +721,10 @@ export class CalendarView implements CurrentView {
 	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
 		this._calendarInfos.then((calendarEvents) => {
 			updates.forEach(update => {
+				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+					m.redraw()
+				}
+
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 						load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])

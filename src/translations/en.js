@@ -1048,8 +1048,9 @@ module.exports = {
 		"invited_label": "Invited",
 		"participants_label": "Participants of calendar {name}",
 		"addShare_action": "Add share",
-		"addShareWarning_msg": "When sharing a calendar all members of the group will be able to see your name and email addresses associated with your mailbox.",
-		"acceptShareWarning_msg": "When becoming a member of a calendar group all members will be to see your name and email addresses associated with your mailbox."
+		"shareCalendarWarning_msg": "All participants of the calendar will be able to see your name and email addresses associated with your mailbox.",
+		"calendarName_label": "Calendar name",
+		"invitation_label": "Invitation"
 
 	}
 }
