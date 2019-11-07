@@ -1734,12 +1734,14 @@ type ReceivedGroupInvitation = {
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	capability: NumberString;
 	inviterMailAddress: string;
 	inviterName: string;
 	sharedGroupKey: Uint8Array;
 	sharedGroupName: string;
 
 	sentInvitation: IdTuple;
+	sharedGroup: Id;
 }
 
 type UserGroupRoot = {

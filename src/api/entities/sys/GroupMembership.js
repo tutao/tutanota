@@ -16,7 +16,7 @@ export const _TypeModel: TypeModel = {
 		"admin": {"name": "admin", "id": 28, "since": 1, "type": "Boolean", "cardinality": "One", "final": true, "encrypted": false},
 		"capability": {
 			"name": "capability",
-			"id": 1623,
+			"id": 1625,
 			"since": 51,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",

@@ -42,7 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"capability": {
 			"name": "capability",
-			"id": 1622,
+			"id": 1624,
 			"since": 51,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",

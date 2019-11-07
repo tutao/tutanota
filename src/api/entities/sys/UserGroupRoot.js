@@ -7,24 +7,24 @@ export const _TypeModel: TypeModel = {
 	"name": "UserGroupRoot",
 	"since": 51,
 	"type": "ELEMENT_TYPE",
-	"id": 1615,
-	"rootId": "A3N5cwAGTw",
+	"id": 1617,
+	"rootId": "A3N5cwAGUQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1619,
+			"id": 1621,
 			"since": 51,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"_id": {"name": "_id", "id": 1617, "since": 51, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 1619, "since": 51, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1620,
+			"id": 1622,
 			"since": 51,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1618,
+			"id": 1620,
 			"since": 51,
 			"type": "GeneratedId",
 			"cardinality": "One",
@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"invitations": {
 			"name": "invitations",
-			"id": 1621,
+			"id": 1623,
 			"since": 51,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
