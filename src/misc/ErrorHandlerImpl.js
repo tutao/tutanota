@@ -282,7 +282,7 @@ export function clientInfoString(timestamp: Date): {message: string, client: str
 	message += `\n Type: ${type}`
 	message += `\n Tutanota version: ${env.versionNumber}`
 	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
-	message += `\n User agent:\n${navigator.userAgent}`
+	message += `\n User agent:\n${navigator.userAgent}` + "\n"
 	return {message, client, type}
 }
 

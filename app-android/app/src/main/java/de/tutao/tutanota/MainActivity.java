@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -471,7 +472,7 @@ public class MainActivity extends Activity {
 		nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
 		ArrayList<String> addressess = new ArrayList<>(1);
 		addressess.add(address);
-		startService(PushNotificationService.notificationDismissedIntent(this, addressess,
+		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addressess,
 				"MainActivity#openMailbox", isSummary));
 	}
 

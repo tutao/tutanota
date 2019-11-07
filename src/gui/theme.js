@@ -171,7 +171,7 @@ function getDarkTheme(): Theme {
 	const dark = '#222222'
 	const dark_darkest = '#111111'
 
-	const green = '#00f9c5'
+	const green = '#00d2a7'
 
 	return {
 		logo: LogoSvg.Cyan,
