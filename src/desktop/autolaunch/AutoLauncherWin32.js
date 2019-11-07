@@ -12,7 +12,6 @@ export function isAutoLaunchEnabled(): Promise<boolean> {
 	// can't promisify here because it screws with autoRunKeys 'this' semantics
 	return new Promise((resolve, reject) => {
 		autoRunKey.get(app.getName(), (err, item) => {
-			console.log("err, item:", err, item)
 			if (err) {
 				reject(err)
 			} else {
@@ -28,7 +27,6 @@ export function enableAutoLaunch(): Promise<void> {
 		? Promise.resolve()
 		: new Promise((resolve, reject) => {
 			autoRunKey.set(app.getName(), Registry.REG_SZ, `${process.execPath} -a`, (err) => {
-				console.log("err", err)
 				if (err) {
 					reject(err)
 				}
@@ -42,7 +40,6 @@ export function disableAutoLaunch(): Promise<void> {
 	return isAutoLaunchEnabled().then(enabled => enabled
 		? new Promise((resolve, reject) => {
 			autoRunKey.remove(app.getName(), (err) => {
-				console.log("err", err)
 				if (err) {
 					reject(err)
 				}
