@@ -11,7 +11,8 @@
 		"start": "./start-desktop.sh",
 		"test": "cd test && node test api && node test client",
 		"testapi": "cd test && node test api",
-		"testclient": "cd test && node test client"
+		"testclient": "cd test && node test client",
+	  	"postinstall": "electron-builder install-app-deps"
 	},
 	"dependencies": {
 		"autolinker": "3.0.5",
