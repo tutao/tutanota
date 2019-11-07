@@ -228,7 +228,7 @@ public final class LocalNotificationsFacade {
 		alarmNotificationsChannel.enableLights(true);
 		alarmNotificationsChannel.setLightColor(Color.RED);
 		alarmNotificationsChannel.setShowBadge(true);
-		getNotificationManager().createNotificationChannel(notificationsChannel);
+		getNotificationManager().createNotificationChannel(alarmNotificationsChannel);
 	}
 
 
