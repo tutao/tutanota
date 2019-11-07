@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 
 import java.util.Date;
 
@@ -29,6 +30,7 @@ public class AlarmBroadcastReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		Log.d(TAG, "Received alarm broadcast");
 		long when = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis());
 		String summary = intent.getStringExtra(SUMMARY_EXTRA);
 		LocalNotificationsFacade.showAlarmNotification(context, when, summary, intent);

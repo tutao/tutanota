@@ -1,12 +1,6 @@
 package de.tutao.tutanota.push;
 
 import android.app.Service;
-import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.BroadcastReceiver;
@@ -47,14 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.Utils;
-import de.tutao.tutanota.alarms.AlarmNotification;
-import de.tutao.tutanota.alarms.AlarmNotificationsManager;
-
-import de.tutao.tutanota.Crypto;
-import de.tutao.tutanota.MainActivity;
-import de.tutao.tutanota.R;
-import de.tutao.tutanota.Utils;
-import de.tutao.tutanota.alarms.AlarmBroadcastReceiver;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 
@@ -465,6 +451,7 @@ public final class PushNotificationService extends JobService {
 
 	@Override
 	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
 		unregisterReceiver(networkReceiver);
 		super.onDestroy();
 	}

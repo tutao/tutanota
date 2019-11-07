@@ -146,8 +146,11 @@ public class AlarmNotificationsManager {
 
 			if (alarmNotification.getRepeatRule() == null) {
 				Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
-				if (alarmTime.after(new Date())) {
+				Date now = new Date();
+				if (alarmTime.after(now)) {
 					scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart, alarmNotification.getUser());
+				} else {
+					Log.d(TAG, "Alarm " + identifier + " at " + alarmTime + " is before " + now + ", skipping");
 				}
 			} else {
 				this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) ->
