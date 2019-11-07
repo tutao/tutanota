@@ -3,10 +3,6 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-const requiredEntities = fs.readdirSync('./src/api/entities/sys/')
-                           .map(fn => path.join('./src/api/entities/sys', fn))
-const languageFiles = fs.readdirSync('./src/translations/')
-                        .map(fn => path.join('./src/translations', fn))
 
 function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 	const targetString = Object.keys(targets)
@@ -15,6 +11,11 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
 	const updateSubDir = "desktop" + nameSuffix
 	const distDir = path.join(dirname, '/build/dist/')
+
+	const requiredEntities = fs.readdirSync(path.join(dirname, './src/api/entities/sys/'))
+	                           .map(fn => path.join(dirname, './src/api/entities/sys', fn))
+	const languageFiles = fs.readdirSync(path.join(dirname, './src/translations/'))
+	                        .map(fn => path.join(dirname, './src/translations', fn))
 
 	console.log("Updating electron-builder config...")
 	const content = require('./electron-package-json-template')(
