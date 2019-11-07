@@ -376,32 +376,40 @@ export class CalendarView implements CurrentView {
 	}
 
 	_renderCalendarInvitations(): Children {
-		return this._calendarInvitations.map((receivedInvitation) => m(".folder-row.flex-start.plr-l", [
-			m(".flex.flex-grow.center-vertically.button-height", m(".pl-m.b", receivedInvitation.sharedGroupName)),
-			m(ButtonN, attachDropdown({
-					label: "more_label",
-					click: noOp,
-					icon: () => Icons.More
-				}, () => [
-					{
-						label: "accept_action",
-						click: () => {
-							if (logins.getUserController().isFreeAccount()) {
-								showNotAvailableForFreeDialog(true)
-							} else {
-								this._acceptInvite(receivedInvitation)
-							}
-						},
-						type: ButtonType.Dropdown,
-					},
-					{
-						label: "reject_action",
-						click: () => this._rejectInvite(receivedInvitation),
-						type: ButtonType.Dropdown,
-					}
-				].filter(Boolean)
-			))
-		]))
+		return this._calendarInvitations
+		           .map((invitation) => [
+				           m(".folder-row.flex-start.plr-l", [
+					           m(".flex-v-center.flex-grow.button-height", [
+						           m(".b", {title: getCapabilityText(downcast(invitation.capability))}, invitation.sharedGroupName),
+						           m(".small", {title: invitation.inviterMailAddress}, lang.get('from_label') + ": "
+							           + (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
+					           ]),
+					           m(ButtonN, attachDropdown({
+							           label: "more_label",
+							           click: noOp,
+							           icon: () => Icons.More
+						           }, () => [
+							           {
+								           label: "accept_action",
+								           click: () => {
+									           if (logins.getUserController().isFreeAccount()) {
+										           showNotAvailableForFreeDialog(true)
+									           } else {
+										           this._confirmAcceptInvite(invitation)
+									           }
+								           },
+								           type: ButtonType.Dropdown,
+							           },
+							           {
+								           label: "reject_action",
+								           click: () => this._rejectInvite(invitation),
+								           type: ButtonType.Dropdown,
+							           }
+						           ].filter(Boolean)
+					           ))
+				           ])
+			           ]
+		           )
 	}
 
 	_confirmAcceptInvite(invitation: ReceivedGroupInvitation) {
