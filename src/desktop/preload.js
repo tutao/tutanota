@@ -42,7 +42,11 @@ function setupContextMenu() {
 	contextMenu.append(pasteItem)
 	contextMenu.append(new MenuItem({type: 'separator'}))
 	contextMenu.append(new MenuItem({label: lang.get("undo_action"), accelerator: "CmdOrCtrl+Z", click() { document.execCommand('undo') }}))
-	contextMenu.append(new MenuItem({label: lang.get("redo_action"), accelerator: "CmdOrCtrl+Shift+Z", click() { document.execCommand('redo') }}))
+	contextMenu.append(new MenuItem({
+		label: lang.get("redo_action"),
+		accelerator: "CmdOrCtrl+Shift+Z",
+		click() { document.execCommand('redo') }
+	}))
 
 	ipcRenderer.on('open-context-menu', (e, params) => {
 		console.log(params[0])
@@ -62,25 +66,29 @@ ipcRenderer
 	.on('setup-context-menu', setupContextMenu)
 
 // href URL reveal
+let linkToolTip
 window.addEventListener('mouseover', (e) => {
-	if (e.target.tagName !== 'A' || !e.target.matches('#mail-viewer a')) {
+	// if there are nested elements like <strong/> in the link element,
+	// we may not get a mouseover or mouseout for the actual <a/>, so
+	// so we inspect the path.
+	let linkElem = e.path.find(elem => elem.tagName === 'A')
+	if (!linkElem || !linkElem.matches('#mail-viewer a')) {
 		return
 	}
-	let elem = document.getElementById('link-tt')
-	if (!elem) {
-		elem = document.createElement("DIV")
-		elem.id = "link-tt";
-		(document.body: any).appendChild(elem)
+	if (!linkToolTip) {
+		linkToolTip = document.createElement("DIV")
+		linkToolTip.id = "link-tt";
+		(document.body: any).appendChild(linkToolTip)
 	}
-	elem.innerText = e.target.href
-	hoverUrl = e.target.href
-	elem.className = "reveal"
+	linkToolTip.innerText = linkElem.href
+	hoverUrl = linkElem.href
+	linkToolTip.className = "reveal"
 })
 
 window.addEventListener('mouseout', (e) => {
-	let elem = document.getElementById('link-tt')
-	if (e.target.tagName === 'A' && elem) {
-		elem.className = ""
+	let linkElem = e.path.find(elem => elem.tagName === 'A')
+	if (linkElem && linkToolTip) {
+		linkToolTip.className = ""
 		hoverUrl = ""
 	}
 })
