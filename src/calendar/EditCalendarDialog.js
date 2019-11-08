@@ -9,7 +9,7 @@ import type {TranslationKeyType} from "../misc/TranslationKey"
 
 type CalendarProperties = {name: string, color: string}
 
-export function showEditCalendarDialog({name, color}: CalendarProperties, titleTextId: TranslationKeyType, shared: boolean, okAction: ((Dialog, CalendarProperties) => mixed), okTextId?: TranslationKeyType, warningMessage?: () => Children) {
+export function showEditCalendarDialog({name, color}: CalendarProperties, titleTextId: TranslationKeyType, shared: boolean, okAction: ((Dialog, CalendarProperties) => mixed), okTextId: TranslationKeyType, warningMessage?: () => Children) {
 	const nameStream = stream(name)
 	let colorPickerDom: ?HTMLInputElement
 	const colorStream = stream("#" + color)

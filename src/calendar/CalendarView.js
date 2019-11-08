@@ -375,7 +375,7 @@ export class CalendarView implements CurrentView {
 				      userSettingsGroupRoot.groupColors.push(newGroupColor)
 				      update(userSettingsGroupRoot)
 			      })
-		})
+		}, "save_action")
 	}
 
 	_renderCalendarInvitations(): Children {
@@ -594,7 +594,7 @@ export class CalendarView implements CurrentView {
 			}
 			update(userSettingsGroupRoot)
 			dialog.close()
-		})
+		}, "save_action")
 	}
 
 	_onEventSelected(event: CalendarEvent) {
