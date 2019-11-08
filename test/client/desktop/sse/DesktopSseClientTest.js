@@ -589,6 +589,7 @@ o.spec("DesktopSseClient Test", () => {
 				changeTime: "2345678901234",
 				confirmationId: "missedNotificationConfId"
 			}))
+			res2.callbacks['end']()
 		}, 1210)
 
 		// wait for confirmation to be sent...
