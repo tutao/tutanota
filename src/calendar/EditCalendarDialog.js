@@ -24,8 +24,8 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, titleT
 					label: "calendarName_label",
 					disabled: shared
 				}),
-				m("label.mt.mb-s", lang.get("color_label")),
-				m("input", {
+				m(".small.mt.mb-xs", lang.get("color_label")),
+				m("input.color-picker", {
 					oncreate: ({dom}) => colorPickerDom = dom,
 					type: "color",
 					value: colorStream(),

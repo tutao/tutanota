@@ -1057,6 +1057,7 @@ module.exports = {
 		"acceptCalendarEmailSubject": "Calendar is shared now",
 		"acceptCalendarEmailBody": "{user} accepted your sharing proposal and has access to your calendar \"{calendarName}\" now.",
 		"rejectCalendarEmailSubject": "Calendar sharing has been declined",
-		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\"."
+		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\".",
+		"join_action": "Join"
 	}
 }

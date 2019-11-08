@@ -166,6 +166,7 @@ styles.registerStyle('main', () => {
 		'.mb-0': {'margin-bottom': 0},
 		'.mb': {'margin-bottom': px(size.vpad)},
 		'.mb-s': {'margin-bottom': px(size.vpad_small)},
+		'.mb-xs': {'margin-bottom': px(size.vpad_xs)},
 		'.mb-l': {'margin-bottom': px(size.vpad_large)},
 		'.mb-xl': {'margin-bottom': px(size.vpad_xl)},
 		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
@@ -1059,6 +1060,11 @@ styles.registerStyle('main', () => {
 			"opacity": "0.8",
 			top: "8px",
 			left: "6px",
+		},
+
+		'.color-picker': {
+			height: px(30),
+			width: px(100)
 		},
 
 		'button.floating': {
