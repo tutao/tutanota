@@ -59,14 +59,12 @@ import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
-import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {getDisplayText} from "../mail/MailUtils"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import {createRecipientInfo} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
+import {showInvitationDialog} from "./CalendarInvitationDialog"
 
 
 export type CalendarInfo = {
@@ -389,69 +387,12 @@ export class CalendarView implements CurrentView {
 					           ]),
 					           m(ButtonN, {
 						           label: "show_action",
-						           click: () => this._confirmAcceptInvite(invitation),
+						           click: () => showInvitationDialog(invitation),
 						           icon: () => Icons.Eye
 					           })
 				           ])
 			           ]
 		           )
-	}
-
-	_confirmAcceptInvite(invitation: ReceivedGroupInvitation) {
-		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
-		const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === invitation.sharedGroup)
-		const color = existingGroupColor ? existingGroupColor.color : Math.random().toString(16).slice(-6)
-
-		showEditCalendarDialog({
-			name: invitation.sharedGroupName,
-			color: color
-		}, "invitation_label", true, (dialog, properties) => {
-			dialog.close()
-			this._acceptInvite(invitation).then(() => {
-				// color always set for existing calendar
-				if (existingGroupColor) {
-					existingGroupColor.color = properties.color
-				} else {
-					const groupColor = Object.assign(createGroupColor(), {
-						group: invitation.sharedGroup,
-						color: properties.color
-					})
-					userSettingsGroupRoot.groupColors.push(groupColor)
-				}
-
-				return update(userSettingsGroupRoot)
-			})
-		}, 'accept_action', () => {
-			return [
-				m(".pt.selectable", lang.get("shareCalendarWarning_msg")),
-				m(TextFieldN, {
-					value: stream(getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false)),
-					label: "sender_label",
-					disabled: true
-				}),
-				m(TextFieldN, {
-					value: stream(getCapabilityText(downcast(invitation.capability))),
-					label: "permissions_label",
-					disabled: true
-				})
-			]
-		})
-	}
-
-	_acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
-		return worker.acceptGroupInvitation(invitation)
-		             .then(() => {
-			             sendAcceptNotificationEmail(invitation.sharedGroupName,
-				             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
-		             })
-	}
-
-	_rejectInvite(invitation: ReceivedGroupInvitation): Promise<void> {
-		return worker.rejectGroupInvitation(invitation._id)
-		             .then(() => {
-			             sendRejectNotificationEmail(invitation.sharedGroupName,
-				             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
-		             })
 	}
 
 
