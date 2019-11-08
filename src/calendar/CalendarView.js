@@ -387,29 +387,11 @@ export class CalendarView implements CurrentView {
 						           m(".small", {title: invitation.inviterMailAddress}, lang.get('from_label') + ": "
 							           + (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
 					           ]),
-					           m(ButtonN, attachDropdown({
-							           label: "more_label",
-							           click: noOp,
-							           icon: () => Icons.More
-						           }, () => [
-							           {
-								           label: "accept_action",
-								           click: () => {
-									           if (logins.getUserController().isFreeAccount()) {
-										           showNotAvailableForFreeDialog(true)
-									           } else {
-										           this._confirmAcceptInvite(invitation)
-									           }
-								           },
-								           type: ButtonType.Dropdown,
-							           },
-							           {
-								           label: "reject_action",
-								           click: () => this._rejectInvite(invitation),
-								           type: ButtonType.Dropdown,
-							           }
-						           ].filter(Boolean)
-					           ))
+					           m(ButtonN, {
+						           label: "show_action",
+						           click: () => this._confirmAcceptInvite(invitation),
+						           icon: () => Icons.Eye
+					           })
 				           ])
 			           ]
 		           )
