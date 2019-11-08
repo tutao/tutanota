@@ -1,6 +1,6 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, getTimeZone, isLongEvent} from "./CalendarUtils"
+import {getAllDayDateLocal, getAllDayDateUTC, getEventEnd, getEventStart, getTimeZone, isLongEvent, isSameEvent} from "./CalendarUtils"
 import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
@@ -14,7 +14,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
-import {getElementId} from "../api/common/EntityFunctions"
+import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {UserAlarmInfoTypeRef} from "../api/entities/sys/UserAlarmInfo"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
@@ -33,18 +33,19 @@ function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
 }
 
 export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
-	const calculationDate = getStartOfDay(getEventStart(event))
+	const eventStart = getEventStart(event)
+	const calculationDate = getStartOfDay(eventStart)
 	const eventEndDate = getEventEnd(event);
 
 	// only add events when the start time is inside this month
-	if (getEventStart(event).getTime() < month.start.getTime() || getEventStart(event).getTime() >= month.end.getTime()) {
+	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
 		return
 	}
 
-// if start time is in current month then also add events for subsequent months until event ends
+	// if start time is in current month then also add events for subsequent months until event ends
 	while (calculationDate.getTime() < eventEndDate.getTime()) {
 		if (eventEndDate.getTime() >= month.start.getTime()) {
-			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
+			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
 		}
 		incrementDate(calculationDate, 1)
 	}
@@ -131,7 +132,7 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 	}
 
 	while (calculationDate.getTime() < eventEndInMonth) {
-		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator)
+		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
 		incrementDate(calculationDate, 1)
 	}
 }

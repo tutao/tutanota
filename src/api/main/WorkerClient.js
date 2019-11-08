@@ -506,6 +506,10 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("createCalendarEvent", [event, alarmInfo, oldEvent]))
 	}
 
+	updateCalendarEvent(event: CalendarEvent, alarmInfo: Array<AlarmInfo>, oldEvent: ?CalendarEvent) {
+		return this._queue.postMessage(new Request("updateCalendarEvent", [event, alarmInfo, oldEvent]))
+	}
+
 	addCalendar(name: string): Promise<Group> {
 		// when a calendar group is added, a group membership is added to the user. we might miss this websocket event
 		// during startup if the websocket is not connected fast enough. Therefore, we explicitly update the user

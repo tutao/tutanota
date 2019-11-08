@@ -476,3 +476,13 @@ export function getCapabilityText(capability: ?ShareCapabilityEnum): string {
 			return lang.get("comboBoxSelectionNone_msg")
 	}
 }
+
+export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean {
+	return isSameId(left._id, right._id)
+}
+
+
+export function hasAlarmsForTheUser(event: CalendarEvent): boolean {
+	const useAlarmList = neverNull(logins.getUserController().user.alarmInfoList).alarms
+	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
+}

@@ -1050,7 +1050,13 @@ module.exports = {
 		"addShare_action": "Add share",
 		"shareCalendarWarning_msg": "All participants of the calendar will be able to see your name and email addresses associated with your mailbox.",
 		"calendarName_label": "Calendar name",
-		"invitation_label": "Invitation"
-
+		"invitation_label": "Invitation",
+		"decline_action": "Decline",
+		"shareCalendarEmailSubject": "You are invited to share the calendar",
+		"shareCalendarEmailBody": "{senderName} shared calendar \"{calendarName}\" with you.\nTo accept or reject the invite check your Calendars.",
+		"acceptCalendarEmailSubject": "Calendar is shared now",
+		"acceptCalendarEmailBody": "{user} accepted your sharing proposal and has access to your calendar \"{calendarName}\" now.",
+		"rejectCalendarEmailSubject": "Calendar sharing has been declined",
+		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\"."
 	}
 }

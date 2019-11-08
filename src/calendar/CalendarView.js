@@ -26,7 +26,8 @@ import {
 	getMonth,
 	getTimeZone,
 	hasCapabilityOnGroup,
-	shouldDefaultToAmPmTimeFormat
+	isSameEvent,
+	shouldDefaultToAmPmTimeFormat,
 } from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
@@ -58,12 +59,14 @@ import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
-import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
+import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {getDisplayText} from "../mail/MailUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {createRecipientInfo} from "../mail/MailUtils"
+import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 
 
 export type CalendarInfo = {
@@ -455,10 +458,18 @@ export class CalendarView implements CurrentView {
 
 	_acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 		return worker.acceptGroupInvitation(invitation)
+		             .then(() => {
+			             sendAcceptNotificationEmail(invitation.sharedGroupName,
+				             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+		             })
 	}
 
 	_rejectInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 		return worker.rejectGroupInvitation(invitation._id)
+		             .then(() => {
+			             sendRejectNotificationEmail(invitation.sharedGroupName,
+				             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+		             })
 	}
 
 
@@ -793,9 +804,11 @@ export class CalendarView implements CurrentView {
 				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
 					return
 				}
+				findAndRemove(calendarInfo.shortEvents, (el) => isSameEvent(el, event))
 				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
+				findAndRemove(calendarInfo.longEvents, (el) => isSameEvent(el, event))
 				calendarInfo.longEvents.push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
 					const loadedMonth = getMonth(new Date(firstDayTimestamp))

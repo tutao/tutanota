@@ -5,7 +5,7 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {numberRange} from "../api/common/utils/ArrayUtils"
-import {expandEvent, getEventColor, getEventText, layOutEvents} from "./CalendarUtils"
+import {expandEvent, getEventColor, getEventText, hasAlarmsForTheUser, layOutEvents} from "./CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
@@ -113,7 +113,7 @@ export class CalendarDayEventsView implements MComponent<Attrs> {
 			color: getEventColor(ev, attrs.groupColors),
 			onEventClicked: () => attrs.onEventClicked(ev),
 			height: height - 2,
-			hasAlarm: ev.alarmInfos.length > 0,
+			hasAlarm: hasAlarmsForTheUser(ev),
 			verticalPadding: 2
 		}))
 	}

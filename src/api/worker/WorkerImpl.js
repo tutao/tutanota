@@ -285,6 +285,9 @@ export class WorkerImpl {
 			createCalendarEvent: (message: Request) => {
 				return locator.calendar.createCalendarEvent.apply(locator.calendar, message.args)
 			},
+			updateCalendarEvent: (message: Request) => {
+				return locator.calendar.updateCalendarEvent.apply(locator.calendar, message.args)
+			},
 			resolveSessionKey: (message: Request) => {
 				return resolveSessionKey.apply(null, message.args).then(sk => sk ? keyToBase64(sk) : null)
 			},

@@ -3,7 +3,12 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
-import {formatBirthdayWithMonthName, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
+import {
+	formatBirthdayWithMonthName,
+	getContactAddressTypeLabel,
+	getContactPhoneNumberTypeLabel,
+	getContactSocialTypeLabel
+} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
 import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
@@ -202,8 +207,8 @@ export class ContactViewer {
 
 	_writeMail(mailAddress: string) {
 		let editor = new MailEditor(mailModel.getUserMailboxDetails())
-		editor.initWithTemplate(`${this.contact.firstName} ${this.contact.lastName}`.trim(), mailAddress, "",
-			getEmailSignature(), null)
+		const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
+		editor.initWithTemplate({to: [{name, address: mailAddress}]}, "", getEmailSignature(), null)
 		      .then(() => {
 			      editor.show()
 		      })
