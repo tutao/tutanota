@@ -1,6 +1,6 @@
 {
 	"name": "tutanota",
-	"version": "3.60.13",
+	"version": "3.60.14",
 	"license": "GPL-3.0",
 	"repository": {
 		"type": "git",
@@ -12,7 +12,7 @@
 		"test": "cd test && node test api && node test client",
 		"testapi": "cd test && node test api",
 		"testclient": "cd test && node test client",
-	  	"postinstall": "electron-builder install-app-deps"
+		"postinstall": "electron-builder install-app-deps"
 	},
 	"dependencies": {
 		"autolinker": "3.0.5",
