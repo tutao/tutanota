@@ -13,6 +13,7 @@ import {getCapabilityText} from "./CalendarUtils"
 import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -56,31 +57,37 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 				m(ButtonN, {
 					label: "join_action",
 					type: ButtonType.Login,
-					click: () => this._acceptInvite(invitation).then(() => {
-						dialog.close()
-						const newColor = colorStream().substring(1) // color is stored without #
-						if (existingGroupColor) {
-							existingGroupColor.color = newColor
-							console.log("existing group color", newColor)
+					click: () => {
+
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(true)
 						} else {
-							const groupColor = Object.assign(createGroupColor(), {
-								group: invitation.sharedGroup,
-								color: newColor
+							acceptInvite(invitation).then(() => {
+								dialog.close()
+								const newColor = colorStream().substring(1) // color is stored without #
+								if (existingGroupColor) {
+									existingGroupColor.color = newColor
+									console.log("existing group color", newColor)
+								} else {
+									const groupColor = Object.assign(createGroupColor(), {
+										group: invitation.sharedGroup,
+										color: newColor
+									})
+									userSettingsGroupRoot.groupColors.push(groupColor)
+									console.log("existing group color", newColor)
+								}
+
+								return update(userSettingsGroupRoot)
 							})
-							userSettingsGroupRoot.groupColors.push(groupColor)
-							console.log("existing group color", newColor)
 						}
-
-						return update(userSettingsGroupRoot)
-					})
-
+					}
 				})
 			])
 		},
 		okActionTextId: 'decline_action',
 		okAction: (dialog) => {
 			dialog.close()
-			this._declineInvite(invitation)
+			declineInvite(invitation)
 
 		},
 		cancelActionTextId: 'close_alt'
@@ -88,7 +95,7 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 }
 
 
-function _acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
+function acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.acceptGroupInvitation(invitation)
 	             .then(() => {
 		             sendAcceptNotificationEmail(invitation.sharedGroupName,
@@ -96,7 +103,7 @@ function _acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	             })
 }
 
-function _declineInvite(invitation: ReceivedGroupInvitation): Promise<void> {
+function declineInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.rejectGroupInvitation(invitation._id)
 	             .then(() => {
 		             sendRejectNotificationEmail(invitation.sharedGroupName,
