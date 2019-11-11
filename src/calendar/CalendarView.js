@@ -686,15 +686,29 @@ export class CalendarView implements CurrentView {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
 						this._calendarInfos.then(calendarInfos => {
-							// Hide events for calendars we no longer have membership in
+							// Remove calendars we no longer have membership in
 							calendarInfos.forEach((ci, group) => {
 								if (calendarMemberships.every((mb) => group !== mb.group)) {
-									this._hiddenCalendars.add(group)
+									this._hiddenCalendars.delete(group)
 								}
 							})
 							if (calendarMemberships.length !== calendarInfos.size) {
 								console.log("detected update of calendar memberships")
+								this._loadedMonths.clear()
+								this._eventsForDays.clear()
 								this._calendarInfos = this._loadCalendarInfos()
+								this._calendarInfos.then(() => {
+
+									const selectedDate = this.selectedDate()
+									const previousMonthDate = new Date(selectedDate)
+									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
+
+									const nextMonthDate = new Date(selectedDate)
+									nextMonthDate.setMonth(selectedDate.getMonth() + 1)
+									this._loadMonthIfNeeded(selectedDate)
+									    .then(() => this._loadMonthIfNeeded(nextMonthDate))
+									    .then(() => this._loadMonthIfNeeded(previousMonthDate))
+								})
 							}
 						})
 					}
