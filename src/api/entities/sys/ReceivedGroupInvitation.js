@@ -43,9 +43,18 @@ export const _TypeModel: TypeModel = {
 		},
 		"capability": {
 			"name": "capability",
-			"id": 1613,
+			"id": 1614,
 			"since": 51,
 			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"inviteeMailAddress": {
+			"name": "inviteeMailAddress",
+			"id": 1613,
+			"since": 51,
+			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -90,7 +99,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"sentInvitation": {
 			"name": "sentInvitation",
-			"id": 1615,
+			"id": 1616,
 			"since": 51,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -100,7 +109,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sharedGroup": {
 			"name": "sharedGroup",
-			"id": 1614,
+			"id": 1615,
 			"since": 51,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

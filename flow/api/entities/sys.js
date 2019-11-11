@@ -1735,6 +1735,7 @@ type ReceivedGroupInvitation = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	capability: NumberString;
+	inviteeMailAddress: string;
 	inviterMailAddress: string;
 	inviterName: string;
 	sharedGroupKey: Uint8Array;

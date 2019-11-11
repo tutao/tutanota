@@ -62,7 +62,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"receivedInvitation": {
 			"name": "receivedInvitation",
-			"id": 1616,
+			"id": 1617,
 			"since": 51,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
