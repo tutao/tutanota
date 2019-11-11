@@ -1058,6 +1058,7 @@ module.exports = {
 		"acceptCalendarEmailBody": "{user} accepted your sharing proposal and has access to your calendar \"{calendarName}\" now.",
 		"rejectCalendarEmailSubject": "Calendar sharing has been declined",
 		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\".",
-		"join_action": "Join"
+		"join_action": "Join",
+		"alreadyMember_msg": "You are already a participant of this calendar. If you wish to accept this new invitation, you must leave the calendar group first."
 	}
 }

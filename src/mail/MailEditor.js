@@ -491,7 +491,7 @@ export class MailEditor {
 			})
 	}
 
-	initWithTemplate(recipients: Recipients, subject: string, bodyText: string, confidential: ?boolean): Promise<void> {
+	initWithTemplate(recipients: Recipients, subject: string, bodyText: string, confidential: ?boolean, senderMailAddress?: string): Promise<void> {
 		function toMailAddress({name, address}: {name: ?string, address: string}) {
 			return createMailAddress({name: name || "", address})
 		}
@@ -502,7 +502,10 @@ export class MailEditor {
 		if (toRecipients.length) {
 			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
-		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), toRecipients, ccRecipients,
+
+		const sender = senderMailAddress ? senderMailAddress : this._senderField.selectedValue()
+
+		this._setMailData(null, confidential, ConversationType.NEW, null, sender, toRecipients, ccRecipients,
 			bccRecipients, [], subject, bodyText, [])
 		return Promise.resolve()
 	}

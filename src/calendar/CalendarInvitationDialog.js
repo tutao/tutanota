@@ -14,6 +14,7 @@ import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {isSameId} from "../api/common/EntityFunctions"
 
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -24,11 +25,13 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 	let colorPickerDom: ?HTMLInputElement
 	const colorStream = stream("#" + color)
 
+	const isMember = logins.getUserController().getCalendarMemberships().find((ms) => isSameId(ms.group, invitation.sharedGroup))
+
 	const dialog = Dialog.showActionDialog({
 		title: () => lang.get("invitation_label"),
 		child: {
 			view: () => m(".flex.col", [
-				m(".pt.selectable", lang.get("shareCalendarWarning_msg")),
+				m(".pt.selectable", isMember ? lang.get("alreadyMember_msg") : lang.get("shareCalendarWarning_msg")),
 				m(TextFieldN, {
 					value: stream(invitation.sharedGroupName),
 					label: "calendarName_label",
@@ -37,6 +40,11 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 				m(TextFieldN, {
 					value: stream(getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false)),
 					label: "sender_label",
+					disabled: true
+				}),
+				m(TextFieldN, {
+					value: stream(invitation.inviteeMailAddress),
+					label: "to_label",
 					disabled: true
 				}),
 				m(TextFieldN, {
@@ -54,7 +62,7 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 						colorStream(inputEvent.target.value)
 					}
 				}),
-				m(ButtonN, {
+				isMember ? null : m(ButtonN, {
 					label: "join_action",
 					type: ButtonType.Login,
 					click: () => {
@@ -99,7 +107,8 @@ function acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.acceptGroupInvitation(invitation)
 	             .then(() => {
 		             sendAcceptNotificationEmail(invitation.sharedGroupName,
-			             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+			             createRecipientInfo(invitation.inviterMailAddress, null, null, true),
+			             invitation.inviteeMailAddress)
 	             })
 }
 
@@ -107,6 +116,7 @@ function declineInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.rejectGroupInvitation(invitation._id)
 	             .then(() => {
 		             sendRejectNotificationEmail(invitation.sharedGroupName,
-			             createRecipientInfo(invitation.inviterMailAddress, null, null, true))
+			             createRecipientInfo(invitation.inviterMailAddress, null, null, true),
+			             invitation.inviteeMailAddress)
 	             })
 }
