@@ -262,6 +262,7 @@ export class ViewSlider implements IViewSlider {
 		}).finally(() => {
 			// replace the visible column
 			const [removed] = this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
+			removed.visible = false
 			nextVisibleViewColumn.visible = true
 		})
 	}

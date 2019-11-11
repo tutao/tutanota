@@ -228,11 +228,9 @@ class Header {
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			return m(NavButtonN, {
 				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
-				icon: () =>
-					viewSlider.focusedColumn.columnType === 0 /*foreground*/ ||
-					viewSlider.getBackgroundColumns()[0] === viewSlider.focusedColumn
-						? BootIcons.MoreVertical
-						: BootIcons.Back,
+				icon: () => viewSlider.getBackgroundColumns()[0].visible
+					? BootIcons.MoreVertical
+					: BootIcons.Back,
 				colors: NavButtonColors.Header,
 				href: () => m.route.get(),
 				click: () => {
