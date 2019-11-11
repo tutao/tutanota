@@ -82,6 +82,7 @@ import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
 import {createDropdown} from "../gui/base/DropdownN"
+import {routes} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -702,8 +703,8 @@ export class MailViewer {
 				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
 					if (contact) {
 						buttons.push(new Button("showContact_action", () => {
-							header.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-							m.route.set(header.contactsUrl + location.hash)
+							routes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
+							m.route.set(routes.contactsUrl + location.hash)
 						}, null).setType(ButtonType.Secondary))
 					} else {
 						buttons.push(new Button("createContact_action", () => {

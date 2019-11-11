@@ -15,7 +15,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
-import {CurrentView, header} from "../gui/base/Header"
+import {CurrentView} from "../gui/base/Header"
 import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
@@ -52,7 +52,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
-import {throttleRoute} from "../misc/RouteChange"
+import {routes, throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
@@ -332,7 +332,7 @@ export class MailView implements CurrentView {
 					if (isSelectedPrefix("/mail")) {
 						this._setUrl(url)
 					} else {
-						header.mailsUrl = url
+						routes.mailsUrl = url
 					}
 				}
 			}
@@ -465,7 +465,7 @@ export class MailView implements CurrentView {
 	}
 
 	_setUrl(url: string) {
-		header.mailsUrl = url
+		routes.mailsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/mail")) {
 			this._throttledRouteSet(url + location.hash)
@@ -484,7 +484,7 @@ export class MailView implements CurrentView {
 		let folder = mailModel.getMailFolder(mailListId)
 		if (folder) {
 			this.selectedFolder = folder
-			header.mailsUrl = this._folderToUrl[folder._id[1]]
+			routes.mailsUrl = this._folderToUrl[folder._id[1]]
 			if (!mailElementId) {
 				this.mailViewer = null
 			}

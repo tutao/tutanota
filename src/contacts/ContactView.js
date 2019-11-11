@@ -4,7 +4,6 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../gui/base/Header"
-import {header} from "../gui/base/Header"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {ButtonColors} from "../gui/base/ButtonN"
 import {ContactEditor} from "./ContactEditor"
@@ -37,7 +36,7 @@ import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {throttleRoute} from "../misc/RouteChange"
+import {routes, throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
@@ -385,7 +384,7 @@ export class ContactView implements CurrentView {
 	 * Sets a new url for the contact button in the header bar and navigates to the url.
 	 */
 	_setUrl(url: string) {
-		header.contactsUrl = url
+		routes.contactsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/contact")) {
 			this._throttledSetUrl(url)

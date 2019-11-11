@@ -17,6 +17,7 @@ import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
+import {routes} from "../../misc/RouteChange"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -38,9 +39,6 @@ export interface CurrentView extends Component {
 class Header {
 	buttonBar: NavBar;
 	view: Function;
-	contactsUrl: string;
-	mailsUrl: string;
-	settingsUrl: string;
 	_currentView: ?CurrentView;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -50,9 +48,6 @@ class Header {
 	_wsState: WsConnectionState = "terminated"
 
 	constructor() {
-		this.contactsUrl = '/contact'
-		this.mailsUrl = '/mail'
-		this.settingsUrl = '/settings'
 		this._currentView = null
 		let premiumUrl = '/settings/premium'
 
@@ -69,7 +64,7 @@ class Header {
 			click: () => {
 				const route = m.route.get()
 				let url
-				if (route.startsWith(this.contactsUrl) || route.startsWith("/search/contact")) {
+				if (route.startsWith(routes.contactsUrl) || route.startsWith("/search/contact")) {
 					url = "/search/contact"
 				} else {
 					url = "/search/mail"
@@ -81,8 +76,8 @@ class Header {
 		this.mailNavButton = {
 			label: 'emails_label',
 			icon: () => BootIcons.Mail,
-			href: () => this.mailsUrl,
-			isSelectedPrefix: this.mailsUrl,
+			href: () => routes.mailsUrl,
+			isSelectedPrefix: routes.mailsUrl,
 			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
 		}
 
@@ -92,8 +87,8 @@ class Header {
 			.addButton({
 				label: 'contacts_label',
 				icon: () => BootIcons.Contacts,
-				href: () => this.contactsUrl,
-				isSelectedPrefix: this.contactsUrl,
+				href: () => routes.contactsUrl,
+				isSelectedPrefix: routes.contactsUrl,
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
 			})
 			.addButton({
@@ -155,19 +150,19 @@ class Header {
 			{
 				key: Keys.M,
 				enabled: () => logins.isUserLoggedIn(),
-				exec: key => m.route.set(this.mailsUrl),
+				exec: key => m.route.set(routes.mailsUrl),
 				help: "mailView_action"
 			},
 			{
 				key: Keys.C,
 				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
-				exec: key => m.route.set(this.contactsUrl),
+				exec: key => m.route.set(routes.contactsUrl),
 				help: "contactView_action"
 			},
 			{
 				key: Keys.S,
 				enabled: () => logins.isInternalUserLoggedIn(),
-				exec: key => m.route.set(this.settingsUrl),
+				exec: key => m.route.set(routes.settingsUrl),
 				help: "settingsView_action"
 			},
 			{

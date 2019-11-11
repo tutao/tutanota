@@ -86,7 +86,8 @@ export class ViewSlider implements IViewSlider {
 							this._domSlidingPart = vnode.dom
 						},
 						style: {
-							width: this.getWidth() + 'px'
+							width: this.getWidth() + 'px',
+							transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
 						}
 					}, this._getColumnsForMainSlider().map(m)
 				),

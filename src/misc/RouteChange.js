@@ -15,3 +15,9 @@ export function throttleRoute() {
 		lastCall = now
 	}
 }
+
+export const routes = {
+	mailsUrl: "/mail",
+	contactsUrl: '/contact',
+	settingsUrl: '/settings',
+}

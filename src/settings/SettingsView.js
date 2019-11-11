@@ -43,6 +43,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
+import {routes} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -213,14 +214,14 @@ export class SettingsView implements CurrentView {
 				this.detailsViewer = null
 				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
 				this._getCurrentViewer()
-				header.settingsUrl = folder.url
+				routes.settingsUrl = folder.url
 				m.redraw()
 			}
 		}
 	}
 
 	_setUrl(url: string) {
-		header.settingsUrl = url
+		routes.settingsUrl = url
 		m.route.set(url + location.hash)
 	}
 

@@ -8,6 +8,7 @@ import {ColumnType} from "../gui/base/ViewColumn"
 import {header} from "../gui/base/Header";
 import {modal} from "../gui/base/Modal";
 import {last} from "../api/common/utils/ArrayUtils";
+import {routes} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -33,7 +34,7 @@ export function handleBackPress(): boolean {
 			return true
 		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
 			|| currentRoute.startsWith("/search") || currentRoute.startsWith("/calendar")) { // go back to mail from other paths
-			m.route.set(header.mailsUrl)
+			m.route.set(routes.mailsUrl)
 			return true
 		} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 			// If the first background column is visible, quit
