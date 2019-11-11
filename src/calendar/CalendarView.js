@@ -66,6 +66,7 @@ import {getDisplayText} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {showInvitationDialog} from "./CalendarInvitationDialog"
 import {loadGroupMembers} from "./CalendarSharingUtils"
+import {DrawerMenu} from "../gui/nav/DrawerMenu"
 
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -118,72 +119,75 @@ export class CalendarView implements CurrentView {
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", {
-				style: {
-					paddingLeft: getSafeAreaInsetLeft()
-				}
-			}, [
-				m(".folders.pt-s", [
-					m(".folder-row.flex-space-between.button-height.plr-l", [
-						m("small.b.align-self-center.ml-negative-xs",
-							{style: {color: theme.navigation_button}},
-							lang.get("view_label").toLocaleUpperCase()),
-						(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
-							label: "today_label",
-							click: () => {
-								this._setUrl(m.route.param("view"), new Date())
-							},
-							colors: ButtonColors.Nav,
-							type: ButtonType.Primary,
-						}) : null
-					]),
-					m(".folder-row.plr-l", calendarViewValues.map(viewType => {
-						return m(NavButtonN, {
-							label: () => viewType.name,
-							icon: () => viewType.icon,
-							href: m.route.get(),
-							isSelectedPrefix: viewType.href,
-							colors: ButtonColors.Nav,
-							// Close side menu
-							click: () => {
-								this._setUrl(viewType.value, this.selectedDate())
-								this.viewSlider.focus(this.contentColumn)
-							}
-						})
-					})),
-				]),
-				m(".folders",
-					{style: {color: theme.navigation_button}},
-					[
+			view: () => m(".flex.height-100p", [
+				m(DrawerMenu),
+				m(".folder-column.scroll.overflow-x-hidden.flex.col.flex-grow", {
+					style: {
+						paddingLeft: getSafeAreaInsetLeft()
+					}
+				}, [
+					m(".folders.pt-s", [
 						m(".folder-row.flex-space-between.button-height.plr-l", [
 							m("small.b.align-self-center.ml-negative-xs",
-								lang.get("yourCalendars_label").toLocaleUpperCase()),
-							m(ButtonN, {
-								label: "addCalendar_action",
+								{style: {color: theme.navigation_button}},
+								lang.get("view_label").toLocaleUpperCase()),
+							(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
+								label: "today_label",
+								click: () => {
+									this._setUrl(m.route.param("view"), new Date())
+								},
 								colors: ButtonColors.Nav,
-								click: () => this._onPressedAddCalendar(),
-								icon: () => Icons.Add
-							})
+								type: ButtonType.Primary,
+							}) : null
 						]),
-						this._renderCalendars(false)
+						m(".folder-row.plr-l", calendarViewValues.map(viewType => {
+							return m(NavButtonN, {
+								label: () => viewType.name,
+								icon: () => viewType.icon,
+								href: m.route.get(),
+								isSelectedPrefix: viewType.href,
+								colors: ButtonColors.Nav,
+								// Close side menu
+								click: () => {
+									this._setUrl(viewType.value, this.selectedDate())
+									this.viewSlider.focus(this.contentColumn)
+								}
+							})
+						})),
 					]),
-				m(".folders", {style: {color: theme.navigation_button}}, [
-					m(".folder-row.flex-space-between.button-height.plr-l", [
-						m("small.b.align-self-center.ml-negative-xs",
-							lang.get("otherCalendars_label").toLocaleUpperCase())
-					]),
-					this._renderCalendars(true)
-				]),
-				this._calendarInvitations.length > 0
-					? m(".folders", {style: {color: theme.navigation_button}}, [
+					m(".folders",
+						{style: {color: theme.navigation_button}},
+						[
+							m(".folder-row.flex-space-between.button-height.plr-l", [
+								m("small.b.align-self-center.ml-negative-xs",
+									lang.get("yourCalendars_label").toLocaleUpperCase()),
+								m(ButtonN, {
+									label: "addCalendar_action",
+									colors: ButtonColors.Nav,
+									click: () => this._onPressedAddCalendar(),
+									icon: () => Icons.Add
+								})
+							]),
+							this._renderCalendars(false)
+						]),
+					m(".folders", {style: {color: theme.navigation_button}}, [
 						m(".folder-row.flex-space-between.button-height.plr-l", [
 							m("small.b.align-self-center.ml-negative-xs",
-								lang.get("calendarInvitations_label").toLocaleUpperCase())
+								lang.get("otherCalendars_label").toLocaleUpperCase())
 						]),
-						this._renderCalendarInvitations()
-					])
-					: null,
+						this._renderCalendars(true)
+					]),
+					this._calendarInvitations.length > 0
+						? m(".folders", {style: {color: theme.navigation_button}}, [
+							m(".folder-row.flex-space-between.button-height.plr-l", [
+								m("small.b.align-self-center.ml-negative-xs",
+									lang.get("calendarInvitations_label").toLocaleUpperCase())
+							]),
+							this._renderCalendarInvitations()
+						])
+						: null,
 
+				])
 			])
 		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK
 			? lang.get("month_label")

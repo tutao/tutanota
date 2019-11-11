@@ -25,7 +25,7 @@ import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {createRestriction, getFreeSearchStartDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
-import {load, loadAll} from "../api/main/Entity"
+import {load} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
@@ -52,6 +52,7 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
+import {DrawerMenu} from "../gui/nav/DrawerMenu"
 
 assertMainOrNode()
 
@@ -171,34 +172,37 @@ export class SearchView implements CurrentView {
 		})
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", {
-				style: {
-					paddingLeft: getSafeAreaInsetLeft()
-				}
-			}, [
-				m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-					m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-						lang.get("search_label").toLocaleUpperCase())
-				]),
-				m(".folders", [
-					m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
-					m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
-				]),
-				isNavButtonSelected(this._mailFolder)
-					? m("", [
-						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-								lang.get("filter_label").toLocaleUpperCase())
-						]),
-						m(".plr-l.mt-negative-s", [
-							m(this._getUpdatedTimeField()),
-							m(this._mailFieldSelection),
-							m(this._mailFolderSelection),
+			view: () => m(".flex.height-100p", [
+				m(DrawerMenu),
+				m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
+					style: {
+						paddingLeft: getSafeAreaInsetLeft()
+					}
+				}, [
+					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+							lang.get("search_label").toLocaleUpperCase())
+					]),
+					m(".folders", [
+						m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
+						m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
+					]),
+					isNavButtonSelected(this._mailFolder)
+						? m("", [
+							m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+								m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+									lang.get("filter_label").toLocaleUpperCase())
+							]),
+							m(".plr-l.mt-negative-s", [
+								m(this._getUpdatedTimeField()),
+								m(this._mailFieldSelection),
+								m(this._mailFolderSelection),
+							])
 						])
-					])
-					: null
+						: null
+				])
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("search_label"))
+		}, ColumnType.Foreground, 260, 350, () => lang.get("search_label"))
 
 		this._searchList = new SearchListView(this)
 		this.resultListColumn = new ViewColumn({
@@ -234,7 +238,8 @@ export class SearchView implements CurrentView {
 						click: () => {
 							LazyContactListId.getAsync().then(contactListId => {
 								new ContactEditor(null, contactListId, null).show()
-							})						},
+							})
+						},
 						label: "newContact_action",
 						type: ButtonType.Floating,
 						icon: () => Icons.Add

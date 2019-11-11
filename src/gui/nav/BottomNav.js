@@ -25,6 +25,14 @@ export class BottomNav implements MComponent<Attrs> {
 				}
 			),
 			m(NavButtonN, {
+					label: "contacts_label",
+					icon: () => BootIcons.Contacts,
+					href: "/contact",
+					isSelectedPrefix: "/contact",
+					vertical: true,
+				}
+			),
+			m(NavButtonN, {
 				label: 'calendar_label',
 				icon: () => BootIcons.Calendar,
 				href: () => "/calendar",

@@ -40,6 +40,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
+import {DrawerMenu} from "../gui/nav/DrawerMenu"
 
 
 assertMainOrNode()
@@ -63,13 +64,16 @@ export class ContactView implements CurrentView {
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", {
-				style: {
-					paddingLeft: getSafeAreaInsetLeft()
-				}
-			}, [
-				m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
-				m(expander.panel)
+			view: () => m(".flex.height-100p", [
+				m(DrawerMenu),
+				m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
+					style: {
+						paddingLeft: getSafeAreaInsetLeft()
+					}
+				}, [
+					m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
+					m(expander.panel)
+				])
 			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
