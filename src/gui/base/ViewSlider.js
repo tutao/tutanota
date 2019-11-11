@@ -73,6 +73,12 @@ export class ViewSlider implements IViewSlider {
 				oncreate: (vnode) => {
 					this._attachTouchHandler(vnode.dom)
 				},
+				onremove: () => {
+					if (this.columns[0].columnType === ColumnType.Foreground && this.columns[0].isInForeground) {
+						this.columns[0].isInForeground = false
+						this._isModalBackgroundVisible = false
+					}
+				}
 			}, [
 				m(header),
 				m(".view-columns.backface_fix.flex-grow.rel", {
