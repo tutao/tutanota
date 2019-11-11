@@ -11,14 +11,12 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
-import {assertMainOrNodeBoot, isDesktop, isIOSApp} from "../../api/Env"
+import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
-import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 import {client} from "../../misc/ClientDetector"
-import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "../nav/NavFunctions"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -105,51 +103,6 @@ class Header {
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
 					&& client.calendarSupported()
 			})
-			.addButton({
-				label: 'upgradePremium_label',
-				icon: () => BootIcons.Premium,
-				href: () => m.route.get(),
-				isSelectedPrefix: premiumUrl,
-				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController()
-				                                                                                             .isFreeAccount(),
-				click: () => showUpgradeDialog(),
-			}, 0, false)
-			.addButton({
-				label: 'invite_alt',
-				icon: () => BootIcons.Share,
-				href: () => m.route.get(),
-				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn(),
-				click: () => writeInviteMail(),
-				isSelectedPrefix: false,
-			}, 0, true)
-			.addButton({
-				label: 'community_label',
-				icon: () => BootIcons.Heart,
-				href: 'https://tutanota.com/community',
-				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn(),
-				isSelectedPrefix: false,
-			}, 0, true)
-			.addButton({
-				label: 'settings_label',
-				icon: () => BootIcons.Settings,
-				href: () => this.settingsUrl,
-				isSelectedPrefix: this.settingsUrl,
-				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn(),
-			}, 0, false)
-			.addButton({
-				label: 'supportMenu_label',
-				icon: () => BootIcons.Help,
-				href: () => m.route.get(),
-				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount(),
-				click: () => writeSupportMail(),
-				isSelectedPrefix: false,
-			}, 0, true)
-			.addButton({
-				label: "logout_label",
-				icon: () => BootIcons.Logout,
-				href: LogoutUrl,
-				isVisible: () => isNotSignup() && logins.isUserLoggedIn()
-			}, 0, true)
 
 		this._setupShortcuts()
 
@@ -162,9 +115,11 @@ class Header {
 					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),
 				styles.isDesktopLayout() ? null : this._getCenterContent(),
-				// m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
-				// 	style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
-				// }, m(this.buttonBar))
+				styles.isUsingBottomNavigation()
+					? null
+					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
+						style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
+					}, m(this.buttonBar))
 			]))
 		}
 
@@ -228,7 +183,6 @@ class Header {
 		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
-
 
 
 	_getCenterContent(): Vnode<mixed> | null {

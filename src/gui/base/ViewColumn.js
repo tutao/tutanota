@@ -44,7 +44,7 @@ export class ViewColumn {
 		this.visible = false
 
 		this.view = () => {
-			let zIndex = this.columnType === ColumnType.Foreground ? ".z3" : ""
+			let zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z3" : ""
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
 					"aria-hidden": this.visible ? "false" : "true",
 					oncreate: (vnode) => {
@@ -75,7 +75,11 @@ export class ViewColumn {
 	}
 
 	getOffsetForeground(foregroundState: boolean) {
-		return foregroundState ? 0 : -this.width;
+		if (this.visible || foregroundState) {
+			return 0
+		} else {
+			return -this.width
+		}
 	}
 
 }

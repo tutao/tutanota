@@ -7,6 +7,7 @@ import {BootIcons} from "../base/icons/BootIcons"
 import {ButtonType} from "../base/Button"
 import {LogoutUrl} from "../base/Header"
 import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
+import {styles} from "../styles"
 
 type Attrs = void
 
@@ -14,7 +15,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		return m("drawer-menu", {
 			style: {
-				width: "60px",
+				width: styles.isDesktopLayout() ? "48px" : "60px",
 				background: theme.navigation_menu_bg,
 			},
 		}, m(".flex.col.height-100p.items-center..pt.pb", {}, [

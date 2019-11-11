@@ -10,6 +10,7 @@ import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -81,15 +82,21 @@ export class ViewSlider implements IViewSlider {
 						style: {
 							width: this.getWidth() + 'px'
 						}
-					}, this.columns
-				           .filter(c => c.columnType === ColumnType.Background)
-				           .map(column => m(column))
+					}, this._getColumnsForMainSlider().map(m)
 				),
-				m(BottomNav),
-				this.columns.filter(c => c.columnType === ColumnType.Foreground).map(m),
+				styles.isUsingBottomNavigation() ? m(BottomNav) : null,
+				this._getColumnsForOverlay().map(m),
 				this._createModalBackground(),
 			])
 		}
+	}
+
+	_getColumnsForMainSlider(): Array<ViewColumn> {
+		return this.columns.filter(c => c.columnType === ColumnType.Background || c.visible)
+	}
+
+	_getColumnsForOverlay(): Array<ViewColumn> {
+		return this.columns.filter(c => c.columnType === ColumnType.Foreground && !c.visible)
 	}
 
 	_createModalBackground() {
@@ -135,7 +142,9 @@ export class ViewSlider implements IViewSlider {
 
 		this._visibleBackgroundColumns = visibleColumns
 
-		this.columns.forEach(column => column.visible = (column === this.focusedColumn || visibleColumns.includes(column)))
+		this.columns.forEach(column =>
+			column.visible = visibleColumns.includes(column)
+		)
 
 		if (this.allColumnsVisible()) {
 			this.focusedColumn.isInForeground = false
@@ -247,7 +256,6 @@ export class ViewSlider implements IViewSlider {
 		}).finally(() => {
 			// replace the visible column
 			const [removed] = this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
-			removed.visible = false
 			nextVisibleViewColumn.visible = true
 		})
 	}
@@ -260,7 +268,6 @@ export class ViewSlider implements IViewSlider {
 		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
 		const oldOffset = colRect.left
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
-		foregroundColumn.visible = toForeground
 
 		this._isModalBackgroundVisible = toForeground
 		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
@@ -273,7 +280,7 @@ export class ViewSlider implements IViewSlider {
 	updateOffsets(columns: ViewColumn[]) {
 		let offset = 0
 		for (let column of this.columns) {
-			if (column.columnType === ColumnType.Background) {
+			if (column.columnType === ColumnType.Background || column.visible) {
 				column.offset = offset
 				offset += column.width
 			}

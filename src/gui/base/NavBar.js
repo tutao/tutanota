@@ -102,7 +102,6 @@ export class NavBar {
 							oncreate: vnode => {
 								wrapper.width = vnode.dom.getBoundingClientRect().width
 							},
-							style: wrapper.width === 0 ? {visibility: 'hidden'} : {}
 						}, m(NavButtonN, wrapper.button))
 					])))
 		}

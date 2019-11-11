@@ -5,6 +5,7 @@ import {assertMainOrNodeBoot} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeId} from "./theme"
 import {neverNull} from "../api/common/utils/Utils"
+import {client} from "../misc/ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -73,6 +74,10 @@ class Styles {
 
 	isDesktopLayout(): boolean {
 		return this.bodyWidth >= size.desktop_layout_width;
+	}
+
+	isUsingBottomNavigation() {
+		return client.isMobileDevice() || !this.isDesktopLayout()
 	}
 }
 
