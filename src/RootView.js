@@ -5,8 +5,6 @@ import {modal} from "./gui/base/Modal"
 import {assertMainOrNodeBoot} from "./api/Env"
 import {overlay} from "./gui/base/Overlay"
 import {styles} from "./gui/styles"
-import {NavButtonN} from "./gui/base/NavButtonN"
-import {BootIcons} from "./gui/base/icons/BootIcons"
 
 assertMainOrNodeBoot()
 
@@ -39,35 +37,6 @@ class RootView {
 				m(header),
 				m(modal),
 				vnode.children,
-				m(".flex.abs.items-center.bottom-nav", [
-					m(NavButtonN, {
-							label: 'emails_label',
-							icon: () => BootIcons.Mail,
-							href: () => "/mail",
-							vertical: true,
-						}
-					),
-					m(NavButtonN, {
-							label: "search_label",
-							icon: () => BootIcons.Search,
-							href: "/search/mail",
-							isSelectedPrefix: "/search",
-							vertical: true,
-						}
-					),
-					m(NavButtonN, {
-						label: 'calendar_label',
-						icon: () => BootIcons.Calendar,
-						href: () => "/calendar",
-						vertical: true,
-					}),
-					m(NavButtonN, {
-						label: 'settings_label',
-						icon: () => BootIcons.Settings,
-						href: () => "/settings",
-						vertical: true,
-					})
-				]),
 			])
 		}
 	}

@@ -1,6 +1,7 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
+import {px, size} from "../size"
 
 assertMainOrNode()
 
@@ -55,6 +56,7 @@ export class ViewColumn {
 					style: {
 						width: this.width + 'px',
 						left: this.offset + 'px',
+						marginBottom: this.columnType === ColumnType.Foreground ? "0" : px(size.bottom_nav_bar + 2),
 					},
 				},
 				m(this.component))

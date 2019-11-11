@@ -239,6 +239,7 @@ styles.registerStyle('main', () => {
 		'.z3': {'z-index': '3'},
 		'.noselect': noselect,
 		'.no-wrap': {'white-space': 'nowrap'},
+		'.height-100p': {height: "100%"},
 
 
 		'.view-columns': {'overflow-x': 'hidden'},
@@ -506,7 +507,7 @@ styles.registerStyle('main', () => {
 			height: px(size.navbar_height),
 			'background-color': theme.header_bg,
 			'box-shadow': `0 3px 2px 0 ${theme.header_box_shadow_bg}`,
-			'z-index': 1, // box_shadow will be overruled by the views background, otherwise
+			'z-index': 2, // box_shadow will be overruled by the views background, otherwise
 			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
 		},
 
@@ -1164,7 +1165,7 @@ styles.registerStyle('main', () => {
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
-			'.main-view': {top: positionValue(size.navbar_height_mobile), bottom: positionValue(size.bottom_nav_bar)},
+			'.main-view': {top: positionValue(size.navbar_height_mobile), bottom: 0},
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},
 			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},

@@ -8,6 +8,7 @@ import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
+import {BottomNav} from "../nav/BottomNav"
 
 assertMainOrNode()
 
@@ -65,17 +66,21 @@ export class ViewSlider implements IViewSlider {
 		this._parentName = parentName
 		this._isModalBackgroundVisible = false
 
-		this.view = (): VirtualElement => {
-			return m(".view-columns.fill-absolute.backface_fix", {
-				oncreate: (vnode) => {
-					this._domSlider = vnode.dom
-					this._attachTouchHandler(this._domSlider)
-				},
-				style: {
-					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
-					width: this.getWidth() + 'px'
-				}
-			}, this.columns.map(column => m(column)).concat(this._createModalBackground()))
+		this.view = (): Children => {
+			return [
+				m(".view-columns.fill-absolute.backface_fix.z1", {
+						oncreate: (vnode) => {
+							this._domSlider = vnode.dom
+							this._attachTouchHandler(this._domSlider)
+						},
+						style: {
+							transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
+							width: this.getWidth() + 'px'
+						}
+					}, this.columns.map(column => m(column)).concat(this._createModalBackground())
+				),
+				m(BottomNav)
+			]
 		}
 	}
 
@@ -301,7 +306,7 @@ export class ViewSlider implements IViewSlider {
 
 	isFirstBackgroundColumnFocused() {
 		return this.columns.filter(column => column.columnType === ColumnType.Background)
-			.indexOf(this.focusedColumn) === 0
+		           .indexOf(this.focusedColumn) === 0
 	}
 
 	isForegroundColumnFocused() {

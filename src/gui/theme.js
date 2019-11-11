@@ -46,6 +46,7 @@ export type Theme = {
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
+	navigation_menu_bg?: string,
 }
 
 export const themeId: Stream<ThemeId> = stream(getThemeId())
@@ -145,12 +146,13 @@ function getLightTheme() {
 		modal_bg: grey_darkest,
 		elevated_bg: light,
 
-		navigation_bg: grey_lighter,
+		navigation_bg: grey_lightest,
 		navigation_border: grey_dark,
 		navigation_button: grey_darker,
 		navigation_button_icon: light,
 		navigation_button_selected: red,
-		navigation_button_icon_selected: light
+		navigation_button_icon_selected: light,
+		navigation_menu_bg: grey_lighter
 	}
 }
 

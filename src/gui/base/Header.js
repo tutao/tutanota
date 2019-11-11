@@ -18,7 +18,7 @@ import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 import {client} from "../../misc/ClientDetector"
-
+import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "../nav/NavFunctions"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -112,14 +112,14 @@ class Header {
 				isSelectedPrefix: premiumUrl,
 				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && !isIOSApp() && logins.getUserController()
 				                                                                                             .isFreeAccount(),
-				click: () => this._showUpgradeDialog(),
+				click: () => showUpgradeDialog(),
 			}, 0, false)
 			.addButton({
 				label: 'invite_alt',
 				icon: () => BootIcons.Share,
 				href: () => m.route.get(),
 				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn(),
-				click: () => this._writeInviteMail(),
+				click: () => writeInviteMail(),
 				isSelectedPrefix: false,
 			}, 0, true)
 			.addButton({
@@ -141,7 +141,7 @@ class Header {
 				icon: () => BootIcons.Help,
 				href: () => m.route.get(),
 				isVisible: () => isNotSignup() && logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount(),
-				click: () => this._writeSupportMail(),
+				click: () => writeSupportMail(),
 				isSelectedPrefix: false,
 			}, 0, true)
 			.addButton({
@@ -229,28 +229,7 @@ class Header {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
-	_showUpgradeDialog() {
-		asyncImport(typeof module !== "undefined" ?
-			module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
-			.then(upgradeWizard => {
-					// To not import constant
-					let subscriptionType: SubscriptionTypeEnum = 'Free'
-					return upgradeWizard.showUpgradeWizard(subscriptionType)
-				}
-			)
-	}
 
-	_writeSupportMail() {
-		asyncImport(typeof module !== "undefined" ?
-			module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`)
-			.then(mailEditorModule => mailEditorModule.MailEditor.writeSupportMail())
-	}
-
-	_writeInviteMail() {
-		asyncImport(typeof module !== "undefined" ?
-			module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`)
-			.then(mailEditorModule => mailEditorModule.MailEditor.writeInviteMail())
-	}
 
 	_getCenterContent(): Vnode<mixed> | null {
 		const viewSlider = this._getViewSlider()

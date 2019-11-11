@@ -56,6 +56,7 @@ import {throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
+import {DrawerMenu} from "../gui/nav/DrawerMenu"
 
 assertMainOrNode()
 
@@ -95,19 +96,22 @@ export class MailView implements CurrentView {
 		this._throttledRouteSet = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden", {
-				style: {
-					paddingLeft: getSafeAreaInsetLeft()
-				}
-			}, Object.keys(this._mailboxExpanders)
-			         .map(mailGroupId => {
-					         let expander = this._mailboxExpanders[mailGroupId]
-					         return [
-						         m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-						         m(neverNull(expander.expanderButton).panel)
-					         ]
-				         }
-			         ))
+			view: () => m(".flex.height-100p", [
+				m(DrawerMenu),
+				m(".folder-column.flex-grow.overflow-x-hidden.scroll", {
+					style: {
+						paddingLeft: getSafeAreaInsetLeft()
+					}
+				}, Object.keys(this._mailboxExpanders)
+				         .map(mailGroupId => {
+						         let expander = this._mailboxExpanders[mailGroupId]
+						         return [
+							         m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+							         m(neverNull(expander.expanderButton).panel)
+						         ]
+					         }
+				         ))
+			])
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
