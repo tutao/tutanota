@@ -8,7 +8,7 @@ type Attrs = {width: number}
 
 export class BottomNav implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("bottom-nav.flex.abs.items-center.bottom-nav", [
+		return m("bottom-nav.flex.items-center.bottom-nav.z1", [
 			m(NavButtonN, {
 					label: 'emails_label',
 					icon: () => BootIcons.Mail,

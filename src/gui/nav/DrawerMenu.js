@@ -2,7 +2,7 @@
 
 import m from "mithril"
 import {theme} from "../theme"
-import {ButtonN} from "../base/ButtonN"
+import {ButtonColors, ButtonN} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {ButtonType} from "../base/Button"
 import {LogoutUrl} from "../base/Header"
@@ -47,30 +47,35 @@ export class DrawerMenu implements MComponent<Attrs> {
 				label: "upgradePremium_label",
 				click: () => showUpgradeDialog(),
 				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav
 			}),
 			m(ButtonN, {
 				icon: () => BootIcons.Share,
 				label: "invite_alt",
 				click: () => writeInviteMail(),
 				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav
 			}),
 			m(ButtonN, {
 				icon: () => BootIcons.Help,
 				label: "supportMenu_label",
 				click: () => writeSupportMail(),
-				type: ButtonType.ActionLarge
+				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav,
 			}),
 			m(ButtonN, {
 				icon: () => BootIcons.Settings,
 				label: "settings_label",
 				click: () => m.route.set("/settings"),
-				type: ButtonType.ActionLarge
+				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav,
 			}),
 			m(ButtonN, {
 				icon: () => BootIcons.Logout,
 				label: "logout_label",
 				click: () => m.route.set(LogoutUrl),
-				type: ButtonType.ActionLarge
+				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav,
 			})
 		]))
 	}

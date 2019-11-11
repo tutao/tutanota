@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
-import {px, size} from "../size"
 
 assertMainOrNode()
 
@@ -44,8 +43,8 @@ export class ViewColumn {
 		this.isInForeground = false
 		this.visible = false
 
-		this.view = (vnode: VirtualElement) => {
-			let zIndex = this.columnType === ColumnType.Foreground ? ".z3" : ".z1"
+		this.view = () => {
+			let zIndex = this.columnType === ColumnType.Foreground ? ".z3" : ""
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
 					"aria-hidden": this.visible ? "false" : "true",
 					oncreate: (vnode) => {
@@ -56,7 +55,6 @@ export class ViewColumn {
 					style: {
 						width: this.width + 'px',
 						left: this.offset + 'px',
-						marginBottom: this.columnType === ColumnType.Foreground ? "0" : px(size.bottom_nav_bar + 2),
 					},
 				},
 				m(this.component))
@@ -77,7 +75,7 @@ export class ViewColumn {
 	}
 
 	getOffsetForeground(foregroundState: boolean) {
-		return foregroundState ? this.width : 0;
+		return foregroundState ? 0 : -this.width;
 	}
 
 }

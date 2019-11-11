@@ -31,7 +31,7 @@ export const ButtonColors = Object.freeze({
 	Nav: 'nav',
 	Content: 'content',
 	Elevated: 'elevated',
-
+	DrawerNav: "drawernav",
 })
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
@@ -45,6 +45,15 @@ export function getColors(buttonColors: ?ButtonColorEnum) {
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 				border: theme.navigation_bg
+			}
+		case ButtonColors.DrawerNav:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: "transparent",
+				icon: theme.drawer_menu_icon,
+				icon_selected: theme.content_button_icon_selected,
+				border: getElevatedBackground()
 			}
 		case ButtonColors.Elevated:
 			return {

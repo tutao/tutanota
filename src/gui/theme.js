@@ -47,6 +47,7 @@ export type Theme = {
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
 	navigation_menu_bg?: string,
+	drawer_menu_icon?: string
 }
 
 export const themeId: Stream<ThemeId> = stream(getThemeId())
@@ -108,7 +109,7 @@ function getLightTheme() {
 	const grey_lightest = '#f6f6f6'
 	const grey_lighter = '#eaeaea'
 	const grey_dark = '#d5d5d5'
-	const grey = '#909090'
+	const grey = '#868686'
 	const grey_darker = '#707070'
 	//const grey_darkest = '#4A4A4A'
 	const grey_darkest = '#303030'
@@ -152,7 +153,8 @@ function getLightTheme() {
 		navigation_button_icon: light,
 		navigation_button_selected: red,
 		navigation_button_icon_selected: light,
-		navigation_menu_bg: grey_lighter
+		navigation_menu_bg: grey_lighter,
+		drawer_menu_icon: grey
 	}
 }
 

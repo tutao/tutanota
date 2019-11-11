@@ -9,6 +9,7 @@ import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import {BottomNav} from "../nav/BottomNav"
+import {header} from "./Header"
 
 assertMainOrNode()
 
@@ -36,7 +37,7 @@ export class ViewSlider implements IViewSlider {
 	_mainColumn: ViewColumn;
 	focusedColumn: ViewColumn;
 	_visibleBackgroundColumns: ViewColumn[];
-	_domSlider: HTMLElement;
+	_domSlidingPart: HTMLElement;
 	view: Function;
 	_busy: Promise<void>;
 	_parentName: string
@@ -67,20 +68,27 @@ export class ViewSlider implements IViewSlider {
 		this._isModalBackgroundVisible = false
 
 		this.view = (): Children => {
-			return [
-				m(".view-columns.fill-absolute.backface_fix.z1", {
+			return m(".fill-absolute.flex.col", {
+				oncreate: (vnode) => {
+					this._attachTouchHandler(vnode.dom)
+				},
+			}, [
+				m(header),
+				m(".view-columns.backface_fix.flex-grow.rel", {
 						oncreate: (vnode) => {
-							this._domSlider = vnode.dom
-							this._attachTouchHandler(this._domSlider)
+							this._domSlidingPart = vnode.dom
 						},
 						style: {
-							transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
 							width: this.getWidth() + 'px'
 						}
-					}, this.columns.map(column => m(column)).concat(this._createModalBackground())
+					}, this.columns
+				           .filter(c => c.columnType === ColumnType.Background)
+				           .map(column => m(column))
 				),
-				m(BottomNav)
-			]
+				m(BottomNav),
+				this.columns.filter(c => c.columnType === ColumnType.Foreground).map(m),
+				this._createModalBackground(),
+			])
 		}
 	}
 
@@ -234,7 +242,7 @@ export class ViewSlider implements IViewSlider {
 	 * Executes a slide animation for the background buttons.
 	 */
 	_slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
-		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset), {
+		return animations.add(this._domSlidingPart, transform(transform.type.translateX, oldOffset, newOffset), {
 			easingFunction: ease.inOut
 		}).finally(() => {
 			// replace the visible column
@@ -250,7 +258,7 @@ export class ViewSlider implements IViewSlider {
 	_slideForegroundColumn(foregroundColumn: ViewColumn, toForeground: boolean): Promise<void> {
 		if (!foregroundColumn._domColumn) return Promise.resolve()
 		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
-		const oldOffset = colRect.left + colRect.width
+		const oldOffset = colRect.left
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
 		foregroundColumn.visible = toForeground
 
@@ -265,8 +273,10 @@ export class ViewSlider implements IViewSlider {
 	updateOffsets(columns: ViewColumn[]) {
 		let offset = 0
 		for (let column of this.columns) {
-			column.offset = offset
-			offset += column.width
+			if (column.columnType === ColumnType.Background) {
+				column.offset = offset
+				offset += column.width
+			}
 		}
 	}
 
@@ -416,8 +426,7 @@ export class ViewSlider implements IViewSlider {
 					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x)
 						> 30) {
 						directionLock = HORIZONTAL
-						const newTranslate = Math.min(sideColRect.left + sideColRect.width - (gestureInfo.x - newTouchPos),
-							sideColRect.width)
+						const newTranslate = Math.min(sideColRect.left - (gestureInfo.x - newTouchPos), 0)
 						sideCol.style.transform = `translateX(${newTranslate}px)`
 						event.preventDefault()
 						// If we don't have a vertical lock but we would like to acquire one, get it

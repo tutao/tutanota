@@ -34,7 +34,6 @@ class RootView {
 		this.view = (vnode): VirtualElement => {
 			return m("#root", {onmousedown}, [
 				m(overlay),
-				m(header),
 				m(modal),
 				vnode.children,
 			])

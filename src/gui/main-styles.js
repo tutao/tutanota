@@ -480,7 +480,8 @@ styles.registerStyle('main', () => {
 		// the main view
 		'.main-view': {
 			position: 'absolute',
-			top: px(size.navbar_height),
+			// top: px(size.navbar_height),
+			top: 0,
 			right: px(0),
 			bottom: px(0),
 			left: px(0),
@@ -503,7 +504,7 @@ styles.registerStyle('main', () => {
 
 		// header
 		'.header-nav': {
-			position: 'absolute', top: 0, left: 0, right: 0,
+			position: "relative",
 			height: px(size.navbar_height),
 			'background-color': theme.header_bg,
 			'box-shadow': `0 3px 2px 0 ${theme.header_box_shadow_bg}`,
@@ -1165,7 +1166,7 @@ styles.registerStyle('main', () => {
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
-			'.main-view': {top: positionValue(size.navbar_height_mobile), bottom: 0},
+			'.main-view': {top: 0, bottom: 0},
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},
 			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},

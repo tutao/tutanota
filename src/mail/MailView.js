@@ -112,7 +112,7 @@ export class MailView implements CurrentView {
 					         }
 				         ))
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
+		}, ColumnType.Foreground, 200, 350, () => lang.get("folderTitle_label"))
 
 
 		this.listColumn = new ViewColumn({
