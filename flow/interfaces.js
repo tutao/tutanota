@@ -18,6 +18,8 @@ interface IViewSlider {
 	focusNextColumn(): void;
 
 	getBackgroundColumns(): ViewColumn[];
+
+	isUsingOverlayColumns(): boolean;
 }
 
 interface IUserController {

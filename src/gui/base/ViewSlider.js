@@ -168,6 +168,10 @@ export class ViewSlider implements IViewSlider {
 		return this._visibleBackgroundColumns.slice()
 	}
 
+^	isUsingOverlayColumns(): boolean {
+		return this.columns.every(c => c.columnType !== ColumnType.Foreground || c.visible)
+	}
+
 	/**
 	 * Returns the next column which should become visible
 	 * @param visibleColumns All columns that will definitely be visible
