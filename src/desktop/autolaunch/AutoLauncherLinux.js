@@ -4,7 +4,7 @@ import fs from "fs-extra"
 import {app} from "electron"
 import path from "path"
 
-const linuxDesktopPath = path.join(app.getPath('home'), `.config/autostart/${app.getName()}.desktop`)
+const linuxDesktopPath = path.join(app.getPath('home'), `.config/autostart/${app.name}.desktop`)
 const autoStartPath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
@@ -20,8 +20,8 @@ export function enableAutoLaunch(): Promise<void> {
 		const desktopEntry = `[Desktop Entry]
 	Type=Application
 	Version=${app.getVersion()}
-	Name=${app.getName()}
-	Comment=${app.getName()} startup script
+	Name=${app.name}
+	Comment=${app.name} startup script
 	Exec=${autoStartPath} -a
 	StartupNotify=false
 	Terminal=false`

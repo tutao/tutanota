@@ -12,10 +12,10 @@ o.spec("AutoLauncher Test", () => {
 
 	const electron = {
 		app: {
+			name: "appName",
 			getLoginItemSettings() {return {openAtLogin: false}},
 			setLoginItemSettings() {},
 			getPath() {return "/app/path/file"},
-			getName() {return "appName"},
 			getVersion() {return "appVersion"}
 		}
 	}

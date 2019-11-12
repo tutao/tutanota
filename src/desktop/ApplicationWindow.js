@@ -45,7 +45,7 @@ export class ApplicationWindow {
 	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
 	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
 	getTitle = () => this._browserWindow.webContents.getTitle()
-	setZoomFactor = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
+	setZoomFactor = (f: number) => this._browserWindow.webContents.zoomFactor = f
 	isFullScreen = () => this._browserWindow.isFullScreen()
 	isMinimized = () => this._browserWindow.isMinimized()
 	minimize = () => this._browserWindow.minimize()
@@ -103,32 +103,32 @@ export class ApplicationWindow {
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
 
 		this._browserWindow
-		    .on('closed', () => {
-			    this.setUserInfo(null)
-			    this._ipc.removeWindow(this.id)
-		    })
-		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
-		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
+			.on('closed', () => {
+				this.setUserInfo(null)
+				this._ipc.removeWindow(this.id)
+			})
+			.on('focus', () => localShortcut.enableAll(this._browserWindow))
+			.on('blur', ev => localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-		    .on('new-window', (e, url) => {
-			    // we never open any new windows directly from the renderer
-			    // except for links in mails etc. so open them in the browser
-			    shell.openExternal(url)
-			    e.preventDefault()
-		    })
-		    .on('will-attach-webview', e => e.preventDefault())
-		    .on('did-start-navigation', (e, url, isInPlace) => {
-			    const newURL = this._rewriteURL(url, isInPlace)
-			    if (newURL !== url) {
-				    e.preventDefault()
-				    this._browserWindow.loadURL(newURL)
-			    }
-		    })
-		    .on('context-menu', (e, params) => {
-			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
-		    })
-		    .on('crashed', () => wm.recreateWindow(this))
+			.on('new-window', (e, url) => {
+				// we never open any new windows directly from the renderer
+				// except for links in mails etc. so open them in the browser
+				shell.openExternal(url)
+				e.preventDefault()
+			})
+			.on('will-attach-webview', e => e.preventDefault())
+			.on('did-start-navigation', (e, url, isInPlace) => {
+				const newURL = this._rewriteURL(url, isInPlace)
+				if (newURL !== url) {
+					e.preventDefault()
+					this._browserWindow.loadURL(newURL)
+				}
+			})
+			.on('context-menu', (e, params) => {
+				this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
+			})
+			.on('crashed', () => wm.recreateWindow(this))
 
 		this._browserWindow.webContents.on('dom-ready', () => {
 			this.sendMessageToWebContents('setup-context-menu', [])
@@ -138,33 +138,27 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => wm.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
-		localShortcut.register(this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Right'
-				: 'Alt+Right',
-			() => this._browserWindow.webContents.goForward())
-		localShortcut.register(this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Left'
-				: 'Alt+Left',
-			() => {
-				const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
-				if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
-					this._browserWindow.webContents.goBack()
-				} else {
-					console.log("Ignore back events on login page")
-				}
-			})
-		localShortcut.register(
-			this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Control+F'
-				: 'F11',
-			() => this._toggleFullScreen()
-		)
+		if (process.platform === "darwin") {
+			localShortcut.register(this._browserWindow, 'Command+Control+F', () => this._toggleFullScreen())
+			localShortcut.register(this._browserWindow, 'Command+Right', () => this._browserWindow.webContents.goForward())
+			localShortcut.register(this._browserWindow, 'Command+Left', () => this._tryGoBack())
+		} else {
+			localShortcut.register(this._browserWindow, 'F11', () => this._toggleFullScreen())
+			localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
+			localShortcut.register(this._browserWindow, 'Alt+Left', () => this._tryGoBack())
+			localShortcut.register(this._browserWindow, 'Control+H', () => wm.hide())
+		}
+
+	}
+
+	_tryGoBack(): void {
+		const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
+		if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
+			this._browserWindow.webContents.goBack()
+		} else {
+			console.log("Ignore back events on login page")
+		}
 	}
 
 	openMailBox(info: UserInfo, path?: ?string): Promise<void> {

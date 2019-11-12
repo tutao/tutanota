@@ -1,5 +1,5 @@
 const path = require('path')
-
+const pj = require('../package.json')
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
@@ -55,17 +55,17 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 			}
 		},
 		"dependencies": {
-			"electron-updater": "4.1.2",
-			"chalk": "2.4.2",
-			"electron-localshortcut": "3.1.0",
-			"fs-extra": "7.0.1",
-			"bluebird": "3.5.2",
-			"node-forge": "0.9.1",
-			"winreg": "1.2.4",
-			"keytar": "4.13.0",
+			"electron-updater": pj.devDependencies["electron-updater"],
+			"chalk": pj.devDependencies.chalk,
+			"electron-localshortcut": pj.devDependencies["electron-localshortcut"],
+			"fs-extra": pj.devDependencies["fs-extra"],
+			"bluebird": pj.dependencies.bluebird,
+			"node-forge": pj.devDependencies["node-forge"],
+			"winreg": pj.devDependencies.winreg,
+			"keytar": pj.dependencies.keytar
 		},
 		"build": {
-			"electronVersion": "6.0.12",
+			"electronVersion": pj.devDependencies.electron,
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0

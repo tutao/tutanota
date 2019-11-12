@@ -64,7 +64,7 @@ declare module 'electron' {
 		exit(code: Number): void,
 		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
-		getName(): string,
+		name: string,
 		setPath(name: string, path: string): void;
 		getLoginItemSettings(opts?: {path: string, args: string}): {
 			openAtLogin: boolean,
@@ -288,8 +288,7 @@ declare module 'electron' {
 		session: ElectronSession;
 		getURL(): string;
 		getTitle(): string;
-		getZoomFactor((factor: number) => void): void;
-		setZoomFactor(factor: number): void;
+		zoomFactor: number;
 		openDevTools(opts?: {|mode: string|}): void;
 		isDevToolsOpened(): boolean;
 		isDestroyed(): boolean;
@@ -317,8 +316,7 @@ declare module 'electron' {
 
 	declare export type DownloadItem = {
 		on('done' | 'updated', (event: Event, state: string) => void): DownloadItem;
-		setSavePath: (path: string) => void;
-		getSavePath: () => string;
+		savePath: string;
 		getFilename: () => string;
 		pause: () => void;
 		resume: () => void;

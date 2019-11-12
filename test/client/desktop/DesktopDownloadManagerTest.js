@@ -69,13 +69,12 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 	const item = {
 		callbacks: {},
+		savePath: "NOT SET!",
 		on: function (ev, cb) {
 			this.callbacks[ev] = cb
 			return this
 		},
 		getFilename: () => "/this/is/a-file.name",
-		setSavePath: () => {
-		}
 	}
 
 	const fs = {
@@ -140,8 +139,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		dl.manageDownloadsForSession(sessionMock)
 		sessionMock.callbacks["will-download"]({}, itemMock)
 		o(desktopUtilsMock.nonClobberingFilename.callCount).equals(1)
-		o(itemMock.setSavePath.callCount).equals(1)
-		o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+		o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 		itemMock.callbacks["done"]({}, 'completed')
 		o(electronMock.shell.openItem.callCount).equals(1)
@@ -161,8 +159,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 		sessionMock.callbacks["will-download"]({}, itemMock)
 		o(desktopUtilsMock.nonClobberingFilename.callCount).equals(1)
-		o(itemMock.setSavePath.callCount).equals(1)
-		o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+		o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 		itemMock.callbacks["done"]({}, 'completed')
 		o(electronMock.shell.openItem.callCount).equals(1)
@@ -171,8 +168,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		setTimeout(() => {
 			sessionMock.callbacks["will-download"]({}, itemMock)
 			o(desktopUtilsMock.nonClobberingFilename.callCount).equals(2)
-			o(itemMock.setSavePath.callCount).equals(2)
-			o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+			o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 			itemMock.callbacks["done"]({}, 'completed')
 			o(electronMock.shell.openItem.callCount).equals(2)
@@ -213,8 +209,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		dl.manageDownloadsForSession(sessionMock)
 		sessionMock.callbacks["will-download"]({}, itemMock)
 		o(desktopUtilsMock.nonClobberingFilename.callCount).equals(1)
-		o(itemMock.setSavePath.callCount).equals(1)
-		o(itemMock.setSavePath.args[0]).equals("/a/download/path/nonClobbering")
+		o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 		itemMock.callbacks["done"]({}, 'interrupted')
 

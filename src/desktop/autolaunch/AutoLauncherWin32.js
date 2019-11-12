@@ -11,7 +11,7 @@ const autoRunKey = new Registry({
 export function isAutoLaunchEnabled(): Promise<boolean> {
 	// can't promisify here because it screws with autoRunKeys 'this' semantics
 	return new Promise((resolve, reject) => {
-		autoRunKey.get(app.getName(), (err, item) => {
+		autoRunKey.get(app.name, (err, item) => {
 			if (err) {
 				reject(err)
 			} else {
@@ -26,7 +26,7 @@ export function enableAutoLaunch(): Promise<void> {
 	return isAutoLaunchEnabled().then(enabled => enabled
 		? Promise.resolve()
 		: new Promise((resolve, reject) => {
-			autoRunKey.set(app.getName(), Registry.REG_SZ, `${process.execPath} -a`, (err) => {
+			autoRunKey.set(app.name, Registry.REG_SZ, `${process.execPath} -a`, (err) => {
 				if (err) {
 					reject(err)
 				}
@@ -39,7 +39,7 @@ export function disableAutoLaunch(): Promise<void> {
 	// can't promisify here because it screws with autoRunKeys 'this' semantics
 	return isAutoLaunchEnabled().then(enabled => enabled
 		? new Promise((resolve, reject) => {
-			autoRunKey.remove(app.getName(), (err) => {
+			autoRunKey.remove(app.name, (err) => {
 				if (err) {
 					reject(err)
 				}
