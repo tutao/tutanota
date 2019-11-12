@@ -3,8 +3,11 @@
 import m from "mithril"
 import {NavButtonN} from "../base/NavButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
+import {size} from "../size"
 
 type Attrs = {width: number}
+
+const fontSize = size.font_size_small
 
 export class BottomNav implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
@@ -14,6 +17,7 @@ export class BottomNav implements MComponent<Attrs> {
 					icon: () => BootIcons.Mail,
 					href: () => "/mail",
 					vertical: true,
+					fontSize
 				}
 			),
 			m(NavButtonN, {
@@ -22,6 +26,7 @@ export class BottomNav implements MComponent<Attrs> {
 					href: "/search/mail",
 					isSelectedPrefix: "/search",
 					vertical: true,
+					fontSize
 				}
 			),
 			m(NavButtonN, {
@@ -30,6 +35,7 @@ export class BottomNav implements MComponent<Attrs> {
 					href: "/contact",
 					isSelectedPrefix: "/contact",
 					vertical: true,
+					fontSize
 				}
 			),
 			m(NavButtonN, {
@@ -37,6 +43,7 @@ export class BottomNav implements MComponent<Attrs> {
 				icon: () => BootIcons.Calendar,
 				href: () => "/calendar",
 				vertical: true,
+				fontSize
 			}),
 		])
 	}

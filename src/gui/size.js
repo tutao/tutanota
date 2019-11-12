@@ -28,6 +28,7 @@ export const size = {
 	border_selection: 4,
 
 	font_size_base: 16,
+	font_size_smaller: 14,
 	font_size_small: 12,
 
 	button_height: 44,

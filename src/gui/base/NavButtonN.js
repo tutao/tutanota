@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
-import {size} from "../size"
+import {px, size} from "../size"
 import {addFlash, removeFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
 import type {lazyIcon} from "./Icon"
@@ -25,7 +25,8 @@ export type NavButtonAttrs = {|
 	isVisible?: lazy<boolean>,
 	dropHandler?: dropHandler,
 	hideLabel?: boolean,
-	vertical?: boolean
+	vertical?: boolean,
+	fontSize?: number,
 |}
 
 const navButtonSelector = (vertical) =>
@@ -89,8 +90,10 @@ class _NavButton {
 		let attr: any = {
 			href: this._getUrl(a.href),
 			style: {
-				color: (isNavButtonSelected(a) || this._draggedOver) ?
-					getColors(a.colors).button_selected : getColors(a.colors).button
+				color: (isNavButtonSelected(a) || this._draggedOver)
+					? getColors(a.colors).button_selected
+					: getColors(a.colors).button,
+				"font-size": px(a.fontSize),
 			},
 			title: this.getLabel(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
@@ -102,7 +105,7 @@ class _NavButton {
 				removeFlash(vnode.dom)
 			},
 			selector: navButtonSelector(a.vertical),
-			onclick: (e) => this.click(e, a)
+			onclick: (e) => this.click(e, a),
 		}
 		if (a.dropHandler) {
 			attr.ondragenter = (ev) => {
