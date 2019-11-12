@@ -326,6 +326,16 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
+	headerRightView(): Children {
+		return m(ButtonN, {
+			label: 'newEvent_action',
+			click: () => this._newEvent(),
+			icon: () => Icons.Add,
+			type: ButtonType.Action,
+			colors: ButtonColors.Header
+		})
+	}
+
 	_updateCalendarInvitations(): Promise<void> {
 		return load(UserGroupRootTypeRef, logins.getUserController().userGroupInfo.group).then(userGroupRoot => {
 			return loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations).then(calendarInvitations => {
@@ -596,12 +606,14 @@ export class CalendarView implements CurrentView {
 	view() {
 		return m(".main-view", [
 			m(this.viewSlider),
-			m(ButtonN, {
-				label: 'newEvent_action',
-				click: () => this._newEvent(),
-				icon: () => Icons.Add,
-				type: ButtonType.Floating
-			})
+			styles.isUsingBottomNavigation()
+				? null
+				: m(ButtonN, {
+					label: 'newEvent_action',
+					click: () => this._newEvent(),
+					icon: () => Icons.Add,
+					type: ButtonType.Floating
+				})
 		])
 	}
 

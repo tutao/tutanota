@@ -225,7 +225,7 @@ styles.registerStyle('main', () => {
 		'.ml-negative-xs': {'margin-left': px(-3)},
 		'.ml-negative-bubble': {'margin-left': px(-7)},
 		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
-		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad + size.bottom_nav_bar), right: px(size.hpad_large)},
+		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad), right: px(size.hpad_large)},
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
@@ -1177,7 +1177,7 @@ styles.registerStyle('main', () => {
 			//'.pl-l': {'padding-left': px(size.hpad_large_mobile)},
 			//'.pr-l': {'padding-right': px(size.hpad_large_mobile)},
 
-			//".fixed-bottom-right": {bottom: px(size.hpad_large_mobile), right: px(size.hpad_large_mobile)},
+			".fixed-bottom-right": {bottom: px(size.hpad_large_mobile + size.bottom_nav_bar), right: px(size.hpad_large_mobile)},
 			'.pt-responsive': {'padding-top': px(size.hpad_large)},
 			'.header-logo': {
 				height: px(size.header_logo_height_mobile),

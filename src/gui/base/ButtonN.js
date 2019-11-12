@@ -7,7 +7,6 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, theme} from "../theme"
-import {styles} from "../styles"
 import type {NavButtonAttrs} from "./NavButtonN"
 
 assertMainOrNodeBoot()
@@ -63,6 +62,15 @@ export function getColors(buttonColors: ?ButtonColorEnum) {
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
 				border: getElevatedBackground()
+			}
+		case ButtonColors.Header:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: "transparent",
+				icon: theme.header_button_selected,
+				icon_selected: theme.content_button_icon_selected,
+				border: theme.content_bg
 			}
 		case ButtonColors.Content:
 		default:
@@ -186,7 +194,7 @@ class _Button {
 			return "flex-center items-center button-icon icon-large"
 		} else if (type === ButtonType.Floating) {
 			return "flex-center items-center button-icon floating icon-large"
-		} else if (a.colors === ButtonColors.Header && !styles.isDesktopLayout()) {
+		} else if (a.colors === ButtonColors.Header) {
 			return "flex-end items-center button-icon icon-xl"
 		} else if (type === ButtonType.Bubble) {
 			return "pr-s"

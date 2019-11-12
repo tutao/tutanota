@@ -5,7 +5,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
 import {Button, ButtonType} from "../gui/base/Button"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonColors} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -57,6 +57,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
+import {styles} from "../gui/styles"
 
 assertMainOrNode()
 
@@ -166,7 +167,8 @@ export class MailView implements CurrentView {
 					}
 				}, [
 					m(this.viewSlider),
-					(this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly))
+					(this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
+						&& !styles.isUsingBottomNavigation())
 						? m(this.newAction)
 						: null
 				])
@@ -183,6 +185,16 @@ export class MailView implements CurrentView {
 
 	getViewSlider(): ?IViewSlider {
 		return this.viewSlider
+	}
+
+	headerRightView(): Children {
+		return m(ButtonN, {
+			label: "newMail_action",
+			click: () => this._newMail(),
+			type: ButtonType.Action,
+			icon: () => Icons.Edit,
+			colors: ButtonColors.Header,
+		})
 	}
 
 	_setupShortcuts() {

@@ -53,6 +53,7 @@ import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
+import {styles} from "../gui/styles"
 
 assertMainOrNode()
 
@@ -224,7 +225,8 @@ export class SearchView implements CurrentView {
 			const restriction = getRestriction(m.route.get())
 			return m("#search.main-view", [
 				m(this.viewSlider),
-				isSameTypeRef(restriction.type, MailTypeRef)
+				styles.isUsingBottomNavigation()
+					? isSameTypeRef(restriction.type, MailTypeRef)
 					? m(ButtonN, {
 						click: () => {
 							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
@@ -234,16 +236,17 @@ export class SearchView implements CurrentView {
 						icon: () => Icons.Edit
 					})
 					: isSameTypeRef(restriction.type, ContactTypeRef)
-					? m(ButtonN, {
-						click: () => {
-							LazyContactListId.getAsync().then(contactListId => {
-								new ContactEditor(null, contactListId, null).show()
-							})
-						},
-						label: "newContact_action",
-						type: ButtonType.Floating,
-						icon: () => Icons.Add
-					})
+						? m(ButtonN, {
+							click: () => {
+								LazyContactListId.getAsync().then(contactListId => {
+									new ContactEditor(null, contactListId, null).show()
+								})
+							},
+							label: "newContact_action",
+							type: ButtonType.Floating,
+							icon: () => Icons.Add
+						})
+						: null
 					: null
 			])
 		}

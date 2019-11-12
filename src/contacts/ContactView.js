@@ -5,7 +5,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../gui/base/Header"
 import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {ButtonColors} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
 import {ContactEditor} from "./ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
@@ -40,6 +40,7 @@ import {routes, throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
+import {styles} from "../gui/styles"
 
 
 assertMainOrNode()
@@ -104,7 +105,7 @@ export class ContactView implements CurrentView {
 		this.view = (): VirtualElement => {
 			return m("#contact.main-view", [
 				m(this.viewSlider),
-				this._contactList ? m(this.newAction) : null
+				this._contactList && !styles.isUsingBottomNavigation() ? m(this.newAction) : null
 			])
 		}
 
@@ -119,6 +120,15 @@ export class ContactView implements CurrentView {
 		return new ContactEditor(null, this._contactList.listId, contactId => this._contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
 	}
 
+	headerRightView(): Children {
+		return this._contactList && m(ButtonN, {
+			label: "newContact_action",
+			click: () => this.createNewContact(),
+			type: ButtonType.Action,
+			icon: () => Icons.Add,
+			colors: ButtonColors.Header,
+		})
+	}
 
 	_setupShortcuts() {
 		let shortcuts: Shortcut[] = [

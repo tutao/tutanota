@@ -30,6 +30,7 @@ assertMainOrNodeBoot()
 
 export interface CurrentView extends Component {
 	+headerView?: () => Children;
+	+headerRightView?: () => Children;
 	+getViewSlider?: () => ?IViewSlider;
 	/** @return true if view handled press itself */
 	+handleBackButton?: () => boolean;
@@ -111,7 +112,8 @@ class Header {
 				}, this._getLeftElements()),
 				styles.isDesktopLayout() ? null : this._getCenterContent(),
 				styles.isUsingBottomNavigation()
-					? null
+					? m(".header-right.pr-s.flex-end.items-center",
+					this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
 					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
 						style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
 					}, m(this.buttonBar))
