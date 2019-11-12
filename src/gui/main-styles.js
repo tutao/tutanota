@@ -237,6 +237,7 @@ styles.registerStyle('main', () => {
 		'.z1': {'z-index': '1'},
 		'.z2': {'z-index': '2'},
 		'.z3': {'z-index': '3'},
+		'.z4': {'z-index': '4'},
 		'.noselect': noselect,
 		'.no-wrap': {'white-space': 'nowrap'},
 		'.height-100p': {height: "100%"},

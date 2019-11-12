@@ -109,7 +109,7 @@ export class ViewSlider implements IViewSlider {
 	_createModalBackground() {
 		if (this._isModalBackgroundVisible) {
 			return [
-				m(".fill-absolute.z2.will-change-alpha", {
+				m(".fill-absolute.z3.will-change-alpha", {
 					oncreate: (vnode) => {
 						this._busy.then(() => animations.add(vnode.dom, alpha(alpha.type.backgroundColor, theme.modal_bg, 0, 0.5)))
 					},
