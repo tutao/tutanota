@@ -79,6 +79,9 @@ o.spec("ApplicationWindow Test", () => {
 						getURL: () => 'desktophtml/meh/more'
 					})
 				},
+				removeMenu: function () {
+
+				},
 				setMenuBarVisibility: function () {
 				},
 				setMinimumSize: function (x: number, y: number) {
@@ -233,6 +236,7 @@ o.spec("ApplicationWindow Test", () => {
 		})
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
 		o(bwInstance.setMenuBarVisibility.args[0]).equals(false)
+		o(bwInstance.removeMenu.callCount).equals(1)
 
 		o(wmMock.ipc.addWindow.callCount).equals(1)
 		o(wmMock.ipc.addWindow.args[0]).equals(w.id)

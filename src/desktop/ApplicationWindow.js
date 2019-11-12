@@ -95,6 +95,7 @@ export class ApplicationWindow {
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
+		this._browserWindow.removeMenu()
 		this._browserWindow.setMinimumSize(MINIMUM_WINDOW_SIZE, MINIMUM_WINDOW_SIZE)
 		this.id = this._browserWindow.id
 		this._ipc.addWindow(this.id)
@@ -103,32 +104,32 @@ export class ApplicationWindow {
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
 
 		this._browserWindow
-			.on('closed', () => {
-				this.setUserInfo(null)
-				this._ipc.removeWindow(this.id)
-			})
-			.on('focus', () => localShortcut.enableAll(this._browserWindow))
-			.on('blur', ev => localShortcut.disableAll(this._browserWindow))
+		    .on('closed', () => {
+			    this.setUserInfo(null)
+			    this._ipc.removeWindow(this.id)
+		    })
+		    .on('focus', () => localShortcut.enableAll(this._browserWindow))
+		    .on('blur', ev => localShortcut.disableAll(this._browserWindow))
 
 		this._browserWindow.webContents
-			.on('new-window', (e, url) => {
-				// we never open any new windows directly from the renderer
-				// except for links in mails etc. so open them in the browser
-				shell.openExternal(url)
-				e.preventDefault()
-			})
-			.on('will-attach-webview', e => e.preventDefault())
-			.on('did-start-navigation', (e, url, isInPlace) => {
-				const newURL = this._rewriteURL(url, isInPlace)
-				if (newURL !== url) {
-					e.preventDefault()
-					this._browserWindow.loadURL(newURL)
-				}
-			})
-			.on('context-menu', (e, params) => {
-				this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
-			})
-			.on('crashed', () => wm.recreateWindow(this))
+		    .on('new-window', (e, url) => {
+			    // we never open any new windows directly from the renderer
+			    // except for links in mails etc. so open them in the browser
+			    shell.openExternal(url)
+			    e.preventDefault()
+		    })
+		    .on('will-attach-webview', e => e.preventDefault())
+		    .on('did-start-navigation', (e, url, isInPlace) => {
+			    const newURL = this._rewriteURL(url, isInPlace)
+			    if (newURL !== url) {
+				    e.preventDefault()
+				    this._browserWindow.loadURL(newURL)
+			    }
+		    })
+		    .on('context-menu', (e, params) => {
+			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
+		    })
+		    .on('crashed', () => wm.recreateWindow(this))
 
 		this._browserWindow.webContents.on('dom-ready', () => {
 			this.sendMessageToWebContents('setup-context-menu', [])

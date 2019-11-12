@@ -229,6 +229,7 @@ declare module 'electron' {
 		isDestroyed(): boolean;
 		setFullScreen(boolean): void;
 		isVisible(): boolean;
+		removeMenu(): void;
 		isSimpleFullScreen(): boolean;
 		setSimpleFullScreen(boolean): void;
 		setFullScreen(boolean): void;
