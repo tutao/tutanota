@@ -186,7 +186,11 @@ class Header {
 		if (this._searchBarVisible()) {
 			return this._searchBar()
 		} else if (viewSlider) {
-			return header(viewSlider.focusedColumn.getTitle())
+			// We to keep the title of the first visible background column so that it doesn't change when opening drawer
+			const title = viewSlider.focusedColumn.columnType === 1 // background
+				? viewSlider.focusedColumn.getTitle()
+				: viewSlider.getBackgroundColumns()[0].getTitle()
+			return header(title)
 		} else if (m.route.get().startsWith('/login')) {
 			return header(lang.get("login_label"))
 		} else if (m.route.get().startsWith('/signup')) {
