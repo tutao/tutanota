@@ -5,7 +5,6 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {load, loadAll} from "../api/main/Entity"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {downcast, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
@@ -36,18 +35,9 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {MailEditor} from "../mail/MailEditor"
 import {mailModel} from "../mail/MailModel"
+import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
+import {loadGroupInfoForMember, loadGroupMembers} from "./CalendarSharingUtils"
 
-
-type GroupMemberInfo = {
-	member: GroupMember,
-	info: GroupInfo
-}
-type GroupDetails = {
-	info: GroupInfo,
-	group: Group,
-	memberInfos: Array<GroupMemberInfo>,
-	sentGroupInvitations: Array<SentGroupInvitation>
-}
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails
@@ -151,24 +141,6 @@ function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 			return {group, info: groupInfo, memberInfos, sentGroupInvitations: invitations}
 		})
 	})
-}
-
-function loadGroupMembers(group: Group): Promise<Array<GroupMemberInfo>> {
-	return loadAll(GroupMemberTypeRef, group.members)
-		.then((members) => Promise
-			.map(members, (member) =>
-				loadGroupInfoForMember(member)
-			))
-}
-
-function loadGroupInfoForMember(groupMember: GroupMember): Promise<GroupMemberInfo> {
-	return load(GroupInfoTypeRef, groupMember.userGroupInfo)
-		.then((userGroupInfo) => {
-			return {
-				member: groupMember,
-				info: userGroupInfo
-			}
-		})
 }
 
 
