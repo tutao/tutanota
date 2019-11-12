@@ -16,6 +16,7 @@ import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {header} from "../gui/base/Header"
 
 assertMainOrNode()
 
@@ -64,7 +65,11 @@ class ContactFormView {
 		this._moreInformationButton = new Button('moreInformation_action', () => this._moreInformationDialog.show()).setType(ButtonType.Secondary)
 
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent()))
+			return m(".main-view.flex.col", [
+				m(header),
+				m(".main-view.flex-center.scroll",
+					m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent()))
+			])
 		}
 	}
 

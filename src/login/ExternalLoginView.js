@@ -34,6 +34,7 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {Dialog} from "../gui/base/Dialog"
 import {assertMainOrNode, LOGIN_TITLE} from "../api/Env"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
+import {header} from "../gui/base/Header"
 
 assertMainOrNode()
 
@@ -70,8 +71,9 @@ export class ExternalLoginView {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll.pt-responsive", [
-				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView())
+			return m(".main-view", [
+				m(header),
+				m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView()))
 			])
 		}
 	}

@@ -240,7 +240,7 @@ class Header {
 				hideLabel: this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true,
 			})
 		} else {
-			if (!viewSlider || viewSlider.isUsingOverlayColumns()) {
+			if (styles.isDesktopLayout() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))] // the custom logo is already sanitized in theme.js
 			} else {
 				return []

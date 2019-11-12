@@ -20,6 +20,7 @@ import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN} from "../gui/base/ButtonN"
 import {show} from "./RecoverLoginDialog"
+import {header} from "../gui/base/Header"
 
 assertMainOrNode()
 
@@ -111,28 +112,30 @@ export class LoginView {
 		}
 
 		this.view = (): VirtualElement => {
-			return m("#login-view.main-view.flex-center.scroll.pt-responsive", {
+			return m("#login-view.main-view.flex.col", {
 				oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
 				style: {
 					marginBottom: bottomMargin + "px"
 				}
 			}, [
-				m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", {
-					style: {
-						// width: workaround for IE11 which does not center the area, otherwise
-						width: client.isDesktopDevice() ? "360px" : null,
-					}
-				}, [
-					this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
-					(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
-						m(optionsExpander),
-					]) : null,
-					(this._anyMoreItemVisible()) ? m("", [
-						m(optionsExpander.panel),
-					]) : null,
-					(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
-				]),
+				m(header),
+				m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", {
+						style: {
+							// width: workaround for IE11 which does not center the area, otherwise
+							width: client.isDesktopDevice() ? "360px" : null,
+						}
+					}, [
+						this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
+						(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
+							m(optionsExpander),
+						]) : null,
+						(this._anyMoreItemVisible()) ? m("", [
+							m(optionsExpander.panel),
+						]) : null,
+						(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
+					])
+				),
 			])
 		}
 	}
