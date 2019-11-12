@@ -108,10 +108,10 @@ function getLightTheme() {
 
 	const grey_lightest = '#f6f6f6'
 	const grey_lighter = '#eaeaea'
+	const grey_minus_one = "#e1e1e1"
 	const grey_dark = '#d5d5d5'
 	const grey = '#868686'
 	const grey_darker = '#707070'
-	//const grey_darkest = '#4A4A4A'
 	const grey_darkest = '#303030'
 
 	const red = '#840010'
@@ -138,17 +138,17 @@ function getLightTheme() {
 		header_button: grey_darker,
 		header_button_selected: red,
 
-		list_bg: grey_lightest,
-		list_alternate_bg: light,
+		list_bg: light,
+		list_alternate_bg: grey_lightest,
 		list_accent_fg: red,
-		list_message_bg: light,
-		list_border: grey_dark,
+		list_message_bg: grey_lightest,
+		list_border: grey_minus_one,
 
 		modal_bg: grey_darkest,
 		elevated_bg: light,
 
 		navigation_bg: grey_lightest,
-		navigation_border: grey_dark,
+		navigation_border: grey_minus_one,
 		navigation_button: grey_darker,
 		navigation_button_icon: light,
 		navigation_button_selected: red,
@@ -171,6 +171,7 @@ function getDarkTheme(): Theme {
 	//#999999 // button text
 
 	const dark_lightest = '#4e4e4e'
+	const dark_lighter_2 = "#363636"
 	const dark_lighter = '#232323'
 	const dark = '#222222'
 	const dark_darkest = '#111111'
@@ -191,7 +192,7 @@ function getDarkTheme(): Theme {
 		content_button_icon_selected: dark_lighter,
 		content_accent: green,
 		content_bg: dark_darkest,
-		content_border: dark_lightest,
+		content_border: dark_lighter_2,
 		content_message_bg: dark_lightest,
 
 
@@ -204,17 +205,19 @@ function getDarkTheme(): Theme {
 		list_alternate_bg: dark_lighter,
 		list_accent_fg: green,
 		list_message_bg: dark_lightest,
-		list_border: dark_lightest,
+		list_border: dark_lighter_2,
 
 		modal_bg: dark_darkest,
 		elevated_bg: dark_lighter,
 
 		navigation_bg: dark_lighter,
-		navigation_border: dark_lightest,
+		navigation_border: dark_lighter_2,
 		navigation_button: lighter,
 		navigation_button_icon_bg: dark_lightest,
 		navigation_button_icon: lightest,
 		navigation_button_selected: green,
 		navigation_button_icon_selected: lighter,
+		navigation_menu_bg: dark_darkest,
+		drawer_menu_icon: light,
 	}
 }

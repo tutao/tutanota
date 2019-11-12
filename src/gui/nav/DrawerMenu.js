@@ -1,7 +1,7 @@
 //@flow
 
 import m from "mithril"
-import {theme} from "../theme"
+import {getContentButtonIconBackground, theme} from "../theme"
 import {ButtonColors, ButtonN} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {ButtonType} from "../base/Button"
@@ -19,28 +19,29 @@ export class DrawerMenu implements MComponent<Attrs> {
 			style: {
 				width: styles.isDesktopLayout() ? "48px" : "60px",
 				background: theme.navigation_menu_bg,
+				'border-right': `0.5px solid ${theme.navigation_border}`,
 			},
 		}, m(".flex.col.height-100p.items-center..pt.pb", {}, [
-			m(".mb-s", {
+			m("button.mb-s", {
 				style: {
 					width: "32px",
 					height: "32px",
 					"border-radius": "16px",
 					"text-align": "center",
-					"line-height": "26px", // 32 - 3*2
-					background: theme.content_button,
+					"line-height": "28px", // 32 - 2*2
+					background: getContentButtonIconBackground(),
 					color: theme.content_button_icon,
-					border: `3px solid ${theme.content_accent}`
+					border: `2px solid ${theme.content_accent}`
 				}
 			}, "A"),
-			m(".mb-s", {
+			m("button.mb-s", {
 				style: {
 					width: "32px",
 					height: "32px",
 					"border-radius": "16px",
 					"text-align": "center",
 					"line-height": "32px",
-					background: theme.content_button,
+					background: getContentButtonIconBackground(),
 					color: theme.content_button_icon,
 				}
 			}, "B"),
@@ -54,13 +55,6 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			m(ButtonN, {
-				icon: () => BootIcons.Share,
-				label: "invite_alt",
-				click: () => writeInviteMail(),
-				type: ButtonType.ActionLarge,
-				colors: ButtonColors.DrawerNav
-			}),
 			logins.getUserController().isPremiumAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Help,
@@ -70,6 +64,13 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav,
 				})
 				: null,
+			m(ButtonN, {
+				icon: () => BootIcons.Share,
+				label: "invite_alt",
+				click: () => writeInviteMail(),
+				type: ButtonType.ActionLarge,
+				colors: ButtonColors.DrawerNav
+			}),
 			m(ButtonN, {
 				icon: () => BootIcons.Settings,
 				label: "settings_label",

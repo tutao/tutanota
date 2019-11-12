@@ -518,6 +518,7 @@ styles.registerStyle('main', () => {
 			left: 0,
 			right: 0,
 			bottom: 0,
+			background: theme.header_bg,
 		},
 
 
@@ -667,13 +668,13 @@ styles.registerStyle('main', () => {
 		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
-			'background-color': theme.list_bg,
+			'background-color': theme.list_alternate_bg,
 			height: px(size.list_row_height),
 			'border-left': px(size.border_selection) + " solid transparent"
 		},
 		'.list-row > div': {'margin-left': px(-size.border_selection)},
 		'.odd-row': {
-			'background-color': theme.list_alternate_bg,
+			'background-color': theme.list_bg,
 		},
 		'.list-loading': {bottom: 0},
 
@@ -970,11 +971,11 @@ styles.registerStyle('main', () => {
 
 
 		'.calendar-alternate-background': {
-			'background': `${theme.list_bg} !important`
+			'background': `${theme.list_alternate_bg} !important`
 		},
 
 		'.calendar-day:hover': {
-			'background': theme.list_bg
+			'background': theme.list_alternate_bg
 		},
 
 		'.calendar-hour': {
@@ -985,7 +986,7 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-hour:hover': {
-			'background': theme.list_bg
+			'background': theme.list_alternate_bg
 		},
 
 		'.calendar-column-border': {
@@ -1003,7 +1004,7 @@ styles.registerStyle('main', () => {
 		'.calendar-day': {
 			'border-top': `1px solid ${theme.content_border}`,
 			'transition': 'background 0.4s',
-			'background': theme.list_alternate_bg,
+			'background': theme.list_bg,
 			'cursor': 'pointer'
 		},
 
