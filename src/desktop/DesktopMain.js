@@ -19,6 +19,7 @@ import en from "../translations/en"
 
 mp()
 
+
 lang.init(en)
 const conf = new DesktopConfigHandler()
 const sock = new Socketeer()

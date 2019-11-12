@@ -62,7 +62,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 			"bluebird": "3.5.2",
 			"node-forge": "0.9.1",
 			"winreg": "1.2.4",
-			"keytar": "4.13.0"
+			"keytar": "4.13.0",
 		},
 		"build": {
 			"electronVersion": "6.0.12",
