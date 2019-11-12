@@ -267,6 +267,7 @@ module.exports = {
 		"deleteAccountWithTakeoverConfirm_msg": "Do you really want to delete your account? Your email addresses can be taken over by the account {1}.",
 		"deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or use it for a new user.",
 		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
+		"deleteSharedCalendarConfirm_msg": "The calendar \"{calendar}\" is shared with other users. Are you sure that you want to delete it and all events in it?",
 		"deleteContacts_action": "Delete the selected contact(s)",
 		"deleteContacts_msg": "Are you sure you want to delete the selected contact(s)?",
 		"deleteContact_msg": "Are you sure you want to delete this contact?",
@@ -1050,6 +1051,8 @@ module.exports = {
 		"acceptCalendarEmailBody": "{user} accepted your sharing proposal and has access to your calendar \"{calendarName}\" now.",
 		"rejectCalendarEmailSubject": "Calendar sharing has been declined",
 		"rejectCalendarEmailBody": "{user} declined your sharing proposal and does not have access to your calendar \"{calendarName}\".",
+		"deleteCalendarEmailSubject": "A calendar has been deleted",
+		"deleteCalendarEmailBody": "The calendar \"{calendarName}\" and all of its events have been deleted.",
 		"join_action": "Join",
 		"alreadyMember_msg": "You are already a participant of this calendar. If you wish to accept this new invitation, you must leave the calendar group first."
 	}

@@ -62,9 +62,10 @@ import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
-import {getDisplayText} from "../mail/MailUtils"
+import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {showInvitationDialog} from "./CalendarInvitationDialog"
+import {loadGroupMembers, sendDeletionNotificationEmail} from "./CalendarSharingUtils"
 
 
 export type CalendarInfo = {
@@ -477,21 +478,35 @@ export class CalendarView implements CurrentView {
 				{
 					label: "delete_action",
 					icon: () => Icons.Trash,
-					click: () => {
-						Dialog.confirm(() => lang.get("deleteCalendarConfirm_msg", {"{calendar}": getCalendarName(groupInfo.name)}))
-						      .then((confirmed) => {
-							      if (confirmed) {
-								      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
-									      groupRootId: groupRoot._id
-								      }))
-							      }
-						      })
-					},
+					click: () => this._confirmDeleteCalendar(calendarInfo),
 					isVisible: () => !sharedCalendar,
 					type: ButtonType.Dropdown,
 				},
 			].filter(Boolean)
 		))
+	}
+
+	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
+		const calendarName = getCalendarName(calendarInfo.groupInfo.name)
+		loadGroupMembers(calendarInfo.group).then(members => {
+			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
+			const otherMembers = members.filter(member => member.info.mailAddress !== ownerMail)
+			Dialog.confirm(() => otherMembers.length > 0
+				? lang.get("deleteSharedCalendarConfirm_msg", {"{calendar}": calendarName})
+				: lang.get("deleteCalendarConfirm_msg", {"{calendar}": calendarName}))
+			      .then((confirmed) => {
+					      if (confirmed) {
+						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
+							      groupRootId: calendarInfo.groupRoot._id
+						      })).then(() => {
+							      const recipients = members.map(member => createRecipientInfo(neverNull(member.info.mailAddress), member.info.name, null, true))
+							      sendDeletionNotificationEmail(calendarInfo.groupInfo.name, recipients, neverNull(ownerMail))
+						      })
+					      }
+				      }
+			      )
+
+		})
 	}
 
 
