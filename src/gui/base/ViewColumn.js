@@ -45,7 +45,7 @@ export class ViewColumn {
 
 		this.view = () => {
 			let zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z3" : ""
-			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
+			return m(".view-column..overflow-x-hidden.fill-absolute.backface_fix" + zIndex, {
 					"aria-hidden": this.visible ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom

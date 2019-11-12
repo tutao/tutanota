@@ -168,7 +168,7 @@ export class ViewSlider implements IViewSlider {
 		return this._visibleBackgroundColumns.slice()
 	}
 
-^	isUsingOverlayColumns(): boolean {
+	isUsingOverlayColumns(): boolean {
 		return this.columns.every(c => c.columnType !== ColumnType.Foreground || c.visible)
 	}
 
