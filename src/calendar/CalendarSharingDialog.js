@@ -158,8 +158,8 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				lines: this._renderMemberInfos(vnode.attrs.groupDetails).concat(this._renderGroupInvitations(vnode.attrs.groupDetails)),
 				showActionButtonColumn: true,
 				addButtonAttrs: {
-					label: "addShare_action",
-					click: () => showAddShareDialog(vnode.attrs.groupDetails.info),
+					label: "addParticipant_action",
+					click: () => showAddParticipantDialog(vnode.attrs.groupDetails.info),
 					icon: () => Icons.Add,
 					isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, vnode.attrs.groupDetails.group, ShareCapability.Invite)
 				},
@@ -237,7 +237,7 @@ function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string 
 }
 
 
-function showAddShareDialog(sharedGroupInfo: GroupInfo) {
+function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({
 		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
 			let recipientInfo = createRecipientInfo(mailAddress, name, contact, false)
@@ -277,7 +277,7 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 	let dialog = Dialog.showActionDialog({
 
 		type: DialogType.EditMedium,
-		title: () => lang.get("addShare_action"),
+		title: () => lang.get("addParticipant_action"),
 		child: () => [
 			m(".pt", lang.get("shareCalendarWarning_msg")),
 			m(invitePeopleValueTextField),

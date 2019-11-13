@@ -1040,7 +1040,7 @@ module.exports = {
 		"member_label": "Member",
 		"invited_label": "Invited",
 		"participants_label": "Participants of calendar {name}",
-		"addShare_action": "Add share",
+		"addParticipant_action": "Add participant",
 		"shareCalendarWarning_msg": "All participants of the calendar will be able to see your name and email addresses associated with your mailbox.",
 		"calendarName_label": "Calendar name",
 		"invitation_label": "Invitation",
