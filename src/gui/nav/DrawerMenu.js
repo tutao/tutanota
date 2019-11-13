@@ -1,7 +1,7 @@
 //@flow
 
 import m from "mithril"
-import {getContentButtonIconBackground, theme} from "../theme"
+import {theme} from "../theme"
 import {ButtonColors, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../base/Header"
@@ -21,29 +21,6 @@ export class DrawerMenu implements MComponent<Attrs> {
 				'border-right': `0.5px solid ${theme.navigation_border}`,
 			},
 		}, m(".flex.col.height-100p.items-center..pt.pb", {}, [
-			m("button.mb-s", {
-				style: {
-					width: "32px",
-					height: "32px",
-					"border-radius": "16px",
-					"text-align": "center",
-					"line-height": "28px", // 32 - 2*2
-					background: getContentButtonIconBackground(),
-					color: theme.content_button_icon,
-					border: `2px solid ${theme.content_accent}`
-				}
-			}, "A"),
-			m("button.mb-s", {
-				style: {
-					width: "32px",
-					height: "32px",
-					"border-radius": "16px",
-					"text-align": "center",
-					"line-height": "32px",
-					background: getContentButtonIconBackground(),
-					color: theme.content_button_icon,
-				}
-			}, "B"),
 			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
