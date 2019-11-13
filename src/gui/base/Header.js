@@ -224,9 +224,13 @@ class Header {
 			})
 		} else {
 			if (styles.isDesktopLayout() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
-				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))] // the custom logo is already sanitized in theme.js
+				return m(".logo.logo-height.pl", {
+					style: {
+						"margin-left": px(sizes.drawer_menu_width)
+					},
+				}, m.trust(theme.logo)) // the custom logo is already sanitized in theme.js
 			} else {
-				return []
+				return null
 			}
 		}
 	}

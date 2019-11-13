@@ -1,12 +1,10 @@
 //@flow
 
 import m from "mithril"
-import {theme} from "../theme"
 import {ButtonColors, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../base/Header"
 import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
-import {styles} from "../styles"
 import {isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 
@@ -14,13 +12,7 @@ type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("drawer-menu", {
-			style: {
-				width: styles.isDesktopLayout() ? "48px" : "60px",
-				background: theme.navigation_menu_bg,
-				'border-right': `0.5px solid ${theme.navigation_border}`,
-			},
-		}, m(".flex.col.height-100p.items-center..pt.pb", {}, [
+		return m("drawer-menu", m(".flex.col.height-100p.items-center..pt.pb", [
 			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {

@@ -1169,6 +1169,12 @@ styles.registerStyle('main', () => {
 			'fill': theme.navigation_button
 		},
 
+		"drawer-menu": {
+			width: px(size.drawer_menu_width),
+			background: theme.navigation_menu_bg,
+			'border-right': `0.5px solid ${theme.navigation_border}`,
+		},
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: 0, bottom: 0},
@@ -1232,6 +1238,9 @@ styles.registerStyle('main', () => {
 				"opacity": "0.8",
 				top: "3px",
 				left: "3px",
+			},
+			"drawer-menu": {
+				width: px(size.drawer_menu_width_mobile),
 			},
 		},
 
