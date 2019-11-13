@@ -9,7 +9,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {Icons} from "../gui/base/icons/Icons"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -52,6 +52,7 @@ import {
 	isSharingActive,
 	SubscriptionType
 } from "./SubscriptionUtils"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

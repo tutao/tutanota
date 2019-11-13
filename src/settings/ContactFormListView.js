@@ -24,6 +24,9 @@ import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/Cust
 import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import * as AddUserDialog from "./AddUserDialog"
 
 assertMainOrNode()
 
@@ -95,8 +98,17 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			emptyMessage: lang.get("noEntries_msg")
 		})
 
-		this.view = (): Vnode<any> => {
-			return m(this.list)
+		this.view = (): Children => {
+			return m(".flex.flex-column.fill-absolute", [
+				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
+					m(".mr-negative-s.align-self-end", m(ButtonN, {
+						label: "createContactForm_label",
+						type: ButtonType.Primary,
+						click: () => this.addButtonClicked()
+					}))
+				),
+				m(".rel.flex-grow", m(this.list))
+			])
 		}
 
 		this.list.loadInitial()
@@ -127,7 +139,11 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 	}
 
 	addButtonClicked() {
-		ContactFormEditor.show(null, true, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(false)
+		} else {
+			ContactFormEditor.show(null, true, contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+		}
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
@@ -162,7 +178,9 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			}
 			if (this._customerInfo.isLoaded() && getWhitelabelDomain(this._customerInfo.getLoaded())
 				&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
-				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [neverNull(instanceListId), instanceId])) {
+				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
+					neverNull(instanceListId), instanceId
+				])) {
 				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
 					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm,
 						neverNull(getWhitelabelDomain(this._customerInfo.getLoaded())).domain,

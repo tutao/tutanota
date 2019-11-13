@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
@@ -38,6 +38,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {Keys} from "../misc/KeyManager"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {windowFacade} from "../misc/WindowFacade"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

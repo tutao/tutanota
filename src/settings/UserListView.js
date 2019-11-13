@@ -13,7 +13,7 @@ import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
 import {UserViewer} from "./UserViewer"
 import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import {GroupType, OperationType} from "../api/common/TutanotaConstants"
+import {FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
@@ -25,6 +25,8 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {contains} from "../api/common/utils/ArrayUtils"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -100,8 +102,19 @@ export class UserListView implements UpdatableSettingsViewer {
 			emptyMessage: lang.get("noEntries_msg")
 		})
 
-		this.view = (): Vnode<any> => {
-			return m(this.list)
+		this.view = (): Children => {
+			return !logins.isEnabled(FeatureType.WhitelabelChild)
+				? m(".flex.flex-column.fill-absolute", [
+					m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
+						m(".mr-negative-s.align-self-end", m(ButtonN, {
+							label: "addUsers_action",
+							type: ButtonType.Primary,
+							click: () => this.addButtonClicked()
+						}))
+					),
+					m(".rel.flex-grow", m(this.list))
+				])
+				: null
 		}
 
 		this.list.loadInitial()
@@ -159,7 +172,11 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	addButtonClicked() {
-		AddUserDialog.show()
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(false)
+		} else {
+			AddUserDialog.show()
+		}
 	}
 
 	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {

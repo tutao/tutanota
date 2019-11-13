@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
 import {MailView} from "./MailView"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -18,6 +18,7 @@ import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
 import {NotFoundError} from "../api/common/error/RestError"
 import {getMailBodyText, noOp} from "../api/common/utils/Utils"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

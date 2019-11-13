@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {parseBirthday} from "../misc/Formatter"
@@ -36,6 +36,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {ButtonType} from "../gui/base/ButtonN"
 
 
 assertMainOrNode()

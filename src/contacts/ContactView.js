@@ -4,8 +4,8 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../gui/base/Header"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
-import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
+import {Button, createDropDownButton} from "../gui/base/Button"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {ContactEditor} from "./ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
@@ -53,7 +53,6 @@ export class ContactView implements CurrentView {
 	viewSlider: ViewSlider;
 	_contactList: ContactListView;
 	_multiContactViewer: MultiContactViewer;
-	newAction: Button;
 	view: Function;
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -64,18 +63,27 @@ export class ContactView implements CurrentView {
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".flex.height-100p", [
-				m(DrawerMenu),
-				m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
-					style: {
-						paddingLeft: getSafeAreaInsetLeft()
-					}
-				}, [
-					m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
-					m(expander.panel)
+				view: () => m(".flex.height-100p", [
+					m(DrawerMenu),
+					m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
+						style: {
+							paddingLeft: getSafeAreaInsetLeft()
+						}
+					}, [
+						styles.isUsingBottomNavigation() || !this._contactList
+							? null
+							: m(".mlr-l.mt", m(ButtonN, {
+								label: "newContact_action",
+								click: () => this.createNewContact(),
+								type: ButtonType.PrimaryBorder,
+							})),
+						m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
+						m(expander.panel)
+					])
 				])
-			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
+			},
+			ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label")
+		)
 
 		this.listColumn = new ViewColumn({
 			view: () => m(".list-column", [
@@ -99,13 +107,10 @@ export class ContactView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
-		this.newAction = new Button('newContact_action', () => this.createNewContact(), () => Icons.Add)
-			.setType(ButtonType.Floating)
 
 		this.view = (): VirtualElement => {
 			return m("#contact.main-view", [
 				m(this.viewSlider),
-				this._contactList && !styles.isUsingBottomNavigation() ? m(this.newAction) : null
 			])
 		}
 

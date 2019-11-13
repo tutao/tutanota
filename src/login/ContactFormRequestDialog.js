@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
@@ -31,6 +31,7 @@ import stream from "mithril/stream/stream.js"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

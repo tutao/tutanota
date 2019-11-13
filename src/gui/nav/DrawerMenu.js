@@ -2,9 +2,8 @@
 
 import m from "mithril"
 import {getContentButtonIconBackground, theme} from "../theme"
-import {ButtonColors, ButtonN} from "../base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
-import {ButtonType} from "../base/Button"
 import {LogoutUrl} from "../base/Header"
 import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
 import {styles} from "../styles"

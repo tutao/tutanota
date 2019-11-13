@@ -17,8 +17,8 @@ import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
-import {Button, ButtonType} from "../gui/base/Button"
-import {ButtonColors} from "../gui/base/ButtonN"
+import {Button} from "../gui/base/Button"
+import {ButtonColors, ButtonType} from "../gui/base/ButtonN"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -128,22 +128,9 @@ export class SettingsView implements CurrentView {
 			this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn
 		], "SettingsView")
 
-		let newAction = new Button('add_action', () => {
-			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog(false)
-			} else {
-				this._currentViewer && this._currentViewer.addButtonClicked && this._currentViewer.addButtonClicked()
-			}
-		}, () => Icons.Add)
-			.setType(ButtonType.Floating)
 
 		this.view = (): Vnode<any> => {
-			return m("#settings.main-view", [
-				m(this.viewSlider),
-				(this._currentViewer && this._currentViewer.addButtonClicked &&
-					!(logins.isEnabled(FeatureType.WhitelabelChild) && this._selectedFolder.path === "users")) ?
-					m(newAction) : null
-			])
+			return m("#settings.main-view", m(this.viewSlider))
 		}
 		locator.eventController.addEntityListener((updates) => {
 			this.entityEventsReceived(updates)

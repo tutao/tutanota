@@ -21,7 +21,9 @@ export const ButtonType = Object.freeze({
 	Floating: 'floating',
 	Bubble: 'bubble',
 	TextBubble: 'textBubble',
-	Toggle: 'toggle'
+	Toggle: 'toggle',
+	Accent: 'accent',
+	PrimaryBorder: 'primaryBorder',
 })
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
@@ -112,10 +114,7 @@ class _Button {
 		return m("button.limit-width.noselect",
 			{
 				class: this.getButtonClasses(a).join(' '),
-				style: vnode.attrs.type === ButtonType.Login ? {
-					'border-radius': '3px',
-					'background-color': theme.content_accent,
-				} : {},
+				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
 				title: (type === ButtonType.Action
 					|| type === ButtonType.Dropdown
@@ -146,6 +145,21 @@ class _Button {
 		)
 	}
 
+	_getStyle(a) {
+		return a.type === ButtonType.Login
+			? {
+				'border-radius': '3px',
+				'background-color': theme.content_accent,
+			}
+			: a.type === ButtonType.PrimaryBorder
+				? {
+					border: `2px solid ${theme.content_accent}`,
+					'border-radius': '3px',
+					// 'background-color': theme.navigation_button_icon_bg,
+				}
+				: {}
+	}
+
 	getTitle(title: TranslationKey | lazy<string>): string {
 		return lang.getMaybeLazy(title)
 	}
@@ -166,9 +180,13 @@ class _Button {
 	}
 
 	getIconColor(a: ButtonAttrs) {
-		if (this.getType(a.type) === ButtonType.Bubble) {
+		const type = this.getType(a.type)
+
+		if (type === ButtonType.Bubble) {
 			return theme.button_bubble_fg
-		} else if (isSelected(a) || this.getType(a.type) === ButtonType.Floating) {
+		} else if (type === ButtonType.Login) {
+			return theme.content_button_icon_selected
+		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).icon_selected
 		} else {
 			return getColors(a.colors).icon
@@ -177,7 +195,7 @@ class _Button {
 
 	getIconBackgroundColor(a: ButtonAttrs) {
 		const type = this.getType(a.type)
-		if ([ButtonType.Toggle, ButtonType.Bubble].includes(type)) {
+		if ([ButtonType.Toggle, ButtonType.Bubble, ButtonType.Login].includes(type)) {
 			return 'initial'
 		} else if (isSelected(a) || type === ButtonType.Floating) {
 			return getColors(a.colors).button_selected
@@ -190,6 +208,9 @@ class _Button {
 
 	getIconClass(a: ButtonAttrs) {
 		const type = this.getType(a.type)
+		if (type === ButtonType.Login) {
+			return "flex-center items-center button-icon icon-xl pr-s"
+		}
 		if (type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
 		} else if (type === ButtonType.Floating) {
@@ -217,7 +238,7 @@ class _Button {
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
-		if (type === ButtonType.Login) {
+		if (type === ButtonType.Login || type === ButtonType.PrimaryBorder) {
 			buttonClasses.push("full-width")
 		}
 		return buttonClasses
@@ -263,22 +284,28 @@ class _Button {
 	_getLabelStyle(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let color
-		if (type === ButtonType.Primary || type === ButtonType.Secondary) {
-			color = theme.content_accent
-		} else if ([ButtonType.Toggle].includes(type)) {
-			color = theme.content_button_icon
-		} else if (type === ButtonType.Login) {
-			color = theme.content_button_icon_selected
-		} else if (type === ButtonType.Bubble || type === ButtonType.TextBubble) {
-			color = theme.content_fg
-		} else {
-			color = isSelected(a)
-				? getColors(a.colors).button_selected
-				: getColors(a.colors).button
+		switch (type) {
+			case ButtonType.Primary:
+			case ButtonType.Secondary:
+			case ButtonType.PrimaryBorder:
+				color = theme.content_accent
+				break
+			case ButtonType.Toggle:
+				color = theme.content_button_icon
+				break
+			case ButtonType.Login:
+				color = theme.content_button_icon_selected
+				break
+			case ButtonType.Bubble:
+			case ButtonType.TextBubble:
+				color = theme.content_fg
+				break
+			default:
+				color = isSelected(a) ? getColors(a.colors).button_selected : getColors(a.colors).button
 		}
 		return {
 			color,
-			'font-weight': (type === ButtonType.Primary) ? 'bold' : 'normal'
+			'font-weight': (type === ButtonType.Primary || type === ButtonType.PrimaryBorder) ? 'bold' : 'normal'
 		}
 	}
 

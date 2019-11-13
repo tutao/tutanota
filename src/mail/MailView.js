@@ -3,9 +3,9 @@ import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonColors, ButtonN} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix} from "../gui/base/NavButtonN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -80,7 +80,6 @@ export class MailView implements CurrentView {
 	view: Function;
 	selectedFolder: MailFolder;
 	mailViewer: ?MailViewer;
-	newAction: Button;
 	oncreate: Function;
 	onbeforeremove: Function;
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
@@ -103,17 +102,26 @@ export class MailView implements CurrentView {
 					style: {
 						paddingLeft: getSafeAreaInsetLeft()
 					}
-				}, Object.keys(this._mailboxExpanders)
-				         .map(mailGroupId => {
-						         let expander = this._mailboxExpanders[mailGroupId]
-						         return [
-							         m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-							         m(neverNull(expander.expanderButton).panel)
-						         ]
-					         }
-				         ))
+				}, [
+					styles.isUsingBottomNavigation()
+						? null
+						: m(".mlr-l.mt", m(ButtonN, {
+							label: 'newMail_action',
+							click: () => this._newMail().catch(PermissionError, noOp),
+							type: ButtonType.PrimaryBorder,
+						})),
+					Object.keys(this._mailboxExpanders)
+					      .map(mailGroupId => {
+							      let expander = this._mailboxExpanders[mailGroupId]
+							      return [
+								      m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+								      m(neverNull(expander.expanderButton).panel)
+							      ]
+						      }
+					      )
+				])
 			])
-		}, ColumnType.Foreground, 260, 350, () => lang.get("folderTitle_label"))
+		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
 
 
 		this.listColumn = new ViewColumn({
@@ -139,12 +147,10 @@ export class MailView implements CurrentView {
 		})
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
-		this.newAction = new Button('newMail_action', () => this._newMail().catch(PermissionError, noOp), () => Icons.Edit)
-			.setType(ButtonType.Floating)
+
 
 		this.view = (): VirtualElement => {
-			return m("#mail.main-view",
-				{
+			return m("#mail.main-view", {
 					ondragover: (ev) => {
 						// do not check the datatransfer here because it is not always filled, e.g. in Safari
 						ev.stopPropagation()
@@ -165,13 +171,9 @@ export class MailView implements CurrentView {
 						ev.stopPropagation()
 						ev.preventDefault()
 					}
-				}, [
-					m(this.viewSlider),
-					(this.selectedFolder && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
-						&& !styles.isUsingBottomNavigation())
-						? m(this.newAction)
-						: null
-				])
+				},
+				m(this.viewSlider)
+			)
 		}
 
 		this._setupShortcuts()
@@ -192,7 +194,7 @@ export class MailView implements CurrentView {
 			label: "newMail_action",
 			click: () => this._newMail(),
 			type: ButtonType.Action,
-			icon: () => Icons.Edit,
+			icon: () => Icons.PencilSquare,
 			colors: ButtonColors.Header,
 		})
 	}

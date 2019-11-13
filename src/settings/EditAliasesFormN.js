@@ -11,7 +11,6 @@ import {worker} from "../api/main/WorkerClient"
 import {noOp} from "../api/common/utils/Utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import {ButtonType} from "../gui/base/Button"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -21,6 +20,7 @@ import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

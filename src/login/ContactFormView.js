@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {animations, opacity} from "../gui/animation/Animations"
@@ -17,6 +17,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {header} from "../gui/base/Header"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

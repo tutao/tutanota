@@ -34,7 +34,7 @@ import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../
 import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
@@ -47,7 +47,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
@@ -226,7 +226,8 @@ export class SearchView implements CurrentView {
 			return m("#search.main-view", [
 				m(this.viewSlider),
 				styles.isUsingBottomNavigation()
-					? isSameTypeRef(restriction.type, MailTypeRef)
+					? null
+					: isSameTypeRef(restriction.type, MailTypeRef)
 					? m(ButtonN, {
 						click: () => {
 							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
@@ -247,7 +248,6 @@ export class SearchView implements CurrentView {
 							icon: () => Icons.Add
 						})
 						: null
-					: null
 			])
 		}
 		this._setupShortcuts()

@@ -52,7 +52,7 @@ export const size = {
 	header_logo_height: 38,
 	header_logo_height_mobile: 32,
 
-	desktop_layout_width: 1000,
+	desktop_layout_width: 1280,
 
 	list_row_height: 68,
 

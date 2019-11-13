@@ -1,5 +1,5 @@
 // @flow
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -11,6 +11,7 @@ import {TextField} from "../gui/base/TextField"
 import {formatBirthdayNumeric, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
+import {ButtonType} from "../gui/base/ButtonN"
 
 export class ContactMergeView {
 	view: Function;

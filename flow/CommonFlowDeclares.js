@@ -53,8 +53,6 @@ declare interface UpdatableSettingsViewer {
 	view(): VirtualElement | VirtualElement[];
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void;
-
-	+addButtonClicked?: () => void;
 }
 
 declare interface MithrilEvent {

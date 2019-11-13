@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Icons} from "../gui/base/icons/Icons"
-import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
+import {Button, createDropDownButton} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
 import MessageBox from "../gui/base/MessageBox"
 import {SearchListView} from "./SearchListView"
@@ -26,6 +26,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
 import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
+import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 

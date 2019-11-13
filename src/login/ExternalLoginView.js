@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {ButtonType} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {
@@ -25,7 +24,7 @@ import {windowFacade} from "../misc/WindowFacade"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CloseEventBusOption} from "../api/common/TutanotaConstants"
 import {progressIcon} from "../gui/base/Icon"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, Type as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"

@@ -126,6 +126,13 @@ export class CalendarView implements CurrentView {
 						paddingLeft: getSafeAreaInsetLeft()
 					}
 				}, [
+					styles.isUsingBottomNavigation()
+						? null
+						: m(".mlr-l.mt", m(ButtonN, {
+							label: 'newEvent_action',
+							click: () => this._newEvent(),
+							type: ButtonType.PrimaryBorder,
+						})),
 					m(".folders.pt-s", [
 						m(".folder-row.flex-space-between.button-height.plr-l", [
 							m("small.b.align-self-center.ml-negative-xs",
@@ -604,17 +611,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	view() {
-		return m(".main-view", [
-			m(this.viewSlider),
-			styles.isUsingBottomNavigation()
-				? null
-				: m(ButtonN, {
-					label: 'newEvent_action',
-					click: () => this._newEvent(),
-					icon: () => Icons.Add,
-					type: ButtonType.Floating
-				})
-		])
+		return m(".main-view", m(this.viewSlider))
 	}
 
 	updateUrl(args: Object) {

@@ -24,6 +24,9 @@ import {isAdministratedGroup} from "../search/SearchUtils"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import * as AddUserDialog from "./AddUserDialog"
 
 assertMainOrNode()
 
@@ -99,7 +102,16 @@ export class GroupListView implements UpdatableSettingsViewer {
 		})
 
 		this.view = (): VirtualElement => {
-			return m(this.list)
+			return m(".flex.flex-column.fill-absolute", [
+				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header",
+					m(".mr-negative-s.align-self-end", m(ButtonN, {
+						label: "addGroup_label",
+						type: ButtonType.Primary,
+						click: () => this.addButtonClicked()
+					}))
+				),
+				m(".rel.flex-grow", m(this.list))
+			])
 		}
 
 		this.list.loadInitial()
@@ -139,7 +151,11 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 
 	addButtonClicked() {
-		AddGroupDialog.show()
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(false)
+		} else {
+			AddGroupDialog.show()
+		}
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {

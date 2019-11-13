@@ -274,6 +274,9 @@ styles.registerStyle('main', () => {
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
 		'.bg-accent-fg': {'background-color': theme.list_accent_fg},
 		'.list-message-bg': {'background-color': theme.list_message_bg},
+		'.list-header': {
+			'border-bottom': `1px solid ${theme.list_border}`,
+		},
 
 		'.password-indicator-bg': {'background-color': theme.content_button},
 

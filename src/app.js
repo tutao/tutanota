@@ -9,7 +9,7 @@ import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
 import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
-import {Button, ButtonType} from "./gui/base/Button"
+import {Button} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
 import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
 import deletedModule from "@hot"
@@ -24,6 +24,7 @@ import {DeviceType} from "./misc/ClientConstants"
 import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
+import {ButtonType} from "./gui/base/ButtonN"
 
 assertMainOrNodeBoot()
 bootFinished()

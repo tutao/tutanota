@@ -11,24 +11,10 @@ import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
-import type {ButtonColorEnum} from "./ButtonN"
-import {ButtonColors, getColors} from "./ButtonN"
+import type {ButtonColorEnum, ButtonTypeEnum} from "./ButtonN"
+import {ButtonColors, ButtonType, getColors} from "./ButtonN"
 
 assertMainOrNodeBoot()
-
-export const ButtonType = Object.freeze({
-	Action: 'action',
-	ActionLarge: 'action-large', // action button with large icon
-	Primary: 'primary',
-	Secondary: 'secondary',
-	Dropdown: 'dropdown',
-	Login: 'login',
-	Accent: 'accent',
-	Floating: 'floating',
-	Bubble: 'bubble',
-	TextBubble: 'textBubble'
-})
-export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
 const TRUE_CLOSURE: lazy<boolean> = () => true
 

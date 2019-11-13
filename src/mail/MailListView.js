@@ -28,7 +28,6 @@ import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
-import {theme} from "../gui/theme"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Dialog} from "../gui/base/Dialog"
@@ -145,11 +144,7 @@ export class MailListView implements Component {
 
 		return this.showingTrashOrSpamFolder()
 			? m(".flex.flex-column.fill-absolute", [
-				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg", {
-					style: {
-						'border-bottom': `1px solid ${theme.list_border}`,
-					}
-				}, [
+				m(".flex.flex-column.justify-center.plr-l.list-border-right.list-bg.list-header", [
 					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
 				]),

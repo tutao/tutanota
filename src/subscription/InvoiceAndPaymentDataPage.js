@@ -12,7 +12,7 @@ import stream from "mithril/stream/stream.js"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
 import {logins} from "../api/main/LoginController"
@@ -24,6 +24,7 @@ import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import {ButtonType} from "../gui/base/ButtonN"
 
 
 /**

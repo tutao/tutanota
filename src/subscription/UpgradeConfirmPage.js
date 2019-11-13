@@ -3,7 +3,7 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {getPaymentMethodName} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
@@ -20,6 +20,7 @@ import {BadGatewayError, PreconditionFailedError} from "../api/common/error/Rest
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
 import {formatPrice, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import {ButtonType} from "../gui/base/ButtonN"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
