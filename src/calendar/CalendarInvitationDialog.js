@@ -31,7 +31,8 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 		title: () => lang.get("invitation_label"),
 		child: {
 			view: () => m(".flex.col", [
-				m(".pt.selectable", isMember ? lang.get("alreadyMember_msg") : lang.get("shareCalendarWarning_msg")),
+				m(".pt.selectable", isMember ? lang.get("alreadyMember_msg") : (lang.get("shareCalendarWarning_msg") + " "
+					+ lang.get("shareCalendarWarningAliases_msg"))),
 				m(TextFieldN, {
 					value: stream(invitation.sharedGroupName),
 					label: "calendarName_label",

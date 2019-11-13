@@ -279,7 +279,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 		type: DialogType.EditMedium,
 		title: () => lang.get("addParticipant_action"),
 		child: () => [
-			m(".pt", lang.get("shareCalendarWarning_msg")),
+			m(".pt", lang.get("shareCalendarWarning_msg") + " " + lang.get("shareCalendarWarningAliases_msg")),
 			m(invitePeopleValueTextField),
 			m(DropDownSelectorN, {
 				label: "permissions_label",
