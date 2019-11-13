@@ -34,7 +34,8 @@ export interface CurrentView extends Component {
 	+getViewSlider?: () => ?IViewSlider;
 	/** @return true if view handled press itself */
 	+handleBackButton?: () => boolean;
-	+backButtonLabelShown?: () => boolean;
+	/** @return true if "back/up" icon should be shown, false if menu icon */
+	+overrideUpIcon?: () => boolean;
 }
 
 class Header {
@@ -229,9 +230,10 @@ class Header {
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			return m(NavButtonN, {
 				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
-				icon: () => viewSlider.getBackgroundColumns()[0].visible
-					? BootIcons.MoreVertical
-					: BootIcons.Back,
+				icon: () => (this._currentView
+				&& this._currentView.overrideUpIcon ? this._currentView.overrideUpIcon() : !viewSlider.getBackgroundColumns()[0].visible)
+					? BootIcons.Back
+					: BootIcons.MoreVertical,
 				colors: NavButtonColors.Header,
 				href: () => m.route.get(),
 				click: () => {
@@ -239,7 +241,7 @@ class Header {
 						viewSlider.focusPreviousColumn()
 					}
 				},
-				hideLabel: this._currentView && this._currentView.backButtonLabelShown ? !this._currentView.backButtonLabelShown() : true,
+				hideLabel: true,
 			})
 		} else {
 			if (styles.isDesktopLayout() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
