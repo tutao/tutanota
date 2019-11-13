@@ -16,8 +16,14 @@ export function throttleRoute() {
 	}
 }
 
+export const MAIL_PREFIX = "/mail"
+export const CONTACTS_PREFIX = "/contact"
+export const CALENDAR_PREFIX = "/calendar"
+export const SEARCH_PREFIX = "/search"
+export const SETTINGS_PREFIX = "/settings"
+
 export const routes = {
-	mailsUrl: "/mail",
-	contactsUrl: '/contact',
-	settingsUrl: '/settings',
+	mailUrl: MAIL_PREFIX,
+	contactsUrl: CONTACTS_PREFIX,
+	settingsUrl: SETTINGS_PREFIX,
 }

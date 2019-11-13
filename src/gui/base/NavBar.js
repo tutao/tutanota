@@ -13,6 +13,7 @@ import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {createDropdown} from "./DropdownN"
 import {BootIcons} from "./icons/BootIcons"
+import {CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 assertMainOrNodeBoot()
 
@@ -117,9 +118,9 @@ export class NavBar {
 
 	_searchPlaceholder(): ?string {
 		const route = m.route.get()
-		if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
+		if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
 			return lang.get("searchEmails_placeholder")
-		} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
+		} else if (route.startsWith(CONTACTS_PREFIX) || route.startsWith("/search/contact")) {
 			return lang.get("searchContacts_placeholder")
 		} else if (route.startsWith("/settings/users")) {
 			return lang.get("searchUsers_placeholder")
@@ -136,9 +137,9 @@ export class NavBar {
 		return this.searchBar != null && locator != null && !locator.search.indexState().initializing
 			&& styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()
-			&& (route.startsWith("/search")
-				|| route.startsWith("/mail")
-				|| route.startsWith("/contact")
+			&& (route.startsWith(SEARCH_PREFIX)
+				|| route.startsWith(MAIL_PREFIX)
+				|| route.startsWith(CONTACTS_PREFIX)
 				|| route.startsWith("/settings/users")
 				|| route.startsWith("/settings/groups")
 				|| route.startsWith("/settings/whitelabelaccounts"))

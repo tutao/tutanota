@@ -52,7 +52,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
-import {routes, throttleRoute} from "../misc/RouteChange"
+import {MAIL_PREFIX, routes, throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
@@ -343,10 +343,10 @@ export class MailView implements CurrentView {
 					this.selectedFolder = currentlySelectedFolder
 				} else {
 					let url = this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]]
-					if (isSelectedPrefix("/mail")) {
+					if (isSelectedPrefix(MAIL_PREFIX)) {
 						this._setUrl(url)
 					} else {
-						routes.mailsUrl = url
+						routes.mailUrl = url
 					}
 				}
 			}
@@ -479,9 +479,9 @@ export class MailView implements CurrentView {
 	}
 
 	_setUrl(url: string) {
-		routes.mailsUrl = url
+		routes.mailUrl = url
 		// do not change the url if the search view is active
-		if (m.route.get().startsWith("/mail")) {
+		if (m.route.get().startsWith(MAIL_PREFIX)) {
 			this._throttledRouteSet(url + location.hash)
 		}
 	}
@@ -498,7 +498,7 @@ export class MailView implements CurrentView {
 		let folder = mailModel.getMailFolder(mailListId)
 		if (folder) {
 			this.selectedFolder = folder
-			routes.mailsUrl = this._folderToUrl[folder._id[1]]
+			routes.mailUrl = this._folderToUrl[folder._id[1]]
 			if (!mailElementId) {
 				this.mailViewer = null
 			}
@@ -516,7 +516,7 @@ export class MailView implements CurrentView {
 				label: () => getFolderName(folder),
 				icon: getFolderIcon(folder),
 				href: () => this._folderToUrl[folder._id[1]],
-				isSelectedPrefix: "/mail/" + folder.mails,
+				isSelectedPrefix: MAIL_PREFIX + folder.mails,
 				colors: ButtonColors.Nav,
 				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => {

@@ -4,11 +4,10 @@ import m from "mithril"
 import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
 import {LoginView} from "../login/LoginView"
-import {ColumnType} from "../gui/base/ViewColumn"
 import {header} from "../gui/base/Header";
 import {modal} from "../gui/base/Modal";
 import {last} from "../api/common/utils/ArrayUtils";
-import {routes} from "../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -32,9 +31,9 @@ export function handleBackPress(): boolean {
 			return true
 		} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
 			return true
-		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
-			|| currentRoute.startsWith("/search") || currentRoute.startsWith("/calendar")) { // go back to mail from other paths
-			m.route.set(routes.mailsUrl)
+		} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX)
+			|| currentRoute.startsWith(SEARCH_PREFIX) || currentRoute.startsWith(CALENDAR_PREFIX)) { // go back to mail from other paths
+			m.route.set(routes.mailUrl)
 			return true
 		} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 			// If the first background column is visible, quit
@@ -42,13 +41,13 @@ export function handleBackPress(): boolean {
 		} else if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back
 			viewSlider.focusPreviousColumn()
 			return true
-		} else if (m.route.get().startsWith("/mail/")) {
+		} else if (m.route.get().startsWith(MAIL_PREFIX)) {
 			const parts = m.route.get().split("/").filter(part => part !== "")
 			if (parts.length > 1) {
 				const selectedMailListId = parts[1]
 				const inboxMailListId = getInboxFolder(mailModel.mailboxDetails()[0].folders).mails
 				if (inboxMailListId !== selectedMailListId) {
-					m.route.set("/mail/" + inboxMailListId)
+					m.route.set(MAIL_PREFIX + inboxMailListId)
 					return true
 				}
 			}

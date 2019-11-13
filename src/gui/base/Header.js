@@ -17,7 +17,7 @@ import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
-import {routes} from "../../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -51,52 +51,31 @@ class Header {
 
 	constructor() {
 		this._currentView = null
-		let premiumUrl = '/settings/premium'
-
 		const isNotSignup = () => {
 			return !m.route.get().startsWith("/signup")
-		}
-
-		const searchViewButton: NavButtonAttrs = {
-			label: "search_label",
-			icon: () => BootIcons.Search,
-			href: "/search",
-			isSelectedPrefix: "/search",
-			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !styles.isDesktopLayout(),
-			click: () => {
-				const route = m.route.get()
-				let url
-				if (route.startsWith(routes.contactsUrl) || route.startsWith("/search/contact")) {
-					url = "/search/contact"
-				} else {
-					url = "/search/mail"
-				}
-				m.route.set(url)
-			}
 		}
 
 		this.mailNavButton = {
 			label: 'emails_label',
 			icon: () => BootIcons.Mail,
-			href: () => routes.mailsUrl,
-			isSelectedPrefix: routes.mailsUrl,
+			href: () => routes.mailUrl,
+			isSelectedPrefix: MAIL_PREFIX,
 			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
 		}
 
 		this.buttonBar = new NavBar()
-			.addButton(searchViewButton)
 			.addButton(this.mailNavButton, 0, false)
 			.addButton({
 				label: 'contacts_label',
 				icon: () => BootIcons.Contacts,
 				href: () => routes.contactsUrl,
-				isSelectedPrefix: routes.contactsUrl,
+				isSelectedPrefix: CONTACTS_PREFIX,
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
 			})
 			.addButton({
 				label: "calendar_label",
 				icon: () => BootIcons.Calendar,
-				href: "/calendar",
+				href: CALENDAR_PREFIX,
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
 					&& client.calendarSupported()
 			})
@@ -145,7 +124,7 @@ class Header {
 			&& !locator.search.indexState().initializing
 			&& !styles.isDesktopLayout()
 			&& logins.isInternalUserLoggedIn()
-			&& (route.startsWith("/search"))
+			&& (route.startsWith(SEARCH_PREFIX))
 	}
 
 	_setupShortcuts() {
@@ -153,7 +132,7 @@ class Header {
 			{
 				key: Keys.M,
 				enabled: () => logins.isUserLoggedIn(),
-				exec: key => m.route.set(routes.mailsUrl),
+				exec: key => m.route.set(routes.mailUrl),
 				help: "mailView_action"
 			},
 			{

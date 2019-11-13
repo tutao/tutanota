@@ -4,6 +4,7 @@ import m from "mithril"
 import {NavButtonN} from "../base/NavButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {size} from "../size"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 type Attrs = {width: number}
 
@@ -15,7 +16,7 @@ export class BottomNav implements MComponent<Attrs> {
 			m(NavButtonN, {
 					label: 'emails_label',
 					icon: () => BootIcons.Mail,
-					href: () => "/mail",
+					href: routes.mailUrl,
 					vertical: true,
 					fontSize
 				}
@@ -24,7 +25,7 @@ export class BottomNav implements MComponent<Attrs> {
 					label: "search_label",
 					icon: () => BootIcons.Search,
 					href: "/search/mail",
-					isSelectedPrefix: "/search",
+					isSelectedPrefix: SEARCH_PREFIX,
 					vertical: true,
 					fontSize
 				}
@@ -32,8 +33,8 @@ export class BottomNav implements MComponent<Attrs> {
 			m(NavButtonN, {
 					label: "contacts_label",
 					icon: () => BootIcons.Contacts,
-					href: "/contact",
-					isSelectedPrefix: "/contact",
+					href: () => routes.contactsUrl,
+					isSelectedPrefix: CONTACTS_PREFIX,
 					vertical: true,
 					fontSize
 				}
@@ -41,7 +42,7 @@ export class BottomNav implements MComponent<Attrs> {
 			m(NavButtonN, {
 				label: 'calendar_label',
 				icon: () => BootIcons.Calendar,
-				href: () => "/calendar",
+				href: CALENDAR_PREFIX,
 				vertical: true,
 				fontSize
 			}),
