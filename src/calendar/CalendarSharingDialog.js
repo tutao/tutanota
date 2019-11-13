@@ -272,8 +272,6 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 
 
-	const selectedLanguage = stream(getLanguage().code)
-
 	let dialog = Dialog.showActionDialog({
 
 		type: DialogType.EditMedium,
@@ -290,8 +288,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 				],
 				selectedValue: capapility,
 				dropdownWidth: 300
-			}),
-			languagePicker(selectedLanguage)
+			})
 		],
 		okAction: () => {
 			invitePeopleValueTextField.createBubbles()
@@ -300,7 +297,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 
 			} else {
 				const recipients = invitePeopleValueTextField.bubbles.map(b => b.entity)
-				sendCalendarInvitation(sharedGroupInfo, recipients, capapility(), selectedLanguage())
+				sendCalendarInvitation(sharedGroupInfo, recipients, capapility())
 					.then(success => {
 							console.log("success", success)
 							if (success) {
@@ -334,7 +331,7 @@ function languagePicker(selectedLanguage: Stream<string>): Children {
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum, notificationLanguage: string): Promise<boolean> {
 	return showProgressDialog("calendarInvitationProgress_msg",
-		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability, notificationLanguage)
+		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
 	).then(() => true)
 	 .catch(PreconditionFailedError, e => {
 		 if (logins.getUserController().isGlobalAdmin()) {

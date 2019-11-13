@@ -77,15 +77,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"notificationLanguage": {
-			"name": "notificationLanguage",
-			"id": 1615,
-			"since": 51,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"sharedGroupKey": {
 			"name": "sharedGroupKey",
 			"id": 1609,
@@ -108,7 +99,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"sentInvitation": {
 			"name": "sentInvitation",
-			"id": 1617,
+			"id": 1616,
 			"since": 51,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -118,7 +109,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sharedGroup": {
 			"name": "sharedGroup",
-			"id": 1616,
+			"id": 1615,
 			"since": 51,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",

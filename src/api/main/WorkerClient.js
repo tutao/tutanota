@@ -541,8 +541,8 @@ export class WorkerClient {
 		return this._queue.postMessage(new Request("getLog", []))
 	}
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum, notificationLanguage: string): Promise<void> {
-		return this._queue.postMessage(new Request("sendGroupInvitation", [sharedGroupInfo, sharedGroupName, recipients, shareCapability, notificationLanguage]))
+	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+		return this._queue.postMessage(new Request("sendGroupInvitation", [sharedGroupInfo, sharedGroupName, recipients, shareCapability]))
 	}
 
 	acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
