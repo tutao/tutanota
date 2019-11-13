@@ -96,8 +96,8 @@ import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
 
 assertMainOrNode()
 
-type RecipientList = $ReadOnlyArray<{name: ?string, address: string}>
-type Recipients = {to?: RecipientList, cc?: RecipientList, bcc?: RecipientList}
+export type RecipientList = $ReadOnlyArray<{name: ?string, address: string}>
+export type Recipients = {to?: RecipientList, cc?: RecipientList, bcc?: RecipientList}
 
 export class MailEditor {
 	dialog: Dialog;

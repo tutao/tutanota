@@ -1,6 +1,7 @@
 //@flow
 
 
+import type {Recipients} from "../mail/MailEditor"
 import {MailEditor} from "../mail/MailEditor"
 import {mailModel} from "../mail/MailModel"
 import {getDefaultSender, getEnabledMailAddresses} from "../mail/MailUtils"
@@ -19,38 +20,41 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 		"{inviter}": senderMailAddress,
 		"{calendarName}": getCalendarName(sharedGroupInfo.name)
 	}
-
-	_sendNotificationEmail(sharedGroupInfo.name, [], recipients, "shareCalendarInvitationEmailSubject", "shareCalendarInvitationEmailBody", senderMailAddress, replacements)
+	// Sending notifications as bcc so that invited people don't see each other
+	const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
+	_sendNotificationEmail({bcc}, "shareCalendarInvitationEmailSubject", "shareCalendarInvitationEmailBody", senderMailAddress, replacements)
 }
 
 
-export function sendAcceptNotificationEmail(sharedGroupName: string, recipient: RecipientInfo, senderMailAddress: string) {
+export function sendAcceptNotificationEmail(invitation: ReceivedGroupInvitation) {
 	const replacements = {
-		"{invitee}": senderMailAddress,
-		"{calendarName}": sharedGroupName,
-		"{recipientName}": recipient.mailAddress
+		"{invitee}": invitation.inviteeMailAddress,
+		"{calendarName}": invitation.sharedGroupName,
+		"{recipientName}": invitation.inviterMailAddress
 	}
-	_sendNotificationEmail(sharedGroupName, [recipient], [], "acceptCalendarEmailSubject", "acceptCalendarEmailBody", senderMailAddress, replacements)
+	const to = [{name: invitation.inviterName, address: invitation.inviterMailAddress}]
+	const senderMailAddress = invitation.inviteeMailAddress
+	_sendNotificationEmail({to}, "shareCalendarAcceptEmailSubject", "shareCalendarAcceptEmailBody", senderMailAddress, replacements)
 }
 
-export function sendRejectNotificationEmail(sharedGroupName: string, recipient: RecipientInfo, senderMailAddress: string) {
-	_sendNotificationEmail(sharedGroupName, [recipient], [], "rejectCalendarEmailSubject", "rejectCalendarEmailBody", senderMailAddress)
+export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation) {
+	const replacements = {
+		"{invitee}": invitation.inviteeMailAddress,
+		"{calendarName}": invitation.sharedGroupName,
+		"{recipientName}": invitation.inviterMailAddress
+	}
+	const to = [{name: invitation.inviterName, address: invitation.inviterMailAddress}]
+	const senderMailAddress = invitation.inviteeMailAddress
+	_sendNotificationEmail({to}, "shareCalendarDeclineEmailSubject", "shareCalendarDeclineEmailBody", senderMailAddress, replacements)
 }
 
-export function sendDeletionNotificationEmail(sharedGroupName: string, recipients: Array<RecipientInfo>, senderMailAddress: string) {
-	_sendNotificationEmail(sharedGroupName, recipients, [], "deleteCalendarEmailSubject", "deleteCalendarEmailBody", senderMailAddress)
-}
 
-function _sendNotificationEmail(sharedGroupName: string, recipients: Array<RecipientInfo>, bccRecipients: Array<RecipientInfo>, subject: TranslationKey, body: TranslationKey, senderMailAddress: string, replacements: {[string]: string}) {
+function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey, body: TranslationKey, senderMailAddress: string, replacements: {[string]: string}) {
 	const editor = new MailEditor(mailModel.getUserMailboxDetails())
 	const sender = getEnabledMailAddresses(mailModel.getUserMailboxDetails()).includes(senderMailAddress) ? senderMailAddress : getDefaultSender(mailModel.getUserMailboxDetails())
-
 	const subjectString = lang.get(subject)
 	const bodyString = lang.get(body, replacements)
-// Sending notifications as bcc so that invited people don't see each other
-	const to = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
-	const bcc = bccRecipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
-	editor.initWithTemplate({to, bcc}, subjectString, bodyString, true, sender)
+	editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)
 	editor.send(false)
 }
 
