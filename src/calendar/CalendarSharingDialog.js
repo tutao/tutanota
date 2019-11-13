@@ -12,7 +12,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {getLanguage, lang, languages} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
-import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
+import {createRecipientInfo, getDefaultSender, getDisplayText, getSenderName} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -34,6 +34,8 @@ import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundErr
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
+import {MailEditor} from "../mail/MailEditor"
+import {mailModel} from "../mail/MailModel"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers} from "./CalendarSharingUtils"
 
@@ -42,6 +44,23 @@ type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails
 }
 
+
+function sendShareNotificationEmail(groupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
+	const editor = new MailEditor(mailModel.getUserMailboxDetails())
+	const subject = lang.get("shareCalendarEmailSubject")
+	const body = lang.get("shareCalendarEmailBody", {
+		// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
+		"{senderName}": `${getSenderName(mailModel.getUserMailboxDetails())} &lt;${getDefaultSender(mailModel.getUserMailboxDetails())}&gt;`,
+		"{calendarName}": getCalendarName(groupInfo.name)
+	})
+	// Sending notifications as bcc so that invited people don't see each other
+	const bcc = recipients.map(({name, mailAddress}) => ({
+		name,
+		address: mailAddress
+	}))
+	editor.initWithTemplate({bcc}, subject, body, true)
+	editor.send(false)
+}
 
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
@@ -286,6 +305,7 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 							console.log("success", success)
 							if (success) {
 								dialog.close()
+								sendShareNotificationEmail(sharedGroupInfo, recipients)
 							}
 						}
 					)

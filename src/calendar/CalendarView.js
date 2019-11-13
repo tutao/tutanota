@@ -62,10 +62,10 @@ import {showCalendarSharingDialog} from "./CalendarSharingDialog"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
-import {getDisplayText} from "../mail/MailUtils"
+import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {showInvitationDialog} from "./CalendarInvitationDialog"
-import {loadGroupMembers} from "./CalendarSharingUtils"
+import {loadGroupMembers, sendDeletionNotificationEmail} from "./CalendarSharingUtils"
 
 
 export type CalendarInfo = {
@@ -498,7 +498,10 @@ export class CalendarView implements CurrentView {
 					      if (confirmed) {
 						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
 							      groupRootId: calendarInfo.groupRoot._id
-						      }))
+						      })).then(() => {
+							      const recipients = members.map(member => createRecipientInfo(neverNull(member.info.mailAddress), member.info.name, null, true))
+							      sendDeletionNotificationEmail(calendarInfo.groupInfo.name, recipients, neverNull(ownerMail))
+						      })
 					      }
 				      }
 			      )

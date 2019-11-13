@@ -1,5 +1,6 @@
 //@flow
 import {worker} from "../api/main/WorkerClient"
+import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
 import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
 import {createGroupColor} from "../api/entities/tutanota/GroupColor"
@@ -104,8 +105,18 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 
 function acceptInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.acceptGroupInvitation(invitation)
+	             .then(() => {
+		             sendAcceptNotificationEmail(invitation.sharedGroupName,
+			             createRecipientInfo(invitation.inviterMailAddress, null, null, true),
+			             invitation.inviteeMailAddress)
+	             })
 }
 
 function declineInvite(invitation: ReceivedGroupInvitation): Promise<void> {
 	return worker.rejectGroupInvitation(invitation._id)
+	             .then(() => {
+		             sendRejectNotificationEmail(invitation.sharedGroupName,
+			             createRecipientInfo(invitation.inviterMailAddress, null, null, true),
+			             invitation.inviteeMailAddress)
+	             })
 }
