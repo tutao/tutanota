@@ -12,7 +12,7 @@ type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("drawer-menu", m(".flex.col.height-100p.items-center..pt.pb", [
+		return m("drawer-menu", m(".flex.col.height-100p.items-center.pt.pb", [
 			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
