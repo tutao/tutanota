@@ -7,14 +7,14 @@ export const _TypeModel: TypeModel = {
 	"name": "GroupInvitationPostData",
 	"since": 37,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1001,
-	"rootId": "CHR1dGFub3RhAAPp",
+	"id": 1002,
+	"rootId": "CHR1dGFub3RhAAPq",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1002,
+			"id": 1003,
 			"since": 37,
 			"type": "Number",
 			"cardinality": "One",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"internalKeyData": {
 			"name": "internalKeyData",
-			"id": 1004,
+			"id": 1005,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"sharedGroupData": {
 			"name": "sharedGroupData",
-			"id": 1003,
+			"id": 1004,
 			"since": 37,
 			"type": "AGGREGATION",
 			"cardinality": "One",

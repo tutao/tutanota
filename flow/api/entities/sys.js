@@ -1738,6 +1738,7 @@ type ReceivedGroupInvitation = {
 	inviteeMailAddress: string;
 	inviterMailAddress: string;
 	inviterName: string;
+	notificationLanguage: string;
 	sharedGroupKey: Uint8Array;
 	sharedGroupName: string;
 

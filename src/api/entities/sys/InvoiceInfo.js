@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"specialPriceSharingPerUser": {
 			"name": "specialPriceSharingPerUser",
-			"id": 1627,
+			"id": 1628,
 			"since": 51,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",

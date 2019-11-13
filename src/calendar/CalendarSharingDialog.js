@@ -9,7 +9,7 @@ import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {downcast, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
-import {lang} from "../misc/LanguageViewModel"
+import {getLanguage, lang, languages} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
 import {createRecipientInfo, getDefaultSender, getDisplayText, getSenderName} from "../mail/MailUtils"
@@ -24,6 +24,7 @@ import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -271,7 +272,10 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
 
 
+	const selectedLanguage = stream(getLanguage().code)
+
 	let dialog = Dialog.showActionDialog({
+
 		type: DialogType.EditMedium,
 		title: () => lang.get("addShare_action"),
 		child: () => [
@@ -286,7 +290,8 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 				],
 				selectedValue: capapility,
 				dropdownWidth: 300
-			})
+			}),
+			languagePicker(selectedLanguage)
 		],
 		okAction: () => {
 			invitePeopleValueTextField.createBubbles()
@@ -295,7 +300,7 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 
 			} else {
 				const recipients = invitePeopleValueTextField.bubbles.map(b => b.entity)
-				sendCalendarInvitation(sharedGroupInfo, recipients, capapility())
+				sendCalendarInvitation(sharedGroupInfo, recipients, capapility(), selectedLanguage())
 					.then(success => {
 							console.log("success", success)
 							if (success) {
@@ -310,13 +315,26 @@ function showAddShareDialog(sharedGroupInfo: GroupInfo) {
 	}).setCloseHandler(() => {
 		dialog.close()
 	})
-
 }
 
 
-function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<boolean> {
+function languagePicker(selectedLanguage: Stream<string>): Children {
+	let sortedLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+	const languageDropDownAttrs: DropDownSelectorAttrs<string> = {
+		label: "notificationMailLanguage_label",
+		items: sortedLanguages.map(language => {
+			return {name: lang.get(language.textId), value: language.code}
+		}),
+		selectedValue: selectedLanguage,
+		dropdownWidth: 250
+	}
+	return m(DropDownSelectorN, languageDropDownAttrs)
+}
+
+
+function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum, notificationLanguage: string): Promise<boolean> {
 	return showProgressDialog("calendarInvitationProgress_msg",
-		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
+		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability, notificationLanguage)
 	).then(() => true)
 	 .catch(PreconditionFailedError, e => {
 		 if (logins.getUserController().isGlobalAdmin()) {

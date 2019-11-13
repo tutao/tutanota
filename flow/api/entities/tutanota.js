@@ -1096,6 +1096,7 @@ type SharedGroupData = {
 	_id: Id;
 	bucketEncInvitationSessionKey: Uint8Array;
 	capability: NumberString;
+	notificationLanguage: string;
 	sessionEncInviterName: Uint8Array;
 	sessionEncSharedGroupKey: Uint8Array;
 	sessionEncSharedGroupName: Uint8Array;

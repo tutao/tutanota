@@ -31,6 +31,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"notificationLanguage": {
+			"name": "notificationLanguage",
+			"id": 1001,
+			"since": 37,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"sessionEncInviterName": {
 			"name": "sessionEncInviterName",
 			"id": 996,

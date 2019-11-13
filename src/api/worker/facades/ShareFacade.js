@@ -29,7 +29,7 @@ export class ShareFacade {
 	}
 
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum, notificationLanguage: string): Promise<void> {
 		const sharedGroupKey = this._loginFacade.getGroupKey(sharedGroupInfo.group)
 		return resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo()).then(userGroupInfoSessionKey => {
 			return resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo).then(sharedGroupInfoSessionKey => {
@@ -42,6 +42,7 @@ export class ShareFacade {
 					bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
 					sharedGroupEncInviterGroupInfoKey: encryptKey(sharedGroupKey, neverNull(userGroupInfoSessionKey)),
 					sharedGroupEncSharedGroupInfoKey: encryptKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey)),
+					notificationLanguage: notificationLanguage,
 					capability: shareCapability,
 					sharedGroup: sharedGroupInfo.group
 				})
