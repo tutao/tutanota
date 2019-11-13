@@ -1,6 +1,5 @@
 //@flow
 import m from "mithril"
-import {lang} from "../misc/LanguageViewModel"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -13,13 +12,14 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
 import {MultiSearchViewer} from "./MultiSearchViewer"
 import {ActionBar} from "../gui/base/ActionBar"
+import {theme} from "../gui/theme"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
 export class SearchResultDetailsViewer {
 	_listView: SearchListView;
 	_viewer: ?MailViewer | ContactViewer | MultiSearchViewer;
-	_messageBox: MessageBox;
 	_viewerEntityId: ?IdTuple;
 	_multiSearchViewer: MultiSearchViewer;
 
@@ -27,14 +27,17 @@ export class SearchResultDetailsViewer {
 		this._listView = list
 		this._viewer = null
 		this._viewerEntityId = null
-		this._messageBox = new MessageBox(() => lang.get("noSelection_msg"))
 		this._multiSearchViewer = new MultiSearchViewer(list)
 	}
 
 	view(): Children {
 		let selected = this._listView.list ? this._listView.list.getSelectedEntities() : []
 		if (selected.length === 0) {
-			return m(".fill-absolute.mt-xs.plr-l", m(this._messageBox))
+			return m(".fill-absolute.mt-xs.plr-l", m(MessageBox, {
+				message: "noSelection_msg",
+				color: theme.content_message_bg,
+				icon: isSameTypeRef(this._listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,
+			}))
 		} else {
 			return this._viewer ? m(this._viewer) : null
 		}
@@ -65,7 +68,9 @@ export class SearchResultDetailsViewer {
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (entries.length === 1 && !multiSelectOperation && (selectionChanged || !this._viewer || this._viewer == this._multiSearchViewer)) {
+		if (entries.length === 1
+			&& !multiSelectOperation
+			&& (selectionChanged || !this._viewer || this._viewer == this._multiSearchViewer)) {
 			// set or update the visible mail
 			this.showEntity(entries[0].entry, true)
 		} else if (selectionChanged && (entries.length === 0 || multiSelectOperation)) {

@@ -20,6 +20,7 @@ import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {styles} from "../styles"
+import {theme} from "../theme"
 
 assertMainOrNode()
 
@@ -70,8 +71,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_lastMultiSelectWasKeyUp: boolean; // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
 
 	_idOfEntityToSelectWhenReceived: ?Id;
-
-	_emptyMessageBox: MessageBox;
+	_messageBoxDom: ?HTMLElement;
 	_renderCallback: ?{type: 'timeout', id: TimeoutID} | ?{type: 'frame', id: AnimationFrameID}
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
 	_mobileMultiSelectionActive: boolean = false;
@@ -147,8 +147,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			windowFacade.addResizeListener(updateWidth)
 		}
 
-		this._emptyMessageBox = new MessageBox(() => this._config.emptyMessage, "list-message-bg")
-			.setVisible(false)
 
 		this.view = (): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden"
@@ -211,7 +209,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 									}, progressIcon())
 								]
 							),
-							m(this._emptyMessageBox)
+							// We cannot render it conditionally because it's rendered once, we must manipulate DOM afterwards
+							m(MessageBox, {
+								message: () => this._config.emptyMessage,
+								color: theme.list_message_bg,
+								oncreate: (vnode) => {
+									this._messageBoxDom = vnode.dom
+									this._updateMessageBoxVisibility()
+								}
+							})
+
 						])
 						this._domInitialized.resolve()
 						this._init()
@@ -698,10 +705,17 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 	}
 
-	_reposition() {
-		this._emptyMessageBox.setVisible(this._loadedEntities.length === 0 && this._loadedCompletely
-			&& this._config.emptyMessage !== "")
+	_updateMessageBoxVisibility() {
+		if (this._messageBoxDom) {
+			this._messageBoxDom.style.display =
+				this._loadedEntities.length === 0 && this._loadedCompletely && this._config.emptyMessage !== ""
+					? ""
+					: "none"
+		}
+	}
 
+	_reposition() {
+		this._updateMessageBoxVisibility()
 		this.currentPosition = this._domListContainer.scrollTop
 		let rowHeight = this._config.rowHeight;
 		let maxStartPosition = (rowHeight * this._loadedEntities.length) - this.bufferHeight * 2

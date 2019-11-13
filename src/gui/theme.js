@@ -110,6 +110,7 @@ function getLightTheme() {
 	const grey_lighter = '#eaeaea'
 	const grey_minus_one = "#e1e1e1"
 	const grey_dark = '#d5d5d5'
+	const grey_semidark = '#b8b8b8'
 	const grey = '#868686'
 	const grey_darker = '#707070'
 	const grey_darkest = '#303030'
@@ -131,7 +132,7 @@ function getLightTheme() {
 		content_accent: red,
 		content_bg: light,
 		content_border: grey_dark,
-		content_message_bg: grey_lightest,
+		content_message_bg: grey_semidark,
 
 		header_bg: light,
 		header_box_shadow_bg: grey_dark,
@@ -141,7 +142,7 @@ function getLightTheme() {
 		list_bg: light,
 		list_alternate_bg: grey_lightest,
 		list_accent_fg: red,
-		list_message_bg: grey_lightest,
+		list_message_bg: grey_semidark,
 		list_border: grey_minus_one,
 
 		modal_bg: grey_darkest,

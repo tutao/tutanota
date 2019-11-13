@@ -8,6 +8,8 @@ import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {ContactView} from "./ContactView"
 import {exportContacts} from "./VCardExporter"
+import {BootIcons} from "../gui/base/icons/BootIcons"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -20,18 +22,22 @@ export class MultiContactViewer {
 
 	constructor(contactView: ContactView) {
 		this._contactView = contactView
-		let emptyMessageBox = new MessageBox(() => this._getContactSelectionMessage(contactView))
 		let actionBar = this.createActionBar()
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
-						m(".button-height"), // just for the margin
-						m(".flex-space-between", [
-							m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-							m(actionBar)
-						])
-					] : [m(emptyMessageBox)])
+							m(".button-height"), // just for the margin
+							m(".flex-space-between", [
+								m(".flex.items-center", this._getContactSelectionMessage(contactView)),
+								m(actionBar)
+							])
+						] :
+						m(MessageBox, {
+							message: () => this._getContactSelectionMessage(contactView),
+							icon: BootIcons.Contacts,
+							color: theme.content_message_bg,
+						}))
 			]
 		}
 	}

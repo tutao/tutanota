@@ -42,12 +42,12 @@ import {
 	getSenderOrRecipientHeadingTooltip,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
+	hasDifferentEnvelopeSender,
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
-import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
 import MessageBox from "../gui/base/MessageBox"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -313,8 +313,6 @@ export class MailViewer {
 		this._inlineImages = this._loadAttachments(mail, inlineFileIds)
 
 
-		let errorMessageBox = new MessageBox("corrupted_msg")
-		let updateRequested = false
 		this.view = () => {
 			return [
 				m("#mail-viewer.fill-absolute"
@@ -404,7 +402,11 @@ export class MailViewer {
 									m("small", lang.get("loading_msg"))
 								])
 								: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
-									? m(errorMessageBox)
+									? m(MessageBox, {
+										message: "corrupted_msg",
+										icon: Icons.Warning,
+										color: theme.content_message_bg,
+									})
 									: m.trust(this._htmlBody))) // this._htmlBody is always sanitized
 						)
 					]

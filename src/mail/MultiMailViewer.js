@@ -19,6 +19,8 @@ import {FeatureType} from "../api/common/TutanotaConstants";
 import {NotFoundError} from "../api/common/error/RestError"
 import {getMailBodyText, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
+import {BootIcons} from "../gui/base/icons/BootIcons"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -31,18 +33,23 @@ export class MultiMailViewer {
 
 	constructor(mailView: MailView) {
 		this._mailView = mailView
-		let emptyMessageBox = new MessageBox(() => this._getMailSelectionMessage(mailView))
 		const actions = this.createActionBar(true)
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
-					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0) ? [
-						m(".button-height"), // just for the margin
-						m(".flex-space-between", [
-							m(".flex.items-center", this._getMailSelectionMessage(mailView)),
-							m(actions)
-						])
-					] : [m(emptyMessageBox)])
+					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0)
+						? [
+							m(".button-height"), // just for the margin
+							m(".flex-space-between", [
+								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
+								m(actions)
+							])
+						]
+						: m(MessageBox, {
+							message: () => this._getMailSelectionMessage(mailView),
+							icon: BootIcons.Mail,
+							color: theme.content_message_bg,
+						}))
 			]
 		}
 	}

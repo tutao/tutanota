@@ -27,6 +27,8 @@ import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
 import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
+import {theme} from "../gui/theme"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -43,8 +45,6 @@ export class MultiSearchViewer {
 		this._searchListView = searchListView
 
 
-// //todo check searchlist for contacts or mails then display different message
-		let emptyMessageBox = new MessageBox(() => this._getSearchSelectionMessage(this._searchListView))
 		this.view = () => {
 			if (this._searchListView._lastType) {
 				if (this._searchListView._lastType === MailTypeRef) {
@@ -57,13 +57,20 @@ export class MultiSearchViewer {
 			}
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
-					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0) ? [
-						m(".button-height"), // just for the margin
-						m(".flex-space-between", [
-							m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-							m(this._viewingMails() ? mailActionBar : contactActionBar)
-						])
-					] : [m(emptyMessageBox)])
+					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
+						? [
+							m(".button-height"), // just for the margin
+							m(".flex-space-between", [
+								m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+								m(this._viewingMails() ? mailActionBar : contactActionBar)
+							])
+						]
+						: m(MessageBox, {
+							message: () => this._getSearchSelectionMessage(this._searchListView),
+							color: theme.content_message_bg,
+							icon: this._isMailList ? BootIcons.Mail : BootIcons.Contacts,
+						})
+				)
 			]
 		}
 	}

@@ -273,7 +273,6 @@ styles.registerStyle('main', () => {
 		'.list-accent-fg': {color: theme.list_accent_fg},
 		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
 		'.bg-accent-fg': {'background-color': theme.list_accent_fg},
-		'.list-message-bg': {'background-color': theme.list_message_bg},
 		'.list-header': {
 			'border-bottom': `1px solid ${theme.list_border}`,
 		},
@@ -461,6 +460,14 @@ styles.registerStyle('main', () => {
 		'.icon-xl > svg': {
 			height: px(size.icon_size_xl),
 			width: px(size.icon_size_xl)
+		},
+		'.icon-message-box': {
+			height: px(size.icon_message_box),
+			width: px(size.icon_message_box)
+		},
+		'.icon-message-box > svg': {
+			height: px(size.icon_message_box),
+			width: px(size.icon_message_box)
 		},
 		'.icon-progress > svg': {
 			'animation-name': 'rotate-icon',
