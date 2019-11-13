@@ -516,7 +516,7 @@ export class MailView implements CurrentView {
 				label: () => getFolderName(folder),
 				icon: getFolderIcon(folder),
 				href: () => this._folderToUrl[folder._id[1]],
-				isSelectedPrefix: MAIL_PREFIX + folder.mails,
+				isSelectedPrefix: MAIL_PREFIX + "/" + folder.mails,
 				colors: ButtonColors.Nav,
 				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => {

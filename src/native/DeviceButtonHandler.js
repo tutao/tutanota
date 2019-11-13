@@ -47,7 +47,7 @@ export function handleBackPress(): boolean {
 				const selectedMailListId = parts[1]
 				const inboxMailListId = getInboxFolder(mailModel.mailboxDetails()[0].folders).mails
 				if (inboxMailListId !== selectedMailListId) {
-					m.route.set(MAIL_PREFIX + inboxMailListId)
+					m.route.set(MAIL_PREFIX + "/" + inboxMailListId)
 					return true
 				}
 			}
