@@ -47,7 +47,7 @@ export type Theme = {
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
 	navigation_menu_bg?: string,
-	drawer_menu_icon?: string
+	navigation_menu_icon?: string
 }
 
 export const themeId: Stream<ThemeId> = stream(getThemeId())
@@ -103,6 +103,14 @@ export function getElevatedBackground(): string {
 	return theme.elevated_bg || theme.content_bg
 }
 
+export function getNavigationMenuBg() {
+	return theme.navigation_menu_bg || theme.navigation_bg
+}
+
+export function getNavigationMenuIcon() {
+	return theme.navigation_menu_icon || theme.navigation_button_icon
+}
+
 function getLightTheme() {
 	const light = '#ffffff'
 
@@ -155,7 +163,7 @@ function getLightTheme() {
 		navigation_button_selected: red,
 		navigation_button_icon_selected: light,
 		navigation_menu_bg: grey_lighter,
-		drawer_menu_icon: grey
+		navigation_menu_icon: grey
 	}
 }
 
@@ -219,6 +227,6 @@ function getDarkTheme(): Theme {
 		navigation_button_selected: green,
 		navigation_button_icon_selected: lighter,
 		navigation_menu_bg: dark_darkest,
-		drawer_menu_icon: light,
+		navigation_menu_icon: light,
 	}
 }

@@ -6,7 +6,7 @@ import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/Env"
 import {theme} from "./theme.js"
 import {BrowserType} from "../misc/ClientConstants"
-import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground} from "./theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuBg} from "./theme"
 
 assertMainOrNodeBoot()
 
@@ -1179,7 +1179,7 @@ styles.registerStyle('main', () => {
 
 		"drawer-menu": {
 			width: px(size.drawer_menu_width),
-			background: theme.navigation_menu_bg,
+			background: getNavigationMenuBg(),
 			'border-right': `0.5px solid ${theme.navigation_border}`,
 		},
 

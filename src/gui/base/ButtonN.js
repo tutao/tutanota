@@ -6,7 +6,7 @@ import {addFlash, removeFlash} from "./Flash"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, theme} from "../theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
 
 assertMainOrNodeBoot()
@@ -52,7 +52,7 @@ export function getColors(buttonColors: ?ButtonColorEnum) {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
 				button_icon_bg: "transparent",
-				icon: theme.drawer_menu_icon,
+				icon: getNavigationMenuIcon(),
 				icon_selected: theme.content_button_icon_selected,
 				border: getElevatedBackground()
 			}
