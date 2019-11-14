@@ -9,7 +9,7 @@ import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {downcast, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
-import {getLanguage, lang, languages} from "../misc/LanguageViewModel"
+import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
 import {createRecipientInfo, getDisplayText} from "../mail/MailUtils"
@@ -24,7 +24,6 @@ import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
 import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -104,7 +103,8 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 						groupDetails
 					}),
 					okAction: null,
-					cancelAction: () => unsubscribeEventListener()
+					cancelAction: () => unsubscribeEventListener(),
+					cancelActionTextId: 'close_alt'
 				}
 			)
 
@@ -290,6 +290,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 			}
 
 		},
+		okActionTextId: 'invite_alt'
 	}).setCloseHandler(() => {
 		dialog.close()
 	})
