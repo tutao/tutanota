@@ -156,8 +156,6 @@ styles.registerStyle('main', () => {
 
 		".white-space-pre": {'white-space': "pre"},
 
-		//view: position_absolute(0, 0, 0, 0),
-
 		// margins
 		'.m-0': {margin: 0},
 		'.mt': {'margin-top': px(size.vpad)},
@@ -491,7 +489,6 @@ styles.registerStyle('main', () => {
 		// the main view
 		'.main-view': {
 			position: 'absolute',
-			// top: px(size.navbar_height),
 			top: 0,
 			right: px(0),
 			bottom: px(0),
@@ -1189,10 +1186,6 @@ styles.registerStyle('main', () => {
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},
 			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},
-			// adjust padding for mobile devices
-			//'.plr-l': {'padding-left': px(size.hpad_large_mobile), 'padding-right': px(size.hpad_large_mobile)},
-			//'.pl-l': {'padding-left': px(size.hpad_large_mobile)},
-			//'.pr-l': {'padding-right': px(size.hpad_large_mobile)},
 
 			".fixed-bottom-right": {bottom: px(size.hpad_large_mobile + size.bottom_nav_bar), right: px(size.hpad_large_mobile)},
 			'.pt-responsive': {'padding-top': px(size.hpad_large)},
