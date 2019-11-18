@@ -229,7 +229,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 /**
  * Returns the session key for the provided service response:
  * * null, if the instance is unencrypted
- * * the decrypted _ownerAsyncEncSessionKey, if it is available
+ * * the decrypted _ownerPublicEncSessionKey, if it is available
  *
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
  *
@@ -246,7 +246,7 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
 				console.log("failed to decrypt rsa key for group with id " + group._id)
 				throw e
 			}
-			return rsaDecrypt(privKey, base64ToUint8Array(instance._ownerAsyncEncSessionKey))
+			return rsaDecrypt(privKey, base64ToUint8Array(instance._ownerPublicEncSessionKey))
 				.then(decryptedBytes => uint8ArrayToBitArray(decryptedBytes))
 		})
 	}
