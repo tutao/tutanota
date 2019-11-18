@@ -299,22 +299,29 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<boolean> {
 	return showProgressDialog("calendarInvitationProgress_msg",
 		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
-	).then(() => true)
-	 .catch(PreconditionFailedError, e => {
-		 if (logins.getUserController().isGlobalAdmin()) {
-			 return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
-			              .then(confirmed => {
-				              if (confirmed) {
-					              showSharingBuyDialog(true)
-				              }
-			              }).return(false)
-		 } else {
-			 return Dialog.error("sharingFeatureNotOrderedUser_msg").return(false)
-		 }
-	 }).catch(RecipientsNotFoundError, e => {
-			let invalidRecipients = e.message.join("\n")
-			return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-				+ invalidRecipients).return(false)
-		})
+	).then((groupInvitationReturn) => {
+		if (groupInvitationReturn.existingMailAddresses.length > 0) {
+			let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
+			return Dialog.error(() => lang.get("existingMailAddress_msg") + "\n"
+				+ existingMailAddresses).return(false)
+		} else {
+			return true
+		}
+	}).catch(PreconditionFailedError, e => {
+		if (logins.getUserController().isGlobalAdmin()) {
+			return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+			             .then(confirmed => {
+				             if (confirmed) {
+					             showSharingBuyDialog(true)
+				             }
+			             }).return(false)
+		} else {
+			return Dialog.error("sharingFeatureNotOrderedUser_msg").return(false)
+		}
+	}).catch(RecipientsNotFoundError, e => {
+		let invalidRecipients = e.message.join("\n")
+		return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+			+ invalidRecipients).return(false)
+	})
 }
 

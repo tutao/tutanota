@@ -1113,6 +1113,13 @@ type GroupInvitationPostData = {
 	sharedGroupData: SharedGroupData;
 }
 
+type GroupInvitationPostReturn = {
+	_type: TypeRef<GroupInvitationPostReturn>;
+	_format: NumberString;
+
+	existingMailAddresses: MailAddress[];
+}
+
 type GroupInvitationPutData = {
 	_type: TypeRef<GroupInvitationPutData>;
 	_format: NumberString;

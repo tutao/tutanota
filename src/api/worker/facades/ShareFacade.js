@@ -1,6 +1,6 @@
 //@flow
 import {assertWorkerOrNode} from "../../Env"
-import {serviceRequestVoid} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {_TypeModel as GroupInfoTypeModel} from "../../entities/sys/GroupInfo"
@@ -16,6 +16,7 @@ import {bitArrayToUint8Array, uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvitationPostData"
 import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
 import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvitationDeleteData"
+import {GroupInvitationPostReturnTypeRef} from "../../entities/tutanota/GroupInvitationPostReturn"
 
 assertWorkerOrNode()
 
@@ -29,7 +30,7 @@ export class ShareFacade {
 	}
 
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<void> {
+	sendGroupInvitation(sharedGroupInfo: GroupInfo, sharedGroupName: string, recipients: Array<RecipientInfo>, shareCapability: ShareCapabilityEnum): Promise<GroupInvitationPostReturn> {
 		const sharedGroupKey = this._loginFacade.getGroupKey(sharedGroupInfo.group)
 		return resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo()).then(userGroupInfoSessionKey => {
 			return resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo).then(sharedGroupInfoSessionKey => {
@@ -60,7 +61,7 @@ export class ShareFacade {
 					})
 				}).then(() => {
 					if (notFoundRecipients.length > 0) throw new RecipientsNotFoundError(notFoundRecipients)
-					return serviceRequestVoid(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData)
+					return serviceRequest(TutanotaService.GroupInvitationService, HttpMethod.POST, invitationData, GroupInvitationPostReturnTypeRef)
 				})
 			})
 		})
