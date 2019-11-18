@@ -1,4 +1,3 @@
 // @flow
 
-export const BaseService = { 
-}
+export const BaseService = {}
