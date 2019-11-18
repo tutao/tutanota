@@ -7,14 +7,22 @@ import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} fro
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {load, loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
-import {ConnectionError, handleRestError, NotAuthorizedError, NotFoundError, ServiceUnavailableError} from "../common/error/RestError"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	ConnectionError,
+	handleRestError,
+	NotAuthorizedError,
+	NotFoundError,
+	ServiceUnavailableError, SessionExpiredError
+} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
-import {CloseEventBusOption, GroupType} from "../common/TutanotaConstants"
+import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
 
@@ -30,6 +38,10 @@ const EventBusState = Object.freeze({
 type EventBusStateEnum = $Values<typeof EventBusState>;
 
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
+const NORMAL_SHUTDOWN_CLOSE_CODE = 1
+const LARGE_RECONNECT_INTERVAL = [60, 120]
+const SMALL_RECONNECT_INTERVAL = [5, 10]
+const MEDIUM_RECONNECT_INTERVAL = [20, 40]
 
 export class EventBusClient {
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
@@ -55,6 +67,7 @@ export class EventBusClient {
 	 * Represents a currently retried executing due to a ServiceUnavailableError
 	 */
 	_serviceUnavailableRetry: ?Promise<void>;
+	_failedConnectionAttempts: number = 0;
 
 	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
 		this._worker = worker
@@ -111,6 +124,7 @@ export class EventBusClient {
 		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
 		this._socket.onopen = () => {
+			this._failedConnectionAttempts = 0
 			console.log("ws open: ", new Date(), "state:", this._state);
 			this._initEntityEvents(reconnect)
 			this._worker.updateWebSocketState("connected")
@@ -233,14 +247,16 @@ export class EventBusClient {
 	}
 
 	_close(event: CloseEvent) {
+		this._failedConnectionAttempts++
 		console.log(new Date().toISOString(), "ws _close: ", event, "state:", this._state);
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again
-		if (event.code === 4401 || event.code === 4470 || event.code === 4472) {
+		const serverCode = event.code - 4000
+		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this._terminate()
-			this._worker.sendError(handleRestError(event.code - 4000, "web socket error"))
-		} else if (event.code === 4440) {
+			this._worker.sendError(handleRestError(serverCode, "web socket error"))
+		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this._state = EventBusState.Suspended
 			this._worker.updateWebSocketState("connecting")
@@ -251,12 +267,24 @@ export class EventBusClient {
 				this._immediateReconnect = false
 				this.tryReconnect(false, false);
 			} else {
-				this.tryReconnect(false, false, 1000 * randomIntFromInterval(30, 120))
+				let reconnectionInterval: [number, number]
+
+				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE) {
+					reconnectionInterval = LARGE_RECONNECT_INTERVAL
+				} else if (this._failedConnectionAttempts === 1) {
+					reconnectionInterval = SMALL_RECONNECT_INTERVAL
+				} else if (this._failedConnectionAttempts === 2) {
+					reconnectionInterval = MEDIUM_RECONNECT_INTERVAL
+				} else {
+					reconnectionInterval = LARGE_RECONNECT_INTERVAL
+				}
+				this.tryReconnect(false, false, SECOND_MS * randomIntFromInterval(reconnectionInterval[0], reconnectionInterval[1]))
 			}
 		}
 	}
 
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: ?number = null) {
+		console.log("tryReconnect, closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState, "delay", delay)
 		if (this._reconnectTimer) {
 			// prevent reconnect race-condition
 			clearTimeout(this._reconnectTimer)

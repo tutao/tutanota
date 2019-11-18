@@ -321,6 +321,7 @@ export class EditSecondFactorsForm {
 
 				const dialog = Dialog.showActionDialog({
 					title: lang.get("add_action"),
+					allowOkWithReturn: true,
 					child: {
 						view: () => [
 							m(DropDownSelectorN, typeDropdownAttrs),
@@ -359,6 +360,7 @@ export class EditSecondFactorsForm {
 			title: lang.get("recoveryCode_label"),
 			type: DialogType.EditMedium,
 			child: () => m(".pt", lang.get("recoveryCode_msg")),
+			allowOkWithReturn: true,
 			okAction: (dialog) => {
 				dialog.close()
 				RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)

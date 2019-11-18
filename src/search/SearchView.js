@@ -4,7 +4,13 @@ import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {FULL_INDEXED_TIMESTAMP, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../api/common/TutanotaConstants"
+import {
+	FeatureType,
+	FULL_INDEXED_TIMESTAMP,
+	MailFolderType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType
+} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -19,16 +25,16 @@ import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
 import {createRestriction, getFreeSearchStartDate, getRestriction, getSearchUrl, setSearchUrl} from "./SearchUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
-import {load} from "../api/main/Entity"
+import {load, loadAll} from "../api/main/Entity"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {SEARCH_CATEGORIES, SEARCH_MAIL_FIELDS} from "../search/SearchUtils"
 import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
-import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
-import {Button} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
@@ -41,6 +47,11 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
+import {ButtonN} from "../gui/base/ButtonN"
+import {PermissionError} from "../api/common/error/PermissionError"
+import {newMail} from "../mail/MailEditor"
+import {ContactEditor} from "../contacts/ContactEditor";
+import {LazyContactListId} from "../contacts/ContactUtils";
 
 assertMainOrNode()
 
@@ -206,7 +217,30 @@ export class SearchView implements CurrentView {
 		], "ContactView")
 
 		this.view = (): VirtualElement => {
-			return m("#search.main-view", m(this.viewSlider))
+			const restriction = getRestriction(m.route.get())
+			return m("#search.main-view", [
+				m(this.viewSlider),
+				isSameTypeRef(restriction.type, MailTypeRef)
+					? m(ButtonN, {
+						click: () => {
+							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
+						},
+						label: "newMail_action",
+						type: ButtonType.Floating,
+						icon: () => Icons.Edit
+					})
+					: isSameTypeRef(restriction.type, ContactTypeRef)
+					? m(ButtonN, {
+						click: () => {
+							LazyContactListId.getAsync().then(contactListId => {
+								new ContactEditor(null, contactListId, null).show()
+							})						},
+						label: "newContact_action",
+						type: ButtonType.Floating,
+						icon: () => Icons.Add
+					})
+					: null
+			])
 		}
 		this._setupShortcuts()
 
@@ -343,6 +377,21 @@ export class SearchView implements CurrentView {
 				shift: true,
 				exec: () => this._searchList.selectNext(true),
 				help: "addNext_action"
+			},
+			{
+				key: Keys.N,
+				exec: () => {
+					const restriction = getRestriction(m.route.get()).type
+					if (isSameTypeRef(restriction, MailTypeRef)) {
+						newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
+					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
+						LazyContactListId.getAsync().then(contactListId => {
+							new ContactEditor(null, contactListId, null).show()
+						})
+					}
+				},
+				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly),
+				help: "newMail_action"
 			},
 			{
 				key: Keys.DELETE,

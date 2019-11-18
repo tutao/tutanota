@@ -7,7 +7,7 @@ import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
 import {createUserAlarmInfo} from "../../../src/api/entities/sys/UserAlarmInfo"
 import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
-import {getAllDayDateUTC} from "../../../src/calendar/CalendarUtils"
+import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 
 const zone = "Europe/Berlin"
 const now = new Date(1565704860630)

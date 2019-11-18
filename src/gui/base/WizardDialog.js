@@ -8,7 +8,7 @@ import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
 import {Icon} from "./Icon"
-import {theme} from "../theme"
+import {getContentButtonIconBackground, theme} from "../theme"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 
@@ -167,6 +167,7 @@ class WizardPagingButton {
 	view(vnode: Vnode<WizardPagingButtonAttrs>) {
 		const selectedPageIndex = vnode.attrs.getSelectedPageIndex()
 		const pageIndex = vnode.attrs.pageIndex
+		const filledBg = getContentButtonIconBackground()
 		return m(".button-content.flex-center.items-center", {
 				style: {
 					marginTop: "-22px",
@@ -180,16 +181,16 @@ class WizardPagingButton {
 			}, m(".button-icon.flex-center.items-center", {
 				style: {
 					border: selectedPageIndex === pageIndex ?
-						`2px solid ${theme.content_accent}` : `1px solid ${theme.content_button}`,
+						`2px solid ${theme.content_accent}` : `1px solid ${filledBg}`,
 					color: selectedPageIndex === pageIndex ? theme.content_accent : "inherit",
-					'background-color': (pageIndex < selectedPageIndex) ? theme.content_button : theme.content_bg,
+					'background-color': (pageIndex < selectedPageIndex) ? filledBg : theme.content_bg,
 
 				}
 			}, pageIndex < selectedPageIndex ? m(Icon, {
 				icon: Icons.Checkmark,
 				style: {
 					fill: theme.content_button_icon,
-					'background-color': theme.content_button
+					'background-color': filledBg
 				}
 			}) : "" + (pageIndex + 1))
 		)

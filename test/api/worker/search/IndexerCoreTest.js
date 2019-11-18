@@ -31,7 +31,7 @@ import {
 } from "../../../../src/api/common/utils/Encoding"
 import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import {makeCore, spy} from "../../TestUtils"
-import {fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
 import {elementIdPart, listIdPart} from "../../../../src/api/common/EntityFunctions"
 import {DbTransaction, ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"

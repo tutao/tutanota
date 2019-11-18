@@ -195,11 +195,11 @@ type JsRequestType = 'createMailEditor'
 	| 'showAlertDialog'
 	| 'openMailbox'
 	| 'keyboardSizeChanged'
-	| 'sendTranslations'
 	| 'print'
 	| 'openFindInPage'
 	| 'reportError'
 	| 'openCalendar'
+	| 'visibilityChange'
 
 type WebContentsMessage
 	= 'setup-context-menu'

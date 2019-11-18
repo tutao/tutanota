@@ -58,7 +58,7 @@ export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array,
 /**
  * Decrypts the given words with AES 256 in CBC mode.
  * @param key The key to use for the decryption.
- * @param words The ciphertext encoded as words.
+ * @param encryptedBytes The ciphertext.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @param useMac If true, a 256 bit HMAC is assumed to be appended to the encrypted data and it is checked before decryption.
  * @return The decrypted bytes.
@@ -88,8 +88,7 @@ export function aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePad
 	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
 	try {
 		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
-		let decryptedBytes = new Uint8Array(bitArrayToUint8Array(decrypted))
-		return decryptedBytes
+		return new Uint8Array(bitArrayToUint8Array(decrypted))
 	} catch (e) {
 		throw new CryptoError("aes decryption failed", e)
 	}
@@ -140,14 +139,14 @@ export function aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array,
 /**
  * Decrypts the given words with AES128 in CBC mode.
  * @param key The key to use for the decryption.
- * @param words The ciphertext encoded as words.
+ * @param encryptedBytes The ciphertext encoded as bytes.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return The decrypted bytes.
  */
 export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_128)
 
-	let useMac = encryptedBytes.length % 2 == 1
+	let useMac = encryptedBytes.length % 2 === 1
 	let subKeys = getAes128SubKeys(key, useMac)
 	let cipherTextWithoutMac
 	if (useMac) {
@@ -170,8 +169,7 @@ export function aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePad
 	let ciphertext = cipherTextWithoutMac.slice(IV_BYTE_LENGTH)
 	try {
 		let decrypted = sjcl.mode.cbc.decrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(ciphertext), uint8ArrayToBitArray(iv), [], usePadding)
-		let decryptedBytes = new Uint8Array(bitArrayToUint8Array(decrypted))
-		return decryptedBytes
+		return new Uint8Array(bitArrayToUint8Array(decrypted))
 	} catch (e) {
 		throw new CryptoError("aes decryption failed", e)
 	}

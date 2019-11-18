@@ -19,9 +19,11 @@ export type Theme = {
 	content_button_selected: string,
 	content_button_icon: string,
 	content_button_icon_selected: string,
+	content_button_icon_bg?: string,
 	content_accent: string,
 	content_border: string,
 	content_message_bg: string,
+
 
 	header_bg: string,
 	header_box_shadow_bg: string,
@@ -35,10 +37,12 @@ export type Theme = {
 	list_border: string,
 
 	modal_bg: string,
+	elevated_bg?: string,
 
 	navigation_bg: string,
 	navigation_border: string,
 	navigation_button: string,
+	navigation_button_icon_bg?: string,
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
@@ -54,7 +58,8 @@ export let theme: Theme = getTheme()
 export let defaultTheme: Theme = getLightTheme()
 
 themeId.map(() => {
-	theme = Object.assign(theme, getTheme())
+	// Always overwrite light theme so that optional things are not kept when switching
+	theme = Object.assign(getLightTheme(), getTheme())
 })
 
 function getThemeId(): ThemeId {
@@ -84,6 +89,17 @@ export function updateCustomTheme(updatedTheme: Object) {
 	themeId('custom')
 }
 
+export function getContentButtonIconBackground(): string {
+	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg
+}
+
+export function getNavButtonIconBackground(): string {
+	return theme.navigation_button_icon_bg || theme.navigation_button // fallback for the new color content_button_icon_bg
+}
+
+export function getElevatedBackground(): string {
+	return theme.elevated_bg || theme.content_bg
+}
 
 function getLightTheme() {
 	const light = '#ffffff'
@@ -127,6 +143,7 @@ function getLightTheme() {
 		list_border: grey_dark,
 
 		modal_bg: grey_darkest,
+		elevated_bg: light,
 
 		navigation_bg: grey_lighter,
 		navigation_border: grey_dark,
@@ -138,55 +155,62 @@ function getLightTheme() {
 }
 
 function getDarkTheme(): Theme {
+	// Assuming the background is black #000000 (rgb(0,0,0)) and text is white #000000 (rgb(255, 255, 255)) and recommended opacity of 87%
+	// we get (x1 being foreground, x2 being background, x3 being result)
+	// x3 = x2 + (x1-x2)*a1 or x3 = 0 + (255 - 0) * 0.87 = 221
+	// rgb(221, 221, 221) = #DDDDDD
+	// https://stackoverflow.com/questions/12228548/finding-equivalent-color-with-opacity
+	const lightest = '#DDDDDD'
+	const lighter = '#aeaeae'
+	const light = '#999999'
 
-	const lightest = '#fff'
-	const lighter = '#c5c7c7'
-	const light = '#B0B0B0'
-	const grey = '#909090'
+	//#999999 // button text
 
-	const dark_lightest = '#5e5c5c'
-	const dark_lighter = '#4a4a4a'
-	const dark = '#3b3a3a'
-	const dark_darkest = '#222222'
+	const dark_lightest = '#4e4e4e'
+	const dark_lighter = '#232323'
+	const dark = '#222222'
+	const dark_darkest = '#111111'
 
-	const cyan = '#76cbda'
+	const green = '#00d2a7'
 
 	return {
 		logo: LogoSvg.Cyan,
 
-
 		button_bubble_bg: dark_lightest,
-		button_bubble_fg: lighter,
+		button_bubble_fg: lightest,
 
-		content_fg: lighter,
-		content_button: light,
-		content_button_selected: cyan,
-		content_button_icon: dark_lighter,
-		content_button_icon_selected: lightest,
-		content_accent: cyan,
-		content_bg: dark_lighter,
-		content_border: light,
+		content_fg: lightest,
+		content_button: lighter,
+		content_button_selected: green,
+		content_button_icon_bg: dark_lightest,
+		content_button_icon: lightest,
+		content_button_icon_selected: dark_lighter,
+		content_accent: green,
+		content_bg: dark_darkest,
+		content_border: dark_lightest,
 		content_message_bg: dark_lightest,
 
 
 		header_bg: dark,
 		header_box_shadow_bg: dark_darkest,
-		header_button: light,
-		header_button_selected: cyan,
+		header_button: lighter,
+		header_button_selected: green,
 
-		list_bg: dark,
+		list_bg: dark_darkest,
 		list_alternate_bg: dark_lighter,
-		list_accent_fg: cyan,
+		list_accent_fg: green,
 		list_message_bg: dark_lightest,
-		list_border: dark,
+		list_border: dark_lightest,
 
 		modal_bg: dark_darkest,
+		elevated_bg: dark_lighter,
 
-		navigation_bg: dark_lightest,
-		navigation_border: dark,
-		navigation_button: light,
-		navigation_button_icon: dark_lighter,
-		navigation_button_selected: cyan,
-		navigation_button_icon_selected: lightest,
+		navigation_bg: dark_lighter,
+		navigation_border: dark_lightest,
+		navigation_button: lighter,
+		navigation_button_icon_bg: dark_lightest,
+		navigation_button_icon: lightest,
+		navigation_button_selected: green,
+		navigation_button_icon_selected: lighter,
 	}
 }

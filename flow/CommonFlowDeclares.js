@@ -153,7 +153,7 @@ declare interface View {
 declare interface ModalComponent {
 	hideAnimation(): Promise<void>;
 
-	onClose(e: Event): void;
+	onClose(): void;
 
 	shortcuts(): Shortcut[];
 

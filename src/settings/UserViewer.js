@@ -346,6 +346,7 @@ export class UserViewer {
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {view: () => m(dropdown)},
+						allowOkWithReturn: true,
 						okAction: addUserToGroupOkAction
 					})
 				}
@@ -376,6 +377,7 @@ export class UserViewer {
 							Dialog.showActionDialog({
 								title: lang.get("responsiblePersons_label"),
 								child: {view: () => m(dropdown)},
+								allowOkWithReturn: true,
 								okAction: addUserToContactFormOkAction
 							})
 						})

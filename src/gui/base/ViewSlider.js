@@ -30,7 +30,7 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
  * resolution on any type of device.
  */
-export class ViewSlider {
+export class ViewSlider implements IViewSlider {
 	columns: ViewColumn[];
 	_mainColumn: ViewColumn;
 	focusedColumn: ViewColumn;
@@ -121,6 +121,8 @@ export class ViewSlider {
 		this.updateOffsets(this.columns)
 
 		this._visibleBackgroundColumns = visibleColumns
+
+		this.columns.forEach(column => column.visible = (column === this.focusedColumn || visibleColumns.includes(column)))
 
 		if (this.allColumnsVisible()) {
 			this.focusedColumn.isInForeground = false
@@ -213,7 +215,10 @@ export class ViewSlider {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
 			}
 			return this._busy;
-		}).finally(() => m.redraw()) // for updating header bar after animation
+		}).finally(() => {
+			m.redraw()
+			viewColumn._domColumn && viewColumn._domColumn.focus()
+		}) // for updating header bar after animation
 	}
 
 	/**
@@ -224,7 +229,9 @@ export class ViewSlider {
 			easingFunction: ease.inOut
 		}).finally(() => {
 			// replace the visible column
-			this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
+			const [removed] = this._visibleBackgroundColumns.splice(0, 1, nextVisibleViewColumn)
+			removed.visible = false
+			nextVisibleViewColumn.visible = true
 		})
 	}
 
@@ -236,6 +243,7 @@ export class ViewSlider {
 		const colRect = foregroundColumn._domColumn.getBoundingClientRect()
 		const oldOffset = colRect.left + colRect.width
 		let newOffset = foregroundColumn.getOffsetForeground(toForeground)
+		foregroundColumn.visible = toForeground
 
 		this._isModalBackgroundVisible = toForeground
 		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
@@ -285,6 +293,15 @@ export class ViewSlider {
 			return this.columns[visibleColumnIndex - 1]
 		}
 		return null
+	}
+
+	isFirstBackgroundColumnFocused() {
+		return this.columns.filter(column => column.columnType === ColumnType.Background)
+			.indexOf(this.focusedColumn) === 0
+	}
+
+	isForegroundColumnFocused() {
+		return this.focusedColumn && this.focusedColumn.columnType === ColumnType.Foreground
 	}
 
 	allColumnsVisible(): boolean {

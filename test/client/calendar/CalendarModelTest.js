@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec/ospec.js"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createRepeatRuleWithValues, getAllDayDateUTC, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
+import {createRepeatRuleWithValues, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, neverNull} from "../../../src/api/common/utils/Utils"
 import {mapToObject} from "../../api/TestUtils"
@@ -15,6 +15,7 @@ import {
 import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
 import {generateEventElementId} from "../../../src/api/common/utils/CommonCalendarUtils"
+import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {

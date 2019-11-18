@@ -1,26 +1,19 @@
 // @flow
 import {autoUpdater} from 'electron-updater'
-import {net} from 'electron'
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
-import {NotificationResult} from './DesktopNotifier'
-import {lang} from './DesktopLocalizationProvider.js'
+import {NotificationResult} from './DesktopConstants'
+import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfigHandler} from './DesktopConfigHandler'
-import type {DeferredObject} from "../api/common/utils/Utils"
-import {defer, neverNull} from "../api/common/utils/Utils"
-import {handleRestError} from "../api/common/error/RestError"
+import {neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./DesktopTray"
 
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
 	_notifier: DesktopNotifier;
-
 	_updatePollInterval: ?IntervalID;
-	_keyRetrievalTimeout: ?TimeoutID;
-	_foundKey: DeferredObject<void>;
 	_checkUpdateSignature: boolean;
-	_pubKey: string;
 	_errorCount: number;
 	_fallbackPollInterval: number = 15 * 60 * 1000;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
@@ -38,17 +31,16 @@ export class ElectronUpdater {
 			warn: (m: string, ...args: any) => console.warn.apply(console, ["autoUpdater warn:\n", m].concat(args)),
 			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
 		}
-		this._foundKey = defer()
 		autoUpdater.logger = null
 		autoUpdater.on('update-available', updateInfo => {
 			this._logger.info("update-available")
 			this._stopPolling()
-			this._foundKey.promise
-			    .then(() => this._verifySignature(updateInfo))
-			    .then(() => this._downloadUpdate())
-			    .catch(UpdateError, e => {
-				    this._logger.warn("invalid signature, could not update", e)
-			    })
+			Promise
+				.any(this._conf.get("pubKeys").map(pk => this._verifySignature(pk, updateInfo)))
+				.then(() => this._downloadUpdate())
+				.catch(UpdateError, e => {
+					this._logger.warn("invalid signature, could not update", e)
+				})
 		}).on('update-not-available', info => {
 			this._logger.info("update not available:", info)
 		}).on('update-downloaded', info => {
@@ -93,91 +85,27 @@ export class ElectronUpdater {
 
 		this._checkUpdateSignature = this._conf.get('checkUpdateSignature')
 		autoUpdater.autoDownload = !this._checkUpdateSignature
-		if (this._checkUpdateSignature) {
-			this._trackPublicKey(this._conf.get("pubKeyUrl"))
-		} else {
-			this._foundKey.resolve()
-		}
-		this._foundKey.promise
-		    .then(() => this._startPolling())
-		    .catch((e: Error) => {
-			    this._logger.error("ElectronUpdater.start() failed,", e.message)
-		    })
+		this._startPolling()
 	}
 
-	_verifySignature(updateInfo: UpdateInfo): Promise<void> {
+	_verifySignature(pubKey: string, updateInfo: UpdateInfo): Promise<void> {
 		return !this._checkUpdateSignature
 			? Promise.resolve()
-			: new Promise((resolve, reject) => {
+			: Promise.resolve().then(() => {
 				try {
 					let hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
 					let signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
-					let publicKey = forge.pki.publicKeyFromPem(this._pubKey)
+					let publicKey = forge.pki.publicKeyFromPem(pubKey)
 
 					if (publicKey.verify(hash, signature)) {
 						this._logger.info('Signature verification successful, downloading update')
-						resolve()
-					} else {
-						reject(new UpdateError('Signature verification failed, skipping update'))
+						return
 					}
 				} catch (e) {
-					reject(new UpdateError(e.message))
+					throw new UpdateError(e.message)
 				}
+				throw new UpdateError('Signature verification failed, skipping update')
 			})
-	}
-
-	// tries to find the public key. will retry on failure.
-	_trackPublicKey(url: string): void {
-		this._logger.info("trying to retrieve public key from", url)
-		if (!url.startsWith('https://')) {
-			this._logger.error('invalid public key URL')
-			this._retryKeyRetrieval(this._conf.get("pollingInterval"))
-			return
-		}
-		this._requestFile(url).then((result) => {
-			if (!result.startsWith('-----BEGIN PUBLIC KEY-----')) {
-				const newUrl = result
-					.split(':NEWURL:')
-					.find(part => part.startsWith(' https://'))
-				if (newUrl === undefined) { // nonsense, try again in a few hours
-					this._retryKeyRetrieval(this._conf.get("pollingInterval"))
-				} else { // key moved to a new location
-					this._trackPublicKey(newUrl.trim())
-				}
-			} else {
-				this._logger.info("found public key")
-				this._pubKey = result
-				this._foundKey.resolve()
-			}
-		}).catch(e => {
-			this._logger.error("public key retrieval failed:", e)
-			this._retryKeyRetrieval(this._conf.get("pollingInterval"))
-		})
-	}
-
-	_requestFile(url: string): Promise<string> {
-		let buf: Buffer = Buffer.alloc(0)
-		return new Promise((resolve, reject) => {
-			net.request(url)
-			   .on('error', err => reject(err))
-			   .on('response', response => {
-				   if (response.statusCode > 399) {
-					   reject(handleRestError(response.statusCode, `The request to ${url} failed: ${response.statusCode}`))
-					   return
-				   }
-				   response
-					   .on('error', err => reject(err))
-					   .on('data', chunk => buf = Buffer.concat([buf, chunk]))
-					   .on('end', () => resolve(buf.toString('utf-8')))
-			   })
-			   .end()
-		})
-	}
-
-	_retryKeyRetrieval(when: ?number) {
-		this._logger.info("retrying key retrieval in", when)
-		clearTimeout(neverNull(this._keyRetrievalTimeout))
-		this._keyRetrievalTimeout = setTimeout(() => this._trackPublicKey(this._conf.get("pubKeyUrl")), when || this._fallbackPollInterval)
 	}
 
 	_startPolling() {

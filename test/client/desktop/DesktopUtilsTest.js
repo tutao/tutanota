@@ -2,8 +2,7 @@
 import o from "ospec/ospec.js"
 import DesktopUtils from "../../../src/desktop/DesktopUtils.js"
 import path from 'path'
-import {isMailAddress} from "../../../src/misc/FormatValidator"
-import {JsonTypeError} from "../../../src/api/common/error/JsonTypeError"
+import n from '../nodemocker'
 
 function setEnv(platform: string) {
 	let sep = ''
@@ -163,6 +162,52 @@ o.spec("nonClobberingFileName Test", function () {
 	})
 })
 
+o.spec("touch test", function () {
+	n.startGroup(__filename, [
+		'../api/common/utils/Utils.js',
+		'../TutanotaConstants',
+		'./utils/Utils',
+		'../EntityFunctions',
+		'./utils/Encoding',
+		'../error/CryptoError',
+		'./TutanotaError',
+		'./StringUtils',
+		'./EntityConstants',
+		'./utils/Utils',
+		'./utils/ArrayUtils',
+		'./Utils',
+		'./MapUtils',
+		'./Utils',
+		'../api/common/error/JsonTypeError',
+		'./TutanotaError'
+	])
+
+	o('touch a file', function () {
+		const fsMock = n.mock('fs-extra', {
+			closeSync: (id) => {},
+			openSync: (path, mode) => 42
+		}).set()
+
+		const electronMock = n.mock('electron', {}).set()
+		const cpMock = n.mock('child_process', {}).set()
+		const cryptoMock = n.mock('crypto', {}).set()
+
+		const desktopUtils = n.subject("../../src/desktop/DesktopUtils.js").default
+
+		desktopUtils.touch('hello')
+
+		o(fsMock.openSync.callCount).equals(1)
+		o(fsMock.openSync.args[0]).equals('hello')
+		o(fsMock.openSync.args[1]).equals('a')
+		o(fsMock.openSync.args[2]).equals(undefined)
+
+		o(fsMock.closeSync.callCount).equals(1)
+		o(fsMock.closeSync.args[0]).equals(42)
+		o(fsMock.closeSync.args[1]).equals(undefined)
+
+	})
+})
+
 o.spec("pathToFileURL Test", function () {
 	let oldPlatform = process.platform
 
@@ -200,287 +245,5 @@ o.spec("pathToFileURL Test", function () {
 		setEnv('linux')
 		o(DesktopUtils.pathToFileURL('home/nig/index.html'))
 			.equals('file://home/nig/index.html')
-	})
-})
-
-o.spec("json type check test", function () {
-	o("string type check", () => {
-		o(() => DesktopUtils.checkDataFormat({
-			some: "content"
-		}, {
-			some: {type: "string"}
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: 0
-		}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: true
-		}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: function () { return ""}
-		}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: ["a"]
-		}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: null
-		}, {
-			some: {type: "string"}
-		})).throws(JsonTypeError)
-	})
-
-	o("boolean type check", () => {
-		o(() => DesktopUtils.checkDataFormat(true, {type: "boolean"})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: "content"
-		}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: 0
-		}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: true
-		}, {
-			some: {type: "boolean"}
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: function () { return ""}
-		}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: ["a"]
-		}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: null
-		}, {
-			some: {type: "boolean"}
-		})).throws(JsonTypeError)
-	})
-
-	o("array type check", () => {
-		o(() => DesktopUtils.checkDataFormat({
-			some: "not an array"
-		}, {
-			some: [{type: "string"}]
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [0, 1, 2, 3]
-		}, {
-			some: []
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [0, 1, 2, 3]
-		}, {
-			some: [{type: "number"}, {type: "number"}]
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [0, 1, 2, 3]
-		}, {
-			some: [{type: "number"}]
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [0, 1, "a", 3]
-		}, {
-			some: [{type: "number"}]
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: ["a", "b", "c", "d"]
-		}, {
-			some: [{type: "string"}]
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: ["a", "b", 0, "d"]
-		}, {
-			some: [{type: "string"}]
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [true, false, true]
-		}, {
-			some: [{type: "boolean"}]
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [
-				{elementProp1: "a", elementProp2: 1},
-				{elementProp1: "c", elementProp2: 2},
-				{elementProp1: "b", elementProp2: 3}
-			]
-		}, {
-			some: [
-				{
-					elementProp1: {type: "string"},
-					elementProp2: {type: "number"}
-				}
-			]
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			some: [
-				{elementProp1: "a", elementProp2: 1},
-				{elementProp1: "c", elementProp2: 2},
-				{elementProp1: "b", elementProp2: false}
-			]
-		}, {
-			some: [
-				{
-					elementProp1: {type: "string"},
-					elementProp2: {type: "number"}
-				}
-			]
-		})).throws(JsonTypeError)
-	})
-
-	o("patterns with asserts", () => {
-		o(() => DesktopUtils.checkDataFormat({
-			number: 1
-		}, {
-			number: {type: "number", assert: v => v > 0}
-		})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat({
-			number: -1
-		}, {
-			number: {type: "number", assert: v => v > 0}
-		})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat(
-			[0, 1, 2],
-			[{type: "number", assert: v => v < 2}]
-		)).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat(
-			[0, 1, 2],
-			[{type: "number", assert: v => v < 3}]
-		)).notThrows()
-	})
-
-	o("patterns with optional properties", () => {
-		o(() => DesktopUtils.checkDataFormat(
-			[{prop: 1}, {}, {prop: 3}],
-			[{prop: {type: "number", optional: true}}]
-			)
-		).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat(
-			[{prop: 1}, {prop: null}, {prop: 3}],
-			[{prop: {type: "number", optional: true}}]
-			)
-		).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat(
-			[{prop: 1}, {prop: undefined}, {prop: 3}],
-			[{prop: {type: "number", optional: true}}]
-			)
-		).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat(undefined, {type: "boolean", optional: true}))
-			.notThrows()
-	})
-
-	o("basic type tests", () => {
-		o(() => DesktopUtils.checkDataFormat(true, {type: 'boolean'})).notThrows()
-		o(() => DesktopUtils.checkDataFormat("", {type: 'string'})).notThrows()
-		o(() => DesktopUtils.checkDataFormat(42, {type: 'number'})).notThrows()
-
-		o(() => DesktopUtils.checkDataFormat(true, {type: 'string'})).throws(JsonTypeError)
-		o(() => DesktopUtils.checkDataFormat("", {type: 'number'})).throws(JsonTypeError)
-		o(() => DesktopUtils.checkDataFormat(42, {type: 'boolean'})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat({type: "string"}, {type: {type: 'string'}})).notThrows()
-		o(() => DesktopUtils.checkDataFormat({type: "string"}, {type: 'string'})).throws(JsonTypeError)
-
-		o(() => DesktopUtils.checkDataFormat([1, 3, 4], [{type: "hello"}])).throws(JsonTypeError)
-	})
-
-	o("sse notification type check", () => {
-		const pattern = {
-			title: {type: 'string'},
-			confirmationId: {type: 'string'},
-			hasAlarmNotifications: {type: 'boolean'},
-			changeTime: {type: 'string'},
-			notificationInfos: [
-				{
-					address: {type: 'string', assert: v => isMailAddress(v, true)},
-					counter: {type: 'number', assert: v => v >= 0},
-					userId: {type: 'string'}
-				}
-			]
-		}
-
-		const testNotification1 = {
-			title: "new mail",
-			confirmationId: "someId",
-			hasAlarmNotifications: false,
-			changeTime: "123456789",
-			notificationInfos: [
-				{address: "ha@ho.hi", counter: 3, userId: "someUserId"},
-				{address: "ha@hoho.hi", counter: 1, userId: "someOtherUserId"}
-			]
-		}
-		const testNotification2 = {
-			title: "new mail",
-			confirmationId: "someId",
-			hasAlarmNotifications: false,
-			changeTime: "123456789",
-			notificationInfos: [
-				{address: "haho.hi", counter: 3, userId: "someUserId"},
-				{address: "ha@hoho.hi", counter: 1, userId: "someOtherUserId"}
-			]
-		}
-
-		const testNotification3 = {
-			title: "new mail",
-			confirmationId: "someId",
-			hasAlarmNotifications: false,
-			changeTime: "123456789",
-			notificationInfos: [
-				{address: "ha@ho.hi", counter: -3, userId: "someUserId"},
-				{address: "ha@hoho.hi", counter: 1, userId: "someOtherUserId"}
-			]
-		}
-
-		o(() => DesktopUtils.checkDataFormat(testNotification1, pattern)).notThrows()
-		o(() => DesktopUtils.checkDataFormat(testNotification2, pattern)).throws(JsonTypeError)
-		o(() => DesktopUtils.checkDataFormat(testNotification3, pattern)).throws(JsonTypeError)
 	})
 })

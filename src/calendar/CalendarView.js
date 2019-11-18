@@ -68,6 +68,8 @@ import {showInvitationDialog} from "./CalendarInvitationDialog"
 import {loadGroupMembers} from "./CalendarSharingUtils"
 
 
+export const LIMIT_PAST_EVENTS_YEARS = 100
+
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
 	shortEvents: Array<CalendarEvent>,
@@ -141,6 +143,7 @@ export class CalendarView implements CurrentView {
 							icon: () => viewType.icon,
 							href: m.route.get(),
 							isSelectedPrefix: viewType.href,
+							colors: ButtonColors.Nav,
 							// Close side menu
 							click: () => {
 								this._setUrl(viewType.value, this.selectedDate())
@@ -157,6 +160,7 @@ export class CalendarView implements CurrentView {
 								lang.get("yourCalendars_label").toLocaleUpperCase()),
 							m(ButtonN, {
 								label: "addCalendar_action",
+								colors: ButtonColors.Nav,
 								click: () => this._onPressedAddCalendar(),
 								icon: () => Icons.Add
 							})
@@ -433,7 +437,7 @@ export class CalendarView implements CurrentView {
 		const {group, groupInfo, groupRoot} = calendarInfo
 		return m(ButtonN, attachDropdown({
 				label: "more_label",
-				click: noOp,
+				colors: ButtonColors.Nav,click: noOp,
 				icon: () => Icons.More
 			}, () => [
 				{
@@ -565,7 +569,17 @@ export class CalendarView implements CurrentView {
 
 	_newEvent(date?: ?Date) {
 		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
-		p.then(calendars => showCalendarEventDialog(date || this.selectedDate(), calendars))
+		p.then(calendars => showCalendarEventDialog(date || this._getNextHalfHour(), calendars))
+	}
+
+	_getNextHalfHour() {
+		let date: Date = new Date()
+		if (date.getMinutes() > 30) {
+			date.setHours(date.getHours() + 1, 0)
+		} else {
+			date.setMinutes(30)
+		}
+		return date
 	}
 
 	view() {
@@ -588,7 +602,11 @@ export class CalendarView implements CurrentView {
 			const urlDateParam = args.date
 			if (urlDateParam && this._currentViewType !== CalendarViewType.AGENDA) {
 				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
-				const date = DateTime.fromISO(urlDateParam).toJSDate()
+				const luxonDate = DateTime.fromISO(urlDateParam)
+				let date = new Date()
+				if (luxonDate.isValid) {
+					date = luxonDate.toJSDate()
+				}
 				if (this.selectedDate().getTime() !== date.getTime()) {
 					this.selectedDate(date)
 					m.redraw()
@@ -776,6 +794,10 @@ export class CalendarView implements CurrentView {
 	}
 
 	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
+		if (-DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+			console.log("repeating event is too far into the past", event)
+			return
+		}
 		addDaysForRecurringEvent(this._eventsForDays, event, month, getTimeZone())
 	}
 

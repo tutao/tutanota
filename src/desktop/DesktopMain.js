@@ -1,41 +1,45 @@
 // @flow
+import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
 import {DesktopConfigHandler} from './DesktopConfigHandler'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
-import {lang} from './DesktopLocalizationProvider.js'
-import chalk from 'chalk'
 import {IPC} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
 import {WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
 import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
-import {DesktopSseClient} from "./DesktopSseClient"
+import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
-import {Logger, replaceNativeLogger} from "../api/common/Logger"
+import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
+import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import {lang} from "../misc/LanguageViewModel"
+import en from "../translations/en"
 
-const oldLog = console.log
-const oldError = console.error
-const oldWarn = console.warn
+mp()
 
-;(console: any).log = (...args) => oldLog(chalk.blue(`[${new Date().toISOString()}]`), ...args)
-;(console: any).error = (...args) => oldError(chalk.red.bold(`[${new Date().toISOString()}]`), ...args)
-;(console: any).warn = (...args) => oldWarn(chalk.yellow(`[${new Date().toISOString()}]`), ...args)
 
-const logger = new Logger()
-replaceNativeLogger(global, logger, true)
-
+lang.init(en)
 const conf = new DesktopConfigHandler()
 const sock = new Socketeer()
 const notifier = new DesktopNotifier()
+const alarmStorage = new DesktopAlarmStorage(conf)
+alarmStorage.init()
+            .then(() => {
+	            console.log("alarm storage initialized")
+            })
+            .catch(e => {
+	            console.warn("alarm storage failed to initialize:", e)
+            })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
+const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage)
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(conf, notifier, wm)
+const sse = new DesktopSseClient(conf, notifier, wm, alarmScheduler)
 sse.start()
-const ipc = new IPC(conf, notifier, sse, wm, sock)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage)
 wm.setIPC(ipc)
 
 PreloadImports.keep(sock)
@@ -97,7 +101,6 @@ function onAppReady() {
 	const w = wm.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
-	   .then(() => lang.init(ipc.sendRequest(w.id, 'sendTranslations', [])))
 	   .then(main)
 }
 

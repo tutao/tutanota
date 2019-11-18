@@ -72,7 +72,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(sanitized).equals("");
 
 		sanitized = htmlSanitizer.sanitize(" ", true).text;
-		o(sanitized).equals(" ");
+		o(sanitized).equals("");
 
 		sanitized = htmlSanitizer.sanitize("yo", true).text;
 		o(sanitized).equals("yo");
@@ -268,6 +268,13 @@ o.spec("HtmlSanitizerTest", browser(function () {
 			.equals('<a href="relative" rel="noopener noreferrer" target="_blank">text</a>')
 		o(htmlSanitizer.sanitize('<a href=\"/relative\">text</a>', true, true).text)
 			.equals('<a href="/relative" rel="noopener noreferrer" target="_blank">text</a>')
+	})
+
+	o("filter out position css", function () {
+		o(htmlSanitizer.sanitize(`<div style="color: red; position: absolute;"></div>`, true).text)
+			.equals(`<div style="color: red;"></div>`)
+		o(htmlSanitizer.sanitize(`<div style="color: red; position: absolute;"></div>`, false).text)
+			.equals(`<div style="color: red;"></div>`)
 	})
 
 

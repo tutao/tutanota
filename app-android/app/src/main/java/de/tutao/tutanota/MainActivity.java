@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -169,6 +170,24 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		Log.d(TAG, "onStart");
+		nativeImpl.getWebAppInitialized().then(__ -> {
+			nativeImpl.sendRequest(JsRequest.visibilityChange, new Object[]{true});
+		});
+	}
+
+	@Override
+	protected void onStop() {
+		Log.d(TAG, "onStop");
+		nativeImpl.getWebAppInitialized().then(__ -> {
+			nativeImpl.sendRequest(JsRequest.visibilityChange, new Object[]{false});
+		});
+		super.onStop();
+	}
+
 	private void startWebApp(List<String> queryParams) {
 		webView.loadUrl(getUrl() +
 				(queryParams.isEmpty() ? "" : "?" + TextUtils.join("&", queryParams)));
@@ -212,20 +231,30 @@ public class MainActivity extends Activity {
 	}
 
 	private void doChangeTheme(String themeName) {
-		int elemsColor;
-		int backgroundRes;
-		switch (themeName) {
-			case "dark":
-				elemsColor = R.color.colorPrimaryDark;
-				backgroundRes = R.color.windowBackgroundDark;
-				break;
-			default:
-				elemsColor = R.color.colorPrimary;
-				backgroundRes = R.color.windowBackground;
-		}
-		int colorInt = getResources().getColor(elemsColor);
-		getWindow().setStatusBarColor(colorInt);
+		boolean isDark = "dark".equals(themeName);
+		int backgroundRes = isDark ? R.color.darkDarkest : R.color.white;
 		getWindow().setBackgroundDrawableResource(backgroundRes);
+		View decorView = getWindow().getDecorView();
+
+		// Changing status bar color
+		// Before Android M there was no flag to use lightStatusBar (so that text is white or
+		// black). As our primary color is red, Android thinks that the status bar color text
+		// should be white. So we cannot use white status bar color.
+		// So for Android M and above we alternate between white and dark status bar colors and
+		// we change lightStatusBar flag accordingly.
+		// For versions below M we alternate between red and black status bar colors. Green doesn't
+		// work well and it's not good for the dark theme anyway.
+		int statusBarColorInt;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			int uiFlags = isDark
+					? decorView.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+					: decorView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+			decorView.setSystemUiVisibility(uiFlags);
+			statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.white, null);
+		} else {
+			statusBarColorInt = getResources().getColor(isDark ? R.color.darkLighter : R.color.red);
+		}
+		getWindow().setStatusBarColor(statusBarColorInt);
 		PreferenceManager.getDefaultSharedPreferences(this)
 				.edit()
 				.putString(THEME_PREF, themeName)
@@ -443,7 +472,7 @@ public class MainActivity extends Activity {
 		nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
 		ArrayList<String> addressess = new ArrayList<>(1);
 		addressess.add(address);
-		startService(PushNotificationService.notificationDismissedIntent(this, addressess,
+		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addressess,
 				"MainActivity#openMailbox", isSummary));
 	}
 

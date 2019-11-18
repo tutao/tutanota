@@ -236,7 +236,7 @@ export class GroupViewer {
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {view: () => m(dropdown)},
-						okAction: addUserToGroupOkAction
+						allowOkWithReturn: true,okAction: addUserToGroupOkAction
 					})
 				}
 			})

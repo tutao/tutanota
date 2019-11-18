@@ -2,6 +2,7 @@
 import {Request} from "../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "./FileApp"
 import {asyncImport} from "../api/common/utils/Utils"
+import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 
 const createMailEditor = (msg: Request) => {
 	return Promise.all([
@@ -81,19 +82,6 @@ const openFindInPage = (): Promise<void> => {
 	})
 }
 
-const sendTranslations = (msg: Request): Promise<any> => {
-	return _asyncImport('src/misc/LanguageViewModel.js').then(() => {
-		return {
-			translations: window.tutao.lang.translations,
-			fallback: window.tutao.lang.fallback,
-			code: window.tutao.lang.code,
-			languageTag: window.tutao.lang.languageTag,
-			staticTranslations: window.tutao.lang.staticTranslations,
-			formats: window.tutao.lang.formats,
-		}
-	})
-}
-
 function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 	return Promise.all(filesUris.map(uri =>
 		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
@@ -122,20 +110,40 @@ function _asyncImport(path): Promise<any> {
 	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 }
 
+let disconnectTimeoutId: ?TimeoutID
+
+function visibilityChange(msg: Request): Promise<void> {
+	console.log("native visibility change", msg.args[0])
+	return _asyncImport('src/api/main/WorkerClient.js').then(({worker}) => {
+		if (msg.args[0]) {
+			if (disconnectTimeoutId != null) {
+				clearTimeout(disconnectTimeoutId)
+				disconnectTimeoutId = null
+			}
+			worker.tryReconnectEventBus(false, true)
+		} else {
+			disconnectTimeoutId = setTimeout(() => {
+				worker.closeEventBus(CloseEventBusOption.Pause)
+			}, 30 * SECOND_MS)
+		}
+	})
+}
+
 export const appCommands = {
 	createMailEditor,
 	handleBackPress,
 	showAlertDialog,
 	openMailbox,
 	openCalendar,
-	keyboardSizeChanged
+	keyboardSizeChanged,
+	visibilityChange
 }
 
 export const desktopCommands = {
 	createMailEditor,
 	showAlertDialog,
 	openMailbox,
-	sendTranslations,
+	openCalendar,
 	print,
 	openFindInPage,
 	reportError

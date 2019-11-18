@@ -55,6 +55,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 			title: lang.get("addInboxRule_action"),
 			child: form,
 			validator: () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value()),
+			allowOkWithReturn: true,
 			okAction: addInboxRuleOkAction
 		})
 	}

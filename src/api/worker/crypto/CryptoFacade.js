@@ -1,21 +1,10 @@
 // @flow
-import {
-	base64ToBase64Url,
-	base64ToUint8Array,
-	hexToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	uint8ArrayToHex,
-	utf8Uint8ArrayToString
-} from "../../common/utils/Encoding"
-import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Decrypt, aes128Encrypt, aes128RandomKey, aes256Decrypt, aes256Encrypt, ENABLE_MAC, IV_BYTE_LENGTH} from "./Aes"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
+import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import {hexToPrivateKey, privateKeyToHex, rsaDecrypt} from "./Rsa"
-import {random} from "./Randomizer"
+import {rsaDecrypt} from "./Rsa"
 import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -29,81 +18,36 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
-import {bitArrayToUint8Array, uint8ArrayToBitArray} from "./CryptoUtils"
+import {uint8ArrayToBitArray} from "./CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
-import EC from "../../common/EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import {uncompress} from "../lz4"
+import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
 
-const Type = EC.Type
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
+import {
+	aes256DecryptKey,
+	aes256EncryptKey,
+	decrypt256Key,
+	decryptKey,
+	decryptRsaKey,
+	encrypt256Key,
+	encryptKey,
+	encryptRsaKey
+} from "./KeyCryptoUtils.js"
 
 assertWorkerOrNode()
+
+export {decryptAndMapToInstance, encryptAndMapToLiteral, encryptValue, decryptValue, encryptBytes, encryptString}
+export {encryptKey, decryptKey, encrypt256Key, decrypt256Key, encryptRsaKey, decryptRsaKey, aes256EncryptKey, aes256DecryptKey}
 
 // stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 // so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
 // this especially improves the performance when indexing mail bodys
 let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
-
-export function valueToDefault(type: ValueTypeEnum) {
-	switch (type) {
-		case ValueType.String:
-			return ""
-		case ValueType.Number:
-			return "0"
-		case ValueType.Bytes:
-			return new Uint8Array(0)
-		case ValueType.Date:
-			return new Date()
-		case ValueType.Boolean:
-			return false
-		case ValueType.CompressedString:
-			return ""
-		default:
-			throw new ProgrammingError(`${type} is not a valid value type`)
-	}
-}
-
-export const fixedIv = hexToUint8Array('88888888888888888888888888888888')
-
-export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
-	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key | Aes256Key {
-	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
-}
-
-export function encrypt256Key(encryptionKey: Aes128Key, key: Aes256Key): Uint8Array {
-	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function aes256EncryptKey(encryptionKey: Aes256Key, key: Aes128Key): Uint8Array {
-	return aes256Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
-}
-
-export function aes256DecryptKey(encryptionKey: Aes256Key, key: Uint8Array): Aes128Key {
-	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, key), false, false))
-}
-
-export function decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
-	return uint8ArrayToBitArray(aes128Decrypt(encryptionKey, concat(fixedIv, key), false))
-}
-
-export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv: ?Uint8Array): Uint8Array {
-	return aes128Encrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv ? iv : random.generateRandomData(IV_BYTE_LENGTH), true, false)
-}
-
-export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uint8Array): PrivateKey {
-	return hexToPrivateKey(uint8ArrayToHex(aes128Decrypt(encryptionKey, encryptedPrivateKey, true)))
-}
 
 export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
 	if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
@@ -166,8 +110,9 @@ const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
  * * the decrypted _ownerEncSessionKey, if it is available
  * * the public decrypted session key, otherwise
  *
+ * @param typeModel: the type model of the instance
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
- *
+ * @param sessionKeyLoaders sessionKeyLoader to resolve the key
  */
 export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessionKeyLoaders: ?ResolveSessionKeyLoaders): Promise<?Aes128Key> {
 	return Promise.resolve().then(() => {
@@ -284,8 +229,9 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 
 /**
  * Updates the given public permission with the given symmetric key for faster access.
- * @param permission The permission.
+ * @param typeModel: the type model of the instance
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
+ * @param permission The permission.
  * @param bucketPermission The bucket permission.
  * @param permissionOwnerGroupKey The symmetric group key for the owner group on the permission.
  * @param permissionGroupKey The symmetric group key of the group in the permission.
@@ -349,205 +295,4 @@ if (!('toJSON' in Error.prototype)) {
 		configurable: true,
 		writable: true
 	});
-}
-
-
-/**
- * Decrypts an object literal as received from the DB and maps it to an entity class (e.g. Mail)
- * @param Type The class of the instance
- * @param instance The object literal as received from the DB
- * @param sk The session key, must be provided for encrypted instances
- * @returns The decrypted and mapped instance
- */
-export function decryptAndMapToInstance<T>(model: TypeModel, instance: Object, sk: ?Aes128Key): Promise<T> {
-	let decrypted: any = {
-		_type: new TypeRef(model.app, model.name)
-	}
-	for (let key of Object.keys(model.values)) {
-		let valueType = model.values[key]
-		let value = instance[valueType.name]
-		try {
-			decrypted[valueType.name] = decryptValue(valueType, value, sk)
-		} catch (e) {
-			if (decrypted._errors == null) {
-				decrypted._errors = {}
-			}
-			decrypted._errors[valueType.name] = JSON.stringify(e)
-		} finally {
-			if (valueType.encrypted) {
-				if (valueType.final) {
-					// we have to store the encrypted value to be able to restore it when updating the instance. this is not needed for data transfer types, but it does not hurt
-					decrypted["_finalEncrypted_" + valueType.name] = value
-				} else if (value === "") {
-					// we have to store the default value to make sure that updates do not cause more storage use
-					decrypted["_defaultEncrypted_" + valueType.name] = decrypted[valueType.name]
-				}
-			}
-		}
-	}
-	return Promise.map(Object.keys(model.associations), (associationName) => {
-		if (model.associations[associationName].type === AssociationType.Aggregation) {
-			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
-				.then((aggregateTypeModel) => {
-					let aggregation = model.associations[associationName]
-					if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
-						decrypted[associationName] = null
-					} else if (instance[associationName] == null) {
-						throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
-					} else if (aggregation.cardinality === Cardinality.Any) {
-						return Promise.map(instance[associationName], (aggregate) => {
-							return decryptAndMapToInstance(aggregateTypeModel, aggregate, sk)
-						}).then((decryptedAggregates) => {
-							decrypted[associationName] = decryptedAggregates
-						})
-					} else {
-						return decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk)
-							.then((decryptedAggregate) => {
-								decrypted[associationName] = decryptedAggregate
-							})
-					}
-				})
-		} else {
-			decrypted[associationName] = instance[associationName]
-		}
-	}).then(() => {
-		return decrypted
-	})
-}
-
-export function encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: ?Aes128Key): Object {
-	let encrypted = {}
-	let i = (instance: any)
-
-	for (let key of Object.keys(model.values)) {
-		let valueType = model.values[key]
-		let value = i[valueType.name]
-		// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitely because "" is allowed
-		if (valueType.encrypted && valueType.final && i["_finalEncrypted_" + valueType.name] != null) {
-			encrypted[valueType.name] = i["_finalEncrypted_" + valueType.name]
-		} else if (valueType.encrypted && i["_defaultEncrypted_" + valueType.name] === value) {
-			// restore the default encrypted value because it has not changed
-			encrypted[valueType.name] = ""
-		} else {
-			encrypted[valueType.name] = encryptValue(valueType, value, sk)
-		}
-	}
-	if (model.type === Type.Aggregated && !encrypted._id) {
-		encrypted._id = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
-	}
-	return Promise.map(Object.keys(model.associations), (associationName) => {
-		if (model.associations[associationName].type === AssociationType.Aggregation) {
-			return resolveTypeReference(new TypeRef(model.app, model.associations[associationName].refType))
-				.then((aggregateTypeModel) => {
-					let aggregation = model.associations[associationName]
-					if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
-						encrypted[associationName] = null
-					} else if (i[associationName] == null) {
-						throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
-					} else if (aggregation.cardinality === Cardinality.Any) {
-						return Promise.map(i[associationName], (aggregate) => {
-							return encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
-						}).then((encryptedAggregates) => {
-							encrypted[associationName] = encryptedAggregates
-						})
-					} else {
-						return encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk)
-							.then((encryptedAggregate) => {
-								encrypted[associationName] = encryptedAggregate
-							})
-					}
-				})
-		} else {
-			encrypted[associationName] = i[associationName]
-		}
-	}).then(() => {
-		return encrypted
-	})
-
-}
-
-export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key): any {
-	if (value == null && valueType.name !== '_id' && valueType.name !== '_permissions') {
-		if (valueType.cardinality === Cardinality.ZeroOrOne) {
-			return null
-		} else {
-			throw new ProgrammingError(`Value ${valueType.name} with cardinality ONE can not be null`)
-		}
-	} else if (valueType.encrypted) {
-		let bytes = value
-		if (valueType.type !== ValueType.Bytes) {
-			bytes = stringToUtf8Uint8Array(convertJsToDbType(valueType.type, value))
-		}
-		return uint8ArrayToBase64(aes128Encrypt((sk: any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true,
-			ENABLE_MAC))
-	} else {
-		return convertJsToDbType(valueType.type, value)
-	}
-}
-
-export function decryptValue(valueType: ModelValue, value: ?Base64 | string, sk: ?Aes128Key): any {
-	if (value == null) {
-		if (valueType.cardinality === Cardinality.ZeroOrOne) {
-			return null
-		} else {
-			throw new ProgrammingError(`Value ${valueType.name} with cardinality ONE can not be null`)
-		}
-	} else if (valueType.cardinality === Cardinality.One && value === "") {
-		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially
-	} else if (valueType.encrypted) {
-		let decryptedBytes = aes128Decrypt((sk: any), base64ToUint8Array((value: any)))
-		if (valueType.type === ValueType.Bytes) {
-			return decryptedBytes
-		} else if (valueType.type === ValueType.CompressedString) {
-			return decompressString(decryptedBytes)
-		} else {
-			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
-		}
-	} else {
-		return convertDbToJsType(valueType.type, value)
-	}
-}
-
-function convertDbToJsType(type: ValueType, value: Base64 | string): any {
-	if (type === ValueType.Bytes) {
-		return base64ToUint8Array((value: any))
-	} else if (type === ValueType.Boolean) {
-		return value !== '0'
-	} else if (type === ValueType.Date) {
-		return new Date(parseInt(value))
-	} else if (type === ValueType.CompressedString) {
-		return decompressString(base64ToUint8Array(value))
-	} else {
-		return value
-	}
-}
-
-function decompressString(compressed: Uint8Array): string {
-	if (compressed.length === 0) {
-		return ""
-	}
-	const output = uncompress(compressed)
-	return utf8Uint8ArrayToString(output)
-}
-
-function convertJsToDbType(type: ValueType, value: any): Base64 | string {
-	if (type === ValueType.Bytes && value != null) {
-		return uint8ArrayToBase64((value: any))
-	} else if (type === ValueType.Boolean) {
-		return value ? '1' : '0'
-	} else if (type === ValueType.Date) {
-		return value.getTime().toString()
-	} else if (type === ValueType.CompressedString) {
-		throw new ProgrammingError("Compression is not implemented yet")
-	} else {
-		return value
-	}
-}
-
-export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
-	return aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
-}
-
-export function encryptString(sk: Aes128Key, value: string): Uint8Array {
-	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }

@@ -8,9 +8,10 @@ import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
-import type {DesktopSseClient} from './DesktopSseClient.js'
+import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
+import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -21,17 +22,26 @@ export class IPC {
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
 	_sock: Socketeer;
+	_alarmStorage: DesktopAlarmStorage;
 
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, sse: DesktopSseClient, wm: WindowManager, sock: Socketeer) {
+	constructor(
+		conf: DesktopConfigHandler,
+		notifier: DesktopNotifier,
+		sse: DesktopSseClient,
+		wm: WindowManager,
+		sock: Socketeer,
+		alarmStorage: DesktopAlarmStorage
+	) {
 		this._conf = conf
 		this._sse = sse
 		this._wm = wm
 		this._notifier = notifier
 		this._sock = sock
+		this._alarmStorage = alarmStorage
 
 		this._initialized = []
 		this._queue = {}
@@ -146,13 +156,17 @@ export class IPC {
 				   .then(() => d.resolve(this._sse.getPushIdentifier()))
 				break
 			case 'storePushIdentifierLocally':
-				this._sse.storePushIdentifier(
-					args[0].toString(),
-					args[1].toString(),
-					args[2].toString(),
-					args[3].toString(),
-					args[4].toString()
-				).then(() => d.resolve())
+				Promise.all([
+					this._sse.storePushIdentifier(
+						args[0].toString(),
+						args[1].toString(),
+						args[2].toString()
+					),
+					this._alarmStorage.storePushIdentifierSessionKey(
+						args[3].toString(),
+						args[4].toString()
+					)
+				]).then(() => d.resolve())
 				break
 			case 'initPushNotifications':
 				// no need to react, we start push service with node

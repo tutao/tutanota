@@ -1,12 +1,12 @@
 const path = require('path')
-
+const pj = require('../package.json')
 /**
  * This is used for launching electron:
  * 1. copied to app-desktop/build from make.js
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
+module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notarize) {
 	return {
 		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",
@@ -17,9 +17,26 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			"start": "electron ."
 		},
 		"tutao-config": {
-			"pubKeyUrl": nameSuffix === '-test'
-				? "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub-test.pem"
-				: "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
+			"pubKeys": [
+				"-----BEGIN PUBLIC KEY-----\n"
+				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhFrLW999Y/ODqGfGKSzh\n"
+				+ "7SFm6UgIj5scpb1r+KmEgVr/3zmd973+u2z5gG/wtayUbdVUGlzTgxqTE76BGTBR\n"
+				+ "szq932uTsPfjRbtbyjIOzfzPvkyAB1Ew91gQk5ubrO1VCbXAZyuFi7RxDibuklLO\n"
+				+ "lzHyjKyEIVTTdOqOTE+mg/vr41MxDW0X4nZw5MT1mIV/aYGeOSdtNdFsL69aR+d7\n"
+				+ "KufD43J60FUS9G0tf4KmyQInmGqC8MSXCO0SMwwEJZDxDzkBsSensKfS0HzIjCXS\n"
+				+ "or/Ahu6RwhEhjm7MyXbhiDyis+kGHSfatsO5KWWuZ4xgCEUO0L6vMQwr5M/qYOj1\n"
+				+ "7QIDAQAB\n"
+				+ "-----END PUBLIC KEY-----",
+				"-----BEGIN PUBLIC KEY-----\n"
+				+ "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk4NkSbs41KjuNZfFco2l\n"
+				+ "unXXFOIkrdBfDmIiVfVTYagEk2cN9HkjCkiNsHucLHPuHb0reHsaxrDVE1lWGTPI\n"
+				+ "0Lh5diLYdxJ+AGy/8j9jsO51hONqTujdD0mJs14YkVfOUXyHQh1z6WJCLc9jrN9+\n"
+				+ "3dgKOlQRYW2mYise8ggYYcrRs/CY40s3/cQvrFSprFMPS6E+9lmIDp0hPKr9q90t\n"
+				+ "IXmzihQyc8Q0VmAfCqEwUtx6RY6BGkqKiDoMh4Qs5ZwFxhoSfgrJiwBmv0HcX1yv\n"
+				+ "QGNSdxrpLuMA/afCPdf49x3iwy+p+paXHKirgM5z6rnikk10Lko7dNXV0735PsZd\n"
+				+ "dQIDAQAB\n"
+				+ "-----END PUBLIC KEY-----"
+			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"preloadjs": "./src/desktop/preload.js",
 			"desktophtml": "./desktop.html",
@@ -38,22 +55,24 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 			}
 		},
 		"dependencies": {
-			"electron-updater": "4.1.2",
-			"chalk": "2.4.2",
-			"electron-localshortcut": "3.1.0",
-			"fs-extra": "7.0.1",
-			"bluebird": "3.5.2",
-			"node-forge": "0.8.3",
-			"winreg": "1.2.4"
+			"electron-updater": pj.devDependencies["electron-updater"],
+			"chalk": pj.devDependencies.chalk,
+			"electron-localshortcut": pj.devDependencies["electron-localshortcut"],
+			"fs-extra": pj.devDependencies["fs-extra"],
+			"bluebird": pj.dependencies.bluebird,
+			"node-forge": pj.devDependencies["node-forge"],
+			"winreg": pj.devDependencies.winreg,
+			"keytar": pj.dependencies.keytar
 		},
 		"build": {
-			"electronVersion": "4.1.4",
+			"electronVersion": pj.devDependencies.electron,
 			"icon": iconPath,
 			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
 			"artifactName": "${name}-${os}.${ext}",
+			"afterSign": notarize ? "buildSrc/notarize.js" : undefined,
 			"protocols": [
 				{
 					"name": "Mailto Links",
@@ -99,6 +118,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"allowToChangeInstallationDirectory": true
 			},
 			"mac": {
+				"hardenedRuntime": true,
+				"gatekeeperAssess": false,
+				"entitlements": "buildSrc/mac-entitlements.plist",
+				"entitlementsInherit": "buildSrc/mac-entitlements.plist",
 				"icon": path.join(path.dirname(iconPath), "logo-solo-red.png.icns"),
 				"extendInfo": {
 					"LSUIElement": 1 //hide dock icon on startup
@@ -106,6 +129,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign) {
 				"target": [
 					{
 						"target": "zip",
+						"arch": "x64"
+					},
+					{
+						"target": "dmg",
 						"arch": "x64"
 					}
 				]

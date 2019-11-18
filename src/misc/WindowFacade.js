@@ -1,11 +1,11 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNodeBoot, isAndroidApp, isApp, Mode} from "../api/Env"
+import {assertMainOrNodeBoot, isAndroidApp, isApp, isIOSApp, Mode} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
-import {CloseEventBusOption} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
@@ -205,24 +205,15 @@ class WindowFacade {
 	}
 
 	addPageInBackgroundListener() {
-		if (isApp()) {
+		// For Android it's handled manually from native because visibilitychange listener is not called after the
+		// app was inactive for some time.
+		// See NativeWrapperCommands.js
+		if (isIOSApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 
-				if (client.isIos()) {
-					this._worker.notifyVisiblityChange(!document.hidden)
-				}
-
-				if (document.hidden) {
-					if (isAndroidApp()) {
-						setTimeout(() => {
-							// if we're still in background after timeout, pause WebSocket
-							if (document.hidden) {
-								this._worker.closeEventBus(CloseEventBusOption.Pause)
-							}
-						}, 30 * 1000)
-					}
-				} else {
+				this._worker.notifyVisiblityChange(!document.hidden)
+				if (!document.hidden) {
 					// On iOS devices the WebSocket close event fires when the app comes back to foreground
 					// so we try to reconnect with a delay to receive _close event first. Otherwise
 					// we may try to reconnect while we think that we're still connected

@@ -186,11 +186,15 @@ export class FileController {
 						a.href = url
 						a.download = dataFile.name
 						a.style.display = "none"
+						a.target = "_blank"
 						const body = neverNull(document.body)
 						body.appendChild(a)
 						a.click()
 						body.removeChild(a)
-						window.URL.revokeObjectURL(url)
+						// Do not revoke object URL right away so that the browser has a chance to open it
+						setTimeout(() => {
+							window.URL.revokeObjectURL(url)
+						}, 2000)
 					} else {
 						if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === 'function') {
 							var reader = new FileReader()

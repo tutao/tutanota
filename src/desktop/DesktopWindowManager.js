@@ -120,10 +120,17 @@ export class WindowManager {
 	}
 
 	openMailBox(info: UserInfo) {
-		let w = windows.find(w => w.getUserId() === info.userId)
+		return this.findWindowWithUserId(info.userId).openMailBox(info, null)
+	}
+
+	openCalendar(info: UserInfo) {
+		return this.findWindowWithUserId(info.userId).openCalendar(info)
+	}
+
+	findWindowWithUserId(userId: string): ApplicationWindow {
+		return windows.find(w => w.getUserId() === userId)
 			|| windows.find(w => w.getUserInfo() === null)
 			|| this.newWindow(true, true)
-		w.openMailBox(info, null)
 	}
 
 	recreateWindow(w: ApplicationWindow): void {

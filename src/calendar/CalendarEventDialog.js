@@ -16,8 +16,8 @@ import {erase, load} from "../api/main/Entity"
 
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import type {EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
-import {EndType, RepeatPeriod, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
+import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
+import {AlarmInterval, EndType, RepeatPeriod, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {last, lastThrow, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
@@ -29,7 +29,6 @@ import {
 	createEventId,
 	createRepeatRuleWithValues,
 	generateUid,
-	getAllDayDateUTC,
 	getCalendarName,
 	getDiffInDays,
 	getEventEnd,
@@ -40,12 +39,15 @@ import {
 	timeString,
 	timeStringFromParts
 } from "./CalendarUtils"
-import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, getAllDayDateUTC, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
-import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
+import {client} from "../misc/ClientDetector"
+import {LIMIT_PAST_EVENTS_YEARS} from "./CalendarView"
+
+const TIMESTAMP_ZERO_YEAR = 1970
 
 // allDay event consists of full UTC days. It always starts at 00:00:00.00 of its start day in UTC and ends at
 // 0 of the next day in UTC. Full day event time is relative to the local timezone. So startTime and endTime of
@@ -185,8 +187,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 	})
 
+	let eventTooOld: boolean = false
 	stream.scan((oldStartDate, startDate) => {
+		// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
+		// tackle because it is a rare case.
+		if (startDate && startDate.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+			const thisYear = (new Date()).getFullYear()
+			let newDate = new Date(startDate)
+			newDate.setFullYear(thisYear)
+			startDatePicker.setDate(newDate)
+			return newDate
+		}
 		const endDate = endDatePicker.date()
+		eventTooOld = (!!startDate && -DateTime.fromJSDate(startDate).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS)
 		if (startDate && endDate) {
 			const diff = getDiffInDays(endDate, neverNull(oldStartDate))
 			endDatePicker.setDate(DateTime.fromJSDate(startDate).plus({days: diff}).toJSDate())
@@ -285,7 +298,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		newEvent._ownerGroup = selectedCalendar().groupRoot._id
 		newEvent.uid = existingEvent && existingEvent.uid ? existingEvent.uid : generateUid(newEvent, Date.now())
 		const repeatFrequency = repeatPickerAttrs.selectedValue()
-		if (repeatFrequency == null) {
+		if (repeatFrequency == null || eventTooOld) {
 			newEvent.repeatRule = null
 		} else {
 			const interval = repeatIntervalPickerAttrs.selectedValue() || 1
@@ -381,17 +394,21 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				disabled: readOnly,
 				label: () => lang.get("allDay_label")
 			}),
-			m(".flex", [
-				m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
-				m(".flex-grow.ml-s"
-					+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
-			]),
-			repeatPickerAttrs.selectedValue()
-				? m(".flex", [
-					m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
-					m(".flex-grow.ml-s", renderStopConditionValue()),
-				])
-				: null,
+			eventTooOld
+				? null
+				: [
+					m(".flex", [
+						m(".flex-grow", m(DropDownSelectorN, repeatPickerAttrs)),
+						m(".flex-grow.ml-s"
+							+ (repeatPickerAttrs.selectedValue() ? "" : ".hidden"), m(DropDownSelectorN, repeatIntervalPickerAttrs)),
+					]),
+					repeatPickerAttrs.selectedValue()
+						? m(".flex", [
+							m(".flex-grow", m(DropDownSelectorN, endTypePickerAttrs)),
+							m(".flex-grow.ml-s", renderStopConditionValue()),
+						])
+						: null
+				],
 			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
@@ -499,18 +516,6 @@ export function createEndCountPicker(): DropDownSelectorAttrs<number> {
 		icon: Icons.Edit,
 	}
 }
-
-const AlarmInterval = Object.freeze({
-	FIVE_MINUTES: "5M",
-	TEN_MINUTES: "10M",
-	THIRTY_MINUTES: "30M",
-	ONE_HOUR: "1H",
-	ONE_DAY: "1D",
-	TWO_DAYS: "2D",
-	THREE_DAYS: "3D",
-	ONE_WEEK: "1W",
-})
-type AlarmIntervalEnum = $Values<typeof AlarmInterval>
 
 
 

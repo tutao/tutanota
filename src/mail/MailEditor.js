@@ -6,7 +6,7 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import type {Language, TranslationKey} from "../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../misc/LanguageViewModel"
-import {formatStorageSize} from "../misc/Formatter"
+import {formatStorageSize, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
@@ -17,7 +17,7 @@ import {
 	ReplyType
 } from "../api/common/TutanotaConstants"
 import {animations, height, opacity} from "../gui/animation/Animations"
-import {load, setup, update} from "../api/main/Entity"
+import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
@@ -70,7 +70,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId} from "../contacts/ContactUtils"
+import {LazyContactListId, searchForContacts, getContactListName} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -84,7 +84,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {attachDropdown} from "../gui/base/DropdownN"
+import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {client} from "../misc/ClientDetector"
 import {formatPrice} from "../subscription/SubscriptionUtils"
@@ -93,6 +93,12 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 import {getTimeZone} from "../calendar/CalendarUtils"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
+import {ButtonColors} from "../gui/base/ButtonN"
+import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
+import {px, size} from "../gui/size"
+import {isMailAddress} from "../misc/FormatValidator"
+import {DbError} from "../api/common/error/DbError"
+import {findRecipients} from "../native/ContactApp"
 
 assertMainOrNode()
 
@@ -127,6 +133,7 @@ export class MailEditor {
 	_richTextToolbar: RichTextToolbar;
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
+	_mentionedInlineImages: Array<string>
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -148,6 +155,7 @@ export class MailEditor {
 		this._showToolbar = false
 		this._objectURLs = []
 		this._blockExternalContent = true
+		this._mentionedInlineImages = []
 
 		let props = logins.getUserController().props
 
@@ -233,7 +241,9 @@ export class MailEditor {
 		}
 		let detailsExpanded = stream(false)
 		this._editor = new Editor(200, (html, isPaste) => {
-			return htmlSanitizer.sanitizeFragment(html, !isPaste && this._blockExternalContent).html
+			const sanitized = htmlSanitizer.sanitizeFragment(html, !isPaste && this._blockExternalContent)
+			this._mentionedInlineImages = sanitized.inlineImageCids
+			return sanitized.html
 		})
 		const attachImageHandler = isApp() ?
 			null
@@ -620,7 +630,18 @@ export class MailEditor {
 					m.redraw()
 				})
 				this._editor.initialized.promise.then(() => {
-					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages)
+					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages, (file, event, dom) => {
+						createDropdown(() => [
+							{
+								label: "download_action",
+								click: () => {
+									fileController.downloadAndOpen(file, true)
+									              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+								},
+								type: ButtonType.Dropdown
+							}
+						])(event, dom)
+					})
 				})
 			})
 		}
@@ -683,49 +704,47 @@ export class MailEditor {
 	}
 
 	_getAttachmentButtons(): Array<ButtonAttrs> {
-		return this._attachments.map(file => {
-			let lazyButtonAttrs: ButtonAttrs[] = []
+		return this
+			._attachments
+			// Only show file buttons which do not correspond to inline images in HTML
+			.filter((item) => this._mentionedInlineImages.includes(item.cid) === false)
+			.map(file => {
+				let lazyButtonAttrs: ButtonAttrs[] = []
 
-			lazyButtonAttrs.push({
-				label: "download_action",
-				type: ButtonType.Secondary,
-				click: () => {
-					if (file._type === 'FileReference') {
-						return fileApp.open((file: FileReference))
-						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-					} else if (file._type === "DataFile") {
-						return fileController.open(file)
-					} else {
-						fileController.downloadAndOpen(((file: any): TutanotaFile), true)
-						              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+				lazyButtonAttrs.push({
+					label: "download_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						if (file._type === 'FileReference') {
+							return fileApp.open((file: FileReference))
+							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+						} else if (file._type === "DataFile") {
+							return fileController.open(file)
+						} else {
+							fileController.downloadAndOpen(((file: any): TutanotaFile), true)
+							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+						}
+					},
+				})
+
+				lazyButtonAttrs.push({
+					label: "remove_action",
+					type: ButtonType.Secondary,
+					click: () => {
+						remove(this._attachments, file)
+						this._mailChanged = true
+						m.redraw()
 					}
+				})
 
-				}
+				return attachDropdown({
+					label: () => file.name,
+					icon: () => Icons.Attachment,
+					type: ButtonType.Bubble,
+					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+					colors: ButtonColors.Elevated,
+				}, () => lazyButtonAttrs)
 			})
-
-			lazyButtonAttrs.push({
-				label: "remove_action",
-				type: ButtonType.Secondary,
-				click: () => {
-					remove(this._attachments, file)
-					const dom = this._domElement
-					const cid = file.cid
-					if (cid && dom) {
-						const image = dom.querySelector(`img[cid="${cid}"]`)
-						image && image.remove()
-					}
-					this._mailChanged = true
-					m.redraw()
-				}
-			})
-
-			return attachDropdown({
-				label: () => file.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-			}, () => lazyButtonAttrs)
-		})
 	}
 
 	_onAttachImageClicked(ev: Event) {
@@ -758,7 +777,7 @@ export class MailEditor {
 		let cc = this.ccRecipients.bubbles.map(bubble => bubble.entity)
 		let bcc = this.bccRecipients.bubbles.map(bubble => bubble.entity)
 
-		// _tempBody is only set until the editor is initialized. It might not be the case when
+		// _tempBody is til the editor is initialized. It might not be the case when
 		// assigning a mail to another user because editor is not shown and we cannot
 		// wait for the editor to be initialized.
 		const body = this._tempBody == null ? replaceInlineImagesWithCids(this._editor.getDOM()).innerHTML : this._tempBody
@@ -993,6 +1012,7 @@ export class MailEditor {
 			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 			type: ButtonType.TextBubble,
 			isSelected: () => false,
+			color: ButtonColors.Elevated
 		}, () => {
 			if (recipientInfo.resolveContactPromise) {
 				return recipientInfo.resolveContactPromise.then(contact => {
@@ -1165,4 +1185,145 @@ export class MailEditor {
 			})
 		})
 	}
+}
+
+const ContactSuggestionHeight = 60
+
+export class ContactSuggestion implements Suggestion {
+	name: string;
+	mailAddress: string;
+	contact: ?Contact;
+	selected: boolean;
+	view: Function;
+
+	constructor(name: string, mailAddress: string, contact: ?Contact) {
+		this.name = name
+		this.mailAddress = mailAddress
+		this.contact = contact
+		this.selected = false
+
+		this.view = vnode => m(".pt-s.pb-s.click.content-hover", {
+			class: this.selected ? 'content-accent-fg row-selected' : '',
+			onmousedown: vnode.attrs.mouseDownHandler,
+			style: {
+				'padding-left': this.selected ? px(size.hpad_large - 3) : px(size.hpad_large),
+				'border-left': this.selected ? "3px solid" : null,
+				height: px(ContactSuggestionHeight),
+			}
+		}, [
+			m("small", this.name),
+			m(".name", this.mailAddress),
+		])
+	}
+
+}
+
+class MailBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
+	suggestionHeight: number;
+	_mailEditor: MailEditor;
+
+	constructor(mailEditor: MailEditor) {
+		this._mailEditor = mailEditor
+		this.suggestionHeight = ContactSuggestionHeight
+	}
+
+	getSuggestions(text: string): Promise<ContactSuggestion[]> {
+		let query = text.trim().toLowerCase()
+		if (isMailAddress(query, false)) {
+			return Promise.resolve([])
+		}
+
+		// ensure match word order for email addresses mainly
+		let contactsPromise = searchForContacts("\"" + query + "\"", "recipient", 10).catch(DbError, () => {
+			return LazyContactListId.getAsync().then(listId => loadAll(ContactTypeRef, listId))
+		})
+
+		return contactsPromise
+			.map(contact => {
+				let name = getContactListName(contact)
+				let mailAddresses = []
+				if (name.toLowerCase().indexOf(query) !== -1) {
+					mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
+				} else {
+					mailAddresses = contact.mailAddresses.filter(ma => {
+						return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
+					})
+				}
+				return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
+			})
+			.reduce((a, b) => a.concat(b), [])
+			.then(suggestions => {
+				if (env.mode === Mode.App) {
+					return findRecipients(query, 10, suggestions).then(() => suggestions)
+				} else {
+					return suggestions
+				}
+			})
+			.then(suggestions => {
+				return suggestions.sort((suggestion1, suggestion2) =>
+					suggestion1.name.localeCompare(suggestion2.name))
+			})
+	}
+
+	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> {
+		return this._mailEditor.createBubble(suggestion.name, suggestion.mailAddress, suggestion.contact)
+	}
+
+	createBubblesFromText(text: string): Bubble<RecipientInfo>[] {
+		let separator = (text.indexOf(";") !== -1) ? ";" : ","
+		let textParts = text.split(separator)
+		let bubbles = []
+
+		for (let part of textParts) {
+			part = part.trim()
+			if (part.length !== 0) {
+				let bubble = this.getBubbleFromText(part)
+				if (!bubble) {
+					return [] // if one recipient is invalid, we do not return any valid ones because all invalid text would be deleted otherwise
+				} else {
+					bubbles.push(bubble)
+				}
+			}
+		}
+		return bubbles
+	}
+
+	bubbleDeleted(bubble: Bubble<RecipientInfo>): void {
+	}
+
+	/**
+	 * Retrieves a RecipientInfo instance from a text. The text may be a contact name, contact mail address or other mail address.
+	 * @param text The text to create a RecipientInfo from.
+	 * @return The recipient info or null if the text is not valid data.
+	 */
+	getBubbleFromText(text: string): ?Bubble<RecipientInfo> {
+		text = text.trim()
+		if (text === "") return null
+		const nameAndMailAddress = stringToNameAndMailAddress(text)
+		if (nameAndMailAddress) {
+			let name = (nameAndMailAddress.name) ? nameAndMailAddress.name : null // name will be resolved with contact
+			return this._mailEditor.createBubble(name, nameAndMailAddress.mailAddress, null)
+		} else {
+			return null
+		}
+	}
+}
+
+/**
+ * open a MailEditor
+ * @param mailboxDetails details to use when sending an email
+ * @returns {*}
+ * @private
+ * @throws PermissionError
+ */
+export function newMail(mailboxDetails: MailboxDetail): Promise<MailEditor> {
+	return checkApprovalStatus(false).then(sendAllowed => {
+		if (sendAllowed) {
+			let editor = new MailEditor(mailboxDetails)
+			editor.initWithTemplate({}, "", "<br/>" + getEmailSignature())
+			editor.show()
+			return editor
+		}
+		return Promise.reject(new PermissionError("not allowed to send mail"))
+	})
 }

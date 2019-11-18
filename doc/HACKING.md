@@ -1,5 +1,7 @@
 # Hacking on the Tutanota client
 
+![Overview](Overview.svg)
+
 ## Basic structure
  * `src`: Common part and the desktop client code
  * `app-android`: Android specific parts

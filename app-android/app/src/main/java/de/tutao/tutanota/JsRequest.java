@@ -7,7 +7,8 @@ public enum JsRequest {
 	handleBackPress("handleBackPress"),
 	showAlertDialog("showAlertDialog"),
 	openMailbox("openMailbox"),
-	openCalendar("openCalendar");
+	openCalendar("openCalendar"),
+	visibilityChange("visibilityChange");
 
 	private final String name;
 

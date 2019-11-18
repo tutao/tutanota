@@ -4,7 +4,6 @@ import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import u2f from '../misc/u2f-api.js'
-import {lang} from './DesktopLocalizationProvider.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
@@ -13,7 +12,7 @@ const MINIMUM_WINDOW_SIZE: number = 350
 
 export type UserInfo = {|
 	userId: string,
-	mailAddress: string
+	mailAddress?: string
 |}
 
 export class ApplicationWindow {
@@ -46,7 +45,7 @@ export class ApplicationWindow {
 	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
 	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
 	getTitle = () => this._browserWindow.webContents.getTitle()
-	setZoomFactor = (f: number) => this._browserWindow.webContents.setZoomFactor(f)
+	setZoomFactor = (f: number) => this._browserWindow.webContents.zoomFactor = f
 	isFullScreen = () => this._browserWindow.isFullScreen()
 	isMinimized = () => this._browserWindow.isMinimized()
 	minimize = () => this._browserWindow.minimize()
@@ -96,6 +95,7 @@ export class ApplicationWindow {
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
+		this._browserWindow.removeMenu()
 		this._browserWindow.setMinimumSize(MINIMUM_WINDOW_SIZE, MINIMUM_WINDOW_SIZE)
 		this.id = this._browserWindow.id
 		this._ipc.addWindow(this.id)
@@ -130,53 +130,48 @@ export class ApplicationWindow {
 			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
 		    .on('crashed', () => wm.recreateWindow(this))
-		/**
-		 * we need two conditions for the context menu to work on every window
-		 * 1. the preload script must have run already on this window
-		 * 2. the first web app instance must have sent the translations to the node thread
-		 * dom-ready is after preload and after the index.html was loaded into the webContents,
-		 * but may be before any javascript ran
-		 */
+
 		this._browserWindow.webContents.on('dom-ready', () => {
-			lang.initialized.promise.then(() => this.sendMessageToWebContents('setup-context-menu', []))
+			this.sendMessageToWebContents('setup-context-menu', [])
 		})
 
 		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
 		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
 		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register(this._browserWindow, 'CommandOrControl+W', () => this._browserWindow.close())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+H', () => wm.hide())
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
-		localShortcut.register(this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Right'
-				: 'Alt+Right',
-			() => this._browserWindow.webContents.goForward())
-		localShortcut.register(this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Left'
-				: 'Alt+Left',
-			() => {
-				const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
-				if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
-					this._browserWindow.webContents.goBack()
-				} else {
-					console.log("Ignore back events on login page")
-				}
-			})
-		localShortcut.register(
-			this._browserWindow,
-			process.platform === 'darwin'
-				? 'Command+Control+F'
-				: 'F11',
-			() => this._toggleFullScreen()
-		)
+		if (process.platform === "darwin") {
+			localShortcut.register(this._browserWindow, 'Command+Control+F', () => this._toggleFullScreen())
+			localShortcut.register(this._browserWindow, 'Command+Right', () => this._browserWindow.webContents.goForward())
+			localShortcut.register(this._browserWindow, 'Command+Left', () => this._tryGoBack())
+		} else {
+			localShortcut.register(this._browserWindow, 'F11', () => this._toggleFullScreen())
+			localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
+			localShortcut.register(this._browserWindow, 'Alt+Left', () => this._tryGoBack())
+			localShortcut.register(this._browserWindow, 'Control+H', () => wm.hide())
+		}
+
+	}
+
+	_tryGoBack(): void {
+		const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
+		if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
+			this._browserWindow.webContents.goBack()
+		} else {
+			console.log("Ignore back events on login page")
+		}
 	}
 
 	openMailBox(info: UserInfo, path?: ?string): Promise<void> {
 		return this._ipc.initialized(this.id).then(() =>
 			this._ipc.sendRequest(this.id, 'openMailbox', [info.userId, info.mailAddress, path])
+		).then(() => this.show())
+	}
+
+	// open at date?
+	openCalendar(info: UserInfo): Promise<void> {
+		return this._ipc.initialized(this.id).then(() =>
+			this._ipc.sendRequest(this.id, 'openCalendar', [info.userId])
 		).then(() => this.show())
 	}
 

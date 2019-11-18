@@ -54,6 +54,7 @@ export function show(emailAddressOrDomainName: ?string) {
 		title: lang.get("addSpamRule_action"),
 		child: form,
 		validator: () => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains),
+		allowOkWithReturn: true,
 		okAction: addSpamRuleOkAction
 	})
 }

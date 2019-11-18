@@ -13,7 +13,7 @@ import {aes128RandomKey, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from ".
 import {GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
-import {decrypt256Key, encrypt256Key, fixedIv} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {decrypt256Key, encrypt256Key} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError"
 import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/Encoding"
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
@@ -23,6 +23,7 @@ import type {FutureBatchActions, QueuedBatch} from "../../../../src/api/worker/s
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
+import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 
 const restClientMock: EntityRestClient = downcast({})
 
@@ -635,7 +636,8 @@ o.spec("Indexer test", () => {
 		}
 
 		let events = [
-			newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(GroupInfoTypeRef), newUpdate(UserTypeRef), newUpdate(WhitelabelChildTypeRef)
+			newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(GroupInfoTypeRef), newUpdate(UserTypeRef),
+			newUpdate(WhitelabelChildTypeRef)
 		]
 		indexer._indexedGroupIds = [groupId]
 		const batch = {events, groupId, batchId}

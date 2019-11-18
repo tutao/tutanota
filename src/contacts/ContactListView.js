@@ -5,7 +5,7 @@ import {load, loadAll} from "../api/main/Entity"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactView} from "./ContactView"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
-import {compareContacts, LazyContactListId} from "./ContactUtils"
+import {compareContacts, LazyContactListId, getContactListName} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -95,7 +95,7 @@ export class ContactRow {
 			this.domElement.classList.remove("row-selected")
 		}
 
-		this._domName.textContent = contact.firstName + " " + contact.lastName
+		this._domName.textContent = getContactListName(contact)
 		this._domAddress.textContent = (contact.mailAddresses && contact.mailAddresses.length > 0) ?
 			contact.mailAddresses[0].address : ""
 	}

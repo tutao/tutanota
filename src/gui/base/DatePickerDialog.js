@@ -33,6 +33,7 @@ export function showDatePickerDialog<T>(startOfTheWeekOffset: number, start: ?Da
 		let dialog = Dialog.showActionDialog({
 			title: lang.get("selectPeriodOfTime_label"),
 			child: form,
+			allowOkWithReturn: true,
 			okAction: () => requestAnimationFrame(() => {
 				let start = (dateStart.invalidDate) ? null : dateStart.date()
 				let end = dateEnd.invalidDate ? null : dateEnd.date()

@@ -4,12 +4,8 @@ import {Notification} from 'electron'
 import {DesktopTray} from "./DesktopTray"
 import type {ApplicationWindow} from "./ApplicationWindow"
 import {neverNull} from "../api/common/utils/Utils"
-
-export type NotificationResultEnum = $Values<typeof NotificationResult>;
-export const NotificationResult = Object.freeze({
-	Click: 'click',
-	Close: 'close'
-})
+import type {NotificationResultEnum} from "./DesktopConstants"
+import {NotificationResult} from "./DesktopConstants"
 
 export class DesktopNotifier {
 	_tray: DesktopTray;
@@ -112,7 +108,7 @@ export class DesktopNotifier {
 	|}, onClick: (res: NotificationResultEnum) => void): () => void {
 
 		const {title, body, icon} =
-			Object.assign({}, {body: ""}, props)
+			Object.assign({}, {body: "", icon: this._tray.getIcon()}, props)
 
 		const notification = new Notification({title, icon, body})
 			.on('click', () => onClick(NotificationResult.Click))

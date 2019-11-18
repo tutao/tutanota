@@ -1,5 +1,6 @@
 // @flow
-import {base64ToBase64Url, base64ToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {base64ToBase64Url, base64ToUint8Array, hexToUint8Array,uint8ArrayToArrayBuffer, uint8ArrayToBase64
+} from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"
@@ -109,3 +110,5 @@ export function uint8ArrayToKey(array: Uint8Array): BitArray {
 export function keyToUint8Array(key: BitArray): Uint8Array {
 	return base64ToUint8Array(keyToBase64(key))
 }
+
+export const fixedIv = hexToUint8Array('88888888888888888888888888888888')

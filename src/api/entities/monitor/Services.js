@@ -1,5 +1,5 @@
 // @flow
 
-export const MonitorService = {
-	CounterService: "counterservice"
+export const MonitorService = { 
+    CounterService: "counterservice"
 }

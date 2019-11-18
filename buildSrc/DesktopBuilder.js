@@ -3,7 +3,8 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, updateUrl, nameSuffix) {
+
+function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
@@ -11,13 +12,19 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 	const updateSubDir = "desktop" + nameSuffix
 	const distDir = path.join(dirname, '/build/dist/')
 
+	const requiredEntities = fs.readdirSync(path.join(dirname, './src/api/entities/sys/'))
+	                           .map(fn => path.join(dirname, './src/api/entities/sys', fn))
+	const languageFiles = fs.readdirSync(path.join(dirname, './src/translations/'))
+	                        .map(fn => path.join(dirname, './src/translations', fn))
+
 	console.log("Updating electron-builder config...")
 	const content = require('./electron-package-json-template')(
 		nameSuffix,
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		nameSuffix !== "-snapshot"
+		nameSuffix !== "-snapshot",
+		notarize
 	)
 	console.log("updateUrl is", updateUrl)
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')
@@ -27,7 +34,9 @@ function build(dirname, version, targets, updateUrl, nameSuffix) {
 		.then(() => fs.removeAsync(path.join(distDir, "..", updateSubDir)))
 		.then(() => {
 			console.log("Tracing dependencies...")
-			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js'], dirname, distDir)
+			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js']
+				.concat(requiredEntities)
+				.concat(languageFiles), dirname, distDir)
 		})
 		.then(() => {
 			console.log("Starting installer build...")

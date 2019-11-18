@@ -318,6 +318,11 @@ export function getLanguageNoDefault(restrictions: ?string[]): ?{code: string, l
 	let languageTags
 	if (typeof navigator !== 'undefined') {
 		languageTags = (navigator.languages && navigator.languages.length > 0) ? navigator.languages : [navigator.language]
+	} else if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
+		const locale = process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || process.env.LANGUAGE || process.env.LC_NAME
+		if (locale) {
+			languageTags = [locale.split(".")[0].replace("_", "-")]
+		}
 	}
 	if (languageTags) {
 		for (let tag of languageTags) {
@@ -354,11 +359,13 @@ export function _getSubstitutedLanguageCode(tag: string, restrictions: ?string[]
 			language = languages.find(l => l.code === 'zh_tw')
 		} else {
 			let basePart = getBasePart(code)
-			language = languages.find(l => getBasePart(l.code) === basePart && (restrictions == null || restrictions.indexOf(l.code) !== -1))
+			language = languages
+				.find(l => getBasePart(l.code) === basePart && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 		}
 	}
 	if (language) {
-		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations && whitelabelCustomizations.germanLanguageCode) {
+		if (language.code === 'de' && typeof whitelabelCustomizations === "object" && whitelabelCustomizations
+			&& whitelabelCustomizations.germanLanguageCode) {
 			return whitelabelCustomizations.germanLanguageCode
 		} else {
 			return language.code

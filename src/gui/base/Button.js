@@ -11,6 +11,8 @@ import type {AllIconsEnum, lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {asyncImport} from "../../api/common/utils/Utils"
+import type {ButtonColorEnum} from "./ButtonN"
+import {ButtonColors, getColors} from "./ButtonN"
 
 assertMainOrNodeBoot()
 
@@ -28,36 +30,10 @@ export const ButtonType = Object.freeze({
 })
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
-export const ButtonColors = Object.freeze({
-	Nav: 'nav',
-	Content: 'content',
-})
-export type ButtonColorEnum = $Values<typeof ButtonColors>;
-
 const TRUE_CLOSURE: lazy<boolean> = () => true
 
 const FALSE_CLOSURE: lazy<boolean> = () => false
 
-function getColors(buttonColors: ButtonColorEnum) {
-	switch (buttonColors) {
-		case ButtonColors.Nav:
-			return {
-				button: theme.navigation_button,
-				button_selected: theme.navigation_button_selected,
-				icon: theme.navigation_button_icon,
-				icon_selected: theme.navigation_button_icon_selected,
-			}
-		case ButtonColors.Content:
-			return {
-				button: theme.content_button,
-				button_selected: theme.content_button_selected,
-				icon: theme.content_button_icon,
-				icon_selected: theme.content_button_icon_selected,
-			}
-		default:
-			throw new Error("Illegal action button color: " + buttonColors)
-	}
-}
 
 /**
  * A button.
@@ -119,7 +95,7 @@ export class Button {
 				}, [
 					this.getIcon(),
 					this._getLabelElement(),
-					(this._staticRightText) ? m(".pl-s", this._staticRightText) : null
+					(this._staticRightText) ? m(".pl-s", {style: this._getLabelStyle()}, this._staticRightText) : null
 				])
 			)
 		}
@@ -151,6 +127,8 @@ export class Button {
 			return 'initial'
 		} else if (this.isSelected() || this._type === ButtonType.Floating) {
 			return getColors(this._colors).button_selected
+		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown || this._type === ButtonType.ActionLarge) {
+			return getColors(this._colors).button_icon_bg
 		} else {
 			return getColors(this._colors).button
 		}
@@ -226,7 +204,7 @@ export class Button {
 		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
 			color = theme.content_accent
 		} else if (this._type === ButtonType.Login || this._type === ButtonType.Accent) {
-			color = theme.content_button_icon
+			color = theme.content_button_icon_selected
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
 			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
 		} else {

@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
 import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
-import {theme} from "../theme"
+import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -44,7 +44,7 @@ export class Dialog {
 	view: Function;
 	visible: boolean;
 	_focusOnLoadFunction: Function;
-	_closeHandler: ?(e: Event) => void;
+	_closeHandler: ?() => void;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
@@ -91,10 +91,10 @@ export class Dialog {
 								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
 								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
 							} else {
-								let bgcolor = theme.content_bg
+								let bgcolor = getElevatedBackground()
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
-								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
+								this._domDialog.style.backgroundColor = `rgba(0, 0, 0, 0)`
 								animation = Promise.all([
 									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
 									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
@@ -143,7 +143,7 @@ export class Dialog {
 	}
 
 	_getDialogStyle(dialogType: DialogTypeEnum) {
-		let dialogStyle = ".dialog.content-bg.flex-grow"
+		let dialogStyle = ".dialog.elevated-bg.flex-grow"
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress"
 		} else if (dialogType === DialogType.Alert) {
@@ -169,7 +169,7 @@ export class Dialog {
 	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.
 	 */
-	setCloseHandler(closeHandler: ?(e: Event) => void): Dialog {
+	setCloseHandler(closeHandler: ?() => void): Dialog {
 		this._closeHandler = closeHandler
 		return this
 	}
@@ -196,16 +196,16 @@ export class Dialog {
 	/**
 	 * Should be called to close a dialog. Notifies the closeHandler about the close attempt.
 	 */
-	onClose(e: Event): void {
+	onClose(): void {
 		if (this._closeHandler) {
-			this._closeHandler(e)
+			this._closeHandler()
 		} else {
 			this.close()
 		}
 	}
 
 	popState(e: Event): boolean {
-		this.onClose(e)
+		this.onClose()
 		return false
 	}
 
@@ -214,7 +214,7 @@ export class Dialog {
 	 * @returns {Promise.<void>}
 	 */
 	hideAnimation(): Promise<void> {
-		let bgcolor = theme.content_bg
+		let bgcolor = getElevatedBackground()
 		if (this._domDialog) {
 			return Promise.all([
 				animations.add(this._domDialog.children, opacity(1, 0, true)),
@@ -231,14 +231,17 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>): Promise<void> {
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
 				dialog.close()
 				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
-			const lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			let lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
+			if (infoToAppend) {
+				lines.push(infoToAppend)
+			}
 			const buttonAttrs: ButtonAttrs = {
 				label: "ok_action",
 				click: closeAction,
@@ -388,7 +391,7 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=" + HabReminderImage + "].dialog-img.pb", {
+							m("img[src=" + HabReminderImage + "].dialog-img.mb.bg-white.border-radius", {
 								style: {
 									'min-width': '150px'
 								}
@@ -422,14 +425,20 @@ export class Dialog {
 		validator?: validator,
 		okAction: null | (Dialog) => mixed,
 		allowCancel?: boolean,
+		allowOkWithReturn?: boolean,
 		okActionTextId?: TranslationKey,
 		cancelAction?: ?(Dialog) => mixed,
 		cancelActionTextId?: TranslationKey,
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, okActionTextId, cancelActionTextId, cancelAction, type} =
-			Object.assign({}, {allowCancel: true, okActionTextId: "ok_action", cancelActionTextId: "cancel_action", type: DialogType.EditSmall}, props)
+		const {title, child, okAction, validator, allowCancel, allowOkWithReturn,okActionTextId, cancelActionTextId, cancelAction, type} =
+			Object.assign({}, {
+				allowCancel: true,
+				allowOkWithReturn: false,okActionTextId: "ok_action",
+				cancelActionTextId: "cancel_action",
+				type: DialogType.EditSmall
+			}, props)
 
 		const doCancel = () => {
 			if (cancelAction) {
@@ -475,6 +484,15 @@ export class Dialog {
 			})
 		}
 
+		if (allowOkWithReturn) {
+			dialog.addShortcut({
+				key: Keys.RETURN,
+				shift: false,
+				exec: doAction,
+				help: "ok_action"
+			})
+		}
+
 		return dialog.show()
 	}
 
@@ -500,6 +518,7 @@ export class Dialog {
 				title: lang.getMaybeLazy(titleId),
 				child: () => m(TextFieldN, textFieldAttrs),
 				validator: () => inputValidator ? inputValidator(result()) : null,
+				allowOkWithReturn: true,
 				okAction: dialog => {
 					resolve(result())
 					dialog.close()
@@ -600,6 +619,7 @@ export class Dialog {
 		const dialog = Dialog.showActionDialog({
 			title: lang.get("password_label"),
 			child: {view: () => m(TextFieldN, textFieldAttrs)},
+			allowOkWithReturn: true,
 			okAction: () => out(value()),
 			allowCancel: props.allowCancel,
 			cancelAction: () => dialog.close()

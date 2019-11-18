@@ -16,6 +16,17 @@ o.spec("ClientDetector test", function () {
 		window.touchEvent = undefined
 	})
 
+	o("ClientDetector detect chrome macOS", () => {
+		// Even though TouchEvent is defined for Chrome, it should not be consider mobile verson
+		window.TouchEvent = function () {}
+		client.init("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36", "MacIntel")
+		o(client.browser).equals(BrowserType.CHROME)
+		o(client.browserVersion).equals(77)
+		o(client.device).equals(DeviceType.DESKTOP)
+		o(client.isMobileDevice()).equals(false)
+		window.touchEvent = undefined
+	})
+
 	o("ClientDetector detect firefox linux", () => {
 		client.init("Mozilla/5.0 (X11 Ubuntu Linux x86_64 rv:17.0) Gecko/17.0 Firefox/17.0", "Linux")
 		o(client.browser).equals(BrowserType.FIREFOX)

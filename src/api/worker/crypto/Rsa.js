@@ -1,5 +1,12 @@
 // @flow
-import {base64ToHex, base64ToUint8Array, hexToUint8Array, int8ArrayToBase64, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
+import {
+	base64ToHex,
+	base64ToUint8Array,
+	hexToUint8Array,
+	int8ArrayToBase64,
+	uint8ArrayToBase64,
+	uint8ArrayToHex
+} from "../../common/utils/Encoding"
 import {arrayEquals, concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {random} from "./Randomizer"
@@ -91,7 +98,7 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
 		//FIXME remove hex conversion
 
 		let encryptedHex = encrypted.toString(16)
-		if ((encryptedHex.length % 2) == 1) {
+		if ((encryptedHex.length % 2) === 1) {
 			encryptedHex = "0" + encryptedHex
 		}
 
@@ -145,8 +152,7 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
 		let fill = Array(expectedPaddedHexLength - decryptedHex.length + 1).join("0") // creates the missing zeros
 		decryptedHex = fill + decryptedHex
 		let paddedBytes = hexToUint8Array(decryptedHex)
-		let decryptedBytes = oaepUnpad(paddedBytes, privateKey.keyLength)
-		return decryptedBytes
+		return oaepUnpad(paddedBytes, privateKey.keyLength)
 	} catch (e) {
 		throw new CryptoError("failed RSA decryption", e)
 	}
@@ -179,7 +185,7 @@ export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
 		let signed = rsa.doPrivate(bigInt)
 
 		let signedHex = signed.toString(16)
-		if ((signedHex.length % 2) == 1) {
+		if ((signedHex.length % 2) === 1) {
 			signedHex = "0" + signedHex
 		}
 
@@ -208,7 +214,7 @@ export function verifySignature(publicKey: PublicKey, bytes: Uint8Array, signatu
 		let padded = rsa.doPublic(bigInt)
 
 		let paddedHex = padded.toString(16)
-		if ((paddedHex.length % 2) == 1) {
+		if ((paddedHex.length % 2) === 1) {
 			paddedHex = "0" + paddedHex
 		}
 		let paddedBytes = hexToUint8Array(paddedHex)
@@ -241,7 +247,7 @@ function _bytesToHex(bytes) {
  */
 export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array): Uint8Array {
 	let hashLength = 32 // bytes sha256
-	if (seed.length != hashLength) {
+	if (seed.length !== hashLength) {
 		throw new CryptoError("invalid seed length: " + seed.length + ". expected: " + hashLength + " bytes!")
 	}
 	if (value.length > (keyLength / 8 - hashLength - 1)) {
@@ -274,7 +280,7 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
  */
 export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
-	if (value.length != keyLength / 8 - 1) {
+	if (value.length !== keyLength / 8 - 1) {
 		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1)
 			+ " bytes!")
 	}
@@ -293,10 +299,10 @@ export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 
 	// check that the zeros and the one is there
 	for (var index = 2 * hashLength; index < value.length; index++) {
-		if (value[index] == 1) {
+		if (value[index] === 1) {
 			// found the 0x01
 			break
-		} else if (value[index] != 0 || index == value.length) {
+		} else if (value[index] !== 0 || index === value.length) {
 			throw new CryptoError("invalid padding")
 		}
 	}
@@ -323,7 +329,7 @@ export function _getPSBlock(value: Uint8Array, keyLength: number) {
 			block[i] = defHash[i - hashLength]
 		} else if (i < nbrOfZeros) {
 			block[i] = 0
-		} else if (i == nbrOfZeros) {
+		} else if (i === nbrOfZeros) {
 			block[i] = 1
 		} else {
 			block[i] = value[i - nbrOfZeros - 1]
@@ -344,7 +350,7 @@ export function _getPSBlock(value: Uint8Array, keyLength: number) {
 export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array): Uint8Array {
 	let hashLength = 32 // bytes sha256
 	let emLen = Math.ceil(keyLength / 8)
-	if (salt.length != hashLength) {
+	if (salt.length !== hashLength) {
 		throw new Error("invalid _salt length: " + salt.length + ". expected: " + hashLength + " bytes!")
 	}
 	let length = hashLength + salt.length + 2
@@ -372,7 +378,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 	let db = concat(ps, new Uint8Array([1]), salt)
 	_clear(ps)
 	let expectedDbLength = emLen - hashLength - 1
-	if (db.length != expectedDbLength) {
+	if (db.length !== expectedDbLength) {
 		throw new Error("unexpected length of block: " + db.length + ". Expected: " + expectedDbLength)
 	}
 
@@ -409,7 +415,7 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 			throw new Error("invalid length of encoded message: " + encodedMessage.length + ". expected: > "
 				+ minEncodedLength + " bytes!")
 		}
-		if (encodedMessage[encodedMessage.length - 1] != 188) {
+		if (encodedMessage[encodedMessage.length - 1] !== 188) {
 			throw new Error("rightmost octet of EM must be 188 (0xbc) but was " + encodedMessage[encodedMessage.length
 			- 1])
 		}
@@ -418,7 +424,7 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 		var hashed = encodedMessage.slice(emLen - hashLength - 1, emLen - hashLength - 1 + hashLength)
 
 		// If the leftmost 8emLen - emBits bits of the leftmost octet in maskedDB are not all equal to zero, output "inconsistent" and stop.
-		if ((maskedDB[0] >> 8 - (8 * emLen - keyLength)) != 0) {
+		if ((maskedDB[0] >> 8 - (8 * emLen - keyLength)) !== 0) {
 			throw new Error("inconsistent leftmost octet in maskedDB.")
 		}
 
@@ -432,12 +438,12 @@ export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLeng
 		db[0] &= (0xff >> (8 * emLen - keyLength))
 
 		for (let i = 0; i < emLen - hashLength - saltLength - 2; i++) {
-			if (db[i] != 0) {
+			if (db[i] !== 0) {
 				throw new Error("inconsistent leftmost octets of db.")
 			}
 		}
 
-		if (db[emLen - hashLength - saltLength - 2] != 1) {
+		if (db[emLen - hashLength - saltLength - 2] !== 1) {
 			throw new Error("inconsistent octet value in db. Expected 1 (0x01) but was " + db[emLen - hashLength
 			- saltLength - 1])
 		}
@@ -491,8 +497,7 @@ export function mgf1(seed: Uint8Array, length: number): Uint8Array {
 		T = concat(T, hash(concat(seed, C)))
 	} while (++counter < Math.ceil(length / (256 / 8)))
 
-	let slice = T.slice(0, length)
-	return slice
+	return T.slice(0, length)
 }
 
 /**
@@ -582,7 +587,7 @@ export function _keyArrayToHex(key: BigInteger[]): Hex {
 	var hex = ""
 	for (var i = 0; i < key.length; i++) {
 		var param = key[i].toString(16)
-		if ((param.length % 2) == 1) {
+		if ((param.length % 2) === 1) {
 			param = "0" + param
 		}
 		hex += _hexLen(param) + param
@@ -608,7 +613,7 @@ function _hexToKeyArray(hex: Hex): BigInteger[] {
 }
 
 function _validateKeyLength(key: BigInteger[]) {
-	if (key.length != 1 && key.length != 7) {
+	if (key.length !== 1 && key.length !== 7) {
 		throw new Error("invalid key params")
 	}
 	if (key[0].bitLength() < keyLengthInBits - 1 || key[0].bitLength() > keyLengthInBits) {

@@ -36,6 +36,8 @@ o.spec("ApplicationWindow Test", () => {
 					this.webContents = n.spyify({
 						callbacks: {},
 						destroyed: false,
+						zoomFactor: 1.0,
+
 						isDestroyed: () => {
 							return this.webContents.destroyed
 						},
@@ -66,8 +68,6 @@ o.spec("ApplicationWindow Test", () => {
 							this.devToolsOpened = !this.devToolsOpened
 						},
 						getTitle: () => 'webContents Title',
-						setZoomFactor: () => {
-						},
 						session: {
 							setPermissionRequestHandler: () => {
 							}
@@ -78,6 +78,9 @@ o.spec("ApplicationWindow Test", () => {
 						},
 						getURL: () => 'desktophtml/meh/more'
 					})
+				},
+				removeMenu: function () {
+
 				},
 				setMenuBarVisibility: function () {
 				},
@@ -190,7 +193,7 @@ o.spec("ApplicationWindow Test", () => {
 		// our modules
 		const desktopUtilsMock = n.mock("./DesktopUtils.js", desktopUtils).set()
 		const desktopTrayMock = n.mock("./DesktopTray.js", {DesktopTray: {getIcon: () => "this is an icon"}}).set()
-		const langMock = n.mock("./DesktopLocalizationProvider.js", lang).set()
+		const langMock = n.mock("../misc/LanguageViewModel", lang).set()
 		const u2fMock = n.mock("../misc/u2f-api.js", u2f).set()
 
 		// instances
@@ -233,6 +236,7 @@ o.spec("ApplicationWindow Test", () => {
 		})
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
 		o(bwInstance.setMenuBarVisibility.args[0]).equals(false)
+		o(bwInstance.removeMenu.callCount).equals(1)
 
 		o(wmMock.ipc.addWindow.callCount).equals(1)
 		o(wmMock.ipc.addWindow.args[0]).equals(w.id)
@@ -270,12 +274,11 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+P',
 			'F12',
 			'F5',
-			'CommandOrControl+W',
-			'CommandOrControl+H',
 			'CommandOrControl+N',
+			'F11',
 			'Alt+Right',
 			'Alt+Left',
-			'F11'
+			'Control+H',
 		])
 	})
 
@@ -291,12 +294,11 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+P',
 			'F12',
 			'F5',
-			'CommandOrControl+W',
-			'CommandOrControl+H',
 			'CommandOrControl+N',
+			'F11',
 			'Alt+Right',
 			'Alt+Left',
-			'F11'
+			'Control+H'
 		])
 	})
 
@@ -312,16 +314,14 @@ o.spec("ApplicationWindow Test", () => {
 			'CommandOrControl+P',
 			'F12',
 			'F5',
-			'CommandOrControl+W',
-			'CommandOrControl+H',
 			'CommandOrControl+N',
+			'Command+Control+F',
 			'Command+Right',
-			'Command+Left',
-			'Command+Control+F'
+			'Command+Left'
 		])
 	})
 
-	o("shortcuts are used", () => {
+	o("shortcuts are used, linux", () => {
 		n.setPlatform('linux')
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -354,10 +354,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.loadURL.callCount).equals(2)
 		o(bwInstance.loadURL.args[0]).equals('desktophtml')
 
-		electronLocalshortcutMock.callbacks["CommandOrControl+W"]()
-		o(bwInstance.close.callCount).equals(1)
-
-		electronLocalshortcutMock.callbacks["CommandOrControl+H"]()
+		electronLocalshortcutMock.callbacks["Control+H"]()
 		o(wmMock.hide.callCount).equals(1)
 
 		electronLocalshortcutMock.callbacks["CommandOrControl+N"]()
@@ -373,6 +370,55 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.webContents.goBack.callCount).equals(1)
 
 		electronLocalshortcutMock.callbacks["Alt+Right"]()
+		o(bwInstance.webContents.goForward.callCount).equals(1)
+	})
+
+	o("shortcuts are used, mac", () => {
+		n.setPlatform('darwin')
+		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
+
+		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
+		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+
+		// call all the shortcut callbacks
+		electronLocalshortcutMock.callbacks["CommandOrControl+F"]()
+		o(wmMock.ipc.sendRequest.callCount).equals(1)
+		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, 'openFindInPage', []])
+
+
+		electronLocalshortcutMock.callbacks["CommandOrControl+P"]()
+		o(wmMock.ipc.sendRequest.callCount).equals(2)
+		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, 'print', []])
+
+		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		electronLocalshortcutMock.callbacks["F12"]()
+		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
+		o(bwInstance.webContents.openDevTools.callCount).equals(1)
+		o(bwInstance.webContents.closeDevTools.callCount).equals(0)
+
+		bwInstance.webContents.devToolsOpened = true
+		electronLocalshortcutMock.callbacks["F12"]()
+		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(2)
+		o(bwInstance.webContents.openDevTools.callCount).equals(1)
+		o(bwInstance.webContents.closeDevTools.callCount).equals(1)
+
+		electronLocalshortcutMock.callbacks["F5"]()
+		o(bwInstance.loadURL.callCount).equals(2)
+		o(bwInstance.loadURL.args[0]).equals('desktophtml')
+
+		electronLocalshortcutMock.callbacks["CommandOrControl+N"]()
+		o(wmMock.newWindow.callCount).equals(1)
+		o(wmMock.newWindow.args[0]).equals(true)
+
+		electronLocalshortcutMock.callbacks["Command+Control+F"]()
+		o(bwInstance.setFullScreen.callCount).equals(1)
+		o(bwInstance.isFullScreen.callCount).equals(1)
+		o(bwInstance.setFullScreen.args[0]).equals(true)
+
+		electronLocalshortcutMock.callbacks["Command+Left"]()
+		o(bwInstance.webContents.goBack.callCount).equals(1)
+
+		electronLocalshortcutMock.callbacks["Command+Right"]()
 		o(bwInstance.webContents.goForward.callCount).equals(1)
 	})
 
@@ -545,7 +591,6 @@ o.spec("ApplicationWindow Test", () => {
 		bwInstance.webContents.callbacks['dom-ready']()
 
 		setTimeout(() => {
-			o(langMock.lang.initialized.promise.then.callCount).equals(1)
 			o(bwInstance.webContents.send.callCount).equals(1)
 			o(bwInstance.webContents.send.args[0]).equals('setup-context-menu')
 			o(bwInstance.webContents.send.args[1]).deepEquals([])
@@ -705,8 +750,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.webContents.getTitle.args).deepEquals([])
 
 		w.setZoomFactor(42.42)
-		o(bwInstance.webContents.setZoomFactor.callCount).equals(1)
-		o(bwInstance.webContents.setZoomFactor.args[0]).equals(42.42)
+		o(bwInstance.webContents.zoomFactor).equals(42.42)
 		o(w.isFullScreen()).equals(false)
 		o(bwInstance.isFullScreen.callCount).equals(1)
 		o(w.isMinimized()).equals(false)

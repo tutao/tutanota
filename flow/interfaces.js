@@ -7,6 +7,10 @@ interface IViewSlider {
 
 	isFocusPreviousPossible(): boolean;
 
+	isFirstBackgroundColumnFocused(): boolean;
+
+	isForegroundColumnFocused(): boolean;
+
 	getPreviousColumn(): ?_ViewColumn;
 
 	focusPreviousColumn(): void;

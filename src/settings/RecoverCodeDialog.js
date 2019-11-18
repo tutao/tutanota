@@ -42,6 +42,7 @@ export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): P
 				}
 			},
 			allowCancel: false,
+			allowOkWithReturn: true,
 			okAction: (dialog) => {
 				dialog.close()
 				resolve()

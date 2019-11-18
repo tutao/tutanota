@@ -5,6 +5,9 @@ import {mailModel} from "../mail/MailModel"
 import {assertMainOrNode} from "../api/Env"
 import {LoginView} from "../login/LoginView"
 import {ColumnType} from "../gui/base/ViewColumn"
+import {header} from "../gui/base/Header";
+import {modal} from "../gui/base/Modal";
+import {last} from "../api/common/utils/ArrayUtils";
 
 assertMainOrNode()
 
@@ -13,27 +16,26 @@ assertMainOrNode()
  * False if the caller must handle the button press (quit the application)
  */
 export function handleBackPress(): boolean {
-	if (window.tutao.modal.components.length > 0) { // first check if any modal dialog is visible
-		let activeComponent = window.tutao.modal.components[window.tutao.modal.components.length - 1]
-		activeComponent.component.onClose()
+	const lastModalComponent = last(modal.components)
+	if (lastModalComponent) { // first check if any modal dialog is visible
+		lastModalComponent.component.onClose()
 		return true
 	} else if (tutao.currentView instanceof LoginView && tutao.currentView.onBackPress()) {
 		return true
 	} else { // otherwise try to navigate back in the current view
-		const viewSlider = window.tutao.header._getViewSlider()
+		const viewSlider = header._getViewSlider()
 		const currentRoute = m.route.get()
 		// If the sidebar is opened, close it
-		if (viewSlider && viewSlider.focusedColumn && viewSlider.focusedColumn.columnType === ColumnType.Foreground
-			&& viewSlider.focusedColumn === viewSlider.columns[0]) {
+		if (viewSlider && viewSlider.isForegroundColumnFocused()) {
 			viewSlider.focusNextColumn()
 			return true
 		} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
 			return true
 		} else if (currentRoute.startsWith("/contact") || currentRoute.startsWith("/settings")
 			|| currentRoute.startsWith("/search") || currentRoute.startsWith("/calendar")) { // go back to mail from other paths
-			m.route.set(window.tutao.header.mailNavButton._getUrl())
+			m.route.set(header.mailsUrl)
 			return true
-		} else if (viewSlider && viewSlider.columns.filter(column => column.columnType === ColumnType.Background).indexOf(viewSlider.focusedColumn) === 0) {
+		} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 			// If the first background column is visible, quit
 			return false
 		} else if (viewSlider && viewSlider.isFocusPreviousPossible()) { // current view can navigate back

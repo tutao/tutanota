@@ -52,7 +52,8 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog
+	showDeleteConfirmationDialog,
+	hasDifferentEnvelopeSender
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -71,7 +72,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
-import {theme, themeId} from "../gui/theme"
+import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -87,6 +88,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonN} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
+import {createDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
 
@@ -99,6 +101,7 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 
 
 const DOUBLE_TAP_TIME_MS = 350
+const SCROLL_FACTOR = 4 / 5
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -128,7 +131,8 @@ export class MailViewer {
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime = 0;
-	_lastTouchStart: {x: number, y: number, time: number}
+	_lastTouchStart: {x: number, y: number, time: number};
+	_domForScrolling: ?HTMLElement
 
 	constructor(mail: Mail, showFolder: boolean) {
 		if (isDesktop()) {
@@ -180,9 +184,9 @@ export class MailViewer {
 				getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null,
 			() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250)
 			.setType(ButtonType.Bubble)
-		let differentSenderBubble = (this._isEnvelopeSenderVisible()) ?
+		let differentSenderBubble = (hasDifferentEnvelopeSender(this.mail)) ?
 			new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
-				() => Dialog.error("envelopeSenderInfo_msg"), () => Icons.Warning).setType(ButtonType.Bubble)
+				() => Dialog.error("envelopeSenderInfo_msg", neverNull(this.mail.differentEnvelopeSender)), () => Icons.Warning).setType(ButtonType.Bubble)
 			: null
 		let toRecipientBubbles = this.mail.toRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false),
@@ -220,7 +224,7 @@ export class MailViewer {
 					(replyToBubbles.length > 0) ?
 						m(".flex-start.flex-wrap.ml-negative-bubble", replyToBubbles.map(b => m(b))) : null,
 				])
-		}), differentSenderBubble != null, {'padding-top': px(26)})
+		}), false, {'padding-top': px(26)})
 
 		let actions = new ActionBar()
 		actions.add(this._createLoadExternalContentButton(mail))
@@ -331,6 +335,9 @@ export class MailViewer {
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
 										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
 											this._tutaoBadge(),
+											hasDifferentEnvelopeSender(this.mail)
+												? m(Icon, {icon: Icons.Warning, style: {fill: theme.navigation_button}})
+												: null,
 											getSenderOrRecipientHeading(this.mail, false)
 										]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
@@ -363,6 +370,9 @@ export class MailViewer {
 									this._lastTouchStart.x = touch.clientX
 									this._lastTouchStart.y = touch.clientY
 									this._lastTouchStart.time = Date.now()
+								},
+								oncreate: vnode => {
+									this._domForScrolling = vnode.dom
 								},
 								ontouchend: (event) => {
 									if (client.isMobileDevice()) {
@@ -451,7 +461,18 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages)
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
+					createDropdown(() => [
+						{
+							label: "download_action",
+							click: () => {
+								fileController.downloadAndOpen(file, true)
+								              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							},
+							type: ButtonType.Dropdown
+						}
+					])(event, dom)
+				})
 			})
 		})
 	}
@@ -469,12 +490,11 @@ export class MailViewer {
 			 * OR
 			 * there is a font tag with the color attribute set
 			 */
-			this._contrastFixNeeded = themeId() === 'dark'
-				&& (
-					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-					                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
+			this._contrastFixNeeded = (
+				'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
+				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+				|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+			)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
 
 			this._contentBlocked = sanitizeResult.externalContent.length > 0
@@ -492,7 +512,7 @@ export class MailViewer {
 	}
 
 
-	_loadAttachments(mail: Mail, inlineFileIds: Promise<Array<Id>>): Promise<InlineImages> {
+	_loadAttachments(mail: Mail, inlineCids: Promise<Array<string>>): Promise<InlineImages> {
 		if (mail.attachments.length === 0) {
 			this._loadingAttachments = false
 			return Promise.resolve({})
@@ -501,11 +521,11 @@ export class MailViewer {
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
 			              .then(files => {
 				              this._attachments = files
-				              this._attachmentButtons = this._createAttachmentsButtons(files)
-				              this._loadingAttachments = false
-				              m.redraw()
-				              return inlineFileIds.then((inlineFileIds) => {
-					              const filesToLoad = files.filter(file => inlineFileIds.find(inline => file.cid === inline))
+				              return inlineCids.then((inlineCids) => {
+					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
+					              this._loadingAttachments = false
+					              m.redraw()
+					              const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
 					              const inlineImages: InlineImages = {}
 					              return Promise
 						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
@@ -723,9 +743,7 @@ export class MailViewer {
 	}
 
 	_isEnvelopeSenderVisible(): boolean {
-		return (this.mail.differentEnvelopeSender != null
-			&& getDomainWithoutSubdomains(this.mail.differentEnvelopeSender)
-			!== getDomainWithoutSubdomains(this.mail.sender.address))
+		return hasDifferentEnvelopeSender(this.mail)
 	}
 
 	_markUnread(unread: boolean) {
@@ -946,14 +964,16 @@ export class MailViewer {
 	scrollUp(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.max(0, current - 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.max(0, current - toScroll))
 		})
 	}
 
 	scrollDown(): void {
 		this._scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + 200))
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
 		})
 	}
 
@@ -986,15 +1006,17 @@ export class MailViewer {
 	}
 
 	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domBodyDeferred.promise.isFulfilled()) {
-			const dom = this._domBodyDeferred.promise.value()
+		if (this._domForScrolling) {
+			const dom = this._domForScrolling
 			if (this._scrollAnimation.isFulfilled()) {
 				this._scrollAnimation = animations.add(dom, cb(dom), {easing: ease.inOut})
 			}
 		}
 	}
 
-	_createAttachmentsButtons(files: TutanotaFile[]): Button[] {
+	_createAttachmentsButtons(files: $ReadOnlyArray<TutanotaFile>, inlineCids: $ReadOnlyArray<Id>): Button[] {
+		// Only show file buttons which do not correspond to inline images in HTML
+		files = files.filter((item) => inlineCids.includes(item.cid) === false)
 		let buttons
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
 		if (isAndroidApp()) {

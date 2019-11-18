@@ -17,7 +17,8 @@ import {UserListView} from "./UserListView"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
-import {Button, ButtonColors, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType} from "../gui/base/Button"
+import {ButtonColors} from "../gui/base/ButtonN"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -274,6 +275,7 @@ export class SettingsView implements CurrentView {
 							Dialog.showActionDialog({
 								title: () => lang.get("about_label"),
 								child: () => m(AboutDialog),
+								allowOkWithReturn: true,
 								okAction: (dialog) => dialog.close(),
 								allowCancel: false,
 							})

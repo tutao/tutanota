@@ -4,7 +4,7 @@ import fs from "fs-extra"
 import {app} from "electron"
 import path from "path"
 
-const linuxDesktopPath = path.join(app.getPath('home'), `.config/autostart/${app.getName()}.desktop`)
+const linuxDesktopPath = path.join(app.getPath('home'), `.config/autostart/${app.name}.desktop`)
 const autoStartPath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
@@ -15,27 +15,26 @@ export function isAutoLaunchEnabled(): Promise<boolean> {
 }
 
 export function enableAutoLaunch(): Promise<void> {
-	return new Promise(resolve => {
+	return isAutoLaunchEnabled().then(enabled => {
+		if (enabled) return
 		const desktopEntry = `[Desktop Entry]
 	Type=Application
 	Version=${app.getVersion()}
-	Name=${app.getName()}
-	Comment=${app.getName()} startup script
+	Name=${app.name}
+	Comment=${app.name} startup script
 	Exec=${autoStartPath} -a
 	StartupNotify=false
 	Terminal=false`
 		fs.ensureDirSync(path.dirname(linuxDesktopPath))
 		fs.writeFileSync(linuxDesktopPath, desktopEntry, {encoding: 'utf-8'})
-		resolve()
 	})
 }
 
 export function disableAutoLaunch(): Promise<void> {
-	return promisify(fs.unlink)(linuxDesktopPath)
+	return isAutoLaunchEnabled()
+		.then(enabled => enabled ? promisify(fs.unlink)(linuxDesktopPath) : Promise.resolve())
 		.catch(e => {
 			// don't throw if file not found
-			if (e.code !== 'ENOENT') {
-				throw e
-			}
+			if (e.code !== 'ENOENT') e.throw()
 		})
 }

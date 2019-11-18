@@ -64,7 +64,7 @@ declare module 'electron' {
 		exit(code: Number): void,
 		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
-		getName(): string,
+		name: string,
 		setPath(name: string, path: string): void;
 		getLoginItemSettings(opts?: {path: string, args: string}): {
 			openAtLogin: boolean,
@@ -229,6 +229,7 @@ declare module 'electron' {
 		isDestroyed(): boolean;
 		setFullScreen(boolean): void;
 		isVisible(): boolean;
+		removeMenu(): void;
 		isSimpleFullScreen(): boolean;
 		setSimpleFullScreen(boolean): void;
 		setFullScreen(boolean): void;
@@ -288,8 +289,7 @@ declare module 'electron' {
 		session: ElectronSession;
 		getURL(): string;
 		getTitle(): string;
-		getZoomFactor((factor: number) => void): void;
-		setZoomFactor(factor: number): void;
+		zoomFactor: number;
 		openDevTools(opts?: {|mode: string|}): void;
 		isDevToolsOpened(): boolean;
 		isDestroyed(): boolean;
@@ -317,8 +317,7 @@ declare module 'electron' {
 
 	declare export type DownloadItem = {
 		on('done' | 'updated', (event: Event, state: string) => void): DownloadItem;
-		setSavePath: (path: string) => void;
-		getSavePath: () => string;
+		savePath: string;
 		getFilename: () => string;
 		pause: () => void;
 		resume: () => void;
@@ -340,7 +339,7 @@ declare module 'electron' {
 
 declare type ClientRequest = {
 	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage)=>void): ClientRequest,
-	end(): void,
+	end(): ClientRequest,
 	abort(): void,
 };
 
@@ -576,4 +575,16 @@ declare module 'node-forge' {
 
 declare module 'winreg' {
 	declare export default any;
+}
+
+declare module 'keytar' {
+	declare export function getPassword(service: string, account: string): Promise<?string>;
+
+	declare export function setPassword(service: string, account: string, password: string): Promise<void>;
+
+	declare export function deletePassword(service: string, account: string): Promise<boolean>;
+
+	declare export function findCredentials(service: string): Promise<{account: string, password: string}>;
+
+	declare export function findPassword(service: string): Promise<?string>;
 }

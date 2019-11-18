@@ -3,6 +3,7 @@ import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {lang} from "../../../src/misc/LanguageViewModel"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, expectedResult) {
@@ -25,8 +26,11 @@ o.spec("ContactUtilsTest", function () {
 			c2.mailAddresses.push(m)
 		}
 		let result = compareContacts(c1, c2)
+		// We should use Mithril's ability to print messages instead of this log when it will work again (and the moment of writing it's
+		// fixed but not released: https://github.com/MithrilJS/mithril.js/issues/2391
 		if (result != expectedResult) {
-			console.log("error >>>>>>>", "'" + c1Firstname + "'", "'" + c1Lastname + "'", c1MailAddress, "'" + c2Firstname + "'", "'" + c2Lastname + "'", c2MailAddress, "expected:", expectedResult, "result", result)
+			console.log("error >>>>>>>", "'" + c1Firstname + "'", "'" + c1Lastname + "'", c1MailAddress, "'" + c2Firstname + "'", "'"
+				+ c2Lastname + "'", c2MailAddress, "expected:", expectedResult, "result", result)
 		}
 		o(result).equals(expectedResult)
 	}
@@ -70,6 +74,8 @@ o.spec("ContactUtilsTest", function () {
 	})
 
 	o("formatNewBirthdayTest", function () {
+		lang.setLanguage({code: "en", languageTag: "en"})
+		lang.updateFormats({})
 		let bday = createBirthday()
 		bday.day = "12"
 		bday.month = "10"
@@ -88,6 +94,11 @@ o.spec("ContactUtilsTest", function () {
 		bday.year = null
 
 		o(formatBirthdayNumeric(bday)).equals("7/9")
+
+		bday = createBirthday()
+		bday.day = "12"
+		bday.month = "10"
+		bday.year = "2009"
 	})
 
 })
