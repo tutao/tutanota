@@ -3,21 +3,23 @@ import n from "../nodemocker"
 import o from "ospec/ospec.js"
 
 o.spec("Socketeer Test", (done, timeout) => {
-	n.startGroup(__filename, [
-		'../api/common/utils/Utils',
-		'../TutanotaConstants',
-		'./utils/Utils',
-		'../EntityFunctions',
-		'./utils/Encoding',
-		'../error/CryptoError',
-		'./TutanotaError',
-		'./StringUtils',
-		'./EntityConstants',
-		'./utils/Utils',
-		'./utils/ArrayUtils',
-		'./Utils',
-		'./MapUtils',
-	], 2000)
+	n.startGroup({
+		group: __filename, allowables: [
+			'../api/common/utils/Utils',
+			'../TutanotaConstants',
+			'./utils/Utils',
+			'../EntityFunctions',
+			'./utils/Encoding',
+			'../error/CryptoError',
+			'./TutanotaError',
+			'./StringUtils',
+			'./EntityConstants',
+			'./utils/Utils',
+			'./utils/ArrayUtils',
+			'./Utils',
+			'./MapUtils',
+		], timeout: 2000
+	})
 
 	const electron = {
 		app: {

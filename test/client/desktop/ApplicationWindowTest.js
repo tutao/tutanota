@@ -3,9 +3,13 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
 o.spec("ApplicationWindow Test", () => {
-	n.startGroup(__filename, [
-		'../api/Env'
-	], 300)
+	n.startGroup({
+		group: __filename,
+		allowables: [
+			'../api/Env'
+		],
+		timeout: 300
+	})
 
 	const electron = {
 		BrowserWindow: n.classify({

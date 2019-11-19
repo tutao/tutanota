@@ -3,20 +3,22 @@ import o from "ospec/ospec.js"
 import n from '../../nodemocker'
 
 o.spec("DesktopAlarmStorageTest", () => {
-	n.startGroup(__filename, [
-		"./TutanotaError",
-		"../error/CryptoError",
-		"../../api/common/utils/Encoding",
-		"../../api/common/error/CryptoError",
-		"./StringUtils",
-		"./EntityConstants",
-		"./Utils",
-		"../../api/common/utils/Utils",
-		"./utils/Utils",
-		"../TutanotaConstants",
-		"./utils/ArrayUtils",
-		"./MapUtils",
-	])
+	n.startGroup({
+		group: __filename, allowables: [
+			"./TutanotaError",
+			"../error/CryptoError",
+			"../../api/common/utils/Encoding",
+			"../../api/common/error/CryptoError",
+			"./StringUtils",
+			"./EntityConstants",
+			"./Utils",
+			"../../api/common/utils/Utils",
+			"./utils/Utils",
+			"../TutanotaConstants",
+			"./utils/ArrayUtils",
+			"./MapUtils",
+		]
+	})
 
 	const electron = {}
 	const keytar = {}

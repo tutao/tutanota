@@ -4,22 +4,24 @@ import o from "ospec/ospec.js"
 import chalk from 'chalk'
 
 o.spec("IPC tests", () => {
-	n.startGroup(__filename, [
-		"../Env",
-		'../api/common/utils/Utils.js',
-		'../TutanotaConstants',
-		'./utils/Utils',
-		'../EntityFunctions',
-		'./utils/Encoding',
-		'../error/CryptoError',
-		'./TutanotaError',
-		'./StringUtils',
-		'./EntityConstants',
-		'./utils/Utils',
-		'./utils/ArrayUtils',
-		'./Utils',
-		'./MapUtils',
-	])
+	n.startGroup({
+		group: __filename, allowables: [
+			"../Env",
+			'../api/common/utils/Utils.js',
+			'../TutanotaConstants',
+			'./utils/Utils',
+			'../EntityFunctions',
+			'./utils/Encoding',
+			'../error/CryptoError',
+			'./TutanotaError',
+			'./StringUtils',
+			'./EntityConstants',
+			'./utils/Utils',
+			'./utils/ArrayUtils',
+			'./Utils',
+			'./MapUtils',
+		]
+	})
 
 	const electron = {
 		ipcMain: {
@@ -77,7 +79,7 @@ o.spec("IPC tests", () => {
 		},
 		checkIsMailtoHandler: () => Promise.resolve("yesItIs")
 	}
-	const autoLauncher = {
+	const desktopIntegrator = {
 		isAutoLaunchEnabled: () => "noDoNot",
 		enableAutoLaunch: () => Promise.resolve(),
 		disableAutoLaunch: () => Promise.resolve()
@@ -120,7 +122,7 @@ o.spec("IPC tests", () => {
 			errMock: n.mock("./DesktopErrorHandler.js", {err}).set(),
 			fsExtraMock: n.mock("fs-extra", fs).set(),
 			desktopUtilsMock: n.mock("../desktop/DesktopUtils", desktopUtils).set(),
-			autoLauncherMock: n.mock("./autolaunch/AutoLauncher", autoLauncher).set(),
+			desktopIntegratorMock: n.mock("./integration/DesktopIntegrator", desktopIntegrator).set(),
 			workerProtocolMock: n.mock("../api/common/WorkerProtocol", workerProtocol).set(),
 			alarmStorageMock: n.mock("__alarmStorage", alarmStorage).set()
 		}
@@ -361,7 +363,7 @@ o.spec("IPC tests", () => {
 			sseMock,
 			wmMock,
 			desktopUtilsMock,
-			autoLauncherMock, alarmStorageMock
+			desktopIntegratorMock, alarmStorageMock
 		} = standardMocks()
 		const {IPC} = n.subject('../../src/desktop/IPC.js')
 		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock)
@@ -380,7 +382,7 @@ o.spec("IPC tests", () => {
 		}))
 
 		o(desktopUtilsMock.checkIsMailtoHandler.callCount).equals(1)
-		o(autoLauncherMock.isAutoLaunchEnabled.callCount).equals(1)
+		o(desktopIntegratorMock.isAutoLaunchEnabled.callCount).equals(1)
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
@@ -601,7 +603,7 @@ o.spec("IPC tests", () => {
 			sockMock,
 			sseMock,
 			wmMock,
-			autoLauncherMock, alarmStorageMock
+			desktopIntegratorMock, alarmStorageMock
 		} = standardMocks()
 		const {IPC} = n.subject('../../src/desktop/IPC.js')
 		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock)
@@ -620,8 +622,8 @@ o.spec("IPC tests", () => {
 		}))
 
 		setTimeout(() => {
-			o(autoLauncherMock.enableAutoLaunch.callCount).equals(1)
-			o(autoLauncherMock.enableAutoLaunch.length).equals(0)
+			o(desktopIntegratorMock.enableAutoLaunch.callCount).equals(1)
+			o(desktopIntegratorMock.enableAutoLaunch.length).equals(0)
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
 			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
 			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
@@ -639,8 +641,8 @@ o.spec("IPC tests", () => {
 		}, 10)
 
 		setTimeout(() => {
-			o(autoLauncherMock.disableAutoLaunch.callCount).equals(1)
-			o(autoLauncherMock.disableAutoLaunch.args.length).equals(0)
+			o(desktopIntegratorMock.disableAutoLaunch.callCount).equals(1)
+			o(desktopIntegratorMock.disableAutoLaunch.args.length).equals(0)
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
 			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({

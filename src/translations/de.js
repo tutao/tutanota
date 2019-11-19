@@ -1056,6 +1056,9 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"desktopIntegration_label": "Desktop-Integration",
+		"desktopIntegration_msg": "Soll Tutanota sich in deine Desktop-Umgebung integrieren, damit du Tutanota über dein Anwendungemenü starten kannst?",
+		"doNotAskAgain_label": "Nicht noch einmal fragen",
 	}
 }

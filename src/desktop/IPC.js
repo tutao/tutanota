@@ -7,7 +7,7 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./autolaunch/AutoLauncher"
+import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./integration/DesktopIntegrator"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"

@@ -3,23 +3,25 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
 o.spec("ElectronUpdater Test", function (done, timeout) {
-	n.startGroup(__filename, [
-		'./utils/Utils', '../api/common/utils/Utils',
-		'./TutanotaError',
-		'../api/common/error/RestError',
-		'../api/common/error/UpdateError',
-		'./DesktopNotifier',
-		'../TutanotaConstants',
-		"./DesktopConstants",
-		'../EntityFunctions',
-		'./utils/Encoding',
-		'../error/CryptoError',
-		'./StringUtils',
-		'./EntityConstants',
-		'./utils/ArrayUtils',
-		'./Utils',
-		'./MapUtils'
-	], 2000)
+	n.startGroup({
+		group: __filename, allowables: [
+			'./utils/Utils', '../api/common/utils/Utils',
+			'./TutanotaError',
+			'../api/common/error/RestError',
+			'../api/common/error/UpdateError',
+			'./DesktopNotifier',
+			'../TutanotaConstants',
+			"./DesktopConstants",
+			'../EntityFunctions',
+			'./utils/Encoding',
+			'../error/CryptoError',
+			'./StringUtils',
+			'./EntityConstants',
+			'./utils/ArrayUtils',
+			'./Utils',
+			'./MapUtils'
+		], timeout: 2000
+	})
 
 	const electron = {
 		app: {

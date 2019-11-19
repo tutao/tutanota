@@ -73,9 +73,9 @@ class DesktopErrorHandler {
 			checkboxLabel: lang.get("restartBefore_action"),
 			checkboxChecked: false,
 			type: 'error'
-		}, (result, restartNow) => {
-			if (result === 1) { // clicked yes
-				if (restartNow) {
+		}).then(({response, checkboxChecked}) => {
+			if (response === 1) { // clicked yes
+				if (checkboxChecked) {
 					console.log('writing error log to', this._errorLogPath)
 					fs.writeFileSync(this._errorLogPath, JSON.stringify(this.lastErrorLog))
 					app.relaunch({args: process.argv.slice(1)})

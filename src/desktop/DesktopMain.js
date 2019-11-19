@@ -14,12 +14,12 @@ import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
 import en from "../translations/en"
 import type {MenuItemConstructorOptions} from 'electron'
 
 mp()
-
 
 lang.init(en)
 const conf = new DesktopConfigHandler()
@@ -195,6 +195,7 @@ function main() {
 	})
 	notifier.start(tray, 2000)
 	updater.start()
+	runIntegration()
 	handleArgv(process.argv)
 }
 

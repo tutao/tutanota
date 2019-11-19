@@ -9,33 +9,35 @@ const SUBJECT_LOCATION = '../../src/desktop/sse/DesktopSseClient.js'
 
 o.spec("DesktopSseClient Test", () => {
 	n.startGroup(
-		__filename, [
-			'../api/Env',
-			"../DesktopConstants",
-			'../misc/FormatValidator',
-			'../api/common/utils/StringUtils',
-			'../../api/common/error/SseError',
-			'../../api/common/error/RestError',
-			'../../api/common/error/FileNotFoundError',
-			'../../api/common/utils/Encoding',
-			'../error/CryptoError',
-			'./TutanotaError',
-			'./StringUtils',
-			'./TutanotaError',
-			'../misc/FormatValidator',
-			'../api/common/utils/StringUtils',
-			'../../api/common/utils/Utils',
-			'../TutanotaConstants',
-			'./utils/Utils',
-			'../EntityFunctions',
-			'./utils/Encoding',
-			'./EntityConstants',
-			'./utils/Utils',
-			'./utils/ArrayUtils',
-			'./Utils',
-			'./MapUtils',
-			'./Utils',
-		], 6000)
+		{
+			group: __filename, allowables: [
+				'../api/Env',
+				"../DesktopConstants",
+				'../misc/FormatValidator',
+				'../api/common/utils/StringUtils',
+				'../../api/common/error/SseError',
+				'../../api/common/error/RestError',
+				'../../api/common/error/FileNotFoundError',
+				'../../api/common/utils/Encoding',
+				'../error/CryptoError',
+				'./TutanotaError',
+				'./StringUtils',
+				'./TutanotaError',
+				'../misc/FormatValidator',
+				'../api/common/utils/StringUtils',
+				'../../api/common/utils/Utils',
+				'../TutanotaConstants',
+				'./utils/Utils',
+				'../EntityFunctions',
+				'./utils/Encoding',
+				'./EntityConstants',
+				'./utils/Utils',
+				'./utils/ArrayUtils',
+				'./Utils',
+				'./MapUtils',
+				'./Utils',
+			], timeout: 6000
+		})
 
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
