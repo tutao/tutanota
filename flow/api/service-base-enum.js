@@ -1,1 +1,1 @@
-type BaseServiceEnum = "dummy-no-real-service"
+type BaseServiceEnum =  "dummy-no-real-service"

@@ -1,1 +1,1 @@
-type MonitorServiceEnum = "counterservice"
+type MonitorServiceEnum =  "counterservice"

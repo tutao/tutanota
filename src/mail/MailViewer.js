@@ -4,7 +4,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {load, serviceRequestVoid, update} from "../api/main/Entity"
+import {load, serviceRequest, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
@@ -97,6 +97,10 @@ import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "./MailView"
+import {createReportPhishingPostData} from "../api/entities/tutanota/ReportPhishingPostData"
+import {createReportedMailData} from "../api/entities/tutanota/ReportedMailData"
+import {ReportPhishingGetReturnTypeRef} from "../api/entities/tutanota/ReportPhishingGetReturn"
+import murmurHash from "../api/worker/crypto/lib/murmurhash3_32"
 
 assertMainOrNode()
 
@@ -138,6 +142,7 @@ export class MailViewer {
 	_filesExpanded: Stream<boolean>;
 	_inlineFileIds: Promise<Array<string>>
 	_inlineImages: Promise<InlineImages>;
+	_suspicious: boolean;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime = 0;
 	_lastTouchStart: {x: number, y: number, time: number};
@@ -169,6 +174,7 @@ export class MailViewer {
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
 		this._domMailViewer = null
+		this._suspicious = false
 		this._scrollAnimation = Promise.resolve()
 		this._isScaling = true;
 		this._lastTouchStart = {x: 0, y: 0, time: Date.now()}
@@ -325,6 +331,8 @@ export class MailViewer {
 					}, () => Icons.Cancel).setType(ButtonType.Dropdown))
 				}
 				moreButtons.push(new Button("showHeaders_action", () => this._showHeaders(), () => Icons.ListUnordered).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button(() => "Report phishing", () => this._reportMailForPhishing(mail), () => Icons.Warning)
+					.setType(ButtonType.Dropdown))
 				return moreButtons
 			}, 350))
 		}
@@ -347,6 +355,17 @@ export class MailViewer {
 						oncreate: (vnode) => this._domMailViewer = vnode.dom
 					}, [
 						m(".header.plr-l.margin-are-inset-lr", [
+							this._suspicious
+								? [
+									m(".warning-stripes", {
+										style: {height: "10px"},
+									}),
+									m(".h2.mt-s.center", "THIS MESSAGE LOOKS SUSPICIOUS"),
+									m(".warning-stripes", {
+										style: {height: "10px"},
+									}),
+								]
+								: null,
 							m(".flex-space-between.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
 									(detailsExpander.panel.expanded)
@@ -448,6 +467,39 @@ export class MailViewer {
 
 		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+		this._checkMailForPhishing(mail)
+	}
+
+	_checkMailForPhishing(mail: Mail) {
+		const subject = mail.subject
+		const subjectHash = murmurHash(subject)
+		const subjectMarker = "2" + subjectHash
+		console.log("subject", subject, "marker", subjectMarker)
+		serviceRequest(TutanotaService.ReportPhishingService, HttpMethod.GET, null, ReportPhishingGetReturnTypeRef)
+			.then(({markers}) => {
+				if (markers.find(m => m.marker === subjectMarker)) {
+					this._suspicious = true
+					console.log("SUSPICIOUS EMAIL")
+					m.redraw()
+				}
+				console.log(markers)
+			})
+	}
+
+	_reportMailForPhishing(mail: Mail,) {
+		const postData = createReportPhishingPostData({
+			mailData: createReportedMailData({
+				bodyText: this._getMailBody(),
+				senderMailAddress: mail.sender.address,
+				senderName: mail.sender.name,
+				subject: mail.subject,
+				technicalSenderMailAddress: mail.differentEnvelopeSender,
+			})
+		})
+		serviceRequestVoid(TutanotaService.ReportPhishingService, HttpMethod.POST, postData)
+			.then(() => {
+				console.log("reported, subject:", mail.subject)
+			})
 	}
 
 	getBounds(): ?PosRect {

@@ -1,1 +1,1 @@
-type AccountingServiceEnum = "customeraccountservice"
+type AccountingServiceEnum =  "customeraccountservice"

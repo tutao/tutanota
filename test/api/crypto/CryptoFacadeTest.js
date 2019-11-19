@@ -43,6 +43,7 @@ import {restClient} from "../../../src/api/worker/rest/RestClient"
 import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import {LoginFacade} from "../../../src/api/worker/facades/LoginFacade"
+import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32"
 
 
 o.spec("crypto facade", function () {
@@ -655,6 +656,11 @@ o.spec("crypto facade", function () {
 			o(typeof instance._errors["subject"]).equals("string")
 			done()
 		})
+	})
+
+	o.only("32bitHash", function () {
+		// o(murmurhash3_32_gc("hello")).equals(613153351)
+		o(murmurhash3_32_gc("External images")).equals(4063203704)
 	})
 
 })

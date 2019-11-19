@@ -23,7 +23,8 @@
 		"squire-rte": "1.9.0",
 		"systemjs": "0.20.19",
 		"luxon": "^1.22.0",
-		"keytar": "5.2.0"
+		"keytar": "5.2.0",
+		"@emotion/hash": "0.7.3"
 	},
 	"devDependencies": {
 		"babel-core": "6.26.3",
