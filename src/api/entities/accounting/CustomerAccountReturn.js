@@ -7,34 +7,34 @@ export const _TypeModel: TypeModel = {
 	"name": "CustomerAccountReturn",
 	"since": 3,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 87,
-	"rootId": "CmFjY291bnRpbmcAVw",
+	"id": 86,
+	"rootId": "CmFjY291bnRpbmcAVg",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 88,
+			"id": 87,
 			"since": 3,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"_ownerAsyncEncSessionKey": {
-			"name": "_ownerAsyncEncSessionKey",
-			"id": 90,
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 88,
 			"since": 3,
-			"type": "Bytes",
+			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
+		"_ownerPublicEncSessionKey": {
+			"name": "_ownerPublicEncSessionKey",
 			"id": 89,
 			"since": 3,
-			"type": "GeneratedId",
+			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"postings": {
 			"name": "postings",
-			"id": 91,
+			"id": 90,
 			"since": 3,
 			"type": "AGGREGATION",
 			"cardinality": "Any",

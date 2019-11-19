@@ -235,7 +235,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
  *
  */
 export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object): Promise<?Aes128Key> {
-	if (instance._ownerAsyncEncSessionKey) {
+	if (instance._ownerPublicEncSessionKey) {
 		return load(GroupTypeRef, instance._ownerGroup).then(group => {
 			let keypair = group.keys[0]
 			let gk = locator.login.getGroupKey(instance._ownerGroup)

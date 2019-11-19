@@ -9,7 +9,8 @@ import {neverNull} from "../../common/utils/Utils"
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
+export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum,
+                            method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {
 			let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`

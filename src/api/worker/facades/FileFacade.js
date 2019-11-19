@@ -73,7 +73,7 @@ export class FileFacade {
 								size: file.size
 							}
 						})
-						: Promise.reject(handleRestError(statusCode, `${statusMessage} | GET ${url} failed to natively download attachment`)))
+						: Promise.reject(handleRestError(statusCode, statusMessage, ` | GET ${url} failed to natively download attachment`)))
 						.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
 						                                                  .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
 				})
@@ -117,8 +117,7 @@ export class FileFacade {
 							if (statusCode === 200) {
 								return fileDataId;
 							} else {
-								throw handleRestError(statusCode,
-									`${statusMessage} | PUT ${url} failed to natively upload attachment`)
+								throw handleRestError(statusCode, statusMessage, ` | PUT ${url} failed to natively upload attachment`)
 							}
 						})
 					})

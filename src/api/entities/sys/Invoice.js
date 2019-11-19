@@ -5,28 +5,19 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", "Invoice")
 export const _TypeModel: TypeModel = {
 	"name": "Invoice",
-	"since": 9,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 739,
-	"rootId": "A3N5cwAC4w",
+	"since": 52,
+	"type": "ELEMENT_TYPE",
+	"id": 1621,
+	"rootId": "A3N5cwAGVQ",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
-		"_format": {"name": "_format", "id": 743, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"_id": {"name": "_id", "id": 741, "since": 9, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
-		"_listEncSessionKey": {
-			"name": "_listEncSessionKey",
-			"id": 744,
-			"since": 9,
-			"type": "Bytes",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"encrypted": false
-		},
+		"_format": {"name": "_format", "id": 1625, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
+		"_id": {"name": "_id", "id": 1623, "since": 52, "type": "GeneratedId", "cardinality": "One", "final": true, "encrypted": false},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1006,
-			"since": 17,
+			"id": 1627,
+			"since": 52,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -34,8 +25,8 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1005,
-			"since": 17,
+			"id": 1626,
+			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -43,57 +34,92 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 742,
-			"since": 9,
+			"id": 1624,
+			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"country": {"name": "country", "id": 892, "since": 10, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"date": {"name": "date", "id": 745, "since": 9, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
+		"address": {"name": "address", "id": 1632, "since": 52, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"business": {
+			"name": "business",
+			"id": 1633,
+			"since": 52,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"country": {"name": "country", "id": 1631, "since": 52, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"date": {"name": "date", "id": 1629, "since": 52, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
 		"grandTotal": {
 			"name": "grandTotal",
-			"id": 748,
-			"since": 9,
+			"id": 1638,
+			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
-		"number": {"name": "number", "id": 746, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
 		"paymentMethod": {
 			"name": "paymentMethod",
-			"id": 751,
-			"since": 9,
+			"id": 1630,
+			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
-		"source": {"name": "source", "id": 749, "since": 9, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"status": {"name": "status", "id": 750, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
-		"vat": {"name": "vat", "id": 747, "since": 9, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
-		"vatRate": {"name": "vatRate", "id": 893, "since": 10, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
+		"subTotal": {
+			"name": "subTotal",
+			"id": 1637,
+			"since": 52,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": true
+		},
+		"type": {"name": "type", "id": 1628, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"vat": {"name": "vat", "id": 1636, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"vatIdNumber": {
+			"name": "vatIdNumber",
+			"id": 1634,
+			"since": 52,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
+		"vatRate": {"name": "vatRate", "id": 1635, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {
+		"items": {
+			"name": "items",
+			"id": 1639,
+			"since": 52,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "InvoiceItem",
+			"final": false
+		},
 		"bookings": {
 			"name": "bookings",
-			"id": 894,
-			"since": 10,
+			"id": 1641,
+			"since": 52,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"refType": "Booking",
 			"final": true,
 			"external": false
 		},
-		"changes": {
-			"name": "changes",
-			"id": 895,
-			"since": 10,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"refType": "InvoiceChange",
+		"customer": {
+			"name": "customer",
+			"id": 1640,
+			"since": 52,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "Customer",
 			"final": true,
 			"external": false
 		}

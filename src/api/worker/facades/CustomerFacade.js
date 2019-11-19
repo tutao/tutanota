@@ -44,6 +44,7 @@ import {PaymentDataServicePutReturnTypeRef} from "../../entities/sys/PaymentData
 import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
 import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
 import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServiceReturn"
+import {AccountingService} from "../../entities/accounting/Services"
 
 assertWorkerOrNode()
 
@@ -240,7 +241,7 @@ export class CustomerFacade {
 						data.adminEncAccountingInfoSessionKey = encryptKey(adminGroupKey, accountingInfoSessionKey)
 						data.systemAdminPubEncAccountingInfoSessionKey = systemAdminPubEncAccountingInfoSessionKey
 						data.adminEncCustomerServerPropertiesSessionKey = encryptKey(adminGroupKey, customerServerPropertiesSessionKey)
-						return serviceRequestVoid(TutanotaService.CustomerAccountService, HttpMethod.POST, data)
+						return serviceRequestVoid(AccountingService.CustomerAccountService, HttpMethod.POST, data)
 							.return(recoverData.hexCode)
 					})
 			})

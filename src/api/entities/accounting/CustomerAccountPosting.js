@@ -13,22 +13,13 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 80, "since": 3, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"amount": {"name": "amount", "id": 85, "since": 3, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
-		"balance": {"name": "balance", "id": 86, "since": 3, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
+		"amount": {"name": "amount", "id": 84, "since": 3, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
+		"balance": {"name": "balance", "id": 85, "since": 3, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
 		"invoiceNumber": {
 			"name": "invoiceNumber",
-			"id": 84,
-			"since": 3,
-			"type": "String",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": true
-		},
-		"paymentMethod": {
-			"name": "paymentMethod",
 			"id": 83,
 			"since": 3,
-			"type": "Number",
+			"type": "String",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": true

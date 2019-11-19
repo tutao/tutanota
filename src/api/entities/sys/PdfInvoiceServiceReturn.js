@@ -21,20 +21,20 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"_ownerAsyncEncSessionKey": {
-			"name": "_ownerAsyncEncSessionKey",
-			"id": 1602,
-			"since": 50,
-			"type": "Bytes",
+		"_ownerGroup": {
+			"name": "_ownerGroup",
+			"id": 1601,
+			"since": 52,
+			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},
-		"_ownerGroup": {
-			"name": "_ownerGroup",
-			"id": 1601,
-			"since": 50,
-			"type": "GeneratedId",
+		"_ownerPublicEncSessionKey": {
+			"name": "_ownerPublicEncSessionKey",
+			"id": 1602,
+			"since": 52,
+			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false

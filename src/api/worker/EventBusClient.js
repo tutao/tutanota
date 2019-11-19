@@ -255,7 +255,7 @@ export class EventBusClient {
 		const serverCode = event.code - 4000
 		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this._terminate()
-			this._worker.sendError(handleRestError(serverCode, "web socket error"))
+			this._worker.sendError(handleRestError(serverCode, null, "web socket error"))
 		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this._state = EventBusState.Suspended

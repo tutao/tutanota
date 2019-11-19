@@ -32,11 +32,38 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"extendedPeriodOfPaymentDays": {
+			"name": "extendedPeriodOfPaymentDays",
+			"id": 1609,
+			"since": 52,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"persistentPaymentPeriodExtension": {
+			"name": "persistentPaymentPeriodExtension",
+			"id": 1610,
+			"since": 52,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"publishInvoices": {
 			"name": "publishInvoices",
 			"id": 759,
 			"since": 9,
 			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"reminderState": {
+			"name": "reminderState",
+			"id": 1608,
+			"since": 52,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -97,13 +124,22 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"paymentErrorInfo": {
+			"name": "paymentErrorInfo",
+			"id": 1611,
+			"since": 52,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "PaymentErrorInfo",
+			"final": true
+		},
 		"invoices": {
 			"name": "invoices",
 			"id": 760,
 			"since": 9,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
-			"refType": "Invoice",
+			"refType": "LegacyInvoice",
 			"final": true,
 			"external": false
 		}

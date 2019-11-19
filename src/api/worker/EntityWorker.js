@@ -92,7 +92,8 @@ export function serviceRequest<T>(service: SysServiceEnum | TutanotaServiceEnum 
 	return _service(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
 }
 
-export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
+export function serviceRequestVoid<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum,
+                                      method: HttpMethodEnum, requestEntity: ?any, queryParams: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<void> {
 	return _service(service, method, requestEntity, null, queryParams, sk, extraHeaders)
 }
 

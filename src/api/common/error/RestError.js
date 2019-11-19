@@ -3,6 +3,7 @@ import {TutanotaError} from "./TutanotaError"
 
 export class ConnectionError extends TutanotaError {
 	static CODE = 0
+
 	constructor(msg: string) {
 		super("ConnectionError", msg)
 	}
@@ -10,6 +11,7 @@ export class ConnectionError extends TutanotaError {
 
 export class BadRequestError extends TutanotaError {
 	static CODE = 400
+
 	constructor(msg: string) {
 		super("BadRequestError", msg)
 	}
@@ -17,6 +19,7 @@ export class BadRequestError extends TutanotaError {
 
 export class NotAuthenticatedError extends TutanotaError {
 	static CODE = 401
+
 	constructor(msg: string) {
 		super("NotAuthenticatedError", msg)
 	}
@@ -24,6 +27,7 @@ export class NotAuthenticatedError extends TutanotaError {
 
 export class NotAuthorizedError extends TutanotaError {
 	static CODE = 403
+
 	constructor(msg: string) {
 		super("NotAuthorizedError", msg)
 	}
@@ -31,6 +35,7 @@ export class NotAuthorizedError extends TutanotaError {
 
 export class NotFoundError extends TutanotaError {
 	static CODE = 404
+
 	constructor(msg: string) {
 		super("NotFoundError", msg)
 	}
@@ -38,6 +43,7 @@ export class NotFoundError extends TutanotaError {
 
 export class MethodNotAllowedError extends TutanotaError {
 	static CODE = 405
+
 	constructor(msg: string) {
 		super("MethodNotAllowedError", msg)
 	}
@@ -45,13 +51,18 @@ export class MethodNotAllowedError extends TutanotaError {
 
 export class PreconditionFailedError extends TutanotaError {
 	static CODE = 412
-	constructor(msg: string) {
+	// data field is respected by the WorkerProtocol. Other fields might not be passed
+	data: ?string;
+
+	constructor(msg: string, reason: ?string) {
 		super("PreconditionFailedError", msg)
+		this.data = reason
 	}
 }
 
 export class TooManyRequestsError extends TutanotaError {
 	static CODE = 429
+
 	constructor(msg: string) {
 		super("TooManyRequestsError", msg)
 	}
@@ -59,6 +70,7 @@ export class TooManyRequestsError extends TutanotaError {
 
 export class SessionExpiredError extends TutanotaError {
 	static CODE = 440
+
 	constructor(msg: string) {
 		super("SessionExpiredError", msg)
 	}
@@ -66,6 +78,7 @@ export class SessionExpiredError extends TutanotaError {
 
 export class AccessDeactivatedError extends TutanotaError {
 	static CODE = 470
+
 	constructor(msg: string) {
 		super("AccessDeactivatedError", msg)
 	}
@@ -73,6 +86,7 @@ export class AccessDeactivatedError extends TutanotaError {
 
 export class AccessExpiredError extends TutanotaError {
 	static CODE = 471
+
 	constructor(msg: string) {
 		super("AccessExpiredError", msg)
 	}
@@ -80,6 +94,7 @@ export class AccessExpiredError extends TutanotaError {
 
 export class AccessBlockedError extends TutanotaError {
 	static CODE = 472
+
 	constructor(msg: string) {
 		super("AccessBlockedError", msg)
 	}
@@ -87,6 +102,7 @@ export class AccessBlockedError extends TutanotaError {
 
 export class InvalidDataError extends TutanotaError {
 	static CODE = 473
+
 	constructor(msg: string) {
 		super("InvalidDataError", msg)
 	}
@@ -94,6 +110,7 @@ export class InvalidDataError extends TutanotaError {
 
 export class InvalidSoftwareVersionError extends TutanotaError {
 	static CODE = 474
+
 	constructor(msg: string) {
 		super("InvalidSoftwareVersionError", msg)
 	}
@@ -101,6 +118,7 @@ export class InvalidSoftwareVersionError extends TutanotaError {
 
 export class LimitReachedError extends TutanotaError {
 	static CODE = 475
+
 	constructor(msg: string) {
 		super("LimitReachedError", msg)
 	}
@@ -108,6 +126,7 @@ export class LimitReachedError extends TutanotaError {
 
 export class InternalServerError extends TutanotaError {
 	static CODE = 500
+
 	constructor(msg: string) {
 		super("InternalServerError", msg)
 	}
@@ -115,6 +134,7 @@ export class InternalServerError extends TutanotaError {
 
 export class BadGatewayError extends TutanotaError {
 	static CODE = 502
+
 	constructor(msg: string) {
 		super("BadGatewayError", msg)
 	}
@@ -122,6 +142,7 @@ export class BadGatewayError extends TutanotaError {
 
 export class ServiceUnavailableError extends TutanotaError {
 	static CODE = 503
+
 	constructor(msg: string) {
 		super("ServiceUnavailableError", msg)
 	}
@@ -129,6 +150,7 @@ export class ServiceUnavailableError extends TutanotaError {
 
 export class InsufficientStorageError extends TutanotaError {
 	static CODE = 507
+
 	constructor(msg: string) {
 		super("InsufficientStorageError", msg)
 	}
@@ -143,8 +165,8 @@ export class ResourceError extends TutanotaError {
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
-export function handleRestError(errorCode: number, message: string) {
-	message = `${errorCode}: ${message}`
+export function handleRestError(errorCode: number, reason: ?string, path: string) {
+	let message = `${errorCode}: ${reason ? reason : ""} ${path}`
 	switch (errorCode) {
 		case ConnectionError.CODE:
 			return new ConnectionError(message);
@@ -159,7 +181,7 @@ export function handleRestError(errorCode: number, message: string) {
 		case MethodNotAllowedError.CODE:
 			return new MethodNotAllowedError(message);
 		case PreconditionFailedError.CODE:
-			return new PreconditionFailedError(message);
+			return new PreconditionFailedError(message, reason);
 		case TooManyRequestsError.CODE:
 			return new TooManyRequestsError(message);
 		case SessionExpiredError.CODE:

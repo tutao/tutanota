@@ -14,7 +14,6 @@ export const TutanotaService = {
 	DraftService: "draftservice",
 	SendDraftService: "senddraftservice",
 	ReceiveInfoService: "receiveinfoservice",
-	CustomerAccountService: "customeraccountservice",
 	UserAccountService: "useraccountservice",
 	MailGroupService: "mailgroupservice",
 	LocalAdminGroupService: "localadmingroupservice",
