@@ -29,6 +29,7 @@ export type ColumnWidthEnum = $Values<typeof ColumnWidth>
 export type TableAttrs = {
 	columnHeading: Array<lazy<string> | TranslationKey>,
 	columnWidths: ColumnWidthEnum[],
+	columnAlignments?: Array<boolean>,
 	showActionButtonColumn: boolean,
 	addButtonAttrs?: ?ButtonAttrs,
 	lines: ?TableLineAttrs[]
@@ -36,7 +37,7 @@ export type TableAttrs = {
 
 export type CellTextData = {
 	main: string,
-	info: ?string,
+	info?: ?string,
 	click?: clickHandler,
 	mainStyle?: string
 }
@@ -55,8 +56,9 @@ class _Table {
 	view(vnode: Vnode<LifecycleAttrs<TableAttrs>>): VirtualElement {
 		const a = vnode.attrs
 		const loading = !(a.lines)
+		const alignments = a.columnAlignments || []
 		const lineAttrs = a.lines
-			? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false))
+			? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments))
 			: []
 
 		return m("", [
@@ -65,7 +67,7 @@ class _Table {
 					this._createLine({
 						cells: a.columnHeading.map(textIdOrFunction => lang.getMaybeLazy(textIdOrFunction)),
 						actionButtonAttrs: (loading) ? null : a.addButtonAttrs
-					}, a.showActionButtonColumn, a.columnWidths, true)
+					}, a.showActionButtonColumn, a.columnWidths, true, alignments)
 				].concat(lineAttrs)
 			]),
 			(loading)
@@ -77,24 +79,31 @@ class _Table {
 		])
 	}
 
-	_createLine(lineAttrs: TableLineAttrs, showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
+	_createLine(lineAttrs: TableLineAttrs, showActionButtonColumn: boolean, columnWidths: ColumnWidthEnum[], bold: boolean,
+	            columnAlignments: Array<boolean>): VirtualElement {
 		let cells
 		if (typeof lineAttrs.cells == "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>
 				m("td", [
-					m(".text-ellipsis.pr.pt-s" + columnWidths[index]
+					m(".text-ellipsis.pr.pt-s"
+						+ columnWidths[index]
 						+ ((bold) ? ".b" : "")
 						+ (cellTextData.click ? ".click" : ""
-							+ (cellTextData.mainStyle ? cellTextData.mainStyle : "")), {
+							+ (cellTextData.mainStyle ? cellTextData.mainStyle : ""))
+						+ (columnAlignments[index] ? ".right" : ""), {
 						title: cellTextData.main, // show the text as tooltip, so ellipsed lines can be shown
 						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
-					}, cellTextData.main), m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
+					}, cellTextData.main),
+					m(".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""), {
 						onclick: (event: MouseEvent) => cellTextData.click ? cellTextData.click(event, event.target) : null
 					}, cellTextData.info)
 				]))
 		} else {
 			cells = lineAttrs.cells.map((text, index) =>
-				m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + ((bold) ? ".b" : ""), {
+				m("td.text-ellipsis.pr.pt-s.pb-s."
+					+ columnWidths[index]
+					+ ((bold) ? ".b" : "")
+					+ (columnAlignments[index] ? ".right" : ""), {
 					title: text, // show the text as tooltip, so ellipsed lines can be shown
 				}, text))
 		}

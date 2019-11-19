@@ -1,6 +1,6 @@
 //@flow
 import type {BookingItemFeatureTypeEnum, PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
-import {InvoiceStatus, PaymentMethodType} from "../api/common/TutanotaConstants"
+import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -108,27 +108,5 @@ export function createNotAvailableForFreeButtonAttrs(labelId: TranslationKey, bu
 			}
 		},
 		icon: icon
-	}
-}
-
-
-export function getInvoiceStatusText(invoice: Invoice): string {
-	if (invoice.status === InvoiceStatus.PUBLISHEDFORAUTOMATIC
-		|| invoice.status === InvoiceStatus.PUBLISHEDFORMANUAL
-		|| invoice.status === InvoiceStatus.CREATED) {
-		return lang.get('invoiceStateOpen_label')
-	} else if (invoice.status === InvoiceStatus.DEBITFAILED || invoice.status === InvoiceStatus.FIRSTREMINDER
-		|| invoice.status === InvoiceStatus.SECONDREMINDER) {
-		return lang.get('invoiceStatePaymentFailed_label')
-	} else if (invoice.status === InvoiceStatus.PAID) {
-		return lang.get('invoiceStatePaid_label')
-	} else if (invoice.status === InvoiceStatus.DISPUTED) {
-		return lang.get('invoiceStateResolving_label')
-	} else if (invoice.status === InvoiceStatus.REFUNDED || invoice.status === InvoiceStatus.DISPUTEACCEPTED) {
-		return lang.get('invoiceStateRefunded_label')
-	} else if (invoice.status === InvoiceStatus.CANCELLED) {
-		return lang.get('invoiceStateCancelled_label')
-	} else {
-		return "";
 	}
 }

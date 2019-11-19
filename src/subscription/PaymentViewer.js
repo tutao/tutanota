@@ -12,15 +12,12 @@ import {createNotAvailableForFreeButton, getPaymentMethodInfoText, getPaymentMet
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {ColumnWidth, Table} from "../gui/base/Table"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {Button} from "../gui/base/Button"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ColumnWidth} from "../gui/base/Table"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, OperationType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
-import TableLine from "../gui/base/TableLine"
 import {BadGatewayError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
@@ -31,7 +28,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import stream from "mithril/stream/stream.js"
-import {formatPrice} from "./SubscriptionUtils"
+import {formatPrice, getPreconditionFailedPaymentMsg} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -40,19 +37,21 @@ import {CustomerAccountReturnTypeRef} from "../api/entities/accounting/CustomerA
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
+import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {TableN} from "../gui/base/TableN"
 
 assertMainOrNode()
 
 export class PaymentViewer implements UpdatableSettingsViewer {
 	_invoiceAddressField: HtmlEditor;
 	_paymentMethodField: TextField;
-	_postingsTable: Table;
 	_accountingInfo: ?AccountingInfo;
 	_postings: CustomerAccountPosting[]
 	_paymentBusy: boolean;
 	_invoiceVatNumber: TextField;
-	_postingsExpanderButton: ExpanderButton;
-	_paymentFailedInfo: boolean;
+	_invoiceInfo: ?InvoiceInfo;
 
 	view: Function;
 
@@ -70,7 +69,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this._paymentMethodField._injectionsRight = () => [m(changePaymentDataButton)]
 		this._postings = []
 		this._paymentBusy = false
-		this._paymentFailedInfo = false
 
 		const changeInvoiceDataButton = createNotAvailableForFreeButton("edit_action", () => {
 			if (this._accountingInfo) {
@@ -100,18 +98,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}
 		}, () => Icons.Edit, true)
 
-		this._postingsTable = new Table(["date_label", "type_label", "amount_label", "balance_label"], [
-			ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small
-		], true)
-		this._postingsExpanderButton = new ExpanderButton(
-			"show_action",
-			new ExpanderPanel(this._postingsTable).setExpanded(true),
-			false
-		)
-
-		const payButton = new Button("invoicePay_action", () => {
-			return this._showPayDialog(this._openBalance())
-		}, () => Icons.Cash)
+		const postingExpanded = stream(false)
 
 
 		this.view = (): VirtualElement => {
@@ -120,24 +107,66 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					m(".h4", lang.get('invoiceData_msg')),
 					m(".mr-negative-s", m(changeInvoiceDataButton))
 				]),
-				//m(".small", lang.get("invoiceAddress_label")),
 				m(this._invoiceAddressField),
 				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length
 					> 0) ? m(this._invoiceVatNumber) : null,
 				m(this._paymentMethodField),
 				this._postings && this._postings.length > 0 ? [
 					m(".h4.mt-l", lang.get('currentBalance_label')),
-					m(".flex.center-horizontally.center-vertically", [
-						m("div.h4", formatPrice(Number(this._postings[0].balance), true)),
-						this._isPayButtonVisible() ? m(payButton) : null,
+					m(".flex.center-horizontally.center-vertically.col", [
+						m("div.h4.pt.pb"
+							+ (this._openBalance() ? ".content-accent-fg" : ""), formatPrice(Number(this._postings[0].balance), true)),
+						this._isPayButtonVisible()
+							? m(".pb", {style: {width: '200px'}}, m(ButtonN, {
+								label: "invoicePay_action",
+								type: ButtonType.Login,
+								click: () => this._showPayDialog(this._openBalance())
+							}))
+							: null,
 					]),
+					(this._openBalance() && this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice)
+						? (
+							(this._invoiceInfo && this._invoiceInfo.paymentErrorInfo)
+								? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(new PreconditionFailedError("dummy-msg", this._invoiceInfo.paymentErrorInfo.errorCode))))
+								: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
+						)
+						: null,
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('postings_label')),
-						m(this._postingsExpanderButton)
+						m(ExpanderButtonN, {
+							label: "show_action",
+							expanded: postingExpanded
+						}),
 					]),
-					m(this._postingsExpanderButton.panel),
+					m(ExpanderPanelN, {expanded: postingExpanded}, m(TableN, {
+						columnHeadingTextIds: ["type_label", "amount_label"],
+						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
+						columnAlignments: [false, true, false],
+						showActionButtonColumn: true,
+						lines: this._postings.map((posting: CustomerAccountPosting) => {
+							return {
+								cells: () => [
+									{
+										main: getPostingTypeText(posting),
+										info: formatDate(posting.valueDate)
+									},
+									{
+										main: formatPrice(Number(posting.amount), true)
+									}
+								],
+								actionButtonAttrs: posting.type === PostingType.UsageFee
+									? {
+										label: "download_action",
+										icon: () => Icons.Download,
+										click: () => {
+											showProgressDialog("pleaseWait_msg", worker.downloadInvoice(neverNull(posting.invoiceNumber))).then(pdfInvoice => fileController.open(pdfInvoice))
+										}
+									}
+									: null
+							}
+						})
+					})),
 					m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
-					(this._paymentFailedInfo) ? m(".small.underline.b", lang.get("failedDebitAttempt_msg")) : null,
 				] : null,
 			])
 		}
@@ -147,7 +176,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.then(customerInfo => load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 			.then(accountingInfo => {
 				this._updateAccountingInfoData(accountingInfo)
+
+				load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+					.then((invoiceInfo) => {
+						this._invoiceInfo = invoiceInfo
+					})
 			})
+
 
 		this._updatePostingsTable()
 	}
@@ -164,7 +199,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_openBalance(): number {
 		if (this._postings != null && this._postings.length > 0) {
 			let balance = Number(this._postings[0].balance)
-			if (balance > 0) {
+			if (balance < 0) {
 				return balance
 			}
 		}
@@ -173,21 +208,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	_updatePostingsTable() {
 		serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef).then(result => {
-			if (this._openBalance()) {
-				this._paymentFailedInfo = true
-			}
 			this._postings = result.postings
-		}).then(() => {
-			this._postingsTable.updateEntries(this._postings.map((posting: CustomerAccountPosting) => {
-
-				const invoiceButton = (posting.type == PostingType.UsageFee) ? new Button("download_action", () => {
-					showProgressDialog("pleaseWait_msg", worker.downloadInvoice(neverNull(posting.invoiceNumber))).then(pdfInvoice => fileController.open(pdfInvoice))
-				}, () => Icons.Download) : null
-				return new TableLine([
-					formatDate(posting.valueDate), getPostingTypeText(posting),
-					formatPrice(Number(posting.amount), true), formatPrice(Number(posting.balance), true)
-				], invoiceButton)
-			}))
+			m.redraw()
 		})
 	}
 
@@ -215,7 +237,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return this._accountingInfo != null &&
 			(this._accountingInfo.paymentMethod === PaymentMethodType.CreditCard || this._accountingInfo.paymentMethod
 				=== PaymentMethodType.Paypal)
-			&& this._openBalance() > 0
+			&& this._openBalance() < 0
 	}
 
 	_showPayDialog(openBalance: number): Promise<void> {
@@ -224,9 +246,21 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.then(confirmed => {
 				if (confirmed) {
 					let service = createDebitServicePutData()
-					return showProgressDialog("invoiceUpdateProgress", serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
+					return showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
+						.then(() => {
+							// accounting is updated async but we know that the balance will be 0 when the payment was successful.
+							let mostCurrentPosting = this._postings[0]
+							let newPosting = createCustomerAccountPosting({
+								valueDate: new Date(),
+								amount: String(-Number.parseFloat(mostCurrentPosting.balance)),
+								balance: "0",
+								type: PostingType.Payment,
+							})
+							this._postings.unshift(newPosting)
+							m.redraw()
+						})
 						.catch(PreconditionFailedError, error => {
-							return "paymentProviderTransactionFailedError_msg"
+							return getPreconditionFailedPaymentMsg(error)
 						}).catch(BadGatewayError, error => {
 							return "paymentProviderNotAvailableError_msg"
 						}).catch(TooManyRequestsError, error => {
@@ -266,7 +300,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 				m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
 				m(".plr-l.pb", m("", [
 					m(".pt", lang.get("invoicePayConfirm_msg")),
-					m(TextFieldN, {label: "price_label", value: stream(formatPrice(price, true)), disabled: true}),
+					m(TextFieldN, {label: "price_label", value: stream(formatPrice(-price, true)), disabled: true}),
 				]))
 			]
 		}).setCloseHandler(() => doAction(false)).show()

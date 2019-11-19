@@ -1,8 +1,10 @@
 //@flow
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {SegmentControlItem} from "./SegmentControl"
 import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -139,4 +141,25 @@ export function getSubscriptionType(lastBooking: ?Booking, customer: Customer, c
 	return isWhitelabelActive(lastBooking) && aliases >= 20 && storage >= 10
 		? SubscriptionType.Pro
 		: SubscriptionType.Premium
+}
+
+export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): TranslationKey {
+	switch (e.data) {
+		case "paypal.change":
+			return "payChangeError_msg"
+		case "paypal.confirm_again":
+			return "payPaypalConfirmAgainError_msg"
+		case "paypal.other_source":
+			return "payPaypalChangeSourceError_msg"
+		case "card.contact_bank":
+			return "payCardContactBankError_msg"
+		case "card.insufficient_funds":
+			return "payCardInsufficientFundsError_msg"
+		case "card.expired_card":
+			return "payCardExpiredError_msg"
+		case "card.change":
+			return "payChangeError_msg"
+		default:
+			return "payContactUsError_msg"
+	}
 }
