@@ -48,3 +48,7 @@ export function disableAutoLaunch(): Promise<void> {
 		})
 		: Promise.resolve())
 }
+
+export function runIntegration() {
+	// nothing here yet
+}

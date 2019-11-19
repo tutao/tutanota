@@ -13,10 +13,11 @@ let classCache = []
 let testcount = 0
 
 
-function startGroup(group: string, allowables: Array<string>, timeout?: number) {
+function startGroup(opts: {group: string, allowables?: Array<string>, cleanupFunctions?: Array<()=>void>, timeout?: number}) {
+	const {group, allowables, cleanupFunctions, timeout} = Object.assign({}, {cleanupFunctions: [], allowables: []}, opts)
 	o.before(() => announce(group))
 	o.beforeEach(() => enable(allowables))
-	o.afterEach(disable)
+	o.afterEach(() => disable(cleanupFunctions))
 	if (typeof timeout == 'number') o.specTimeout(timeout)
 }
 
@@ -34,7 +35,8 @@ function enable(allowables: Array<string>) {
 	mockery.registerAllowables(['bluebird'])
 }
 
-function disable(): void {
+function disable(cleanups: Array<()=>void>): void {
+	cleanups.forEach(f => f())
 	mockery.deregisterAll()
 	mockery.disable()
 	setProperty(process, 'exit', neverNull(exit).value)

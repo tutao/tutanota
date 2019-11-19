@@ -163,24 +163,26 @@ o.spec("nonClobberingFileName Test", function () {
 })
 
 o.spec("touch test", function () {
-	n.startGroup(__filename, [
-		'../api/common/utils/Utils.js',
-		'../TutanotaConstants',
-		'./utils/Utils',
-		'../EntityFunctions',
-		'./utils/Encoding',
-		'../error/CryptoError',
-		'./TutanotaError',
-		'./StringUtils',
-		'./EntityConstants',
-		'./utils/Utils',
-		'./utils/ArrayUtils',
-		'./Utils',
-		'./MapUtils',
-		'./Utils',
-		'../api/common/error/JsonTypeError',
-		'./TutanotaError'
-	])
+	n.startGroup({
+		group: __filename, allowables: [
+			'../api/common/utils/Utils.js',
+			'../TutanotaConstants',
+			'./utils/Utils',
+			'../EntityFunctions',
+			'./utils/Encoding',
+			'../error/CryptoError',
+			'./TutanotaError',
+			'./StringUtils',
+			'./EntityConstants',
+			'./utils/Utils',
+			'./utils/ArrayUtils',
+			'./Utils',
+			'./MapUtils',
+			'./Utils',
+			'../api/common/error/JsonTypeError',
+			'./TutanotaError'
+		]
+	})
 
 	o('touch a file', function () {
 		const fsMock = n.mock('fs-extra', {

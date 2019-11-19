@@ -12,20 +12,22 @@ o.before(() => process.env.TZ = 'Europe/Berlin')
 o.after(() => process.env.TZ = oldTimezone)
 
 o.spec("DesktopAlarmSchedulerTest", () => {
-	n.startGroup(__filename, [
-		"./DesktopConstants", "../DesktopConstants",
-		"../../api/common/TutanotaConstants", "../TutanotaConstants",
-		"./utils/Utils",
-		"./TutanotaError",
-		"../EntityFunctions",
-		"../../api/common/utils/Utils", "./Utils",
-		"./utils/Encoding",
-		"../error/CryptoError",
-		"./StringUtils",
-		"./MapUtils",
-		"./utils/ArrayUtils", "../../api/common/utils/ArrayUtils",
-		"./EntityConstants"
-	], 2000)
+	n.startGroup({
+		group: __filename, allowables: [
+			"./DesktopConstants", "../DesktopConstants",
+			"../../api/common/TutanotaConstants", "../TutanotaConstants",
+			"./utils/Utils",
+			"./TutanotaError",
+			"../EntityFunctions",
+			"../../api/common/utils/Utils", "./Utils",
+			"./utils/Encoding",
+			"../error/CryptoError",
+			"./StringUtils",
+			"./MapUtils",
+			"./utils/ArrayUtils", "../../api/common/utils/ArrayUtils",
+			"./EntityConstants"
+		], timeout: 2000
+	})
 
 	const lang = {
 		lang: {get: key => key}

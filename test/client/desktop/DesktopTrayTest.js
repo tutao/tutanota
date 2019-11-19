@@ -3,21 +3,23 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
 o.spec("DesktopTrayTest", () => {
-	n.startGroup(__filename, [
-		'path',
-		'./TutanotaError',
-		'./StringUtils',
-		'./EntityConstants',
-		'../TutanotaConstants',
-		'./Utils',
-		'./MapUtils',
-		'./utils/Utils',
-		'../EntityFunctions',
-		'./utils/ArrayUtils',
-		'../error/CryptoError',
-		'../api/common/utils/Utils',
-		'./utils/Encoding'
-	])
+	n.startGroup({
+		group: __filename, allowables: [
+			'path',
+			'./TutanotaError',
+			'./StringUtils',
+			'./EntityConstants',
+			'../TutanotaConstants',
+			'./Utils',
+			'./MapUtils',
+			'./utils/Utils',
+			'../EntityFunctions',
+			'./utils/ArrayUtils',
+			'../error/CryptoError',
+			'../api/common/utils/Utils',
+			'./utils/Encoding'
+		]
+	})
 
 
 	const electron = {

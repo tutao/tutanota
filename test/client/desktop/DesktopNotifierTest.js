@@ -3,20 +3,22 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
 o.spec("Desktop Notifier Test", (done, timeout) => {
-	n.startGroup(__filename, [
-		'../api/common/utils/Utils', '.utils/Utils', './Utils',
-		'../TutanotaConstants',
-		"./DesktopConstants",
-		'../EntityFunctions',
-		'./utils/Encoding',
-		'../error/CryptoError',
-		'./StringUtils',
-		'./utils/ArrayUtils',
-		'./MapUtils',
-		'./utils/Utils',
-		'./TutanotaError',
-		'./EntityConstants'
-	], 2500)
+	n.startGroup({
+		group: __filename, allowables: [
+			'../api/common/utils/Utils', '.utils/Utils', './Utils',
+			'../TutanotaConstants',
+			"./DesktopConstants",
+			'../EntityFunctions',
+			'./utils/Encoding',
+			'../error/CryptoError',
+			'./StringUtils',
+			'./utils/ArrayUtils',
+			'./MapUtils',
+			'./utils/Utils',
+			'./TutanotaError',
+			'./EntityConstants'
+		], timeout: 2500
+	})
 
 	const notificationStartDelay = 10
 

@@ -5,9 +5,11 @@ import type {UserInfo} from "../../../src/desktop/ApplicationWindow"
 import {downcast, noOp} from "../../../src/api/common/utils/Utils"
 
 o.spec("Desktop Window Manager Test", () => {
-	n.startGroup(__filename, [
-		'../api/Env'
-	])
+	n.startGroup({
+		group: __filename, allowables: [
+			'../api/Env'
+		]
+	})
 
 	const electron = {
 		app: {

@@ -16,3 +16,7 @@ export function disableAutoLaunch(): Promise<void> {
 		if (enabled) app.setLoginItemSettings({openAtLogin: false})
 	})
 }
+
+export function runIntegration() {
+	//nothing here yet
+}
