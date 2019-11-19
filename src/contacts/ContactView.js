@@ -211,7 +211,7 @@ export class ContactView implements CurrentView {
 						m(folderMoreButton),
 					])
 				])
-			}), false, {}, theme.navigation_button
+			}), false, {}, () => theme.navigation_button
 		)
 		contactExpander.toggle()
 		return contactExpander

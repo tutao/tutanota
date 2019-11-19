@@ -415,7 +415,7 @@ export class MailView implements CurrentView {
 						                                   })
 					                                   })))
 			}
-		}), false, {}, theme.navigation_button)
+		}), false, {}, () => theme.navigation_button)
 		mailboxExpander.toggle()
 		return mailboxExpander
 	}

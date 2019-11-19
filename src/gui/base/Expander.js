@@ -17,43 +17,45 @@ export class ExpanderButton {
 	view: Function;
 	_showWarning: boolean;
 
-	constructor(labelTextIdOrLabelFunction: TranslationKey | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
+	constructor(labelTextIdOrLabelFunction: TranslationKey | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: () => string = () => theme.content_button) {
 		this.panel = panel
-		this.getLabel = typeof labelTextIdOrLabelFunction === "function" ? labelTextIdOrLabelFunction : lang.get.bind(lang, labelTextIdOrLabelFunction)
-		if (typeof style.color === 'undefined') {
-			style.color = color
-		}
+		this.getLabel = typeof labelTextIdOrLabelFunction === "function"
+			? labelTextIdOrLabelFunction
+			: lang.get.bind(lang, labelTextIdOrLabelFunction)
 		this._showWarning = showWarning
 
-		this.view = (): VirtualElement => m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
-				style,
-				onclick: (event: MouseEvent) => {
-					this.toggle()
-					event.stopPropagation()
-				},
-				oncreate: vnode => addFlash(vnode.dom),
-				onbeforeremove: (vnode) => removeFlash(vnode.dom),
-			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
-				(this._showWarning) ? m(Icon, {
-					icon: Icons.Warning,
-					style: {fill: color}
-				}) : null,
-				m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
-				m(Icon, {
-					icon: BootIcons.Expand,
-					class: "flex-center items-center",
-					style: {
-						fill: color,
-						'margin-right': px(-4) // icon is has 4px whitespace to the right
+		this.view = (): VirtualElement => {
+			style.color = color()
+			return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
+				m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+					style,
+					onclick: (event: MouseEvent) => {
+						this.toggle()
+						event.stopPropagation()
 					},
-					oncreate: vnode => {
-						this._domIcon = vnode.dom
-						if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
-					},
-				}),
-			])),
-		])
+					oncreate: vnode => addFlash(vnode.dom),
+					onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
+					(this._showWarning) ? m(Icon, {
+						icon: Icons.Warning,
+						style: {fill: color()}
+					}) : null,
+					m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
+					m(Icon, {
+						icon: BootIcons.Expand,
+						class: "flex-center items-center",
+						style: {
+							fill: color(),
+							'margin-right': px(-4) // icon is has 4px whitespace to the right
+						},
+						oncreate: vnode => {
+							this._domIcon = vnode.dom
+							if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
+						},
+					}),
+				])),
+			])
+		}
 	}
 
 	toggle() {

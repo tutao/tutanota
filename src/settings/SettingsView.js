@@ -168,7 +168,7 @@ export class SettingsView implements CurrentView {
 						: null
 				])
 				: null))
-		}), false, {}, theme.navigation_button)
+		}), false, {}, () => theme.navigation_button)
 		expander.toggle()
 		return expander
 	}
