@@ -42,9 +42,15 @@ o.spec("RestErrorTest", function () {
 		o(handleRestError(500) instanceof InternalServerError).equals(true)
 		o(handleRestError(502) instanceof BadGatewayError).equals(true)
 
-		let resourceError = handleRestError(123, "message")
+		let resourceError = handleRestError(123, null, "message")
 		o(resourceError instanceof ResourceError).equals(true)
-		o(resourceError.message).equals("123: message")
+		o(resourceError.message).equals("123:  message")
+	})
+
+	o("handleRestError should correctly initialize PreconditionFailedError class", () => {
+		let preconditionFailedError = handleRestError(412, "reason", "/path")
+		o(preconditionFailedError.data).equals("reason")
+		o(preconditionFailedError.message).equals("412: reason /path")
 	})
 
 	function createErrorTest(type, name, message) {
