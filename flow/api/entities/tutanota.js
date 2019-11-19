@@ -1118,6 +1118,8 @@ type GroupInvitationPostReturn = {
 	_format: NumberString;
 
 	existingMailAddresses: MailAddress[];
+	invalidMailAddresses: MailAddress[];
+	invitedMailAddresses: MailAddress[];
 }
 
 type GroupInvitationPutData = {

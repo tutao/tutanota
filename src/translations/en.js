@@ -1054,8 +1054,7 @@ module.exports = {
 		"shareCalendarDeclineEmailBody": "Hello {recipientName}, <br/>{invitee} has not accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",
 		"join_action": "Join",
 		"alreadyMember_msg": "You are already a participant of this calendar. If you wish to accept this new invitation, you must leave the calendar group first.",
-		"existingMailAddress_msg": "The following email addresses cannot be invited because they are either a participant or invited to the calendar:",
-
-
+		"existingMailAddress_msg": "The following email addresses could not be invited because they are either a participant or invited to the calendar:",
+		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 	}
 }

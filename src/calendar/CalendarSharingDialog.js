@@ -279,11 +279,10 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 			} else {
 				const recipients = invitePeopleValueTextField.bubbles.map(b => b.entity)
 				sendCalendarInvitation(sharedGroupInfo, recipients, capapility())
-					.then(success => {
-							console.log("success", success)
-							if (success) {
+					.then(invitedMailAddresses => {
+							if (invitedMailAddresses.length > 0) {
 								dialog.close()
-								sendShareNotificationEmail(sharedGroupInfo, recipients)
+								sendShareNotificationEmail(sharedGroupInfo, invitedMailAddresses.map(ma => createRecipientInfo(ma.address, null, null, true)))
 							}
 						}
 					)
@@ -296,17 +295,22 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 	})
 }
 
-function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<boolean> {
+function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 	return showProgressDialog("calendarInvitationProgress_msg",
 		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
 	).then((groupInvitationReturn) => {
-		if (groupInvitationReturn.existingMailAddresses.length > 0) {
+		if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
 			let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
-			return Dialog.error(() => lang.get("existingMailAddress_msg") + "\n"
-				+ existingMailAddresses).return(false)
-		} else {
-			return true
+			let invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
+			Dialog.error(() => {
+				let msg = ""
+				msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
+				msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
+				msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+				return msg
+			})
 		}
+		return groupInvitationReturn.invitedMailAddresses
 	}).catch(PreconditionFailedError, e => {
 		if (logins.getUserController().isGlobalAdmin()) {
 			return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
@@ -314,14 +318,14 @@ function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Re
 				             if (confirmed) {
 					             showSharingBuyDialog(true)
 				             }
-			             }).return(false)
+			             }).return([])
 		} else {
-			return Dialog.error("sharingFeatureNotOrderedUser_msg").return(false)
+			return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
 		}
 	}).catch(RecipientsNotFoundError, e => {
 		let invalidRecipients = e.message.join("\n")
 		return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-			+ invalidRecipients).return(false)
+			+ invalidRecipients).return([])
 	})
 }
 
