@@ -337,10 +337,12 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			}
 		}
 
+
 		if (existingEvent == null
-			|| existingEvent._ownerGroup !== newEvent._ownerGroup
+			|| existingEvent._ownerGroup !== newEvent._ownerGroup // event has been moved to another calendar
 			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
 			|| !_repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)) {
+			// if values of the existing events have changed that influence the alarm time then delete the old event and create a new one.
 			createEventId(newEvent, groupRoot)
 			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
 		} else {

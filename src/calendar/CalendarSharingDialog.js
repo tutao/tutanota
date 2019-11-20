@@ -7,7 +7,7 @@ import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {load, loadAll} from "../api/main/Entity"
 import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
-import {downcast, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
@@ -50,7 +50,6 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 				updates.forEach(update => {
 						if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
 							//ignore events of differen group here
-							console.log("received update for different group", eventOwnerGroupId)
 							return
 						}
 						if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
@@ -212,11 +211,6 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 
 
 }
-
-function getMemberText(sharedGroup: Group, memberInfo: GroupMemberInfo): string {
-	return getGroupInfoDisplayName(memberInfo.info)
-}
-
 
 function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({

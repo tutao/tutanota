@@ -267,7 +267,6 @@ module.exports = {
 		"deleteAccountWithTakeoverConfirm_msg": "Do you really want to delete your account? Your email addresses can be taken over by the account {1}.",
 		"deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or use it for a new user.",
 		"deleteCalendarConfirm_msg": "Are you sure that you want to delete the calendar \"{calendar}\" and all events in it?",
-		"deleteSharedCalendarConfirm_msg": "The calendar \"{calendar}\" is shared with other users. Are you sure that you want to delete it and all events in it?",
 		"deleteContacts_action": "Delete the selected contact(s)",
 		"deleteContacts_msg": "Are you sure you want to delete the selected contact(s)?",
 		"deleteContact_msg": "Are you sure you want to delete this contact?",
@@ -1057,5 +1056,6 @@ module.exports = {
 		"existingMailAddress_msg": "The following email addresses could not be invited because they are either a participant or invited to the calendar:",
 		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 		"tooManyMailsAuto_msg": "Failed to send an automatic notification email because the number of allowed emails has been exceeded. The notification email is stored in the draft folder and you can try to send it later.",
+		"deleteSharedCalendarConfirm_msg": "The calendar \"{calendar}\" is shared with other users. Are you sure that you want to delete it and all events in it?",
 	}
 }

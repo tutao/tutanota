@@ -437,7 +437,7 @@ export class CalendarView implements CurrentView {
 		const {group, groupInfo, groupRoot} = calendarInfo
 		return m(ButtonN, attachDropdown({
 				label: "more_label",
-				colors: ButtonColors.Nav,click: noOp,
+				colors: ButtonColors.Nav, click: noOp,
 				icon: () => Icons.More
 			}, () => [
 				{
@@ -723,7 +723,6 @@ export class CalendarView implements CurrentView {
 								}
 							})
 							if (calendarMemberships.length !== calendarInfos.size) {
-								console.log("detected update of calendar memberships")
 								this._loadedMonths.clear()
 								this._eventsForDays.clear()
 								this._calendarInfos = this._loadCalendarInfos()
