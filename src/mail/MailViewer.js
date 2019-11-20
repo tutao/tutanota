@@ -6,14 +6,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {Button, ButtonType, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
-import {
-	formatDateTime,
-	formatDateWithWeekday,
-	formatStorageSize,
-	formatTime,
-	getDomainWithoutSubdomains,
-	urlEncodeHtmlTags
-} from "../misc/Formatter"
+import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {ease} from "../gui/animation/Easing"
@@ -52,8 +45,7 @@ import {
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
-	showDeleteConfirmationDialog,
-	hasDifferentEnvelopeSender
+	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {header} from "../gui/base/Header"
 import {ContactEditor} from "../contacts/ContactEditor"
@@ -184,7 +176,7 @@ export class MailViewer {
 				getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null,
 			() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250)
 			.setType(ButtonType.Bubble)
-		let differentSenderBubble = (hasDifferentEnvelopeSender(this.mail)) ?
+		let differentSenderBubble = this._isEnvelopeSenderVisible() ?
 			new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
 				() => Dialog.error("envelopeSenderInfo_msg", neverNull(this.mail.differentEnvelopeSender)), () => Icons.Warning).setType(ButtonType.Bubble)
 			: null
@@ -335,7 +327,7 @@ export class MailViewer {
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
 										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
 											this._tutaoBadge(),
-											hasDifferentEnvelopeSender(this.mail)
+											this._isEnvelopeSenderVisible()
 												? m(Icon, {icon: Icons.Warning, style: {fill: theme.navigation_button}})
 												: null,
 											getSenderOrRecipientHeading(this.mail, false)
@@ -743,7 +735,7 @@ export class MailViewer {
 	}
 
 	_isEnvelopeSenderVisible(): boolean {
-		return hasDifferentEnvelopeSender(this.mail)
+		return this.mail.differentEnvelopeSender != null
 	}
 
 	_markUnread(unread: boolean) {

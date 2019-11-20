@@ -318,17 +318,6 @@ export function mailAddressToFirstAndLastName(mailAddress: string): {firstName: 
 	return {firstName: nameData[0], lastName: nameData.slice(1).join(" ")}
 }
 
-export function getDomainWithoutSubdomains(mailAddress: string): string {
-	var domain = mailAddress.substring(mailAddress.indexOf("@") + 1).toLowerCase()
-	var lastDot = domain.lastIndexOf(".")
-	var lastButOneDot = domain.lastIndexOf(".", lastDot - 1)
-	if (lastButOneDot === -1) {
-		return domain
-	} else {
-		return domain.substring(lastButOneDot + 1)
-	}
-}
-
 /**
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  */
