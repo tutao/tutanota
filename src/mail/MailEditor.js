@@ -19,6 +19,7 @@ import {
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
+import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
 import {Editor} from "../gui/base/Editor"
 import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
@@ -70,7 +71,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {locator} from "../api/main/MainLocator"
-import {LazyContactListId, searchForContacts, getContactListName} from "../contacts/ContactUtils"
+import {getContactListName, LazyContactListId, searchForContacts} from "../contacts/ContactUtils"
 import {RecipientNotResolvedError} from "../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream/stream.js"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -79,7 +80,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
@@ -93,8 +94,6 @@ import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import type {InlineImages} from "./MailViewer"
 import {getTimeZone} from "../calendar/CalendarUtils"
 import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
-import {ButtonColors} from "../gui/base/ButtonN"
-import type {BubbleHandler, Suggestion} from "../gui/base/BubbleTextField"
 import {px, size} from "../gui/size"
 import {isMailAddress} from "../misc/FormatValidator"
 import {DbError} from "../api/common/error/DbError"
@@ -829,7 +828,7 @@ export class MailEditor {
 		return (this._allRecipients().find(r => isExternal(r)) != null)
 	}
 
-	send(showProgress: boolean = true) {
+	send(showProgress: boolean = true, tooManyRequestsError: TranslationKey = "tooManyMails_msg") {
 		return Promise
 			.resolve()
 			.then(() => {
@@ -897,7 +896,7 @@ export class MailEditor {
 							return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
 								+ invalidRecipients)
 						})
-						.catch(TooManyRequestsError, e => Dialog.error("tooManyMails_msg"))
+						.catch(TooManyRequestsError, e => Dialog.error(tooManyRequestsError))
 						.catch(AccessBlockedError, e => {
 							// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
 							return checkApprovalStatus(true, "4")

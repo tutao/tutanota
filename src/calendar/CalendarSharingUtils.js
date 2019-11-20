@@ -55,7 +55,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey,
 	const subjectString = lang.get(subject)
 	const bodyString = lang.get(body, replacements)
 	editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)
-	editor.send(false)
+	editor.send(false, "tooManyMailsAuto_msg")
 }
 
 export type GroupMemberInfo = {
