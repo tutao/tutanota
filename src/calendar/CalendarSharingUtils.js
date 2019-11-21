@@ -34,7 +34,7 @@ export function sendAcceptNotificationEmail(invitation: ReceivedGroupInvitation)
 	}
 	const to = [{name: invitation.inviterName, address: invitation.inviterMailAddress}]
 	const senderMailAddress = invitation.inviteeMailAddress
-	_sendNotificationEmail({to}, "shareCalendarAcceptEmailSubject_msg", "shareCalendarAcceptEmailSubject_msg", senderMailAddress, replacements)
+	_sendNotificationEmail({to}, "shareCalendarAcceptEmailSubject_msg", "shareCalendarAcceptEmailBody_msg", senderMailAddress, replacements)
 }
 
 export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation) {

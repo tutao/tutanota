@@ -1048,7 +1048,7 @@ module.exports = {
 		"shareCalendarInvitationEmailSubject_msg": "Invitation to join a calendar",
 		"shareCalendarInvitationEmailBody_msg": "Hello, <br/>{inviter} has invited you to participate in the calendar \"{calendarName}\". You can check the details of this invitation in the calendar view to accept or decline it.<br/><br/>This is an automated message.",
 		"shareCalendarAcceptEmailSubject_msg": "Calendar invitation accepted",
-		"shareCalendarAcceptEmailSubject_msg": "Hello {recipientName}, <br/>{invitee} has accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",
+		"shareCalendarAcceptEmailBody_msg": "Hello {recipientName}, <br/>{invitee} has accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",
 		"shareCalendarDeclineEmailSubject_msg": "Calendar invitation declined",
 		"shareCalendarDeclineEmailBody_msg": "Hello {recipientName}, <br/>{invitee} has not accepted your invitation to participate in the calendar \"{calendarName}\".<br/><br/>This is an automated message.",
 		"join_action": "Join",
