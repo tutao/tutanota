@@ -42,7 +42,6 @@ import {
 	getSenderOrRecipientHeadingTooltip,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	hasDifferentEnvelopeSender,
 	isExcludedMailAddress,
 	isTutanotaTeamMail,
 	replaceCidsWithInlineImages,
