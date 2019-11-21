@@ -23,7 +23,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1601,
+			"id": 1630,
 			"since": 52,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerPublicEncSessionKey": {
 			"name": "_ownerPublicEncSessionKey",
-			"id": 1602,
+			"id": 1631,
 			"since": 52,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",

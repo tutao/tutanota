@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"extendedPeriodOfPaymentDays": {
 			"name": "extendedPeriodOfPaymentDays",
-			"id": 1609,
+			"id": 1638,
 			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"persistentPaymentPeriodExtension": {
 			"name": "persistentPaymentPeriodExtension",
-			"id": 1610,
+			"id": 1639,
 			"since": 52,
 			"type": "Boolean",
 			"cardinality": "One",
@@ -61,7 +61,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"reminderState": {
 			"name": "reminderState",
-			"id": 1608,
+			"id": 1637,
 			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
@@ -126,7 +126,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"paymentErrorInfo": {
 			"name": "paymentErrorInfo",
-			"id": 1611,
+			"id": 1640,
 			"since": 52,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",

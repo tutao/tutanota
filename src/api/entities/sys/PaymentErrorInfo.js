@@ -7,15 +7,15 @@ export const _TypeModel: TypeModel = {
 	"name": "PaymentErrorInfo",
 	"since": 52,
 	"type": "AGGREGATED_TYPE",
-	"id": 1603,
-	"rootId": "A3N5cwAGQw",
+	"id": 1632,
+	"rootId": "A3N5cwAGYA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 1604, "since": 52, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {"name": "_id", "id": 1633, "since": 52, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
 		"errorCode": {
 			"name": "errorCode",
-			"id": 1606,
+			"id": 1635,
 			"since": 52,
 			"type": "String",
 			"cardinality": "One",
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"errorTime": {
 			"name": "errorTime",
-			"id": 1605,
+			"id": 1634,
 			"since": 52,
 			"type": "Date",
 			"cardinality": "One",
@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"thirdPartyErrorId": {
 			"name": "thirdPartyErrorId",
-			"id": 1607,
+			"id": 1636,
 			"since": 52,
 			"type": "String",
 			"cardinality": "One",

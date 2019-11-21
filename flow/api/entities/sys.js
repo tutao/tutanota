@@ -932,36 +932,16 @@ type CustomDomainData = {
 	catchAllMailGroup: ?Id;
 }
 
-type Invoice = {
-	_type: TypeRef<Invoice>;
-	_errors: Object;
-	_format: NumberString;
-	_id: IdTuple;
-	_listEncSessionKey: ?Uint8Array;
-	_ownerEncSessionKey: ?Uint8Array;
-	_ownerGroup: ?Id;
-	_permissions: Id;
-	country: string;
-	date: Date;
-	grandTotal: NumberString;
-	number: NumberString;
-	paymentMethod: NumberString;
-	source: string;
-	status: NumberString;
-	vat: NumberString;
-	vatRate: NumberString;
-
-	bookings: IdTuple[];
-	changes: IdTuple[];
-}
-
 type InvoiceInfo = {
 	_type: TypeRef<InvoiceInfo>;
 	_format: NumberString;
 	_id: Id;
 	_ownerGroup: ?Id;
 	_permissions: Id;
+	extendedPeriodOfPaymentDays: NumberString;
+	persistentPaymentPeriodExtension: boolean;
 	publishInvoices: boolean;
+	reminderState: NumberString;
 	specialPriceBrandingPerUser: ?NumberString;
 	specialPriceContactFormSingle: ?NumberString;
 	specialPriceSharedGroupSingle: ?NumberString;
@@ -969,6 +949,7 @@ type InvoiceInfo = {
 	specialPriceUserSingle: ?NumberString;
 	specialPriceUserTotal: ?NumberString;
 
+	paymentErrorInfo: ?PaymentErrorInfo;
 	invoices: Id;
 }
 
@@ -994,8 +975,8 @@ type PdfInvoiceServiceReturn = {
 	_type: TypeRef<PdfInvoiceServiceReturn>;
 	_errors: Object;
 	_format: NumberString;
-	_ownerAsyncEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
+	_ownerPublicEncSessionKey: ?Uint8Array;
 	data: Uint8Array;
 
 }
@@ -1168,7 +1149,7 @@ type DebitServicePutData = {
 	_type: TypeRef<DebitServicePutData>;
 	_format: NumberString;
 
-	invoice: IdTuple;
+	invoice: ?IdTuple;
 }
 
 type BookingServiceData = {
@@ -1756,4 +1737,53 @@ type UserGroupRoot = {
 	_permissions: Id;
 
 	invitations: Id;
+}
+
+type PaymentErrorInfo = {
+	_type: TypeRef<PaymentErrorInfo>;
+	_id: Id;
+	errorCode: string;
+	errorTime: Date;
+	thirdPartyErrorId: string;
+
+}
+
+type InvoiceItem = {
+	_type: TypeRef<InvoiceItem>;
+	_id: Id;
+	amount: NumberString;
+	endDate: ?Date;
+	singlePrice: ?NumberString;
+	singleType: boolean;
+	startDate: ?Date;
+	totalPrice: NumberString;
+	type: NumberString;
+
+}
+
+type Invoice = {
+	_type: TypeRef<Invoice>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	address: string;
+	adminUser: ?string;
+	business: boolean;
+	country: string;
+	date: Date;
+	grandTotal: NumberString;
+	paymentMethod: NumberString;
+	reason: ?string;
+	subTotal: NumberString;
+	type: NumberString;
+	vat: NumberString;
+	vatIdNumber: ?string;
+	vatRate: NumberString;
+
+	items: InvoiceItem[];
+	bookings: IdTuple[];
+	customer: Id;
 }

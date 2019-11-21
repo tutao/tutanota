@@ -17,4 +17,5 @@ type TutanotaServiceEnum =
 	| "localadmingroupservice"
 	| "contactformaccountservice"
 	| "listunsubscribeservice"
-	| "calendarservice"| "groupinvitationservice"
+	| "calendarservice"
+	| "groupinvitationservice"

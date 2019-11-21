@@ -7,16 +7,16 @@ export const _TypeModel: TypeModel = {
 	"name": "InvoiceItem",
 	"since": 52,
 	"type": "AGGREGATED_TYPE",
-	"id": 1612,
-	"rootId": "A3N5cwAGTA",
+	"id": 1641,
+	"rootId": "A3N5cwAGaQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
-		"_id": {"name": "_id", "id": 1613, "since": 52, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"amount": {"name": "amount", "id": 1614, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"_id": {"name": "_id", "id": 1642, "since": 52, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"amount": {"name": "amount", "id": 1643, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
 		"endDate": {
 			"name": "endDate",
-			"id": 1619,
+			"id": 1648,
 			"since": 52,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"singlePrice": {
 			"name": "singlePrice",
-			"id": 1616,
+			"id": 1645,
 			"since": 52,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"singleType": {
 			"name": "singleType",
-			"id": 1620,
+			"id": 1649,
 			"since": 52,
 			"type": "Boolean",
 			"cardinality": "One",
@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"startDate": {
 			"name": "startDate",
-			"id": 1618,
+			"id": 1647,
 			"since": 52,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
@@ -52,14 +52,14 @@ export const _TypeModel: TypeModel = {
 		},
 		"totalPrice": {
 			"name": "totalPrice",
-			"id": 1617,
+			"id": 1646,
 			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
-		"type": {"name": "type", "id": 1615, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
+		"type": {"name": "type", "id": 1644, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",

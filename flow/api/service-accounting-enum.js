@@ -1,1 +1,1 @@
-type AccountingServiceEnum = "dummy-no-real-service"
+type AccountingServiceEnum = "customeraccountservice"

@@ -23,7 +23,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"invoiceNumber": {
 			"name": "invoiceNumber",
-			"id": 1600,
+			"id": 1629,
 			"since": 52,
 			"type": "String",
 			"cardinality": "One",
