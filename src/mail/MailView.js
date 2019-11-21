@@ -58,6 +58,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
+import {size} from "../gui/size"
 
 assertMainOrNode()
 
@@ -94,7 +95,6 @@ export class MailView implements CurrentView {
 		this._mailboxExpanders = {}
 		this._folderToUrl = {}
 		this._throttledRouteSet = throttleRoute()
-
 		this.folderColumn = new ViewColumn({
 			view: () => m(".flex.height-100p", [
 				m(DrawerMenu),
@@ -121,14 +121,13 @@ export class MailView implements CurrentView {
 					      )
 				])
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
-
+		}, ColumnType.Foreground, size.first_col_min_width, 380, () => lang.get("folderTitle_label"))
 
 		this.listColumn = new ViewColumn({
 			view: () => m(".list-column", [
 				this.mailList ? m(this.mailList) : null,
 			])
-		}, ColumnType.Background, 300, 500, () => {
+		}, ColumnType.Background, size.second_col_min_width, 500, () => {
 			return this.selectedFolder ? getFolderName(this.selectedFolder) : ""
 		})
 
@@ -136,7 +135,7 @@ export class MailView implements CurrentView {
 		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
 		this.mailColumn = new ViewColumn({
 			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
-		}, ColumnType.Background, 700, 2400, () => {
+		}, ColumnType.Background, size.third_col_min_width, 2400, () => {
 			let selectedEntities = this.mailList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this.mailList.list._loadedEntities.indexOf(selectedEntities[0]) + 1

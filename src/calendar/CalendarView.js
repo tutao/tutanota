@@ -67,7 +67,7 @@ import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {showInvitationDialog} from "./CalendarInvitationDialog"
 import {loadGroupMembers} from "./CalendarSharingUtils"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
-
+import {size} from "../gui/size"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -196,7 +196,7 @@ export class CalendarView implements CurrentView {
 
 				])
 			])
-		}, ColumnType.Foreground, 200, 300, () => this._currentViewType === CalendarViewType.WEEK
+		}, ColumnType.Foreground, size.first_col_min_width, 350, () => this._currentViewType === CalendarViewType.WEEK
 			? lang.get("month_label")
 			: lang.get("calendar_label"))
 
@@ -288,7 +288,7 @@ export class CalendarView implements CurrentView {
 
 				}
 			},
-		}, ColumnType.Background, 1024, 2000, () => {
+		}, ColumnType.Background, size.second_col_min_width + size.third_col_min_width, 2000, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
 				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {

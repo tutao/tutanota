@@ -72,7 +72,13 @@ export const size = {
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
 	drawer_menu_width: 48,
-	drawer_menu_width_mobile: 60,
+
+	// Keep column widths consistent: minimum width for desktop layout is desktop_layout_width and we don't want 2 column layout in
+	// desktop so min width of three columns must be at least 1280.
+	first_col_min_width: 280,
+	first_col_max_width: 350,
+	second_col_min_width: 300,
+	third_col_min_width: 700,
 }
 
 export const inputLineHeight = size.font_size_base + 8

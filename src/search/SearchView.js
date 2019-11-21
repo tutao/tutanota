@@ -203,7 +203,7 @@ export class SearchView implements CurrentView {
 						: null
 				])
 			])
-		}, ColumnType.Foreground, 260, 350, () => lang.get("search_label"))
+		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("search_label"))
 
 		this._searchList = new SearchListView(this)
 		this.resultListColumn = new ViewColumn({

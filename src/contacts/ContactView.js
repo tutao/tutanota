@@ -41,6 +41,7 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
+import {size} from "../gui/size"
 
 
 assertMainOrNode()
@@ -82,21 +83,21 @@ export class ContactView implements CurrentView {
 					])
 				])
 			},
-			ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label")
+			ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("folderTitle_label")
 		)
 
 		this.listColumn = new ViewColumn({
 			view: () => m(".list-column", [
 				this._contactList ? m(this._contactList) : null,
 			])
-		}, ColumnType.Background, 300, 500, () => lang.get("contacts_label"))
+		}, ColumnType.Background, size.second_col_min_width, 500, () => lang.get("contacts_label"))
 
 		this.contactViewer = null
 
 		this._multiContactViewer = new MultiContactViewer(this)
 		this.contactColumn = new ViewColumn({
 			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
-		}, ColumnType.Background, 600, 2400, () => {
+		}, ColumnType.Background, size.third_col_min_width, 2400, () => {
 			let selectedEntities = this._contactList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this._contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1

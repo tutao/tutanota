@@ -44,6 +44,7 @@ import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
 import {routes} from "../misc/RouteChange"
+import {size} from "../gui/size"
 
 assertMainOrNode()
 
@@ -114,7 +115,7 @@ export class SettingsView implements CurrentView {
 				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
 				isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 			])
-		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
+		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("settings_label"))
 
 		this._settingsColumn = new ViewColumn({
 			view: () => m(this._getCurrentViewer())

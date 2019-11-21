@@ -1240,9 +1240,6 @@ styles.registerStyle('main', () => {
 				top: "3px",
 				left: "3px",
 			},
-			"drawer-menu": {
-				width: px(size.drawer_menu_width_mobile),
-			},
 		},
 
 		"@media print": {
