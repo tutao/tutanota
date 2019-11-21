@@ -8,3 +8,4 @@ TutaoChoosePhotosAction = "Hình";
 TutaoNoPermissionTitle = "Không có quyền";
 TutaoCancelAction = "Huỷ";
 TutaoSettingsAction = "Cài đặt";
+TutaoCalendarAlarmTitle = "Nhắc nhở";
