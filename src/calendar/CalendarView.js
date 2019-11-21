@@ -495,9 +495,9 @@ export class CalendarView implements CurrentView {
 		loadGroupMembers(calendarInfo.group).then(members => {
 			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter(member => member.info.mailAddress !== ownerMail)
-			Dialog.confirm(() => otherMembers.length > 0
-				? lang.get("deleteSharedCalendarConfirm_msg", {"{calendar}": calendarName})
-				: lang.get("deleteCalendarConfirm_msg", {"{calendar}": calendarName}))
+			Dialog.confirm(() => (otherMembers.length > 0
+				? lang.get("deleteSharedCalendarConfirm_msg", {"{calendar}": calendarName}) + " "
+				: "") + lang.get("deleteCalendarConfirm_msg", {"{calendar}": calendarName}))
 			      .then((confirmed) => {
 					      if (confirmed) {
 						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({

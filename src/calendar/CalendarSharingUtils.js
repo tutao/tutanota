@@ -22,7 +22,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 	}
 	// Sending notifications as bcc so that invited people don't see each other
 	const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
-	_sendNotificationEmail({bcc}, "shareCalendarInvitationEmailSubject", "shareCalendarInvitationEmailBody", senderMailAddress, replacements)
+	_sendNotificationEmail({bcc}, "shareCalendarInvitationEmailSubject_msg", "shareCalendarInvitationEmailBody_msg", senderMailAddress, replacements)
 }
 
 
@@ -34,7 +34,7 @@ export function sendAcceptNotificationEmail(invitation: ReceivedGroupInvitation)
 	}
 	const to = [{name: invitation.inviterName, address: invitation.inviterMailAddress}]
 	const senderMailAddress = invitation.inviteeMailAddress
-	_sendNotificationEmail({to}, "shareCalendarAcceptEmailSubject", "shareCalendarAcceptEmailBody", senderMailAddress, replacements)
+	_sendNotificationEmail({to}, "shareCalendarAcceptEmailSubject_msg", "shareCalendarAcceptEmailSubject_msg", senderMailAddress, replacements)
 }
 
 export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation) {
@@ -45,7 +45,7 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation)
 	}
 	const to = [{name: invitation.inviterName, address: invitation.inviterMailAddress}]
 	const senderMailAddress = invitation.inviteeMailAddress
-	_sendNotificationEmail({to}, "shareCalendarDeclineEmailSubject", "shareCalendarDeclineEmailBody", senderMailAddress, replacements)
+	_sendNotificationEmail({to}, "shareCalendarDeclineEmailSubject_msg", "shareCalendarDeclineEmailBody_msg", senderMailAddress, replacements)
 }
 
 
