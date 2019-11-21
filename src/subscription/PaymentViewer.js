@@ -12,7 +12,7 @@ import {createNotAvailableForFreeButton, getPaymentMethodInfoText, getPaymentMet
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {ColumnWidth} from "../gui/base/Table"
+import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, OperationType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
@@ -40,7 +40,6 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {TableN} from "../gui/base/TableN"
 
 assertMainOrNode()
 
@@ -139,7 +138,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						}),
 					]),
 					m(ExpanderPanelN, {expanded: postingExpanded}, m(TableN, {
-						columnHeadingTextIds: ["type_label", "amount_label"],
+						columnHeading: ["type_label", "amount_label"],
 						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 						columnAlignments: [false, true, false],
 						showActionButtonColumn: true,
