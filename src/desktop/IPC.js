@@ -7,7 +7,14 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import {disableAutoLaunch, enableAutoLaunch, isAutoLaunchEnabled} from "./integration/DesktopIntegrator"
+import {
+	disableAutoLaunch,
+	enableAutoLaunch,
+	integrate,
+	isAutoLaunchEnabled,
+	isIntegrated,
+	unintegrate
+} from "./integration/DesktopIntegrator"
 import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
@@ -96,14 +103,24 @@ export class IPC {
 						d.reject(e)
 					})
 				break
+			case 'integrateDesktop':
+				integrate()
+				d.resolve()
+				break;
+			case 'unIntegrateDesktop':
+				unintegrate()
+				d.resolve()
+				break;
 			case 'sendDesktopConfig':
 				Promise.join(
 					DesktopUtils.checkIsMailtoHandler(),
 					isAutoLaunchEnabled(),
-					(isMailtoHandler, autoLaunchEnabled) => {
+					isIntegrated(),
+					(isMailtoHandler, autoLaunchEnabled, isIntegrated) => {
 						const config = this._conf.getDesktopConfig()
 						config.isMailtoHandler = isMailtoHandler
 						config.runOnStartup = autoLaunchEnabled
+						config.isIntegrated = isIntegrated
 						return config
 					}).then((config) => d.resolve(config))
 				break

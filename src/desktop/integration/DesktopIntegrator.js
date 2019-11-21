@@ -4,7 +4,10 @@ let platformIntegrator: {
 	enableAutoLaunch: ()=>Promise<void>,
 	disableAutoLaunch: ()=>Promise<void>,
 	isAutoLaunchEnabled: ()=>Promise<boolean>,
-	runIntegration: ()=>void
+	runIntegration: ()=>void,
+	isIntegrated: ()=>Promise<boolean>,
+	integrate: ()=>void;
+	unintegrate: ()=>void;
 }
 
 switch (process.platform) {
@@ -42,4 +45,16 @@ export function isAutoLaunchEnabled(): Promise<boolean> {
 
 export function runIntegration(): void {
 	platformIntegrator.runIntegration()
+}
+
+export function isIntegrated(): Promise<boolean> {
+	return platformIntegrator.isIntegrated()
+}
+
+export function integrate(): void {
+	platformIntegrator.integrate()
+}
+
+export function unintegrate(): void {
+	platformIntegrator.unintegrate()
 }

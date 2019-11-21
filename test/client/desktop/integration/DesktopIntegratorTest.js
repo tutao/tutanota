@@ -36,12 +36,16 @@ o.spec("AutoLauncher Test", () => {
 	const fsExtra = {
 		writtenFiles: [],
 		copiedFiles: [],
+		deletedFiles: [],
 		ensureDirSync() {},
 		writeFileSync(file, content, opts) {
 			this.writtenFiles.push({file, content, opts})
 		},
 		copyFileSync(from, to) {
 			this.copiedFiles.push({from, to})
+		},
+		unlinkSync(f) {
+			this.deletedFiles.push(f)
 		},
 		readFileSync: () => "",
 		unlink(path, cb) {setImmediate(cb)},
@@ -58,6 +62,7 @@ o.spec("AutoLauncher Test", () => {
 	const resetFsExtra = () => {
 		fsExtra.writtenFiles = []
 		fsExtra.copiedFiles = []
+		fsExtra.deletedFiles = []
 	}
 
 	let itemToReturn = undefined
@@ -510,6 +515,26 @@ o.spec("AutoLauncher Test", () => {
 			o(fsExtraMock.access.callCount).equals(3)
 			o(fsExtraMock.writtenFiles).deepEquals([])
 			o(fsExtraMock.copiedFiles).deepEquals([])
+			delete process.env.APPIMAGE
+			done()
+		}, 10)
+	})
+
+	o("unintegration & integration undo each other", done => {
+		n.setPlatform('linux')
+		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		const {electronMock} = standardMocks()
+		const fsExtraMock = n.mock("fs-extra", fsExtra).with({
+			readFileSync: () => '/another/blacklisted/file.appImage\n/appimage/path/file.appImage',
+			access: p => p === '/app/path/file/.config/tuta_integration/no_integration' ? Promise.resolve() : Promise.reject()
+		}).set()
+		const {integrate, unintegrate} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
+		integrate()
+		unintegrate()
+		setTimeout(() => {
+			const addedFiles = fsExtraMock.writtenFiles.map(f => f.file)
+			                              .concat(fsExtraMock.copiedFiles.map(f => f.to))
+			o(addedFiles).deepEquals(fsExtraMock.deletedFiles)
 			delete process.env.APPIMAGE
 			done()
 		}, 10)

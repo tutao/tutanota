@@ -31,12 +31,14 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_defaultDownloadPath: Stream<string>;
 	_runAsTrayApp: Stream<?boolean>;
 	_runOnStartup: Stream<?boolean>;
+	_isIntegrated: Stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
 		this._isDefaultMailtoHandler = stream(false)
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
+		this._isIntegrated = stream(false)
 		this._requestDesktopConfig()
 	}
 
@@ -83,10 +85,26 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					nativeApp.invokeNative(new Request(v
 						? 'enableAutoLaunch'
 						: 'disableAutoLaunch', [])),
-					).then(() => {
+				).then(() => {
 					this._runOnStartup(v)
 					m.redraw()
 				})
+			}
+		}
+
+		const setDesktopIntegrationAttrs: DropDownSelectorAttrs<boolean> = {
+			label: "desktopIntegration_label",
+			items: [
+				{name: lang.get("yes_label"), value: true},
+				{name: lang.get("no_label"), value: false}
+			],
+			selectedValue: this._isIntegrated,
+			selectionChangedHandler: v => {
+				showProgressDialog("pleaseWait_msg", this._updateDesktopIntegration(v))
+					.then(() => {
+						this._isIntegrated(v)
+						m.redraw()
+					})
 			}
 		}
 
@@ -121,7 +139,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
 				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunAsTrayAppAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
-				m(TextFieldN, defaultDownloadPathAttrs)
+				m(TextFieldN, defaultDownloadPathAttrs),
+				env.platformId !== 'linux' ? null : m(DropDownSelectorN, setDesktopIntegrationAttrs),
 			])
 		]
 	}
@@ -131,6 +150,14 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			return nativeApp.invokeNative(new Request('registerMailto', []))
 		} else {
 			return nativeApp.invokeNative(new Request('unregisterMailto', []))
+		}
+	}
+
+	_updateDesktopIntegration(v: boolean): Promise<void> {
+		if (v) {
+			return nativeApp.invokeNative(new Request('integrateDesktop', []))
+		} else {
+			return nativeApp.invokeNative(new Request('unIntegrateDesktop', []))
 		}
 	}
 
@@ -145,6 +172,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         )
 			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
 			         this._runOnStartup(desktopConfig.runOnStartup)
+			         this._isIntegrated(desktopConfig.isIntegrated)
 			         m.redraw()
 		         })
 	}
