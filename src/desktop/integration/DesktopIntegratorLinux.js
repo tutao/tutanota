@@ -6,15 +6,18 @@ import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import {exec} from "child_process"
 
+const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
+const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
+
 const executablePath = process.execPath
 const packagePath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
-const autoLaunchPath = path.join(app.getPath('home'), `.config/autostart/${app.name}.desktop`)
-const desktopFilePath = path.join(app.getPath('home'), `.local/share/applications/${app.name}.desktop`)
-const iconTargetPath64 = path.join(app.getPath('home'), `.local/share/icons/hicolor/64x64/apps/${app.name}.png`)
-const iconTargetPath512 = path.join(app.getPath('home'), `.local/share/icons/hicolor/512x512/apps/${app.name}.png`)
+const autoLaunchPath = path.join(CONFIG_HOME, `autostart/${app.name}.desktop`)
+const desktopFilePath = path.join(DATA_HOME, `applications/${app.name}.desktop`)
+const iconTargetPath64 = path.join(DATA_HOME, `icons/hicolor/64x64/apps/${app.name}.png`)
+const iconTargetPath512 = path.join(DATA_HOME, `icons/hicolor/512x512/apps/${app.name}.png`)
 const iconSourcePath64 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red-small.png`)
 const iconSourcePath512 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red.png`)
-const nointegrationpath = path.join(app.getPath('home'), '.config/tuta_integration/no_integration')
+const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integration')
 
 fs.access(iconSourcePath512, fs.constants.F_OK)
   .catch(() => console.error("icon logo-solo-red.png not found, has the file name changed?"))
@@ -102,14 +105,40 @@ function getDesktopEntryVersion(): string {
 
 export function integrate(): void {
 	const prefix = app.name.includes("test") ? "test " : ""
-	createDesktopEntry(prefix)
-	copyIcons()
+	try {
+		createDesktopEntry(prefix)
+	} catch (e) {
+		// no errors we can do anything about here
+		// "Desktop Integration" Setting will reset to "deactivated"
+		console.warn("could not integrate: ", e.message)
+	}
+	try {
+		copyIcons()
+	} catch (e) {
+		console.warn("could not copy icons: ", e.message)
+	}
+
 }
 
 export function unintegrate(): void {
-	fs.unlinkSync(desktopFilePath)
-	fs.unlinkSync(iconTargetPath64)
-	fs.unlinkSync(iconTargetPath512)
+	try {
+		fs.unlinkSync(desktopFilePath)
+	} catch (e) {
+		// there are no errors we could or should care about here
+		console.warn("could not unintegrate: ", e.message)
+	}
+	try {
+		fs.unlinkSync(iconTargetPath64)
+	} catch (e) {
+		// there are no errors we could or should care about here
+		console.warn("could not delete icon: ", e.message)
+	}
+	try {
+		fs.unlinkSync(iconTargetPath512)
+	} catch (e) {
+		// there are no errors we could or should care about here
+		console.warn("could not delete icon: ", e.message)
+	}
 }
 
 function createDesktopEntry(prefix: string): void {
