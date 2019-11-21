@@ -363,6 +363,7 @@ export function attachDropdown(
 			if (showDropdown()) {
 				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
 				dropDownFn(e, dom)
+				e.stopPropagation()
 			} else if (oldClick) {
 				oldClick(e)
 			}
