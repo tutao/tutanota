@@ -188,6 +188,8 @@ type NativeRequestType = 'init'
 	| 'calendarInvitationProgress_msg'
 	| 'shareGroup'
 	| 'sendGroupInvitation'
+	| 'integrateDesktop'
+	| 'unIntegrateDesktop'
 
 
 type JsRequestType = 'createMailEditor'

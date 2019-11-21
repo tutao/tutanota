@@ -52,3 +52,15 @@ export function disableAutoLaunch(): Promise<void> {
 export function runIntegration() {
 	// nothing here yet
 }
+
+export function isIntegrated() {
+	return Promise.resolve(true)
+}
+
+export function integrate() {
+	// nothing here yet
+}
+
+export function unintegrate() {
+	// nothing here yet
+}

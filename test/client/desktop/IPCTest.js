@@ -82,7 +82,10 @@ o.spec("IPC tests", () => {
 	const desktopIntegrator = {
 		isAutoLaunchEnabled: () => "noDoNot",
 		enableAutoLaunch: () => Promise.resolve(),
-		disableAutoLaunch: () => Promise.resolve()
+		disableAutoLaunch: () => Promise.resolve(),
+		isIntegrated: () => Promise.resolve(true),
+		integrate: () => {},
+		unintegrate: () => {},
 	}
 	const workerProtocol = {
 		errorToObj: (err) => console.log(chalk.red.bold("ERROR:"), err.message),
@@ -353,6 +356,48 @@ o.spec("IPC tests", () => {
 		}, 10)
 	})
 
+	o("integrate & unintegrate desktop", done => {
+		const {
+			electronMock,
+			confMock,
+			notifierMock,
+			fsExtraMock,
+			sockMock,
+			sseMock,
+			wmMock,
+			desktopIntegratorMock, alarmStorageMock
+		} = standardMocks()
+		const {IPC} = n.subject('../../src/desktop/IPC.js')
+		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock)
+
+		ipc.addWindow(1337)
+		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+			type: "init",
+			id: "id",
+			value: []
+		}))
+
+		electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+			type: "integrateDesktop",
+			id: "id2",
+			args: []
+		}))
+
+		o(desktopIntegratorMock.integrate.callCount).equals(1)
+		o(desktopIntegratorMock.integrate.args[0]).equals(undefined)
+		setTimeout(() => {
+			electronMock.ipcMain.callbacks["1337"]({}, JSON.stringify({
+				type: "unIntegrateDesktop",
+				id: "id3",
+				args: []
+			}))
+
+			o(desktopIntegratorMock.unintegrate.callCount).equals(1)
+			o(desktopIntegratorMock.unintegrate.args[0]).equals(undefined)
+			done()
+		}, 10)
+	})
+
 	o("sendDesktopConfig", done => {
 		const {
 			electronMock,
@@ -393,7 +438,8 @@ o.spec("IPC tests", () => {
 				value: {
 					dummy: "value",
 					isMailtoHandler: "yesItIs",
-					runOnStartup: "noDoNot"
+					runOnStartup: "noDoNot",
+					isIntegrated: true,
 				}
 			})
 			done()

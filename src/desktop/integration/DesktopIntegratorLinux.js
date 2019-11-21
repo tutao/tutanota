@@ -20,8 +20,16 @@ fs.access(iconSourcePath512, fs.constants.F_OK)
   .catch(() => console.error("icon logo-solo-red.png not found, has the file name changed?"))
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
+	return checkFileIsThere(autoLaunchPath)
+}
+
+export function isIntegrated(): Promise<boolean> {
+	return checkFileIsThere(desktopFilePath)
+}
+
+function checkFileIsThere(pathToCheck: string): Promise<boolean> {
 	return fs.access(
-		autoLaunchPath,
+		pathToCheck,
 		fs.constants.F_OK | fs.constants.W_OK | fs.constants.R_OK
 	).then(() => true).catch(() => false)
 }
@@ -54,28 +62,30 @@ export function disableAutoLaunch(): Promise<void> {
 export function runIntegration() {
 	if (executablePath.includes("node_modules/electron/dist/electron")) return;
 	console.log(`checking for ${desktopFilePath} ...`)
-	fs.access(desktopFilePath, fs.constants.F_OK)
-	  .then(() => { // already integrated, no need to ask for permission
-		  console.log(`desktop file exists, checking version...`)
-		  const desktopEntryVersion = getDesktopEntryVersion()
-		  if (desktopEntryVersion !== app.getVersion()) {
-			  console.log("version mismatch, reintegrating...")
-			  integrate()
-		  }
-	  })
-	  .catch(() => { // not integrated, we need to ask for permission. may also be not allowed to ask anymore.
-		  console.log(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
-		  fs.access(nointegrationpath, fs.constants.F_OK)
-		    .then(() => {
-			    const forbiddenPaths = fs.readFileSync(nointegrationpath, {encoding: 'utf8', flag: 'r'})
-			                             .trim()
-			                             .split('\n')
-			    if (!forbiddenPaths.includes(packagePath)) {
-				    askPermission()
-			    }
-		    })
-		    .catch(() => askPermission())
-	  })
+	isIntegrated().then(integrated => {
+		if (integrated) {
+			console.log(`desktop file exists, checking version...`)
+			const desktopEntryVersion = getDesktopEntryVersion()
+			if (desktopEntryVersion !== app.getVersion()) {
+				console.log("version mismatch, reintegrating...")
+				integrate()
+			}
+		} else {
+			console.log(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
+			checkFileIsThere(nointegrationpath).then(isThere => {
+				if (isThere) {
+					const forbiddenPaths = fs.readFileSync(nointegrationpath, {encoding: 'utf8', flag: 'r'})
+					                         .trim()
+					                         .split('\n')
+					if (!forbiddenPaths.includes(packagePath)) {
+						askPermission()
+					}
+				} else {
+					askPermission()
+				}
+			})
+		}
+	})
 }
 
 /**
@@ -90,10 +100,16 @@ function getDesktopEntryVersion(): string {
 	return versionLine.split("=")[1]
 }
 
-function integrate(): void {
+export function integrate(): void {
 	const prefix = app.name.includes("test") ? "test " : ""
 	createDesktopEntry(prefix)
 	copyIcons()
+}
+
+export function unintegrate(): void {
+	fs.unlinkSync(desktopFilePath)
+	fs.unlinkSync(iconTargetPath64)
+	fs.unlinkSync(iconTargetPath512)
 }
 
 function createDesktopEntry(prefix: string): void {
