@@ -212,8 +212,12 @@ export function insertIntoSortedArray<T>(element: T, array: Array<T>,
 		for (let i = 0; i < array.length; i++) {
 			const compareResult = comparator(element, array[i])
 			if (compareResult < 0) {
-				const replaceIfResult = replaceIf(element, array[i])
-				array.splice(i, replaceIfResult ? 1 : 0, element)
+				const replaceIfResult = i > 0 && replaceIf(element, array[i - 1])
+				if (replaceIfResult) {
+					array.splice(i - 1, 1, element)
+				} else {
+					array.splice(i, 0, element)
+				}
 				return
 			}
 		}

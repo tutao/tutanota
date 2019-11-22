@@ -2,6 +2,12 @@
 import o from "ospec/ospec.js"
 import {arrayEquals, concat, findLastIndex, insertIntoSortedArray, splitInChunks} from "../../../src/api/common/utils/ArrayUtils"
 
+type ObjectWithId = {
+	v: number,
+	id: number,
+	replaced?: boolean,
+}
+
 o.spec("array utils", function () {
 
 	o("concat arrays", function () {
@@ -41,16 +47,60 @@ o.spec("array utils", function () {
 	})
 
 	o.spec("insertIntoSortedArray", function () {
-		o("works", function () {
-			let arr = [1, 2, 8, 10]
-			insertIntoSortedArray(4, arr, (l, r) => l - r)
-			o(arr).deepEquals([1, 2, 4, 8, 10])
+		// We wrap them into objects
+		const comparator = (l, r) => l.v - r.v
+		const equals = (l, r) => l.id === r.id
+
+		function test(arr: Array<ObjectWithId>, insert: ObjectWithId, expect: Array<ObjectWithId>, equalsFn?: (ObjectWithId, ObjectWithId) => boolean) {
+			insertIntoSortedArray(insert, arr, comparator, equalsFn)
+			o(arr).deepEquals(expect)
+		}
+
+		o("appends in the beginning", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 1, id: -1},
+				[{v: 1, id: 0}, {v: 1, id: -1}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}])
+		})
+
+		o("appends in the middle", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 4, id: -1},
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 4, id: -1}, {v: 8, id: 3}, {v: 10, id: 4}])
+		})
+
+		o("appends in the end", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 10, id: -1},
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}, {v: 10, id: -1}])
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 12, id: -1},
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}, {v: 12, id: -1}])
 		})
 
 		o("works with empty array", function () {
-			let arr = []
-			insertIntoSortedArray(4, arr, (l, r) => l - r)
-			o(arr).deepEquals([4])
+			test([],
+				{v: 4, id: -1},
+				[{v: 4, id: -1}])
+		})
+		o("replaces in the beginning", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 1, id: 0, replaced: true}
+				, [{v: 1, id: 0, replaced: true}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}], equals)
+		})
+
+		o("replaces in the middle", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 2, id: 1, replaced: true},
+				[{v: 1, id: 0}, {v: 2, id: 1, replaced: true}, {v: 8, id: 3}, {v: 10, id: 4}], equals)
+		})
+
+		o("replaces in the end", function () {
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 10, id: 4, replaced: true},
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4, replaced: true}], equals)
+			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				{v: 12, id: 5},
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}, {v: 12, id: 5}], equals)
 		})
 	})
 })
