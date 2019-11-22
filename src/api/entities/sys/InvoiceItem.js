@@ -13,14 +13,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 1642, "since": 52, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"amount": {"name": "amount", "id": 1643, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"amount": {"name": "amount", "id": 1643, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
 		"endDate": {
 			"name": "endDate",
 			"id": 1648,
 			"since": 52,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"singlePrice": {
@@ -29,7 +29,7 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"singleType": {
@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "Boolean",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"startDate": {
@@ -47,7 +47,7 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "Date",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"totalPrice": {
@@ -56,10 +56,10 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
-		"type": {"name": "type", "id": 1644, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
+		"type": {"name": "type", "id": 1644, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {},
 	"app": "sys",

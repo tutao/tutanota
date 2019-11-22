@@ -48,7 +48,7 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"business": {
@@ -57,18 +57,18 @@ export const _TypeModel: TypeModel = {
 			"since": 52,
 			"type": "Boolean",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
-		"country": {"name": "country", "id": 1660, "since": 52, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
-		"date": {"name": "date", "id": 1658, "since": 52, "type": "Date", "cardinality": "One", "final": false, "encrypted": true},
+		"country": {"name": "country", "id": 1660, "since": 52, "type": "String", "cardinality": "One", "final": true, "encrypted": true},
+		"date": {"name": "date", "id": 1658, "since": 52, "type": "Date", "cardinality": "One", "final": true, "encrypted": true},
 		"grandTotal": {
 			"name": "grandTotal",
 			"id": 1667,
 			"since": 52,
 			"type": "Number",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
 		"paymentMethod": {
@@ -89,27 +89,19 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"subTotal": {
-			"name": "subTotal",
-			"id": 1666,
-			"since": 52,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"type": {"name": "type", "id": 1657, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
-		"vat": {"name": "vat", "id": 1665, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true},
+		"subTotal": {"name": "subTotal", "id": 1666, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
+		"type": {"name": "type", "id": 1657, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
+		"vat": {"name": "vat", "id": 1665, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true},
 		"vatIdNumber": {
 			"name": "vatIdNumber",
 			"id": 1663,
 			"since": 52,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
-			"final": false,
+			"final": true,
 			"encrypted": true
 		},
-		"vatRate": {"name": "vatRate", "id": 1664, "since": 52, "type": "Number", "cardinality": "One", "final": false, "encrypted": true}
+		"vatRate": {"name": "vatRate", "id": 1664, "since": 52, "type": "Number", "cardinality": "One", "final": true, "encrypted": true}
 	},
 	"associations": {
 		"items": {
@@ -119,7 +111,7 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "InvoiceItem",
-			"final": false
+			"final": true
 		},
 		"bookings": {
 			"name": "bookings",
