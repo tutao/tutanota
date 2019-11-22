@@ -56,7 +56,7 @@ export class PaymentMethodInput {
 			view: () => {
 				return [
 					m(".flex-center", {style: {'margin-top': "50px"}},
-						m(".button-height.flex.items-center.plr.border.border-radius", {
+						m(".button-height.flex.items-center.plr.border.border-radius.bg-white", {
 							style: {
 								cursor: "pointer"
 							},
