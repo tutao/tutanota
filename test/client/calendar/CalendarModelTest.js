@@ -14,8 +14,7 @@ import {
 } from "../../../src/calendar/CalendarModel"
 import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateTime} from "luxon"
-import {generateEventElementId} from "../../../src/api/common/utils/CommonCalendarUtils"
-import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {

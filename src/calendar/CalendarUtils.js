@@ -69,16 +69,17 @@ export function parseTime(timeString: string): ?{hours: number, minutes: number}
 			} else {
 				hours = parseInt(digits.substr(0, digits.length - 2), 10)
 				minutes = parseInt(digits.substr(-2, 2), 10)
-	                }
+			}
 		} else {
 			return null
-                }
+		}
 	}
 	if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
 		return null
 	}
-	if (suffix)
+	if (suffix) {
 		suffix = suffix.toUpperCase()
+	}
 	if (suffix === "PM" || suffix == "P.M.") {
 		if (hours > 12) return null
 		if (hours !== 12) hours = hours + 12
@@ -493,7 +494,8 @@ export function getCapabilityText(capability: ?ShareCapabilityEnum): string {
 }
 
 export function isSameEvent(left: CalendarEvent, right: CalendarEvent): boolean {
-	return isSameId(left._id, right._id)
+	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
+	return isSameId(left._id, right._id) && left.startTime.getTime() === right.startTime.getTime()
 }
 
 
