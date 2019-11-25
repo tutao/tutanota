@@ -43,9 +43,8 @@ type CalendarSharingDialogAttrs = {
 
 
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
-	showProgressDialog("loading_msg", loadGroupDetails(groupInfo)
+	showProgressDialog("loading_msg", loadGroupDetails(groupInfo))
 		.then(groupDetails => {
-
 			const eventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
 				updates.forEach(update => {
 						if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
@@ -107,7 +106,7 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 				}
 			)
 
-		}))
+		})
 
 }
 
