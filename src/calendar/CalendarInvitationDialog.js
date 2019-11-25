@@ -64,7 +64,7 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 					}
 				}),
 				isMember ? null : m(ButtonN, {
-					label: "join_action",
+					label: "acceptInvitation_action",
 					type: ButtonType.Login,
 					click: () => {
 

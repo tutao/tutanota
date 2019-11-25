@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2019-11-21T14:51:19Z",
+	"updated_at": "2019-11-25T14:00:40Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Prosimo, sprejmite politiko zasebnosti s potrditvijo kvadratka.",
@@ -572,7 +572,6 @@ module.exports = {
 		"markRead_action": "Označi prebrano",
 		"markUnread_action": "Označi neprebrano",
 		"matchCase_alt": "Upoštevaj velike/male črke",
-		"member_label": "Člani",
 		"mergeAllSelectedContacts_msg": "Ali ste prepričani, da želite združiti izbrane stike?",
 		"mergeContacts_action": "Spoji stike",
 		"merge_action": "Spoji",
@@ -661,6 +660,7 @@ module.exports = {
 		"packageUpgradeUserAccounts_label": "Nadgradnja paketa na št. uporabnikov: {1}",
 		"pageTitle_label": "Naslov strani",
 		"parentConfirmation_msg": "V skladu s splošno uredbo EU o varstvu podatkov (GDPR) potrebujejo otroci, mlajši od 16 let, potrditev svojih staršev, da omogočijo obdelavo osebnih podatkov. Zato vas prosimo, da povabite enega od staršev ali zakonitih skrbnikov in jim dovolite, da potrdijo naslednje:\n\n\"Sem staršev ali zakoniti skrbnik svojega otroka in mu dovoljujem uporabo Tutanote, ki vključuje obdelavo njegovih osebnih podatkov.\"",
+		"participant_label": "Člani",
 		"password1InvalidSame_msg": "Novo geslo je enako kot staro.",
 		"password1InvalidUnsecure_msg": "To geslo ni dovolj varno.",
 		"password1Neutral_msg": "Prosimo, vnesite novo geslo.",

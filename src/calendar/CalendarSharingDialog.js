@@ -172,7 +172,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				cells: () => [
 					{
 						main: getDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
-						info: (isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("member_label"))
+						info: (isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label"))
 							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))
 					}
 				], actionButtonAttrs: {
