@@ -47,13 +47,158 @@ declare module 'electron' {
 		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
 	}
 
+	// tutao: our own definitions to make it more readable
+	declare type MenuItemRole = 'undo'
+		| 'redo'
+		| 'cut'
+		| 'copy'
+		| 'paste'
+		| 'pasteAndMatchStyle'
+		| 'delete'
+		| 'selectAll'
+		| 'reload'
+		| 'forceReload'
+		| 'toggleDevTools'
+		| 'resetZoom'
+		| 'zoomIn'
+		| 'zoomOut'
+		| 'togglefullscreen'
+		| 'window'
+		| 'minimize'
+		| 'close'
+		| 'help'
+		| 'about'
+		| 'services'
+		| 'hide'
+		| 'hideOthers'
+		| 'unhide'
+		| 'quit'
+		| 'startSpeaking'
+		| 'stopSpeaking'
+		| 'close'
+		| 'minimize'
+		| 'zoom'
+		| 'front'
+		| 'appMenu'
+		| 'fileMenu'
+		| 'editMenu'
+		| 'viewMenu'
+		| 'recentDocuments'
+		| 'toggleTabBar'
+		| 'selectNextTab'
+		| 'selectPreviousTab'
+		| 'mergeAllWindows'
+		| 'clearRecentDocuments'
+		| 'moveTabToNewWindow'
+		| 'windowMenu'
+		| 'startSpeaking'
+		| 'stopSpeaking'
+
+	// should be a "type" instead probably
+	declare export interface MenuItemConstructorOptions {
+		/**
+		 * Will be called with `click(menuItem, browserWindow, event)` when the menu item
+		 * is clicked.
+		 */
+		click?: (menuItem: MenuItem, browserWindow: BrowserWindow, event: KeyboardEvent) => void;
+		/**
+		 * Can be `undo`, `redo`, `cut`, `copy`, `paste`, `pasteAndMatchStyle`, `delete`,
+		 * `selectAll`, `reload`, `forceReload`, `toggleDevTools`, `resetZoom`, `zoomIn`,
+		 * `zoomOut`, `togglefullscreen`, `window`, `minimize`, `close`, `help`, `about`,
+		 * `services`, `hide`, `hideOthers`, `unhide`, `quit`, `startSpeaking`,
+		 * `stopSpeaking`, `close`, `minimize`, `zoom`, `front`, `appMenu`, `fileMenu`,
+		 * `editMenu`, `viewMenu`, `recentDocuments`, `toggleTabBar`, `selectNextTab`,
+		 * `selectPreviousTab`, `mergeAllWindows`, `clearRecentDocuments`,
+		 * `moveTabToNewWindow` or `windowMenu` - Define the action of the menu item, when
+		 * specified the `click` property will be ignored. See roles.
+		 */
+		role?: MenuItemRole;
+		/**
+		 * Can be `normal`, `separator`, `submenu`, `checkbox` or `radio`.
+		 */
+		type?: ('normal' | 'separator' | 'submenu' | 'checkbox' | 'radio');
+		label?: string;
+		sublabel?: string;
+		/**
+		 * Hover text for this menu item.
+		 *
+		 * @platform darwin
+		 */
+		toolTip?: string;
+		accelerator?: Accelerator;
+		icon?: (NativeImage) | (string);
+		/**
+		 * If false, the menu item will be greyed out and unclickable.
+		 */
+		enabled?: boolean;
+		/**
+		 * default is `true`, and when `false` will prevent the accelerator from triggering
+		 * the item if the item is not visible`.
+		 *
+		 * @platform darwin
+		 */
+		acceleratorWorksWhenHidden?: boolean;
+		/**
+		 * If false, the menu item will be entirely hidden.
+		 */
+		visible?: boolean;
+		/**
+		 * Should only be specified for `checkbox` or `radio` type menu items.
+		 */
+		checked?: boolean;
+		/**
+		 * If false, the accelerator won't be registered with the system, but it will still
+		 * be displayed. Defaults to true.
+		 *
+		 * @platform linux,win32
+		 */
+		registerAccelerator?: boolean;
+		/**
+		 * Should be specified for `submenu` type menu items. If `submenu` is specified,
+		 * the `type: 'submenu'` can be omitted. If the value is not a `Menu` then it will
+		 * be automatically converted to one using `Menu.buildFromTemplate`.
+		 */
+		submenu?: (MenuItemConstructorOptions[]) | (Menu);
+		/**
+		 * Unique within a single menu. If defined then it can be used as a reference to
+		 * this item by the position attribute.
+		 */
+		id?: string;
+		/**
+		 * Inserts this item before the item with the specified label. If the referenced
+		 * item doesn't exist the item will be inserted at the end of  the menu. Also
+		 * implies that the menu item in question should be placed in the same “group” as
+		 * the item.
+		 */
+		before?: string[];
+		/**
+		 * Inserts this item after the item with the specified label. If the referenced
+		 * item doesn't exist the item will be inserted at the end of the menu.
+		 */
+		after?: string[];
+		/**
+		 * Provides a means for a single context menu to declare the placement of their
+		 * containing group before the containing group of the item with the specified
+		 * label.
+		 */
+		beforeGroupContaining?: string[];
+		/**
+		 * Provides a means for a single context menu to declare the placement of their
+		 * containing group after the containing group of the item with the specified
+		 * label.
+		 */
+		afterGroupContaining?: string[];
+	}
+
 	declare export class Menu {
 		// https://electronjs.org/docs/api/menu
 		constructor(): Menu;
+		items: MenuItem[];
 		popup(opts?: {window: BrowserWindow, x: Number, y: Number, positioningItem: Number, callback: Function}): void;
 		append(MenuItem): void;
 		static setApplicationMenu(Menu | null): void;
 		static getApplicationMenu(): Menu | null;
+		static buildFromTemplate(template: Array<(MenuItemConstructorOptions) | (MenuItem)>): Menu;
 	}
 
 	declare export class App {
