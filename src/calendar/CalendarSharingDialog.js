@@ -36,11 +36,9 @@ import {locator} from "../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
 
-
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails
 }
-
 
 export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo))
@@ -48,7 +46,7 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 			const eventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
 				updates.forEach(update => {
 						if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
-							//ignore events of differen group here
+							// ignore events of different group here
 							return
 						}
 						if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
@@ -89,25 +87,18 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 			}
 			locator.eventController.addEntityListener(eventListener)
 
-			const unsubscribeEventListener = () => {
-				locator.eventController.removeEntityListener(eventListener)
-			}
-
-
-			const dialog = Dialog.showActionDialog({
+			Dialog.showActionDialog({
 					title: lang.get("sharing_label"),
 					type: DialogType.EditMedium,
 					child: () => m(CalendarSharingDialogContent, {
 						groupDetails
 					}),
 					okAction: null,
-					cancelAction: () => unsubscribeEventListener(),
+					cancelAction: () => locator.eventController.removeEntityListener(eventListener),
 					cancelActionTextId: 'close_alt'
 				}
 			)
-
 		})
-
 }
 
 
@@ -125,9 +116,6 @@ function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 
 
 class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAttrs> {
-
-	constructor() {
-	}
 
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
 		return m(".flex.col.pt-s", [
@@ -189,7 +177,6 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 		})
 	}
 
-
 	_getMemberCabability(memberInfo: GroupMemberInfo, groupDetails: GroupDetails): ?ShareCapabilityEnum {
 		if (isSharedGroupOwner(groupDetails.group, memberInfo.member.user)) {
 			return ShareCapability.Invite
@@ -207,8 +194,6 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 			|| isSameId(logins.getUserController().user._id, memberInfo.member.user))
 			&& !isSharedGroupOwner(group, memberInfo.member.user)
 	}
-
-
 }
 
 function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
@@ -233,7 +218,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 				label: "remove_action",
 				type: ButtonType.Secondary,
 				click: () => {
-					const bubbleToRemove = invitePeopleValueTextField.bubbles.find((bubble) => bubble.entity.mailAddress == mailAddress)
+					const bubbleToRemove = invitePeopleValueTextField.bubbles.find((bubble) => bubble.entity.mailAddress === mailAddress)
 					if (bubbleToRemove) {
 						remove(invitePeopleValueTextField.bubbles, bubbleToRemove)
 					}
