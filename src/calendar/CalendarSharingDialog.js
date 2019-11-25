@@ -117,12 +117,14 @@ function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 
 class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAttrs> {
 
-	view(vnode: Vnode<CalendarSharingDialogAttrs>): ?Children {
+	view(vnode: Vnode<CalendarSharingDialogAttrs>): Children {
+		const calendarName = getCalendarName(vnode.attrs.groupDetails.info.name)
 		return m(".flex.col.pt-s", [
 			m(TableN, {
-				columnHeading: [() => lang.get("participants_label", {"{name}": getCalendarName(vnode.attrs.groupDetails.info.name)})],
+				columnHeading: [() => lang.get("participants_label", {"{name}": calendarName})],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(vnode.attrs.groupDetails).concat(this._renderGroupInvitations(vnode.attrs.groupDetails)),
+				lines: this._renderMemberInfos(vnode.attrs.groupDetails)
+				           .concat(this._renderGroupInvitations(vnode.attrs.groupDetails, calendarName)),
 				showActionButtonColumn: true,
 				addButtonAttrs: {
 					label: "addParticipant_action",
@@ -134,7 +136,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 		])
 	}
 
-	_renderGroupInvitations(groupDetails: GroupDetails): Array<TableLineAttrs> {
+	_renderGroupInvitations(groupDetails: GroupDetails, calendarName: string): Array<TableLineAttrs> {
 		return groupDetails.sentGroupInvitations.map((sentGroupInvitation) => {
 			return {
 				cells: () => [
@@ -147,7 +149,15 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				actionButtonAttrs: {
 					label: "remove_action",
 					click: () => {
-						worker.rejectGroupInvitation(neverNull(sentGroupInvitation.receivedInvitation))
+						const message = lang.get("removeCalendarParticipantConfirm_msg", {
+							"{participant}": sentGroupInvitation.inviteeMailAddress,
+							"{calendarName}": calendarName,
+						})
+						Dialog.confirm(() => message).then((confirmed) => {
+							if (confirmed) {
+								worker.rejectGroupInvitation(neverNull(sentGroupInvitation.receivedInvitation))
+							}
+						})
 					},
 					icon: () => Icons.Cancel,
 					isVisible: () => this._isDeleteInvitationButtonVisible(groupDetails.group, sentGroupInvitation)

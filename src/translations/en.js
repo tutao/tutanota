@@ -1052,6 +1052,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"removeCalendarParticipantConfirm_msg": "Are you sure you want to remove {participant} from the calendar \"{calendarName}\"?",
 	}
 }
