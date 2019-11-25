@@ -11,6 +11,8 @@ export const ColumnType = {
 	Foreground: 0
 }
 
+type Attrs = {rightBorder?: boolean}
+
 export class ViewColumn {
 	component: Component;
 	columnType: ColumnTypeEnum;
@@ -43,9 +45,10 @@ export class ViewColumn {
 		this.isInForeground = false
 		this.visible = false
 
-		this.view = () => {
+		this.view = (vnode: Vnode<Attrs>) => {
 			let zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
-			return m(".view-column..overflow-x-hidden.fill-absolute.backface_fix" + zIndex, {
+			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
+			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border, {
 					"aria-hidden": this.visible ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom

@@ -69,6 +69,8 @@ export class ViewSlider implements IViewSlider {
 		this._isModalBackgroundVisible = false
 
 		this.view = (): Children => {
+			const mainSliderColumns = this._getColumnsForMainSlider()
+			const allBackgroundColumnsAreVisible = this._visibleBackgroundColumns.length === mainSliderColumns.length
 			return m(".fill-absolute.flex.col", {
 				oncreate: (vnode) => {
 					this._attachTouchHandler(vnode.dom)
@@ -89,7 +91,11 @@ export class ViewSlider implements IViewSlider {
 							width: this.getWidth() + 'px',
 							transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
 						}
-					}, this._getColumnsForMainSlider().map(m)
+					}, mainSliderColumns.map((column, index) => m(column, {
+						// Only apply right border if 1. all background columns are visible. 2. It's not the last column.
+						// Perhaps the condition should be "there's another visible column after this one" but it works like this too
+						rightBorder: allBackgroundColumnsAreVisible && index !== mainSliderColumns.length - 1
+					}))
 				),
 				styles.isUsingBottomNavigation() ? m(BottomNav) : null,
 				this._getColumnsForOverlay().map(m),

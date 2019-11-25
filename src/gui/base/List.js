@@ -19,7 +19,6 @@ import {windowFacade} from "../../misc/WindowFacade"
 import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
-import {styles} from "../styles"
 import {theme} from "../theme"
 
 assertMainOrNode()
@@ -149,8 +148,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 
 		this.view = (): VirtualElement => {
-			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden"
-				+ (styles.isDesktopLayout() ? ".list-border-right" : ""), {
+			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
 					this._width = this._domListContainer.clientWidth

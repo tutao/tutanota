@@ -606,7 +606,6 @@ styles.registerStyle('main', () => {
 		' .folder-column': {
 			'background-color': theme.navigation_bg,
 			height: '100%',
-			'border-right': `1px solid ${theme.navigation_border}`
 		},
 		'.list-border-right': {
 			'border-right': `1px solid ${theme.list_border}`
