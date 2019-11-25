@@ -4,6 +4,7 @@ import stream from "mithril/stream/stream.js"
 import {DatePicker} from "../gui/base/DatePicker"
 import {Dialog} from "../gui/base/Dialog"
 import type {CalendarInfo} from "./CalendarView"
+import {LIMIT_PAST_EVENTS_YEARS} from "./CalendarView"
 import m from "mithril"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
@@ -45,7 +46,6 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
 import {windowFacade} from "../misc/WindowFacade"
 import {client} from "../misc/ClientDetector"
-import {LIMIT_PAST_EVENTS_YEARS} from "./CalendarView"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -411,7 +411,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 						])
 						: null
 				],
-			m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
+			readOnly ? null : m(".flex.col.mt.mb", alarmPickerAttrs.map((attrs) => m(DropDownSelectorN, attrs))),
 			m(DropDownSelectorN, ({
 				label: "calendar_label",
 				items: calendarArray.map((calendarInfo) => {
