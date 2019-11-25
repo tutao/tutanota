@@ -755,6 +755,20 @@ export class CalendarView implements CurrentView {
 							m.redraw()
 						}
 					}
+
+				} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
+					this._calendarInfos.then(calendarInfos => {
+						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.
+						if (calendarInfo) {
+							load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then(groupInfo => {
+								calendarInfo.groupInfo = groupInfo;
+								m.redraw()
+							})
+						}
+					})
+
+				} else {
+					console.log(`unhandled update: ${update.operation} ${update.type}`)
 				}
 			})
 		})
