@@ -328,6 +328,9 @@ export class CalendarView implements CurrentView {
 				this._calendarInvitations = calendarInvitations
 				m.redraw()
 			})
+		}).catch(NotFoundError, (e) => {
+			// user doesn't have UserGroupRoot, only created when receiving calendar invitations, so this is empty.
+			this._calendarInvitations = []
 		})
 	}
 
