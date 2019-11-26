@@ -631,21 +631,23 @@ o.spec("ApplicationWindow Test", () => {
 
 		o(w.getBounds()).deepEquals({
 			rect: {height: 0, width: 0, x: 0, y: 0},
-			fullscreen: false
+			fullscreen: false,
+			scale: 1
 		})
 
-		w.setBounds({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false})
-		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false})
+		w.setBounds({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false, scale: 2})
+		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: false, scale: 2})
 
-		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: true})
-		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: true})
+		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: true, scale: 1})
+		o(w.getBounds()).deepEquals({rect: {width: 1, height: 1, x: 1, y: 1}, fullscreen: true, scale: 1})
 
-		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: false})
+		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: false, scale: 0.5})
 		electronMock.BrowserWindow.mockedInstances[0].bounds = {width: 0, height: 0, x: 0, y: 10}
 		setTimeout(() => {
 			o(w.getBounds()).deepEquals({
 				rect: {width: 0, height: 0, x: 0, y: -10},
-				fullscreen: false
+				fullscreen: false,
+				scale: 0.5
 			})
 			done()
 		}, 250)

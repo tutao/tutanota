@@ -15,6 +15,7 @@ import type {IPC} from "./IPC"
 export type WindowBounds = {|
 	rect: Rectangle,
 	fullscreen: boolean,
+	scale: number,
 |}
 
 const windows: ApplicationWindow[] = []
@@ -69,19 +70,18 @@ export class WindowManager {
 			}
 			this._tray.update()
 		}).once('ready-to-show', () => {
-			w.setZoomFactor(1.0)
 			this._tray.update()
+			const startingBounds: ?WindowBounds = this.getStartingBounds()
+			if (startingBounds) {
+				w.setBounds(startingBounds)
+			} else {
+				w.center()
+			}
 			if (showWhenReady) {
 				w.show()
 			}
 		})
 
-		const startingBounds: ?WindowBounds = this.getStartingBounds()
-		if (startingBounds) {
-			w.setBounds(startingBounds)
-		} else {
-			w.center()
-		}
 
 		return w
 	}

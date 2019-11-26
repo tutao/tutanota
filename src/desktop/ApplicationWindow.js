@@ -276,6 +276,7 @@ export class ApplicationWindow {
 
 	setBounds(bounds: WindowBounds) {
 		this._browserWindow.setFullScreen(bounds.fullscreen)
+		this._browserWindow.webContents.zoomFactor = bounds.scale
 		if (bounds.fullscreen) return
 		this._browserWindow.setBounds(bounds.rect)
 		if (process.platform !== 'linux') return
@@ -293,7 +294,8 @@ export class ApplicationWindow {
 	getBounds(): WindowBounds {
 		return {
 			fullscreen: this._browserWindow.isFullScreen(),
-			rect: this._browserWindow.getBounds()
+			rect: this._browserWindow.getBounds(),
+			scale: this._browserWindow.webContents.zoomFactor
 		}
 	}
 }
