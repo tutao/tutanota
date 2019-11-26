@@ -171,7 +171,7 @@ export class WindowManager {
 	}
 
 	getStartingBounds(): ?WindowBounds {
-		const lastBounds: WindowBounds = this._conf.getDesktopConfig("lastBounds")
+		const lastBounds: WindowBounds = Object.assign({}, this._conf.getDesktopConfig("lastBounds"), {scale: 1})
 		if (!lastBounds || !this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
 			return null
 		} else {
