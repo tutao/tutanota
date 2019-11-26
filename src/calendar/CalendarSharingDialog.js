@@ -123,7 +123,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 			m(TableN, {
 				columnHeading: [() => lang.get("participants_label", {"{name}": calendarName})],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(vnode.attrs.groupDetails)
+				lines: this._renderMemberInfos(vnode.attrs.groupDetails, calendarName)
 				           .concat(this._renderGroupInvitations(vnode.attrs.groupDetails, calendarName)),
 				showActionButtonColumn: true,
 				addButtonAttrs: {
@@ -166,7 +166,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 		})
 	}
 
-	_renderMemberInfos(groupDetails: GroupDetails): Array<TableLineAttrs> {
+	_renderMemberInfos(groupDetails: GroupDetails, calendarName: string): Array<TableLineAttrs> {
 		return groupDetails.memberInfos.map((memberInfo) => {
 			return {
 				cells: () => [
@@ -179,7 +179,15 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 					label: "delete_action",
 					icon: () => Icons.Cancel,
 					click: () => {
-						worker.removeUserFromGroup(memberInfo.member.user, groupDetails.group._id)
+						const message = lang.get("removeCalendarParticipantConfirm_msg", {
+							"{participant}": memberInfo.info.mailAddress,
+							"{calendarName}": calendarName,
+						})
+						Dialog.confirm(() => message).then((confirmed) => {
+							if (confirmed) {
+								worker.removeUserFromGroup(memberInfo.member.user, groupDetails.group._id)
+							}
+						})
 					},
 					isVisible: () => this._isDeleteMembershipVisible(groupDetails.group, memberInfo)
 				}

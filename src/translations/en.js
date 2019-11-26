@@ -801,7 +801,7 @@ module.exports = {
 		"reminderBeforeEvent_label": "Reminder before event",
 		"remindersUsageDescription_msg": "Shows notification when new email arrives.",
 		"reminder_label": "Reminder",
-		"removeCalendarParticipantConfirm_msg": "Are you sure you want to remove {participant} from the calendar \"{calendarName}\"?",
+		"removeCalendarParticipantConfirm_msg": "Are you sure you want to remove or uninvite {participant} from the calendar \"{calendarName}\"?",
 		"removeFormatting_action": "Remove formatting from selection",
 		"removeGroup_action": "Remove group",
 		"removeOwnAdminFlagInfo_msg": "Your own admin flag can only be removed by another admin but not by yourself.",
