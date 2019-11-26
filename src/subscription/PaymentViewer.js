@@ -6,7 +6,6 @@ import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel.js"
 import {TextField} from "../gui/base/TextField"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {InvoiceTypeRef} from "../api/entities/sys/Invoice"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {createNotAvailableForFreeButton, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
@@ -15,7 +14,7 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
-import {getPaymentMethodType, OperationType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
+import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {BadGatewayError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
@@ -179,6 +178,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
 					.then((invoiceInfo) => {
 						this._invoiceInfo = invoiceInfo
+						m.redraw()
 					})
 			})
 
@@ -219,14 +219,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	processUpdate(update: EntityUpdateData): void {
-		const {instanceListId, instanceId, operation} = update
+		const {instanceId} = update
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 			load(AccountingInfoTypeRef, instanceId)
 				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
-		} else if (isUpdateForTypeRef(InvoiceTypeRef, update) && operation !== OperationType.DELETE) {
-			load(InvoiceTypeRef, [neverNull(instanceListId), instanceId]).then(invoice => {
-				// FIXME how do we receive an event after we have paid?
-				this._updatePostingsTable()
+		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
+			load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
+				this._invoiceInfo = invoiceInfo
 			})
 		}
 	}
