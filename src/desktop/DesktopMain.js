@@ -2,7 +2,7 @@
 import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
 import {DesktopConfigHandler} from './DesktopConfigHandler'
-import {app, Menu} from 'electron'
+import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'
 import PreloadImports from './PreloadImports.js'
@@ -17,7 +17,6 @@ import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
 import en from "../translations/en"
-import type {MenuItemConstructorOptions} from 'electron'
 
 mp()
 
@@ -27,12 +26,12 @@ const sock = new Socketeer()
 const notifier = new DesktopNotifier()
 const alarmStorage = new DesktopAlarmStorage(conf)
 alarmStorage.init()
-			.then(() => {
-				console.log("alarm storage initialized")
-			})
-			.catch(e => {
-				console.warn("alarm storage failed to initialize:", e)
-			})
+            .then(() => {
+	            console.log("alarm storage initialized")
+            })
+            .catch(e => {
+	            console.warn("alarm storage failed to initialize:", e)
+            })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
 const wm = new WindowManager(conf, tray, notifier)
@@ -57,13 +56,13 @@ let wasAutolaunched = process.platform !== 'darwin'
 if (process.argv.indexOf("-r") !== -1) {
 	//register as mailto handler, then quit
 	DesktopUtils.registerAsMailtoHandler(false)
-				.then(() => app.exit(0))
-				.catch(() => app.exit(1))
+	            .then(() => app.exit(0))
+	            .catch(() => app.exit(1))
 } else if (process.argv.indexOf("-u") !== -1) {
 	//unregister as mailto handler, then quit
 	DesktopUtils.unregisterAsMailtoHandler(false)
-				.then(() => app.exit(0))
-				.catch(() => app.exit(1))
+	            .then(() => app.exit(0))
+	            .catch(() => app.exit(1))
 } else {
 	if (!app.requestSingleInstanceLock()) {
 		app.quit()
@@ -80,82 +79,6 @@ if (process.argv.indexOf("-r") !== -1) {
 	}
 
 	app.on('ready', onAppReady)
-}
-
-if (process.platform === 'darwin') {
-	// We need menu on macOS, otherwise there are no shortcuts defined even for things like copy/paste or hiding window
-	let template: MenuItemConstructorOptions[] = [
-		{
-			// Skip individual definitions because appMenu can do it automatically
-			role: "appMenu"
-		},
-		{
-			label: 'Edit',
-			submenu: [
-				{role: 'undo'},
-				{role: 'redo'},
-				{type: 'separator'},
-				{role: 'cut'},
-				{role: 'copy'},
-				{role: 'paste'},
-				{role: 'pasteAndMatchStyle'},
-				{role: 'delete'},
-				{role: 'selectAll'},
-				{type: 'separator'},
-				{
-					label: 'Speech',
-					submenu: [
-						{role: 'startSpeaking'},
-						{role: 'stopSpeaking'}
-					]
-				}
-			]
-		},
-		{
-			label: 'View',
-			submenu: [
-				// these ones don't work for some reason. Perhaps it must be set on the window and not as app menu.
-				// {role: 'resetzoom'},
-				// {role: 'zoomin'},
-				// {role: 'zoomout'},
-				// {type: 'separator'},
-				{role: 'togglefullscreen'}
-			]
-		},
-		{
-			role: 'window',
-			submenu: [
-				{role: 'minimize'},
-				{role: 'close'},
-				{role: 'minimize'},
-				{role: 'zoom'},
-				{type: 'separator'},
-				{role: 'front'}
-			]
-		},
-		// Submenus are always disabled for some reason so don't use help menu for now
-		// {
-		// 	role: 'help',
-		// 	submenu: [
-		// 		{
-		// 			label: 'Release notes',
-		// 			click: () => {
-		// 				const {shell} = require('electron')
-		// 				return shell.openExternal('http://github.com/tutao/tutanota/releases')
-		// 			}
-		// 		},
-		// 		{
-		// 			label: 'FAQ',
-		// 			click: () => {
-		// 				const {shell} = require('electron')
-		// 				return shell.openExternal('https://tutanota.com/faq')
-		// 			}
-		// 		}
-		// 	]
-		// }
-	]
-	const menu = Menu.buildFromTemplate(template)
-	Menu.setApplicationMenu(menu)
 }
 
 function onAppReady() {
