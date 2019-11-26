@@ -1,5 +1,4 @@
 // @flow
-
 import o from "ospec/ospec.js"
 import n from "../../nodemocker"
 
@@ -19,6 +18,25 @@ o.spec("AutoLauncher Test", () => {
 	}
 	const cp = {
 		exec: () => {}
+	}
+
+	const oldDataHome = process.env.XDG_DATA_HOME
+	const oldConfigHome = process.env.XDG_CONFIG_HOME
+	const oldExecPath = process.execPath
+
+	const setupLinuxEnv = () => {
+		n.setPlatform('linux')
+		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		process.env.XDG_DATA_HOME = "/app/path/file/.local/share"
+		process.env.XDG_CONFIG_HOME = "/app/path/file/.config"
+		process.execPath = "/exec/path/elf"
+	}
+
+	const resetLinuxEnv = () => {
+		delete process.env.APPIMAGE
+		process.env.XDG_DATA_HOME = oldDataHome
+		process.env.XDG_CONFIG_HOME = oldConfigHome
+		process.execPath = oldExecPath
 	}
 
 	const electron = {
@@ -163,8 +181,7 @@ o.spec("AutoLauncher Test", () => {
 	})
 
 	o("Linux enable when off", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = "appimagepath"
+		setupLinuxEnv()
 		const {fsExtraMock} = standardMocks()
 		const {enableAutoLaunch} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
 
@@ -174,33 +191,32 @@ o.spec("AutoLauncher Test", () => {
 			o(fsExtraMock.writeFileSync.callCount).equals(1)
 			o(fsExtraMock.writeFileSync.args.length).equals(3)
 			o(fsExtraMock.writeFileSync.args[0]).equals("/app/path/file/.config/autostart/appName.desktop")
-			o(fsExtraMock.writeFileSync.args[1]).equals('[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=appName\n\tComment=appName startup script\n\tExec=appimagepath -a\n\tStartupNotify=false\n\tTerminal=false')
+			o(fsExtraMock.writeFileSync.args[1]).equals('[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=appName\n\tComment=appName startup script\n\tExec=/appimage/path/file.appImage -a\n\tStartupNotify=false\n\tTerminal=false')
 			o(fsExtraMock.writeFileSync.args[2]).deepEquals({encoding: 'utf-8'})
 
 			o(fsExtraMock.ensureDirSync.callCount).equals(1)
 			o(fsExtraMock.ensureDirSync.args.length).equals(1)
 			o(fsExtraMock.ensureDirSync.args[0]).equals("/app/path/file/.config/autostart")
-
+			resetLinuxEnv()
 			done()
 		})()
 	})
 
 	o("Linux disable when off", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = "appimagepath"
+		setupLinuxEnv()
 		const {fsExtraMock} = standardMocks()
 		const {disableAutoLaunch} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
 
 		;(async function () {
 			await disableAutoLaunch()
 			o(fsExtraMock.unlink.callCount).equals(0)
+			resetLinuxEnv()
 			done()
 		})()
 	})
 
 	o("Linux enable when on", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = "appimagepath"
+		setupLinuxEnv()
 		standardMocks()
 		const fsExtraMock = n.mock('fs-extra', fsExtra).with({
 			access: (path, mode) => Promise.resolve()
@@ -210,13 +226,13 @@ o.spec("AutoLauncher Test", () => {
 		;(async function () {
 			await enableAutoLaunch()
 			o(fsExtraMock.writeFileSync.callCount).equals(0)
+			resetLinuxEnv()
 			done()
 		})()
 	})
 
 	o("Linux disable when on", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = "appimagepath"
+		setupLinuxEnv()
 		standardMocks()
 		const fsExtraMock = n.mock('fs-extra', fsExtra).with({
 			access: () => Promise.resolve()
@@ -228,6 +244,7 @@ o.spec("AutoLauncher Test", () => {
 			o(fsExtraMock.unlink.callCount).equals(1)
 			o(fsExtraMock.unlink.args.length).equals(2)
 			o(fsExtraMock.unlink.args[0]).equals('/app/path/file/.config/autostart/appName.desktop')
+			resetLinuxEnv()
 			done()
 		})()
 	})
@@ -309,8 +326,7 @@ o.spec("AutoLauncher Test", () => {
 	})
 
 	o("runIntegration without integration, clicked yes, no no_integration, not checked", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		setupLinuxEnv()
 		const {electronMock, fsExtraMock} = standardMocks()
 		const {runIntegration} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
 		runIntegration()
@@ -340,22 +356,21 @@ o.spec("AutoLauncher Test", () => {
 			])
 			o(fsExtraMock.copiedFiles).deepEquals([
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red-small.png',
+					from: '/exec/path/resources/icons/logo-solo-red-small.png',
 					to: '/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png'
 				},
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red.png',
+					from: '/exec/path/resources/icons/logo-solo-red.png',
 					to: '/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png'
 				}
 			])
-			delete process.env.APPIMAGE
+			resetLinuxEnv()
 			done()
 		}, 10)
 	})
 
 	o("runIntegration without integration, clicked yes, no no_integration, checked", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		setupLinuxEnv()
 		const {fsExtraMock} = standardMocks()
 		const electronMock = n.mock("electron", electron).with({
 			dialog: {
@@ -382,15 +397,15 @@ o.spec("AutoLauncher Test", () => {
 			])
 			o(fsExtraMock.copiedFiles).deepEquals([
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red-small.png',
+					from: '/exec/path/resources/icons/logo-solo-red-small.png',
 					to: '/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png'
 				},
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red.png',
+					from: '/exec/path/resources/icons/logo-solo-red.png',
 					to: '/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png'
 				}
 			])
-			delete process.env.APPIMAGE
+			resetLinuxEnv()
 			done()
 		}, 10)
 	})
@@ -417,8 +432,7 @@ o.spec("AutoLauncher Test", () => {
 	})
 
 	o("runIntegration without integration, clicked no, checked", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		setupLinuxEnv()
 		const {fsExtraMock} = standardMocks()
 		const electronMock = n.mock("electron", electron).with({
 			dialog: {
@@ -440,14 +454,13 @@ o.spec("AutoLauncher Test", () => {
 				}
 			])
 			o(fsExtraMock.copiedFiles).deepEquals([])
-			delete process.env.APPIMAGE
+			resetLinuxEnv()
 			done()
 		}, 10)
 	})
 
 	o("runIntegration with integration, outdated version", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		setupLinuxEnv()
 		const {electronMock} = standardMocks()
 		const fsExtraMock = n.mock("fs-extra", fsExtra).with({
 			readFileSync: () => "X-Tutanota-Version=notAppVersion",
@@ -467,15 +480,15 @@ o.spec("AutoLauncher Test", () => {
 			])
 			o(fsExtraMock.copiedFiles).deepEquals([
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red-small.png',
+					from: '/exec/path/resources/icons/logo-solo-red-small.png',
 					to: '/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png'
 				},
 				{
-					from: '/opt/node-v10.11.0-linux-x64/bin/resources/icons/logo-solo-red.png',
+					from: '/exec/path/resources/icons/logo-solo-red.png',
 					to: '/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png'
 				}
 			])
-			delete process.env.APPIMAGE
+			resetLinuxEnv()
 			done()
 		}, 10)
 	})
@@ -501,8 +514,7 @@ o.spec("AutoLauncher Test", () => {
 	})
 
 	o("runIntegration without integration, blacklisted", done => {
-		n.setPlatform('linux')
-		process.env.APPIMAGE = '/appimage/path/file.appImage'
+		setupLinuxEnv()
 		const {electronMock} = standardMocks()
 		const fsExtraMock = n.mock("fs-extra", fsExtra).with({
 			readFileSync: () => '/another/blacklisted/file.appImage\n/appimage/path/file.appImage',
@@ -515,7 +527,7 @@ o.spec("AutoLauncher Test", () => {
 			o(fsExtraMock.access.callCount).equals(3)
 			o(fsExtraMock.writtenFiles).deepEquals([])
 			o(fsExtraMock.copiedFiles).deepEquals([])
-			delete process.env.APPIMAGE
+			resetLinuxEnv()
 			done()
 		}, 10)
 	})
