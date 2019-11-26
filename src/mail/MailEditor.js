@@ -340,7 +340,7 @@ export class MailEditor {
 		this.dialog = Dialog.largeDialog(headerBarAttrs, this)
 		                    .addShortcut({
 			                    key: Keys.ESC,
-			                    exec: () => closeButtonAttrs.click(null, this._domCloseButton),
+			                    exec: () => closeButtonAttrs.click(document.createEvent("MouseEvent"), this._domCloseButton),
 			                    help: "close_alt"
 		                    })
 		                    .addShortcut({

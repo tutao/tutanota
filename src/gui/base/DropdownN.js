@@ -359,7 +359,7 @@ export function attachDropdown(
 
 	const oldClick = mainButtonAttrs.click
 	return Object.assign({}, mainButtonAttrs, {
-		click: (e, dom) => {
+		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
 				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
 				dropDownFn(e, dom)
