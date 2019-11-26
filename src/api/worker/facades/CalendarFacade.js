@@ -25,7 +25,7 @@ import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
 import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {NotFoundError} from "../../common/error/RestError"
+import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
 
@@ -204,6 +204,11 @@ export class CalendarFacade {
 								.catch(NotFoundError, () => {
 									// We do not allow to delete userAlarmInfos currently but when we update the server we should do that
 									//erase(userAlarmInfo).catch(noOp)
+									return null
+								})
+								.catch(NotAuthorizedError, (e) => {
+									// Should not happen normally but could happen when user is removed from the calendar
+									console.warn("NotAuthorized when downloading alarm event", e)
 									return null
 								}))
 						.filter(Boolean) // filter out orphan alarms
