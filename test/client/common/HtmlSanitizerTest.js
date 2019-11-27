@@ -58,6 +58,15 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(sanitizedLink.includes('>here</a>')).equals(true)
 	})
 
+	o("notification mail template link", function () {
+		let simpleHtmlLink = '<a href=" {link} ">here</a>';
+		let sanitizedLink = htmlSanitizer.sanitize(simpleHtmlLink, true).text;
+		o(sanitizedLink.includes('href="{link}"')).equals(true);
+		o(sanitizedLink.includes('target="_blank"')).equals(true);
+		o(sanitizedLink.includes('rel="noopener noreferrer"')).equals(true);
+		o(sanitizedLink.includes('>here</a>')).equals(true);
+	})
+
 	o("area element", function () {
 		let element = '<area href="https://tutanota.com">here</area>';
 		let sanitizedElement = htmlSanitizer.sanitize(element, true).text;

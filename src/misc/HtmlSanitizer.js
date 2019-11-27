@@ -52,6 +52,11 @@ class HtmlSanitizer {
 					if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
 						currentNode.setAttribute('rel', 'noopener noreferrer')
 						currentNode.setAttribute('target', '_blank')
+					} else if (href.trim() === '{link}') {
+						// notification mail template
+						currentNode.href = '{link}'
+						currentNode.setAttribute('rel', 'noopener noreferrer')
+						currentNode.setAttribute('target', '_blank')
 					} else {
 						console.log("Relative/invalid URL", currentNode, href)
 						currentNode.href = "#"
