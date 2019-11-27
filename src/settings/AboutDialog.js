@@ -1,9 +1,9 @@
+// @flow
 import m from "mithril"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getDesktopLogs, getDeviceLogs} from "../native/SystemApp"
 import {MailEditor} from "../mail/MailEditor"
 import {mailModel} from "../mail/MailModel"
-import {ButtonType} from "../gui/base/Button"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {isColorLight} from "../calendar/CalendarUtils"
 import {theme} from "../gui/theme"
@@ -56,7 +56,7 @@ function sendDeviceLogs() {
 	const timestamp = new Date()
 	let {message, type, client} = clientInfoString(timestamp)
 	message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
-	editor.initWithTemplate(null, null, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
+	editor.initWithTemplate({}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
 	const global = downcast(window)
 	let p = Promise.resolve()
 	if (global.logger) {
