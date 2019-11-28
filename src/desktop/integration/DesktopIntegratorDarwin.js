@@ -67,18 +67,18 @@ export function disableAutoLaunch(): Promise<void> {
 	})
 }
 
-export function runIntegration() {
-	//nothing here yet
+export function runIntegration(): Promise<void> {
+	return Promise.resolve()
 }
 
-export function isIntegrated() {
+export function isIntegrated(): Promise<boolean> {
 	return Promise.resolve(true)
 }
 
-export function integrate() {
-	// nothing here yet
+export function integrate(): Promise<void> {
+	return Promise.resolve()
 }
 
-export function unintegrate() {
-	// nothing here yet
+export function unintegrate(): Promise<void> {
+	return Promise.resolve()
 }

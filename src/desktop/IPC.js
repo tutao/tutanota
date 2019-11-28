@@ -104,12 +104,12 @@ export class IPC {
 					})
 				break
 			case 'integrateDesktop':
-				integrate()
-				d.resolve()
+				integrate().then(() => d.resolve())
+				           .catch(e => d.reject(e))
 				break;
 			case 'unIntegrateDesktop':
-				unintegrate()
-				d.resolve()
+				unintegrate().then(() => d.resolve())
+				             .catch(e => d.reject(e))
 				break;
 			case 'sendDesktopConfig':
 				Promise.join(

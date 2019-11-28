@@ -84,8 +84,8 @@ o.spec("IPC tests", () => {
 		enableAutoLaunch: () => Promise.resolve(),
 		disableAutoLaunch: () => Promise.resolve(),
 		isIntegrated: () => Promise.resolve(true),
-		integrate: () => {},
-		unintegrate: () => {},
+		integrate: () => Promise.resolve(),
+		unintegrate: () => Promise.resolve(),
 	}
 	const workerProtocol = {
 		errorToObj: (err) => console.log(chalk.red.bold("ERROR:"), err.message),

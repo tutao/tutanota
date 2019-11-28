@@ -62,16 +62,16 @@ export function disableAutoLaunch(): Promise<void> {
 		})
 }
 
-export function runIntegration() {
-	if (executablePath.includes("node_modules/electron/dist/electron")) return;
+export function runIntegration(): Promise<void> {
+	if (executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
 	console.log(`checking for ${desktopFilePath} ...`)
-	isIntegrated().then(integrated => {
+	return isIntegrated().then(integrated => {
 		if (integrated) {
 			console.log(`desktop file exists, checking version...`)
 			const desktopEntryVersion = getDesktopEntryVersion()
 			if (desktopEntryVersion !== app.getVersion()) {
 				console.log("version mismatch, reintegrating...")
-				integrate()
+				return integrate()
 			}
 		} else {
 			console.log(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
@@ -81,10 +81,10 @@ export function runIntegration() {
 					                         .trim()
 					                         .split('\n')
 					if (!forbiddenPaths.includes(packagePath)) {
-						askPermission()
+						return askPermission()
 					}
 				} else {
-					askPermission()
+					return askPermission()
 				}
 			})
 		}
@@ -103,45 +103,31 @@ function getDesktopEntryVersion(): string {
 	return versionLine.split("=")[1]
 }
 
-export function integrate(): void {
+export function integrate(): Promise<void> {
 	const prefix = app.name.includes("test") ? "test " : ""
-	try {
-		createDesktopEntry(prefix)
-	} catch (e) {
-		// no errors we can do anything about here
-		// "Desktop Integration" Setting will reset to "deactivated"
-		console.warn("could not integrate: ", e.message)
-	}
-	try {
-		copyIcons()
-	} catch (e) {
-		console.warn("could not copy icons: ", e.message)
-	}
-
+	return copyIcons().then(
+		() => createDesktopEntry(prefix)
+	)
 }
 
-export function unintegrate(): void {
-	try {
-		fs.unlinkSync(desktopFilePath)
-	} catch (e) {
-		// there are no errors we could or should care about here
-		console.warn("could not unintegrate: ", e.message)
-	}
-	try {
-		fs.unlinkSync(iconTargetPath64)
-	} catch (e) {
-		// there are no errors we could or should care about here
-		console.warn("could not delete icon: ", e.message)
-	}
-	try {
-		fs.unlinkSync(iconTargetPath512)
-	} catch (e) {
-		// there are no errors we could or should care about here
-		console.warn("could not delete icon: ", e.message)
-	}
+export function unintegrate(): Promise<void> {
+	return Promise.all([
+		fs.unlink(iconTargetPath64),
+		fs.unlink(iconTargetPath512)
+	]).catch(e => {
+		if (!e.message.startsWith('ENOENT')) {
+			throw e
+		}
+	}).then(
+		() => fs.unlink(desktopFilePath)
+	).catch(e => {
+		if (!e.message.startsWith('ENOENT')) {
+			throw e
+		}
+	})
 }
 
-function createDesktopEntry(prefix: string): void {
+function createDesktopEntry(prefix: string): Promise<void> {
 	const desktopEntry = `[Desktop Entry]
 Name=${prefix}Tutanota Desktop
 Comment=The desktop client for Tutanota, the secure e-mail service.
@@ -154,17 +140,23 @@ MimeType=x-scheme-handler/mailto;
 Categories=Network;
 X-Tutanota-Version=${app.getVersion()}
 TryExec=${packagePath}`
-	fs.ensureDirSync(path.dirname(desktopFilePath))
-	fs.writeFileSync(desktopFilePath, desktopEntry, {encoding: 'utf-8'})
+	return fs.ensureDir(path.dirname(desktopFilePath))
+	         .then(() => fs.writeFile(desktopFilePath, desktopEntry, {encoding: 'utf-8'}))
 }
 
-function copyIcons(): void {
+function copyIcons(): Promise<void> {
 	console.log("copy icons:", iconSourcePath64, "->", iconTargetPath64)
 	console.log("copy icons:", iconSourcePath512, "->", iconTargetPath512)
-	fs.copyFileSync(iconSourcePath64, iconTargetPath64)
-	fs.copyFileSync(iconSourcePath512, iconTargetPath512)
-	// hopefully refresh icon cache (update last modified timestamp)
-	exec(`touch "${path.join(app.getPath('home'), ".local/share/icons/hicolor")}"`)
+	return Promise.all([
+		fs.copyFile(iconSourcePath64, iconTargetPath64),
+		fs.copyFile(iconSourcePath512, iconTargetPath512)
+	]).then(() => {
+		try {// refresh icon cache (update last modified timestamp)
+			exec(`touch "${path.join(app.getPath('home'), ".local/share/icons/hicolor")}"`)
+		} catch (e) {
+			// it's ok if this fails for some reason, the icons will appear after a reboot at the latest
+		}
+	})
 }
 
 /**
@@ -173,8 +165,8 @@ function copyIcons(): void {
  * records the current path to the appImage in
  * ~/.config/tuta_integration/no_integration
  */
-function askPermission() {
-	dialog.showMessageBox(null, {
+function askPermission(): Promise<void> {
+	return dialog.showMessageBox(null, {
 		title: lang.get('desktopIntegration_label'),
 		buttons: [lang.get('no_label'), lang.get('yes_label')],
 		defaultId: 1,
@@ -183,13 +175,15 @@ function askPermission() {
 		checkboxChecked: false,
 		type: 'question'
 	}).then(({response, checkboxChecked}) => {
+		let p: Promise<void> = Promise.resolve()
 		if (checkboxChecked) {
 			console.log("updating no_integration blacklist...")
-			fs.ensureDirSync(path.dirname(nointegrationpath))
-			fs.writeFileSync(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'})
+			p.then(() => fs.ensureDir(path.dirname(nointegrationpath)))
+			 .then(() => fs.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
 		}
 		if (response === 1) { // clicked yes
-			integrate()
+			return p.then(() => integrate())
 		}
+		return p;
 	})
 }
