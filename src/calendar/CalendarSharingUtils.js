@@ -18,7 +18,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 	const replacements = {
 		// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
 		"{inviter}": senderMailAddress,
-		"{calendarName}": getCalendarName(sharedGroupInfo.name)
+		"{calendarName}": getCalendarName(sharedGroupInfo, false)
 	}
 	// Sending notifications as bcc so that invited people don't see each other
 	const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
