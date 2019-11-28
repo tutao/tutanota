@@ -69,18 +69,18 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"groupColors": {
-			"name": "groupColors",
+		"groupSettings": {
+			"name": "groupSettings",
 			"id": 979,
 			"since": 34,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
-			"refType": "GroupColor",
+			"refType": "GroupSettings",
 			"final": false
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createUserSettingsGroupRoot(values?: $Shape<$Exact<UserSettingsGroupRoot>>): UserSettingsGroupRoot {

@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createImapFolder(values?: $Shape<$Exact<ImapFolder>>): ImapFolder {

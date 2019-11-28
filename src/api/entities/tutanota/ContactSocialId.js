@@ -27,7 +27,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createContactSocialId(values?: $Shape<$Exact<ContactSocialId>>): ContactSocialId {

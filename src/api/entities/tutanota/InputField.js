@@ -28,7 +28,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createInputField(values?: $Shape<$Exact<InputField>>): InputField {

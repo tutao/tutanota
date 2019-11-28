@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createStatisticLogRef(values?: $Shape<$Exact<StatisticLogRef>>): StatisticLogRef {

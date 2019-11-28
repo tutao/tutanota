@@ -42,7 +42,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createContactFormAccountReturn(values?: $Shape<$Exact<ContactFormAccountReturn>>): ContactFormAccountReturn {

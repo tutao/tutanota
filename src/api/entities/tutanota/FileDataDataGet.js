@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createFileDataDataGet(values?: $Shape<$Exact<FileDataDataGet>>): FileDataDataGet {
