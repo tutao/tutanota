@@ -225,7 +225,7 @@ o.spec("Desktop Window Manager Test", () => {
 		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
-		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false}
+		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
 		const confMock = n.mock('__conf', conf)
 		                  .with({
 			                  getDesktopConfig: (key: string) => {
