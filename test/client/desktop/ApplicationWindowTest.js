@@ -643,6 +643,8 @@ o.spec("ApplicationWindow Test", () => {
 		w.setBounds({rect: {width: 0, height: 0, x: 0, y: 0}, fullscreen: false})
 		electronMock.BrowserWindow.mockedInstances[0].bounds = {width: 0, height: 0, x: 0, y: 10}
 		setTimeout(() => {
+			// this is needed because of linux DEs moving windows after the fact and us correcting it
+			// see ApplicationWindow.js
 			o(w.getBounds()).deepEquals({
 				rect: {width: 0, height: 0, x: 0, y: -10},
 				fullscreen: false

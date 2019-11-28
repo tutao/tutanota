@@ -296,7 +296,9 @@ export class DesktopSseClient {
 			const req = this._getProtocolModule()
 							.request(url, {
 								method: "GET",
-								headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")}
+								headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
+								// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+								timeout: 20000
 							})
 							.on('response', res => {
 								if (res.statusCode === 404) {

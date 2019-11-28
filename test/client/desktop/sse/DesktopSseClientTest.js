@@ -558,7 +558,8 @@ o.spec("DesktopSseClient Test", () => {
 			o(httpMock.request.args[0]).equals("http://here.there/rest/sys/missednotification/A/aWRlbnRpZmllcg")
 			o(httpMock.request.args[1]).deepEquals({
 				method: 'GET',
-				headers: {userIds: 'id1,id2'}
+				headers: {userIds: 'id1,id2'},
+				timeout: 20000
 			})
 			httpMock.ClientRequest.mockedInstances[1].callbacks['response'](res2)
 			res2.callbacks['data'](JSON.stringify({
