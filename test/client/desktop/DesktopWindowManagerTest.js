@@ -152,7 +152,8 @@ o.spec("Desktop Window Manager Test", () => {
 		getIcon: () => "this is an instance icon",
 		DesktopTray: {
 			getIcon: () => "this is a static icon"
-		}
+		},
+		update: () => {}
 	}
 
 	const ipc = {}
@@ -204,6 +205,7 @@ o.spec("Desktop Window Manager Test", () => {
 
 		o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(1)
 		const win = applicationWindowMock.ApplicationWindow.mockedInstances[0]
+		win.callbacks["ready-to-show"]()
 		o(win.center.callCount).equals(1)
 		o(win.setBounds.callCount).equals(0)
 		o(win.show.callCount).equals(0)
@@ -223,7 +225,7 @@ o.spec("Desktop Window Manager Test", () => {
 		n.mock("./DesktopTray", desktopTray).set()
 
 		// instances
-		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false}
+		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
 		const confMock = n.mock('__conf', conf)
 		                  .with({
 			                  getDesktopConfig: (key: string) => {
@@ -258,8 +260,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(win.center.callCount).equals(0)
 		o(win.setBounds.callCount).equals(1)
 		o(win.setBounds.args).deepEquals([testBounds])
-		o(win.setZoomFactor.callCount).equals(1)
-		o(win.setZoomFactor.args[0]).equals(1.0)
+		o(win.setZoomFactor.callCount).equals(0)
 		o(win.show.callCount).equals(1)
 		o(wm.get(1)).equals(win)
 
