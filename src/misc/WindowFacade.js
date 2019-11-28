@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNodeBoot, isAndroidApp, isApp, isIOSApp, Mode} from "../api/Env"
+import {assertMainOrNodeBoot, isApp, isIOSApp, Mode} from "../api/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {asyncImport} from "../api/common/utils/Utils"
 import {reloadNative} from "../native/SystemApp"
-import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import {nativeApp} from "../native/NativeWrapper";
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
