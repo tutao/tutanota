@@ -92,6 +92,18 @@ window.addEventListener('mouseout', (e) => {
 		hoverUrl = ""
 	}
 })
+window.addEventListener('keydown', e => {
+	if(e.key === 'Meta') return;
+	if(e.metaKey) {
+		if(e.key === 'ArrowLeft'){
+			window.history.back()
+		}
+		if(e.key === 'ArrowRight') {
+			window.history.forward()
+		}
+
+	}
+})
 
 window.onmousewheel = (e) => {
 	if (!e.ctrlKey) {
