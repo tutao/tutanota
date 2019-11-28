@@ -2,7 +2,7 @@
 import o from "ospec/ospec.js"
 import n from "../../nodemocker"
 
-o.spec("AutoLauncher Test", () => {
+o.spec("DesktopIntegrator Test", () => {
 	n.startGroup({
 		group: __filename,
 		allowables: [
@@ -60,17 +60,35 @@ o.spec("AutoLauncher Test", () => {
 		copiedFiles: [],
 		deletedFiles: [],
 		ensureDirSync() {},
+		ensureDir() {
+			return Promise.resolve()
+		},
 		writeFileSync(file, content, opts) {
 			this.writtenFiles.push({file, content, opts})
 		},
+		writeFile(file, content, opts) {
+			this.writtenFiles.push({file, content, opts})
+			return Promise.resolve()
+		},
 		copyFileSync(from, to) {
 			this.copiedFiles.push({from, to})
+		},
+		copyFile(from, to) {
+			this.copiedFiles.push({from, to})
+			return Promise.resolve()
 		},
 		unlinkSync(f) {
 			this.deletedFiles.push(f)
 		},
 		readFileSync: () => "",
-		unlink(path, cb) {setImmediate(cb)},
+		unlink(path, cb) {
+			this.deletedFiles.push(path)
+			if (cb) {
+				setImmediate(cb)
+			} else {
+				return Promise.resolve()
+			}
+		},
 		access: (p, f) => {
 			console.log(p, f)
 			return Promise.reject(new Error('nope'))
@@ -370,9 +388,9 @@ o.spec("AutoLauncher Test", () => {
 				checkboxChecked: false,
 				type: 'question'
 			})
-			o(fsExtraMock.ensureDirSync.callCount).equals(1)
-			o(fsExtraMock.ensureDirSync.args.length).equals(1)
-			o(fsExtraMock.ensureDirSync.args[0]).equals("/app/path/file/.local/share/applications")
+			o(fsExtraMock.ensureDir.callCount).equals(1)
+			o(fsExtraMock.ensureDir.args.length).equals(1)
+			o(fsExtraMock.ensureDir.args[0]).equals("/app/path/file/.local/share/applications")
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.local/share/applications/appName.desktop',
@@ -407,9 +425,9 @@ o.spec("AutoLauncher Test", () => {
 		runIntegration()
 		setTimeout(() => {
 			o(fsExtraMock.access.callCount).equals(3)
-			o(fsExtraMock.ensureDirSync.callCount).equals(2)
-			o(fsExtraMock.ensureDirSync.args.length).equals(1)
-			o(fsExtraMock.ensureDirSync.args[0]).equals("/app/path/file/.local/share/applications")
+			o(fsExtraMock.ensureDir.callCount).equals(2)
+			o(fsExtraMock.ensureDir.args.length).equals(1)
+			o(fsExtraMock.ensureDir.args[0]).equals("/app/path/file/.local/share/applications")
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.config/tuta_integration/no_integration',
@@ -469,9 +487,9 @@ o.spec("AutoLauncher Test", () => {
 		runIntegration()
 		setTimeout(() => {
 			o(fsExtraMock.access.callCount).equals(3)
-			o(fsExtraMock.ensureDirSync.callCount).equals(1)
-			o(fsExtraMock.ensureDirSync.args.length).equals(1)
-			o(fsExtraMock.ensureDirSync.args[0]).equals("/app/path/file/.config/tuta_integration")
+			o(fsExtraMock.ensureDir.callCount).equals(1)
+			o(fsExtraMock.ensureDir.args.length).equals(1)
+			o(fsExtraMock.ensureDir.args[0]).equals("/app/path/file/.config/tuta_integration")
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.config/tuta_integration/no_integration',
@@ -571,8 +589,8 @@ o.spec("AutoLauncher Test", () => {
 		unintegrate()
 		setTimeout(() => {
 			const addedFiles = fsExtraMock.writtenFiles.map(f => f.file)
-			                              .concat(fsExtraMock.copiedFiles.map(f => f.to))
-			o(addedFiles).deepEquals(fsExtraMock.deletedFiles)
+			                              .concat(fsExtraMock.copiedFiles.map(f => f.to)).sort()
+			o(addedFiles).deepEquals(fsExtraMock.deletedFiles.sort())
 			delete process.env.APPIMAGE
 			done()
 		}, 10)

@@ -16,6 +16,7 @@ import {fileApp} from "../native/FileApp"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -105,6 +106,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 						this._isIntegrated(v)
 						m.redraw()
 					})
+					.catch(e => Dialog.error("unknownError_msg", e.message))
 			}
 		}
 
