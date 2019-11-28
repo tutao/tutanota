@@ -68,6 +68,14 @@ export class Editor implements ImageHandler {
 		this.view = () => {
 			return m(".hide-outline.selectable", {
 				oncreate: vnode => this.initSquire(vnode.dom),
+				onkeydown: e =>{
+					if(e.key === 'Meta') return;
+					if(e.metaKey) {
+						if(['ArrowLeft', 'ArrowRight'].includes(e.key)){
+							e.stopPropagation()
+						}
+					}
+				},
 				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
 			})
 		}

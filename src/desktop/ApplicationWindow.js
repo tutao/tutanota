@@ -142,8 +142,6 @@ export class ApplicationWindow {
 		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
 		if (process.platform === "darwin") {
 			localShortcut.register(this._browserWindow, 'Command+Control+F', () => this._toggleFullScreen())
-			localShortcut.register(this._browserWindow, 'Command+Right', () => this._browserWindow.webContents.goForward())
-			localShortcut.register(this._browserWindow, 'Command+Left', () => this._tryGoBack())
 		} else {
 			localShortcut.register(this._browserWindow, 'F11', () => this._toggleFullScreen())
 			localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
