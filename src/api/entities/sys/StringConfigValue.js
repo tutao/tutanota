@@ -18,7 +18,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "52"
+	"version": "54"
 }
 
 export function createStringConfigValue(values?: $Shape<$Exact<StringConfigValue>>): StringConfigValue {

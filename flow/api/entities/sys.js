@@ -764,6 +764,7 @@ type PushIdentifier = {
 	identifier: string;
 	language: string;
 	lastNotificationDate: ?Date;
+	lastUsageTime: Date;
 	pushServiceType: NumberString;
 
 }
@@ -1094,6 +1095,7 @@ type SysFile = {
 type EmailSenderListElement = {
 	_type: TypeRef<EmailSenderListElement>;
 	_id: Id;
+	field: NumberString;
 	hashedValue: string;
 	type: NumberString;
 	value: string;

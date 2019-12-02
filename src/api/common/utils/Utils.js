@@ -277,3 +277,10 @@ export function errorToString(error: Error): string {
 	}
 	return errorString
 }
+
+/**
+ * Like {@link Object.entries} but preserves the type of the key and value
+ */
+export function objectEntries<A: (string | Symbol), B>(object: {[A]: B}): Array<[A, B]> {
+	return downcast(Object.entries(object))
+}

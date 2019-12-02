@@ -15,7 +15,9 @@ import type {
 	CloseEventBusOptionEnum,
 	ConversationTypeEnum,
 	EntropySrcEnum,
-	ShareCapabilityEnum
+	ShareCapabilityEnum,
+	SpamRuleFieldTypeEnum,
+	SpamRuleTypeEnum
 } from "../common/TutanotaConstants"
 import {initLocator, locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
@@ -335,8 +337,12 @@ export class WorkerClient {
 		return this._postRequest(new Request('loadCustomerServerProperties', arguments))
 	}
 
-	addSpamRule(type: NumberString, value: string): Promise<void> {
-		return this._postRequest(new Request('addSpamRule', arguments))
+	addSpamRule(field: SpamRuleFieldTypeEnum, type: SpamRuleTypeEnum, value: string): Promise<void> {
+		return this._postRequest(new Request('addSpamRule', [field, type, value]))
+	}
+
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
+		return this._postRequest(new Request('editSpamRule', [spamRule]))
 	}
 
 	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {

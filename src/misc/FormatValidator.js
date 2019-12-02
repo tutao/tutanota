@@ -1,6 +1,11 @@
 // @flow
 import {startsWith} from "../api/common/utils/StringUtils"
 
+const DOMAIN_PART_REGEX = "[\\w\\-\\+\_]+"
+const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
+const DOMAIN_OR_TLD_REGEXP = new RegExp(`^(${DOMAIN_PART_REGEX}.)*${DOMAIN_PART_REGEX}$`)
+const STRICT_USERNAME_MAIL_ADDR_REGEXP = new RegExp(`^\\s*${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
+const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 
 /**
  * Checks if the given string is a valid email address format.
@@ -39,13 +44,12 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 			return false
 		}
 		// see https://web.archive.org/web/20180813043723/http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-		return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string)
+		return STRICT_USERNAME_MAIL_ADDR_REGEXP.test(string)
 	} else {
 		// see https://web.archive.org/web/20180813043723/http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-		return /^[^\s\@]+\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string)
+		return EMAIL_ADDR_REGEXP.test(string)
 	}
 }
-
 
 /**
  * Checks if the given string is a valid domain name.
@@ -59,7 +63,17 @@ export function isDomainName(domainName: string): boolean {
 	if (startsWith(domainName, "-")) {
 		return false
 	}
-	return /^[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(domainName)
+	return DOMAIN_REGEXP.test(domainName)
+
+}
+
+export function isDomainOrTopLevelDomain(value: string): boolean {
+	if (startsWith(value, "-")) {
+		return false
+	}
+	// Repeated words ending with dot and word at the end.
+	// matches test.com and com but not .com
+	return DOMAIN_OR_TLD_REGEXP.test(value)
 }
 
 export function isRegularExpression(value: string) {

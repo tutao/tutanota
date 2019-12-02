@@ -179,7 +179,10 @@ export class WorkerImpl {
 				return locator.customer.loadCustomerServerProperties.apply(locator.customer, message.args)
 			},
 			addSpamRule: (message: Request) => {
-				return locator.customer.addSpamRule.apply(locator.customer, message.args)
+				return locator.customer.addSpamRule(...message.args)
+			},
+			editSpamRule: (message: Request) => {
+				return locator.customer.editSpamRule(...message.args)
 			},
 			createUser: (message: Request) => {
 				return locator.userManagement.createUser.apply(locator.userManagement, message.args)

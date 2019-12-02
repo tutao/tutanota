@@ -1,6 +1,6 @@
 // @flow
 import {load, serviceRequest, serviceRequestVoid, update} from "../EntityWorker"
-import type {AccountTypeEnum} from "../../common/TutanotaConstants"
+import type {AccountTypeEnum, SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
@@ -179,15 +179,30 @@ export class CustomerFacade {
 		})
 	}
 
-	addSpamRule(type: NumberString, value: string): Promise<void> {
+	addSpamRule(field: SpamRuleFieldTypeEnum, type: SpamRuleTypeEnum, value: string): Promise<void> {
 		return this.loadCustomerServerProperties().then(props => {
 			value = value.toLowerCase().trim()
-			let newListEntry = createEmailSenderListElement()
-			newListEntry.value = value
-			newListEntry.hashedValue = uint8ArrayToBase64(hash(stringToUtf8Uint8Array(value)))
-			newListEntry.type = type
+			let newListEntry = createEmailSenderListElement({
+				value,
+				hashedValue: uint8ArrayToBase64(hash(stringToUtf8Uint8Array(value))),
+				type,
+				field,
+			})
 			props.emailSenderList.push(newListEntry)
-			update(props)
+			return update(props)
+		})
+	}
+
+	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
+		return this.loadCustomerServerProperties().then(props => {
+			spamRule.value = spamRule.value.toLowerCase().trim()
+
+			const index = props.emailSenderList.findIndex(item => spamRule._id === item._id)
+			if (index === -1) {
+				throw new Error("spam rule does not exist " + JSON.stringify(spamRule))
+			}
+			props.emailSenderList[index] = spamRule
+			return update(props)
 		})
 	}
 

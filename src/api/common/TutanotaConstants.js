@@ -183,7 +183,27 @@ export const SpamRuleType = Object.freeze({
 	BLACKLIST: "2",
 	DISCARD: "3",
 })
+const SpamRuleValues = Object.values(SpamRuleType)
 export type SpamRuleTypeEnum = $Values<typeof SpamRuleType>;
+
+export function getSpamRuleType(spamRule: EmailSenderListElement): ?SpamRuleTypeEnum {
+	if (spamRule.type in SpamRuleValues) {
+		return downcast(spamRule.type)
+	} else {
+		return null
+	}
+}
+
+export const SpamRuleFieldType = Object.freeze({
+	FROM: "0",
+	TO: "1",
+	CC: "2",
+	BCC: "3",
+})
+export type SpamRuleFieldTypeEnum = $Values<typeof SpamRuleFieldType>;
+export function getSparmRuleField(spamRule: EmailSenderListElement): SpamRuleFieldTypeEnum {
+	return downcast(spamRule.field)
+}
 
 export const EmailSignatureType = Object.freeze({
 	EMAIL_SIGNATURE_TYPE_DEFAULT: "0",

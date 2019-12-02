@@ -25,7 +25,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "52"
+	"version": "54"
 }
 
 export function createPushIdentifierList(values?: $Shape<$Exact<PushIdentifierList>>): PushIdentifierList {

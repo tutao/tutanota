@@ -4,8 +4,9 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {load, loadRange, update} from "../api/main/Entity"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
-import {GroupType, OperationType, SpamRuleType} from "../api/common/TutanotaConstants"
-import {getCustomMailDomains, getUserGroupMemberships, neverNull} from "../api/common/utils/Utils"
+import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
+import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
+import {getCustomMailDomains, getUserGroupMemberships, neverNull, objectEntries} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
@@ -92,8 +93,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 		this.view = () => {
 			const spamRuleTableAttrs = {
-				columnHeading: ["emailSenderRule_label", "emailSender_label"],
-				columnWidths: [ColumnWidth.Small, ColumnWidth.Largest],
+				columnHeading: ["emailSender_label", "emailSenderRule_label"],
+				columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 				showActionButtonColumn: true,
 				addButtonAttrs: {
 					label: "addSpamRule_action",
@@ -176,15 +177,28 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	_updateCustomerServerProperties(): void {
 		worker.loadCustomerServerProperties().then(props => {
 			this._props(props)
+			const fieldToName = getSpamRuleFieldToName()
 			this._spamRuleLines(props.emailSenderList.map((rule, index) => {
 				return {
-					cells: [
-						neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name, rule.value
+					cells: () => [
+						{
+							main: fieldToName[getSparmRuleField(rule)],
+							info: rule.value,
+						},
+						{
+							main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
+						}
 					],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.emailSenderList,
 						updateInstance: () => update(props)
-					}, rule, index)
+					}, rule, index, [
+						{
+							label: "edit_action",
+							click: () => AddSpamRuleDialog.show(rule),
+							type: ButtonType.Dropdown,
+						}
+					])
 				}
 			}))
 			m.redraw()
@@ -421,12 +435,25 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 }
 
-export function getSpamRuleTypeNameMapping(): {value: string, name: string}[] {
+export function getSpamRuleTypeNameMapping(): {value: SpamRuleTypeEnum, name: string}[] {
 	return [
 		{value: SpamRuleType.WHITELIST, name: lang.get("emailSenderWhitelist_action")},
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
 		{value: SpamRuleType.DISCARD, name: lang.get("emailSenderDiscardlist_action")}
 	]
+}
+
+function getSpamRuleFieldToName(): {[SpamRuleFieldTypeEnum]: string} {
+	return {
+		[SpamRuleFieldType.FROM]: lang.get("from_label"),
+		[SpamRuleFieldType.TO]: lang.get("to_label"),
+		[SpamRuleFieldType.CC]: "CC",
+		[SpamRuleFieldType.BCC]: "BCC",
+	}
+}
+
+export function getSpamRuleFieldMapping(): Array<{value: SpamRuleFieldTypeEnum, name: string}> {
+	return objectEntries(getSpamRuleFieldToName()).map(([value, name]) => ({value, name}))
 }
 
 function escape(s: string) {

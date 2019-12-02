@@ -3,11 +3,9 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {TextField} from "../gui/base/TextField"
-import {getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
-import {isDomainName, isMailAddress} from "../misc/FormatValidator"
-import {SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
+import {getSpamRuleFieldMapping, getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
+import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
+import {getSpamRuleType, getSparmRuleField, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
@@ -17,60 +15,83 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream/stream.js"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
-export function show(emailAddressOrDomainName: ?string) {
+export function show(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 	let existingSpamRules: ?EmailSenderListElement[] = null
 	let customDomains: ?string[]
 	worker.loadCustomerServerProperties().then(props => {
 		existingSpamRules = props.emailSenderList
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			.then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
+			.then(customerInfo => {
 				customDomains = customerInfo.domainInfos.map(d => d.domain)
 				m.redraw()
 			})
-		})
 	})
 
-	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), stream(getSpamRuleTypeNameMapping()[0].value))
-	let valueField = new TextField("emailSenderPlaceholder_label",
-		() => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains)
-			|| "emptyString_msg")).setValue(emailAddressOrDomainName)
-	let form = {
-		view: () => {
-			return [
-				m(typeField),
-				m(valueField)
-			]
-		}
-	}
+	const typeItems = getSpamRuleTypeNameMapping()
+	const selectedType = stream(existingSpamRuleOrTemplate && getSpamRuleType(existingSpamRuleOrTemplate) || typeItems[0].value)
+	const valueFieldValue = stream(existingSpamRuleOrTemplate ? existingSpamRuleOrTemplate.value : "")
+	const fieldValues = getSpamRuleFieldMapping()
+	const selectedField = stream(existingSpamRuleOrTemplate ? getSparmRuleField(existingSpamRuleOrTemplate) : fieldValues[0].value)
+	let form = () => [
+		m(DropDownSelectorN, {
+			items: fieldValues,
+			label: "field_label",
+			selectedValue: selectedField,
+		}),
+		m(TextFieldN, {
+			label: "emailSenderPlaceholder_label",
+			value: valueFieldValue,
+			helpLabel: () =>
+				lang.get(_getInputInvalidMessage(selectedType(), valueFieldValue(), existingSpamRules, customDomains) || "emptyString_msg")
+		}),
+		m(DropDownSelectorN, {
+			items: typeItems,
+			label: "emailSenderRule_label",
+			selectedValue: selectedType,
+		})
+	]
 	let addSpamRuleOkAction = (dialog) => {
-		worker.addSpamRule(typeField.selectedValue(), valueField.value())
+		if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
+			worker.editSpamRule(Object.assign({}, existingSpamRuleOrTemplate, {
+				value: valueFieldValue(),
+				field: selectedField(),
+				type: selectedType()
+			}))
+		} else {
+			worker.addSpamRule(selectedField(), selectedType(), valueFieldValue())
+		}
 		dialog.close()
 	}
 
 	Dialog.showActionDialog({
 		title: lang.get("addSpamRule_action"),
 		child: form,
-		validator: () => _getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains),
+		validator: () => _getInputInvalidMessage(selectedType(), valueFieldValue(), existingSpamRules, customDomains, existingSpamRuleOrTemplate),
 		allowOkWithReturn: true,
 		okAction: addSpamRuleOkAction
 	})
 }
 
-function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[]): ?TranslationKey {
+function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[], existingSpamRuleOrTemplate: ?EmailSenderListElement): ?TranslationKey {
 	let currentValue = value.toLowerCase().trim()
 
 	if (!existingRules || !customDomains) {
 		return "emptyString_msg"
 	} else if (currentValue === "") {
 		return "spamRuleEnterValue_msg"
-	} else if (!isDomainName(currentValue) && !isMailAddress(currentValue, false)) {
+	} else if (!isDomainOrTopLevelDomain(currentValue) && !isMailAddress(currentValue, false) && currentValue !== ('*')) {
 		return "invalidInputFormat_msg"
 	} else if (_isInvalidRule(type, currentValue, customDomains)) {
 		return "emailSenderInvalidRule_msg"
-	} else if (existingRules.find(r => r.value === currentValue) != null) {
+	} else if (existingRules.find(r => r.value === currentValue
+		// Only collision if we don't edit existing one or existing one has different id
+		&& (existingSpamRuleOrTemplate == null || r._id !== existingSpamRuleOrTemplate._id)) != null) {
 		return "emailSenderExistingRule_msg"
 	}
 	return null
@@ -79,7 +100,7 @@ function _getInputInvalidMessage(type: NumberString, value: string, existingRule
 
 function _isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
-		if (isDomainName(value)) {
+		if (isDomainOrTopLevelDomain(value)) {
 			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value)
 				|| contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {

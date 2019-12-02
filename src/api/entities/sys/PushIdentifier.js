@@ -80,6 +80,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"lastUsageTime": {
+			"name": "lastUsageTime",
+			"id": 1704,
+			"since": 53,
+			"type": "Date",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"pushServiceType": {
 			"name": "pushServiceType",
 			"id": 632,
@@ -92,7 +101,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "52"
+	"version": "54"
 }
 
 export function createPushIdentifier(values?: $Shape<$Exact<PushIdentifier>>): PushIdentifier {

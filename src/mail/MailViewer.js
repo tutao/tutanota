@@ -14,7 +14,15 @@ import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {ConversationType, FeatureType, InboxRuleType, MailState} from "../api/common/TutanotaConstants"
+import {
+	ConversationType,
+	FeatureType,
+	InboxRuleType,
+	MailFolderType,
+	MailState,
+	SpamRuleFieldType as SparmRuleType,
+	SpamRuleType
+} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
@@ -67,7 +75,7 @@ import {mailModel} from "./MailModel"
 import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
+import {getListId, HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
@@ -82,6 +90,8 @@ import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
 import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
+import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
+import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -696,7 +706,7 @@ export class MailViewer {
 		}
 	}
 
-	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?string): Promise<(Button | string)[]> {
+	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?InboxRuleTypeEnum): Promise<(Button | string)[]> {
 		if (logins.getUserController().isInternalUser()) {
 			let buttons = [address.address]
 			let contactsPromise = Promise.resolve()
@@ -732,7 +742,30 @@ export class MailViewer {
 				}
 				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
 					buttons.push(new Button("addSpamRule_action", () => {
-						AddSpamRuleDialog.show(address.address.trim().toLowerCase())
+						const folder = mailModel.getMailFolder(getListId(this.mail))
+						const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
+							? SpamRuleType.WHITELIST
+							: SpamRuleType.BLACKLIST
+						let spamRuleField = null
+						switch (defaultInboxRuleField) {
+							case InboxRuleType.FROM_EQUALS:
+								spamRuleField = SparmRuleType.FROM
+								break
+							case InboxRuleType.RECIPIENT_TO_EQUALS:
+								spamRuleField = SparmRuleType.TO
+								break
+							case InboxRuleType.RECIPIENT_CC_EQUALS:
+								spamRuleField = SparmRuleType.CC
+								break
+							case InboxRuleType.RECIPIENT_BCC_EQUALS:
+								spamRuleField = SparmRuleType.BCC
+								break
+						}
+						AddSpamRuleDialog.show(createEmailSenderListElement({
+							value: address.address.trim().toLowerCase(),
+							type: spamRuleType,
+							field: spamRuleField,
+						}))
 					}, null).setType(ButtonType.Secondary))
 				}
 				return buttons

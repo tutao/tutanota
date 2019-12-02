@@ -13,6 +13,7 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 950, "since": 13, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"field": {"name": "field", "id": 1705, "since": 54, "type": "Number", "cardinality": "One", "final": false, "encrypted": false},
 		"hashedValue": {
 			"name": "hashedValue",
 			"id": 951,
@@ -27,7 +28,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "52"
+	"version": "54"
 }
 
 export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {
