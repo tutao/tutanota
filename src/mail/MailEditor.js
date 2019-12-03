@@ -270,7 +270,7 @@ export class MailEditor {
 			return m("#mail-editor.full-height.text.touch-callout", {
 				oncreate: vnode => {
 					this._domElement = vnode.dom
-					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(null, this._domCloseButton))
+					windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => closeButtonAttrs.click(document.createEvent("MouseEvent"), this._domCloseButton))
 				},
 				onremove: vnode => {
 					windowCloseUnsubscribe()
@@ -385,7 +385,7 @@ export class MailEditor {
 				                    this.send()
 			                    },
 			                    help: "send_action"
-		                    }).setCloseHandler(() => closeButtonAttrs.click(null, this._domCloseButton))
+		                    }).setCloseHandler(() => closeButtonAttrs.click(document.createEvent("MouseEvent"), this._domCloseButton))
 		this._mailChanged = false
 	}
 

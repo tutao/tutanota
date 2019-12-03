@@ -15,7 +15,7 @@ const distPrefix = prefix + "/dist"
 const server = http.createServer(function (req, res) {
 	file.serve(req, res, (err, result) => {
 		//console.log("req from " + req.connection.remoteAddress)
-		if (err && err.status === 404 && req.headers.accept.startsWith("text/html")) {
+		if (err && err.status === 404 && req.headers.accept && req.headers.accept.startsWith("text/html")) {
 			console.log(req.url + " not found -> reset to root url")
 			res.statusCode = 302;
 			const targetUrl = req.url.startsWith(distPrefix)
