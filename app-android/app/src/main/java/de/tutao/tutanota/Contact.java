@@ -38,9 +38,9 @@ public class Contact {
     }
 
 
-    public Promise<JSONArray, Exception, Void> findSuggestions(String queryString) {
+    public Promise<Object, Exception, Void> findSuggestions(String queryString) {
         final String query = "%" + queryString + "%";
-        return requestContactsPermission().then((DoneFilter<Void, JSONArray>) nothing -> {
+        return requestContactsPermission().then((DoneFilter<Void, Object>) nothing -> {
             ContentResolver cr = activity.getApplicationContext().getContentResolver();
             String selection = Email.ADDRESS + " LIKE ? OR " + Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?";
             Cursor cursor = cr.query(Email.CONTENT_URI, PROJECTION, selection, new String[]{query, query}, Contacts.DISPLAY_NAME_PRIMARY + " ASC ");

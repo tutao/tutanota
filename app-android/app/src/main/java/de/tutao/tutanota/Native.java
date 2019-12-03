@@ -10,7 +10,6 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import org.jdeferred.Deferred;
-import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -41,7 +40,7 @@ public final class Native {
 	private FileUtil files;
 	private Contact contact;
 	private SseStorage sseStorage;
-	private Map<String, DeferredObject<JSONObject, Exception, ?>> queue = new HashMap<>();
+	private Map<String, DeferredObject<Object, Exception, Void>> queue = new HashMap<>();
 	private final MainActivity activity;
 	private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
 
@@ -63,8 +62,6 @@ public final class Native {
 	 * Invokes method with args. The returned response is a JSON of the following format:
 	 *
 	 * @param msg A request (see WorkerProtocol)
-	 * @return A promise that resolves to a response or requestError (see WorkerProtocol)
-	 * @throws JSONException
 	 */
 	@JavascriptInterface
 	public void invoke(final String msg) {
@@ -72,14 +69,19 @@ public final class Native {
 			try {
 				final JSONObject request = new JSONObject(msg);
 				if (request.get("type").equals("response")) {
-					DeferredObject promise = queue.remove(request.get("id"));
+					String id = request.getString("id");
+					DeferredObject<Object, Exception, Void> promise = queue.remove(id);
+					if (promise == null) {
+						Log.w(TAG, "No request for id " + id);
+						return;
+					}
 					promise.resolve(request);
 				} else {
 					invokeMethod(request.getString("type"), request.getJSONArray("args"))
 							.then(result -> {
 								sendResponse(request, result);
 							})
-							.fail((FailCallback<Exception>) e -> sendErrorResponse(request, e));
+							.fail(e -> sendErrorResponse(request, e));
 				}
 			} catch (JSONException e) {
 				Log.e("Native", "could not parse msg:" + msg, e);
@@ -87,9 +89,9 @@ public final class Native {
 		}).start();
 	}
 
-	public Promise<JSONObject, Exception, ?> sendRequest(JsRequest type, Object[] args) {
+	Promise<Object, Exception, ?> sendRequest(JsRequest type, Object[] args) {
 		JSONObject request = new JSONObject();
-		String requestId = _createRequestId();
+		String requestId = createRequestId();
 		try {
 			JSONArray arguments = new JSONArray();
 			for (Object arg : args) {
@@ -99,7 +101,7 @@ public final class Native {
 			request.put("type", type.toString());
 			request.put("args", arguments);
 			this.postMessage(request);
-			DeferredObject d = new DeferredObject();
+			DeferredObject<Object, Exception, Void> d = new DeferredObject<>();
 			this.queue.put(requestId, d);
 			return d.promise();
 		} catch (JSONException e) {
@@ -107,7 +109,7 @@ public final class Native {
 		}
 	}
 
-	static String _createRequestId() {
+	private static String createRequestId() {
 		return "app" + requestId++;
 	}
 
@@ -147,7 +149,7 @@ public final class Native {
 		});
 	}
 
-	private Promise invokeMethod(String method, JSONArray args) {
+	private Promise<Object, Exception, Void> invokeMethod(String method, JSONArray args) {
 		Deferred<Object, Exception, Void> promise = new DeferredObject<>();
 		try {
 			switch (method) {
@@ -259,8 +261,7 @@ public final class Native {
 					final String path = args.getString(0);
 					return files.putToDownloadFolder(path);
 				case "getDeviceLog":
-					return new DeferredObject<String, Object, Void>()
-							.resolve(LogReader.getLogFile(activity).toString());
+					return Utils.resolvedDeferred(LogReader.getLogFile(activity).toString());
 				default:
 					throw new Exception("unsupported method: " + method);
 			}
@@ -296,12 +297,12 @@ public final class Native {
 		return resolved;
 	}
 
-	private Promise<JSONObject, Exception, ?> initPushNotifications() {
+	private Promise<Object, Exception, Void> initPushNotifications() {
 		activity.runOnUiThread(() -> {
 			activity.askBatteryOptinmizationsIfNeeded();
 			activity.setupPushNotifications();
 		});
-		return new DeferredObject().resolve(null);
+		return Utils.resolvedDeferred(null);
 	}
 
 	private static JSONObject errorToObject(Exception e) throws JSONException {
@@ -316,15 +317,14 @@ public final class Native {
 	private static String getStack(Exception e) {
 		StringWriter errors = new StringWriter();
 		e.printStackTrace(new PrintWriter(errors));
-		String stack = errors.toString();
-		return stack;
+		return errors.toString();
 	}
 
 	private static String escape(String s) {
 		return Utils.bytesToBase64(s.getBytes());
 	}
 
-	public DeferredObject<Void, Void, Void> getWebAppInitialized() {
+	DeferredObject<Void, Void, Void> getWebAppInitialized() {
 		return webAppInitialized;
 	}
 

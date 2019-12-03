@@ -72,7 +72,7 @@ public class FileUtil {
 		}
 	}
 
-	Promise<JSONArray, Exception, Void> openFileChooser() {
+	Promise<Object, Exception, Void> openFileChooser() {
 		final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("*/*");
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -81,11 +81,11 @@ public class FileUtil {
 
 		final Intent chooser = Intent.createChooser(intent, "Select File");
 		return this.requestStoragePermission()
-				.then((DonePipe<Void, JSONArray, Exception, Void>) result ->
+				.then((DonePipe<Void, Object, Exception, Void>) result ->
 						activity.startActivityForResult(chooser)
-								.then(new DonePipe<ActivityResult, JSONArray, Exception, Void>() {
+								.then(new DonePipe<ActivityResult, Object, Exception, Void>() {
 									@Override
-									public Promise<JSONArray, Exception, Void> pipeDone(ActivityResult result) {
+									public Promise<Object, Exception, Void> pipeDone(ActivityResult result) {
 										JSONArray selectedFiles = new JSONArray();
 										if (result.resultCode == RESULT_OK) {
 											ClipData clipData = result.data.getClipData();
@@ -100,16 +100,16 @@ public class FileUtil {
 													selectedFiles.put(uri.toString());
 												}
 											} catch (Exception e) {
-												return new DeferredObject<JSONArray, Exception, Void>().reject(e);
+												return new DeferredObject<Object, Exception, Void>().reject(e);
 											}
 										}
-										return new DeferredObject<JSONArray, Exception, Void>().resolve(selectedFiles);
+										return Utils.resolvedDeferred(selectedFiles);
 									}
 								}));
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
-	Promise<Boolean, Exception, Void> openFile(String fileUri, String mimeType) {
+	Promise<Object, Exception, Void> openFile(String fileUri, String mimeType) {
 		Uri file = Uri.parse(fileUri);
 		String scheme = file.getScheme();
 		if (scheme.equals("file")) {
@@ -119,7 +119,7 @@ public class FileUtil {
 		intent.setDataAndType(file, getCorrectedMimeType(file, mimeType));
 		intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		return activity.startActivityForResult(intent)
-				.then((DoneFilter<ActivityResult, Boolean>) result -> result.resultCode == RESULT_OK);
+				.then((DoneFilter<ActivityResult, Object>) result -> result.resultCode == RESULT_OK);
 	}
 
 	private String getCorrectedMimeType(Uri fileUri, String storedMimeType) {
@@ -148,9 +148,9 @@ public class FileUtil {
 		return "application/octet-stream";
 	}
 
-	public Promise<String, Exception, Void> putToDownloadFolder(String path) {
-		return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) nothing -> {
-			DeferredObject<String, Exception, Void> promise = new DeferredObject<>();
+	public Promise<Object, Exception, Void> putToDownloadFolder(String path) {
+		return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) nothing -> {
+			DeferredObject<Object, Exception, Void> promise = new DeferredObject<>();
 			backgroundTasksExecutor.execute(() -> {
 				try {
 					promise.resolve(addFileToDownloads(path));
@@ -252,9 +252,9 @@ public class FileUtil {
 		}
 	}
 
-	Promise<String, Exception, Void> saveBlob(final String name, final String base64blob) {
-		return requestStoragePermission().then((DonePipe<Void, String, Exception, Void>) __ -> {
-			DeferredObject<String, Exception, Void> result = new DeferredObject<>();
+	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {
+		return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) __ -> {
+			DeferredObject<Object, Exception, Void> result = new DeferredObject<>();
 			backgroundTasksExecutor.execute(() -> {
 				final File file = new File(Environment.getExternalStoragePublicDirectory(
 						Environment.DIRECTORY_DOWNLOADS), name);
@@ -266,7 +266,6 @@ public class FileUtil {
 					result.resolve(Uri.fromFile(file).toString());
 					DownloadManager downloadManager =
 							(DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-					//noinspection ConstantConditions
 					downloadManager.addCompletedDownload(name, "Tutanota invoice", false,
 							getMimeType(Uri.fromFile(file)), file.getAbsolutePath(),
 							fileBytes.length, true);

@@ -8,6 +8,8 @@ import android.provider.OpenableColumns;
 import android.util.Base64;
 
 import org.apache.commons.io.IOUtils;
+import org.jdeferred.Deferred;
+import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -117,6 +119,11 @@ public class Utils {
 
     public static boolean atLeastNougat() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+    }
+
+    public  static <D, F, P> Deferred<D, F, P> resolvedDeferred(D result) {
+        return new DeferredObject<D, F, P>()
+                .resolve(result);
     }
 
 }

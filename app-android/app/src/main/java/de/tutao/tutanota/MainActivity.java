@@ -41,6 +41,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -491,7 +492,7 @@ public class MainActivity extends Activity {
 			nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
 					.then(result -> {
 						try {
-							if (!result.getBoolean("value")) {
+							if (!((JSONObject) result).getBoolean("value")) {
 								goBack();
 							}
 						} catch (JSONException e) {
