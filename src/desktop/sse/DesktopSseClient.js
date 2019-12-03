@@ -119,39 +119,43 @@ export class DesktopSseClient {
 			'userIds', sseInfo.userIds
 		)
 		this._connection = this._getProtocolModule()
-							   .request(url, {
-								   headers: {
-									   "Content-Type": "application/json",
-									   "Connection": "Keep-Alive",
-									   "Keep-Alive": "header",
-									   "Accept": "text/event-stream"
-								   },
-								   method: "GET"
-							   })
-							   .on('response', res => {
-								   console.log("established SSE connection")
-								   if (res.statusCode === 403) { // invalid userids
-									   console.log('sse: got 403, deleting identifier')
-									   this._connectedSseInfo = null
-									   this._conf.setDesktopConfig('pushIdentifier', null)
-									   this._cleanup()
-								   }
-								   res.setEncoding('utf8')
-								   // FIXME: This currently relies on the fact that data fits into one chunk.
-								   // It should be buffered and then split into lines (that's SSE format) before processing
-								   res.on('data', d => this._processSseData(d))
-									  .on('close', () => {
-										  console.log('sse response closed')
-										  this._cleanup()
-										  this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-										  this._reschedule(INITIAL_CONNECT_TIMEOUT)
-									  })
-									  .on('error', e => console.error('sse response error:', e))
-							   })
-							   .on('information', e => console.log('sse information:', e.message))
-							   .on('connect', e => console.log('sse connect:', e.message))
-							   .on('error', e => console.error('sse error:', e.message))
-							   .end()
+		                       .request(url, {
+			                       headers: {
+				                       "Content-Type": "application/json",
+				                       "Connection": "Keep-Alive",
+				                       "Keep-Alive": "header",
+				                       "Accept": "text/event-stream"
+			                       },
+			                       method: "GET"
+		                       })
+		                       .on('response', res => {
+			                       console.log("established SSE connection")
+			                       if (res.statusCode === 403) { // invalid userids
+				                       console.log('sse: got 403, deleting identifier')
+				                       this._connectedSseInfo = null
+				                       this._conf.setDesktopConfig('pushIdentifier', null)
+				                       this._cleanup()
+			                       }
+			                       res.setEncoding('utf8')
+			                       let resData = ""
+			                       res.on('data', d => {
+				                       // add new data to the buffer
+				                       resData += d
+				                       const lines = resData.split("\n")
+				                       resData = lines.pop() // put the last line back into the buffer
+				                       lines.forEach(l => this._processSseData(l))
+			                       }).on('close', () => {
+				                       console.log('sse response closed')
+				                       this._cleanup()
+				                       this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
+				                       this._reschedule(INITIAL_CONNECT_TIMEOUT)
+			                       })
+			                          .on('error', e => console.error('sse response error:', e))
+		                       })
+		                       .on('information', e => console.log('sse information:', e.message))
+		                       .on('connect', e => console.log('sse connect:', e.message))
+		                       .on('error', e => console.error('sse error:', e.message))
+		                       .end()
 	}
 
 	_processSseData(data: string): void {
@@ -161,42 +165,36 @@ export class DesktopSseClient {
 			return
 		}
 
-		/**
-		 * split data at newlines, sometimes there are multiple data packets in the
-		 * same event, even a mix of heartbeat and PushMessages
-		 */
-		data.split('\n')
-		    .map(dp => dp.trim())
-		    .filter(dp => dp.length > 6)
-		    .map(dp => dp.substring(6))
-		    .forEach(dp => {
-			    // check for heartbeat settings
-			    if (dp.startsWith('heartbeatTimeout:')) {
-				    console.log("received new timeout:", dp)
-				    const newTimeout = Number(dp.split(':')[1])
-				    if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
-					    this._readTimeoutInSeconds = newTimeout
-					    this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', newTimeout)
-				    } else {
-					    console.error("got invalid heartbeat timeout from server")
-				    }
-				    this._reschedule()
-				    return
-			    }
-			    // it's a PushMessage
-			    let pm: PushMessage
-			    try {
-				    pm = PushMessage.fromJSON(dp)
-			    } catch (e) {
-				    console.error("failed to parse push message from json:", e, "\n\noffending json:\n", dp)
-				    return
-			    }
-			    this._handlePushMessage(pm)
-			        .then(() => this._reschedule())
-			        .catch(e => {
-				        console.error("failed to handle push message:", e)
-				        this._notifier.showOneShot({title: "Failed to handle PushMessage"})
-			        })
+		data = data.trim()
+		if (data.length < 7) return
+		data = data.substring(6)
+
+		// check for heartbeat settings
+		if (data.startsWith('heartbeatTimeout:')) {
+			console.log("received new timeout:", data)
+			const newTimeout = Number(data.split(':')[1])
+			if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
+				this._readTimeoutInSeconds = newTimeout
+				this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', newTimeout)
+			} else {
+				console.error("got invalid heartbeat timeout from server")
+			}
+			this._reschedule()
+			return
+		}
+		// it's a PushMessage
+		let pm: PushMessage
+		try {
+			pm = PushMessage.fromJSON(data)
+		} catch (e) {
+			console.error("failed to parse push message from json:", e, "\n\noffending json:\n", data)
+			return
+		}
+		this._handlePushMessage(pm)
+		    .then(() => this._reschedule())
+		    .catch(e => {
+			    console.error("failed to handle push message:", e)
+			    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
 		    })
 	}
 
@@ -294,40 +292,40 @@ export class DesktopSseClient {
 			console.log("downloading missed notification")
 			const url = this._makeAlarmNotificationUrl()
 			const req = this._getProtocolModule()
-							.request(url, {
-								method: "GET",
-								headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
-								// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-								timeout: 20000
-							})
-							.on('response', res => {
-								if (res.statusCode === 404) {
-									fail(req, res, new FileNotFoundError("no missed notification"))
-									return
-								}
-								if (res.statusCode !== 200) {
-									fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
-									return
-								}
-								res.setEncoding('utf8')
+			                .request(url, {
+				                method: "GET",
+				                headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
+				                // this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+				                timeout: 20000
+			                })
+			                .on('response', res => {
+				                if (res.statusCode === 404) {
+					                fail(req, res, new FileNotFoundError("no missed notification"))
+					                return
+				                }
+				                if (res.statusCode !== 200) {
+					                fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
+					                return
+				                }
+				                res.setEncoding('utf8')
 
-								let resData = ''
-								res.on('data', chunk => {
-									resData += chunk
-								})
-								   .on('end', () => {
-									   try {
-										   const mn = MissedNotification.fromJSON(resData)
-										   resolve(mn)
-									   } catch (e) {
-										   fail(req, res, e)
-									   }
-								   })
-								   .on('close', () => console.log("dl missed notification response closed"))
-								   .on('error', e => fail(req, res, e))
-							})
-							.on('error', e => fail(req, null, e))
-							.end()
+				                let resData = ''
+				                res.on('data', chunk => {
+					                resData += chunk
+				                })
+				                   .on('end', () => {
+					                   try {
+						                   const mn = MissedNotification.fromJSON(resData)
+						                   resolve(mn)
+					                   } catch (e) {
+						                   fail(req, res, e)
+					                   }
+				                   })
+				                   .on('close', () => console.log("dl missed notification response closed"))
+				                   .on('error', e => fail(req, res, e))
+			                })
+			                .on('error', e => fail(req, null, e))
+			                .end()
 		})
 	}
 
