@@ -1,7 +1,7 @@
 //@flow
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
@@ -32,8 +32,12 @@ class PushServiceApp {
 						           if (!pushIdentifier) { // push identifier is  not associated with current user
 							           return this._createPushIdentiferInstance(identifier, PushServiceType.SSE)
 							                      .then(pushIdentifier => {
-								                      return this._storePushIdentifierLocally(pushIdentifier)
-								                                 .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier))
+								                      return this._unscheduleAlarms()
+								                                 .catch(noOp)
+								                                 .then(() =>
+									                                 this._storePushIdentifierLocally(pushIdentifier)
+									                                     .then(() => this._scheduleAlarmsIfNeeded(pushIdentifier)))
+
 							                      })
 						           } else {
 							           return this._storePushIdentifierLocally(pushIdentifier)
@@ -105,6 +109,12 @@ class PushServiceApp {
 		})
 	}
 
+	_unscheduleAlarms(): Promise<void> {
+		const userId = logins.getUserController().user._id
+		deviceConfig.setAlarmsScheduledForUser(userId, false)
+		return nativeApp.invokeNative(new Request('unscheduleAlarms', [userId]))
+	}
+
 	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceTypeEnum): Promise<PushIdentifier> {
 		let list = logins.getUserController().user.pushIdentifierList
 		let pushIdentifier = createPushIdentifier()
@@ -146,10 +156,10 @@ class PushServiceApp {
 
 	_scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = logins.getUserController().user._id
-		if (!deviceConfig.isScheduledForUser(userId)) {
+		if (!deviceConfig.areAlarmsScheduledForUser(userId)) {
 			console.log("Alarms not scheduled for user, scheduling!")
 			return worker.scheduleAlarmsForNewDevice(pushIdentifier)
-			             .then(() => deviceConfig.setScheduledForUser(userId))
+			             .then(() => deviceConfig.setAlarmsScheduledForUser(userId, true))
 		} else {
 			return Promise.resolve()
 		}

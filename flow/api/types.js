@@ -191,6 +191,7 @@ type NativeRequestType = 'init'
 	| 'sendGroupInvitation'
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
+	| 'unscheduleAlarms'
 
 
 type JsRequestType = 'createMailEditor'

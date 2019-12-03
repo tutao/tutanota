@@ -53,13 +53,17 @@ class DeviceConfig {
 		return this._credentials.find(c => c.userId === id)
 	}
 
-	isScheduledForUser(userId: Id): boolean {
+	areAlarmsScheduledForUser(userId: Id): boolean {
 		return this._scheduledAlarmUsers.includes(userId)
 	}
 
-	setScheduledForUser(userId: Id) {
-		if (!this.isScheduledForUser(userId)) {
+	setAlarmsScheduledForUser(userId: Id, setScheduled: boolean) {
+		const scheduledIndex = this._scheduledAlarmUsers.indexOf(userId)
+		const scheduledSaved = scheduledIndex !== -1
+		if (setScheduled && !scheduledSaved) {
 			this._scheduledAlarmUsers.push(userId)
+		} else if (!setScheduled && scheduledSaved) {
+			this._scheduledAlarmUsers.splice(scheduledIndex, 1)
 		}
 		this._store()
 	}

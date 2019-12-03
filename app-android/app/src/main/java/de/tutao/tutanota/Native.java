@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
@@ -262,6 +263,10 @@ public final class Native {
 					return files.putToDownloadFolder(path);
 				case "getDeviceLog":
 					return Utils.resolvedDeferred(LogReader.getLogFile(activity).toString());
+				case "unscheduleAlarms":
+					Log.d(TAG, "unschedule alarms");
+					new AlarmNotificationsManager(this.activity, sseStorage).unscheduleAlarms(args.getString(0));
+					return Utils.resolvedDeferred(null);
 				default:
 					throw new Exception("unsupported method: " + method);
 			}

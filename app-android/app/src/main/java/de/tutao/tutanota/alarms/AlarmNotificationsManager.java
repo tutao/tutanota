@@ -19,6 +19,7 @@ import java.security.UnrecoverableEntryException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -98,7 +99,7 @@ public class AlarmNotificationsManager {
 					return;
 				}
 				this.schedule(alarmNotification, sessionKey);
-				if (alarmNotification.getRepeatRule() != null && !savedInfos.contains(alarmNotification)) {
+				if (!savedInfos.contains(alarmNotification)) {
 					savedInfos.add(alarmNotification);
 				}
 			} else {
@@ -107,6 +108,26 @@ public class AlarmNotificationsManager {
 			}
 		}
 		this.writeAlarmInfos(savedInfos);
+	}
+
+	public void unscheduleAlarms(String userId) {
+		List<AlarmNotification> alarmNotifications = this.readSavedAlarmNotifications();
+		PushKeyResolver pushKeyResolver;
+		try {
+			pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
+		} catch (IOException e) {
+			Log.w(TAG, "Failed to read pushIdentifierKeys", e);
+			return;
+		}
+		Iterator<AlarmNotification> savedAlarmsIterator = alarmNotifications.iterator();
+		while (savedAlarmsIterator.hasNext()) {
+			AlarmNotification alarmNotification = savedAlarmsIterator.next();
+			if (alarmNotification.getUser().equals(userId)) {
+				this.cancelScheduledAlarm(alarmNotification, pushKeyResolver);
+				savedAlarmsIterator.remove();
+			}
+		}
+		this.writeAlarmInfos(alarmNotifications);
 	}
 
 	private List<AlarmNotification> readSavedAlarmNotifications() {
@@ -189,7 +210,7 @@ public class AlarmNotificationsManager {
 		// It doesn't check extras. "data" (read: uri) is the only significant part. It is made up of alarm identifier and occurrence. We provide other fields
 		// as a filler but this doesn't make a difference.
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
-		if (indexOfExistingRepeatingAlarm == -1) {
+		if (indexOfExistingRepeatingAlarm == -1 || alarmNotifications.get(indexOfExistingRepeatingAlarm).getRepeatRule() == null) {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
 			PendingIntent pendingIntent = makeAlarmPendingIntent(0,
 					alarmNotification.getAlarmInfo().getIdentifier(), "", new Date(), "");
