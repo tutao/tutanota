@@ -386,8 +386,10 @@ export function getDiffInDays(a: Date, b: Date): number {
 	return Math.floor(DateTime.fromJSDate(a).diff(DateTime.fromJSDate(b), 'day').days)
 }
 
-export function getCalendarName(name: ?string): string {
-	return name || lang.get("privateCalendar_label")
+export function getCalendarName(groupInfo: GroupInfo, allowGroupNameOverride: boolean): string {
+	const {userSettingsGroupRoot} = logins.getUserController()
+	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
+	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || lang.get("privateCalendar_label")
 }
 
 export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string}): string {

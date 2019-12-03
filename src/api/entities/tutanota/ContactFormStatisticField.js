@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createContactFormStatisticField(values?: $Shape<$Exact<ContactFormStatisticField>>): ContactFormStatisticField {

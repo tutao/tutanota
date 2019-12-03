@@ -46,7 +46,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
-import {createGroupColor} from "../api/entities/tutanota/GroupColor"
+import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -192,7 +192,7 @@ export class CalendarView implements CurrentView {
 
 		this.contentColumn = new ViewColumn({
 			view: () => {
-				const groupColors = logins.getUserController().userSettingsGroupRoot.groupColors.reduce((acc, gc) => {
+				const groupColors = logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
 					acc[gc.group] = gc.color
 					return acc
 				}, {})
@@ -374,11 +374,11 @@ export class CalendarView implements CurrentView {
 			worker.addCalendar(properties.name)
 			      .then((group) => {
 				      const {userSettingsGroupRoot} = logins.getUserController()
-				      const newGroupColor = Object.assign(createGroupColor(), {
+				      const newGroupSettings = Object.assign(createGroupSettings(), {
 					      group: group._id,
 					      color: properties.color
 				      })
-				      userSettingsGroupRoot.groupColors.push(newGroupColor)
+				      userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 				      update(userSettingsGroupRoot)
 			      })
 		}, "save_action")
@@ -410,8 +410,10 @@ export class CalendarView implements CurrentView {
 			     .filter(calendarInfo => calendarInfo.shared === shared)
 			     .map((calendarInfo) => {
 				     const {userSettingsGroupRoot} = logins.getUserController()
-				     const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === calendarInfo.groupInfo.group)
-				     const colorValue = "#" + (existingGroupColor ? existingGroupColor.color : defaultCalendarColor)
+				     const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group
+					     === calendarInfo.groupInfo.group)
+				     const colorValue = "#" + (existingGroupSettings
+					     ? existingGroupSettings.color : defaultCalendarColor)
 				     const groupRootId = calendarInfo.groupRoot._id
 				     return m(".folder-row.flex-start.plr-l",
 					     [
@@ -428,15 +430,15 @@ export class CalendarView implements CurrentView {
 									     "cursor": "pointer",
 								     }
 							     }),
-							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(calendarInfo.groupInfo.name))
+							     m(".pl-m.b.flex-grow.text-ellipsis", {style: {width: 0}}, getCalendarName(calendarInfo.groupInfo, shared))
 						     ]),
-						     this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupColor, userSettingsGroupRoot, shared)
+						     this._createCalendarActionDropdown(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, shared)
 					     ])
 			     })
 			: null
 	}
 
-	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
+	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {
 		const {group, groupInfo, groupRoot} = calendarInfo
 		return m(ButtonN, attachDropdown({
 				label: "more_label",
@@ -446,7 +448,7 @@ export class CalendarView implements CurrentView {
 				{
 					label: "edit_action",
 					icon: () => Icons.Edit,
-					click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupColor, userSettingsGroupRoot, sharedCalendar),
+					click: () => this._onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
 					type: ButtonType.Dropdown,
 				},
 				{
@@ -456,7 +458,7 @@ export class CalendarView implements CurrentView {
 						if (logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog(false)
 						} else {
-							showCalendarSharingDialog(groupInfo)
+							showCalendarSharingDialog(groupInfo, sharedCalendar)
 						}
 					},
 					type: ButtonType.Dropdown,
@@ -477,7 +479,7 @@ export class CalendarView implements CurrentView {
 						icon: () => Icons.Export,
 						click: () => {
 							const alarmInfoList = logins.getUserController().user.alarmInfoList
-							alarmInfoList && exportCalendar(getCalendarName(groupInfo.name), groupRoot, alarmInfoList.alarms)
+							alarmInfoList && exportCalendar(getCalendarName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms)
 						},
 						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
 						type: ButtonType.Dropdown,
@@ -494,7 +496,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_confirmDeleteCalendar(calendarInfo: CalendarInfo) {
-		const calendarName = getCalendarName(calendarInfo.groupInfo.name)
+		const calendarName = getCalendarName(calendarInfo.groupInfo, false)
 		loadGroupMembers(calendarInfo.group).then(members => {
 			const ownerMail = logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter(member => member.info.mailAddress !== ownerMail)
@@ -514,9 +516,9 @@ export class CalendarView implements CurrentView {
 	}
 
 
-	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupColor: ?GroupColor, userSettingsGroupRoot: UserSettingsGroupRoot, shared: boolean) {
+	_onPressedEditCalendar(groupInfo: GroupInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, shared: boolean) {
 		showEditCalendarDialog({
-			name: getCalendarName(groupInfo.name),
+			name: getCalendarName(groupInfo, shared),
 			color: colorValue.substring(1),
 
 		}, "edit_action", shared, (dialog, properties) => {
@@ -525,14 +527,16 @@ export class CalendarView implements CurrentView {
 				update(groupInfo)
 			}
 			// color always set for existing calendar
-			if (existingGroupColor) {
-				existingGroupColor.color = properties.color
+			if (existingGroupSettings) {
+				existingGroupSettings.color = properties.color
+				existingGroupSettings.name = (shared && properties.name !== groupInfo.name) ? properties.name : null
 			} else {
-				const newGroupColor = Object.assign(createGroupColor(), {
+				const newGroupSettings = Object.assign(createGroupSettings(), {
 					group: groupInfo.group,
-					color: properties.color
+					color: properties.color,
+					name: (shared && properties.name !== groupInfo.name) ? properties.name : null
 				})
-				userSettingsGroupRoot.groupColors.push(newGroupColor)
+				userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 			}
 			update(userSettingsGroupRoot)
 			dialog.close()

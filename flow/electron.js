@@ -248,7 +248,10 @@ declare module 'electron' {
 	}
 
 	declare export class ElectronDialog {
-		showMessageBox(browserWindow: ?BrowserWindow, options: MessageBoxOptions, cb: ?((response: number, checkboxChecked: boolean) => void)): ?number,
+		showMessageBox(
+			parent: ?BrowserWindow,
+			options: MessageBoxOptions
+		): Promise<{response: number, checked: boolean}>,
 		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions, cb: ?((paths: Array<strings>) => void)): ?Array<string>
 	}
 

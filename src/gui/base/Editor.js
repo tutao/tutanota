@@ -68,10 +68,11 @@ export class Editor implements ImageHandler {
 		this.view = () => {
 			return m(".hide-outline.selectable", {
 				oncreate: vnode => this.initSquire(vnode.dom),
-				onkeydown: e =>{
-					if(e.key === 'Meta') return;
-					if(e.metaKey) {
-						if(['ArrowLeft', 'ArrowRight'].includes(e.key)){
+				onkeydown: e => {
+					// TODO: this works, but doesn't help text fields to prevent page back events when they're focused
+					if (e.key === 'Meta') return;
+					if (e.metaKey) {
+						if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
 							e.stopPropagation()
 						}
 					}

@@ -2,9 +2,9 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-export const GroupColorTypeRef: TypeRef<GroupColor> = new TypeRef("tutanota", "GroupColor")
+export const GroupSettingsTypeRef: TypeRef<GroupSettings> = new TypeRef("tutanota", "GroupSettings")
 export const _TypeModel: TypeModel = {
-	"name": "GroupColor",
+	"name": "GroupSettings",
 	"since": 34,
 	"type": "AGGREGATED_TYPE",
 	"id": 968,
@@ -13,7 +13,8 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 969, "since": 34, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"color": {"name": "color", "id": 971, "since": 34, "type": "String", "cardinality": "One", "final": false, "encrypted": true}
+		"color": {"name": "color", "id": 971, "since": 34, "type": "String", "cardinality": "One", "final": false, "encrypted": true},
+		"name": {"name": "name", "id": 1020, "since": 39, "type": "String", "cardinality": "ZeroOrOne", "final": false, "encrypted": true}
 	},
 	"associations": {
 		"group": {
@@ -28,9 +29,9 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
-export function createGroupColor(values?: $Shape<$Exact<GroupColor>>): GroupColor {
-	return Object.assign(create(_TypeModel, GroupColorTypeRef), values)
+export function createGroupSettings(values?: $Shape<$Exact<GroupSettings>>): GroupSettings {
+	return Object.assign(create(_TypeModel, GroupSettingsTypeRef), values)
 }

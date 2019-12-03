@@ -1054,10 +1054,11 @@ type CalendarPostData = {
 	calendarData: CalendarGroupData;
 }
 
-type GroupColor = {
-	_type: TypeRef<GroupColor>;
+type GroupSettings = {
+	_type: TypeRef<GroupSettings>;
 	_id: Id;
 	color: string;
+	name: ?string;
 
 	group: Id;
 }
@@ -1073,7 +1074,7 @@ type UserSettingsGroupRoot = {
 	startOfTheWeek: NumberString;
 	timeFormat: NumberString;
 
-	groupColors: GroupColor[];
+	groupSettings: GroupSettings[];
 }
 
 type CalendarDeleteData = {

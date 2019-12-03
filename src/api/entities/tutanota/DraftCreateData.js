@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "38"
+	"version": "39"
 }
 
 export function createDraftCreateData(values?: $Shape<$Exact<DraftCreateData>>): DraftCreateData {

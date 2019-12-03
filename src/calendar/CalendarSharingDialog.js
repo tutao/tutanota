@@ -35,12 +35,14 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 type CalendarSharingDialogAttrs = {
-	groupDetails: GroupDetails
+	groupDetails: GroupDetails,
+	allowGroupNameOverride: boolean
 }
 
-export function showCalendarSharingDialog(groupInfo: GroupInfo) {
+export function showCalendarSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo))
 		.then(groupDetails => {
 			const eventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
@@ -91,7 +93,8 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo) {
 					title: lang.get("sharing_label"),
 					type: DialogType.EditMedium,
 					child: () => m(CalendarSharingDialogContent, {
-						groupDetails
+						groupDetails,
+						allowGroupNameOverride
 					}),
 					okAction: null,
 					cancelAction: () => locator.eventController.removeEntityListener(eventListener),
@@ -118,7 +121,7 @@ function loadGroupDetails(groupInfo: GroupInfo): Promise<GroupDetails> {
 class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAttrs> {
 
 	view(vnode: Vnode<CalendarSharingDialogAttrs>): Children {
-		const calendarName = getCalendarName(vnode.attrs.groupDetails.info.name)
+		const calendarName = getCalendarName(vnode.attrs.groupDetails.info, vnode.attrs.allowGroupNameOverride)
 		return m(".flex.col.pt-s", [
 			m(TableN, {
 				columnHeading: [() => lang.get("participants_label", {"{name}": calendarName})],
@@ -247,7 +250,8 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 
 	}))
 	const capapility: Stream<ShareCapabilityEnum> = stream(ShareCapability.Read)
-
+	const realCalendarName = getCalendarName(sharedGroupInfo, false)
+	const customCalendarName = getCalendarName(sharedGroupInfo, true)
 
 	let dialog = Dialog.showActionDialog({
 
@@ -265,6 +269,16 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 				],
 				selectedValue: capapility,
 				dropdownWidth: 300
+			}),
+			m(TextFieldN, {
+				value: stream(realCalendarName),
+				label: "calendarName_label",
+				disabled: true,
+				helpLabel: () => {
+					return m("", (customCalendarName === realCalendarName)
+						? null
+						: (lang.get("customName_label", {"{customName}": customCalendarName})))
+				}
 			})
 		],
 		okAction: () => {
@@ -293,7 +307,7 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 	return showProgressDialog("calendarInvitationProgress_msg",
-		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo.name), recipients, capability)
+		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo, false), recipients, capability)
 	).then((groupInvitationReturn) => {
 		if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
 			let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")

@@ -22,8 +22,7 @@ export function showEditCalendarDialog({name, color}: CalendarProperties, titleT
 				warningMessage ? warningMessage() : null,
 				m(TextFieldN, {
 					value: nameStream,
-					label: "calendarName_label",
-					disabled: shared
+					label: "calendarName_label"
 				}),
 				m(".small.mt.mb-xs", lang.get("color_label")),
 				m("input.color-picker", {

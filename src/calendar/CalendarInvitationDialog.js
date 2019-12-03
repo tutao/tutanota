@@ -3,7 +3,7 @@ import {worker} from "../api/main/WorkerClient"
 import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "./CalendarSharingUtils"
 import {getDisplayText} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
-import {createGroupColor} from "../api/entities/tutanota/GroupColor"
+import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {update} from "../api/main/Entity"
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
@@ -19,8 +19,8 @@ import {isSameId} from "../api/common/EntityFunctions"
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
-	const existingGroupColor = userSettingsGroupRoot.groupColors.find((gc) => gc.group === invitation.sharedGroup)
-	const color = existingGroupColor ? existingGroupColor.color : Math.random().toString(16).slice(-6)
+	const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === invitation.sharedGroup)
+	const color = existingGroupSettings ? existingGroupSettings.color : Math.random().toString(16).slice(-6)
 
 	let colorPickerDom: ?HTMLInputElement
 	const colorStream = stream("#" + color)
@@ -74,15 +74,15 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 							acceptInvite(invitation).then(() => {
 								dialog.close()
 								const newColor = colorStream().substring(1) // color is stored without #
-								if (existingGroupColor) {
-									existingGroupColor.color = newColor
+								if (existingGroupSettings) {
+									existingGroupSettings.color = newColor
 									console.log("existing group color", newColor)
 								} else {
-									const groupColor = Object.assign(createGroupColor(), {
+									const groupSettings = Object.assign(createGroupSettings(), {
 										group: invitation.sharedGroup,
 										color: newColor
 									})
-									userSettingsGroupRoot.groupColors.push(groupColor)
+									userSettingsGroupRoot.groupSettings.push(groupSettings)
 									console.log("existing group color", newColor)
 								}
 
