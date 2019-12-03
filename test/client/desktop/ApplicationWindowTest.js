@@ -320,8 +320,6 @@ o.spec("ApplicationWindow Test", () => {
 			'F5',
 			'CommandOrControl+N',
 			'Command+Control+F',
-			'Command+Right',
-			'Command+Left'
 		])
 	})
 
@@ -418,12 +416,6 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.setFullScreen.callCount).equals(1)
 		o(bwInstance.isFullScreen.callCount).equals(1)
 		o(bwInstance.setFullScreen.args[0]).equals(true)
-
-		electronLocalshortcutMock.callbacks["Command+Left"]()
-		o(bwInstance.webContents.goBack.callCount).equals(1)
-
-		electronLocalshortcutMock.callbacks["Command+Right"]()
-		o(bwInstance.webContents.goForward.callCount).equals(1)
 	})
 
 	o("url rewriting", () => {
