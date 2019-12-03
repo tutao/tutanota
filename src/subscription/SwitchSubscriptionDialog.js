@@ -42,7 +42,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo, isPro: boolean,
 				dialog.close()
 			}
 
-			const headerBarAttrs : DialogHeaderBarAttrs = {
+			const headerBarAttrs: DialogHeaderBarAttrs = {
 				left: [{label: "cancel_action", click: cancelAction, type: ButtonType.Secondary}],
 				right: [],
 				middle: () => lang.get("subscription_label")
@@ -150,11 +150,12 @@ function getProPrice(isPro: boolean, addUserReturn: PriceServiceReturn, aliasRet
                      currentTotalStorage: number, currentTotalAliases: number, currentIncludedStorage: number, currentIncludedAliases: number): PlanPrices {
 	const prices = createPlanPrices()
 	let contactFormPrice = getMonthlySinglePrice(contactFormReturn, BookingItemFeatureType.ContactForm)
+	let singleUserWhitelabelPrice = getMonthlySinglePrice(brandingReturn, BookingItemFeatureType.Branding)
+	let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users)
 	if (isPro) {
 		// show the price we are currently paying
 		const currentMonthlyPrice = Number(neverNull(addUserReturn.currentPriceNextPeriod).price) * paymentIntervalFactor
-		let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users)
-		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly)
+		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + singleUserWhitelabelPrice)
 		prices.contactFormPriceMonthly = String(contactFormPrice)
 		prices.firstYearDiscount = "0"
 		prices.includedAliases = String(currentTotalAliases)
@@ -174,15 +175,12 @@ function getProPrice(isPro: boolean, addUserReturn: PriceServiceReturn, aliasRet
 		if (additionalStoragePrice > 0) {
 			monthlyPrice += additionalStoragePrice
 		}
-		let additionalAliasesPrice = Number(neverNull(aliasReturn.futurePriceNextPeriod).price) - Number(neverNull(aliasReturn.currentPriceNextPeriod).price)
+		let additionalAliasesPrice = Number(neverNull(aliasReturn.futurePriceNextPeriod).price)
+			- Number(neverNull(aliasReturn.currentPriceNextPeriod).price)
 		if (additionalAliasesPrice > 0) {
 			monthlyPrice += additionalAliasesPrice
 		}
 		monthlyPrice *= paymentIntervalFactor
-
-		let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users)
-		let singleUserWhitelabelPrice = getMonthlySinglePrice(brandingReturn, BookingItemFeatureType.Branding)
-		let contactFormPrice = getMonthlySinglePrice(contactFormReturn, BookingItemFeatureType.ContactForm)
 
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly + singleUserWhitelabelPrice)
 		prices.contactFormPriceMonthly = String(contactFormPrice)
