@@ -207,14 +207,14 @@ o.spec("DesktopSseClient Test", () => {
 			o(res.setEncoding.args[0]).equals('utf8')
 
 			//store new timeout value
-			res.callbacks['data']("data: heartbeatTimeout:42")
+			res.callbacks['data']("data: heartbeatTimeout:42\n")
 			o(confMock.setDesktopConfig.callCount).equals(1)
 			o(confMock.setDesktopConfig.args[0]).equals("heartbeatTimeoutInSeconds")
 			o(confMock.setDesktopConfig.args[1]).equals(42)
 
 			//check for reschedule on heartbeat
 			let oldTimeout = sse._nextReconnect
-			res.callbacks['data']("")
+			res.callbacks['data']("\n")
 			o(sse._nextReconnect).notEquals(oldTimeout)
 
 			// reschedule on connection close
@@ -223,7 +223,7 @@ o.spec("DesktopSseClient Test", () => {
 			o(sse._nextReconnect).notEquals(oldTimeout)
 
 			//done
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 			o(httpMock.ClientRequest.mockedInstances[1].abort.callCount).equals(1)
 			done()
@@ -273,7 +273,7 @@ o.spec("DesktopSseClient Test", () => {
 			o(confMock.setDesktopConfig.args[1]).equals(null)
 
 			// done
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 			done()
 		}, 2000)
@@ -291,8 +291,8 @@ o.spec("DesktopSseClient Test", () => {
 		}, 1000)
 
 		setTimeout(() => {
-			res.callbacks['data']("data: heartbeatTimeout:42")
-			res.callbacks['data']("data: heartbeatTimeout:baz")
+			res.callbacks['data']("data: heartbeatTimeout:42\n")
+			res.callbacks['data']("data: heartbeatTimeout:baz\n")
 		}, 1500)
 
 		setTimeout(() => {
@@ -315,7 +315,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			oldTimeout = sse._nextReconnect
 			res.callbacks["data"](`data: ${JSON.stringify({
 				title: "pm-title",
@@ -343,7 +343,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			oldTimeout = sse._nextReconnect
 			res.callbacks["data"](`data: ${JSON.stringify({
 				title: "invalid"
@@ -393,7 +393,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title",
 				confirmationId: "confId",
@@ -405,7 +405,7 @@ o.spec("DesktopSseClient Test", () => {
 						userId: "someId"
 					}
 				]
-			})}`)
+			})}\n`)
 		}, 1500)
 
 		setTimeout(() => {
@@ -436,7 +436,7 @@ o.spec("DesktopSseClient Test", () => {
 						userId: "someOtherId"
 					}
 				]
-			})}`)
+			})}\n`)
 		}, 2200)
 
 		setTimeout(() => {
@@ -468,7 +468,7 @@ o.spec("DesktopSseClient Test", () => {
 		sse.start()
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title",
 				confirmationId: "confId-aw",
@@ -481,12 +481,12 @@ o.spec("DesktopSseClient Test", () => {
 						userId: "notYourId"
 					}
 				]
-			})}`)
+			})}\n`)
 
 			o(notifierMock.submitGroupedNotification.callCount).equals(0)
 
 			//done
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 		}, 1500)
 
@@ -503,7 +503,7 @@ o.spec("DesktopSseClient Test", () => {
 		sse.start()
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res) // TODO!
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title-outdated",
 				confirmationId: "confId-outdated",
@@ -516,7 +516,7 @@ o.spec("DesktopSseClient Test", () => {
 						userId: "anId"
 					}
 				]
-			})}`)
+			})}\n`)
 		}, 1500)
 
 		setTimeout(() => {
@@ -524,7 +524,7 @@ o.spec("DesktopSseClient Test", () => {
 			o(notifierMock.submitGroupedNotification.callCount).equals(0)
 
 			//done
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 		}, 1500)
 
@@ -542,14 +542,14 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title-hasAlarmNotifications",
 				confirmationId: "hasAlarmNotificationConfId",
 				hasAlarmNotifications: true,
 				changeTime: "2345678901234",
 				notificationInfos: []
-			})}`)
+			})}\n`)
 		}, 1200)
 
 		// wait for missedNotification request to be sent...
@@ -564,7 +564,7 @@ o.spec("DesktopSseClient Test", () => {
 				timeout: 20000
 			})
 			httpMock.ClientRequest.mockedInstances[1].callbacks['response'](res2)
-			res2.callbacks['data'](JSON.stringify({
+			res2.callbacks['data'](`${JSON.stringify({
 				alarmNotifications: [
 					{
 						eventStart: new Date('2019-10-08T09:38:14.835Z'),
@@ -591,7 +591,7 @@ o.spec("DesktopSseClient Test", () => {
 				],
 				changeTime: "2345678901234",
 				confirmationId: "missedNotificationConfId"
-			}))
+			})}\n`)
 			res2.callbacks['end']()
 		}, 1210)
 
@@ -637,7 +637,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		//done
 		setTimeout(() => {
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 		}, 2000)
 
@@ -656,14 +656,14 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title-hasAlarmNotifications-404",
 				confirmationId: "hasAlarmNotificationConfId-404",
 				hasAlarmNotifications: true,
 				changeTime: "2345678901234",
 				notificationInfos: []
-			})}`)
+			})}\n`)
 		}, 1200)
 
 		// wait for missedNotification request to be sent...
@@ -682,7 +682,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		//done
 		setTimeout(() => {
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 		}, 2000)
 
@@ -701,14 +701,14 @@ o.spec("DesktopSseClient Test", () => {
 
 		setTimeout(() => {
 			httpMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-			res.callbacks['data']("data: heartbeatTimeout:3")
+			res.callbacks['data']("data: heartbeatTimeout:3\n")
 			res.callbacks['data'](`data: ${JSON.stringify({
 				title: "pm-title-hasAlarmNotifications-1234",
 				confirmationId: "hasAlarmNotificationConfId-1234",
 				hasAlarmNotifications: true,
 				changeTime: "2345678901234",
 				notificationInfos: []
-			})}`)
+			})}\n`)
 		}, 1200)
 
 		// wait for missedNotification request to be sent...
@@ -729,7 +729,7 @@ o.spec("DesktopSseClient Test", () => {
 
 		//done
 		setTimeout(() => {
-			res.callbacks['data']("data: heartbeatTimeout:1")
+			res.callbacks['data']("data: heartbeatTimeout:1\n")
 			electronMock.app.callbacks['will-quit']()
 		}, 2000)
 
