@@ -149,6 +149,8 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEn
 			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({months: interval}).toJSDate()
 		case RepeatPeriod.ANNUALLY:
 			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({years: interval}).toJSDate()
+		default:
+			throw new Error("Unknown repeat period")
 	}
 	return calculationDate
 }
