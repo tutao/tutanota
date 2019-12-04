@@ -133,9 +133,9 @@ interface UpdateableInstanceWithArray<T> {
 	updateInstance: () => Promise<void>;
 }
 
-export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement: T, indexOfElement: number): ButtonAttrs {
+export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, currentElement: T, indexOfElement: number, prefixActions: $ReadOnlyArray<ButtonAttrs> = []): ButtonAttrs {
 	const elements = instance.getArray()
-	const dropDownActions: $ReadOnlyArray<ButtonAttrs> = [
+	const dropDownActions: $ReadOnlyArray<ButtonAttrs> = prefixActions.concat([
 		{
 			label: "moveToTop_action",
 			type: ButtonType.Dropdown,
@@ -186,7 +186,7 @@ export function createRowActions<T>(instance: UpdateableInstanceWithArray<T>, cu
 				instance.updateInstance()
 			}
 		}
-	]
+	])
 
 	return {
 		label: "edit_action",

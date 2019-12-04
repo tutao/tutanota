@@ -1056,6 +1056,7 @@ module.exports = {
 		"desktopIntegration_label": "Desktop Integration",
 		"desktopIntegration_msg": "Do you want to integrate Tutanota into your Desktop Environment?",
 		"doNotAskAgain_label": "Don't ask again for this file",
-		"customName_label": "Your custom name for this calendar: {customName}"
+		"customName_label": "Your custom name for this calendar: {customName}",
+		"editInboxRule_action": "Edit inbox rule",
 	}
 }

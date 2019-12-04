@@ -15,10 +15,12 @@ import type {MailboxDetail} from "../mail/MailModel"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {neverNull} from "../api/common/utils/Utils"
+import {isSameId} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 
-export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: string, preselectedValue: string) {
+export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
@@ -27,9 +29,10 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 			                                  return {name: getFolderName(folder), value: folder}
 		                                  })
 		                                  .sort((folder1, folder2) => folder1.name.localeCompare(folder2.name))
-		const inboxRuleType = stream(preselectedInboxRuleType)
-		const inboxRuleValue = stream(preselectedValue)
-		const inboxRuleTarget = stream(getArchiveFolder(mailBoxDetails.folders))
+		const inboxRuleType = stream(ruleOrTemplate.type)
+		const inboxRuleValue = stream(ruleOrTemplate.value)
+		const selectedFolder = mailBoxDetails.folders.find((folder) => isSameId(folder._id, ruleOrTemplate.targetFolder))
+		const inboxRuleTarget = stream(selectedFolder || getArchiveFolder(mailBoxDetails.folders))
 		let form = () => [
 			m(DropDownSelectorN, {
 				items: getInboxRuleTypeNameMapping(),
@@ -51,32 +54,45 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 				selectedValue: inboxRuleTarget
 			})
 		]
-		let addInboxRuleOkAction = (dialog) => {
+
+		const isNewRule = ruleOrTemplate._id === null
+		const addInboxRuleOkAction = (dialog) => {
 			let rule = createInboxRule()
 			rule.type = inboxRuleType()
 			rule.value = _getCleanedValue(inboxRuleType(), inboxRuleValue())
 			rule.targetFolder = inboxRuleTarget()._id
-			logins.getUserController().props.inboxRules.push(rule)
-			update(logins.getUserController().props)
+			const props = logins.getUserController().props
+			if (isNewRule) {
+				props.inboxRules.push(rule)
+			} else {
+				props.inboxRules = props.inboxRules.map(inboxRule => inboxRule._id === ruleOrTemplate._id ? rule : inboxRule)
+			}
+			update(props)
 			dialog.close()
 		}
 
 		Dialog.showActionDialog({
 			title: lang.get("addInboxRule_action"),
 			child: form,
-			validator: () => _validateInboxRuleInput(inboxRuleType(), inboxRuleValue()),
+			validator: () => _validateInboxRuleInput(inboxRuleType(), inboxRuleValue(), ruleOrTemplate._id),
 			allowOkWithReturn: true,
 			okAction: addInboxRuleOkAction
 		})
 	}
 }
 
-export function isRuleExistingForType(cleanValue: string, type: string) {
-	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value))
-		!= null
+export function createInboxRuleTemplate(ruleType: ?string, value: ?string): InboxRule {
+	const template = createInboxRule()
+	template.type = ruleType || InboxRuleType.FROM_EQUALS
+	template.value = _getCleanedValue(neverNull(ruleType), value || "")
+	return template
 }
 
-function _validateInboxRuleInput(type: string, value: string) {
+export function getExistingRuleForType(cleanValue: string, type: string) {
+	return logins.getUserController().props.inboxRules.find(rule => (type === rule.type && cleanValue === rule.value))
+}
+
+function _validateInboxRuleInput(type: string, value: string, ruleId: Id) {
 	let currentCleanedValue = _getCleanedValue(type, value)
 	if (currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
@@ -84,8 +100,11 @@ function _validateInboxRuleInput(type: string, value: string) {
 		&& !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue)
 		&& !isMailAddress(currentCleanedValue, false)) {
 		return "inboxRuleInvalidEmailAddress_msg"
-	} else if (isRuleExistingForType(currentCleanedValue, type)) {
-		return "inboxRuleAlreadyExists_msg"
+	} else {
+		let existingRule = getExistingRuleForType(currentCleanedValue, type)
+		if (existingRule && ruleId && !isSameId(existingRule._id, ruleId)) {
+			return "inboxRuleAlreadyExists_msg"
+		}
 	}
 	return null
 }

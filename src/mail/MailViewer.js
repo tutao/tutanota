@@ -52,6 +52,7 @@ import {ContactEditor} from "../contacts/ContactEditor"
 import MessageBox from "../gui/base/MessageBox"
 import {keyManager, Keys} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
+import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"
 import * as AddSpamRuleDialog from "../settings/AddSpamRuleDialog"
 import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
@@ -172,9 +173,10 @@ export class MailViewer {
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
 
+		const bubbleMenuWidth = 300
 		let senderBubble = createAsyncDropDownButton(() =>
 				getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null,
-			() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250)
+			() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth)
 			.setType(ButtonType.Bubble)
 		let differentSenderBubble = this._isEnvelopeSenderVisible() ?
 			new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
@@ -182,19 +184,19 @@ export class MailViewer {
 			: null
 		let toRecipientBubbles = this.mail.toRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false),
-				null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), 250)
+				null, () => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), bubbleMenuWidth)
 				.setType(ButtonType.Bubble))
 		let ccRecipientBubbles = this.mail.ccRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null,
-				() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), 250)
+				() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), bubbleMenuWidth)
 				.setType(ButtonType.Bubble))
 		let bccRecipientBubbles = this.mail.bccRecipients.map(recipient =>
 			createAsyncDropDownButton(() => getDisplayText(recipient.name, recipient.address, false), null,
-				() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), 250)
+				() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), bubbleMenuWidth)
 				.setType(ButtonType.Bubble))
 		let replyToBubbles = this.mail.replyTos.map(recipient => createAsyncDropDownButton(() =>
 				getDisplayText(recipient.name, recipient.address, false), null,
-			() => this._createBubbleContextButtons(recipient, null), 250)
+			() => this._createBubbleContextButtons(recipient, null), bubbleMenuWidth)
 			.setType(ButtonType.Bubble))
 
 		let detailsExpander = new ExpanderButton("showMore_action", new ExpanderPanel({
@@ -714,12 +716,16 @@ export class MailViewer {
 			}
 			return contactsPromise.then(() => {
 				if (defaultInboxRuleField
-					&& !AddInboxRuleDialog.isRuleExistingForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
 					&& !logins.getUserController().isOutlookAccount()
 					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
-					buttons.push(new Button("addInboxRule_action", () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail),
-							neverNull(defaultInboxRuleField), address.address.trim().toLowerCase())
+					let rule = AddInboxRuleDialog.getExistingRuleForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+					let actionLabel = "editInboxRule_action"
+					if (!rule) {
+						rule = createInboxRuleTemplate(defaultInboxRuleField, address.address.trim().toLowerCase())
+						actionLabel = "addInboxRule_action"
+					}
+					buttons.push(new Button(actionLabel, () => {
+						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(rule))
 					}, null).setType(ButtonType.Secondary))
 				}
 				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {

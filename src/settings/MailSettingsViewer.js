@@ -28,13 +28,14 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
 
 assertMainOrNode()
 
@@ -182,9 +183,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 250
 		}
 
+		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: ButtonAttrs = {
 			label: "addInboxRule_action",
-			click: () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), InboxRuleType.RECIPIENT_TO_EQUALS, ""),
+			click: () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), templateRule),
 			icon: () => Icons.Add
 
 		}
@@ -252,7 +254,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
 						updateInstance: () => update(props)
-					}, rule, index)
+					}, rule, index, [
+						{
+							label: "edit_action",
+							click: () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), rule),
+							type: ButtonType.Dropdown,
+						}
+					])
 				}
 			}))
 			m.redraw()

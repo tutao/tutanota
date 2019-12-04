@@ -1060,5 +1060,6 @@ module.exports = {
 		"desktopIntegration_label": "Desktop-Integration",
 		"desktopIntegration_msg": "Soll Tutanota sich in deine Desktop-Umgebung integrieren, damit du Tutanota über dein Anwendungemenü starten kannst?",
 		"doNotAskAgain_label": "Nicht noch einmal fragen",
+		"editInboxRule_action": "Posteingangs-Regel bearbeiten",
 	}
 }
