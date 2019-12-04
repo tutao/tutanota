@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
-import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
@@ -10,11 +9,12 @@ import {getInboxRuleTypeNameMapping} from "../mail/InboxRuleHandler"
 import {createInboxRule} from "../api/entities/tutanota/InboxRule"
 import {update} from "../api/main/Entity"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {logins} from "../api/main/LoginController"
 import {getArchiveFolder, getFolderName, getInboxFolder} from "../mail/MailUtils"
 import type {MailboxDetail} from "../mail/MailModel"
 import stream from "mithril/stream/stream.js"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 
 assertMainOrNode()
 
@@ -22,31 +22,40 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
-		let typeField = new DropDownSelector("inboxRuleField_label", null, getInboxRuleTypeNameMapping(), stream(preselectedInboxRuleType))
-		let valueField = new TextField("inboxRuleValue_label", () => (typeField.selectedValue()
-			!== InboxRuleType.SUBJECT_CONTAINS && typeField.selectedValue()
-			!== InboxRuleType.MAIL_HEADER_CONTAINS) ? lang.get("emailSenderPlaceholder_label") : lang.get("emptyString_msg"))
-			.setValue(preselectedValue)
 		let targetFolders = mailBoxDetails.folders.filter(folder => folder !== getInboxFolder(mailBoxDetails.folders))
 		                                  .map(folder => {
 			                                  return {name: getFolderName(folder), value: folder}
 		                                  })
 		                                  .sort((folder1, folder2) => folder1.name.localeCompare(folder2.name))
-		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, stream(getArchiveFolder(mailBoxDetails.folders)))
-		let form = {
-			view: () => {
-				return [
-					m(typeField),
-					m(valueField),
-					m(targetFolderField)
-				]
-			}
-		}
+		const inboxRuleType = stream(preselectedInboxRuleType)
+		const inboxRuleValue = stream(preselectedValue)
+		const inboxRuleTarget = stream(getArchiveFolder(mailBoxDetails.folders))
+		let form = () => [
+			m(DropDownSelectorN, {
+				items: getInboxRuleTypeNameMapping(),
+				label: "inboxRuleField_label",
+				selectedValue: inboxRuleType
+			}),
+			m(TextFieldN, {
+				label: "inboxRuleValue_label",
+				value: inboxRuleValue,
+				helpLabel: () => (inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS
+					&& inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS)
+					? lang.get("emailSenderPlaceholder_label")
+					: lang.get("emptyString_msg")
+
+			}),
+			m(DropDownSelectorN, {
+				label: "inboxRuleTargetFolder_label",
+				items: targetFolders,
+				selectedValue: inboxRuleTarget
+			})
+		]
 		let addInboxRuleOkAction = (dialog) => {
 			let rule = createInboxRule()
-			rule.type = typeField.selectedValue()
-			rule.value = _getCleanedValue(typeField.selectedValue(), valueField.value())
-			rule.targetFolder = targetFolderField.selectedValue()._id
+			rule.type = inboxRuleType()
+			rule.value = _getCleanedValue(inboxRuleType(), inboxRuleValue())
+			rule.targetFolder = inboxRuleTarget()._id
 			logins.getUserController().props.inboxRules.push(rule)
 			update(logins.getUserController().props)
 			dialog.close()
@@ -55,7 +64,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 		Dialog.showActionDialog({
 			title: lang.get("addInboxRule_action"),
 			child: form,
-			validator: () => _validateInboxRuleInput(typeField.selectedValue(), valueField.value()),
+			validator: () => _validateInboxRuleInput(inboxRuleType(), inboxRuleValue()),
 			allowOkWithReturn: true,
 			okAction: addInboxRuleOkAction
 		})
