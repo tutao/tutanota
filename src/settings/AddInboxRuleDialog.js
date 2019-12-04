@@ -31,6 +31,7 @@ export function show(mailBoxDetails: MailboxDetail, preselectedInboxRuleType: st
 		                                  .map(folder => {
 			                                  return {name: getFolderName(folder), value: folder}
 		                                  })
+		                                  .sort((folder1, folder2) => folder1.name.localeCompare(folder2.name))
 		let targetFolderField = new DropDownSelector("inboxRuleTargetFolder_label", null, targetFolders, stream(getArchiveFolder(mailBoxDetails.folders)))
 		let form = {
 			view: () => {
