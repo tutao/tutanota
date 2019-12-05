@@ -59,7 +59,7 @@ class HtmlSanitizer {
 						currentNode.setAttribute('target', '_blank')
 					} else {
 						console.log("Relative/invalid URL", currentNode, href)
-						currentNode.href = "#"
+						currentNode.href = "javascript:void(0)"
 					}
 				}
 

@@ -268,8 +268,8 @@ o.spec("HtmlSanitizerTest", browser(function () {
 	})
 
 	o("disallow relative links", function () {
-		o(htmlSanitizer.sanitize('<a href=\"relative\">text</a>', true).text).equals('<a href="#">text</a>')
-		o(htmlSanitizer.sanitize('<a href=\"/relative\">text</a>', true).text).equals('<a href="#">text</a>')
+		o(htmlSanitizer.sanitize('<a href=\"relative\">text</a>', true).text).equals('<a href="javascript:void(0)">text</a>')
+		o(htmlSanitizer.sanitize('<a href=\"/relative\">text</a>', true).text).equals('<a href="javascript:void(0)">text</a>')
 	})
 
 	o("allow relative links when asked", function () {
