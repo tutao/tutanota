@@ -89,5 +89,6 @@ dependencies {
 
 	testImplementation 'junit:junit:4.12'
 	testImplementation "org.robolectric:robolectric:3.3.2"
+	testImplementation "org.mockito:mockito-core:2.28.2"
 	androidTestImplementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
 }

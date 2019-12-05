@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import java.util.TimeZone;
 
-final class RepeatRule {
+public final class RepeatRule {
 	private final String frequency;
 	private final String interval;
 	private final String timeZone;
@@ -28,8 +28,8 @@ final class RepeatRule {
 		);
 	}
 
-	RepeatRule(String frequency, String interval, String timeZone, @Nullable String endType,
-			   @Nullable String endValue) {
+	public RepeatRule(String frequency, String interval, String timeZone, @Nullable String endType,
+					  @Nullable String endValue) {
 		this.frequency = frequency;
 		this.interval = interval;
 		this.timeZone = timeZone;

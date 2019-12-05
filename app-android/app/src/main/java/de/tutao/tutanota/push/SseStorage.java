@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,11 +17,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import de.tutao.tutanota.alarms.AlarmNotification;
 
-public final class SseStorage {
+
+public class SseStorage {
 
 	private static final String SSE_INFO_PREF = "sseInfo";
 	private static final String TAG = SseStorage.class.getSimpleName();
+	private static final String RECURRING_ALARMS_PREF_NAME = "RECURRING_ALARMS";
 
 	private Context context;
 
@@ -125,6 +129,33 @@ public final class SseStorage {
 			}
 		}
 		return keyMapJson;
+	}
+
+	public List<AlarmNotification> readSavedAlarmNotifications() {
+		String jsonString = PreferenceManager.getDefaultSharedPreferences(context)
+				.getString(RECURRING_ALARMS_PREF_NAME, "[]");
+		ArrayList<AlarmNotification> alarmInfos = new ArrayList<>();
+		try {
+			JSONArray jsonArray = new JSONArray(jsonString);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				alarmInfos.add(AlarmNotification.fromJson(jsonArray.getJSONObject(i)));
+			}
+		} catch (JSONException e) {
+			alarmInfos = new ArrayList<>();
+		}
+		return alarmInfos;
+	}
+
+	public void writeAlarmInfos(List<AlarmNotification> alarmNotifications) {
+		List<JSONObject> jsonObjectList = new ArrayList<>(alarmNotifications.size());
+		for (AlarmNotification alarmNotification : alarmNotifications) {
+			jsonObjectList.add(alarmNotification.toJSON());
+		}
+		String jsonString = JSONObject.wrap(jsonObjectList).toString();
+		PreferenceManager.getDefaultSharedPreferences(context)
+				.edit()
+				.putString(RECURRING_ALARMS_PREF_NAME, jsonString)
+				.apply();
 	}
 }
 

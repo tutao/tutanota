@@ -1,12 +1,18 @@
 package de.tutao.tutanota;
 
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+
 import de.tutao.tutanota.alarms.AlarmModel;
 import de.tutao.tutanota.alarms.AlarmTrigger;
 import de.tutao.tutanota.alarms.EndType;
 import de.tutao.tutanota.alarms.RepeatPeriod;
-import org.junit.Test;
-
-import java.util.*;
 
 import static de.tutao.tutanota.alarms.AlarmModel.getAllDayDateUTC;
 import static org.junit.Assert.assertArrayEquals;
@@ -19,7 +25,7 @@ public class AlarmModelTest {
 	public void testIterates() {
 		List<Date> occurrences = new ArrayList<>();
 
-		long now = getDate(timeZone, 2019, 4, 2, 0, 0).getTime();
+		Date now = getDate(timeZone, 2019, 4, 2, 0, 0);
 		Date eventStart = getDate(timeZone, 2019, 4, 2, 12, 0);
 
 		AlarmModel.iterateAlarmOccurrences(now, timeZone, eventStart, eventStart, RepeatPeriod.WEEKLY,
@@ -42,7 +48,7 @@ public class AlarmModelTest {
 
 		TimeZone repeatTimeZone = TimeZone.getTimeZone("Asia/Anadyr");
 
-		long now = getDate(repeatTimeZone, 2019, 4, 1, 0, 0).getTime();
+		Date now = getDate(repeatTimeZone, 2019, 4, 1, 0, 0);
 		// UTC date just encodes the date, whatever you pass to it. You just have to extract consistently
 		Date eventStart = getAllDayDateUTC(getDate(timeZone, 2019, 4, 2, 0, 0), timeZone);
 		Date eventEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 3, 0, 0), timeZone);

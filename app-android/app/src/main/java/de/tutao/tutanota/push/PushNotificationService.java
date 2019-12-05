@@ -38,11 +38,13 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
+import de.tutao.tutanota.alarms.SystemAlarmFacade;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
 
@@ -83,7 +85,7 @@ public final class PushNotificationService extends JobService {
 		super.onCreate();
 		connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		this.connectedSseInfo = sseStorage.getSseInfo();
-		alarmNotificationsManager = new AlarmNotificationsManager(this, sseStorage);
+		alarmNotificationsManager = new AlarmNotificationsManager(new AndroidKeyStoreFacade(this), sseStorage, new Crypto(this), new SystemAlarmFacade(this));
 		localNotificationsFacade = new LocalNotificationsFacade(this);
 		looperThread.start();
 

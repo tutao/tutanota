@@ -50,7 +50,7 @@ import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 import javax.crypto.spec.SecretKeySpec;
 
-public final class Crypto {
+public class Crypto {
 	public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
 	public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
 	public static final byte[] FIXED_IV = new byte[16];
@@ -85,7 +85,6 @@ public final class Crypto {
 
 	static {
 		// see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
-		PRNGFixes.apply();
 		for (int i = 0; i < FIXED_IV.length; i++) {
 			FIXED_IV[i] = (byte) 0x88;
 		}
