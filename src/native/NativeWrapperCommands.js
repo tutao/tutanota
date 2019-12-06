@@ -3,6 +3,7 @@ import {Request} from "../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "./FileApp"
 import {asyncImport} from "../api/common/utils/Utils"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
+import type {MailEditor} from "../mail/MailEditor"
 
 const createMailEditor = (msg: Request) => {
 	return Promise.all([
@@ -17,14 +18,15 @@ const createMailEditor = (msg: Request) => {
 			             mailToUrl ? [] : getFilesData(filesUris),
 			             mailModelModule.mailModel.init(),
 			             (files) => {
-				             const editor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+				             const editor: MailEditor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
 				             let editorInit
 				             if (mailToUrl) {
 					             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
 				             } else {
-					             const address = addresses ? addresses.shift() : null
+					             const address = addresses ? addresses.shift() : ""
+					             const recipients = address ? {to: [{name: "", address: address}]} : {}
 					             const finalSubject = subject || (files.length > 0 ? files[0].name : "")
-					             editorInit = editor.initWithTemplate(null, address, finalSubject,
+					             editorInit = editor.initWithTemplate(recipients, finalSubject,
 						             (text || "") + mailUtilsModule.getEmailSignature(), null)
 				             }
 				             return editorInit.then(() => {
