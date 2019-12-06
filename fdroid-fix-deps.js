@@ -4,11 +4,13 @@ const fs = require('fs')
 const packageJson = require('./package.json')
 
 ;[
-	"electron-builder",
 	'electron',
+	"electron-builder",
 	"electron-localshortcut",
 	"electron-packager",
 	"electron-updater",
+	"electron-notarize",
+	"electron-rebuild",
 	"express",
 	"flow-bin",
 	"request",
@@ -20,5 +22,13 @@ const packageJson = require('./package.json')
 ].forEach((dep) => {
 	delete packageJson.devDependencies[dep]
 })
+
+;[
+	"keytar"
+].forEach((dep) => {
+	delete packageJson.dependencies[dep]
+})
+
+delete packageJson.scripts["postinstall"]
 
 fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "  "))
