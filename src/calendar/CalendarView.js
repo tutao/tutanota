@@ -369,7 +369,7 @@ export class CalendarView implements CurrentView {
 		}
 	}
 
-	overrideUpIcon(): boolean {
+	overrideBackIcon(): boolean {
 		return this._currentViewType === CalendarViewType.WEEK || this._currentViewType === CalendarViewType.DAY
 	}
 

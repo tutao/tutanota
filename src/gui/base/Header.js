@@ -35,7 +35,7 @@ export interface CurrentView extends Component {
 	/** @return true if view handled press itself */
 	+handleBackButton?: () => boolean;
 	/** @return true if "back/up" icon should be shown, false if menu icon */
-	+overrideUpIcon?: () => boolean;
+	+overrideBackIcon?: () => boolean;
 }
 
 class Header {
@@ -210,7 +210,7 @@ class Header {
 			return m(NavButtonN, {
 				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
 				icon: () => (this._currentView
-				&& this._currentView.overrideUpIcon ? this._currentView.overrideUpIcon() : !viewSlider.getBackgroundColumns()[0].visible)
+				&& this._currentView.overrideBackIcon ? this._currentView.overrideBackIcon() : !viewSlider.getBackgroundColumns()[0].visible)
 					? BootIcons.Back
 					: BootIcons.MoreVertical,
 				colors: NavButtonColors.Header,
