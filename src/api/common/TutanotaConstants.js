@@ -459,3 +459,4 @@ export const PostingType = Object.freeze({
 })
 export type PostingTypeEnum = $Values<typeof PostingType>
 
+export const CounterType_UnreadMails = "2"

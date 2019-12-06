@@ -252,6 +252,16 @@ export class MailModel {
 			window.focus()
 		})
 	}
+
+	getCounterValue(listId: Id): ?number {
+		const mailboxDetails = this.getMailboxDetailsForMailListId(listId)
+		const counters = this.mailboxCounters()
+		if (mailboxDetails && counters[mailboxDetails.mailGroup._id]) {
+			return counters[mailboxDetails.mailGroup._id][listId]
+		} else {
+			return null
+		}
+	}
 }
 
 export const mailModel = new MailModel(new Notifications(), locator.eventController)

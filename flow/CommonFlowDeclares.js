@@ -99,6 +99,8 @@ type ListConfig<T, R: VirtualRow<T>> = {
 
 	createVirtualRow(): R;
 
+	listLoadedCompletly?: () => void;
+
 	showStatus: boolean;
 	className: string;
 	swipe: SwipeConfiguration<T>;

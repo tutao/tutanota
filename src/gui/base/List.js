@@ -526,9 +526,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this.displaySpinner(this._loadedEntities.length === 0)
 		this._loading = this._config.fetch(startId, count)
 		                    .then((newItems: T[]) => {
-			                    if (newItems.length < count) this.setLoadedCompletely()
 			                    this._loadedEntities.push(...newItems)
 			                    this._loadedEntities.sort(this._config.sortCompare)
+			                    if (newItems.length < count) this.setLoadedCompletely() // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
 		                    }).finally(() => {
 				if (this.ready) {
 					this._domLoadingRow.style.display = 'none'
@@ -548,6 +548,9 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._domInitialized.promise.then(() => {
 			this._domLoadingRow.style.display = 'none'
 		})
+		if (this._config.listLoadedCompletly) {
+			this._config.listLoadedCompletly()
+		}
 	}
 
 	displaySpinner(delayed: boolean = true, force?: boolean) {
@@ -938,6 +941,10 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 	isMobileMultiSelectionActionActive(): boolean {
 		return this._mobileMultiSelectionActive;
+	}
+
+	getLoadedEntities(): T[] {
+		return this._loadedEntities
 	}
 }
 

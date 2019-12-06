@@ -3,15 +3,22 @@ import m from "mithril"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
-import {sortCompareByReverseId} from "../api/common/EntityFunctions"
-import {load, loadRange} from "../api/main/Entity"
+import {HttpMethod, sortCompareByReverseId} from "../api/common/EntityFunctions"
+import {load, loadRange, serviceRequestVoid} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
-import {getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
+import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
-import {getArchiveFolder, getFolderName, getInboxFolder, getSenderOrRecipientHeading, isTutanotaTeamMail, showDeleteConfirmationDialog} from "./MailUtils"
+import {
+	getArchiveFolder,
+	getFolderName,
+	getInboxFolder,
+	getSenderOrRecipientHeading,
+	isTutanotaTeamMail,
+	showDeleteConfirmationDialog
+} from "./MailUtils"
 import {findAndApplyMatchingRule, isInboxList} from "./InboxRuleHandler"
 import {NotFoundError} from "../api/common/error/RestError"
 import {px, size} from "../gui/size"
@@ -22,10 +29,11 @@ import {logins} from "../api/main/LoginController"
 import {FontIcons} from "../gui/base/icons/FontIcons"
 import Badge from "../gui/base/Badge"
 import {theme} from "../gui/theme"
-import {ButtonColors} from "../gui/base/ButtonN"
-import {Dialog} from "../gui/base/Dialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Dialog} from "../gui/base/Dialog"
+import {MonitorService} from "../api/entities/monitor/Services"
+import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 
 assertMainOrNode()
 
@@ -96,7 +104,25 @@ export class MailListView implements Component {
 			}),
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
-			emptyMessage: lang.get("noMails_msg")
+			emptyMessage: lang.get("noMails_msg"),
+			listLoadedCompletly: () => {
+				const unreadMails = this.list.getLoadedEntities().reduce((acc, mail) => {
+					if (mail.unread) {
+						acc++
+					}
+					return acc
+				}, 0)
+				const counterValue = mailModel.getCounterValue(this.listId)
+				if (counterValue != null && counterValue !== unreadMails) {
+					const data = createWriteCounterData({
+						counterType: CounterType_UnreadMails,
+						row: mailModel.getMailboxDetailsForMailListId(this.listId).mailGroup._id,
+						column: this.listId,
+						value: String(unreadMails)
+					})
+					serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
+				}
+			}
 		})
 	}
 

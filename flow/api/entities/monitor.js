@@ -12,3 +12,13 @@ type ReadCounterReturn = {
 	value: ?NumberString;
 
 }
+
+type WriteCounterData = {
+	_type: TypeRef<WriteCounterData>;
+	_format: NumberString;
+	counterType: ?NumberString;
+	row: string;
+	column: Id;
+	value: NumberString;
+
+}
