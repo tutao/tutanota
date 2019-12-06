@@ -27,9 +27,8 @@ import {DateTime} from "luxon"
  * That is why we only use the picker on mobile devices. They provide native picker components
  * and allow opening the picker by forwarding the click event to the input.
  */
-export class DatePicker {
+export class DatePicker implements Component {
 	input: TextField;
-	view: Function;
 	invalidDate: boolean;
 	date: Stream<?Date>;
 	_forceCompact: boolean;
@@ -82,7 +81,7 @@ export class DatePicker {
 		})
 	}
 
-	view = () => {
+	view = (vnode: Vnode<void>) => {
 		return m("", [
 			m(this.input),
 			(this._forceCompact || client.isMobileDevice()

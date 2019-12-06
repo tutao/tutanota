@@ -2,6 +2,7 @@
 import {assertMainOrNodeBoot} from "../api/Env"
 import {themeId} from "../gui/theme"
 import {client} from "./ClientDetector"
+import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
 
 assertMainOrNodeBoot()
 
@@ -17,6 +18,7 @@ class DeviceConfig {
 	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
 	_language: ?string;
+	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
 
 	/**
 	 * @param config The config to copy from
@@ -36,6 +38,7 @@ class DeviceConfig {
 		}
 		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 		this._language = loadedConfig && loadedConfig._language
+		this._defaultCalendarView = loadedConfig && loadedConfig._defaultCalendarView || {}
 	}
 
 	getStoredAddresses(): string[] {
@@ -117,6 +120,17 @@ class DeviceConfig {
 		if (this._theme !== theme) {
 			this._theme = theme
 			themeId(theme)
+			this._store()
+		}
+	}
+
+	getDefaultCalendarView(userId: Id): ?CalendarViewTypeEnum {
+		return this._defaultCalendarView[userId]
+	}
+
+	setDefaultCalendarView(userId: Id, defaultView: CalendarViewTypeEnum) {
+		if (this._defaultCalendarView[userId] !== defaultView) {
+			this._defaultCalendarView[userId] = defaultView
 			this._store()
 		}
 	}
