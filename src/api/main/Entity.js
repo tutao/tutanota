@@ -6,7 +6,7 @@ import {
 	_eraseEntity,
 	_loadEntity,
 	_loadEntityRange,
-	_loadMultipleEntities,
+	_loadMultipleEntities, _loadReverseRangeBetween,
 	_setupEntity,
 	_updateEntity,
 	_verifyType,
@@ -90,6 +90,10 @@ function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, en
 			}))
 		}
 	})
+}
+
+export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
+	return _loadReverseRangeBetween(typeRef, listId, start, end, worker, rangeItemLimit)
 }
 
 export function loadVersion<T>(instance: T, version: Id): Promise<T> {
