@@ -14,6 +14,8 @@ import {load, update} from "../api/main/Entity"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {incrementDate} from "../api/common/utils/DateUtils"
+import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
+import {CalendarViewType} from "../calendar/CalendarView"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
