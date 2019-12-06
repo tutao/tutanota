@@ -285,18 +285,24 @@ export class SearchBar implements Component {
 
 	_makeOverlayRect(): PositionRect {
 		let overlayRect: PositionRect
+		const domRect = this._domWrapper.getBoundingClientRect()
 		if (styles.isDesktopLayout()) {
-			const domRect = this._domWrapper.getBoundingClientRect()
 			overlayRect = {
 				top: px(domRect.bottom + 5),
 				right: px(window.innerWidth - domRect.right),
 				width: px(350)
 			}
-		} else {
+		} else if (window.innerWidth < 500) {
 			overlayRect = {
 				top: px(size.navbar_height_mobile + 6),
 				left: px(16),
 				right: px(16),
+			}
+		} else {
+			overlayRect = {
+				top: px(size.navbar_height_mobile + 6),
+				left: px(domRect.left),
+				right: px(window.innerWidth - domRect.right),
 			}
 		}
 		return overlayRect
