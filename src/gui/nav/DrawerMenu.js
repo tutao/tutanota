@@ -7,6 +7,7 @@ import {LogoutUrl} from "../base/Header"
 import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
 import {isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
+import {navButtonRoutes} from "../../misc/RouteChange"
 
 type Attrs = void
 
@@ -42,7 +43,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 			m(ButtonN, {
 				icon: () => BootIcons.Settings,
 				label: "settings_label",
-				click: () => m.route.set("/settings"),
+				click: () => m.route.set(navButtonRoutes.settingsUrl),
 				type: ButtonType.ActionLarge,
 				colors: ButtonColors.DrawerNav,
 			}),

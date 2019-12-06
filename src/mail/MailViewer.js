@@ -48,7 +48,7 @@ import {
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
-import MessageBox from "../gui/base/MessageBox"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {keyManager, Keys} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"
@@ -81,7 +81,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {styles} from "../gui/styles"
 import {worker} from "../api/main/WorkerClient"
 import {createDropdown} from "../gui/base/DropdownN"
-import {routes} from "../misc/RouteChange"
+import {navButtonRoutes} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -401,7 +401,7 @@ export class MailViewer {
 									m("small", lang.get("loading_msg"))
 								])
 								: ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors)
-									? m(MessageBox, {
+									? m(ColumnEmptyMessageBox, {
 										message: "corrupted_msg",
 										icon: Icons.Warning,
 										color: theme.content_message_bg,
@@ -704,8 +704,8 @@ export class MailViewer {
 				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
 					if (contact) {
 						buttons.push(new Button("showContact_action", () => {
-							routes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-							m.route.set(routes.contactsUrl + location.hash)
+							navButtonRoutes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
+							m.route.set(navButtonRoutes.contactsUrl + location.hash)
 						}, null).setType(ButtonType.Secondary))
 					} else {
 						buttons.push(new Button("createContact_action", () => {

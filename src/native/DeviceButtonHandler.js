@@ -7,7 +7,7 @@ import {LoginView} from "../login/LoginView"
 import {header} from "../gui/base/Header";
 import {modal} from "../gui/base/Modal";
 import {last} from "../api/common/utils/ArrayUtils";
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../misc/RouteChange"
 
 assertMainOrNode()
 
@@ -33,7 +33,7 @@ export function handleBackPress(): boolean {
 			return true
 		} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX)
 			|| currentRoute.startsWith(SEARCH_PREFIX) || currentRoute.startsWith(CALENDAR_PREFIX)) { // go back to mail from other paths
-			m.route.set(routes.mailUrl)
+			m.route.set(navButtonRoutes.mailUrl)
 			return true
 		} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
 			// If the first background column is visible, quit

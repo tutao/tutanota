@@ -520,8 +520,8 @@ styles.registerStyle('main', () => {
 			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)' // insets for iPhone X)
 		},
 
-		'.bottom-nav': {
-			'box-shadow': `0 -1px 10px 0 ${theme.header_box_shadow_bg}`,
+		'bottom-nav': {
+			'box-shadow': `0 -2px 4px 0 ${theme.header_box_shadow_bg}`,
 			height: positionValue(size.bottom_nav_bar),
 			left: 0,
 			right: 0,

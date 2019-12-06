@@ -17,7 +17,7 @@ import type {SearchBar} from "../../search/SearchBar"
 import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX} from "../../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -58,7 +58,7 @@ class Header {
 		this.mailNavButton = {
 			label: 'emails_label',
 			icon: () => BootIcons.Mail,
-			href: () => routes.mailUrl,
+			href: () => navButtonRoutes.mailUrl,
 			isSelectedPrefix: MAIL_PREFIX,
 			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
 		}
@@ -68,7 +68,7 @@ class Header {
 			.addButton({
 				label: 'contacts_label',
 				icon: () => BootIcons.Contacts,
-				href: () => routes.contactsUrl,
+				href: () => navButtonRoutes.contactsUrl,
 				isSelectedPrefix: CONTACTS_PREFIX,
 				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
 			})
@@ -132,19 +132,19 @@ class Header {
 			{
 				key: Keys.M,
 				enabled: () => logins.isUserLoggedIn(),
-				exec: key => m.route.set(routes.mailUrl),
+				exec: key => m.route.set(navButtonRoutes.mailUrl),
 				help: "mailView_action"
 			},
 			{
 				key: Keys.C,
 				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
-				exec: key => m.route.set(routes.contactsUrl),
+				exec: key => m.route.set(navButtonRoutes.contactsUrl),
 				help: "contactView_action"
 			},
 			{
 				key: Keys.S,
 				enabled: () => logins.isInternalUserLoggedIn(),
-				exec: key => m.route.set(routes.settingsUrl),
+				exec: key => m.route.set(navButtonRoutes.settingsUrl),
 				help: "settingsView_action"
 			},
 			{

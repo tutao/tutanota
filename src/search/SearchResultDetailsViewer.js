@@ -7,7 +7,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
 import {MailViewer} from "../mail/MailViewer"
 import {ContactViewer} from "../contacts/ContactViewer"
-import MessageBox from "../gui/base/MessageBox"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {assertMainOrNode} from "../api/Env"
 import {MultiSearchViewer} from "./MultiSearchViewer"
@@ -33,7 +33,7 @@ export class SearchResultDetailsViewer {
 	view(): Children {
 		let selected = this._listView.list ? this._listView.list.getSelectedEntities() : []
 		if (selected.length === 0) {
-			return m(".fill-absolute.mt-xs.plr-l", m(MessageBox, {
+			return m(".fill-absolute.mt-xs.plr-l", m(ColumnEmptyMessageBox, {
 				message: "noSelection_msg",
 				color: theme.content_message_bg,
 				icon: isSameTypeRef(this._listView._lastType, MailTypeRef) ? BootIcons.Mail : BootIcons.Contacts,

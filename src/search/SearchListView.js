@@ -42,13 +42,14 @@ export class SearchListView {
 	_resultStreamDependency: ?Stream<any>;
 	oncreate: Function;
 	onremove: Function;
-	_lastType: TypeRef<Mail> | TypeRef<Contact>;
+	_lastType: (TypeRef<Mail> | TypeRef<Contact>);
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: ?SearchResult;
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
+		this._lastType = MailTypeRef
 		this.oncreate = () => {
 			this.list = this._createList()
 			if (!locator.search.result()) { // do not call loadInitial if we already have a result. It will be called during the subscription for result stream. This is only needed for mobile search or by navigating to /search url

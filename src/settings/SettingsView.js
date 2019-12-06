@@ -8,7 +8,6 @@ import {SettingsFolder} from "./SettingsFolder"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {CurrentView} from "../gui/base/Header"
-import {header} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
@@ -18,10 +17,9 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
 import {Button} from "../gui/base/Button"
-import {ButtonColors, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors} from "../gui/base/ButtonN"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {ContactFormListView} from "./ContactFormListView"
 import {WhitelabelSettingsViewer} from "./WhitelabelSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
@@ -43,8 +41,9 @@ import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
-import {routes} from "../misc/RouteChange"
+import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
+import {DrawerMenu} from "../gui/nav/DrawerMenu"
 
 assertMainOrNode()
 
@@ -104,16 +103,19 @@ export class SettingsView implements CurrentView {
 		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
-			view: () => m(".folder-column.scroll.overflow-x-hidden.flex.col", {
+			view: () => m(".flex.height-100p", {
 				style: {
 					paddingLeft: getSafeAreaInsetLeft()
-				}
+				},
 			}, [
-				m(".plr-l", m(userFolderExpander)),
-				m(userFolderExpander.panel),
-				logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
-				logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
-				isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
+				m(DrawerMenu),
+				m(".folder-column.scroll.overflow-x-hidden.flex.flex-grow.col", [
+					m(".plr-l", m(userFolderExpander)),
+					m(userFolderExpander.panel),
+					logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
+					logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
+					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
+				])
 			])
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("settings_label"))
 
@@ -202,14 +204,14 @@ export class SettingsView implements CurrentView {
 				this.detailsViewer = null
 				// make sure the currentViewer is available. if we do not call this._getCurrentViewer(), the floating + button is not always visible
 				this._getCurrentViewer()
-				routes.settingsUrl = folder.url
+				navButtonRoutes.settingsUrl = folder.url
 				m.redraw()
 			}
 		}
 	}
 
 	_setUrl(url: string) {
-		routes.settingsUrl = url
+		navButtonRoutes.settingsUrl = url
 		m.route.set(url + location.hash)
 	}
 

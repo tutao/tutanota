@@ -3,7 +3,7 @@ import m from "mithril"
 import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
-import MessageBox from "../gui/base/MessageBox"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {ContactView} from "./ContactView"
@@ -33,7 +33,7 @@ export class MultiContactViewer {
 								m(actionBar)
 							])
 						] :
-						m(MessageBox, {
+						m(ColumnEmptyMessageBox, {
 							message: () => this._getContactSelectionMessage(contactView),
 							icon: BootIcons.Contacts,
 							color: theme.content_message_bg,

@@ -36,7 +36,7 @@ import {exportAsVCard} from "./VCardExporter"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {routes, throttleRoute} from "../misc/RouteChange"
+import {navButtonRoutes, throttleRoute} from "../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
@@ -400,7 +400,7 @@ export class ContactView implements CurrentView {
 	 * Sets a new url for the contact button in the header bar and navigates to the url.
 	 */
 	_setUrl(url: string) {
-		routes.contactsUrl = url
+		navButtonRoutes.contactsUrl = url
 		// do not change the url if the search view is active
 		if (m.route.get().startsWith("/contact")) {
 			this._throttledSetUrl(url)

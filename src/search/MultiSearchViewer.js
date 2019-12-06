@@ -5,7 +5,7 @@ import {ActionBar} from "../gui/base/ActionBar"
 import {Icons} from "../gui/base/icons/Icons"
 import {Button, createDropDownButton} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
-import MessageBox from "../gui/base/MessageBox"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
 import {erase, load, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
@@ -65,7 +65,7 @@ export class MultiSearchViewer {
 								m(this._viewingMails() ? mailActionBar : contactActionBar)
 							])
 						]
-						: m(MessageBox, {
+						: m(ColumnEmptyMessageBox, {
 							message: () => this._getSearchSelectionMessage(this._searchListView),
 							color: theme.content_message_bg,
 							icon: this._isMailList ? BootIcons.Mail : BootIcons.Contacts,

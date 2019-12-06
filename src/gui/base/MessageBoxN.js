@@ -1,15 +1,15 @@
 // @flow
 import m from "mithril"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
 import {px} from "../size"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {theme} from "../theme"
 
 assertMainOrNode()
 
 export type MessageBoxAttrs = {|
 	label: TranslationKey | lazy<string>,
-	bgClass?: string,
 	marginTop?: number,
 	visible?: Stream<boolean>
 |}
@@ -17,7 +17,7 @@ export type MessageBoxAttrs = {|
 /**
  * A message box displaying a text. A message box can be displayed on the background of a column if the column is empty.
  */
-class _MessageBoxN {
+export class MessageBoxN implements MComponent<MessageBoxAttrs> {
 	_messageNode: HTMLElement;
 
 	view(vnode: Vnode<MessageBoxAttrs>) {
@@ -33,12 +33,14 @@ class _MessageBoxN {
 				}
 			},
 		}, [
-			m(".dialog-width-s.pt.pb.plr.mlr", {
-				class: a.bgClass ? a.bgClass : "content-message-bg",
-				style: {'margin-top': px(a.marginTop ? a.marginTop : 100), 'white-space': 'pre-wrap', 'text-align': 'center'}
+			m(".dialog-width-s.pt.pb.plr.border-radius", {
+				style: {
+					'margin-top': px(a.marginTop ? a.marginTop : 100),
+					'white-space': 'pre-wrap',
+					'text-align': 'center',
+					border: `2px solid ${theme.content_border}`,
+				}
 			}, lang.getMaybeLazy(a.label))
 		])
 	}
 }
-
-export const MessageBoxN: Class<MComponent<MessageBoxAttrs>> = _MessageBoxN

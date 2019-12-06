@@ -8,7 +8,7 @@ import {load, update} from "../api/main/Entity"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {exportAsEml} from "./Exporter"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import MessageBox from "../gui/base/MessageBox"
+import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "./MailUtils"
@@ -45,7 +45,7 @@ export class MultiMailViewer {
 								m(actions)
 							])
 						]
-						: m(MessageBox, {
+						: m(ColumnEmptyMessageBox, {
 							message: () => this._getMailSelectionMessage(mailView),
 							icon: BootIcons.Mail,
 							color: theme.content_message_bg,

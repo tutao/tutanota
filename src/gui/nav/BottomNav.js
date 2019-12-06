@@ -4,7 +4,7 @@ import m from "mithril"
 import {NavButtonN} from "../base/NavButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {size} from "../size"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, routes, SEARCH_PREFIX} from "../../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 type Attrs = {width: number}
 
@@ -12,11 +12,11 @@ const fontSize = size.font_size_small
 
 export class BottomNav implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("bottom-nav.flex.items-center.bottom-nav.z1", [
+		return m("bottom-nav.flex.items-center.z1", [
 			m(NavButtonN, {
 					label: 'emails_label',
 					icon: () => BootIcons.Mail,
-					href: routes.mailUrl,
+					href: navButtonRoutes.mailUrl,
 					vertical: true,
 					fontSize
 				}
@@ -33,7 +33,7 @@ export class BottomNav implements MComponent<Attrs> {
 			m(NavButtonN, {
 					label: "contacts_label",
 					icon: () => BootIcons.Contacts,
-					href: () => routes.contactsUrl,
+					href: () => navButtonRoutes.contactsUrl,
 					isSelectedPrefix: CONTACTS_PREFIX,
 					vertical: true,
 					fontSize

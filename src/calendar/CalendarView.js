@@ -196,7 +196,7 @@ export class CalendarView implements CurrentView {
 
 				])
 			])
-		}, ColumnType.Foreground, size.first_col_min_width, 350, () => this._currentViewType === CalendarViewType.WEEK
+		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => this._currentViewType === CalendarViewType.WEEK
 			? lang.get("month_label")
 			: lang.get("calendar_label"))
 

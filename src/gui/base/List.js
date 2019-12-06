@@ -10,7 +10,7 @@ import {OperationType} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
-import MessageBox from "./MessageBox"
+import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
 import {animations, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -208,7 +208,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								]
 							),
 							// We cannot render it conditionally because it's rendered once, we must manipulate DOM afterwards
-							m(MessageBox, {
+							m(ColumnEmptyMessageBox, {
 								message: () => this._config.emptyMessage,
 								color: theme.list_message_bg,
 								oncreate: (vnode) => {

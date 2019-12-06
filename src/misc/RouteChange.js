@@ -22,7 +22,7 @@ export const CALENDAR_PREFIX = "/calendar"
 export const SEARCH_PREFIX = "/search"
 export const SETTINGS_PREFIX = "/settings"
 
-export const routes = {
+export const navButtonRoutes = {
 	mailUrl: MAIL_PREFIX,
 	contactsUrl: CONTACTS_PREFIX,
 	settingsUrl: SETTINGS_PREFIX,

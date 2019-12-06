@@ -18,7 +18,7 @@ export type Attrs = {
 /**
  * A message box displaying a text. A message box can be displayed on the background of a column if the column is empty.
  */
-export default class MessageBox implements MComponent<Attrs> {
+export default class ColumnEmptyMessageBox implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>): Children {
 		return m(".fill-absolute.flex.col.items-center.justify-center",
 			m(".mt-negative-l.flex.col.items-center.justify-center.mlr", {
