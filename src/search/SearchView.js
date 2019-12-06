@@ -210,12 +210,12 @@ export class SearchView implements CurrentView {
 			view: () => m(".list-column", [
 				m(this._searchList),
 			])
-		}, ColumnType.Background, 300, 500, () => lang.get("searchResult_label"))
+		}, ColumnType.Background, size.second_col_min_width, 500, () => lang.get("searchResult_label"))
 
 		this._viewer = new SearchResultDetailsViewer(this._searchList)
 		this.resultDetailsColumn = new ViewColumn({
 			view: () => m(".search", m(this._viewer))
-		}, ColumnType.Background, 600, 2400)
+		}, ColumnType.Background, size.third_col_min_width, 2400)
 
 		this.viewSlider = new ViewSlider([
 			this.folderColumn, this.resultListColumn, this.resultDetailsColumn
