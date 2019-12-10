@@ -33,6 +33,8 @@ import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {MonitorService} from "../api/entities/monitor/Services"
 import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
+import {debounce} from "../api/common/utils/Utils"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -104,26 +106,38 @@ export class MailListView implements Component {
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg"),
-			listLoadedCompletly: () => {
-				const unreadMails = this.list.getLoadedEntities().reduce((acc, mail) => {
-					if (mail.unread) {
-						acc++
-					}
-					return acc
-				}, 0)
-				const counterValue = mailModel.getCounterValue(this.listId)
-				if (counterValue != null && counterValue !== unreadMails) {
-					const data = createWriteCounterData({
-						counterType: CounterType_UnreadMails,
-						row: mailModel.getMailboxDetailsForMailListId(this.listId).mailGroup._id,
-						column: this.listId,
-						value: String(unreadMails)
-					})
-					serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
-				}
-			}
+			listLoadedCompletly: () => this._fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length)
 		})
 	}
+
+	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
+	_fixCounterIfNeeded = debounce(2000, (listId, listLength) => {
+		// If folders are changed, list won't have the data we need.
+		// Do not rely on counters if we are not connected
+		if (this.listId !== listId || worker.wsConnection()() !== "connected") {
+			return
+		}
+		// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
+		if (listLength !== this.list.getLoadedEntities().length) {
+			return
+		}
+		const unreadMails = this.list.getLoadedEntities().reduce((acc, mail) => {
+			if (mail.unread) {
+				acc++
+			}
+			return acc
+		}, 0)
+		const counterValue = mailModel.getCounterValue(this.listId)
+		if (counterValue != null && counterValue !== unreadMails) {
+			const data = createWriteCounterData({
+				counterType: CounterType_UnreadMails,
+				row: mailModel.getMailboxDetailsForMailListId(this.listId).mailGroup._id,
+				column: this.listId,
+				value: String(unreadMails)
+			})
+			serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
+		}
+	})
 
 	view(): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
