@@ -2,11 +2,12 @@
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
 import {size} from "../size"
-import {animations, transform, alpha} from "../animation/Animations"
+import {alpha, animations, transform} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {theme} from "../theme"
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
+import {header} from "./Header"
 
 assertMainOrNode()
 
@@ -61,25 +62,28 @@ class _ViewSlider {
 	view(vnode: Vnode<ViewSliderAttrs>): VirtualElement {
 		const a = vnode.attrs
 		//console.log("viewslider.view")
-		return m(".view-columns.fill-absolute.backface_fix", {
-			oncreate: (vnode) => this._domSlider = vnode.dom,
-			style: {
-				transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
-				width: this.getWidth(a.columns) + 'px'
-			}
-		}, a.columns.map(column => {
-			return m(".view-column.fill-absolute.backface_fix", {
-					oncreate: (vnode) => column._domColumn = vnode.dom,
-					style: {
-						width: column.width + 'px',
-						left: column.offset + 'px',
-						transform: column.columnType === ColumnType.Foreground ?
-							'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
-						'z-index': column.columnType === ColumnType.Foreground ? "3" : "1"
-					}
-				},
-				m(column.component))
-		}).concat(this._createModalBackground()))
+		return m(".flex.col.fill-absolute", [
+			m(header),
+			m(".view-columns.backface_fix.flex-grow", {
+				oncreate: (vnode) => this._domSlider = vnode.dom,
+				style: {
+					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
+					width: this.getWidth(a.columns) + 'px'
+				}
+			}, a.columns.map(column => {
+				return m(".view-column.fill-absolute.backface_fix", {
+						oncreate: (vnode) => column._domColumn = vnode.dom,
+						style: {
+							width: column.width + 'px',
+							left: column.offset + 'px',
+							transform: column.columnType === ColumnType.Foreground ?
+								'translateX(' + column.getOffsetForeground(column.isInForeground) + 'px)' : null,
+							'z-index': column.columnType === ColumnType.Foreground ? "3" : "1"
+						}
+					},
+					m(column.component))
+			}).concat(this._createModalBackground()))
+		])
 	}
 
 	_createModalBackground() {

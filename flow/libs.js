@@ -282,7 +282,7 @@ export type Children = Child | ChildArray;
 
 export interface Vnode<Attrs> extends Lifecycle<Attrs> {
 	attrs: Attrs,
-	children: Children,
+	children: ChildArray,
 	dom: HTMLElement,
 }
 

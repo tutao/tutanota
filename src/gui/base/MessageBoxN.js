@@ -40,7 +40,7 @@ export class MessageBoxN implements MComponent<MessageBoxAttrs> {
 					'text-align': 'center',
 					border: `2px solid ${theme.content_border}`,
 				}
-			}, lang.getMaybeLazy(a.label))
+			}, vnode.children.length > 0 ? vnode.children : lang.getMaybeLazy(a.label))
 		])
 	}
 }

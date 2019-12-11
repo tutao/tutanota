@@ -200,7 +200,7 @@ export class LoginViewController implements ILoginViewController {
 			console.log(new Date().toISOString(), "offline - pause event bus")
 			worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-		if (env.mode === Mode.App || env.mode === Mode.Desktop) {
+		if ((env.mode === Mode.App || env.mode === Mode.Desktop) && !isAdminClient()) {
 			pushServiceApp.register()
 		}
 

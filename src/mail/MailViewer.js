@@ -14,6 +14,7 @@ import type {DomMutation} from "../gui/animation/Animations"
 import {animations, scroll} from "../gui/animation/Animations"
 import {nativeApp} from "../native/NativeWrapper"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
+import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	FeatureType,
@@ -91,7 +92,6 @@ import {worker} from "../api/main/WorkerClient"
 import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
-import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -746,11 +746,8 @@ export class MailViewer {
 						const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
 							? SpamRuleType.WHITELIST
 							: SpamRuleType.BLACKLIST
-						let spamRuleField = null
+						let spamRuleField
 						switch (defaultInboxRuleField) {
-							case InboxRuleType.FROM_EQUALS:
-								spamRuleField = SparmRuleType.FROM
-								break
 							case InboxRuleType.RECIPIENT_TO_EQUALS:
 								spamRuleField = SparmRuleType.TO
 								break
@@ -759,6 +756,9 @@ export class MailViewer {
 								break
 							case InboxRuleType.RECIPIENT_BCC_EQUALS:
 								spamRuleField = SparmRuleType.BCC
+								break
+							default:
+								spamRuleField = SparmRuleType.FROM
 								break
 						}
 						AddSpamRuleDialog.show(createEmailSenderListElement({
