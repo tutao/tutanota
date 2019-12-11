@@ -151,13 +151,13 @@ export class ViewSlider implements IViewSlider {
 		this._distributeRemainingSpace(visibleColumns, remainingSpace)
 		this._setWidthForHiddenColumns(visibleColumns);
 
-		this.updateOffsets(this.columns)
-
-		this._visibleBackgroundColumns = visibleColumns
-
 		this.columns.forEach(column =>
 			column.visible = visibleColumns.includes(column)
 		)
+
+		this.updateOffsets(this.columns)
+
+		this._visibleBackgroundColumns = visibleColumns
 
 		if (this.allColumnsVisible()) {
 			this.focusedColumn.isInForeground = false
