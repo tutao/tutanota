@@ -65,7 +65,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			if (isNewRule) {
 				props.inboxRules.push(rule)
 			} else {
-				props.inboxRules = props.inboxRules.map(inboxRule => inboxRule._id === ruleOrTemplate._id ? rule : inboxRule)
+				props.inboxRules = props.inboxRules.map(inboxRule => isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule)
 			}
 			update(props)
 			dialog.close()
@@ -102,7 +102,7 @@ function _validateInboxRuleInput(type: string, value: string, ruleId: Id) {
 		return "inboxRuleInvalidEmailAddress_msg"
 	} else {
 		let existingRule = getExistingRuleForType(currentCleanedValue, type)
-		if (existingRule && ruleId && !isSameId(existingRule._id, ruleId)) {
+		if (existingRule && (!ruleId || (ruleId && !isSameId(existingRule._id, ruleId)))) {
 			return "inboxRuleAlreadyExists_msg"
 		}
 	}
