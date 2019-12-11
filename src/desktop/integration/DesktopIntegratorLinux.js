@@ -13,8 +13,10 @@ const executablePath = process.execPath
 const packagePath = process.env.APPIMAGE ? process.env.APPIMAGE : process.execPath
 const autoLaunchPath = path.join(CONFIG_HOME, `autostart/${app.name}.desktop`)
 const desktopFilePath = path.join(DATA_HOME, `applications/${app.name}.desktop`)
-const iconTargetPath64 = path.join(DATA_HOME, `icons/hicolor/64x64/apps/${app.name}.png`)
-const iconTargetPath512 = path.join(DATA_HOME, `icons/hicolor/512x512/apps/${app.name}.png`)
+const iconTargetDir64 = path.join(DATA_HOME, `icons/hicolor/64x64/apps/`)
+const iconTargetDir512 = path.join(DATA_HOME, `icons/hicolor/512x512/apps/`)
+const iconTargetPath64 = path.join(iconTargetDir64, `${app.name}.png`)
+const iconTargetPath512 = path.join(iconTargetDir512, `${app.name}.png`)
 const iconSourcePath64 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red-small.png`)
 const iconSourcePath512 = path.join(path.dirname(executablePath), `resources/icons/logo-solo-red.png`)
 const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integration')
@@ -145,12 +147,19 @@ TryExec=${packagePath}`
 }
 
 function copyIcons(): Promise<void> {
-	console.log("copy icons:", iconSourcePath64, "->", iconTargetPath64)
-	console.log("copy icons:", iconSourcePath512, "->", iconTargetPath512)
+	console.log("create icon directory:", iconTargetDir64)
+	console.log("create icon directory:", iconTargetDir512)
 	return Promise.all([
-		fs.copyFile(iconSourcePath64, iconTargetPath64),
-		fs.copyFile(iconSourcePath512, iconTargetPath512)
+		fs.mkdir(iconTargetDir64, {recursive: true}),
+		fs.mkdir(iconTargetDir512, {recursive: true})
 	]).then(() => {
+		console.log("copy icons:", iconSourcePath64, "->", iconTargetPath64)
+		console.log("copy icons:", iconSourcePath512, "->", iconTargetPath512)
+		return Promise.all([
+			fs.copyFile(iconSourcePath64, iconTargetPath64),
+			fs.copyFile(iconSourcePath512, iconTargetPath512)
+		])
+	}).then(() => {
 		try {// refresh icon cache (update last modified timestamp)
 			exec(`touch "${path.join(app.getPath('home'), ".local/share/icons/hicolor")}"`)
 		} catch (e) {
