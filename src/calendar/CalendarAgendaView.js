@@ -39,7 +39,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 		}
 		const lastDayFormatted = formatDate(lastDay)
 
-		return m(".fill-absolute.flex.col", [
+		return m(".fill-absolute.flex.col.margin-are-inset-lr.margin-are-inset-lr",[
 				m(".mt-s.pr-l", [
 					styles.isDesktopLayout() ?
 						[

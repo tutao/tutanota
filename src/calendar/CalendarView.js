@@ -121,11 +121,7 @@ export class CalendarView implements CurrentView {
 		this.sidebarColumn = new ViewColumn({
 			view: () => m(".flex.height-100p", [
 				m(DrawerMenu),
-				m(".folder-column.scroll.overflow-x-hidden.flex.col.flex-grow", {
-					style: {
-						paddingLeft: getSafeAreaInsetLeft()
-					}
-				}, [
+				m(".folder-column.scroll.overflow-x-hidden.flex.col.flex-grow", [
 					styles.isUsingBottomNavigation()
 						? null
 						: m(".mlr-l.mt", m(ButtonN, {

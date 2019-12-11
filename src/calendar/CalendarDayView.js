@@ -87,7 +87,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents) {
 		const {shortEvents, longEvents, allDayEvents} = thisPageEvents
 		const mainPageEventsCount = mainPageEvents.allDayEvents.length + mainPageEvents.longEvents.length
-		return m(".fill-absolute.flex.col.calendar-column-border", {
+		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 			},

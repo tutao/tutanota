@@ -93,7 +93,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
 		const today = getStartOfDay(new Date())
-		return m(".fill-absolute.flex.col", [
+		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
 			styles.isDesktopLayout() ?
 				m(".mt-s.pr-l.flex.row.items-center",
 					[

@@ -66,11 +66,7 @@ export class ContactView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 				view: () => m(".flex.height-100p", [
 					m(DrawerMenu),
-					m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
-						style: {
-							paddingLeft: getSafeAreaInsetLeft()
-						}
-					}, [
+					m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
 						styles.isUsingBottomNavigation() || !this._contactList
 							? null
 							: m(".mlr-l.mt", m(ButtonN, {

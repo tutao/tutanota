@@ -88,7 +88,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 
 		const marginForWeekEvents = mainWeek.eventsForWeek.size === 0 ? 0 : 6
 
-		return m(".fill-absolute.flex.col.calendar-column-border", {
+		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
 			},

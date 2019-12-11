@@ -175,11 +175,7 @@ export class SearchView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 			view: () => m(".flex.height-100p", [
 				m(DrawerMenu),
-				m(".folder-column.scroll.overflow-x-hidden.flex-grow", {
-					style: {
-						paddingLeft: getSafeAreaInsetLeft()
-					}
-				}, [
+				m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
 					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
 						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
 							lang.get("search_label").toLocaleUpperCase())

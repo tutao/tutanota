@@ -8,12 +8,17 @@ import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctio
 import {isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
+import {getSafeAreaInsetLeft} from "../HtmlUtils"
 
 type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("drawer-menu", m(".flex.col.height-100p.items-center.pt.pb", [
+		return m("drawer-menu", {
+			style: {
+				'padding-left': getSafeAreaInsetLeft()
+			},
+		}, m(".flex.col.height-100p.items-center.pt.pb", [
 			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {

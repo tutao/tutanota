@@ -494,7 +494,7 @@ styles.registerStyle('main', () => {
 			bottom: px(0),
 			left: px(0),
 			'overflow-x': 'hidden',
-			'margin-top': requiresStatusBarHack() ? "20px" : 'env(safe-area-inset-top)', // insets for iPhone X)
+			'margin-top': requiresStatusBarHack() ? "20px" : '',
 		},
 
 		'.margin-are-inset-lr': {
@@ -527,6 +527,7 @@ styles.registerStyle('main', () => {
 			right: 0,
 			bottom: 0,
 			background: theme.header_bg,
+			'margin-bottom': 'env(safe-area-inset-bottom)',
 		},
 
 
@@ -606,6 +607,7 @@ styles.registerStyle('main', () => {
 		' .folder-column': {
 			'background-color': theme.navigation_bg,
 			height: '100%',
+			'padding-top': "env(safe-area-inset-top)",
 		},
 		'.list-border-right': {
 			'border-right': `1px solid ${theme.list_border}`
@@ -671,7 +673,7 @@ styles.registerStyle('main', () => {
 			'border-bottom': `1px solid ${theme.list_border}`
 		},
 		'.list-alternate-background': {
-			'background': `repeating-linear-gradient(to bottom, ${theme.list_alternate_bg}, ${theme.list_alternate_bg} ${px(size.list_row_height)},  ${theme.list_bg} ${px(size.list_row_height)}, ${theme.list_bg} ${px(size.list_row_height
+			'background': `repeating-linear-gradient(to bottom, ${theme.list_bg}, ${theme.list_bg} ${px(size.list_row_height)},  ${theme.list_alternate_bg} ${px(size.list_row_height)}, ${theme.list_alternate_bg} ${px(size.list_row_height
 				* 2)})`
 		},
 		'.list-row': {

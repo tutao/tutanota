@@ -98,11 +98,7 @@ export class MailView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 			view: () => m(".flex.height-100p", [
 				m(DrawerMenu),
-				m(".folder-column.flex-grow.overflow-x-hidden.scroll", {
-					style: {
-						paddingLeft: getSafeAreaInsetLeft()
-					}
-				}, [
+				m(".folder-column.flex-grow.overflow-x-hidden.scroll", [
 					styles.isUsingBottomNavigation()
 						? null
 						: m(".mlr-l.mt", m(ButtonN, {

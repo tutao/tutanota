@@ -1,8 +1,8 @@
 //@flow
 
 export function applySafeAreaInsetMarginLR(element: HTMLElement){
-	element.style.marginRight = getSafeAreaInsetRight()
-	element.style.marginLeft = getSafeAreaInsetLeft()
+	element.style.marginRight = 'env(safe-area-inset-right)'
+	element.style.marginLeft = 'env(safe-area-inset-left)'
 }
 
 export function getSafeAreaInsetLeft(){
