@@ -1,5 +1,5 @@
 // @flow
-import {dialog, ipcMain, shell} from 'electron'
+import {dialog, ipcMain} from 'electron'
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
@@ -143,11 +143,9 @@ export class IPC {
 			case 'open':
 				// itemPath, mimeType
 				const itemPath = args[0].toString()
-				if (shell.openItem(itemPath)) {
-					d.resolve()
-				} else {
-					d.reject(new Error("could not open!"))
-				}
+				this._dl.open(itemPath)
+				    .then(() => d.resolve())
+				    .catch(e => d.reject(e))
 				break
 			case 'download':
 				// sourceUrl, filename, headers
