@@ -20,6 +20,8 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 			"./TutanotaError",
 			"../EntityFunctions",
 			"../../api/common/utils/Utils", "./Utils",
+			"./DateUtils",
+			"../../api/common/utils/CommonCalendarUtils",
 			"./utils/Encoding",
 			"../error/CryptoError",
 			"./StringUtils",
@@ -32,14 +34,8 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	const lang = {
 		lang: {get: key => key}
 	}
-	const instanceMapper = {
+	const crypto = {
 		decryptAndMapToInstance: (tm, an) => Promise.resolve(Object.assign({}, an))
-	}
-	const keyCryptoUtils = {
-		decrypt256Key: arg => arg
-	}
-	const cryptoUtils = {
-		uint8ArrayToBitArray: arg => arg,
 	}
 
 	const timeProvider = n.classify({
@@ -127,10 +123,8 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 
 		// our modules
 		const langMock = n.mock("../../misc/LanguageViewModel", lang).set()
-		const instanceMapperMock = n.mock("../../api/worker/crypto/InstanceMapper", instanceMapper).set()
-		const keyCryptoUtilsMock = n.mock("../../api/worker/crypto/KeyCryptoUtils", keyCryptoUtils).set()
-		const cryptoUtilsMock = n.mock("../../api/worker/crypto/CryptoUtils", cryptoUtils).set()
 		const alarmNotificationMock = n.mock("../../api/entities/sys/AlarmNotification", alarmNotification).set()
+		const cryptoMock = n.mock('../DesktopCryptoFacade', crypto).set()
 
 		// instances
 		const wmMock = n.mock('__wm', wm).set()
@@ -141,22 +135,20 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 
 		return {
 			langMock,
-			instanceMapperMock,
-			keyCryptoUtilsMock,
-			cryptoUtilsMock,
 			alarmNotificationMock,
 			wmMock,
 			notifierMock,
 			alarmStorageMock,
+			cryptoMock
 		}
 	}
 
 	o("init, retrieve stored alarms, deletion of outdated alarms", done => {
-		const {wmMock, notifierMock} = standardMocks()
+		const {wmMock, notifierMock, cryptoMock} = standardMocks()
 		const alarmStorageMock = n.mock("__alarmStorage", alarmStorage).set()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		o(alarmStorageMock.getScheduledAlarms.callCount).equals(1)
 		setTimeout(() => {
@@ -172,10 +164,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	})
 
 	o("schedule at most MAX_OCCURRENCES alarms", done => {
-		const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider(Infinity, 30)
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		const an = createAlarmNotification({
 			startTime: new Date(2019, 9, 20, 10),
@@ -215,10 +207,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	})
 
 	o("schedule intermediate timeout for events too far in the future", done => {
-		const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		const an = createAlarmNotification({
 			startTime: new Date(2020, 9, 20, 10),
@@ -234,10 +226,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	})
 
 	o("don't schedule alarms for occurrences in the past", done => {
-		const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		const an = createAlarmNotification({
 			startTime: new Date(2017, 9, 20, 10),
@@ -252,10 +244,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	})
 
 	o("show notification for alarm and reschedule next occurrence", done => {
-		const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		const an = createAlarmNotification({
 			startTime: mkDate('Oct 20 2019 10:00'),
@@ -281,10 +273,10 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 	})
 
 	o("handle multiple events", done => {
-		const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
+		const {wmMock, notifierMock, alarmStorageMock, cryptoMock} = standardMocks()
 		const {DesktopAlarmScheduler} = n.subject("../../src/desktop/sse/DesktopAlarmScheduler.js")
 		const timeProviderMock = new timeProvider()
-		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, timeProviderMock)
+		const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, timeProviderMock)
 
 		const an1 = createAlarmNotification({
 			startTime: new Date(2019, 9, 20, 10),

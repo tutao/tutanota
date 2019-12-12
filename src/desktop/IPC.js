@@ -1,5 +1,5 @@
 // @flow
-import {dialog, ipcMain} from 'electron'
+import {dialog, ipcMain, shell} from 'electron'
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
@@ -19,6 +19,8 @@ import type {DesktopSseClient} from './sse/DesktopSseClient.js'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
 import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
+import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -30,7 +32,8 @@ export class IPC {
 	_notifier: DesktopNotifier;
 	_sock: Socketeer;
 	_alarmStorage: DesktopAlarmStorage;
-
+	_crypto: DesktopCryptoFacade;
+	_dl: DesktopDownloadManager;
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
@@ -41,7 +44,9 @@ export class IPC {
 		sse: DesktopSseClient,
 		wm: WindowManager,
 		sock: Socketeer,
-		alarmStorage: DesktopAlarmStorage
+		alarmStorage: DesktopAlarmStorage,
+		desktopCryptoFacade: DesktopCryptoFacade,
+		dl: DesktopDownloadManager
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -49,6 +54,8 @@ export class IPC {
 		this._notifier = notifier
 		this._sock = sock
 		this._alarmStorage = alarmStorage
+		this._crypto = desktopCryptoFacade
+		this._dl = dl
 
 		this._initialized = []
 		this._queue = {}
@@ -132,6 +139,27 @@ export class IPC {
 				} else { // open file
 					d.resolve([])
 				}
+				break
+			case 'open':
+				// itemPath, mimeType
+				const itemPath = args[0].toString()
+				if (shell.openItem(itemPath)) {
+					d.resolve()
+				} else {
+					d.reject(new Error("could not open!"))
+				}
+				break
+			case 'download':
+				// sourceUrl, filename, headers
+				this._dl.downloadNative(...args.slice(0, 3))
+				    .then(res => d.resolve(res))
+				    .catch(e => d.reject(e))
+				break
+			case "aesDecryptFile":
+				// key, path
+				this._crypto.aesDecryptFile(...args.slice(0, 2))
+				    .then(itemPath => d.resolve(itemPath))
+				    .catch(e => d.reject(e))
 				break
 			case 'updateDesktopConfig':
 				this._conf.setDesktopConfig('any', args[0]).then(() => d.resolve())

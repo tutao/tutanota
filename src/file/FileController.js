@@ -2,7 +2,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp, isApp} from "../api/Env"
+import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/Env"
 import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -30,6 +30,11 @@ export class FileController {
 					                        : this.open(file))
 					                        .finally(() => this._deleteFile(file.location))
 			                        })
+		} else if (isDesktop()) {
+			downloadPromise = (open
+					? worker.downloadFileContentNative(tutanotaFile)
+					: worker.downloadFileContent(tutanotaFile)
+			).then(file => this.open(file))
 		} else {
 			downloadPromise = worker.downloadFileContent(tutanotaFile)
 			                        .then((file) => this.open(file))

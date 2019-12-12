@@ -1,5 +1,4 @@
 // @flow
-import {promisify} from "util"
 import fs from "fs-extra"
 import {app, dialog} from "electron"
 import path from "path"
@@ -57,10 +56,10 @@ export function enableAutoLaunch(): Promise<void> {
 
 export function disableAutoLaunch(): Promise<void> {
 	return isAutoLaunchEnabled()
-		.then(enabled => enabled ? promisify(fs.unlink)(autoLaunchPath) : Promise.resolve())
+		.then(enabled => enabled ? fs.unlink(autoLaunchPath) : Promise.resolve())
 		.catch(e => {
 			// don't throw if file not found
-			if (e.code !== 'ENOENT') e.throw()
+			if (e.code !== 'ENOENT') throw e
 		})
 }
 

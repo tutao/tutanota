@@ -17,14 +17,20 @@ import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {runIntegration} from "./integration/DesktopIntegrator"
 import {lang} from "../misc/LanguageViewModel"
 import en from "../translations/en"
+import {DesktopNetworkClient} from "./DesktopNetworkClient"
+import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {DesktopDownloadManager} from "./DesktopDownloadManager"
 
 mp()
 
 lang.init(en)
 const conf = new DesktopConfigHandler()
+const net = new DesktopNetworkClient()
+const crypto = new DesktopCryptoFacade()
 const sock = new Socketeer()
 const notifier = new DesktopNotifier()
-const alarmStorage = new DesktopAlarmStorage(conf)
+const dl = new DesktopDownloadManager(conf, net)
+const alarmStorage = new DesktopAlarmStorage(conf, crypto)
 alarmStorage.init()
             .then(() => {
 	            console.log("alarm storage initialized")
@@ -34,12 +40,12 @@ alarmStorage.init()
             })
 const updater = new ElectronUpdater(conf, notifier)
 const tray = new DesktopTray(conf, notifier)
-const wm = new WindowManager(conf, tray, notifier)
-const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage)
+const wm = new WindowManager(conf, tray, notifier, dl)
+const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
 tray.setWindowManager(wm)
-const sse = new DesktopSseClient(conf, notifier, wm, alarmScheduler)
+const sse = new DesktopSseClient(conf, notifier, wm, alarmScheduler, net)
 sse.start()
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl)
 wm.setIPC(ipc)
 
 PreloadImports.keep(sock)

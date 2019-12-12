@@ -47,8 +47,8 @@ export class FileFacade {
 	}
 
 	downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
-		if (env.mode !== Mode.App) {
-			return Promise.reject("Environment is not app")
+		if (![Mode.App, Mode.Desktop].includes(env.mode)) {
+			return Promise.reject("Environment is not app or Desktop!")
 		}
 		let requestData = createFileDataDataGet()
 		requestData.file = file._id

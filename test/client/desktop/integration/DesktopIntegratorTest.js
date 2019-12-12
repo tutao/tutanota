@@ -292,7 +292,7 @@ o.spec("DesktopIntegrator Test", () => {
 		;(async function () {
 			await disableAutoLaunch()
 			o(fsExtraMock.unlink.callCount).equals(1)
-			o(fsExtraMock.unlink.args.length).equals(2)
+			o(fsExtraMock.unlink.args.length).equals(1)
 			o(fsExtraMock.unlink.args[0]).equals('/app/path/file/.config/autostart/appName.desktop')
 			resetLinuxEnv()
 			done()

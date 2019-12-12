@@ -2,10 +2,7 @@
 
 import {lang} from "../../misc/LanguageViewModel"
 import {AlarmInterval, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
-import {decryptAndMapToInstance} from "../../api/worker/crypto/InstanceMapper"
-import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {_TypeModel as AlarmNotificationTypeModel} from "../../api/entities/sys/AlarmNotification"
-import {decrypt256Key} from "../../api/worker/crypto/KeyCryptoUtils"
 import {last} from "../../api/common/utils/ArrayUtils"
 import type {DesktopNotifier} from "../DesktopNotifier"
 import {NotificationResult} from "../DesktopConstants"
@@ -13,6 +10,7 @@ import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import {downcast} from "../../api/common/utils/Utils"
 import {getAllDayDateLocal, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
+import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 
 export type TimeoutData = {
 	id: TimeoutID,
@@ -43,16 +41,19 @@ export class DesktopAlarmScheduler {
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
 	_alarmStorage: DesktopAlarmStorage;
+	_crypto: DesktopCryptoFacade;
 	_scheduledNotifications: {[alarmIdentifier: string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}
 
 	constructor(wm: WindowManager,
 	            notifier: DesktopNotifier,
 	            alarmStorage: DesktopAlarmStorage,
+	            desktopCrypto: DesktopCryptoFacade,
 	            timeProvider: typeof defaultTimeProvider = defaultTimeProvider
 	) {
 		this._wm = wm
 		this._notifier = notifier
 		this._alarmStorage = alarmStorage
+		this._crypto = desktopCrypto
 		this._scheduledNotifications = {}
 		setTimeout = (what, when) => timeProvider.setTimeout(what, when)
 		clearTimeout = id => timeProvider.clearTimeout(id)
@@ -68,14 +69,7 @@ export class DesktopAlarmScheduler {
 		if (an.operation === OperationType.CREATE) {
 			console.log("creating alarm notification!")
 			this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
-			    .then(({piSk, piSkEncSk}) => {
-				    const piSkBuffer = Buffer.from(piSk, 'base64')
-				    const piSkEncSkBuffer = Buffer.from(piSkEncSk, 'base64')
-				    const keyArray = uint8ArrayToBitArray(Uint8Array.from(piSkBuffer))
-				    const piSkEncSkArray = Uint8Array.from(piSkEncSkBuffer)
-				    return decrypt256Key(keyArray, piSkEncSkArray)
-			    })
-			    .then(sk => decryptAndMapToInstance(AlarmNotificationTypeModel, an, sk))
+			    .then(({piSk, piSkEncSk}) => this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk))
 			    .then(decAn => {
 				    const identifier = decAn.alarmInfo.alarmIdentifier
 				    if (!this._scheduledNotifications[identifier]) {

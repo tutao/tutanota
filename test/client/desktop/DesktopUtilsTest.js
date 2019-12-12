@@ -4,6 +4,8 @@ import DesktopUtils from "../../../src/desktop/DesktopUtils.js"
 import path from 'path'
 import n from '../nodemocker'
 
+n.mock("./DesktopCryptoFacade", {}).set()
+
 function setEnv(platform: string) {
 	let sep = ''
 	switch (platform) {
@@ -32,7 +34,6 @@ function setEnv(platform: string) {
 }
 
 o.spec("nonClobberingFileName Test", function () {
-
 	o("noClash", function () {
 		o(DesktopUtils.nonClobberingFilename(['bye.txt'], "hello.ext")).equals('hello.ext')
 	})

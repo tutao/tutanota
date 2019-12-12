@@ -2,14 +2,13 @@
 import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
-import crypto from 'crypto'
 import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {elementIdPart} from "../../api/common/EntityFunctions"
-import {aes256Decrypt, aes256Encrypt} from "../../api/worker/crypto/Aes"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
-import {base64ToUint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
+import {base64ToUint8Array} from "../../api/common/utils/Encoding"
+import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
@@ -20,10 +19,12 @@ const ACCOUNT_NAME = 'tuta'
 export class DesktopAlarmStorage {
 	_initialized: DeferredObject<BitArray>;
 	_conf: DesktopConfigHandler;
+	_crypto: DesktopCryptoFacade
 	_sessionKeysB64: {[pushIdentifierId: string]: string};
 
-	constructor(conf: DesktopConfigHandler) {
+	constructor(conf: DesktopConfigHandler, desktopCryptoFacade: DesktopCryptoFacade) {
 		this._conf = conf
+		this._crypto = desktopCryptoFacade
 		this._initialized = defer()
 		this._sessionKeysB64 = {}
 	}
@@ -43,9 +44,8 @@ export class DesktopAlarmStorage {
 
 	_generateAndStoreDeviceKey(): Promise<string> {
 		console.warn("device key not found, generating a new one")
-		const key = crypto.randomBytes(32).toString('base64')
 		// save key entry in keychain
-		return keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, key)
+		return keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, DesktopCryptoFacade.generateDeviceKey())
 		             .then(() => keytar.findPassword(SERVICE_NAME))
 		             .then(pw => {
 			             if (!pw) {
@@ -67,13 +67,7 @@ export class DesktopAlarmStorage {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
 			return this._initialized.promise
 			           .then(pw => {
-				           keys[pushIdentifierId] = uint8ArrayToBase64(aes256Encrypt(
-					           pw,
-					           Buffer.from(pushIdentifierSessionKeyB64, 'base64'),
-					           crypto.randomBytes(16),
-					           false,
-					           false
-				           ))
+				           keys[pushIdentifierId] = this._crypto.aes256EncryptKeyToB64(pw, pushIdentifierSessionKeyB64)
 				           return this._conf.setDesktopConfig('pushEncSessionKeys', keys)
 			           })
 		}
@@ -104,12 +98,7 @@ export class DesktopAlarmStorage {
 					}
 					let decryptedKeyB64
 					try {
-						decryptedKeyB64 = uint8ArrayToBase64(aes256Decrypt(
-							pw,
-							base64ToUint8Array(keys[pushIdentifierId]),
-							false,
-							false
-						))
+						decryptedKeyB64 = this._crypto.aes256DecryptKeyToB64(pw, keys[pushIdentifierId])
 					} catch (e) {
 						console.warn("could not decrypt pushIdentifierSessionKey, trying next one...")
 						sessionKeys.splice(i, 1)
