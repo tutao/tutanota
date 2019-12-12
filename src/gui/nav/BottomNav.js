@@ -5,6 +5,8 @@ import {NavButtonN} from "../base/NavButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {size} from "../size"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
+import {logins} from "../../api/main/LoginController"
+import {FeatureType} from "../../api/common/TutanotaConstants"
 
 type Attrs = {width: number}
 
@@ -21,7 +23,8 @@ export class BottomNav implements MComponent<Attrs> {
 					fontSize
 				}
 			),
-			m(NavButtonN, {
+			logins.isInternalUserLoggedIn()
+				? m(NavButtonN, {
 					label: "search_label",
 					icon: () => BootIcons.Search,
 					href: m.route.get().startsWith(SEARCH_PREFIX)
@@ -33,8 +36,10 @@ export class BottomNav implements MComponent<Attrs> {
 					vertical: true,
 					fontSize
 				}
-			),
-			m(NavButtonN, {
+				)
+				: null,
+			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
+				? m(NavButtonN, {
 					label: "contacts_label",
 					icon: () => BootIcons.Contacts,
 					href: () => navButtonRoutes.contactsUrl,
@@ -42,14 +47,17 @@ export class BottomNav implements MComponent<Attrs> {
 					vertical: true,
 					fontSize
 				}
-			),
-			m(NavButtonN, {
-				label: 'calendar_label',
-				icon: () => BootIcons.Calendar,
-				href: CALENDAR_PREFIX,
-				vertical: true,
-				fontSize
-			}),
+				)
+				: null,
+			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
+				? m(NavButtonN, {
+					label: 'calendar_label',
+					icon: () => BootIcons.Calendar,
+					href: CALENDAR_PREFIX,
+					vertical: true,
+					fontSize
+				})
+				: null,
 		])
 	}
 }

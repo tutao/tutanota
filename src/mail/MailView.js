@@ -98,13 +98,13 @@ export class MailView implements CurrentView {
 			view: () => m(".flex.height-100p", [
 				m(DrawerMenu),
 				m(".folder-column.flex-grow.overflow-x-hidden.scroll", [
-					styles.isUsingBottomNavigation()
-						? null
-						: m(".mlr-l.mt", m(ButtonN, {
+					(!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
+						? m(".mlr-l.mt", m(ButtonN, {
 							label: 'newMail_action',
 							click: () => this._newMail().catch(PermissionError, noOp),
 							type: ButtonType.PrimaryBorder,
-						})),
+						}))
+						: null,
 					Object.keys(this._mailboxExpanders)
 					      .map(mailGroupId => {
 							      let expander = this._mailboxExpanders[mailGroupId]
@@ -151,7 +151,7 @@ export class MailView implements CurrentView {
 						ev.preventDefault()
 					},
 					ondrop: (ev) => {
-						if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
+						if (isNewMailActionAvailable() && ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 							Promise.join(
 								this._newMail(),
 								fileController.readLocalFiles(ev.dataTransfer.files),
@@ -184,13 +184,15 @@ export class MailView implements CurrentView {
 	}
 
 	headerRightView(): Children {
-		return m(ButtonN, {
-			label: "newMail_action",
-			click: () => this._newMail().catch(PermissionError, noOp),
-			type: ButtonType.Action,
-			icon: () => Icons.PencilSquare,
-			colors: ButtonColors.Header,
-		})
+		return isNewMailActionAvailable()
+			? m(ButtonN, {
+				label: "newMail_action",
+				click: () => this._newMail().catch(PermissionError, noOp),
+				type: ButtonType.Action,
+				icon: () => Icons.PencilSquare,
+				colors: ButtonColors.Header,
+			})
+			: null
 	}
 
 	_setupShortcuts() {
@@ -270,8 +272,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => (this._newMail().catch(PermissionError, noOp): any),
-				enabled: () => this.selectedFolder && logins.isInternalUserLoggedIn()
-					&& !logins.isEnabled(FeatureType.ReplyOnly),
+				enabled: () => this.selectedFolder && isNewMailActionAvailable(),
 				help: "newMail_action"
 			},
 			{
@@ -701,4 +702,8 @@ export class MailView implements CurrentView {
 			content: this._actionBar()
 		}) : null
 	}
+}
+
+export function isNewMailActionAvailable() {
+	return logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.ReplyOnly)
 }

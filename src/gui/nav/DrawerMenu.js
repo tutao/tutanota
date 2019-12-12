@@ -9,6 +9,7 @@ import {isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
+import {isNewMailActionAvailable} from "../../mail/MailView"
 
 type Attrs = void
 
@@ -38,20 +39,24 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav,
 				})
 				: null,
-			m(ButtonN, {
-				icon: () => BootIcons.Share,
-				label: "invite_alt",
-				click: () => writeInviteMail(),
-				type: ButtonType.ActionLarge,
-				colors: ButtonColors.DrawerNav
-			}),
-			m(ButtonN, {
-				icon: () => BootIcons.Settings,
-				label: "settings_label",
-				click: () => m.route.set(navButtonRoutes.settingsUrl),
-				type: ButtonType.ActionLarge,
-				colors: ButtonColors.DrawerNav,
-			}),
+			isNewMailActionAvailable()
+				? m(ButtonN, {
+					icon: () => BootIcons.Share,
+					label: "invite_alt",
+					click: () => writeInviteMail(),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav
+				})
+				: null,
+			logins.isInternalUserLoggedIn()
+				? m(ButtonN, {
+					icon: () => BootIcons.Settings,
+					label: "settings_label",
+					click: () => m.route.set(navButtonRoutes.settingsUrl),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav,
+				})
+				: null,
 			m(ButtonN, {
 				icon: () => BootIcons.Logout,
 				label: "logout_label",

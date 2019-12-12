@@ -92,6 +92,7 @@ import {worker} from "../api/main/WorkerClient"
 import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
+import {isNewMailActionAvailable} from "./MailView"
 
 assertMainOrNode()
 
@@ -971,7 +972,7 @@ export class MailViewer {
 			let anchorElement = target.closest("a")
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
 				event.preventDefault()
-				if (logins.getUserController().isInternalUser() && !logins.isEnabled(FeatureType.ReplyOnly)) { // disable new mails for external users.
+				if (isNewMailActionAvailable()) { // disable new mails for external users.
 					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
 					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
 					          .then(() => {

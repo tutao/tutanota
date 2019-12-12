@@ -54,6 +54,7 @@ import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
+import {isNewMailActionAvailable} from "../mail/MailView"
 
 assertMainOrNode()
 
@@ -223,7 +224,7 @@ export class SearchView implements CurrentView {
 				m(this.viewSlider),
 				styles.isUsingBottomNavigation()
 					? null
-					: isSameTypeRef(restriction.type, MailTypeRef)
+					: isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 					? m(ButtonN, {
 						click: () => {
 							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
