@@ -53,7 +53,6 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../misc/RouteChange"
-import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
@@ -187,7 +186,7 @@ export class MailView implements CurrentView {
 	headerRightView(): Children {
 		return m(ButtonN, {
 			label: "newMail_action",
-			click: () => this._newMail(),
+			click: () => this._newMail().catch(PermissionError, noOp),
 			type: ButtonType.Action,
 			icon: () => Icons.PencilSquare,
 			colors: ButtonColors.Header,
