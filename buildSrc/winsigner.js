@@ -49,12 +49,12 @@ function signer(args) {
 		"-key", "10",
 		"-pass", hsmPin,
 		"-h", args.hash ? args.hash : "sha256",
-		"-t", "http://timestamp.comodoca.com/authenticode",
+		"-t", "http://timestamp.comodoca.com",
 		"-n", "tutanota-desktop"
 	]
 
 	fs.renameSync(args.path, unsignedFileName)
-	console.log(`spawning "${command}"`)
+	console.log(`spawning "${command}" -h ${args.hash}`)
 	// only for testing, would print certificate password to logs, otherwise
 	//console.log(`spawning "${command} ${commandArguments.join(" ")}"`)
 	let child = spawn(command, commandArguments, {
