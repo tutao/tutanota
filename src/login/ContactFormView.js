@@ -68,7 +68,7 @@ class ContactFormView {
 		this.view = (): VirtualElement => {
 			return m(".main-view.flex.col", [
 				m(header),
-				m(".main-view.flex-center.scroll",
+				m(".flex-center.scroll",
 					m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent()))
 			])
 		}
