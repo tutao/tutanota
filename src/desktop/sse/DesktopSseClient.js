@@ -1,9 +1,6 @@
 // @flow
 
 import {app} from 'electron'
-import crypto from 'crypto'
-import http from 'http'
-import https from 'https'
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
 import {SseError} from "../../api/common/error/SseError"
 import {downcast, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
@@ -14,6 +11,8 @@ import {NotificationResult} from "../DesktopConstants"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
+import type {DesktopNetworkClient} from "../DesktopNetworkClient"
+import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 
 export type SseInfo = {|
 	identifier: string,
@@ -30,6 +29,8 @@ export class DesktopSseClient {
 	_wm: WindowManager
 	_notifier: DesktopNotifier
 	_alarmScheduler: DesktopAlarmScheduler;
+	_net: DesktopNetworkClient;
+	_crypto: DesktopCryptoFacade;
 
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
@@ -39,11 +40,13 @@ export class DesktopSseClient {
 	_tryToReconnect: boolean;
 	_lastProcessedChangeTime: number;
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler, net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade) {
 		this._conf = conf
 		this._wm = wm
 		this._notifier = notifier
 		this._alarmScheduler = alarmScheduler
+		this._net = net
+		this._crypto = desktopCrypto
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
@@ -118,44 +121,41 @@ export class DesktopSseClient {
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
 			'userIds', sseInfo.userIds
 		)
-		this._connection = this._getProtocolModule()
-		                       .request(url, {
-			                       headers: {
-				                       "Content-Type": "application/json",
-				                       "Connection": "Keep-Alive",
-				                       "Keep-Alive": "header",
-				                       "Accept": "text/event-stream"
-			                       },
-			                       method: "GET"
-		                       })
-		                       .on('response', res => {
-			                       console.log("established SSE connection")
-			                       if (res.statusCode === 403) { // invalid userids
-				                       console.log('sse: got 403, deleting identifier')
-				                       this._connectedSseInfo = null
-				                       this._conf.setDesktopConfig('pushIdentifier', null)
-				                       this._cleanup()
-			                       }
-			                       res.setEncoding('utf8')
-			                       let resData = ""
-			                       res.on('data', d => {
-				                       // add new data to the buffer
-				                       resData += d
-				                       const lines = resData.split("\n")
-				                       resData = lines.pop() // put the last line back into the buffer
-				                       lines.forEach(l => this._processSseData(l))
-			                       }).on('close', () => {
-				                       console.log('sse response closed')
-				                       this._cleanup()
-				                       this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
-				                       this._reschedule(INITIAL_CONNECT_TIMEOUT)
-			                       })
-			                          .on('error', e => console.error('sse response error:', e))
-		                       })
-		                       .on('information', e => console.log('sse information:', e.message))
-		                       .on('connect', e => console.log('sse connect:', e.message))
-		                       .on('error', e => console.error('sse error:', e.message))
-		                       .end()
+		this._connection = this._net.request(url, {
+			headers: {
+				"Content-Type": "application/json",
+				"Connection": "Keep-Alive",
+				"Keep-Alive": "header",
+				"Accept": "text/event-stream"
+			},
+			method: "GET"
+		}).on('response', res => {
+			console.log("established SSE connection")
+			if (res.statusCode === 403) { // invalid userids
+				console.log('sse: got 403, deleting identifier')
+				this._connectedSseInfo = null
+				this._conf.setDesktopConfig('pushIdentifier', null)
+				this._cleanup()
+			}
+			res.setEncoding('utf8')
+			let resData = ""
+			res.on('data', d => {
+				// add new data to the buffer
+				resData += d
+				const lines = resData.split("\n")
+				resData = lines.pop() // put the last line back into the buffer
+				lines.forEach(l => this._processSseData(l))
+			}).on('close', () => {
+				console.log('sse response closed')
+				this._cleanup()
+				this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
+				this._reschedule(INITIAL_CONNECT_TIMEOUT)
+			}).on('error', e => console.error('sse response error:', e))
+		}).on(
+			'information', e => console.log('sse information:', e.message)
+		).on('connect', e => console.log('sse connect:', e.message)
+		).on('error', e => console.error('sse error:', e.message)
+		).end()
 	}
 
 	_processSseData(data: string): void {
@@ -257,7 +257,7 @@ export class DesktopSseClient {
 				return
 			}
 			const confirmUrl = this._makeAlarmNotificationUrl()
-			this._getProtocolModule().request(confirmUrl, {
+			this._net.request(confirmUrl, {
 				method: "DELETE",
 				headers: {confirmationId, changeTime}
 			}).on('response', res => {
@@ -291,41 +291,36 @@ export class DesktopSseClient {
 
 			console.log("downloading missed notification")
 			const url = this._makeAlarmNotificationUrl()
-			const req = this._getProtocolModule()
-			                .request(url, {
-				                method: "GET",
-				                headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
-				                // this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-				                timeout: 20000
-			                })
-			                .on('response', res => {
-				                if (res.statusCode === 404) {
-					                fail(req, res, new FileNotFoundError("no missed notification"))
-					                return
-				                }
-				                if (res.statusCode !== 200) {
-					                fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
-					                return
-				                }
-				                res.setEncoding('utf8')
+			const req = this._net.request(url, {
+				method: "GET",
+				headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
+				// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+				timeout: 20000
+			}).on('response', res => {
+				if (res.statusCode === 404) {
+					fail(req, res, new FileNotFoundError("no missed notification"))
+					return
+				}
+				if (res.statusCode !== 200) {
+					fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
+					return
+				}
+				res.setEncoding('utf8')
 
-				                let resData = ''
-				                res.on('data', chunk => {
-					                resData += chunk
-				                })
-				                   .on('end', () => {
-					                   try {
-						                   const mn = MissedNotification.fromJSON(resData)
-						                   resolve(mn)
-					                   } catch (e) {
-						                   fail(req, res, e)
-					                   }
-				                   })
-				                   .on('close', () => console.log("dl missed notification response closed"))
-				                   .on('error', e => fail(req, res, e))
-			                })
-			                .on('error', e => fail(req, null, e))
-			                .end()
+				let resData = ''
+				res.on('data', chunk => {
+					resData += chunk
+				}).on('end', () => {
+					try {
+						const mn = MissedNotification.fromJSON(resData)
+						resolve(mn)
+					} catch (e) {
+						fail(req, res, e)
+					}
+				})
+				   .on('close', () => console.log("dl missed notification response closed"))
+				   .on('error', e => fail(req, res, e))
+			}).on('error', e => fail(req, null, e)).end()
 		})
 	}
 
@@ -354,13 +349,6 @@ export class DesktopSseClient {
 		console.log('scheduling to reconnect sse in', delay, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
 		this._nextReconnect = setTimeout(() => this.connect(), delay * 1000)
-	}
-
-	/**
-	 * http can't do https, https can't do http. saves typing while testing locally.
-	 */
-	_getProtocolModule(): typeof http | typeof https {
-		return neverNull(this._connectedSseInfo).sseOrigin.startsWith('http:') ? http : https
 	}
 }
 
@@ -426,12 +414,8 @@ function requestJson(sseInfo: SseInfo): string {
 			"_format": '0',
 			"identifier": sseInfo.identifier,
 			"userIds": sseInfo.userIds.map(userId => {
-				return {"_id": generateId(4), "value": userId}
+				return {"_id": DesktopCryptoFacade.generateId(4), "value": userId}
 			})
 		}
 	))
-}
-
-function generateId(byteLength: number): string {
-	return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
 }

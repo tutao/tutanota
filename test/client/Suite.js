@@ -38,6 +38,7 @@ node(() => {
 	require("./desktop/IPCTest.js")
 	require("./desktop/SocketeerTest.js")
 	require("./desktop/integration/DesktopIntegratorTest.js")
+	require("./desktop/DesktopCryptoFacadeTest.js")
 })()
 
 o.run()

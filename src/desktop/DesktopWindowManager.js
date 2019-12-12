@@ -9,7 +9,7 @@ import type {DesktopConfigHandler} from "./DesktopConfigHandler"
 import {DesktopTray} from "./DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
-import {DesktopDownloadManager} from "./DesktopDownloadManager"
+import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {IPC} from "./IPC"
 
 export type WindowBounds = {|
@@ -31,11 +31,11 @@ export class WindowManager {
 	ipc: IPC
 	dl: DesktopDownloadManager
 
-	constructor(conf: DesktopConfigHandler, tray: DesktopTray, notifier: DesktopNotifier) {
+	constructor(conf: DesktopConfigHandler, tray: DesktopTray, notifier: DesktopNotifier, dl: DesktopDownloadManager) {
 		this._conf = conf
 		this._tray = tray
 		this._notifier = notifier
-		this.dl = new DesktopDownloadManager(conf)
+		this.dl = dl
 	}
 
 	setIPC(ipc: IPC) {

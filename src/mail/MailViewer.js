@@ -1053,7 +1053,7 @@ export class MailViewer {
 		files = files.filter((item) => inlineCids.includes(item.cid) === false)
 		let buttons
 		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
-		if (isAndroidApp()) {
+		if (isAndroidApp() || isDesktop()) {
 			buttons = files.map(file => {
 				const dropdownButton: Button = createDropDownButton(() => file.name,
 					() => Icons.Attachment,
