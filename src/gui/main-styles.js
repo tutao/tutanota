@@ -231,6 +231,7 @@ styles.registerStyle('main', () => {
 		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.break-word-links a': {'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
+		'.text-preline': {'white-space': 'pre-line'},
 		'.text-pre': {'white-space': 'pre'},
 		'.z1': {'z-index': '1'},
 		'.z2': {'z-index': '2'},

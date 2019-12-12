@@ -35,7 +35,7 @@ export default class ColumnEmptyMessageBox implements MComponent<Attrs> {
 						class: "icon-message-box"
 					})
 					: null,
-				m(".h2 text-center", {style: {color: attrs.color}}, getMessage(attrs))
+				m(".h2.text-center.text-preline", {style: {color: attrs.color}}, getMessage(attrs))
 			]))
 	}
 }
