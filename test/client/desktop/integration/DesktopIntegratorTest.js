@@ -59,6 +59,7 @@ o.spec("DesktopIntegrator Test", () => {
 		writtenFiles: [],
 		copiedFiles: [],
 		deletedFiles: [],
+		createdDirectories: [],
 		ensureDirSync() {},
 		ensureDir() {
 			return Promise.resolve()
@@ -72,6 +73,10 @@ o.spec("DesktopIntegrator Test", () => {
 		},
 		copyFileSync(from, to) {
 			this.copiedFiles.push({from, to})
+		},
+		mkdir(directory, opts) {
+			this.createdDirectories.push(directory)
+			return Promise.resolve()
 		},
 		copyFile(from, to) {
 			this.copiedFiles.push({from, to})
@@ -103,6 +108,7 @@ o.spec("DesktopIntegrator Test", () => {
 		fsExtra.writtenFiles = []
 		fsExtra.copiedFiles = []
 		fsExtra.deletedFiles = []
+		fsExtra.createdDirectories = []
 	}
 
 	let itemToReturn = undefined
