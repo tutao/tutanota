@@ -4,7 +4,7 @@ import m from "mithril"
 import {NavButtonN} from "../base/NavButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {size} from "../size"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 
 type Attrs = {width: number}
 
@@ -24,7 +24,11 @@ export class BottomNav implements MComponent<Attrs> {
 			m(NavButtonN, {
 					label: "search_label",
 					icon: () => BootIcons.Search,
-					href: "/search/mail",
+					href: m.route.get().startsWith(SEARCH_PREFIX)
+						? m.route.get()
+						: m.route.get().startsWith(CONTACTS_PREFIX)
+							? "/search/contact"
+							: "/search/mail",
 					isSelectedPrefix: SEARCH_PREFIX,
 					vertical: true,
 					fontSize
