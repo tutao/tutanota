@@ -53,6 +53,32 @@ export class DesktopDownloadManager {
 		})
 	}
 
+	open(itemPath: string): Promise<void> {
+		const tryOpen = () => {
+			if (shell.openItem(itemPath)) {
+				return Promise.resolve()
+			} else {
+				return Promise.reject("Could not open " + itemPath)
+			}
+		}
+		if (DesktopUtils.looksExecutable(itemPath)) {
+			return dialog.showMessageBox(null, {
+				type: "warning",
+				buttons: [lang.get("yes_label"), lang.get("no_label")],
+				title: "Executable Attachment",
+				message: "This file looks like a program. are you sure you want to try to execute it?"
+			}).then(({response}) => {
+				if (response === 0) {
+					return tryOpen()
+				} else {
+					return Promise.resolve()
+				}
+			})
+		} else {
+			return tryOpen()
+		}
+	}
+
 	_handleDownloadItem(ev: Event, item: DownloadItem): void {
 		if (this._conf.getDesktopConfig('defaultDownloadPath')) {
 			try {

@@ -48,12 +48,10 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 	const electron = {
 		dialog: {
-			showMessageBox: () => {
-			},
+			showMessageBox: () => Promise.resolve({response: 1}),
 		},
 		shell: {
-			openItem: () => {
-			}
+			openItem: (path) => path !== "invalid"
 		},
 		app: {
 			getPath: () => "/some/path/"
@@ -137,7 +135,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 	}
 	const desktopUtils = {
 		nonClobberingFilename: (name) => "nonClobbering",
-		touch: (path) => {}
+		touch: (path) => {},
+		looksExecutable: p => p === "exec"
 	}
 
 	const standardMocks = () => {
@@ -290,5 +289,39 @@ o.spec("DesktopDownloadManagerTest", () => {
 			o(fsMock.writeFile.args[1].length).equals(Buffer.from("data1data2").length)
 			o(fsMock.writeFile.args[2]).deepEquals({encoding: 'binary'})
 		}).then(() => done())
+	})
+
+	o("open", done => {
+		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
+		const dl = new DesktopDownloadManager(confMock, netMock)
+
+		dl.open("/some/folder/file").then(() => {
+
+			o(electronMock.shell.openItem.callCount).equals(1)
+			o(electronMock.shell.openItem.args.length).equals(1)
+			o(electronMock.shell.openItem.args[0]).equals("/some/folder/file")
+		})
+		  .then(() => dl.open("invalid"))
+		  .then(() => o(false).equals(true))
+		  .catch(() => {
+			  o(electronMock.shell.openItem.callCount).equals(2)
+			  o(electronMock.shell.openItem.args.length).equals(1)
+			  o(electronMock.shell.openItem.args[0]).equals("invalid")
+		  })
+		  .then(() => done())
+	})
+
+	o("open on windows", done => {
+		n.setPlatform("win32")
+		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
+		const dl = new DesktopDownloadManager(confMock, netMock)
+
+		dl.open("exec").then(() => {
+			o(electronMock.dialog.showMessageBox.callCount).equals(1)
+			o(electronMock.shell.openItem.callCount).equals(0)
+			done()
+		})
 	})
 })

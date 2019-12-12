@@ -88,7 +88,8 @@ o.spec("IPC tests", () => {
 			: Promise.reject("decryption error")
 	}
 	const dl = {
-		downloadNative: (url, file) => file === "filename" ? Promise.resolve() : Promise.reject("DL error")
+		downloadNative: (url, file) => file === "filename" ? Promise.resolve() : Promise.reject("DL error"),
+		open: (file) => file === "/file/to/open" ? Promise.resolve() : Promise.reject("Could not open!")
 	}
 	const desktopIntegrator = {
 		isAutoLaunchEnabled: () => "noDoNot",
@@ -725,7 +726,7 @@ o.spec("IPC tests", () => {
 	})
 
 	o("open", done => {
-		const {electronMock} = setUpWithWindowAndInit()
+		const {electronMock, dlMock} = setUpWithWindowAndInit()
 
 		setTimeout(() => {
 			electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
@@ -736,9 +737,8 @@ o.spec("IPC tests", () => {
 		}, 10)
 
 		setTimeout(() => {
-			o(electronMock.shell.openItem.callCount).equals(1)
-			o(electronMock.shell.openItem.args.length).equals(1)
-			o(electronMock.shell.openItem.args[0]).equals("/file/to/open")
+			o(dlMock.open.callCount).equals(1)
+			o(dlMock.open.args[0]).equals("/file/to/open")
 
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
 			o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id2', type: 'response', value: undefined}])
@@ -752,6 +752,8 @@ o.spec("IPC tests", () => {
 		}, 20)
 
 		setTimeout(() => {
+			o(dlMock.open.callCount).equals(2)
+			o(dlMock.open.args[0]).equals("/some/invalid/path")
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 			o(windowMock.sendMessageToWebContents.args).deepEquals([42, {id: 'id3', type: 'requestError', error: undefined}])
 			done()
