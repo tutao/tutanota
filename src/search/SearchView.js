@@ -45,9 +45,8 @@ import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
-import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
@@ -174,32 +173,56 @@ export class SearchView implements CurrentView {
 		})
 
 		this.folderColumn = new ViewColumn({
-			view: () => m(".flex.height-100p", [
-				m(DrawerMenu),
-				m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
-					m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-						m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-							lang.get("search_label").toLocaleUpperCase())
-					]),
-					m(".folders", [
-						m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
-						m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
-					]),
-					isNavButtonSelected(this._mailFolder)
-						? m("", [
-							m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
-								m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
-									lang.get("filter_label").toLocaleUpperCase())
-							]),
-							m(".plr-l.mt-negative-s", [
-								m(this._getUpdatedTimeField()),
-								m(this._mailFieldSelection),
-								m(this._mailFolderSelection),
+			view: () => {
+				const restriction = getRestriction(m.route.get())
+				return m(".flex.height-100p", [
+					m(DrawerMenu),
+					m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
+						styles.isUsingBottomNavigation()
+							? null
+							: isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
+							? m(".mlr-l.mt", m(ButtonN, {
+								click: () => {
+									newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
+								},
+								label: "newMail_action",
+								type: ButtonType.PrimaryBorder,
+							}))
+							: isSameTypeRef(restriction.type, ContactTypeRef)
+								? m(".mlr-l.mt", m(ButtonN, {
+									click: () => {
+										LazyContactListId.getAsync().then(contactListId => {
+											new ContactEditor(null, contactListId, null).show()
+										})
+									},
+									label: "newContact_action",
+									type: ButtonType.PrimaryBorder,
+								}))
+								: null,
+						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+								lang.get("search_label").toLocaleUpperCase())
+						]),
+						m(".folders", [
+							m(".folder-row.plr-l", {class: isNavButtonSelected(this._mailFolder) ? "row-selected" : ""}, m(NavButtonN, this._mailFolder)),
+							m(".folder-row.plr-l", {class: isNavButtonSelected(this._contactFolder) ? "row-selected" : ""}, m(NavButtonN, this._contactFolder)),
+						]),
+						isNavButtonSelected(this._mailFolder)
+							? m("", [
+								m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
+									m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
+										lang.get("filter_label").toLocaleUpperCase())
+								]),
+								m(".plr-l.mt-negative-s", [
+									m(this._getUpdatedTimeField()),
+									m(this._mailFieldSelection),
+									m(this._mailFolderSelection),
+								])
 							])
-						])
-						: null
+							: null
+					])
 				])
-			])
+			}
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("search_label"))
 
 		this._searchList = new SearchListView(this)
@@ -219,33 +242,7 @@ export class SearchView implements CurrentView {
 		], "ContactView")
 
 		this.view = (): VirtualElement => {
-			const restriction = getRestriction(m.route.get())
-			return m("#search.main-view", [
-				m(this.viewSlider),
-				styles.isUsingBottomNavigation()
-					? null
-					: isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
-					? m(ButtonN, {
-						click: () => {
-							newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
-						},
-						label: "newMail_action",
-						type: ButtonType.Floating,
-						icon: () => Icons.Edit
-					})
-					: isSameTypeRef(restriction.type, ContactTypeRef)
-						? m(ButtonN, {
-							click: () => {
-								LazyContactListId.getAsync().then(contactListId => {
-									new ContactEditor(null, contactListId, null).show()
-								})
-							},
-							label: "newContact_action",
-							type: ButtonType.Floating,
-							icon: () => Icons.Add
-						})
-						: null
-			])
+			return m("#search.main-view", m(this.viewSlider))
 		}
 		this._setupShortcuts()
 
@@ -259,6 +256,37 @@ export class SearchView implements CurrentView {
 	getViewSlider(): ?IViewSlider {
 		return this.viewSlider
 	}
+
+	headerRightView(): Children {
+		const restriction = getRestriction(m.route.get())
+		console.log("bottom nav", styles.isUsingBottomNavigation(), "typeRef", restriction.type, "new mail", isNewMailActionAvailable())
+		return styles.isUsingBottomNavigation() ?
+			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
+				? m(ButtonN, {
+					click: () => {
+						newMail(mailModel.getUserMailboxDetails()).catch(PermissionError, noOp)
+					},
+					label: "newMail_action",
+					type: ButtonType.Action,
+					colors: ButtonColors.Header,
+					icon: () => Icons.PencilSquare,
+				})
+				: isSameTypeRef(restriction.type, ContactTypeRef)
+				? m(ButtonN, {
+					click: () => {
+						LazyContactListId.getAsync().then(contactListId => {
+							new ContactEditor(null, contactListId, null).show()
+						})
+					},
+					label: "contacts_label",
+					type: ButtonType.Action,
+					colors: ButtonColors.Header,
+					icon: () => Icons.Add,
+				})
+				: null
+			: null
+	}
+
 
 	/**
 	 * @returns null if the complete mailbox is indexed
