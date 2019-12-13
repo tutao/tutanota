@@ -88,15 +88,13 @@ class Header {
 				this._currentView.headerView() : null
 			return m(".header-nav.overflow-hidden", [this._connectionIndicator()].concat(injectedView || [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
-					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
+					style: styles.isUsingBottomNavigation() ? {'margin-left': px(-15)} : null  // manual margin to align the hamburger icon on mobile devices
 				}, this._getLeftElements()),
-				styles.isDesktopLayout() ? null : this._getCenterContent(),
+				(styles.isUsingBottomNavigation() ? this._getCenterContent() : null),
 				styles.isUsingBottomNavigation()
 					? m(".header-right.pr-s.flex-end.items-center",
 					this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
-					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
-						style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
-					}, m(this.buttonBar))
+					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", m(this.buttonBar))
 			]))
 		}
 
@@ -122,7 +120,7 @@ class Header {
 		return this.searchBar != null
 			&& locator != null
 			&& !locator.search.indexState().initializing
-			&& !styles.isDesktopLayout()
+			&& styles.isUsingBottomNavigation()
 			&& logins.isInternalUserLoggedIn()
 			&& (route.startsWith(SEARCH_PREFIX))
 	}
@@ -221,7 +219,7 @@ class Header {
 				hideLabel: true,
 			})
 		} else {
-			if (styles.isDesktopLayout() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
+			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return m(".logo.logo-height.pl", {
 					style: {
 						"margin-left": px(sizes.drawer_menu_width)

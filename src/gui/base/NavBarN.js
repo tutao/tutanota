@@ -126,7 +126,7 @@ class _NavBar {
 	getVisibleButtons(): SortedButtons {
 		let visible = this.buttons.filter((b: ButtonWrapper) => isVisible(b.buttonAttrs))
 		let hidden = this.moreButtons.filter((b: ButtonWrapper) => isVisible(b.buttonAttrs))
-		let remainingSpace = this.maxWidth
+		let remainingSpace = this._domNavBar ? this._domNavBar.scrollWidth : 0
 
 		let buttons: SortedButtons = {
 			visible,
@@ -136,11 +136,12 @@ class _NavBar {
 			buttons.visible = []
 			visible.sort((a: ButtonWrapper, b: ButtonWrapper) => b.priority - a.priority)
 			visible.unshift(this.more)
-			while (remainingSpace - visible[0].width >= 0) {
+			do {
 				remainingSpace -= visible[0].width
 				let move = visible.splice(0, 1)[0]
 				buttons.visible.push(move)
-			}
+			} while (visible.length > 0 && (remainingSpace - visible[0].width >= 0))
+
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}

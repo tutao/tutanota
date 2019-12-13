@@ -1,7 +1,7 @@
 // @flow
 import {Cat, log, timer} from "../misc/Log"
 import {size} from "./size"
-import {assertMainOrNodeBoot} from "../api/Env"
+import {assertMainOrNodeBoot, isAdminClient} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeId} from "./theme"
 import {neverNull} from "../api/common/utils/Utils"
@@ -77,7 +77,7 @@ class Styles {
 	}
 
 	isUsingBottomNavigation() {
-		return client.isMobileDevice() || !this.isDesktopLayout()
+		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 }
 
