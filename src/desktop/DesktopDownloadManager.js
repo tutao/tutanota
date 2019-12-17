@@ -65,8 +65,8 @@ export class DesktopDownloadManager {
 			return dialog.showMessageBox(null, {
 				type: "warning",
 				buttons: [lang.get("yes_label"), lang.get("no_label")],
-				title: "Executable Attachment",
-				message: "This file looks like a program. are you sure you want to try to execute it?"
+				title: lang.get("executableOpen_label"),
+				message: lang.get("executableOpen_msg")
 			}).then(({response}) => {
 				if (response === 0) {
 					return tryOpen()
