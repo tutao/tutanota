@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2019-11-21T14:51:19Z",
+	"updated_at": "2019-12-18T10:50:22Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Молим вас да прихватите правила приватности кликом на поље за селектовање.",

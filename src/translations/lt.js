@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2019-11-21T14:51:18Z",
+	"updated_at": "2019-12-18T10:50:22Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",

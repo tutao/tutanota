@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2019-11-25T14:03:04Z",
+	"updated_at": "2019-12-18T10:50:21Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Připojit se",
@@ -275,6 +275,8 @@ module.exports = {
 		"deleteRepeatingEventConfirmation_msg": "Jste si jist, že chcete smazat tuto opakující se událost?",
 		"delete_action": "Odstranit",
 		"description_label": "Popis",
+		"desktopIntegration_label": "Integrace s desktopem",
+		"desktopIntegration_msg": "Chcete integrovat Tutanota do vašeho desktopového prostředí?",
 		"desktopSettings_label": "Nastavení plochy",
 		"desktop_label": "Pracovní plocha",
 		"details_label": "Detaily",
@@ -283,6 +285,7 @@ module.exports = {
 		"display_action": "Zobrazit",
 		"dnsRecordsOk_msg": "Všechny DNS záznamy jsou v pořádku!",
 		"domain_label": "Doména",
+		"doNotAskAgain_label": "Pro tento soubor se už neptej.",
 		"downgradeToPremium_msg": "Váš účet bude změněn na účet Premium s 5 aliasy, 1 GB úložiště a bez přihlašování z vlastní domény a stylů.",
 		"download_action": "Stáhnout",
 		"draft_action": "Koncepty",

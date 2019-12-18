@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2019-11-25T15:01:23Z",
+	"updated_at": "2019-12-18T11:00:57Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -262,6 +262,7 @@ module.exports = {
 		"customLogoInfo_msg": "Erlaubte Dateitypen: svg, png, jpg. Max. Dateigröße: 100 KB. Angezeigte Höhe: 38 px, max. Breite: 280 px.",
 		"customLogo_label": "Eigenes Logo",
 		"customMetaTags_label": "Eigene Meta-Tags",
+		"customName_label": "Benutzerdefinierter Name für diesen Kalendar: {customName}",
 		"customNotificationEmailsHelp_msg": "Benachrichtigungs-E-Mails werden an Empfänger von vertraulichen Nachrichten gesendet, deren Mailbox bei anderen E-Mail-Providern gehosted sind. Die Nachricht kann angepasst werden indem eine Vorlage für eine oder mehrere Sprachen hinzugefügt wird. Sobald eine Vorlage angelegt ist wird die Standard-Nachricht nicht mehr verwendet. Die Vorlagen werden für alle Benutzer dieses Accounts angewendet.",
 		"customNotificationEmails_label": "Eigene Benachrichtigungs-E-Mails",
 		"custom_label": "Eigenes",
@@ -303,6 +304,8 @@ module.exports = {
 		"deleteSharedCalendarConfirm_msg": "Der Kalender \"{calendar}\" ist freigegeben für andere Benutzer. ",
 		"delete_action": "Löschen",
 		"description_label": "Beschreibung",
+		"desktopIntegration_label": "Desktop-Integration",
+		"desktopIntegration_msg": "Soll Tutanota sich in Ihre Desktop-Umgebung integrieren, damit sie Tutanota über Ihr Anwendungemenü starten können?",
 		"desktopSettings_label": "Desktop-Einstellungen",
 		"desktop_label": "Desktop",
 		"details_label": "Details",
@@ -313,6 +316,7 @@ module.exports = {
 		"dnsRecordsOk_msg": "Alle DNS-Einträge sind in Ordnung!",
 		"dnsRecordValueOrPointsTo_label": "Wert/Zeigt auf",
 		"domain_label": "Domain",
+		"doNotAskAgain_label": "Nicht noch einmal fragen",
 		"downgradeToPremium_msg": "Der Account wird zu einem Premium-Account mit 5 Alias-Adressen und 1 GB Speicher ohne Login auf der eigenen Domain und eigene Farben downgegraded.",
 		"download_action": "Herunterladen",
 		"draft_action": "Entwürfe",
@@ -320,6 +324,7 @@ module.exports = {
 		"duplicatesNotification_msg": "{1} identische Kontakte wurden erkannt und werden gelöscht.",
 		"editContactForm_label": "Kontakformular bearbeiten",
 		"editContact_label": "Kontakt bearbeiten",
+		"editInboxRule_action": "Posteingangs-Regel bearbeiten",
 		"editMail_action": "Die ausgewählte E-Mail bearbeiten",
 		"edit_action": "Bearbeiten",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktivieren Sie diese dort zuerst.",
@@ -357,6 +362,8 @@ module.exports = {
 		"errorAtLine_msg": "Fehler in Zeile {index}: {error}",
 		"errorDuringUpdate_msg": "Der Update-Prozess ist fehlgeschlagen. Wir versuchen es später noch ein mal.",
 		"errorReport_label": "Oh nein!",
+		"executableOpen_label": "Ausführbarer Anhang",
+		"executableOpen_msg": "Diese Datei sieht aus wie ein Programm. Sind Sie sicher, dass sie es jetzt ausführen möchten?",
 		"existingMailAddress_msg": "Die folgenden Empfänger konnten nicht eingeladen werden, da diese entweder schon eingeladen oder Teilnehmer des Kalenders sind:",
 		"expiredLink_msg": "Leider ist dieser Link nicht mehr gültig. Sie haben eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link von diesem Absender bekommen. Vorhergehende Links werden aus Sicherheitsgründen deaktiviert.",
 		"exportSelectedAsVCard_action": "Ausgewählte Kontakte als vCard exportieren",
@@ -1059,10 +1066,6 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
-		"yourMessage_label": "Ihre Nachricht",
-		"desktopIntegration_label": "Desktop-Integration",
-		"desktopIntegration_msg": "Soll Tutanota sich in Ihre Desktop-Umgebung integrieren, damit sie Tutanota über Ihr Anwendungemenü starten können?",
-		"doNotAskAgain_label": "Nicht noch einmal fragen",
-		"editInboxRule_action": "Posteingangs-Regel bearbeiten",
+		"yourMessage_label": "Ihre Nachricht"
 	}
 }
