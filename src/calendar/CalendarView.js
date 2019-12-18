@@ -53,7 +53,6 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {createCalendarDeleteData} from "../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../gui/styles"
 import {CalendarWeekView} from "./CalendarWeekView"
-import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -284,7 +283,7 @@ export class CalendarView implements CurrentView {
 
 				}
 			},
-		}, ColumnType.Background, size.second_col_min_width + size.third_col_min_width, 2000, () => {
+		}, ColumnType.Background, size.second_col_min_width + size.third_col_min_width, size.third_col_max_width, () => {
 			if (this._currentViewType === CalendarViewType.MONTH) {
 				return formatMonthWithFullYear(this.selectedDate())
 			} else if (this._currentViewType === CalendarViewType.DAY) {

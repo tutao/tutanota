@@ -1182,37 +1182,37 @@ styles.registerStyle('main', () => {
 			'border-right': `0.5px solid ${theme.navigation_border}`,
 		},
 
+		'.mobile .header-nav': {height: px(size.navbar_height_mobile)},
+		'.mobile .header-logo': {
+			height: px(size.header_logo_height_mobile),
+		},
+		'.mobile .header-logo > svg': {
+			height: px(size.header_logo_height_mobile),
+			width: 'auto'
+		},
+
+		'.mobile .header-left': {
+			width: `${px(size.navbar_edge_width_mobile)}`
+		},
+		'.mobile .header-middle': {
+			position: 'absolute',
+			right: px(size.navbar_edge_width_mobile),
+			left: px(size.navbar_edge_width_mobile),
+			top: 0,
+			bottom: 0,
+		},
+		'.mobile .header-right': {
+			left: 'auto',
+			width: `${px(size.navbar_edge_width_mobile)}`
+		},
+
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
 		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: 0, bottom: 0},
-			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},
 			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},
-
 			".fixed-bottom-right": {bottom: px(size.hpad_large_mobile + size.bottom_nav_bar), right: px(size.hpad_large_mobile)},
 			'.pt-responsive': {'padding-top': px(size.hpad_large)},
-			'.header-logo': {
-				height: px(size.header_logo_height_mobile),
-			},
-			'.header-logo > svg': {
-				height: px(size.header_logo_height_mobile),
-				width: 'auto'
-			},
-
-			'.header-left': {
-				width: `${px(size.navbar_edge_width_mobile)}`
-			},
-			'.header-middle': {
-				position: 'absolute',
-				right: px(size.navbar_edge_width_mobile),
-				left: px(size.navbar_edge_width_mobile),
-				top: 0,
-				bottom: 0,
-			},
-			'.header-right': {
-				left: 'auto',
-				width: `${px(size.navbar_edge_width_mobile)}`
-			},
 
 			'.custom-logo': {width: px(40)},
 

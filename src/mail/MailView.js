@@ -122,7 +122,7 @@ export class MailView implements CurrentView {
 			view: () => m(".list-column", [
 				this.mailList ? m(this.mailList) : null,
 			])
-		}, ColumnType.Background, size.second_col_min_width, 500, () => {
+		}, ColumnType.Background, size.second_col_min_width, size.second_col_max_width, () => {
 			return this.selectedFolder ? getFolderName(this.selectedFolder) : ""
 		})
 
@@ -130,7 +130,7 @@ export class MailView implements CurrentView {
 		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
 		this.mailColumn = new ViewColumn({
 			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
-		}, ColumnType.Background, size.third_col_min_width, 2400, () => {
+		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, () => {
 			let selectedEntities = this.mailList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this.mailList.list._loadedEntities.indexOf(selectedEntities[0]) + 1

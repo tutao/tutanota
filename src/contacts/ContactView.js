@@ -86,14 +86,14 @@ export class ContactView implements CurrentView {
 			view: () => m(".list-column", [
 				this._contactList ? m(this._contactList) : null,
 			])
-		}, ColumnType.Background, size.second_col_min_width, 500, () => lang.get("contacts_label"))
+		}, ColumnType.Background, size.second_col_min_width, size.second_col_max_width, () => lang.get("contacts_label"))
 
 		this.contactViewer = null
 
 		this._multiContactViewer = new MultiContactViewer(this)
 		this.contactColumn = new ViewColumn({
 			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
-		}, ColumnType.Background, size.third_col_min_width, 2400, () => {
+		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, () => {
 			let selectedEntities = this._contactList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this._contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1

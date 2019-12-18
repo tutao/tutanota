@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {header} from "./gui/base/Header"
 import {modal} from "./gui/base/Modal"
 import {assertMainOrNodeBoot} from "./api/Env"
 import {overlay} from "./gui/base/Overlay"
@@ -32,7 +31,7 @@ class RootView {
 
 
 		this.view = (vnode): VirtualElement => {
-			return m("#root", {onmousedown}, [
+			return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {onmousedown}, [
 				m(overlay),
 				m(modal),
 				vnode.children,

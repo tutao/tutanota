@@ -53,7 +53,6 @@ export const size = {
 	header_logo_height: 38,
 	header_logo_height_mobile: 32,
 
-	desktop_layout_width: 1280,
 
 	list_row_height: 68,
 
@@ -73,12 +72,15 @@ export const size = {
 	calendar_event_margin_mobile: 2,
 	drawer_menu_width: 44,
 
-	// Keep column widths consistent: minimum width for desktop layout is desktop_layout_width and we don't want 2 column layout in
-	// desktop so min width of three columns must be at least 1280.
-	first_col_min_width: 280,
+	first_col_min_width: 240,
 	first_col_max_width: 300,
 	second_col_min_width: 300,
-	third_col_min_width: 700,
+	second_col_max_width: 350,
+	third_col_min_width: 600,
+	third_col_max_width: 2400,
+	get desktop_layout_width() {
+		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
+	}
 }
 
 export const inputLineHeight = size.font_size_base + 8
