@@ -112,10 +112,12 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				]
 			},
 			"nsis": {
-				"oneClick": false, "perMachine": false,
+				"oneClick": false,
+				"perMachine": false,
 				"createStartMenuShortcut": true,
 				"allowElevation": true,
-				"allowToChangeInstallationDirectory": true
+				"allowToChangeInstallationDirectory": true,
+				"include": path.join("..", "..", "buildSrc", "fix-old-uuid.nsh")
 			},
 			"mac": {
 				"hardenedRuntime": true,
