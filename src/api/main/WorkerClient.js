@@ -27,6 +27,7 @@ import type {InfoMessage} from "../common/CommonTypes"
 import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
 import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
 import {NotFoundError} from "../common/error/RestError"
+import {handleUncaughtError} from "../../misc/ErrorHandler"
 
 assertMainOrNode()
 
@@ -64,7 +65,8 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			error: (message: Message) => {
-				throw objToError((message: any).args[0])
+				handleUncaughtError(objToError((message: any).args[0]))
+				return Promise.resolve()
 			},
 			progress: (message: Message) => {
 				if (this._progressUpdater) {
