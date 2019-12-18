@@ -259,7 +259,6 @@ export class SearchView implements CurrentView {
 
 	headerRightView(): Children {
 		const restriction = getRestriction(m.route.get())
-		console.log("bottom nav", styles.isUsingBottomNavigation(), "typeRef", restriction.type, "new mail", isNewMailActionAvailable())
 		return styles.isUsingBottomNavigation() ?
 			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(ButtonN, {
@@ -278,7 +277,7 @@ export class SearchView implements CurrentView {
 							new ContactEditor(null, contactListId, null).show()
 						})
 					},
-					label: "contacts_label",
+					label: "newContact_action",
 					type: ButtonType.Action,
 					colors: ButtonColors.Header,
 					icon: () => Icons.Add,
