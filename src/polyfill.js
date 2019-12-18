@@ -5,6 +5,8 @@ import "core-js/es6/object.js"
 import "core-js/es6/string.js"
 import "core-js/es6/map.js"
 import "core-js/es6/set.js"
+import "core-js/modules/es7.object.values"
+import "core-js/modules/es7.object.entries"
 
 // is used by helpers/update-libs.js to generate lib/polyfill.js
 
