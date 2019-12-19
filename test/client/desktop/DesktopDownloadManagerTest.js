@@ -102,7 +102,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 				},
 				setEncoding: function (enc) {
 				},
-				destroy: function () {}
+				destroy: function () {},
+				pipe: function () {}
 			},
 			statics: {}
 		})
@@ -118,6 +119,19 @@ o.spec("DesktopDownloadManagerTest", () => {
 		getFilename: () => "/this/is/a-file.name",
 	}
 
+	const WriteStream = n.classify({
+		prototype: {
+			callbacks: {},
+			on: function (ev, cb) {
+				this.callbacks[ev] = cb
+				return this
+			},
+			close: function (cb) {
+				cb()
+			}
+		}, statics: {}
+	})
+
 	const fs = {
 		readdirSync: (path) => [],
 		closeSync: () => {
@@ -125,7 +139,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		openSync: () => {
 		},
 		mkdirp: () => Promise.resolve(),
-		writeFile: () => Promise.resolve()
+		writeFile: () => Promise.resolve(),
+		createWriteStream: () => new WriteStream()
 	}
 
 	const lang = {
@@ -269,9 +284,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		const res = new netMock.Response(200)
 		const dlPromise = dl.downloadNative("some://url/file", "nativelyDownloadedFile", {header1: "foo", header2: "bar"})
 		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
-		res.callbacks["data"](Buffer.from("data1"))
-		res.callbacks["data"](Buffer.from("data2"))
-		res.callbacks["end"]()
+		const ws = WriteStream.mockedInstances[0]
+		ws.callbacks['finish']()
 		dlPromise.then(() => {
 			o(netMock.request.callCount).equals(1)
 			o(netMock.request.args.length).equals(2)
@@ -282,12 +296,13 @@ o.spec("DesktopDownloadManagerTest", () => {
 				timeout: 20000
 			})
 			o(netMock.ClientRequest.mockedInstances.length).equals(1)
-			o(fsMock.writeFile.callCount).equals(1)
-			o(fsMock.writeFile.args.length).equals(3)
-			o(fsMock.writeFile.args[0]).equals('/some/path/tuta/nativelyDownloadedFile')
-			o(Buffer.from("data1data2").includes(fsMock.writeFile.args[1])).equals(true)
-			o(fsMock.writeFile.args[1].length).equals(Buffer.from("data1data2").length)
-			o(fsMock.writeFile.args[2]).deepEquals({encoding: 'binary'})
+			o(fsMock.createWriteStream.callCount).equals(1)
+			o(fsMock.createWriteStream.args.length).equals(1)
+			o(fsMock.createWriteStream.args[0]).equals('/some/path/tuta/nativelyDownloadedFile')
+
+			o(res.pipe.callCount).equals(1)
+			o(res.pipe.args[0]).deepEquals(ws)
+
 		}).then(() => done())
 	})
 
