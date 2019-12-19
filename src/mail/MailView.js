@@ -56,9 +56,9 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../misc/RouteChange"
 import {attachDropdown, DropdownN} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
-import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
+import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 
@@ -98,27 +98,23 @@ export class MailView implements CurrentView {
 		this._folderToUrl = {}
 		this._throttledRouteSet = throttleRoute()
 		this.folderColumn = new ViewColumn({
-			view: () => m(".flex.height-100p", [
-				m(DrawerMenu),
-				m(".folder-column.flex-grow.overflow-x-hidden.scroll", [
-					(!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
-						? m(".mlr-l.mt", m(ButtonN, {
-							label: 'newMail_action',
-							click: () => this._newMail().catch(PermissionError, noOp),
-							type: ButtonType.PrimaryBorder,
-						}))
-						: null,
-					Object.keys(this._mailboxExpanders)
-					      .map(mailGroupId => {
-							      let expander = this._mailboxExpanders[mailGroupId]
-							      return [
-								      m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
-								      m(neverNull(expander.expanderButton).panel)
-							      ]
-						      }
-					      )
-				])
-			])
+			view: () => m(FolderColumnView, {
+				button: (!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
+					? {
+						label: 'newMail_action',
+						click: () => this._newMail().catch(PermissionError, noOp),
+					}
+					: null,
+				content: Object.keys(this._mailboxExpanders)
+				               .map(mailGroupId => {
+						               let expander = this._mailboxExpanders[mailGroupId]
+						               return [
+							               m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+							               m(neverNull(expander.expanderButton).panel)
+						               ]
+					               }
+				               )
+			})
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("folderTitle_label"))
 
 		this.listColumn = new ViewColumn({

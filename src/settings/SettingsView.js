@@ -37,13 +37,12 @@ import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {getAvailableDomains} from "./AddUserDialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
-import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
-import {DrawerMenu} from "../gui/nav/DrawerMenu"
+import {FolderColumnView} from "../gui/base/FolderColumnView"
 
 assertMainOrNode()
 
@@ -103,20 +102,16 @@ export class SettingsView implements CurrentView {
 		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
-			view: () => m(".flex.height-100p", {
-				style: {
-					paddingLeft: getSafeAreaInsetLeft()
-				},
-			}, [
-				m(DrawerMenu),
-				m(".folder-column.scroll.overflow-x-hidden.flex.flex-grow.col", [
+			view: () => m(FolderColumnView, {
+				button: null,
+				content: m(".flex.flex-grow.col", [
 					m(".plr-l", m(userFolderExpander)),
 					m(userFolderExpander.panel),
 					logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
 					logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
 					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 				])
-			])
+			})
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("settings_label"))
 
 		this._settingsColumn = new ViewColumn({
