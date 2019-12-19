@@ -7,7 +7,6 @@ import fs from "fs-extra"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
-import {last} from "../api/common/utils/ArrayUtils"
 
 export default class DesktopUtils {
 
@@ -69,7 +68,7 @@ export default class DesktopUtils {
 		// only windows will happily execute a just downloaded program
 		if (process.platform === 'win32') {
 			// taken from https://www.lifewire.com/list-of-executable-file-extensions-2626061
-			const ext = (last(file.split('.')) || "").toLowerCase()
+			const ext = path.extname(file).toLowerCase().slice(1)
 			return [
 				'exe', 'bat', 'bin', 'cmd', 'com', 'cpl', 'gadget',
 				'inf', 'inx', 'ins', 'isu', 'job', 'jse', 'lnk', 'msc',
