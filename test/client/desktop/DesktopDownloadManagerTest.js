@@ -2,6 +2,8 @@
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
 
+const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
+
 o.spec("DesktopDownloadManagerTest", () => {
 	n.startGroup({
 		group: __filename, allowables: [
@@ -29,7 +31,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		getDesktopConfig: (key: string) => {
 			switch (key) {
 				case "defaultDownloadPath":
-					return "/a/download/path/"
+					return DEFAULT_DOWNLOAD_PATH
 				default:
 					throw new Error(`unexpected getDesktopConfig key ${key}`)
 			}
@@ -140,7 +142,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		},
 		mkdirp: () => Promise.resolve(),
 		writeFile: () => Promise.resolve(),
-		createWriteStream: () => new WriteStream()
+		createWriteStream: () => new WriteStream(),
+		existsSync: (path) => path === DEFAULT_DOWNLOAD_PATH,
 	}
 
 	const lang = {
@@ -190,7 +193,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
-	o("with default download path", () => {
+	o("with default download path", function () {
 		const {electronMock, desktopUtilsMock, confMock, netMock} = standardMocks()
 		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
 		const dl = new DesktopDownloadManager(confMock, netMock)
@@ -206,6 +209,24 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
+		o(electronMock.dialog.showMessageBox.callCount).equals(0)
+	})
+
+	o("with default download path but it doesn't exist", function () {
+		const {electronMock, desktopUtilsMock, confMock, netMock} = standardMocks()
+		n.mock("fs-extra", fs).with({
+			existsSync: () => false,
+		}).set()
+		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
+		const dl = new DesktopDownloadManager(confMock, netMock)
+		const sessionMock = n.mock("__session", session).set()
+		dl.manageDownloadsForSession(sessionMock)
+		o(sessionMock.removeAllListeners.callCount).equals(1)
+		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
+		o(sessionMock.on.callCount).equals(1)
+		o(sessionMock.on.args[0]).equals("will-download")
+		// no args so we throw when DownloadManager tries to do any work.
+		sessionMock.callbacks["will-download"]()
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
@@ -307,7 +328,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 	})
 
 	o("open", done => {
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const {electronMock, confMock, netMock} = standardMocks()
 		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
 		const dl = new DesktopDownloadManager(confMock, netMock)
 
@@ -329,7 +350,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 	o("open on windows", done => {
 		n.setPlatform("win32")
-		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
+		const {electronMock, confMock, netMock} = standardMocks()
 		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
 		const dl = new DesktopDownloadManager(confMock, netMock)
 

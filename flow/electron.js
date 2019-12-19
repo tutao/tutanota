@@ -252,7 +252,7 @@ declare module 'electron' {
 			parent: ?BrowserWindow,
 			options: MessageBoxOptions
 		): Promise<{response: number, checked: boolean}>,
-		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions, cb: ?((paths: Array<strings>) => void)): ?Array<string>
+		showOpenDialog(browserWindow: ?BrowserWindow, options: OpenDialogOptions): Promise<{canceled: boolean, filePaths: string[]}>
 	}
 
 	declare export type OpenDialogOptions = {

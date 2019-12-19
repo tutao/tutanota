@@ -76,13 +76,14 @@ export class DesktopDownloadManager {
 	}
 
 	_handleDownloadItem(ev: Event, item: DownloadItem): void {
-		if (this._conf.getDesktopConfig('defaultDownloadPath')) {
+		const defaultDownloadPath = this._conf.getDesktopConfig('defaultDownloadPath')
+		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
 			try {
 				const fileName = path.basename(item.getFilename())
 				const savePath = path.join(
-					this._conf.getDesktopConfig('defaultDownloadPath'),
+					defaultDownloadPath,
 					DesktopUtils.nonClobberingFilename(
-						fs.readdirSync(this._conf.getDesktopConfig('defaultDownloadPath')),
+						fs.readdirSync(defaultDownloadPath),
 						fileName
 					)
 				)
@@ -105,11 +106,13 @@ export class DesktopDownloadManager {
 						fileManagerLock()
 					}
 					if (state === 'interrupted') {
+						console.error("download itnerrupted", event)
 						showDownloadErrorMessageBox('download interrupted', item.getFilename())
 					}
 				})
 
 			} catch (e) {
+				console.error("error while downloading", e)
 				showDownloadErrorMessageBox(e.message, item.getFilename())
 			}
 		} else {

@@ -35,9 +35,7 @@ o.spec("IPC tests", () => {
 			}
 		},
 		dialog: {
-			showOpenDialog: (e, opts, cb) => {
-				cb(["a", "list", "of", "paths"])
-			}
+			showOpenDialog: (e, opts) => Promise.resolve({filePaths: ["a", "list", "of", "paths"]})
 		},
 		shell: {
 			openItem: file => file === "/file/to/open"

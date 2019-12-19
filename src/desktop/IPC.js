@@ -4,6 +4,7 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
+import {noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
@@ -62,64 +63,39 @@ export class IPC {
 	}
 
 	_invokeMethod(windowId: number, method: NativeRequestType, args: Array<Object>): Promise<any> {
-		const d = defer()
 
 		switch (method) {
 			case 'init':
 				if (!this.initialized(windowId).isFulfilled()) {
 					this._initialized[windowId].resolve()
 				}
-				d.resolve(process.platform);
-				break
+				return Promise.resolve(process.platform)
 			case 'findInPage':
-				this.initialized(windowId).then(() => {
+				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
 					if (w) {
-						w.findInPage(args).then(r => d.resolve(r))
+						return w.findInPage(args)
 					} else {
-						d.resolve({numberOfMatches: 0, currentMatch: 0})
+						return {numberOfMatches: 0, currentMatch: 0}
 					}
 				})
-				break
 			case 'stopFindInPage':
-				this.initialized(windowId).then(() => {
+				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
 					if (w) {
 						w.stopFindInPage()
 					}
-				})
-				d.resolve()
-				break
+				}).catch(noOp)
 			case 'registerMailto':
-				DesktopUtils
-					.registerAsMailtoHandler(true)
-					.then(() => {
-						d.resolve()
-					})
-					.catch(e => {
-						d.reject(e)
-					})
-				break
+				return DesktopUtils.registerAsMailtoHandler(true)
 			case 'unregisterMailto':
-				DesktopUtils
-					.unregisterAsMailtoHandler(true)
-					.then(() => {
-						d.resolve()
-					})
-					.catch(e => {
-						d.reject(e)
-					})
-				break
+				return DesktopUtils.unregisterAsMailtoHandler(true)
 			case 'integrateDesktop':
-				integrate().then(() => d.resolve())
-				           .catch(e => d.reject(e))
-				break;
+				return integrate()
 			case 'unIntegrateDesktop':
-				unintegrate().then(() => d.resolve())
-				             .catch(e => d.reject(e))
-				break;
+				return unintegrate()
 			case 'sendDesktopConfig':
-				Promise.join(
+				return Promise.join(
 					DesktopUtils.checkIsMailtoHandler(),
 					isAutoLaunchEnabled(),
 					isIntegrated(),
@@ -129,57 +105,39 @@ export class IPC {
 						config.runOnStartup = autoLaunchEnabled
 						config.isIntegrated = isIntegrated
 						return config
-					}).then((config) => d.resolve(config))
-				break
+					})
 			case 'openFileChooser':
 				if (args[1]) { // open folder dialog
-					dialog.showOpenDialog(null, {properties: ['openDirectory']}, paths => {
-						d.resolve(paths ? paths : [])
-					})
+					return dialog.showOpenDialog(null, {properties: ['openDirectory']}).then(({filePaths}) => filePaths)
 				} else { // open file
-					d.resolve([])
+					return Promise.resolve([])
 				}
-				break
 			case 'open':
 				// itemPath, mimeType
 				const itemPath = args[0].toString()
-				this._dl.open(itemPath)
-				    .then(() => d.resolve())
-				    .catch(e => d.reject(e))
-				break
+				return this._dl.open(itemPath)
 			case 'download':
 				// sourceUrl, filename, headers
-				this._dl.downloadNative(...args.slice(0, 3))
-				    .then(res => d.resolve(res))
-				    .catch(e => d.reject(e))
-				break
+				return this._dl.downloadNative(...args.slice(0, 3))
 			case "aesDecryptFile":
 				// key, path
-				this._crypto.aesDecryptFile(...args.slice(0, 2))
-				    .then(itemPath => d.resolve(itemPath))
-				    .catch(e => d.reject(e))
-				break
+				return this._crypto.aesDecryptFile(...args.slice(0, 2))
 			case 'updateDesktopConfig':
-				this._conf.setDesktopConfig('any', args[0]).then(() => d.resolve())
-				break
+				return this._conf.setDesktopConfig('any', args[0])
 			case 'openNewWindow':
 				this._wm.newWindow(true)
-				d.resolve()
-				break
+				return Promise.resolve()
 			case 'showWindow':
-				this.initialized(windowId).then(() => {
+				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
 					if (w) {
 						w.show()
 					}
-				}).then(() => d.resolve())
-				break
+				})
 			case 'enableAutoLaunch':
-				enableAutoLaunch().then(() => d.resolve())
-				break
+				return enableAutoLaunch()
 			case 'disableAutoLaunch':
-				disableAutoLaunch().then(() => d.resolve())
-				break
+				return disableAutoLaunch()
 			case 'getPushIdentifier':
 				const uInfo = {
 					userId: args[0].toString(),
@@ -187,19 +145,18 @@ export class IPC {
 				}
 				// we know there's a logged in window
 				//first, send error report if there is one
-				err.sendErrorReport(windowId)
-				   .then(() => {
-					   const w = this._wm.get(windowId)
-					   if (!w) return
-					   w.setUserInfo(uInfo)
-					   if (!w.isHidden()) {
-						   this._notifier.resolveGroupedNotification(uInfo.userId)
-					   }
-				   })
-				   .then(() => d.resolve(this._sse.getPushIdentifier()))
-				break
+				return err.sendErrorReport(windowId)
+				          .then(() => {
+					          const w = this._wm.get(windowId)
+					          if (!w) return
+					          w.setUserInfo(uInfo)
+					          if (!w.isHidden()) {
+						          this._notifier.resolveGroupedNotification(uInfo.userId)
+					          }
+					          return this._sse.getPushIdentifier()
+				          })
 			case 'storePushIdentifierLocally':
-				Promise.all([
+				return Promise.all([
 					this._sse.storePushIdentifier(
 						args[0].toString(),
 						args[1].toString(),
@@ -209,31 +166,23 @@ export class IPC {
 						args[3].toString(),
 						args[4].toString()
 					)
-				]).then(() => d.resolve())
-				break
+				]).return()
 			case 'initPushNotifications':
 				// no need to react, we start push service with node
-				d.resolve()
-				break
+				return Promise.resolve()
 			case 'closePushNotifications':
 				// only gets called in the app
 				// the desktop client closes notifications on window focus
-				d.resolve()
-				break
+				return Promise.resolve()
 			case 'sendSocketMessage':
 				// for admin client integration
 				this._sock.sendSocketMessage(args[0])
-				d.resolve()
-				break
+				return Promise.resolve()
 			case 'getLog':
-				d.resolve(global.logger.getEntries())
-				break
+				return Promise.resolve(global.logger.getEntries())
 			default:
-				d.reject(new Error(`Invalid Method invocation: ${method}`))
-				break
+				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}
-
-		return d.promise
 	}
 
 	sendRequest(windowId: number, type: JsRequestType, args: Array<any>): Promise<Object> {
