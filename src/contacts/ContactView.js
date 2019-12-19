@@ -42,6 +42,7 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
+import {FolderColumnView} from "../gui/base/FolderColumnView"
 
 
 assertMainOrNode()
@@ -64,20 +65,18 @@ export class ContactView implements CurrentView {
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
-				view: () => m(".flex.height-100p", [
-					m(DrawerMenu),
-					m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
-						styles.isUsingBottomNavigation() || !this._contactList
-							? null
-							: m(".mlr-l.mt", m(ButtonN, {
-								label: "newContact_action",
-								click: () => this.createNewContact(),
-								type: ButtonType.PrimaryBorder,
-							})),
+				view: () => m(FolderColumnView, {
+					button: styles.isUsingBottomNavigation() || !this._contactList
+						? null
+						: {
+							label: "newContact_action",
+							click: () => this.createNewContact(),
+						},
+					content: [
 						m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
 						m(expander.panel)
-					])
-				])
+					]
+				})
 			},
 			ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("folderTitle_label")
 		)
