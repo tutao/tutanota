@@ -4,6 +4,7 @@ import {load, loadAll, serviceRequestVoid, update} from "../api/main/Entity"
 import stream from "mithril/stream/stream.js"
 import type {CurrentView} from "../gui/base/Header"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
@@ -31,6 +32,7 @@ import {
 } from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
@@ -65,11 +67,8 @@ import {getDisplayText} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
 import {showInvitationDialog} from "./CalendarInvitationDialog"
 import {loadGroupMembers} from "./CalendarSharingUtils"
-import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -398,10 +397,16 @@ export class CalendarView implements CurrentView {
 		return this._calendarInvitations
 		           .map((invitation) => [
 				           m(".folder-row.flex-start.plr-l", [
-					           m(".flex-v-center.flex-grow.button-height", [
+					           m(".flex-v-center.flex-grow.button-height", {
+						           style: {
+							           // It's kinda hard to tell this element to not eat up all the row and truncate text instead because it
+							           // is vertical flex. With this it will stop at 80% of what it could be and that's enough for the button.
+							           "max-width": `calc(100% - ${size.button_height}px)`
+						           }
+					           }, [
 						           m(".b", {title: getCapabilityText(downcast(invitation.capability))}, invitation.sharedGroupName),
-						           m(".small", {title: invitation.inviterMailAddress}, lang.get('from_label') + ": "
-							           + (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
+						           m(".small.text-ellipsis", {title: invitation.inviterMailAddress},
+							           (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
 					           ]),
 					           m(ButtonN, {
 						           label: "show_action",
