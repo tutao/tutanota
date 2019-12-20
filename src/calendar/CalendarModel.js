@@ -139,7 +139,6 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 
 
 export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEnum, interval: number, ianaTimeZone: string): Date {
-	const calculationDate = new Date(date)
 	switch (repeatPeriod) {
 		case RepeatPeriod.DAILY:
 			return DateTime.fromJSDate(date, {zone: ianaTimeZone}).plus({days: interval}).toJSDate()
@@ -152,7 +151,6 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriodEn
 		default:
 			throw new Error("Unknown repeat period")
 	}
-	return calculationDate
 }
 
 const OCCURRENCES_SCHEDULED_AHEAD = 10
