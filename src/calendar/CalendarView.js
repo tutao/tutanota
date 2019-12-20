@@ -68,6 +68,8 @@ import {loadGroupMembers} from "./CalendarSharingUtils"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -106,12 +108,6 @@ export class CalendarView implements CurrentView {
 	_calendarInvitations: Array<ReceivedGroupInvitation>
 
 	constructor() {
-		const calendarViewValues = [
-			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
-			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
-		]
-
-
 		this._currentViewType = styles.isDesktopLayout() ? CalendarViewType.MONTH : CalendarViewType.AGENDA
 		this._loadedMonths = new Set()
 		this._eventsForDays = new Map()
@@ -127,65 +123,16 @@ export class CalendarView implements CurrentView {
 							click: () => this._newEvent(),
 						},
 					content: [
-						m(".folders.pt-s", [
-							m(".folder-row.flex-space-between.button-height.plr-l", [
-								m("small.b.align-self-center.ml-negative-xs",
-									{style: {color: theme.navigation_button}},
-									lang.get("view_label").toLocaleUpperCase()),
-								(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
-									label: "today_label",
-									click: () => {
-										this._setUrl(m.route.param("view"), new Date())
-									},
-									colors: ButtonColors.Nav,
-									type: ButtonType.Primary,
-								}) : null
-							]),
-							m(".folder-row.plr-l", calendarViewValues.map(viewType => {
-								return m(NavButtonN, {
-									label: () => viewType.name,
-									icon: () => viewType.icon,
-									href: m.route.get(),
-									isSelectedPrefix: viewType.href,
-									colors: ButtonColors.Nav,
-									// Close side menu
-									click: () => {
-										this._setUrl(viewType.value, this.selectedDate())
-										this.viewSlider.focus(this.contentColumn)
-									}
-								})
-							})),
-						]),
-						m(".folders",
-							{style: {color: theme.navigation_button}},
-							[
-								m(".folder-row.flex-space-between.button-height.plr-l", [
-									m("small.b.align-self-center.ml-negative-xs",
-										lang.get("yourCalendars_label").toLocaleUpperCase()),
-									m(ButtonN, {
-										label: "addCalendar_action",
-										colors: ButtonColors.Nav,
-										click: () => this._onPressedAddCalendar(),
-										icon: () => Icons.Add
-									})
-								]),
-								this._renderCalendars(false)
-							]),
-						m(".folders", {style: {color: theme.navigation_button}}, [
-							m(".folder-row.flex-space-between.button-height.plr-l", [
-								m("small.b.align-self-center.ml-negative-xs",
-									lang.get("otherCalendars_label").toLocaleUpperCase())
-							]),
-							this._renderCalendars(true)
-						]),
+						this._renderCalendarViewButtons(),
+						this._renderSidebarSection("yourCalendars_label", {
+							label: "addCalendar_action",
+							colors: ButtonColors.Nav,
+							click: () => this._onPressedAddCalendar(),
+							icon: () => Icons.Add
+						}, this._renderCalendars(false)),
+						this._renderSidebarSection("otherCalendars_label", null, this._renderCalendars(true)),
 						this._calendarInvitations.length > 0
-							? m(".folders", {style: {color: theme.navigation_button}}, [
-								m(".folder-row.flex-space-between.button-height.plr-l", [
-									m("small.b.align-self-center.ml-negative-xs",
-										lang.get("calendarInvitations_label").toLocaleUpperCase())
-								]),
-								this._renderCalendarInvitations()
-							])
+							? this._renderSidebarSection("calendarInvitations_label", null, this._renderCalendarInvitations())
 							: null,
 					]
 				})
@@ -195,7 +142,6 @@ export class CalendarView implements CurrentView {
 				? lang.get("month_label")
 				: lang.get("calendar_label")
 		)
-
 
 		this.contentColumn = new ViewColumn({
 			view: () => {
@@ -327,6 +273,53 @@ export class CalendarView implements CurrentView {
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
 			this.entityEventReceived(updates, eventOwnerGroupId)
 		})
+	}
+
+	_renderSidebarSection(label: TranslationKey, button: ?ButtonAttrs, content: Children): Children {
+		return m(".folders", {style: {color: theme.navigation_button}}, [
+			m(".folder-row.flex-space-between.button-height.plr-l", [
+				m("small.b.align-self-center.ml-negative-xs",
+					lang.get(label).toLocaleUpperCase()),
+				button ? m(ButtonN, button) : null
+			]),
+			content
+		])
+	}
+
+	_renderCalendarViewButtons(): Children {
+		const calendarViewValues = [
+			{name: lang.get("month_label"), value: CalendarViewType.MONTH, icon: Icons.Table, href: "/calendar/month"},
+			{name: lang.get("agenda_label"), value: CalendarViewType.AGENDA, icon: Icons.ListUnordered, href: "/calendar/agenda"},
+		]
+		return m(".folders.pt-s", [
+			m(".folder-row.flex-space-between.button-height.plr-l", [
+				m("small.b.align-self-center.ml-negative-xs",
+					{style: {color: theme.navigation_button}},
+					lang.get("view_label").toLocaleUpperCase()),
+				(this._currentViewType !== CalendarViewType.AGENDA) ? m(ButtonN, {
+					label: "today_label",
+					click: () => {
+						this._setUrl(m.route.param("view"), new Date())
+					},
+					colors: ButtonColors.Nav,
+					type: ButtonType.Primary,
+				}) : null
+			]),
+			m(".folder-row.plr-l", calendarViewValues.map(viewType => {
+				return m(NavButtonN, {
+					label: () => viewType.name,
+					icon: () => viewType.icon,
+					href: m.route.get(),
+					isSelectedPrefix: viewType.href,
+					colors: ButtonColors.Nav,
+					// Close side menu
+					click: () => {
+						this._setUrl(viewType.value, this.selectedDate())
+						this.viewSlider.focus(this.contentColumn)
+					}
+				})
+			})),
+		])
 	}
 
 	headerRightView(): Children {
