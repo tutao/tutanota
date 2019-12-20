@@ -209,6 +209,7 @@ const ErrorNameToType = {
 	DbError,
 	IndexingNotSupportedError,
 	CancelledError,
+	FileOpenError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,

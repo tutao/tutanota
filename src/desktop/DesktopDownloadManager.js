@@ -8,6 +8,7 @@ import fs from "fs-extra"
 import {noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
+import {FileOpenError} from "../api/common/error/FileOpenError"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfigHandler;
@@ -54,7 +55,7 @@ export class DesktopDownloadManager {
 			if (shell.openItem(itemPath)) {
 				return Promise.resolve()
 			} else {
-				return Promise.reject("Could not open " + itemPath)
+				return Promise.reject(new FileOpenError("Could not open " + itemPath))
 			}
 		}
 		if (DesktopUtils.looksExecutable(itemPath)) {
