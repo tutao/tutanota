@@ -164,7 +164,7 @@ export class SecondFactorHandler {
 									? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg")),
 								otpChallenge ? m(".left.mlr-l", m(otpCodeField)) : null,
 							]),
-							(otherLoginDomain && !keyForThisDomainExisting)
+							(otherLoginDomain && !keyForThisDomainExisting && u2fSupport)
 								? m("a", {
 									href: "https://" + otherLoginDomain
 								}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain}))
