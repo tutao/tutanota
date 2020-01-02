@@ -20,7 +20,7 @@ import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {debounceStart, lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
+import {lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {MailEditor, newMail} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -611,7 +611,7 @@ export class MailView implements CurrentView {
 		m.route.set("/")
 	}
 
-	elementSelected = debounceStart(200, (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => {
+	elementSelected = (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => {
 		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 			// set or update the visible mail
 			this.mailViewer = new MailViewer(mails[0], false)
@@ -643,7 +643,7 @@ export class MailView implements CurrentView {
 				})
 			}
 		}
-	})
+	}
 
 	deleteMails(mails: Mail[]): Promise<void> {
 		return showDeleteConfirmationDialog(mails).then((confirmed) => {

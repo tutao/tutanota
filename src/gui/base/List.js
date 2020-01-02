@@ -8,7 +8,7 @@ import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from ".
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
-import {neverNull} from "../../api/common/utils/Utils"
+import {debounceStart, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
@@ -67,6 +67,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_scrollListener: Function;
 
 	_selectedEntities: T[]; // the selected entities must be sorted the same way the loaded entities are sorted
+	_lastSelectedEntitiesForCallback: T[] = [];
 	_lastMultiSelectWasKeyUp: boolean; // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
 
 	_idOfEntityToSelectWhenReceived: ?Id;
@@ -397,7 +398,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		if (this._selectedEntities.length === 0) {
 			this._mobileMultiSelectionActive = false;
 		}
-		this._config.elementSelected(this.getSelectedEntities(), true, selectionChanged, multiSelect)
+		this._elementSelected(this.getSelectedEntities(), true, multiSelect)
 	}
 
 	_entitySelected(entity: T, addToSelection: boolean) {
@@ -407,7 +408,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 				// the selected entities must be sorted the same way the loaded entities are sorted
 				this._selectedEntities.sort(this._config.sortCompare)
 				this._reposition()
-				this._config.elementSelected(this.getSelectedEntities(), false, true, true)
+				this._elementSelected(this.getSelectedEntities(), false, true)
 			}
 		} else {
 			let selectionChanged = this._selectedEntities.length !== 1 || this._selectedEntities[0] !== entity
@@ -418,9 +419,18 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			if (this._selectedEntities.length === 0) {
 				this._mobileMultiSelectionActive = false;
 			}
-			this._config.elementSelected(this.getSelectedEntities(), false, selectionChanged, false)
+			this._elementSelected(this.getSelectedEntities(), false, false)
 		}
 	}
+
+	_elementSelected: (entities: T[], elementClicked: boolean, multiSelectOperation: boolean) => void =
+		debounceStart(200, (entities, elementClicked, multiSelectOperation) => {
+			const selectionChanged = this._lastSelectedEntitiesForCallback.length !== entities.length ||
+				this._lastSelectedEntitiesForCallback.some((el, i) => entities[i] !== el)
+			this._config.elementSelected(entities, elementClicked, selectionChanged, multiSelectOperation)
+
+			this._lastSelectedEntitiesForCallback = entities
+		})
 
 	selectNext(shiftPressed: boolean) {
 		if (!this._config.multiSelectionAllowed) {
@@ -430,7 +440,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			// we have to remove the selection from the top
 			this._selectedEntities.splice(0, 1)
 			this._reposition()
-			this._config.elementSelected(this.getSelectedEntities(), false, true, true)
+			this._elementSelected(this.getSelectedEntities(), false, true)
 			this._scrollToLoadedEntityAndSelect(this._selectedEntities[0], true)
 		} else {
 			this._lastMultiSelectWasKeyUp = false
@@ -457,7 +467,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			// we have to remove the selection from the bottom
 			this._selectedEntities.splice(-1, 1)
 			this._reposition()
-			this._config.elementSelected(this.getSelectedEntities(), false, true, true)
+			this._elementSelected(this.getSelectedEntities(), false, true)
 			const lastEl = last(this._selectedEntities)
 			lastEl && this._scrollToLoadedEntityAndSelect(lastEl, true)
 		} else {
@@ -482,7 +492,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		if (this._selectedEntities.length > 0) {
 			this._selectedEntities = []
 			this._reposition()
-			this._config.elementSelected([], false, true, false)
+			this._elementSelected([], false, false)
 		}
 	}
 
@@ -943,7 +953,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 					this._reposition()
 				}
 				if (selectionChanged) {
-					this._config.elementSelected(this.getSelectedEntities(), false, true, !nextElementSelected)
+					this._elementSelected(this.getSelectedEntities(), false, !nextElementSelected)
 				}
 				// trigger loading new elements before the scrollbar disappears and no reload can be triggered any more by scrolling
 				this._loadMoreIfNecessary()
