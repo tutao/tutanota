@@ -5,6 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {getSpamRuleFieldMapping, getSpamRuleTypeNameMapping} from "./GlobalSettingsViewer"
 import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
+import type {SpamRuleFieldTypeEnum} from "../api/common/TutanotaConstants"
 import {getSpamRuleType, getSparmRuleField, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {Dialog} from "../gui/base/Dialog"
@@ -48,7 +49,8 @@ export function show(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 			label: "emailSenderPlaceholder_label",
 			value: valueFieldValue,
 			helpLabel: () =>
-				lang.get(_getInputInvalidMessage(selectedType(), valueFieldValue(), existingSpamRules, customDomains) || "emptyString_msg")
+				lang.get(_getInputInvalidMessage(selectedType(), valueFieldValue(), selectedField(), existingSpamRules, customDomains, existingSpamRuleOrTemplate)
+					|| "emptyString_msg")
 		}),
 		m(DropDownSelectorN, {
 			items: typeItems,
@@ -72,13 +74,13 @@ export function show(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 	Dialog.showActionDialog({
 		title: lang.get("addSpamRule_action"),
 		child: form,
-		validator: () => _getInputInvalidMessage(selectedType(), valueFieldValue(), existingSpamRules, customDomains, existingSpamRuleOrTemplate),
+		validator: () => _getInputInvalidMessage(selectedType(), valueFieldValue(), selectedField(), existingSpamRules, customDomains, existingSpamRuleOrTemplate),
 		allowOkWithReturn: true,
 		okAction: addSpamRuleOkAction
 	})
 }
 
-function _getInputInvalidMessage(type: NumberString, value: string, existingRules: ?EmailSenderListElement[], customDomains: ?string[], existingSpamRuleOrTemplate: ?EmailSenderListElement): ?TranslationKey {
+function _getInputInvalidMessage(type: NumberString, value: string, field: SpamRuleFieldTypeEnum, existingRules: ?EmailSenderListElement[], customDomains: ?string[], existingSpamRuleOrTemplate: ?EmailSenderListElement): ?TranslationKey {
 	let currentValue = value.toLowerCase().trim()
 
 	if (!existingRules || !customDomains) {
@@ -89,9 +91,10 @@ function _getInputInvalidMessage(type: NumberString, value: string, existingRule
 		return "invalidInputFormat_msg"
 	} else if (_isInvalidRule(type, currentValue, customDomains)) {
 		return "emailSenderInvalidRule_msg"
-	} else if (existingRules.find(r => r.value === currentValue
+	} else if (existingRules.some(r => r.value === currentValue
 		// Only collision if we don't edit existing one or existing one has different id
-		&& (existingSpamRuleOrTemplate == null || r._id !== existingSpamRuleOrTemplate._id)) != null) {
+		&& (existingSpamRuleOrTemplate == null || r._id !== existingSpamRuleOrTemplate._id)
+		&& r.field === field)) {
 		return "emailSenderExistingRule_msg"
 	}
 	return null
