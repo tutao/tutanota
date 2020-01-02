@@ -14,7 +14,8 @@ const fontSize = size.font_size_small
 
 export class BottomNav implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("bottom-nav.flex.items-center.z1", [
+		// Using bottom-nav class too to match it inside media queries like @print, otherwise it's not matched
+		return m("bottom-nav.bottom-nav.flex.items-center.z1", [
 			m(NavButtonN, {
 					label: 'emails_label',
 					icon: () => BootIcons.Mail,

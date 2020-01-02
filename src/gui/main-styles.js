@@ -1298,7 +1298,12 @@ styles.registerStyle('main', () => {
 			"button:not(.print)": {
 				display: 'none'
 			},
-
+			".bottom-nav": {
+				display: 'none'
+			},
+			".mobile .view-column:nth-child(2)": {
+				display: "initial",
+			},
 		},
 
 		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7
