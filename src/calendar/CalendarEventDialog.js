@@ -430,7 +430,9 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					icon: () => Icons.Pin,
 					click: () => {
 						let address = encodeURIComponent(locationValue())
-						window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
+						if (address != "") {
+							window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
+						}
 					}
 				})
 			}),
