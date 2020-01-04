@@ -425,16 +425,19 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				label: "location_label",
 				value: locationValue,
 				disabled: readOnly,
-				injectionsRight: () => m(ButtonN, {
-					label: 'showAddress_alt',
-					icon: () => Icons.Pin,
-					click: () => {
-						let address = encodeURIComponent(locationValue())
-						if (address != "") {
+				injectionsRight: () => {
+					let address = encodeURIComponent(locationValue())
+					if (address == "") {
+						return null;
+					}
+					return m(ButtonN, {
+						label: 'showAddress_alt',
+						icon: () => Icons.Pin,
+						click: () => {
 							window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
 						}
-					}
-				})
+					})
+				}
 			}),
 			m(TextFieldN, {
 				label: "description_label",
