@@ -134,7 +134,12 @@ class LanguageViewModel {
 		this.fallback = en // always load english as fallback
 		this.code = 'en'
 
-		return this.setLanguage(getLanguage())
+		const language = getLanguage()
+		return this.setLanguage(language)
+		           // Service worker currently caches only English. We don't want the whole app to fail if we cannot fetch the language.
+		           .catch((e) => {
+			           console.warn("Could not set language", language, e)
+		           })
 	}
 
 	addStaticTranslation(key: string, text: string) {
