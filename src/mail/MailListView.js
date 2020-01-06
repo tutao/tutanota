@@ -147,6 +147,10 @@ export class MailListView implements Component {
 			type: ButtonType.Primary,
 			colors: ButtonColors.Nav,
 			click: () => {
+				if (folder == null) {
+					console.warn("Cannot delete folder, no folder is selected")
+					return
+				}
 				Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": getFolderName(folder)}))
 				      .then(confirmed => {
 					      if (confirmed) {
