@@ -81,7 +81,7 @@ export class MailView implements CurrentView {
 	viewSlider: ViewSlider;
 	mailList: MailListView;
 	view: Function;
-	selectedFolder: MailFolder;
+	selectedFolder: ?MailFolder;
 	mailViewer: ?MailViewer;
 	oncreate: Function;
 	onbeforeremove: Function;
@@ -271,7 +271,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => (this._newMail().catch(PermissionError, noOp): any),
-				enabled: () => this.selectedFolder && isNewMailActionAvailable(),
+				enabled: () => !!this.selectedFolder && isNewMailActionAvailable(),
 				help: "newMail_action"
 			},
 			{
@@ -395,7 +395,7 @@ export class MailView implements CurrentView {
 	}
 
 	switchToFolder(folderType: MailFolderTypeEnum) {
-		m.route.set(this._folderToUrl[getFolder(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails).folders, folderType)._id[1]])
+		m.route.set(this._folderToUrl[getFolder(this._getMailboxDetails().folders, folderType)._id[1]])
 	}
 
 	createMailboxExpander(mailboxDetail: MailboxDetail) {
@@ -617,7 +617,13 @@ export class MailView implements CurrentView {
 	}
 
 	_newMail(): Promise<MailEditor> {
-		return newMail(mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails))
+		return newMail(this._getMailboxDetails())
+	}
+
+	_getMailboxDetails(): MailboxDetail {
+		return this.selectedFolder
+			? mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails)
+			: mailModel.getUserMailboxDetails()
 	}
 
 	_checkFolderName(name: string, mailGroupId: Id): ?string {
@@ -653,14 +659,18 @@ export class MailView implements CurrentView {
 			// set or update the visible mail
 			this.mailViewer = new MailViewer(mails[0], false)
 			let url = `/mail/${mails[0]._id.join("/")}`
-			this._folderToUrl[this.selectedFolder._id[1]] = url
+			if (this.selectedFolder) {
+				this._folderToUrl[this.selectedFolder._id[1]] = url
+			}
 			this._setUrl(url)
 			m.redraw()
 		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewer) {
 			// remove the visible mail
 			this.mailViewer = null
-			let url = `/mail/${this.mailList.listId}`;
-			this._folderToUrl[this.selectedFolder._id[1]] = url
+			let url = `/mail/${this.mailList.listId}`
+			if (this.selectedFolder) {
+				this._folderToUrl[this.selectedFolder._id[1]] = url
+			}
 			this._setUrl(url)
 			m.redraw()
 		} else if (selectionChanged) {
