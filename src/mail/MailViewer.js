@@ -132,6 +132,7 @@ export class MailViewer {
 	mailHeaderInfo: string;
 	_isScaling: boolean;
 	_filesExpanded: Stream<boolean>;
+	_inlineFileIds: Promise<Array<string>>
 	_inlineImages: Promise<InlineImages>;
 	_domBodyDeferred: DeferredObject<HTMLElement>;
 	_lastBodyTouchEndTime = 0;
@@ -314,13 +315,13 @@ export class MailViewer {
 			}))
 		}
 
-		const inlineFileIds = this._loadMailBody(mail)
+		this._inlineFileIds = this._loadMailBody(mail)
 
 		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 		load(ConversationEntryTypeRef, mail.conversationEntry)
 			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 
-		this._inlineImages = this._loadAttachments(mail, inlineFileIds)
+		this._inlineImages = this._loadAttachments(mail)
 
 
 		this.view = () => {
@@ -519,7 +520,7 @@ export class MailViewer {
 	}
 
 
-	_loadAttachments(mail: Mail, inlineCids: Promise<Array<string>>): Promise<InlineImages> {
+	_loadAttachments(mail: Mail): Promise<InlineImages> {
 		if (mail.attachments.length === 0) {
 			this._loadingAttachments = false
 			return Promise.resolve({})
@@ -528,7 +529,7 @@ export class MailViewer {
 			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
 			              .then(files => {
 				              this._attachments = files
-				              return inlineCids.then((inlineCids) => {
+				              return this._inlineFileIds.then((inlineCids) => {
 					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
 					              this._loadingAttachments = false
 					              m.redraw()
@@ -1097,13 +1098,16 @@ export class MailViewer {
 	}
 
 	_downloadAll() {
-		if (client.needsDownloadBatches() && this._attachments.length > 10) {
-			fileController.downloadBatched(this._attachments, 10, 1000)
-		} else if (!client.canDownloadMultipleFiles()) {
-			fileController.downloadBatched(this._attachments, 1, 10)
-		} else {
-			fileController.downloadAll(this._attachments)
-		}
+		this._inlineFileIds.then((inilneFileIds) => {
+			const nonInlineFiles = this._attachments.filter(a => !inilneFileIds.includes(a.cid))
+			if (client.needsDownloadBatches() && nonInlineFiles.length > 10) {
+				fileController.downloadBatched(nonInlineFiles, 10, 1000)
+			} else if (!client.canDownloadMultipleFiles()) {
+				fileController.downloadBatched(nonInlineFiles, 1, 10)
+			} else {
+				fileController.downloadAll(nonInlineFiles)
+			}
+		})
 	}
 
 	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
