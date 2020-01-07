@@ -20,6 +20,7 @@ import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -75,6 +76,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_renderCallback: ?{type: 'timeout', id: TimeoutID} | ?{type: 'frame', id: AnimationFrameID}
 	// Can be activated by holding on element in a list. When active, elements can be selected just by tapping them
 	_mobileMultiSelectionActive: boolean = false;
+	_displayingProgress: boolean
 
 	constructor(config: ListConfig<T, R>) {
 		this._config = config
@@ -114,6 +116,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._idOfEntityToSelectWhenReceived = null
 
 		this.onbeforeupdate = () => !this.ready // the list should never be redrawn by mithril after the inial draw
+		this._displayingProgress = false
 
 		const updateWidth = () => {
 			if (this._domListContainer && this._domSwipeSpacerLeft && this._domSwipeSpacerRight) {
@@ -203,7 +206,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
 										oncreate: (vnode) => {
 											this._domLoadingRow = vnode.dom
-											this._domLoadingRow.style.display = 'none'
+											this._domLoadingRow.style.display = this._displayingProgress ? '' : 'none'
 										}
 									}, progressIcon())
 								]
@@ -538,7 +541,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		}
 
 		let count = PageSize
-		this.displaySpinner(this._loadedEntities.length === 0)
+		this.displaySpinner(this._loadedEntities.length === 0 && styles.isUsingBottomNavigation())
 		this._loading = this._config.fetch(startId, count)
 		                    .then((newItems: T[]) => {
 			                    this._loadedEntities.push(...newItems)
@@ -546,6 +549,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			                    if (newItems.length < count) this.setLoadedCompletely() // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
 		                    }).finally(() => {
 				if (this.ready) {
+					this._displayingProgress = false
 					this._domLoadingRow.style.display = 'none'
 					this._reposition()
 				}
@@ -560,6 +564,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 	setLoadedCompletely() {
 		this._loadedCompletely = true
+		this._displayingProgress = false
 		this._domInitialized.promise.then(() => {
 			this._domLoadingRow.style.display = 'none'
 		})
@@ -569,6 +574,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	displaySpinner(delayed: boolean = true, force?: boolean) {
+		this._displayingProgress = true
 		setTimeout(() => {
 			if ((force || !this._loading.isFulfilled()) && this._domLoadingRow) {
 				this._domLoadingRow.style.display = ''
