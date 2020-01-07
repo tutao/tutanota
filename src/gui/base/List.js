@@ -191,7 +191,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 								[
 									this._virtualList.map(virtualRow => {
 										return m("li.list-row.pl.pr-l"
-											+ (this._config.elementsDraggable ? '[draggable="true"]' : ""), {
+											// Doesn't make sense to drag in mobile layout, can be useful on big tablets like iPad Pro though
+											+ (styles.isDesktopLayout() && this._config.elementsDraggable ? '[draggable="true"]' : ""), {
 											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 											tabIndex: 0,
 											style: {
