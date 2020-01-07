@@ -13,7 +13,7 @@ import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
-import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {_loadReverseRangeBetween, elementIdPart, getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
@@ -854,8 +854,9 @@ export class CalendarView implements CurrentView {
 			const infos = this._calendarInfos.value()
 			const info = infos.get(ownerGroupId)
 			if (info) {
-				const removedFromShort = findAndRemove(info.shortEvents, (e) => isSameId(e._id, id))
-				if (!removedFromShort) {
+				if (isSameId(elementIdPart(id), info.groupRoot.shortEvents)) {
+					findAndRemove(info.shortEvents, (e) => isSameId(e._id, id))
+				} else {
 					findAndRemove(info.longEvents, (e) => isSameId(e._id, id))
 				}
 			}
