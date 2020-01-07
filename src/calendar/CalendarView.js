@@ -798,11 +798,11 @@ export class CalendarView implements CurrentView {
 				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
 					return
 				}
-				findAndRemove(calendarInfo.shortEvents, (el) => isSameEvent(el, event))
+				this._removeExistingEvent(calendarInfo.shortEvents, event)
 				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-				findAndRemove(calendarInfo.longEvents, (el) => isSameEvent(el, event))
+				this._removeExistingEvent(calendarInfo.longEvents, event)
 				calendarInfo.longEvents.push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
 					const loadedMonth = getMonth(new Date(firstDayTimestamp))
@@ -813,6 +813,25 @@ export class CalendarView implements CurrentView {
 					}
 				})
 			}
+		}
+	}
+
+	/**
+	 * Removes existing event from {@param events} and also from {@code this._eventsForDays} if end time does not match
+	 */
+	_removeExistingEvent(events: Array<CalendarEvent>, newEvent: CalendarEvent) {
+		const indexOfOldEvent = events.findIndex((el) => isSameEvent(el, newEvent))
+		if (indexOfOldEvent !== -1) {
+			const oldEvent = events[indexOfOldEvent]
+			// If the old and new event end times do not match, we need to remove all occurrences of old event, otherwise iterating
+			// occurrences of new event won't replace all occurrences of old event. Changes of start or repeat rule already change
+			// ID of the event so it is not a problem.
+			if (oldEvent.endTime.getTime() !== newEvent.endTime.getTime()) {
+				this._eventsForDays.forEach((dayEvents) =>
+					// finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
+					findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)))
+			}
+			events.splice(indexOfOldEvent, 1)
 		}
 	}
 
