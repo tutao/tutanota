@@ -7,7 +7,7 @@ assertMainOrNode()
 export const terms_de = `<section id="terms-de" class="content">
     <h3>Allgemeine Geschäftsbedingungen (AGB) der Tutao GmbH</h3>
     <h4>1. Allgemeines, Geltungsbereich</h4>
-    <p>1.1 Die Tutao GmbH, Adresse: Hanomaghof 2, 30449 Hannover, E-Mail:
+    <p>1.1 Die Tutao GmbH, Adresse: Deisterstr. 17a, 30449 Hannover, E-Mail:
         hello@tutao.de, Telefon: 0511 202801-0 (im Folgenden Tutao),
         erbringt alle Lieferungen und Leistungen ausschließlich auf Grundlage
         dieser Allgemeinen Geschäftsbedingungen (AGB).</p>
@@ -42,7 +42,7 @@ export const terms_de = `<section id="terms-de" class="content">
         ab dem Tag des Vertragsabschlusses. Um Ihr Widerrufsrecht auszuüben,
         müssen Sie uns</p>
     <p>Tutao GmbH<br>
-        Hanomaghof 2<br>
+        Deisterstr. 17a<br>
         30449 Hannover<br>
         Deutschland</p>
     <p>Telefon: +49 511 202801-0<br>
@@ -81,7 +81,7 @@ export const terms_de = `<section id="terms-de" class="content">
         Formular ausfüllen und an uns zurücksenden.)</p>
     <p>An<br>
         Tutao GmbH<br>
-        Hanomaghof 2<br>
+        Deisterstr. 17a<br>
         30449 Hannover<br>
         Deutschland</p>
     <p>Telefax: +49 511 202801-19 oder<br>
@@ -397,7 +397,7 @@ export const privacy_de = `<section id="privacy-de" class="content">
         wie folgt
         erreichen: hello@tutao.de.</p>
     <h4>Name und Anschrift des für die Verarbeitung Verantwortlichen</h4>
-    <p>Tutao GmbH<br>Hanomaghof 2<br>30449 Hannover<br>Deutschland</p>
+    <p>Tutao GmbH<br>Deisterstr. 17a<br>30449 Hannover<br>Deutschland</p>
     <p>E-Mail-Adresse: hello@tutao.de</p>
     <h4>Personenbezogene Daten</h4>
     <p>Alle von unser verarbeiteten personenbezogenen Daten werden von uns sicher aufbewahrt und somit vor
@@ -507,7 +507,7 @@ export const terms_en = `
 	between the German Terms and Conditions and the English translation, the German version shall prevail.</em></p>
     <p>&nbsp;</p>
     <h4>1. General, scope</h4>
-    <p>1.1 The Tutao GmbH Address: Hanomaghof 2, 30449 Hanover, e-mail:
+    <p>1.1 The Tutao GmbH Address: Deisterstr. 17a, 30449 Hanover, e-mail:
         hello@tutao.de, phone: +49 511 202801-0 (hereafter Tutao)
         provides all deliveries and services solely on the basis of these
         Terms and Conditions.</p>
@@ -543,7 +543,7 @@ export const terms_en = `
         the date of contract. To exercise your right of cancellation, you must
         notify us</p>
     <p>Tutao GmbH<br>
-        Hanomaghof 2<br>
+        Deisterstr. 17a<br>
         30449 Hanover<br>
         Germany</p>
     <p>Phone: +49 511 202801-0<br>
@@ -577,7 +577,7 @@ export const terms_en = `
         and send it back to us.)</p>
     <p>To<br>
         Tutao GmbH<br>
-        Hanomaghof 2<br>
+        Deisterstr. 17a<br>
         30449 Hanover<br>
         Germany</p>
     <p>Fax: +49 511 202801-19 or<br>
@@ -862,7 +862,7 @@ export const privacy_en = `<section id="privacy-en" class="content">
     <p>We are always at your disposal for any questions about privacy. Please contact us via email:
         hello@tutao.de.</p>
     <h4>Name und Address of the controller</h4>
-    <p>Tutao GmbH<br>Hanomaghof 2<br>30449 Hannover<br>Germany</p>
+    <p>Tutao GmbH<br>Deisterstr. 17a<br>30449 Hannover<br>Germany</p>
     <p>Email address: hello@tutao.de</p>
     <h4>Personal data</h4>
     <p>All personal data is kept securely by us and thus protected from unauthorized access.</p>
