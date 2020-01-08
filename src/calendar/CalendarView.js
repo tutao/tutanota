@@ -641,10 +641,13 @@ export class CalendarView implements CurrentView {
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
-					shortEventsResult.elements
-					                 .filter(e => e.startTime.getTime() >= month.start.getTime() && e.startTime.getTime()
-						                 < month.end.getTime()) // only events for the loaded month
-					                 .forEach((e) => this._addDaysForEvent(e, month))
+					const shortEvents = shortEventsResult.elements
+					shortEvents
+						.filter(e => {
+							const eventStart = getEventStart(e).getTime()
+							return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
+						}) // only events for the loaded month
+						.forEach((e) => this._addDaysForEvent(e, month))
 					longEvents.forEach((e) => {
 						if (e.repeatRule) {
 							this._addDaysForRecurringEvent(e, month)
@@ -656,7 +659,7 @@ export class CalendarView implements CurrentView {
 							groupRoot,
 							groupInfo,
 							group,
-							shortEvents: shortEventsResult.elements,
+							shortEvents,
 							longEvents,
 							shared
 						}
