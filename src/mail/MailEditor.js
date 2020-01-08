@@ -612,9 +612,9 @@ export class MailEditor {
 			this.toRecipients.textField.setDisabled()
 		}
 
-		this.toRecipients.bubbles = toRecipients.map(r => this.createBubble(r.name, r.address, null))
-		this.ccRecipients.bubbles = ccRecipients.map(r => this.createBubble(r.name, r.address, null))
-		this.bccRecipients.bubbles = bccRecipients.map(r => this.createBubble(r.name, r.address, null))
+		this.toRecipients.bubbles = toRecipients.filter(r => isMailAddress(r.address, false)).map(r => this.createBubble(r.name, r.address, null))
+		this.ccRecipients.bubbles = ccRecipients.filter(r => isMailAddress(r.address, false)).map(r => this.createBubble(r.name, r.address, null))
+		this.bccRecipients.bubbles = bccRecipients.filter(r => isMailAddress(r.address, false)).map(r => this.createBubble(r.name, r.address, null))
 		this._replyTos = replyTos.map(ema => createRecipientInfo(ema.address, ema.name, null, true))
 		this._mailChanged = false
 		return promise
