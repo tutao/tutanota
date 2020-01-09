@@ -2,6 +2,7 @@
 import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
+import {QuotaExceededError} from "../../common/error/QuotaExceededError"
 
 
 export type ObjectStoreName = string
@@ -75,10 +76,17 @@ export class DbFacade {
 							const requestErrorEntries = extractErrorProperties(DBOpenRequest.error)
 							const eventProperties = extractErrorProperties(event)
 							this.indexingSupported = false
-							callback(new IndexingNotSupportedError("DbFacade.open.onerror: " + this._id +
+							const message = "DbFacade.open.onerror: " + this._id +
 								"\nrequest.error: " + requestErrorEntries +
 								"\nevent: " + eventProperties +
-								"\nevent.target.error" + (event.target ? event.target.error : "[none]"), DBOpenRequest.error))
+								"\nevent.target.error: " + (event.target ? event.target.error : "[none]")
+
+							if (event.target && event.target.error && event.target.error.name === "QuotaExceededError") {
+								console.log("Storage Quota is exceeded")
+								callback(new QuotaExceededError(message, DBOpenRequest.error || event.target.error))
+							} else {
+								callback(new IndexingNotSupportedError(message, DBOpenRequest.error || event.target.error))
+							}
 						}
 
 						DBOpenRequest.onupgradeneeded = (event) => {
@@ -351,7 +359,13 @@ export class IndexedDbTransaction implements DbTransaction {
 			this._onUnknownError(customTarget.error)
 			callback(new IndexingNotSupportedError(msg, this._transaction.error))
 		} else {
-			callback(new DbError(msg, this._transaction.error))
+			const e = this._transaction.error || (customTarget ? customTarget.error : null)
+			if (e && e.name && e.name === "QuotaExceededError") {
+				console.warn("Storage Quota exceeded")
+				callback(new QuotaExceededError(msg, e))
+			} else {
+				callback(new DbError(msg, e))
+			}
 		}
 	}
 }

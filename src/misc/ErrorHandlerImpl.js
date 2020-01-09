@@ -36,6 +36,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {locator} from "../api/main/MainLocator"
+import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 
 assertMainOrNode()
 
@@ -50,6 +51,8 @@ let invalidSoftwareVersionActive = false
 let loginDialogActive = false
 let isLoggingOut = false
 let serviceUnavailableDialogActive = false
+let shownQuotaError = false
+
 const ignoredMessages = [
 	"webkitExitFullScreen",
 	"googletag",
@@ -139,6 +142,11 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof IndexingNotSupportedError) {
 		console.log("Indexing not supported", e)
 		locator.search.indexingSupported = false
+	} else if (e instanceof QuotaExceededError) {
+		if (!shownQuotaError) {
+			shownQuotaError = true
+			Dialog.error(() => "There's not enough storage on the device, search and contact auto-completion might not work as expected")
+		}
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
 		if (!unknownErrorDialogActive) {

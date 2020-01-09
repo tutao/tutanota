@@ -43,6 +43,7 @@ import {FileNotFoundError} from "./error/FileNotFoundError"
 import {FileOpenError} from "./error/FileOpenError"
 import {SseError} from "./error/SseError"
 import {IndexingNotSupportedError} from "./error/IndexingNotSupportedError"
+import {QuotaExceededError} from "./error/QuotaExceededError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -208,6 +209,7 @@ const ErrorNameToType = {
 	ServiceUnavailableError,
 	DbError,
 	IndexingNotSupportedError,
+	QuotaExceededError,
 	CancelledError,
 	FileOpenError,
 	Error,
