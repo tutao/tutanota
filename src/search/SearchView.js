@@ -430,6 +430,16 @@ export class SearchView implements CurrentView {
 				exec: () => this._searchList.deleteSelected(),
 				help: "delete_action"
 			},
+			{
+				key: Keys.A,
+				exec: () => this._searchList.archiveSelected(),
+				help: "archive_action"
+			},
+			{
+				key: Keys.I,
+				exec: () => this._searchList.moveSelectedToInbox(),
+				help: "moveToInbox_action"
+			},
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)

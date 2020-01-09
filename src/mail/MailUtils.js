@@ -529,3 +529,16 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 
+export function archiveMails(mails: Mail[]) {
+	if (mails.length > 0) {
+		// assume all mails in the array belong to the same Mailbox
+		mailModel.moveMails(mails, getArchiveFolder(mailModel.getMailboxFolders(mails[0])))
+	}
+}
+
+export function moveToInbox(mails: Mail[]) {
+	if (mails.length > 0) {
+		// assume all mails in the array belong to the same Mailbox
+		mailModel.moveMails(mails, getInboxFolder(mailModel.getMailboxFolders(mails[0])))
+	}
+}

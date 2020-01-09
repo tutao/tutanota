@@ -81,6 +81,7 @@ export const Keys = {
 	FOUR: {code: 52, name: "4"},
 	FIVE: {code: 53, name: "5"},
 	SIX: {code: 54, name: "6"},
+	A: {code: 65, name: "A"},
 	B: {code: 66, name: "B"},
 	C: {code: 67, name: "C"},
 	E: {code: 69, name: "E"},
@@ -95,6 +96,7 @@ export const Keys = {
 	R: {code: 82, name: "R"},
 	S: {code: 83, name: "S"},
 	U: {code: 85, name: "U"},
+	V: {code: 86, name: "V"},
 	F1: {code: 112, name: "F1"},
 }
 

@@ -14,6 +14,7 @@ import {assertMainOrNodeBoot} from "../../api/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {asyncImport} from "../../api/common/utils/Utils"
+import type {PosRect} from "./Dropdown"
 
 assertMainOrNodeBoot()
 
@@ -24,7 +25,7 @@ export type DropDownChildAttrs = string | NavButtonAttrs | ButtonAttrs;
 export class DropdownN {
 	children: $ReadOnlyArray<DropDownChildAttrs>;
 	_domDropdown: HTMLElement;
-	origin: ?ClientRect;
+	origin: ?PosRect;
 	maxHeight: number;
 	oninit: Function;
 	view: Function;
@@ -202,7 +203,7 @@ export class DropdownN {
 		]
 	}
 
-	setOrigin(origin: ClientRect) {
+	setOrigin(origin: PosRect) {
 		this.origin = origin
 	}
 
@@ -246,7 +247,7 @@ export class DropdownN {
 				this._domDropdown.style.left = ''
 				this._domDropdown.style.right = right + "px"
 			}
-			let top = this.origin.top + this.origin.height
+			let top = this.origin.bottom
 			let bottom = window.innerHeight - (this.origin.bottom - this.origin.height)
 			if (top < bottom) {
 				this._domDropdown.style.top = top + "px"

@@ -16,7 +16,7 @@ import {worker} from "../api/main/WorkerClient"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {FeatureType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
 import {CurrentView} from "../gui/base/Header"
-import {HttpMethod, isSameId} from "../api/common/EntityFunctions"
+import {getListId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
 import {createDeleteMailData} from "../api/entities/tutanota/DeleteMailData"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -33,13 +33,14 @@ import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
+	archiveMails,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
 	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
-	getSortedSystemFolders,
+	getSortedSystemFolders, moveToInbox,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -53,11 +54,13 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {fileController} from "../file/FileController"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../misc/RouteChange"
-import {attachDropdown} from "../gui/base/DropdownN"
+import {attachDropdown, DropdownN} from "../gui/base/DropdownN"
 import {MailFolderView} from "./MailFolderView"
 import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
+import {modal} from "../gui/base/Modal"
+import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -281,6 +284,44 @@ export class MailView implements CurrentView {
 					this.deleteMails(this.mailList.list.getSelectedEntities())
 				},
 				help: "deleteEmails_action"
+			},
+			{
+				key: Keys.A,
+				exec: () => archiveMails(this.mailList.list.getSelectedEntities()),
+				help: "archive_action"
+			},
+			{
+				key: Keys.I,
+				exec: () => moveToInbox(this.mailList.list.getSelectedEntities()),
+				help: "moveToInbox_action"
+			},
+			{
+				key: Keys.V,
+				exec: () => {
+					let dropdown = new DropdownN(() => {
+						const selectedMails = this.mailList.list.getSelectedEntities()
+						const mailList = getListId(selectedMails[0])
+						if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
+							return []
+						}
+						let targetFolders = mailModel.getMailboxFolders(selectedMails[0]).filter(f => f.mails !== mailList)
+						targetFolders = (getSortedSystemFolders(targetFolders).concat(getSortedCustomFolders(targetFolders)))
+						return targetFolders.map(f => ({
+							label: () => getFolderName(f),
+							click: () => mailModel.moveMails(selectedMails, f),
+							icon: getFolderIcon(f),
+							type: ButtonType.Dropdown,
+						}))
+					}, 300)
+					// const origin = new DomRectReadOnlyPolyfilled(size.vpad, 0, 200, size.vpad)
+					if (this.mailViewer) {
+						const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
+						const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
+						dropdown.setOrigin(origin)
+						modal.displayUnique(dropdown)
+					}
+				},
+				help: "move_action"
 			},
 			{
 				key: Keys.ONE,

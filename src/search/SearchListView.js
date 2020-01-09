@@ -19,7 +19,7 @@ import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
-import {showDeleteConfirmationDialog} from "../mail/MailUtils"
+import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {mailModel} from "../mail/MailModel"
 import {Dialog} from "../gui/base/Dialog"
 
@@ -297,6 +297,34 @@ export class SearchListView {
 
 	isListAvailable() {
 		return this.list != null && this.list.ready
+	}
+
+	archiveSelected(): void {
+		let selected = this.getSelectedEntities()
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMails = selected.map(m => ((m.entry: any): Mail))
+				if (selected.length > 1) {
+					// is needed for correct selection behavior on mobile
+					this.selectNone()
+				}
+				archiveMails(selectedMails)
+			}
+		}
+	}
+
+	moveSelectedToInbox(): void {
+		let selected = this.getSelectedEntities()
+		if (selected.length > 0) {
+			if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				let selectedMails = selected.map(m => ((m.entry: any): Mail))
+				if (selected.length > 1) {
+					// is needed for correct selection behavior on mobile
+					this.selectNone()
+				}
+				moveToInbox(selectedMails)
+			}
+		}
 	}
 
 	deleteSelected(): void {

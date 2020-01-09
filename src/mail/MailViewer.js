@@ -664,6 +664,14 @@ export class MailViewer {
 				},
 				help: "replyAll_action"
 			},
+			{
+				key: Keys.F,
+				shift: true,
+				exec: (key: KeyPress) => {
+					this._forward()
+				},
+				help: "forward_action"
+			},
 		]
 
 		this.oncreate = () => {
