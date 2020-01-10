@@ -18,6 +18,7 @@ import {locator} from "../api/main/MainLocator"
 import {worker} from "../api/main/WorkerClient"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import * as RecoverLoginDialog from "./RecoverLoginDialog"
+import {progressIcon} from "../gui/base/Icon"
 
 assertMainOrNode()
 
@@ -129,15 +130,23 @@ export class SecondFactorHandler {
 			let u2fClient = new U2fClient()
 			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
 			const otpCodeField = new TextField("totpCode_label")
+			let showingProgress = false
 			const otpClickHandler = () => {
+				showingProgress = true
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
 				auth.otpCode = otpCodeField.value().replace(/ /g, "")
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+					.then(() => {
+						this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.close()
+					})
 					.catch(NotAuthenticatedError, () => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, () => Dialog.error("loginFailed_msg"))
 					.catch(AccessBlockedError, () => Dialog.error("loginFailedOften_msg"))
+					.finally(() => {
+						showingProgress = false
+					})
 			}
 
 			u2fClient.isSupported().then(u2fSupport => {
@@ -156,6 +165,7 @@ export class SecondFactorHandler {
 					allowOkWithReturn: true,
 					child: {
 						view: () => m("", [
+							showingProgress ? m(".mt.flex-center", progressIcon()) : null,
 							(u2fSupport && keyForThisDomainExisting)
 								? m(".flex-center", m("img[src=" + SecondFactorImage + "]"))
 								: null,
