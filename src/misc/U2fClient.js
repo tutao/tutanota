@@ -91,6 +91,7 @@ export class U2fClient {
 	}
 
 	_handleError(rawResponse: Object, cb: Callback<Object>) {
+		console.log("U2f error", rawResponse.errorCode, JSON.stringify(rawResponse))
 		if (!rawResponse.errorCode) {
 			cb(null, rawResponse)
 		} else if (rawResponse.errorCode === 4) {
