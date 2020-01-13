@@ -1253,7 +1253,7 @@ styles.registerStyle('main', () => {
 				"background-color": "white",
 				"display": "block",
 			},
-			'html, body': {position: "initial"}, // overwrite position "fixed" otherwise only one page will be printed.
+			'html, body': {position: "initial", overflow: "visible !important"}, // overwrite position "fixed" otherwise only one page will be printed.
 			".header-nav": {display: 'none'},
 			".main-view": {
 				top: 0,
@@ -1263,11 +1263,14 @@ styles.registerStyle('main', () => {
 				display: 'none'
 			},
 			".fill-absolute": {
-				position: "static !important"
+				position: "static !important",
+				display: "initial",
 			},
 			".view-columns": {
 				width: "100% !important",
 				transform: "initial !important",
+				display: "initial",
+				position: "initial",
 			},
 			".view-column:nth-child(1), .view-column:nth-child(2)": {
 				display: 'none'
