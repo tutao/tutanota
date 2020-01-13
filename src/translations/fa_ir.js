@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2019-12-18T10:50:21Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -255,6 +255,7 @@ module.exports = {
 		"customLogoInfo_msg": "انواع پرونده‌های مجاز: svg ، png ، jpg . بیشینهٔ حجم پرونده: ۱۰۰ کیلوبایت. ارتفاع نمایش: ۳۸ پیکسل، بیشینهٔ عرض نمایش: ۲۸۰ پیکسل.",
 		"customLogo_label": "لوگوی سفارشی",
 		"customMetaTags_label": "متابرچسب‌های سفارشی",
+		"customName_label": "نام سفارشی شما برای این تقویم:{customName}",
 		"customNotificationEmailsHelp_msg": "ایمیل های اطلاغ رسانی به گیرندگانی   که صندوق های پستی آنها در سایر ارائه دهندگان ایمیل میزبانی می شوند محرمانه ارسال می شوند. شما می توانید با اضافه کردن الگوها برای چندین زبان ، این پیام را به دلخواهتان تغییر دهبد. پس از اضافه شدن الگو، الگوازپیش تعین شده دیگر استفاده نخواهد شد. این الگوها برای همه کاربران حساب شما اعمال می شود.",
 		"customNotificationEmails_label": "ایمیل های اطلاع رسانی انتخابی",
 		"custom_label": "سفارشی",
@@ -316,6 +317,7 @@ module.exports = {
 		"duplicatesNotification_msg": "{1} مخاطب تکراری پیدا شد و حذف خواهند شد.",
 		"editContactForm_label": "ویرایش فرم تماس",
 		"editContact_label": "ویرایش مخاطب",
+		"editInboxRule_action": "ویرایش قانون صندوق ورودی ",
 		"editMail_action": "ویرایش ایمیل انتخابی",
 		"edit_action": "برای تغییر",
 		"emailAddressInUse_msg": "نشانی ایمیل هنوز توسط کاربر دیگری استفاده می‌شود. لطفاً نخست آن‌جا غیرفعال‌اش کنید.",

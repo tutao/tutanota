@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2019-12-18T10:50:22Z",
+	"updated_at": "2020-01-13T13:11:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Vui lòng chấp nhận chính sách bảo mật bằng cách tích vào các ô.",

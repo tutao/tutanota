@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2019-12-18T10:50:22Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -259,6 +259,7 @@ module.exports = {
 		"customLogoInfo_msg": "File consentiti: svg, png, jpg. Memoria massima: 100 KB. Altezza: 38 px, max. display larghezza: 280 px.",
 		"customLogo_label": "Logo personalizzato",
 		"customMetaTags_label": "Meta tag personalizzati",
+		"customName_label": "Il tuo nome personalizzato per questo calendario: {customName}",
 		"customNotificationEmailsHelp_msg": "L'email di notifica vengono inviate ai destinatari di email riservate le cui inbox sono ospitate su altri provider email. Puoi personalizzare questo messaggio aggiungendo template per più lingue. Una volta aggiunto un template, il template predefinito non verrà più utilizzato. Questi template verranno applicati a tutti gli utenti del tuo account.",
 		"customNotificationEmails_label": "Email di notifica personalizzate",
 		"custom_label": "Personalizzato",
@@ -320,6 +321,7 @@ module.exports = {
 		"duplicatesNotification_msg": "{1} contatti duplicati sono stati trovati e verranno eliminati.",
 		"editContactForm_label": "Modifica modulo di contatto",
 		"editContact_label": "Modifica contatto",
+		"editInboxRule_action": "Modifica regola inbox",
 		"editMail_action": "Modifica l'email selezionata",
 		"edit_action": "Modifica",
 		"emailAddressInUse_msg": "L'indirizzo email è ancora in uso da un altro utente. Deve essere prima disattivato.",
@@ -609,6 +611,7 @@ module.exports = {
 		"more_label": "Altro",
 		"moveDown_action": "Sposta giù",
 		"moveToBottom_action": "Sposta in fondo",
+		"moveToInbox_action": "Sposta in Inbox",
 		"moveToTop_action": "Sposta in alto",
 		"moveUp_action": "Sposta su",
 		"move_action": "Sposta",

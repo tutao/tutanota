@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2019-12-18T10:50:21Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -295,6 +295,7 @@ module.exports = {
 		"duplicatesNotification_msg": "{1} dubletter i dine kontakter blev fundet og vil blive slettet.",
 		"editContactForm_label": "Redigér kontaktformular",
 		"editContact_label": "Rediger kontakt",
+		"editInboxRule_action": "Rediger indbakkeregel",
 		"editMail_action": "Rediger den valgte email",
 		"edit_action": "Rediger",
 		"emailAddressInUse_msg": "E-mailadressen bruges stadig af en anden bruger. Deaktiver den venligst der først.",

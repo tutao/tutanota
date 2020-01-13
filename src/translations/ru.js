@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2019-12-18T10:50:22Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -97,7 +97,7 @@ module.exports = {
 		"balance_label": "Баланс",
 		"bcc_label": "Скрытая копия",
 		"birthday_alt": "День рождения",
-		"bookingItemUsersIncludingWhitelabel_label": "Пользователи включая Whitelabel",
+		"bookingItemUsersIncludingWhitelabel_label": "Пользователи включая функцию Whitelabel",
 		"bookingItemUsersIncluding_label": "Пользователи вкл.:",
 		"bookingItemUsers_label": "Пользователи",
 		"bookingOrder_label": "Заказ",
@@ -546,7 +546,7 @@ module.exports = {
 		"languageUrdu_label": "Урду",
 		"languageVietnamese_label": "Вьетнамский",
 		"language_label": "Язык",
-		"lastAccess_label": "Последний вход",
+		"lastAccess_label": "Время",
 		"lastName_placeholder": "Фамилия",
 		"laterInvoicingInfo_msg": "Информация: Дополнительно заказанные функции будут выставлены в счёте в начале  следующего месяца подписки.",
 		"linkedin_label": "LinkedIn",

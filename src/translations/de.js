@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2019-12-18T11:00:49Z",
+	"updated_at": "2020-01-13T14:33:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -470,7 +470,7 @@ module.exports = {
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invalidVatIdValidationFailed_msg": "Fehler bei der Prüfung der Umsatzsteuer-Identifikationsnummer. Bitte versuche es später erneut.",
-		"invitationMailBody_msg": "Hallo!<br><br>Hier ist meine neue E-Mail-Adresse. Tutanota ist der E-Mail-Service der Zukunft: Tutanota bietet eine vollständig verschlüsselte und werbefreie Mailbox, die unsere Privatsphäre maximal schützt. Mit automatisch eingebauter Verschlüsselung können wir so sicher E-Mails austauschen, als wären es versiegelte Briefe. Endlich gehören unsere Daten nur uns, niemand sonst kann mitlesen.<br><br>Melde dich einfach hier an:<br>{registrationLink}<br><br>Viele Grüße<br>{username}<br><br>PS: Tutanota ist kostenlos mit 1 GB Speicher inklusive. Außerdem ist es Open Source: {githubLink}",
+		"invitationMailBody_msg": "Hallo!<br><br>Hier ist meine neue E-Mail-Adresse. Tutanota bietet eine vollständig verschlüsselte und werbefreie Mailbox, die unsere Privatsphäre maximal schützt. Mit automatisch eingebauter Verschlüsselung können wir so sicher E-Mails austauschen, als wären es versiegelte Briefe. Endlich gehören unsere Daten nur uns, niemand sonst kann mitlesen.<br><br>Melde dich einfach hier an:<br>{registrationLink}<br><br>Viele Grüße<br>{username}<br><br>PS: Tutanota ist kostenlos mit 1 GB Speicher inklusive. Außerdem ist es Open Source: {githubLink}",
 		"invitationMailSubject_msg": "Sichere E-Mails leicht gemacht: Mit Tutanota holen wir uns unsere Privatsphäre zurück!",
 		"invitation_label": "Einladung",
 		"invited_label": "Eingeladen",
@@ -611,6 +611,7 @@ module.exports = {
 		"more_label": "Mehr",
 		"moveDown_action": "Nach unten",
 		"moveToBottom_action": "An das Ende verschieben",
+		"moveToInbox_action": "In den Posteingang verschieben",
 		"moveToTop_action": "An den Anfang verschieben",
 		"moveUp_action": "Nach oben",
 		"move_action": "Verschieben",
@@ -947,6 +948,7 @@ module.exports = {
 		"storageCapacity_label": "Speicherkapazität",
 		"storageDeletionAnnouncement_msg": "Info: E-Mails im Papierkorb oder Spam-Ordner werden automatisch nach 30 Tagen gelöscht.",
 		"storageDeletion_msg": "E-Mails in diesem Ordner werden nach 30 Tagen automatisch gelöscht.",
+		"storageQuotaExceeded_msg": "Es ist nicht genug Speicher für den Such-Index auf diesem Gerät vorhanden. Die Suchergebnisse können daher nicht vollständig angezeigt werden.",
 		"storePassword_action": "Passwort speichern",
 		"subject_label": "Betreff",
 		"subscriptionCancelledMessage_msg": "Dein Abonnement wurde storniert. Bitte informiere den Support, wenn Du das Abonnement wieder aktivieren möchtest.",
@@ -1064,7 +1066,6 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"storageQuotaExceeded_msg": "Es ist nicht genug Speicher für den Such-Index auf diesem Gerät vorhanden. Die Suchergebnisse können daher nicht vollständig angezeigt werden."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

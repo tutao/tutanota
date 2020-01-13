@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2019-12-18T10:50:23Z",
+	"updated_at": "2020-01-13T13:11:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",

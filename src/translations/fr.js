@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2019-12-18T10:50:21Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -259,6 +259,7 @@ module.exports = {
 		"customLogoInfo_msg": "Type de fichiers autorisés:svg,png,jpg. Taille de fichier max:100 KB. Hauteur d'affichage : 38 px,max. Largeur d'affichage : 280 px.",
 		"customLogo_label": "Logo personnalisé",
 		"customMetaTags_label": "Tags meta personnalisés",
+		"customName_label": "Votre nom personnalisé pour ce calendrier : {customName}",
 		"customNotificationEmailsHelp_msg": "L'e-mail de notification est envoyé aux destinataires d'e-mails confidentiels dont les messageries sont hébergées par d'autres fournisseurs. Vous pouvez personnaliser ce message en ajoutant des modèles dans différentes langues. Une fois le modèle ajouté, le modèle par défaut ne sera plus utilisé. Ces modèles seront appliqués à tous les utilisateurs de votre compte.",
 		"customNotificationEmails_label": "E-mails de notification personnalisés",
 		"custom_label": "Personnaliser",
@@ -320,6 +321,7 @@ module.exports = {
 		"duplicatesNotification_msg": "Des contactes en doublon ont été trouvés et vont être supprimés",
 		"editContactForm_label": "Modifier la page d'un contact",
 		"editContact_label": "Modifier le contact",
+		"editInboxRule_action": "Modifier une règle de réception",
 		"editMail_action": "Modifier le mail sélectionné",
 		"edit_action": "Modifier",
 		"emailAddressInUse_msg": "L'adresse email est toujours utilisée par un autre utilisateur. Veuillez la désactiver d'abord.",
@@ -357,6 +359,8 @@ module.exports = {
 		"errorAtLine_msg": "Erreur à la ligne {index} : {error}",
 		"errorDuringUpdate_msg": "Un problème est survenu lors du processus de mise à jour. Nous essaierons à nouveau plus tard.",
 		"errorReport_label": "Oh non !",
+		"executableOpen_label": "Pièce jointe exécutable",
+		"executableOpen_msg": "Ce fichier ressemble à un programme. Etes-vous certain de vouloir l'exécuter maintenant ?",
 		"existingMailAddress_msg": "Les adresses e-mail suivantes n'ont pas être invitées parce qu’elles font soit partie des participants ou soit déjà invitées sur le calendrier.",
 		"expiredLink_msg": "Désolé, ce lien n'est plus valide. Vous devriez avoir reçu un nouveau message de notification avec un lien valide. Les liens précédents ont été désactivés pour des raisons de sécurité.",
 		"exportSelectedAsVCard_action": "Exporter les contacts sélectionnés en vCard",

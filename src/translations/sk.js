@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2019-12-18T10:50:22Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -256,6 +256,7 @@ module.exports = {
 		"customLogoInfo_msg": "Povolené typy súborov: svg, png, jpg. Max. veľkosť súboru: 100 KB. Max. výška: 38 px, max. šírka: 280 px.",
 		"customLogo_label": "Vlastné logo",
 		"customMetaTags_label": "Vlastné meta tagy",
+		"customName_label": "Tvoj vlastný názov pre tento kalendár: {customName}",
 		"customNotificationEmailsHelp_msg": "E-mailové oznámenia sa odosielajú príjemcom dôverných e-mailov, ktorých poštové schránky sú hosťované u iných e-mailových poskytovateľov. Tieto správy si môžeš  prispôsobiť pridaním šablón pre viacero jazykov. Keď si pridáš novú šablónu, predvolená šablóna sa viac nebude používať. Tieto šablóny budú aplikované všetkým používateľom tvojho účtu.",
 		"customNotificationEmails_label": "Vlastné e-mailové oznámenia",
 		"custom_label": "Vlastné",
@@ -317,6 +318,7 @@ module.exports = {
 		"duplicatesNotification_msg": "Našlo sa {1} duplicitných kontaktov, ktoré sa odstránia.",
 		"editContactForm_label": "Upraviť kontaktný formulár",
 		"editContact_label": "Uprav kontakt",
+		"editInboxRule_action": "Upraviť pravidlo pre doručenú poštu",
 		"editMail_action": "Uprav označený e-mail",
 		"edit_action": "Upraviť",
 		"emailAddressInUse_msg": "Tento email je stále používaný iným používateľom. Najprv ho zrušte prosím.",
@@ -606,6 +608,7 @@ module.exports = {
 		"more_label": "Viac",
 		"moveDown_action": "Presunúť nadol",
 		"moveToBottom_action": "Presunúť na koniec",
+		"moveToInbox_action": "Presunúť do doručenej pošty",
 		"moveToTop_action": "Presunúť na začiatok",
 		"moveUp_action": "Presunúť nahor",
 		"move_action": "Presunúť",

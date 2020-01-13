@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2019-12-18T10:50:22Z",
+	"updated_at": "2020-01-13T13:11:27Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -255,6 +255,7 @@ module.exports = {
 		"customLogoInfo_msg": "Tillåtna filtyper: svg, png, jpg. Max filstorlek: 100 KB. Visningshöjd: 38 px, max. Visningsbredd: 280 px.",
 		"customLogo_label": "Anpassad logotyp",
 		"customMetaTags_label": "Anpassade metataggar",
+		"customName_label": "Ditt anpassade namn för den här kalendern: {customName}",
 		"customNotificationEmailsHelp_msg": "E-post aviseringar skickas till mottagare av konfidentiell e-post vars brevlådor ligger hos andra e-postleverantörer. Du kan anpassa det här meddelandet genom att lägga till mallar för flera språk. När du har lagt till en mall kommer standard mallen inte att användas längre. Dessa mallar kommer att tillämpas på alla användare i ditt konto.",
 		"customNotificationEmails_label": "Anpassad e-post avisering",
 		"custom_label": "Anpassad",
@@ -316,6 +317,7 @@ module.exports = {
 		"duplicatesNotification_msg": "{1} kontaktdubbletter hittades och kommer att raderas.",
 		"editContactForm_label": "Redigera kontakt formulär",
 		"editContact_label": "Redigera kontakt",
+		"editInboxRule_action": "Redigera inkorgsregel",
 		"editMail_action": "Redigera markerat e-post",
 		"edit_action": "Redigera",
 		"emailAddressInUse_msg": "E-postadressen används fortfarande av en annan användare. Avaktivera den där först.",
@@ -605,6 +607,7 @@ module.exports = {
 		"more_label": "Mer",
 		"moveDown_action": "Flytta nedåt",
 		"moveToBottom_action": "Flytta längst ner",
+		"moveToInbox_action": "Flytta till inkorg",
 		"moveToTop_action": "Flytta längst upp",
 		"moveUp_action": "Flytta uppåt",
 		"move_action": "Flytta",

@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "अनुमति उपलब्ध नहीं";
 TutaoChangePermissionMsg = "पहुंच प्रदान करने के लिए आपको इस डिवाइस के लिए अनुमतियों को संशोधित करना होगा.";
 TutaoCancelAction = "रद्द करना";
 TutaoSettingsAction = "सेटिंग";
+TutaoCalendarAlarmTitle = "स्मरण-पत्र";

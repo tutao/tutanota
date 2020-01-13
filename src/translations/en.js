@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2019-12-18T10:57:24Z",
+	"updated_at": "2020-01-13T14:33:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -466,8 +466,8 @@ module.exports = {
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
 		"invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
 		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
-		"invitationMailBody_msg": "Hello!<br><br>This is my new email address. Tutanota realizes the future of email already today: Tutanota offers a fully encrypted, ad-free mailbox to protect our right to privacy. With automatic encryption we can share emails as securely as sending sealed letters. Finally our data belongs only to us, no-one else can access it.<br><br>Join Tutanota now:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: {githubLink}",
-		"invitationMailSubject_msg": "My new email address - join Tutanota for a private communication",
+		"invitationMailBody_msg": "Hello!<br><br>This is my new email address. Tutanota offers a fully encrypted, ad-free mailbox to protect our right to privacy. With automatic encryption we can share emails as securely as sending sealed letters. Finally our data belongs only to us, no-one else can access it.<br><br>Join Tutanota now:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: {githubLink}",
+		"invitationMailSubject_msg": "My new email address - join Tutanota so we can take back our privacy",
 		"invitation_label": "Invitation",
 		"invited_label": "Invited",
 		"invite_alt": "Invite",
@@ -607,6 +607,7 @@ module.exports = {
 		"more_label": "More",
 		"moveDown_action": "Move down",
 		"moveToBottom_action": "Move to the bottom",
+		"moveToInbox_action": "Move to Inbox",
 		"moveToTop_action": "Move to the top",
 		"moveUp_action": "Move up",
 		"move_action": "Move",
@@ -943,6 +944,7 @@ module.exports = {
 		"storageCapacity_label": "Storage capacity",
 		"storageDeletionAnnouncement_msg": "Info: Emails moved to the trash or spam folders will automatically be deleted after 30 days.",
 		"storageDeletion_msg": "Emails in this folder will automatically be deleted after 30 days.",
+		"storageQuotaExceeded_msg": "There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
 		"storePassword_action": "Store password",
 		"subject_label": "Subject",
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
@@ -1060,8 +1062,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"storageQuotaExceeded_msg": "There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
-		"moveToInbox_action": "Move to Inbox"
+		"yourMessage_label": "Your message"
 	}
 }
