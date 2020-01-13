@@ -147,7 +147,6 @@ class LanguageViewModel {
 	}
 
 	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
-		this._setLanguageTag(lang.languageTag)
 		if (this.code === lang.code) {
 			return Promise.resolve()
 		}
@@ -156,6 +155,7 @@ class LanguageViewModel {
 			.then(translations => {
 				this.translations = translations
 				this.code = lang.code
+				this._setLanguageTag(lang.languageTag)
 			})
 	}
 
