@@ -1064,6 +1064,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"storageQuotaExceeded_msg": "Es ist nicht genug Speicher für den Such-Index auf diesem Gerät vorhanden. Die Suchergebnisse können daher nicht vollständig angezeigt werden."
 	}
 }

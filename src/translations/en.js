@@ -1061,6 +1061,7 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
+		"storageQuotaExceeded_msg": "There's not enough storage on the device to create the search index. Therefore the  search results cannot be shown completely.",
 		"moveToInbox_action": "Move to Inbox"
 	}
 }

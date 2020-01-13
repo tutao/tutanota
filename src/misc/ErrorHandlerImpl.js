@@ -145,7 +145,7 @@ export function handleUncaughtError(e: Error) {
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true
-			Dialog.error(() => "There's not enough storage on the device, search and contact auto-completion might not work as expected")
+			Dialog.error("storageQuotaExceeded_msg")
 		}
 	} else if (ignoredError(e)) {// ignore, this is not our code
 	} else {
