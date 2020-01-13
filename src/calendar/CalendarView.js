@@ -404,7 +404,7 @@ export class CalendarView implements CurrentView {
 							           "max-width": `calc(100% - ${size.button_height}px)`
 						           }
 					           }, [
-						           m(".b", {title: getCapabilityText(downcast(invitation.capability))}, invitation.sharedGroupName),
+						           m(".b.text-ellipsis", {title: getCapabilityText(downcast(invitation.capability))}, invitation.sharedGroupName),
 						           m(".small.text-ellipsis", {title: invitation.inviterMailAddress},
 							           (getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true)))
 					           ]),
