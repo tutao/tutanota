@@ -139,6 +139,7 @@ class LanguageViewModel {
 		           // Service worker currently caches only English. We don't want the whole app to fail if we cannot fetch the language.
 		           .catch((e) => {
 			           console.warn("Could not set language", language, e)
+			           this._setLanguageTag("en-US")
 		           })
 	}
 
@@ -147,6 +148,7 @@ class LanguageViewModel {
 	}
 
 	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
+		this._setLanguageTag(lang.languageTag)
 		if (this.code === lang.code) {
 			return Promise.resolve()
 		}
@@ -155,7 +157,6 @@ class LanguageViewModel {
 			.then(translations => {
 				this.translations = translations
 				this.code = lang.code
-				this._setLanguageTag(lang.languageTag)
 			})
 	}
 
