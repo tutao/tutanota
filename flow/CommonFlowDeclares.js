@@ -50,7 +50,7 @@ type keyHandler = (key: KeyPress) => boolean;
 
 
 declare interface UpdatableSettingsViewer {
-	view(): VirtualElement | VirtualElement[];
+	view(): Children;
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void;
 }

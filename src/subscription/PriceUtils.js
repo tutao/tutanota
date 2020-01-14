@@ -4,13 +4,7 @@ import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import {logins} from "../api/main/LoginController"
-import {Button} from "../gui/base/Button"
 import {neverNull} from "../api/common/utils/Utils"
-import type {lazyIcon} from "../gui/base/Icon"
-import {isIOSApp} from "../api/Env"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -87,26 +81,14 @@ export function getCurrentCount(featureType: BookingItemFeatureTypeEnum, booking
 	}
 }
 
-export function createNotAvailableForFreeButton(labelId: string, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): Button {
-	return new Button(labelId, () => {
-		if (logins.getUserController().isFreeAccount() || isIOSApp()) {
-			showNotAvailableForFreeDialog(isInPremiumIncluded)
+export function createNotAvailableForFreeClickHandler(includedInPremium: boolean,
+                                                      click: clickHandler,
+                                                      available: () => boolean): clickHandler {
+	return (e, dom) => {
+		if (!available()) {
+			showNotAvailableForFreeDialog(includedInPremium)
 		} else {
-			buyAction()
+			click(e, dom)
 		}
-	}, icon)
-}
-
-export function createNotAvailableForFreeButtonAttrs(labelId: TranslationKey, buyAction: clickHandler, icon: lazyIcon, isInPremiumIncluded: boolean): ButtonAttrs {
-	return {
-		label: labelId,
-		click: () => {
-			if (logins.getUserController().isFreeAccount() || isIOSApp()) {
-				showNotAvailableForFreeDialog(isInPremiumIncluded)
-			} else {
-				buyAction()
-			}
-		},
-		icon: icon
 	}
 }

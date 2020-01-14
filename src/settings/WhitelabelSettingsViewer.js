@@ -46,7 +46,7 @@ import {createFile} from "../api/entities/tutanota/File"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/UnencryptedStatisticLogEntry"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {createNotAvailableForFreeButtonAttrs} from "../subscription/PriceUtils"
+import {createNotAvailableForFreeClickHandler} from "../subscription/PriceUtils"
 import * as WhitelabelBuyDialog from "../subscription/WhitelabelAndSharingBuyDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -189,13 +189,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._props.getAsync().then(props => {
 			this._customerInfo.getAsync().then(customerInfo => {
 				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode)
-				                                                                                   .setDisabled()
+																								   .setDisabled()
 				let editButton = new Button("edit_action", () => {
 					Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value())
-					      .then(newCode => {
-						      props.whitelabelCode = newCode
-						      update(props)
-					      })
+						  .then(newCode => {
+							  props.whitelabelCode = newCode
+							  update(props)
+						  })
 				}, () => Icons.Edit)
 				this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
 
@@ -228,8 +228,20 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._lastBooking = bookings.length === 1 ? bookings[0] : null
 						const whitelabelActive = isWhitelabelActive(this._lastBooking)
 
-						const enableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.showWhitelabelBuyDialog(true), () => Icons.Edit, false)
-						const disableWhiteLabelAction = createNotAvailableForFreeButtonAttrs("whitelabelDomain_label", () => WhitelabelBuyDialog.showWhitelabelBuyDialog(false), () => Icons.Cancel, false)
+						const enableWhiteLabelAction = {
+							label: "whitelabelDomain_label",
+							click: createNotAvailableForFreeClickHandler(false,
+								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(true),
+								() => logins.getUserController().isPremiumAccount()),
+							icon: () => Icons.Edit,
+						}
+						const disableWhiteLabelAction = {
+							label: "whitelabelDomain_label",
+							click: createNotAvailableForFreeClickHandler(false,
+								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(false),
+								() => logins.getUserController().isPremiumAccount()),
+							icon: () => Icons.Cancel,
+						}
 
 						this._whitelabelStatusField.value(whitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"))
 						this._whitelabelStatusField.injectionsRight = () => whitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)
@@ -291,7 +303,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							let chooseLogoButton = new Button("edit_action", () => {
 								fileController.showFileChooser(false).then(files => {
 									let extension = files[0].name.toLowerCase()
-									                        .substring(files[0].name.lastIndexOf(".") + 1)
+															.substring(files[0].name.lastIndexOf(".") + 1)
 									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
 										Dialog.error("customLogoInfo_msg")
 									} else {
@@ -320,7 +332,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 						let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
 						this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label"))
-						                                                                   .setDisabled()
+																						   .setDisabled()
 						if (customJsonTheme) {
 							let deactivateColorTheme
 							if (customColorsDefined) {
@@ -353,7 +365,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._whitelabelPrivacyUrl = new TextField("privacyPolicyUrl_label", null).setValue((whitelabelConfig
 							&& whitelabelConfig.privacyStatementUrl) ? whitelabelConfig.privacyStatementUrl : "").setDisabled()
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
-						                                                                       .setDisabled()
+																							   .setDisabled()
 						if (whitelabelConfig) {
 							let editCustomMetaTagsButton = new Button("edit_action", () => {
 								let metaTags = new TextField("customMetaTags_label")

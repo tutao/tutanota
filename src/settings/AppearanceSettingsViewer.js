@@ -19,7 +19,7 @@ import {CalendarViewType} from "../calendar/CalendarView"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
-	view(): VirtualElement | VirtualElement[] {
+	view(): Children {
 		const languageDropDownAttrs: DropDownSelectorAttrs<?string> = {
 			label: "language_label",
 			items: languages.map(language => {
