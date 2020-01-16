@@ -25,7 +25,7 @@ export class AboutDialog implements MComponent<void> {
 			m(".flex.justify-center.flex-wrap", [
 				m("p.center.mt.mlr", `v${env.versionNumber}`),
 				m("p.text-center.mlr", "GPL-v3"),
-				m("p", "© 2020: Tutao GmbH")
+				m("p", "© 2020 Tutao GmbH")
 			]),
 			sendLogsLink(),
 		])
