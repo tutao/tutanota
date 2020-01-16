@@ -229,34 +229,34 @@ function cancelSubscription(dialog: Dialog) {
 						return Dialog.error("unknownError_msg")
 					} else {
 						// TODO: translate
-						let message;
+						let detailMsg;
 						switch (reason) {
 							case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
-								message = () => "There are too many enabled users"
+								detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
 								break
 							case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
-								message = () => "There is a custom email address"
+								detailMsg = lang.get("accountSwitchCustomMailAddress_msg")
 								break
 							case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
-								message = () => "There is more than one calendar"
+								detailMsg = lang.get("accountSwitchMultipleCalendars_msg")
 								break
 							case UnsubscribeFailureReason.CALENDAR_TYPE:
-								message = () => "There is a shared calendar"
+								detailMsg = lang.get("accountSwitchSharedCalendar_msg")
 								break
 							case UnsubscribeFailureReason.TOO_MANY_ALIASES:
-								message = () => "There is more than one calendar"
+								detailMsg = lang.get("accountSwitchAliases_msg")
 								break
 							default:
 								if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
 									const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
 									const featureName = BookingItemFeatureByCode[feature]
-									message = () => `Feature enabled: ${featureName}`
+									detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
 								} else {
-									message = "unknownError_msg"
+									detailMsg = "unknownError_msg"
 								}
 								break
 						}
-						return Dialog.error(message)
+						return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
 					}
 				})
 				.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
