@@ -36,6 +36,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
+import type {MailboxDetail} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -186,7 +187,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: ButtonAttrs = {
 			label: "addInboxRule_action",
-			click: () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), templateRule),
+			click: () => mailModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
 			icon: () => Icons.Add
 
 		}
@@ -247,17 +248,17 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateInboxRules(props: TutanotaProperties): void {
-		mailModel.init().then(() => {
+		mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			this._inboxRulesTableLines(props.inboxRules.map((rule, index) => {
 				return {
-					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(rule.targetFolder)],
+					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
 						updateInstance: () => update(props)
 					}, rule, index, [
 						{
 							label: "edit_action",
-							click: () => AddInboxRuleDialog.show(mailModel.getUserMailboxDetails(), rule),
+							click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
 							type: ButtonType.Dropdown,
 						}
 					])
@@ -267,8 +268,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_getTextForTarget = function (targetFolderId: IdTuple) {
-		let folder = mailModel.getUserMailboxDetails().folders.find(folder => isSameId(folder._id, targetFolderId))
+	_getTextForTarget(mailboxDetails: MailboxDetail, targetFolderId: IdTuple) {
+		let folder = mailboxDetails.folders.find(folder => isSameId(folder._id, targetFolderId))
 		if (folder) {
 			return getFolderName(folder)
 		} else {

@@ -205,13 +205,15 @@ export class ContactViewer {
 	}
 
 
-	_writeMail(mailAddress: string) {
-		let editor = new MailEditor(mailModel.getUserMailboxDetails())
-		const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
-		editor.initWithTemplate({to: [{name, address: mailAddress}]}, "", getEmailSignature(), null)
-		      .then(() => {
-			      editor.show()
-		      })
+	_writeMail(mailAddress: string): Promise<*> {
+		return mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+			const editor = new MailEditor(mailboxDetails)
+			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
+			return editor.initWithTemplate({to: [{name, address: mailAddress}]}, "", getEmailSignature(), null)
+			             .then(() => {
+				             editor.show()
+			             })
+		})
 	}
 
 	_setupShortcuts() {

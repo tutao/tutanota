@@ -40,7 +40,8 @@ import {
 	getInboxFolder,
 	getMailboxName,
 	getSortedCustomFolders,
-	getSortedSystemFolders, moveToInbox,
+	getSortedSystemFolders,
+	moveToInbox,
 	showDeleteConfirmationDialog
 } from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
@@ -195,7 +196,7 @@ export class MailView implements CurrentView {
 	}
 
 	_setupShortcuts() {
-		let shortcuts = [
+		const shortcuts: Array<Shortcut> = [
 			{
 				key: Keys.PAGE_UP,
 				exec: () => {
@@ -283,78 +284,106 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.A,
-				exec: () => archiveMails(this.mailList.list.getSelectedEntities()),
+				exec: () => {
+					archiveMails(this.mailList.list.getSelectedEntities())
+					return true
+				},
 				help: "archive_action"
 			},
 			{
 				key: Keys.I,
-				exec: () => moveToInbox(this.mailList.list.getSelectedEntities()),
+				exec: () => {
+					moveToInbox(this.mailList.list.getSelectedEntities())
+					return true
+				},
 				help: "moveToInbox_action"
 			},
 			{
 				key: Keys.V,
 				exec: () => {
-					let dropdown = new DropdownN(() => {
-						const selectedMails = this.mailList.list.getSelectedEntities()
-						const mailList = getListId(selectedMails[0])
-						if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
-							return []
+					const selectedMails = this.mailList.list.getSelectedEntities()
+					mailModel.getMailboxFolders(selectedMails[0]).then((folders) => {
+						let dropdown = new DropdownN(() => {
+							const mailList = getListId(selectedMails[0])
+							if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
+								return []
+							}
+
+							const filteredFolders = folders.filter(f => f.mails !== mailList)
+							const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
+							return targetFolders.map(f => ({
+								label: () => getFolderName(f),
+								click: () => mailModel.moveMails(selectedMails, f),
+								icon: getFolderIcon(f),
+								type: ButtonType.Dropdown,
+							}))
+
+						}, 300)
+						if (this.mailViewer) {
+							const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
+							const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
+							dropdown.setOrigin(origin)
+							modal.displayUnique(dropdown)
 						}
-						let targetFolders = mailModel.getMailboxFolders(selectedMails[0]).filter(f => f.mails !== mailList)
-						targetFolders = (getSortedSystemFolders(targetFolders).concat(getSortedCustomFolders(targetFolders)))
-						return targetFolders.map(f => ({
-							label: () => getFolderName(f),
-							click: () => mailModel.moveMails(selectedMails, f),
-							icon: getFolderIcon(f),
-							type: ButtonType.Dropdown,
-						}))
-					}, 300)
-					// const origin = new DomRectReadOnlyPolyfilled(size.vpad, 0, 200, size.vpad)
-					if (this.mailViewer) {
-						const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
-						const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
-						dropdown.setOrigin(origin)
-						modal.displayUnique(dropdown)
-					}
+					})
+					return false
 				},
 				help: "move_action"
 			},
 			{
 				key: Keys.ONE,
-				exec: () => this.switchToFolder(MailFolderType.INBOX),
+				exec: () => {
+					this.switchToFolder(MailFolderType.INBOX)
+					return true
+				},
 				help: "switchInbox_action"
 			},
 			{
 				key: Keys.TWO,
-				exec: () => this.switchToFolder(MailFolderType.DRAFT),
+				exec: () => {
+					this.switchToFolder(MailFolderType.DRAFT)
+					return true
+				},
 				help: "switchDrafts_action"
 			},
 			{
 				key: Keys.THREE,
-				exec: () => this.switchToFolder(MailFolderType.SENT),
+				exec: () => {
+					this.switchToFolder(MailFolderType.SENT)
+					return true
+				},
 				help: "switchSentFolder_action"
 			},
 			{
 				key: Keys.FOUR,
-				exec: () => this.switchToFolder(MailFolderType.TRASH),
+				exec: () => {
+					this.switchToFolder(MailFolderType.TRASH)
+					return true
+				},
 				help: "switchTrash_action"
 			},
 			{
 				key: Keys.FIVE,
-				exec: () => this.switchToFolder(MailFolderType.ARCHIVE),
+				exec: () => {
+					this.switchToFolder(MailFolderType.ARCHIVE)
+					return true
+				},
 				enabled: () => logins.isInternalUserLoggedIn(),
 				help: "switchArchive_action"
 			},
 			{
 				key: Keys.SIX,
-				exec: () => this.switchToFolder(MailFolderType.SPAM),
+				exec: () => {
+					this.switchToFolder(MailFolderType.SPAM)
+					return true
+				},
 				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action"
 			},
 		]
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
-		let mailModelStream = mailModel.mailboxDetails.map(mailboxDetails => {
+		mailModel.mailboxDetails.map(mailboxDetails => {
 			mailboxDetails.forEach(newMailboxDetail => {
 				if (!this._mailboxExpanders[newMailboxDetail.mailGroup._id]) {
 					this.createMailboxExpander(newMailboxDetail)
@@ -395,13 +424,16 @@ export class MailView implements CurrentView {
 	}
 
 	switchToFolder(folderType: MailFolderTypeEnum) {
-		m.route.set(this._folderToUrl[getFolder(this._getMailboxDetails().folders, folderType)._id[1]])
+		return this._getMailboxDetails()
+		           .then((mailboxDetails) => {
+			           m.route.set(this._folderToUrl[getFolder(mailboxDetails.folders, folderType)._id[1]])
+		           })
 	}
 
 	createMailboxExpander(mailboxDetail: MailboxDetail) {
 		this._mailboxExpanders[mailboxDetail.mailGroup._id] = {
 			details: mailboxDetail,
-			expanderButton: this.createMailBoxExpanderButton(mailboxDetail.mailGroup._id),
+			expanderButton: this.createMailBoxExpanderButton(mailboxDetail),
 			systemFolderButtons: this.createFolderButtons(getSortedSystemFolders(mailboxDetail.folders)),
 			customFolderButtons: this.createFolderButtons(getSortedCustomFolders(mailboxDetail.folders)),
 			folderAddButton: this.createFolderAddButton(mailboxDetail.mailGroup._id),
@@ -409,8 +441,9 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	createMailBoxExpanderButton(mailGroupId: Id): ExpanderButton {
-		let mailboxExpander = new ExpanderButton(() => getMailboxName(mailModel.getMailboxDetailsForMailGroup(mailGroupId)), new ExpanderPanel({
+	createMailBoxExpanderButton(mailboxDetails: MailboxDetail): ExpanderButton {
+		const mailGroupId = mailboxDetails.mailGroup._id
+		const mailboxExpander = new ExpanderButton(() => getMailboxName(mailboxDetails), new ExpanderPanel({
 			view: () => {
 				const groupCounters = mailModel.mailboxCounters()[mailGroupId] || {}
 				return m(".folders",
@@ -462,8 +495,8 @@ export class MailView implements CurrentView {
 			if (location.hash.length > 5) {
 				let url = location.hash.substring(5)
 				let decodedUrl = decodeURIComponent(url)
-				mailModel.init().then(() => {
-					let editor = new MailEditor(mailModel.getUserMailboxDetails())
+				mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+					let editor = new MailEditor(mailboxDetails)
 					editor.initWithMailtoUrl(decodedUrl, false)
 					editor.show()
 					history.pushState("", document.title, window.location.pathname) // remove # from url
@@ -491,12 +524,12 @@ export class MailView implements CurrentView {
 			// the mail list is visible already, just the selected mail is changed
 			this.mailList.list.scrollToIdAndSelect(args.mailId)
 		} else if (!this.isInitialized()) {
-			mailModel.init().then(() => {
+			mailModel.getMailboxDetails().then((mailboxDetails) => {
 				if (typeof args.listId === 'undefined') {
-					this._setUrl(this._folderToUrl[getInboxFolder(mailModel.mailboxDetails()[0].folders)._id[1]])
+					this._setUrl(this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]])
 				} else {
 					if (!this._showList(args.listId, args.mailId)) {
-						this._setUrl(this._folderToUrl[getInboxFolder(mailModel.mailboxDetails()[0].folders)._id[1]])
+						this._setUrl(this._folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]])
 					}
 				}
 				m.redraw()
@@ -572,11 +605,12 @@ export class MailView implements CurrentView {
 		return new Button('add_action', () => {
 			return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "",
 				(name) => this._checkFolderName(name, mailGroupId))
-			             .then((name) => {
-				             return worker.createMailFolder(name,
-					             getInboxFolder(mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders)._id,
-					             mailGroupId)
-			             })
+			             .then((name) =>
+				             mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+				                      .then((mailboxDetails) =>
+					                      worker.createMailFolder(name,
+						                      getInboxFolder(mailboxDetails.folders)._id,
+						                      mailGroupId)))
 		}, () => Icons.Add).setColors(ButtonColors.Nav)
 	}
 
@@ -617,23 +651,26 @@ export class MailView implements CurrentView {
 	}
 
 	_newMail(): Promise<MailEditor> {
-		return newMail(this._getMailboxDetails())
+		return this._getMailboxDetails().then(newMail)
 	}
 
-	_getMailboxDetails(): MailboxDetail {
+	_getMailboxDetails(): Promise<MailboxDetail> {
 		return this.selectedFolder
 			? mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails)
 			: mailModel.getUserMailboxDetails()
 	}
 
-	_checkFolderName(name: string, mailGroupId: Id): ?string {
-		if (name.trim() === "") {
-			return "folderNameNeutral_msg"
-		} else if (mailModel.getMailboxDetailsForMailGroup(mailGroupId).folders.find(f => f.name === name)) {
-			return "folderNameInvalidExisting_msg"
-		} else {
-			return null;
-		}
+	_checkFolderName(name: string, mailGroupId: Id): Promise<?string> {
+		return mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+		                .then((mailboxDetails) => {
+			                if (name.trim() === "") {
+				                return "folderNameNeutral_msg"
+			                } else if (mailboxDetails.folders.find(f => f.name === name)) {
+				                return "folderNameInvalidExisting_msg"
+			                } else {
+				                return null
+			                }
+		                })
 	}
 
 	_finallyDeleteCustomMailFolder(folder: MailFolder) {

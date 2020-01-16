@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Icons} from "../gui/base/icons/Icons"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {lang} from "../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
@@ -140,39 +140,39 @@ export class MultiSearchViewer {
 
 		}, () => Icons.Trash))
 
-		actionBar.add(createDropDownButton('move_action', () => Icons.Folder, () => {
+		actionBar.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
 			let selected = this._searchListView.getSelectedEntities()
 			let selectedMails = []
-			if (selected.length > 0) {
-				if (isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
-					selected.forEach(m => {
-						selectedMails.push(((m.entry: any): Mail))
-					})
-				}
+			if (selected.length > 0 && isSameTypeRef(selected[0].entry._type, MailTypeRef)) {
+				selected.forEach(m => {
+					selectedMails.push(((m.entry: any): Mail))
+				})
 			}
-			let sourceMailboxes = selectedMails.reduce((set, mail) => {
-				let mailBox = mailModel.getMailboxDetails(mail)
-				if (set.indexOf(mailBox) < 0) {
-					set.push(mailBox)
+			return Promise.reduce(selectedMails, (set, mail) => {
+				return mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
+					if (set.indexOf(mailBox) < 0) {
+						set.push(mailBox)
+					}
+					return set
+				})
+			}, ([]: MailboxDetail[])).then((sourceMailboxes) => {
+				if (sourceMailboxes.length !== 1) {
+					return []
+				} else {
+					return (getSortedSystemFolders(sourceMailboxes[0].folders)
+						.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
+						.map(f => {
+							return new Button(() => getFolderName(f), () => {
+									const mailsGroupedByFolder = groupBy(selectedMails, getListId)
+									//is needed for correct selection behavior on mobile
+									this._searchListView.selectNone()
+									// move all groups one by one because the mail list cannot be modified in parallel
+									Promise.each(mailsGroupedByFolder.values(), (mails) => mailModel.moveMails(mails, f))
+								}, getFolderIcon(f)
+							).setType(ButtonType.Dropdown)
+						})
 				}
-				return set
-			}, ([]: MailboxDetail[]))
-			if (sourceMailboxes.length !== 1) {
-				return []
-			} else {
-				return (getSortedSystemFolders(sourceMailboxes[0].folders)
-					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
-					.map(f => {
-						return new Button(() => getFolderName(f), () => {
-								const mailsGroupedByFolder = groupBy(selectedMails, getListId)
-								//is needed for correct selection behavior on mobile
-								this._searchListView.selectNone()
-								// move all groups one by one because the mail list cannot be modified in parallel
-								Promise.each(mailsGroupedByFolder.values(), (mails) => mailModel.moveMails(mails, f))
-							}, getFolderIcon(f)
-						).setType(ButtonType.Dropdown)
-					})
-			}
+			})
 		}))
 
 		actionBar.add(createDropDownButton('more_label', () => Icons.More, () => {

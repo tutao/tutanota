@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
+import {containsEventOfType, defer, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -45,6 +45,7 @@ export type MailboxCounters = {
 }
 
 export class MailModel {
+	/** Empty stream until init() is finished, exposed mostly for map()-ing, use getMailboxDetails to get a promise */
 	mailboxDetails: Stream<MailboxDetail[]>
 	mailboxCounters: Stream<MailboxCounters>
 	_initialization: ?Promise<void>
@@ -52,7 +53,7 @@ export class MailModel {
 	_eventController: EventController
 
 	constructor(notifications: Notifications, eventController: EventController) {
-		this.mailboxDetails = stream([])
+		this.mailboxDetails = stream()
 		this.mailboxCounters = stream({})
 		this._initialization = null
 		this._notifications = notifications
@@ -119,29 +120,48 @@ export class MailModel {
 		})
 	}
 
-	getMailboxDetails(mail: Mail): MailboxDetail {
+	getMailboxDetails(): Promise<Array<MailboxDetail>> {
+		if (this.mailboxDetails()) {
+			return Promise.resolve(this.mailboxDetails())
+		} else {
+			// Convert Stream to Promise: wait until the first value, resovle promise and unsubscribe from stream.
+			const deferred = defer()
+			const dependency = this.mailboxDetails.map(identity)
+			dependency.map((mailboxDetails) => {
+				deferred.resolve(mailboxDetails)
+				dependency.end(true)
+			})
+			return deferred.promise
+		}
+	}
+
+	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail> {
 		return this.getMailboxDetailsForMailListId(mail._id[0])
 	}
 
-	getMailboxDetailsForMailListId(mailListId: Id): MailboxDetail {
-		return neverNull(this.mailboxDetails().find((md) => md.folders.find(f => f.mails === mailListId) != null))
+	getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail> {
+		return this.getMailboxDetails().then(mailboxDetails =>
+			neverNull(mailboxDetails.find((md) => md.folders.find(f => f.mails === mailListId) != null)))
 	}
 
-	getMailboxDetailsForMailGroup(mailGroupId: Id): MailboxDetail {
-		return neverNull(this.mailboxDetails().find((md) => mailGroupId === md.mailGroup._id))
+	getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
+		return this.getMailboxDetails().then(mailboxDetails =>
+			neverNull(mailboxDetails.find((md) => mailGroupId === md.mailGroup._id)))
 	}
 
-	getUserMailboxDetails(): MailboxDetail {
+	getUserMailboxDetails(): Promise<MailboxDetail> {
 		let userMailGroupMembership = logins.getUserController().getUserMailGroupMembership()
-		return neverNull(this.mailboxDetails().find(md => md.mailGroup._id === userMailGroupMembership.group))
+		return this.getMailboxDetails().then(mailboxDetails =>
+			neverNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group)))
 	}
 
-	getMailboxFolders(mail: Mail): MailFolder[] {
-		return this.getMailboxDetails(mail).folders
+	getMailboxFolders(mail: Mail): Promise<MailFolder[]> {
+		return this.getMailboxDetailsForMail(mail).then(md => md.folders)
 	}
 
 	getMailFolder(mailListId: Id): ?MailFolder {
-		for (let e of this.mailboxDetails()) {
+		const mailboxDetails = this.mailboxDetails() || []
+		for (let e of mailboxDetails) {
 			for (let f of e.folders) {
 				if (f.mails === mailListId) {
 					return f
@@ -193,7 +213,7 @@ export class MailModel {
 		}
 		if (mailBuckets.move.size > 0) {
 			for (const [folderId, mails] of mailBuckets.move) {
-				promises.push(mailModel.moveMails(mails, getTrashFolder(mailModel.getMailboxFolders(mails[0]))))
+				promises.push(mailModel.getMailboxFolders(mails[0]).then(folders => mailModel.moveMails(mails, getTrashFolder(folders))))
 			}
 		}
 		return Promise.all(promises).return()
@@ -212,10 +232,11 @@ export class MailModel {
 					load(UserTypeRef, update.instanceId).then(updatedUser => {
 						let newMemberships = updatedUser.memberships
 						                                .filter(membership => membership.groupType === GroupType.Mail)
-						let currentDetails = this.mailboxDetails()
-						if (newMemberships.length !== currentDetails.length) {
-							this._init().then(() => m.redraw())
-						}
+						this.getMailboxDetails().then(mailboxDetails => {
+							if (newMemberships.length !== mailboxDetails.length) {
+								this._init().then(() => m.redraw())
+							}
+						})
 					})
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
@@ -223,13 +244,11 @@ export class MailModel {
 				if (folder && folder.folderType === MailFolderType.INBOX
 					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation
-					const mailboxDetail = mailModel.getMailboxDetailsForMailListId(update.instanceListId)
 					const mailId = [update.instanceListId, update.instanceId]
 					load(MailTypeRef, mailId)
-						.then(mail => {
-							return findAndApplyMatchingRule(mailboxDetail, mail)
-								.then((newId) => this._showNotification(newId || mailId))
-						})
+						.then((mail) => mailModel.getMailboxDetailsForMailListId(update.instanceListId)
+						                         .then(mailboxDetail => findAndApplyMatchingRule(mailboxDetail, mail))
+						                         .then((newId) => this._showNotification(newId || mailId)))
 						.catch(noOp)
 				}
 			}
@@ -256,8 +275,8 @@ export class MailModel {
 	getCounterValue(listId: Id): ?number {
 		const mailboxDetails = this.getMailboxDetailsForMailListId(listId)
 		const counters = this.mailboxCounters()
-		if (mailboxDetails && counters[mailboxDetails.mailGroup._id]) {
-			return counters[mailboxDetails.mailGroup._id][listId]
+		if (mailboxDetails.isFulfilled() && counters[mailboxDetails.value().mailGroup._id]) {
+			return counters[mailboxDetails.value().mailGroup._id][listId]
 		} else {
 			return null
 		}

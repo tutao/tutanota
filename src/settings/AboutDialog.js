@@ -52,43 +52,45 @@ function aboutLink(href, text): Children {
 }
 
 function sendDeviceLogs() {
-	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	const timestamp = new Date()
-	let {message, type, client} = clientInfoString(timestamp)
-	message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
-	editor.initWithTemplate({}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
-	const global = downcast(window)
-	let p = Promise.resolve()
-	if (global.logger) {
-		p = worker.getLog().then(workerLogEntries => {
-			const mainEntries = global.logger.getEntries()
-			editor.attachFiles([
-				createLogFile(timestamp.getTime(), mainEntries, "main"),
-				createLogFile(timestamp.getTime(), workerLogEntries, "worker")
-			])
-		})
-	}
+	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		const editor = new MailEditor(mailboxDetails)
+		const timestamp = new Date()
+		let {message, type, client} = clientInfoString(timestamp)
+		message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
+		editor.initWithTemplate({}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
+		const global = downcast(window)
+		let p = Promise.resolve()
+		if (global.logger) {
+			p = worker.getLog().then(workerLogEntries => {
+				const mainEntries = global.logger.getEntries()
+				editor.attachFiles([
+					createLogFile(timestamp.getTime(), mainEntries, "main"),
+					createLogFile(timestamp.getTime(), workerLogEntries, "worker")
+				])
+			})
+		}
 
-	if (isDesktop()) {
-		p = p.then(() => {
-			return getDesktopLogs()
-				.then((desktopEntries) => {
-					const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
-					editor.attachFiles([desktopLogFile])
-				})
-		})
-	}
+		if (isDesktop()) {
+			p = p.then(() => {
+				return getDesktopLogs()
+					.then((desktopEntries) => {
+						const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
+						editor.attachFiles([desktopLogFile])
+					})
+			})
+		}
 
-	if (isApp()) {
-		p = p.then(() => {
-			getDeviceLogs()
-				.then((fileReference) => {
-					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-					editor.attachFiles([fileReference])
-				})
+		if (isApp()) {
+			p = p.then(() => {
+				getDeviceLogs()
+					.then((fileReference) => {
+						fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
+						editor.attachFiles([fileReference])
+					})
+			})
+		}
+		p.then(() => {
+			editor.show()
 		})
-	}
-	p.then(() => {
-		editor.show()
 	})
 }

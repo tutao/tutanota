@@ -1157,22 +1157,24 @@ export class MailEditor {
 				})
 				return
 			}
-			const editor = new MailEditor(mailModel.getUserMailboxDetails())
-			let signature = "<br><br>--"
-			signature += "<br>Client: " + client.getIdentifier()
-			signature += "<br>Tutanota version: " + env.versionNumber
-			signature += "<br>Time zone: " + getTimeZone()
-			signature += "<br>User agent:<br>" + navigator.userAgent
-			editor.initWithTemplate({to: [{name: null, address: "premium@tutao.de"}]}, "", signature, true).then(() => {
-				editor.show()
+			return mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+				const editor = new MailEditor(mailboxDetails)
+				let signature = "<br><br>--"
+				signature += "<br>Client: " + client.getIdentifier()
+				signature += "<br>Tutanota version: " + env.versionNumber
+				signature += "<br>Time zone: " + getTimeZone()
+				signature += "<br>User agent:<br>" + navigator.userAgent
+				editor.initWithTemplate({to: [{name: null, address: "premium@tutao.de"}]}, "", signature, true).then(() => {
+					editor.show()
+				})
 			})
 		})
 
 	}
 
 	static writeInviteMail() {
-		mailModel.init().then(() => {
-			const editor = new MailEditor(mailModel.getUserMailboxDetails())
+		mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+			const editor = new MailEditor(mailboxDetails)
 			const username = logins.getUserController().userGroupInfo.name;
 			const body = lang.get("invitationMailBody_msg", {
 				'{registrationLink}': "https://mail.tutanota.com/signup",

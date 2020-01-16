@@ -283,12 +283,23 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string | la
 		}
 		let buttonPromise = lazyButtons()
 		let resultPromise = buttonPromise
-		if (!resultPromise.isFulfilled()) {
-			resultPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
-				.then(module => {
-					return module.showProgressDialog("loading_msg", buttonPromise)
-				})
+		// If the promise is pending and does not resolve in 100ms, show progress dialog
+		if (buttonPromise.isPending()) {
+			resultPromise = Promise.race([
+					buttonPromise,
+					Promise.all([
+						Promise.delay(100),
+						asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+							`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+					]).then(([_, module]) => {
+						if (buttonPromise.isPending()) {
+							return module.showProgressDialog("loading_msg", buttonPromise)
+						} else {
+							return buttonPromise
+						}
+					})
+				]
+			)
 		}
 		const initialButtonRect: PosRect = mainButton._domButton.getBoundingClientRect()
 		resultPromise.then(buttons => {

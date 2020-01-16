@@ -150,8 +150,11 @@ export class MailViewer {
 		if (showFolder) {
 			let folder = mailModel.getMailFolder(mail._id[0])
 			if (folder) {
-				this._folderText = (lang.get("location_label") + ": "
-					+ getMailboxName(mailModel.getMailboxDetails(mail)) + " / " + getFolderName(folder)).toUpperCase()
+				mailModel.getMailboxDetailsForMail(mail).then((mailboxDetails) => {
+					this._folderText =
+						`${lang.get("location_label")}: ${getMailboxName(mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
+					m.redraw()
+				})
 			}
 		}
 		this._attachments = []
@@ -254,12 +257,14 @@ export class MailViewer {
 					actions.add(this._createAssignActionButton(mail))
 				}
 			}
-			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-				let targetFolders = mailModel.getMailboxFolders(this.mail).filter(f => f.mails !== this.mail._id[0])
-				targetFolders = (getSortedSystemFolders(targetFolders).concat(getSortedCustomFolders(targetFolders)))
-				return targetFolders.map(f => {
-					return new Button(() => getFolderName(f), () => mailModel.moveMails([mail], f), getFolderIcon(f))
-						.setType(ButtonType.Dropdown)
+			actions.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
+				return mailModel.getMailboxFolders(this.mail).then((folders) => {
+					const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
+					const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
+					return targetFolders.map(f => {
+						return new Button(() => getFolderName(f), () => mailModel.moveMails([mail], f), getFolderIcon(f))
+							.setType(ButtonType.Dropdown)
+					})
 				})
 			}))
 		}
@@ -293,11 +298,15 @@ export class MailViewer {
 								let headers = getMailHeaders(mailHeaders).split("\n").filter(headerLine =>
 									headerLine.toLowerCase().startsWith("list-unsubscribe"))
 								if (headers.length > 0) {
-									let data = createListUnsubscribeData()
-									data.mail = this.mail._id
-									data.recipient = this._getSenderOfResponseMail()
-									data.headers = headers.join("\n")
-									return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, data).return(true)
+									return this._getSenderOfResponseMail().then((recipient) => {
+										const postData = createListUnsubscribeData({
+											mail: this.mail._id,
+											recipient,
+											headers: headers.join("\n"),
+										})
+										return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData)
+											.return(true)
+									})
 								} else {
 									return false
 								}
@@ -738,48 +747,50 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				if (defaultInboxRuleField
-					&& !logins.getUserController().isOutlookAccount()
-					&& !logins.isEnabled(FeatureType.InternalCommunication)) {
-					let rule = AddInboxRuleDialog.getExistingRuleForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
-					let actionLabel = "editInboxRule_action"
-					if (!rule) {
-						rule = createInboxRuleTemplate(defaultInboxRuleField, address.address.trim().toLowerCase())
-						actionLabel = "addInboxRule_action"
-					}
-					buttons.push(new Button(actionLabel, () => {
-						AddInboxRuleDialog.show(mailModel.getMailboxDetails(this.mail), neverNull(rule))
-					}, null).setType(ButtonType.Secondary))
-				}
-				if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
-					buttons.push(new Button("addSpamRule_action", () => {
-						const folder = mailModel.getMailFolder(getListId(this.mail))
-						const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
-							? SpamRuleType.WHITELIST
-							: SpamRuleType.BLACKLIST
-						let spamRuleField
-						switch (defaultInboxRuleField) {
-							case InboxRuleType.RECIPIENT_TO_EQUALS:
-								spamRuleField = SparmRuleType.TO
-								break
-							case InboxRuleType.RECIPIENT_CC_EQUALS:
-								spamRuleField = SparmRuleType.CC
-								break
-							case InboxRuleType.RECIPIENT_BCC_EQUALS:
-								spamRuleField = SparmRuleType.BCC
-								break
-							default:
-								spamRuleField = SparmRuleType.FROM
-								break
+				return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+					if (defaultInboxRuleField
+						&& !logins.getUserController().isOutlookAccount()
+						&& !logins.isEnabled(FeatureType.InternalCommunication)) {
+						let rule = AddInboxRuleDialog.getExistingRuleForType(address.address.trim().toLowerCase(), defaultInboxRuleField)
+						let actionLabel = "editInboxRule_action"
+						if (!rule) {
+							rule = createInboxRuleTemplate(defaultInboxRuleField, address.address.trim().toLowerCase())
+							actionLabel = "addInboxRule_action"
 						}
-						AddSpamRuleDialog.show(createEmailSenderListElement({
-							value: address.address.trim().toLowerCase(),
-							type: spamRuleType,
-							field: spamRuleField,
-						}))
-					}, null).setType(ButtonType.Secondary))
-				}
-				return buttons
+						buttons.push(new Button(actionLabel, () => {
+							AddInboxRuleDialog.show(mailboxDetails, neverNull(rule))
+						}, null).setType(ButtonType.Secondary))
+					}
+					if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
+						buttons.push(new Button("addSpamRule_action", () => {
+							const folder = mailModel.getMailFolder(getListId(this.mail))
+							const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
+								? SpamRuleType.WHITELIST
+								: SpamRuleType.BLACKLIST
+							let spamRuleField
+							switch (defaultInboxRuleField) {
+								case InboxRuleType.RECIPIENT_TO_EQUALS:
+									spamRuleField = SparmRuleType.TO
+									break
+								case InboxRuleType.RECIPIENT_CC_EQUALS:
+									spamRuleField = SparmRuleType.CC
+									break
+								case InboxRuleType.RECIPIENT_BCC_EQUALS:
+									spamRuleField = SparmRuleType.BCC
+									break
+								default:
+									spamRuleField = SparmRuleType.FROM
+									break
+							}
+							AddSpamRuleDialog.show(createEmailSenderListElement({
+								value: address.address.trim().toLowerCase(),
+								type: spamRuleType,
+								field: spamRuleField,
+							}))
+						}, null).setType(ButtonType.Secondary))
+					}
+					return buttons
+				})
 			})
 		} else {
 			return Promise.resolve([address.address])
@@ -798,16 +809,19 @@ export class MailViewer {
 	_editDraft() {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initFromDraft({
-					draftMail: this.mail,
-					attachments: this._attachments,
-					bodyText: this._getMailBody(),
-					blockExternalContent: this._contentBlocked,
-					inlineImages: this._inlineImages
-				}).then(() => {
-					editor.show()
-				})
+				return mailModel.getMailboxDetailsForMail(this.mail)
+				                .then((mailboxDetails) => {
+					                let editor = new MailEditor(mailboxDetails)
+					                return editor.initFromDraft({
+						                draftMail: this.mail,
+						                attachments: this._attachments,
+						                bodyText: this._getMailBody(),
+						                blockExternalContent: this._contentBlocked,
+						                inlineImages: this._inlineImages
+					                }).then(() => {
+						                editor.show()
+					                })
+				                })
 			}
 		})
 	}
@@ -818,54 +832,58 @@ export class MailViewer {
 		}
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				let prefix = "Re: "
-				let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
-					+ this.mail.subject
-				let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
-					+ this.mail.sender.address + ":";
-				let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
+				return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+					let prefix = "Re: "
+					let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
+						+ this.mail.subject
+					let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " "
+						+ this.mail.sender.address + ":";
+					let body = infoLine + "<br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
-				let toRecipients = []
-				let ccRecipients = []
-				let bccRecipients = []
-				if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
-					toRecipients.push(this.mail.sender)
-				} else if (this.mail.state === MailState.RECEIVED) {
-					if (this.mail.replyTos.length > 0) {
-						addAll(toRecipients, this.mail.replyTos)
-					} else {
+					let toRecipients = []
+					let ccRecipients = []
+					let bccRecipients = []
+					if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
 						toRecipients.push(this.mail.sender)
+					} else if (this.mail.state === MailState.RECEIVED) {
+						if (this.mail.replyTos.length > 0) {
+							addAll(toRecipients, this.mail.replyTos)
+						} else {
+							toRecipients.push(this.mail.sender)
+						}
+						if (replyAll) {
+							let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
+							addAll(ccRecipients, this.mail.toRecipients.filter(recipient =>
+								!contains(myMailAddresses, recipient.address.toLowerCase())))
+							addAll(ccRecipients, this.mail.ccRecipients.filter(recipient =>
+								!contains(myMailAddresses, recipient.address.toLowerCase())))
+						}
+					} else {
+						// this is a sent email, so use the to recipients as new recipients
+						addAll(toRecipients, this.mail.toRecipients)
+						if (replyAll) {
+							addAll(ccRecipients, this.mail.ccRecipients)
+							addAll(bccRecipients, this.mail.bccRecipients)
+						}
 					}
-					if (replyAll) {
-						let myMailAddresses = getEnabledMailAddresses(mailModel.getMailboxDetails(this.mail))
-						addAll(ccRecipients, this.mail.toRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())))
-						addAll(ccRecipients, this.mail.ccRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())))
-					}
-				} else {
-					// this is a sent email, so use the to recipients as new recipients
-					addAll(toRecipients, this.mail.toRecipients)
-					if (replyAll) {
-						addAll(ccRecipients, this.mail.ccRecipients)
-						addAll(bccRecipients, this.mail.bccRecipients)
-					}
-				}
-				let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-				return editor.initAsResponse({
-					previousMail: this.mail,
-					conversationType: ConversationType.REPLY,
-					senderMailAddress: this._getSenderOfResponseMail(),
-					toRecipients,
-					ccRecipients,
-					bccRecipients,
-					attachments: [],
-					subject,
-					bodyText: body,
-					replyTos: [],
-					addSignature: true,
-					inlineImages: this._inlineImages,
-					blockExternalContent: this._contentBlocked
-				}).then(() => {
-					editor.show()
+					let editor = new MailEditor(mailboxDetails)
+					return editor.initAsResponse({
+						previousMail: this.mail,
+						conversationType: ConversationType.REPLY,
+						senderMailAddress: this._getSenderOfResponseMail(),
+						toRecipients,
+						ccRecipients,
+						bccRecipients,
+						attachments: [],
+						subject,
+						bodyText: body,
+						replyTos: [],
+						addSignature: true,
+						inlineImages: this._inlineImages,
+						blockExternalContent: this._contentBlocked
+					}).then(() => {
+						editor.show()
+					})
 				})
 			}
 		})
@@ -906,23 +924,23 @@ export class MailViewer {
 
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
-		let editor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-		return editor.initAsResponse({
-			previousMail: this.mail,
-			conversationType: ConversationType.FORWARD,
-			senderMailAddress: this._getSenderOfResponseMail(),
-			toRecipients: recipients,
-			ccRecipients: [],
-			bccRecipients: [],
-			attachments: this._attachments.slice(),
-			subject: "FWD: " + this.mail.subject,
-			bodyText: body,
-			replyTos,
-			addSignature,
-			inlineImages: replaceInlineImages ? this._inlineImages : null,
-			blockExternalContent: this._contentBlocked
-		}).then(() => {
-			return editor
+		return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+			let editor = new MailEditor(mailboxDetails)
+			return editor.initAsResponse({
+				previousMail: this.mail,
+				conversationType: ConversationType.FORWARD,
+				senderMailAddress: this._getSenderOfResponseMail(),
+				toRecipients: recipients,
+				ccRecipients: [],
+				bccRecipients: [],
+				attachments: this._attachments.slice(),
+				subject: "FWD: " + this.mail.subject,
+				bodyText: body,
+				replyTos,
+				addSignature,
+				inlineImages: replaceInlineImages ? this._inlineImages : null,
+				blockExternalContent: this._contentBlocked
+			}).then(() => editor)
 		})
 	}
 
@@ -955,25 +973,26 @@ export class MailViewer {
 
 		this._createForwardingMailEditor([recipient], newReplyTos, false, false).then(editor => {
 			return editor.send()
-		}).then(() => {
-			mailModel.moveMails([this.mail], getArchiveFolder(mailModel.getMailboxFolders(this.mail)))
+		}).then(() => mailModel.getMailboxFolders(this.mail)).then((folders) => {
+			mailModel.moveMails([this.mail], getArchiveFolder(folders))
 		})
 	}
 
-	_getSenderOfResponseMail(): string {
-		let mailboxDetails = mailModel.getMailboxDetails(this.mail)
-		let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
-		let addressesInMail = []
-		addAll(addressesInMail, this.mail.toRecipients)
-		addAll(addressesInMail, this.mail.ccRecipients)
-		addAll(addressesInMail, this.mail.bccRecipients)
-		addressesInMail.push(this.mail.sender)
-		let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
-		if (foundAddress) {
-			return foundAddress.address.toLowerCase()
-		} else {
-			return getDefaultSender(mailboxDetails)
-		}
+	_getSenderOfResponseMail(): Promise<string> {
+		return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+			let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
+			let addressesInMail = []
+			addAll(addressesInMail, this.mail.toRecipients)
+			addAll(addressesInMail, this.mail.ccRecipients)
+			addAll(addressesInMail, this.mail.bccRecipients)
+			addressesInMail.push(this.mail.sender)
+			let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
+			if (foundAddress) {
+				return foundAddress.address.toLowerCase()
+			} else {
+				return getDefaultSender(mailboxDetails)
+			}
+		})
 	}
 
 	_handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
@@ -983,11 +1002,13 @@ export class MailViewer {
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
 				event.preventDefault()
 				if (isNewMailActionAvailable()) { // disable new mails for external users.
-					let mailEditor = new MailEditor(mailModel.getMailboxDetails(this.mail))
-					mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-					          .then(() => {
-						          mailEditor.show()
-					          })
+					mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+						let mailEditor = new MailEditor(mailboxDetails)
+						mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
+						          .then(() => {
+							          mailEditor.show()
+						          })
+					})
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.

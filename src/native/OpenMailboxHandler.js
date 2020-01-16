@@ -8,7 +8,8 @@ import {logins} from "../api/main/LoginController"
 export function openMailbox(userId: Id, mailAddress: string, requestedPath: ?string): void {
 	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
 		if (!requestedPath) {
-			m.route.set("/mail/" + getInboxFolder(mailModel.mailboxDetails()[0].folders).mails)
+			mailModel.getMailboxDetails().then((mailboxDetails) =>
+				m.route.set("/mail/" + getInboxFolder(mailboxDetails[0].folders).mails))
 		} else {
 			m.route.set("/mail" + requestedPath)
 		}

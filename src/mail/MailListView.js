@@ -95,10 +95,12 @@ export class MailListView implements Component {
 						return Promise.resolve() // externals don't have an archive folder
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
-						return mailModel.moveMails([listElement], getInboxFolder(mailModel.getMailboxFolders(listElement)))
+						return mailModel.getMailboxFolders(listElement)
+						                .then((folders) => mailModel.moveMails([listElement], getInboxFolder(folders)))
 					} else {
 						this.list.selectNone()
-						return mailModel.moveMails([listElement], getArchiveFolder(mailModel.getMailboxFolders(listElement)))
+						return mailModel.getMailboxFolders(listElement)
+						                .then((folders) => mailModel.moveMails([listElement], getArchiveFolder(folders)))
 					}
 				},
 				enabled: true
@@ -129,13 +131,16 @@ export class MailListView implements Component {
 		}, 0)
 		const counterValue = mailModel.getCounterValue(this.listId)
 		if (counterValue != null && counterValue !== unreadMails) {
-			const data = createWriteCounterData({
-				counterType: CounterType_UnreadMails,
-				row: mailModel.getMailboxDetailsForMailListId(this.listId).mailGroup._id,
-				column: this.listId,
-				value: String(unreadMails)
+			mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetails) => {
+				const data = createWriteCounterData({
+					counterType: CounterType_UnreadMails,
+					row: mailboxDetails.mailGroup._id,
+					column: this.listId,
+					value: String(unreadMails)
+				})
+				serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
 			})
-			serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
+
 		}
 	})
 
@@ -191,24 +196,25 @@ export class MailListView implements Component {
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
 		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
-			let mailboxDetail = mailModel.getMailboxDetailsForMailListId(this.listId)
-			if (isInboxList(mailboxDetail, this.listId)) {
-				// filter emails
-				return Promise.filter(mails, (mail) => {
-					return findAndApplyMatchingRule(mailboxDetail, mail).then(matchingMailId => !matchingMailId)
-				}).then(inboxMails => {
-					if (mails.length === count && inboxMails.length < mails.length) {
-						//console.log("load more because of matching inbox rules")
-						return this._loadMailRange(mails[mails.length - 1]._id[1], mails.length - inboxMails.length)
-						           .then(filteredMails => {
-							           return inboxMails.concat(filteredMails)
-						           })
-					}
-					return inboxMails
-				})
-			} else {
-				return mails
-			}
+			return mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetail) => {
+				if (isInboxList(mailboxDetail, this.listId)) {
+					// filter emails
+					return Promise.filter(mails, (mail) => {
+						return findAndApplyMatchingRule(mailboxDetail, mail).then(matchingMailId => !matchingMailId)
+					}).then(inboxMails => {
+						if (mails.length === count && inboxMails.length < mails.length) {
+							//console.log("load more because of matching inbox rules")
+							return this._loadMailRange(mails[mails.length - 1]._id[1], mails.length - inboxMails.length)
+							           .then(filteredMails => {
+								           return inboxMails.concat(filteredMails)
+							           })
+						}
+						return inboxMails
+					})
+				} else {
+					return mails
+				}
+			})
 		})
 	}
 }

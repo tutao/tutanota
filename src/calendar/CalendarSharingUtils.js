@@ -14,15 +14,18 @@ import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
-	const senderMailAddress = getDefaultSender(mailModel.getUserMailboxDetails())
-	const replacements = {
-		// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
-		"{inviter}": senderMailAddress,
-		"{calendarName}": getCalendarName(sharedGroupInfo, false)
-	}
-	// Sending notifications as bcc so that invited people don't see each other
-	const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
-	_sendNotificationEmail({bcc}, "shareCalendarInvitationEmailSubject_msg", "shareCalendarInvitationEmailBody_msg", senderMailAddress, replacements)
+	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		const senderMailAddress = getDefaultSender(mailboxDetails)
+		const replacements = {
+			// Sender is displayed like Name <mail.address@tutanota.com>. Less-than and greater-than must be encoded for HTML
+			"{inviter}": senderMailAddress,
+			"{calendarName}": getCalendarName(sharedGroupInfo, false)
+		}
+		// Sending notifications as bcc so that invited people don't see each other
+		const bcc = recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
+		_sendNotificationEmail({bcc}, "shareCalendarInvitationEmailSubject_msg", "shareCalendarInvitationEmailBody_msg", senderMailAddress,
+			replacements)
+	})
 }
 
 
@@ -49,13 +52,19 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation)
 }
 
 
-function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey, body: TranslationKey, senderMailAddress: string, replacements: {[string]: string}) {
-	const editor = new MailEditor(mailModel.getUserMailboxDetails())
-	const sender = getEnabledMailAddresses(mailModel.getUserMailboxDetails()).includes(senderMailAddress) ? senderMailAddress : getDefaultSender(mailModel.getUserMailboxDetails())
-	const subjectString = lang.get(subject)
-	const bodyString = lang.get(body, replacements)
-	editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)
-	editor.send(false, "tooManyMailsAuto_msg")
+function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey, body: TranslationKey, senderMailAddress: string,
+                                replacements: {[string]: string}) {
+	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
+		const editor = new MailEditor(mailboxDetails)
+		const sender = getEnabledMailAddresses(mailboxDetails).includes(senderMailAddress)
+			? senderMailAddress
+			: getDefaultSender(mailboxDetails)
+		const subjectString = lang.get(subject)
+		const bodyString = lang.get(body, replacements)
+		editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)
+		editor.send(false, "tooManyMailsAuto_msg")
+	})
+
 }
 
 export type GroupMemberInfo = {

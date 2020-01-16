@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {MailView} from "./MailView"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -93,28 +93,28 @@ export class MultiMailViewer {
 				() => Icons.Cancel))
 		}
 
-		actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
-			let sourceMailboxes = this._mailView.mailList.list.getSelectedEntities().reduce((set, mail) => {
-				let mailBox = mailModel.getMailboxDetails(mail)
-				if (set.indexOf(mailBox) < 0) {
-					set.push(mailBox)
+		actions.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
+			return Promise.reduce(this._mailView.mailList.list.getSelectedEntities(), (set, mail) => {
+				return mailModel.getMailboxDetailsForMail(mail).then(mailBox => {
+					if (set.indexOf(mailBox) < 0) {
+						set.push(mailBox)
+					}
+					return set
+				})
+			}, ([]: MailboxDetail[])).then((sourceMailboxes) => {
+				if (sourceMailboxes.length !== 1) {
+					return []
+				} else {
+					return (getSortedSystemFolders(sourceMailboxes[0].folders).concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
+						.filter(f => f !== this._mailView.selectedFolder)
+						.map(f => {
+							return new Button(() => getFolderName(f),
+								this._actionBarAction((mails) => mailModel.moveMails(mails, f)),
+								getFolderIcon(f)
+							).setType(ButtonType.Dropdown)
+						})
 				}
-				return set
-			}, ([]: MailboxDetail[]))
-
-			if (sourceMailboxes.length !== 1) {
-				return []
-			} else {
-				return (getSortedSystemFolders(sourceMailboxes[0].folders)
-					.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
-					.filter(f => f !== this._mailView.selectedFolder)
-					.map(f => {
-						return new Button(() => getFolderName(f),
-							this._actionBarAction((mails) => mailModel.moveMails(mails, f)),
-							getFolderIcon(f)
-						).setType(ButtonType.Dropdown)
-					})
-			}
+			})
 		}))
 		actions.add(new Button('delete_action', () => {
 				let mails = this._mailView.mailList.list.getSelectedEntities()

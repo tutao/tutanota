@@ -325,12 +325,23 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 	return ((e, dom) => {
 		let originalButtons = lazyButtons()
 		let buttons = originalButtons
-		if (!buttons.isFulfilled()) {
-			buttons = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
-				`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
-				.then(module => {
-					return module.showProgressDialog("loading_msg", originalButtons)
-				})
+		// If the promise is pending and does not resolve in 100ms, show progress dialog
+		if (originalButtons.isPending()) {
+			buttons = Promise.race([
+				originalButtons,
+					Promise.all([
+						Promise.delay(100),
+						asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
+							`${env.rootPathPrefix}src/gui/base/ProgressDialog.js`)
+					]).then(([_, module]) => {
+						if (originalButtons.isPending()) {
+							return module.showProgressDialog("loading_msg", originalButtons)
+						} else {
+							return originalButtons
+						}
+					})
+				]
+			)
 		}
 		buttons.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)

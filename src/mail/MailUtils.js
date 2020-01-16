@@ -529,16 +529,22 @@ export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
 }
 
 
-export function archiveMails(mails: Mail[]) {
+export function archiveMails(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		mailModel.moveMails(mails, getArchiveFolder(mailModel.getMailboxFolders(mails[0])))
+		return mailModel.getMailboxFolders(mails[0])
+		                .then((folders) => mailModel.moveMails(mails, getArchiveFolder(folders)))
+	} else {
+		return Promise.resolve()
 	}
 }
 
-export function moveToInbox(mails: Mail[]) {
+export function moveToInbox(mails: Mail[]): Promise<*> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		mailModel.moveMails(mails, getInboxFolder(mailModel.getMailboxFolders(mails[0])))
+		return mailModel.getMailboxFolders(mails[0])
+		                .then((folders) => mailModel.moveMails(mails, getInboxFolder(folders)))
+	} else {
+		return Promise.resolve()
 	}
 }
