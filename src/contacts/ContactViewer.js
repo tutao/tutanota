@@ -114,7 +114,7 @@ export class ContactViewer {
 								m(".flex-wrap.selectable", insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
-										m("span.birthday", this._formatBirthday())
+										this._hasBirthday() ? m("span.birthday", this._formatBirthday()) : null
 									], () => m("span", " | ")
 									)
 								)
@@ -251,5 +251,9 @@ export class ContactViewer {
 				return ""
 			}
 		}
+	}
+
+	_hasBirthday(): boolean {
+		return (!!this.contact.birthday) || (!!this.contact.oldBirthday)
 	}
 }
