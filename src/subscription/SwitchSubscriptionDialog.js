@@ -8,7 +8,13 @@ import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
+import {
+	AccountType,
+	BookingItemFeatureByCode,
+	BookingItemFeatureType,
+	Const,
+	UnsubscribeFailureReason
+} from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
@@ -121,7 +127,8 @@ function getPremiumPrice(isPro: boolean, addUserReturn: PriceServiceReturn, paym
 	const prices = createPlanPrices()
 	if (isPro) {
 		// show the price for the current number of users and without any additional ordered features
-		let currentPriceOnlyUsersMonthly = getPriceFromPriceData(addUserReturn.currentPriceNextPeriod, BookingItemFeatureType.Users) * paymentIntervalFactor
+		let currentPriceOnlyUsersMonthly = getPriceFromPriceData(addUserReturn.currentPriceNextPeriod, BookingItemFeatureType.Users)
+			* paymentIntervalFactor
 		let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users)
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly)
 		prices.contactFormPriceMonthly = "0" // n/a
@@ -214,11 +221,48 @@ function cancelSubscription(dialog: Dialog) {
 			d.date = Const.CURRENT_DATE
 
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
-				.then(() => worker.switchPremiumToFreeGroup())
+				.then(() => worker.switchPremiumToFreeGroup()))
+				.finally(() => dialog.close())
+				.catch(PreconditionFailedError, (e) => {
+					const reason = e.data
+					if (reason == null) {
+						return Dialog.error("unknownError_msg")
+					} else {
+						// TODO: translate
+						let message;
+						switch (reason) {
+							case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
+								message = () => "There are too many enabled users"
+								break
+							case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
+								message = () => "There is a custom email address"
+								break
+							case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
+								message = () => "There is more than one calendar"
+								break
+							case UnsubscribeFailureReason.CALENDAR_TYPE:
+								message = () => "There is a shared calendar"
+								break
+							case UnsubscribeFailureReason.TOO_MANY_ALIASES:
+								message = () => "There is more than one calendar"
+								break
+							default:
+								if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
+									const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
+									const featureName = BookingItemFeatureByCode[feature]
+									message = () => `Feature enabled: ${featureName}`
+								} else {
+									message = "unknownError_msg"
+								}
+								break
+						}
+						return Dialog.error(message)
+					}
+				})
 				.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
 				.catch(PreconditionFailedError, e => Dialog.error("accountSwitchAdditionalPackagesActive_msg"))
-				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg")))
-				.finally(() => dialog.close())
+				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
+
 		}
 	})
 }

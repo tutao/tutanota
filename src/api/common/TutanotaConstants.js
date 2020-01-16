@@ -101,6 +101,8 @@ export type AccountTypeEnum = $Values<typeof AccountType>;
 
 export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
 
+export const reverse = (objectMap: Object) => Object.keys(objectMap)
+                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
 export const BookingItemFeatureType = Object.freeze({
 	Users: '0',
 	Storage: '1',
@@ -114,6 +116,7 @@ export const BookingItemFeatureType = Object.freeze({
 	Sharing: '9'
 })
 export type BookingItemFeatureTypeEnum = $Values<typeof BookingItemFeatureType>;
+export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 
 export const PaymentMethodType = Object.freeze({
@@ -124,9 +127,6 @@ export const PaymentMethodType = Object.freeze({
 })
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodTypeEnum => downcast(accountingInfo.paymentMethod)
-
-export const reverse = (objectMap: Object) => Object.keys(objectMap)
-                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
 
 export const ValueToPaymentMethodType = reverse(PaymentMethodType)
 
@@ -201,6 +201,7 @@ export const SpamRuleFieldType = Object.freeze({
 	BCC: "3",
 })
 export type SpamRuleFieldTypeEnum = $Values<typeof SpamRuleFieldType>;
+
 export function getSparmRuleField(spamRule: EmailSenderListElement): SpamRuleFieldTypeEnum {
 	return downcast(spamRule.field)
 }
@@ -480,3 +481,13 @@ export const PostingType = Object.freeze({
 export type PostingTypeEnum = $Values<typeof PostingType>
 
 export const CounterType_UnreadMails = "2"
+
+export const UnsubscribeFailureReason = Object.freeze({
+	TOO_MANY_ENABLED_USERS: "unsubscribe.too_many_users",
+	CUSTOM_MAIL_ADDRESS: "unsubscribe.custom_mail_address",
+	TOO_MANY_CALENDARS: "unsubscribe.too_many_calendars",
+	CALENDAR_TYPE: "unsubscirbe.invalid_calendar_type",
+	TOO_MANY_ALIASES: "unsubscribe.too_many_aliases",
+	FEATURE: "unsubscribe.feature",
+})
+export type UnsubscrubeFailureReasonEnum = $Values<typeof UnsubscribeFailureReason>
