@@ -311,6 +311,7 @@ export class MailViewer {
 						}
 					}, () => Icons.Cancel).setType(ButtonType.Dropdown))
 				}
+				moreButtons.push(new Button("showHeaders_action", () => this._showHeaders(), () => Icons.ListUnordered).setType(ButtonType.Dropdown))
 				return moreButtons
 			}))
 		}
