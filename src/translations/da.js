@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-01-13T13:11:27Z",
+	"updated_at": "2020-01-15T08:38:38Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -461,6 +461,7 @@ module.exports = {
 		"invoiceVatIdNoInfoBusiness_msg": "Skal starte med tocifret landekode.",
 		"invoiceVatIdNoMissing_msg": "Hvis du ikke har et CVR nummer, skal du vælge privat brug.",
 		"invoiceVatIdNo_label": "CVR nummer",
+		"invoice_label": "Faktura",
 		"IpAddress_label": "IP-adresse",
 		"keyboardShortcuts_title": "Tastaturgenveje",
 		"knownCredentials_label": "Gemte konti",
@@ -844,8 +845,10 @@ module.exports = {
 		"settingsView_action": "Gå til Indstillinger",
 		"settings_label": "Indstillinger",
 		"setUp_action": "Opsætning",
+		"shareCalendarDeclineEmailSubject_msg": "Kalender invitationen afvist",
 		"sharedMailboxes_label": "delte mailkonti",
 		"sharedMailbox_label": "Delt mailkonto",
+		"shareWithEmailRecipient_label": "Del med email modtager",
 		"sharing_label": "Deling",
 		"showAddress_alt": "Vis denne adresse i Openstreetmap",
 		"showAll_action": "Vis alle",

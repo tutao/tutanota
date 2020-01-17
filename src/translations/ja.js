@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2020-01-13T13:11:27Z",
+	"updated_at": "2020-01-15T08:38:38Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "このチェックボックスを選択し、プライバシーポリシーに同意してください。",

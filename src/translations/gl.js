@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2020-01-13T13:11:28Z",
+	"updated_at": "2020-01-15T08:38:38Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -470,7 +470,7 @@ module.exports = {
 		"invalidVatIdNumber_msg": "O número de identificación fiscal (NIF) non é válido.",
 		"invalidVatIdValidationFailed_msg": "Fallo ao validar o número de identificación do imposto do valor engadido. Por favor, inténteo máis tarde.",
 		"invitationMailBody_msg": "Ola! <br><br> Este é o meu novo enderezo de correo. Tutanota creou hoxe o correo do futuro: Tutanota ofrece un correo totalmente cifrado, sen publicidade para protexer o noso dereito a intimidade. Co cifrado automático podemos compartir correos de xeito tan seguro como enviar cartas seladas. Finalmente os nosos datos perténcenos a nos, ninguén máis pode acceder a eles.<br><br> Únase a Tutanota agora:<br>\n{registrationLink} <br><br><br>Saúdos,<br>{username}\n<br><br>PS: Tutanota é gratuíto e inclúe un almacenamento de 1 GB.\nAdemáis, é código aberto: {githubLink}",
-		"invitationMailSubject_msg": "O meu novo enderezo de correo - únase a Tutanota para unha comunicación privada",
+		"invitationMailSubject_msg": "O meu novo enderezo de correo - rexístrate en Tutanota e recupera privacidade",
 		"invitation_label": "Convite",
 		"invited_label": "Convidado",
 		"invite_alt": "Convidar",
@@ -610,6 +610,7 @@ module.exports = {
 		"more_label": "Máis",
 		"moveDown_action": "Mover abaixo",
 		"moveToBottom_action": "Mover abaixo",
+		"moveToInbox_action": "Mover á bandexa de entrada.",
 		"moveToTop_action": "Mover arriba",
 		"moveUp_action": "Mover arriba",
 		"move_action": "Mover",
@@ -945,6 +946,7 @@ module.exports = {
 		"storageCapacity_label": "Capacidade de almacenamento",
 		"storageDeletionAnnouncement_msg": "Info: os correos movidos ao lixo ou ao spam eliminaranse automáticamente tras 30 días.",
 		"storageDeletion_msg": "Os correos de este cartafol serán eliminados automáticamente tras 30 días.",
+		"storageQuotaExceeded_msg": "Non hai espazo dabondo no dispositivo para crear o índice de busca; polo que os resultados non se mostran ao completo.",
 		"storePassword_action": "Gardar contrasinal",
 		"subject_label": "Asunto",
 		"subscriptionCancelledMessage_msg": "A súa suscrición foi cancelada. Por favor, contacte co equipo de soporte para reactivar a súa suscrición.",

@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2020-01-13T13:11:27Z",
+	"updated_at": "2020-01-16T11:38:23Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -359,6 +359,7 @@ module.exports = {
 		"errorAtLine_msg": "Ошибка в строке {index}: {error}",
 		"errorDuringUpdate_msg": "Что-то пошло не так в процессе обновления, мы повторим попытку позже.",
 		"errorReport_label": "О, нет!",
+		"executableOpen_msg": "Похоже, что этот файл является программой. Вы уверены, что хотите запустить её?",
 		"existingMailAddress_msg": "Следующие email адреса не могут быть приглашены, потому что они уже являются участниками или приглашёнными:",
 		"expiredLink_msg": "Извините, данная ссылка более не действительна. Вы должны были получить новое уведомление по электронной почте с действующей в данный момент ссылкой. Предыдущие ссылки отключены по соображениям безопасности.",
 		"exportSelectedAsVCard_action": "Экспортировать выбранные контакты как vCard",
@@ -608,6 +609,7 @@ module.exports = {
 		"more_label": "Ещё",
 		"moveDown_action": "Вниз",
 		"moveToBottom_action": "В конец ",
+		"moveToInbox_action": "Переместить во входящие",
 		"moveToTop_action": "В начало",
 		"moveUp_action": "Вверх",
 		"move_action": "Переместить",

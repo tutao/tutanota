@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-01-13T13:11:27Z",
+	"updated_at": "2020-01-15T08:38:37Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -466,8 +466,8 @@ module.exports = {
 		"invalidRegistrationCode_msg": "Registreringskoden är ogiltig.",
 		"invalidVatIdNumber_msg": "Mervärdesskattenummer (VAT-ID) är ogiltigt.",
 		"invalidVatIdValidationFailed_msg": "Det gick inte att validera ID-nummer för mervärdesskatt. Försök igen senare.",
-		"invitationMailBody_msg": "Hej!<br><br>Det här är min nya e-postadress. Tutanota realiserar framtidens e-post redan idag: Tutanota erbjuder en fullt krypterad och reklamfri brevlåda för att skydda allas rätt till personlig integritet. Med automatisk kryptering kan vi skicka e-post lika säkert som förseglade brev. Slutligen, våra data tillhör oss, ingen annan kan komma åt dem.<br><br>Gå med Tutanota nu:<br>{registrationLink}<br><br><br>Vänliga hälsningar,<br>{username}<br><br>PS: Tutanota är gratis inklusive 1 GB lagring. Dessutom har det öppen källkod: {githubLink}",
-		"invitationMailSubject_msg": "Min nya e-postadress - skaffa Tutanota för privat kommunikation",
+		"invitationMailBody_msg": "Hej!<br><br>Det här är min nya e-postadress. Tutanota erbjuder en fullt krypterad och reklamfri brevlåda för att skydda allas rätt till personlig integritet. Med automatisk kryptering kan vi skicka e-post lika säkert som förseglade brev. Äntligen tillhör våra data oss och ingen annan kan komma åt dem.<br><br>Gå med i Tutanota nu:<br>{registrationLink}<br><br><br>Vänliga hälsningar,<br>{username}<br><br>PS: Tutanota är gratis med 1 GB lagring inkluderad. Dessutom är det öppen källkod: {githubLink}",
+		"invitationMailSubject_msg": "Min nya e-postadress - gå med Tutanota för att skydda din integritet.",
 		"invitation_label": "Inbjudan",
 		"invited_label": "Inbjuden",
 		"invite_alt": "Bjud in",
@@ -943,6 +943,7 @@ module.exports = {
 		"storageCapacity_label": "Lagringskapacitet",
 		"storageDeletionAnnouncement_msg": "Info: E-post som flyttas till Papperskorgen eller Spam tas automatiskt bort efter 30 dagar.",
 		"storageDeletion_msg": "E-post i den här mappen raderas automatiskt efter 30 dagar.",
+		"storageQuotaExceeded_msg": "Det finns inte tillräckligt med lagringsutrymme på enheten för att skapa sökindex. Därför kan sökresultaten inte visas helt.",
 		"storePassword_action": "Spara lösenord",
 		"subject_label": "Ämne",
 		"subscriptionCancelledMessage_msg": "Din prenumeration har avslutats. Kontakta support för att återaktivera din prenumeration.",

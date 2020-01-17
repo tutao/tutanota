@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2020-01-13T13:11:27Z",
+	"updated_at": "2020-01-15T08:38:37Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -469,7 +469,7 @@ module.exports = {
 		"invalidRegistrationCode_msg": "O código de registro é inválido.",
 		"invalidVatIdNumber_msg": "O valor acrescido do número de identificação (VAT-ID) é inválido",
 		"invalidVatIdValidationFailed_msg": "Falha ao identificar o número de identificação do IVA. Tente mais tarde.",
-		"invitationMailBody_msg": "Olá!<br><br>Este é meu novo endereço de email. O Tutanota percebe o futuro do email hoje: o Tutanota oferece uma caixa de mensagens totalmente criptografada e livre de anúncios para proteger seu direito à privacidade. Com criptografia automática nós podemos compartilhar emails seguramente como se estivessem sendo enviadas correspondências seladas. Finalmente nossos dados pertencem apenas a nós, mais ninguém pode acessá-lo.<br><br>Junte-se agora ao Tutanota:<br>{registrationLink}<br><br><br>Atenciosamente,<br>{username}<br><br>PS: O Tutanota é gratuito e inclui 1 GB de armazenamento. E mais, é em código aberto: {githubLink}",
+		"invitationMailBody_msg": "Olá!<br><br>Este é meu novo endereço de email. O Tutanota oferece uma caixa de mensagens totalmente criptografada e livre de anúncios para proteger seu direito à privacidade. Com criptografia automática nós podemos compartilhar emails seguramente como se estivessem sendo enviadas correspondências seladas. Finalmente nossos dados pertencem apenas a nós, mais ninguém pode acessá-lo.<br><br>Junte-se agora ao Tutanota:<br>{registrationLink}<br><br><br>Atenciosamente,<br>{username}<br><br>PS: O Tutanota é gratuito e inclui 1 GB de armazenamento. E mais, é em código aberto: {githubLink}",
 		"invitationMailSubject_msg": "Meu novo endereço de e-mail - utilize Tutanota para uma comunicação privada",
 		"invitation_label": "Convite",
 		"invited_label": "Convidados",
