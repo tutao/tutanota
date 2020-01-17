@@ -11,7 +11,8 @@
  *
  * The installer signatures are created in the following files:
  * https://mail.tutanota.com/desktop/win-sig.bin (for Windows)
- * https://mail.tutanota.com/desktop/mac-sig.bin (for Mac)
+ * https://mail.tutanota.com/desktop/mac-sig-dmg.bin (for Mac .dmg installer)
+ * https://mail.tutanota.com/desktop/mac-sig.zip (for Mac .zip update file)
  * https://mail.tutanota.com/desktop/linux-sig.bin (for Linux)
  *
  * They allow verifying the initial download via
@@ -69,12 +70,17 @@ function signer(filePath, signatureFileName, ymlFileName) {
 		throw new Error("error invoking process" + JSON.stringify(result))
 	}
 
-	console.log(`attaching signature to yml...`)
-	const ymlPath = path.join(dir, ymlFileName)
-	let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
-	const signatureContent = fs.readFileSync(sigOutPath)
-	yml.signature = signatureContent.toString('base64')
-	fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
+	if (ymlFileName) {
+		console.log(`attaching signature to yml...`, ymlFileName)
+		const ymlPath = path.join(dir, ymlFileName)
+		let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
+		const signatureContent = fs.readFileSync(sigOutPath)
+		yml.signature = signatureContent.toString('base64')
+		fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
+	} else {
+		console.log("Not attaching signature to yml")
+	}
+
 }
 
 module.exports = signer
