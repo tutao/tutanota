@@ -313,7 +313,7 @@ export class MailViewer {
 				}
 				moreButtons.push(new Button("showHeaders_action", () => this._showHeaders(), () => Icons.ListUnordered).setType(ButtonType.Dropdown))
 				return moreButtons
-			}))
+			}, 350))
 		}
 
 		this._inlineFileIds = this._loadMailBody(mail)
