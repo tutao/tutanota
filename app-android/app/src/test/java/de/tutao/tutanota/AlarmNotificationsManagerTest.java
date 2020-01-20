@@ -83,6 +83,10 @@ public class AlarmNotificationsManagerTest {
 		verify(systemAlarmFacade).cancelAlarm(repeatingAlarmIdentifier, 0);
 		verify(systemAlarmFacade).cancelAlarm(repeatingAlarmIdentifier, 1);
 		verifyNoMoreInteractions(systemAlarmFacade);
+
+		ArrayList<AlarmNotification> expectedAlarms = new ArrayList<>();
+		expectedAlarms.add(anotherUserAlarm);
+		verify(sseStorage).writeAlarmInfos(expectedAlarms);
 	}
 
 	@NonNull
@@ -94,8 +98,8 @@ public class AlarmNotificationsManagerTest {
 
 		sessionKeys.add(new AlarmNotification.NotificationSessionKey(new IdTuple("listId", pushIdentifierElementId), Utils.bytesToBase64(encSessionKey)));
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTimeInMillis(0);
-		calendar.set(2019, 12, 5);
+		calendar.set(Calendar.DATE, calendar.get(Calendar.DATE) + 2);
+		calendar.set(Calendar.MILLISECOND, 0);
 		calendar.set(Calendar.MINUTE, 20);
 		String start = String.valueOf(calendar.getTimeInMillis());
 		calendar.set(Calendar.HOUR, 1);
