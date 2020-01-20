@@ -84,7 +84,6 @@ public class Crypto {
 	private final Context context;
 
 	static {
-		// see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
 		for (int i = 0; i < FIXED_IV.length; i++) {
 			FIXED_IV[i] = (byte) 0x88;
 		}

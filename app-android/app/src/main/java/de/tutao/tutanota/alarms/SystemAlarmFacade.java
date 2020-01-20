@@ -34,6 +34,9 @@ public class SystemAlarmFacade {
 	}
 
 	public void cancelAlarm(String identifier, int occurrence) {
+		// For cancellation we make alarms which are almost the same. Intent#filterEquals checks that action, data, type, class, and categories are the same.
+		// It doesn't check extras. "data" (read: uri) is the only significant part. It is made up of alarm identifier and occurrence. We provide other fields
+		// as a filler but this doesn't make a difference.
 		getAlarmManager().cancel(makeAlarmPendingIntent(occurrence, identifier, "", new Date(), ""));
 	}
 

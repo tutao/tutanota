@@ -53,7 +53,7 @@ class DeviceConfig {
 		return this._credentials.find(c => c.userId === id)
 	}
 
-	areAlarmsScheduledForUser(userId: Id): boolean {
+	hasScheduledAlarmsForUser(userId: Id): boolean {
 		return this._scheduledAlarmUsers.includes(userId)
 	}
 

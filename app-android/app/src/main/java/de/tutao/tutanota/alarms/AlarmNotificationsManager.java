@@ -151,19 +151,14 @@ public class AlarmNotificationsManager {
 	 */
 	private void cancelScheduledAlarm(AlarmNotification alarmNotification,
 									  PushKeyResolver pushKeyResolver) {
-		// Read saved alarm because the server one doesn't have a session key
-		List<AlarmNotification> alarmNotifications = sseStorage.readSavedAlarmNotifications();
-		int indexOfExistingRepeatingAlarm = alarmNotifications.indexOf(alarmNotification);
-
-		// For cancellation we make alarms which are almost the same. Intent#filterEquals checks that action, data, type, class, and categories are the same.
-		// It doesn't check extras. "data" (read: uri) is the only significant part. It is made up of alarm identifier and occurrence. We provide other fields
-		// as a filler but this doesn't make a difference.
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
-		if (indexOfExistingRepeatingAlarm == -1 || alarmNotifications.get(indexOfExistingRepeatingAlarm).getRepeatRule() == null) {
+		List<AlarmNotification> alarmNotifications = sseStorage.readSavedAlarmNotifications();
+		int indexOfExistingAlarm = alarmNotifications.indexOf(alarmNotification);
+		if (indexOfExistingAlarm == -1) {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
 			systemAlarmFacade.cancelAlarm(alarmNotification.getAlarmInfo().getIdentifier(), 0);
 		} else {
-			cancelSavedAlarm(alarmNotifications.get(indexOfExistingRepeatingAlarm), pushKeyResolver);
+			cancelSavedAlarm(alarmNotifications.get(indexOfExistingAlarm), pushKeyResolver);
 		}
 	}
 
