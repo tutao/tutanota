@@ -75,12 +75,10 @@
                 android:permission="android.permission.BIND_JOB_SERVICE"
                 android:process=":pushprocess" />
 
-        <receiver
-                android:name=".push.BootBroadcastReceiver"
-                android:directBootAware="true">
+        <receiver android:name=".push.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
