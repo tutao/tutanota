@@ -228,7 +228,6 @@ function cancelSubscription(dialog: Dialog) {
 					if (reason == null) {
 						return Dialog.error("unknownError_msg")
 					} else {
-						// TODO: translate
 						let detailMsg;
 						switch (reason) {
 							case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
@@ -252,7 +251,7 @@ function cancelSubscription(dialog: Dialog) {
 									const featureName = BookingItemFeatureByCode[feature]
 									detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
 								} else {
-									detailMsg = "unknownError_msg"
+									detailMsg = lang.get("unknownError_msg")
 								}
 								break
 						}

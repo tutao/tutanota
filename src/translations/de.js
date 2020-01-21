@@ -1072,6 +1072,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"sharingDeletionWarning_msg": "Alle Freigaben von allen Benutzern werden automatisch gelöscht, wenn Du die Freigeben-Funktion deaktivierst."
 	}
 }
