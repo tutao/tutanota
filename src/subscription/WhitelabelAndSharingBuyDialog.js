@@ -54,7 +54,7 @@ export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
  * @returns true if the execution was successfull. False if the action has been cancelled by user or the precondition has failed.
  */
 export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
-	return Dialog.confirm("sharingDeletionWarning_msg").then(ok => {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
 		if (ok) {
 			return showBuyDialog(BookingItemFeatureType.Sharing, "unknownError_msg", enable)
 		} else {
