@@ -16,11 +16,11 @@ import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getAvailableDomains} from "./AddUserDialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonType} from "../gui/base/ButtonN"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import {ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -37,9 +37,12 @@ class _EditAliasesForm {
 		this._expanded = stream(false)
 	}
 
+	oninit() {
+		this._getNbrOfAliases()
+	}
+
 	view(vnode: Vnode<LifecycleAttrs<EditAliasesFormAttrs>>) {
 		const a = vnode.attrs
-		this._getNbrOfAliases()
 
 		const addAliasButtonAttrs: ButtonAttrs = {
 			label: "addEmailAlias_label",
@@ -132,6 +135,7 @@ class _EditAliasesForm {
 					showProgressDialog("pleaseWait_msg", worker.addMailAlias(groupInfo.group, alias))
 						.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg"))
 						.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg"))
+						.finally(() => this._getNbrOfAliases())
 					dialog.close()
 				}
 
@@ -178,6 +182,7 @@ class _EditAliasesForm {
 				              .catch(LimitReachedError, e => {
 					              Dialog.error("adminMaxNbrOfAliasesReached_msg")
 				              })
+				              .finally(() => this._getNbrOfAliases())
 				showProgressDialog("pleaseWait_msg", p)
 			}
 		})
