@@ -149,7 +149,7 @@ export class ElectronUpdater {
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
-			    	app.forceQuit = true
+				    app.emit('enable-force-quit')
 				    autoUpdater.quitAndInstall(false, true)
 			    }
 		    })
