@@ -49,6 +49,8 @@ export class ElectronUpdater {
 			this._notifyAndInstall(info)
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
+		}).on('before-quit-for-update', () => {
+			console.log("before-quit-update")
 		}).on('error', e => {
 			this._stopPolling()
 			this._errorCount += 1
