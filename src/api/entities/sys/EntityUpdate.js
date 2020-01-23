@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "54"
+	"version": "55"
 }
 
 export function createEntityUpdate(values?: $Shape<$Exact<EntityUpdate>>): EntityUpdate {

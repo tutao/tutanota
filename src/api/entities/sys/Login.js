@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "54"
+	"version": "55"
 }
 
 export function createLogin(values?: $Shape<$Exact<Login>>): Login {

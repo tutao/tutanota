@@ -1498,6 +1498,15 @@ type SseConnectData = {
 	userIds: GeneratedIdWrapper[];
 }
 
+type NotificationInfo = {
+	_type: TypeRef<NotificationInfo>;
+	_id: Id;
+	counter: NumberString;
+	mailAddress: string;
+	userId: Id;
+
+}
+
 type RecoverCode = {
 	_type: TypeRef<RecoverCode>;
 	_format: NumberString;
@@ -1788,4 +1797,20 @@ type Invoice = {
 	items: InvoiceItem[];
 	bookings: IdTuple[];
 	customer: Id;
+}
+
+type MissedNotification = {
+	_type: TypeRef<MissedNotification>;
+	_errors: Object;
+	_format: NumberString;
+	_id: Id;
+	_ownerEncSessionKey: ?Uint8Array;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	changeTime: Date;
+	confirmationId: Id;
+	lastProcessNotification: ?Id;
+
+	alarmNotifications: AlarmNotification[];
+	notificationInfos: NotificationInfo[];
 }
