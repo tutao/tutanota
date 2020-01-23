@@ -1,5 +1,6 @@
 // @flow
 import {autoUpdater} from 'electron-updater'
+import {app} from 'electron'
 import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
@@ -49,8 +50,6 @@ export class ElectronUpdater {
 			this._notifyAndInstall(info)
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
-		}).on('before-quit-for-update', () => {
-			console.log("before-quit-update")
 		}).on('error', e => {
 			this._stopPolling()
 			this._errorCount += 1
@@ -150,6 +149,7 @@ export class ElectronUpdater {
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
+			    	app.forceQuit = true
 				    autoUpdater.quitAndInstall(false, true)
 			    }
 		    })
