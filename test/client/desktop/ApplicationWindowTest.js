@@ -45,7 +45,10 @@ o.spec("ApplicationWindow Test", () => {
 						isDestroyed: () => {
 							return this.webContents.destroyed
 						},
-						send: () => {
+						send: (msg, val) => {
+							if(msg === 'set-zoom-factor'){
+								this.webContents.zoomFactor = val
+							}
 						},
 						on: (ev: string, cb: ()=>void) => {
 							this.webContents.callbacks[ev] = cb

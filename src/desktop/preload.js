@@ -59,11 +59,16 @@ function setupContextMenu() {
 	})
 }
 
+function setZoomFactor(ev, newFactor) {
+	webFrame.setZoomFactor(newFactor)
+}
+
 ipcRenderer
 	.on(`${remote.getCurrentWindow().id}`, (ev, msg) => {
 		window.tutao.nativeApp.handleMessageObject(msg)
 	})
 	.on('setup-context-menu', setupContextMenu)
+	.on('set-zoom-factor', setZoomFactor)
 
 // href URL reveal
 let linkToolTip

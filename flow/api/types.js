@@ -208,6 +208,7 @@ type JsRequestType = 'createMailEditor'
 type WebContentsMessage
 	= 'setup-context-menu'
 	| 'open-context-menu'
+    | 'set-zoom-factor'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>
