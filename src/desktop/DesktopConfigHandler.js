@@ -14,6 +14,7 @@ export type DesktopConfigKey
 	| 'lastBounds'
 	| 'pushEncSessionKeys'
 	| 'scheduledAlarms'
+	| 'lastProcessedNotificationId'
 
 export type BuildConfigKey
 	= "pollingInterval"

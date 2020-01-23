@@ -2,17 +2,17 @@
 
 import {app} from 'electron'
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {SseError} from "../../api/common/error/SseError"
-import {downcast, neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
+import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
 import {NotificationResult} from "../DesktopConstants"
-import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {decryptAndMapToInstance} from "../../api/worker/crypto/InstanceMapper"
+import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 
 export type SseInfo = {|
 	identifier: string,
@@ -126,7 +126,9 @@ export class DesktopSseClient {
 				"Content-Type": "application/json",
 				"Connection": "Keep-Alive",
 				"Keep-Alive": "header",
-				"Accept": "text/event-stream"
+				"Accept": "text/event-stream",
+				"v": MissedNotificationTypeModel.version,
+				"cv": app.getVersion(),
 			},
 			method: "GET"
 		}).on('response', res => {
@@ -182,54 +184,28 @@ export class DesktopSseClient {
 			this._reschedule()
 			return
 		}
-		// it's a PushMessage
-		let pm: PushMessage
-		try {
-			pm = PushMessage.fromJSON(data)
-		} catch (e) {
-			console.error("failed to parse push message from json:", e, "\n\noffending json:\n", data)
-			return
+
+		if (data === 'notification') {
+			this._handlePushMessage()
+			    .then(() => this._reschedule())
+			    .catch(e => {
+				    console.error("failed to handle push message:", e)
+				    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
+			    })
 		}
-		this._handlePushMessage(pm)
-		    .then(() => this._reschedule())
-		    .catch(e => {
-			    console.error("failed to handle push message:", e)
-			    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
-		    })
+
+
 	}
 
-	_handlePushMessage(pm: PushMessage, failedToConfirm: boolean = false): Promise<void> {
-
-		if (this._lastProcessedChangeTime >= parseInt(pm.changeTime)) {
-			console.warn("already processed notification, ignoring: " + this._lastProcessedChangeTime)
-			return Promise.resolve()
-		}
-
-		let notificationInfos: Array<NotificationInfo>
-		let changeTime: string
-		let confirmationId: string
-		let alarmNotifications: Array<AlarmNotification>
-
-		return Promise
-			.resolve()
-			.then(() => (failedToConfirm || pm.hasAlarmNotifications)
-				? this._downloadMissedNotification()
-				: downcast(Promise.resolve(pm)))
-			.then(mn => {
-				notificationInfos = mn.notificationInfos
-				changeTime = mn.changeTime
-				confirmationId = mn.confirmationId
-				alarmNotifications = mn.alarmNotifications || []
-			})
-			.then(() => console.log("scheduling confirmation for", confirmationId))
-			.then(() => this._sendConfirmation(confirmationId, changeTime))
-			.then(() => {
-				this._lastProcessedChangeTime = parseInt(changeTime)
-				notificationInfos.forEach(ni => this._handleNotificationInfo(pm.title, ni))
-				alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
-			})
-			.catch(PreconditionFailedError, () => this._handlePushMessage(pm, true))
-			.catch(FileNotFoundError, e => console.log('404:', e))
+	_handlePushMessage(): Promise<void> {
+		return this._downloadMissedNotification()
+		           .then(mn => {
+			           this._conf.setDesktopConfig("lastProcessedNotificationId", mn.lastProcessNotification)
+			           // TODO translate
+			           mn.notificationInfos.forEach(ni => this._handleNotificationInfo("New message received", ni))
+			           mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
+		           })
+		           .catch(FileNotFoundError, e => console.log('404:', e))
 	}
 
 	_handleNotificationInfo(title: string, ni: NotificationInfo): void {
@@ -240,44 +216,16 @@ export class DesktopSseClient {
 		}
 		this._notifier.submitGroupedNotification(
 			title,
-			`${ni.address} (${ni.counter})`,
+			`${ni.mailAddress} (${ni.counter})`,
 			ni.userId,
 			res => {
 				if (res === NotificationResult.Click) {
-					this._wm.openMailBox({userId: ni.userId, mailAddress: ni.address})
+					this._wm.openMailBox({userId: ni.userId, mailAddress: ni.mailAddress})
 				}
 			}
 		)
 	}
 
-	_sendConfirmation(confirmationId: string, changeTime: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (!this._connectedSseInfo) {
-				reject("no connectedSseInfo, can't send confirmation")
-				return
-			}
-			const confirmUrl = this._makeAlarmNotificationUrl()
-			this._net.request(confirmUrl, {
-				method: "DELETE",
-				headers: {confirmationId, changeTime}
-			}).on('response', res => {
-				console.log('push message confirmation response code:', res.statusCode)
-				if (res.statusCode === 200) {
-					resolve()
-				} else if (res.statusCode === 412) {
-					reject(new PreconditionFailedError(""))
-				} else if (res.statusCode === 404) {
-					console.log("tried to confirm outdated or nonexistent missedNotification")
-					resolve()
-				} else {
-					reject(`failure response for confirmation for Id ${confirmationId}: ${res.statusCode}`)
-				}
-			}).on('error', e => {
-				console.error("failed to send push message confirmation:", e.message)
-				reject(e)
-			}).end()
-		})
-	}
 
 	_downloadMissedNotification(): Promise<MissedNotification> {
 		return new Promise((resolve, reject) => {
@@ -291,12 +239,21 @@ export class DesktopSseClient {
 
 			console.log("downloading missed notification")
 			const url = this._makeAlarmNotificationUrl()
+			const headers: {[string]: string} = {
+				userIds: neverNull(this._connectedSseInfo).userIds.join(","),
+				v: MissedNotificationTypeModel.version,
+				cv: app.getVersion(),
+			}
+			if (this._conf.getDesktopConfig("lastProcessedNotificationId")) {
+				headers["lastProcessedNotification"] = this._conf.getDesktopConfig("lastProcessedNotificationId")
+			}
 			const req = this._net.request(url, {
-				method: "GET",
-				headers: {"userIds": neverNull(this._connectedSseInfo).userIds.join(",")},
-				// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-				timeout: 20000
-			}).on('response', res => {
+					method: "GET",
+					headers,
+					// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+					timeout: 20000
+				}
+			).on('response', res => {
 				if (res.statusCode === 404) {
 					fail(req, res, new FileNotFoundError("no missed notification"))
 					return
@@ -312,8 +269,8 @@ export class DesktopSseClient {
 					resData += chunk
 				}).on('end', () => {
 					try {
-						const mn = MissedNotification.fromJSON(resData)
-						resolve(mn)
+						const missedNotification = decryptAndMapToInstance(MissedNotificationTypeModel, JSON.parse(resData))
+						resolve(missedNotification)
 					} catch (e) {
 						fail(req, res, e)
 					}
@@ -326,9 +283,7 @@ export class DesktopSseClient {
 
 	_makeAlarmNotificationUrl(): string {
 		const customId = uint8ArrayToBase64(stringToUtf8Uint8Array(neverNull(this._connectedSseInfo).identifier))
-		return neverNull(this._connectedSseInfo).sseOrigin
-			+ "/rest/sys/missednotification/A/"
-			+ base64ToBase64Url(customId)
+		return neverNull(this._connectedSseInfo).sseOrigin + "/rest/sys/missednotification/" + base64ToBase64Url(customId)
 	}
 
 	_cleanup() {
@@ -351,63 +306,6 @@ export class DesktopSseClient {
 		this._nextReconnect = setTimeout(() => this.connect(), delay * 1000)
 	}
 }
-
-export class PushMessage {
-	title: string;
-	notificationInfos: Array<NotificationInfo>;
-	confirmationId: string;
-	hasAlarmNotifications: boolean;
-	changeTime: string;
-
-
-	constructor(title: string, confirmationId: string, notificationInfos: Array<NotificationInfo>, hasAlarmNotifications: boolean, changeTime: string) {
-		this.title = title;
-		this.confirmationId = confirmationId;
-		this.notificationInfos = notificationInfos;
-		this.hasAlarmNotifications = hasAlarmNotifications;
-		this.changeTime = changeTime
-	}
-
-	static fromJSON(json: string): PushMessage {
-		let obj
-		try {
-			obj = JSON.parse(json)
-		} catch (e) {
-			throw new SseError(`push message type error: ${e.message}`)
-		}
-		return new PushMessage(obj.title, obj.confirmationId, obj.notificationInfos, obj.hasAlarmNotifications, obj.changeTime)
-	}
-}
-
-export class MissedNotification {
-	alarmNotifications: Array<AlarmNotification>;
-	notificationInfos: Array<NotificationInfo>;
-	changeTime: string;
-	confirmationId: string;
-
-	constructor(alarmNotifications: Array<AlarmNotification>, notificationInfos: Array<NotificationInfo>, confirmationId: string, changeTime: string) {
-		this.alarmNotifications = alarmNotifications;
-		this.notificationInfos = notificationInfos;
-		this.confirmationId = confirmationId;
-		this.changeTime = changeTime
-	}
-
-	static fromJSON(json: string): MissedNotification {
-		let obj
-		try {
-			obj = JSON.parse(json)
-		} catch (e) {
-			throw new SseError(`missed notification type error: ${e.message}`)
-		}
-		return new MissedNotification(obj.alarmNotifications, obj.notificationInfos, obj.confirmationId, obj.changeTime)
-	}
-}
-
-export type NotificationInfo = {|
-	address: string,
-	counter: number,
-	userId: string
-|}
 
 function requestJson(sseInfo: SseInfo): string {
 	return encodeURIComponent(JSON.stringify({
