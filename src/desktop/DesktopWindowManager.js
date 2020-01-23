@@ -19,10 +19,10 @@ export type WindowBounds = {|
 |}
 
 const windows: ApplicationWindow[] = []
-let forceQuit = false
+app.forceQuit = false
 app.once('before-quit', () => {
 	console.log("before-quit")
-	forceQuit = true
+	app.forceQuit = true
 })
 
 export class WindowManager {
@@ -53,7 +53,7 @@ export class WindowManager {
 		windows.unshift(w)
 		w.on('close', ev => {
 			// we don't want to actually close windows where someone is logged in, just hide them
-			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
+			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !app.forceQuit) {
 				ev.preventDefault()
 				w.hide()
 			}
