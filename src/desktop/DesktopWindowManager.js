@@ -21,6 +21,7 @@ export type WindowBounds = {|
 const windows: ApplicationWindow[] = []
 let forceQuit = false
 app.once('before-quit', () => {
+	console.log("before-quit")
 	forceQuit = true
 })
 
