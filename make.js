@@ -75,7 +75,8 @@ function prepareAssets() {
 		              }
 
 		              return Promise.all([
-			              createHtml(env.create(SystemConfig.devConfig(true), (options.stage === 'local') ? null : restUrl, version, "Browser")),
+			              createHtml(env.create(SystemConfig.devConfig(true), (options.stage
+				              === 'local') ? null : restUrl, version, "Browser")),
 			              createHtml(env.create(SystemConfig.devConfig(true), restUrl, version, "App")),
 			              createHtml(env.create(SystemConfig.devConfig(false), restUrl, version, "Desktop"))
 		              ])
@@ -85,9 +86,10 @@ function prepareAssets() {
 function startDesktop() {
 	if (options.desktop) {
 		console.log("Trying to start desktop client...")
+		const version = require('./package.json').version
 		const packageJSON = require('./buildSrc/electron-package-json-template.js')(
-			"",
-			"0.0.1",
+			"-debug",
+			version,
 			"http://localhost:9000",
 			path.join(__dirname, "/resources/desktop-icons/logo-solo-red.png"),
 			false
