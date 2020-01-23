@@ -26,7 +26,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	const electron = {
 		app: {
 			getPath: (path: string) => `/mock-${path}/`,
-			getVersion: (): string => "3.45.0"
+			getVersion: (): string => "3.45.0",
+			emit: ()=>{}
 		}
 	}
 
@@ -133,6 +134,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+		const electronMock = n.mock('electron', electron).set()
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
@@ -177,6 +179,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				icon: 'this is an icon'
 			})
 
+			o(electronMock.app.emit.callCount).equals(1)
+			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
 			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
 			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
 			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
@@ -292,11 +296,13 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				icon: 'this is an icon'
 			})
 
+			o(electronMock.app.emit.callCount).equals(1)
+			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
 			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
 			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
 			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)
 			done()
-		}, 190)
+		}, 250)
 	})
 
 	o("retry after autoUpdater reports an error", done => {
@@ -420,6 +426,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			publicKeyFromPem: (pem: string) => n.spyify(pem === "no" ? rightKey : wrongKey)
 		}).set()
 		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+		const electronMock = n.mock('electron', electron).set()
 
 		//mock our modules
 		n.mock('./DesktopTray', desktopTray).set()
@@ -465,6 +472,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				icon: 'this is an icon'
 			})
 
+
+			o(electronMock.app.emit.callCount).equals(1)
+			o(electronMock.app.emit.args[0]).equals('enable-force-quit')
 			o(autoUpdaterMock.quitAndInstall.callCount).equals(1)
 			o(autoUpdaterMock.quitAndInstall.args[0]).equals(false)
 			o(autoUpdaterMock.quitAndInstall.args[1]).equals(true)

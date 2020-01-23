@@ -202,8 +202,9 @@ declare module 'electron' {
 	}
 
 	declare export class App {
-		on(AppEvent, (Event, ...Array<any>) => void): App,
-		once(AppEvent, (Event, ...Array<any>) => void): App,
+		on(AppEvent, (Event, ...Array<any>) => any): App,
+		once(AppEvent, (Event, ...Array<any>) => any): App,
+		emit(AppEvent) : App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
@@ -598,6 +599,7 @@ export type AppEvent
 	| 'gpu-process-crashed'
 	| 'accessibility-support-changed'
 	| 'session-created'
+	| 'enable-force-quit'
 
 
 // https://github.com/electron/electron/blob/master/docs/api/browser-window.md#instance-events
