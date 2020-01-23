@@ -45,7 +45,7 @@ export class ApplicationWindow {
 	on = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.on(m, f)
 	once = (m: BrowserWindowEvent, f: (Event)=>void) => this._browserWindow.once(m, f)
 	getTitle = () => this._browserWindow.webContents.getTitle()
-	setZoomFactor = (f: number) => this._browserWindow.webContents.zoomFactor = f
+	setZoomFactor = (f: number) => this.sendMessageToWebContents('set-zoom-factor', f)
 	isFullScreen = () => this._browserWindow.isFullScreen()
 	isMinimized = () => this._browserWindow.isMinimized()
 	minimize = () => this._browserWindow.minimize()
@@ -274,7 +274,7 @@ export class ApplicationWindow {
 
 	setBounds(bounds: WindowBounds) {
 		this._browserWindow.setFullScreen(bounds.fullscreen)
-		this._browserWindow.webContents.zoomFactor = bounds.scale
+		this.setZoomFactor(bounds.scale)
 		if (bounds.fullscreen) return
 		this._browserWindow.setBounds(bounds.rect)
 		if (process.platform !== 'linux') return
