@@ -59,8 +59,8 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"lastProcessNotification": {
-			"name": "lastProcessNotification",
+		"lastProcessedNotification": {
+			"name": "lastProcessedNotification",
 			"id": 1722,
 			"since": 55,
 			"type": "GeneratedId",

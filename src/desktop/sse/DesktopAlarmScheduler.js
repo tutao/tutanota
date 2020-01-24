@@ -89,6 +89,13 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
+	unscheduleAllAlarms(): Promise<void> {
+		this._alarmStorage.getScheduledAlarms().forEach(alarm => {
+			this._cancelAlarms(alarm)
+		})
+		return this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
+	}
+
 	_cancelAlarms(an: AlarmNotification): void {
 		if (this._scheduledNotifications[an.alarmInfo.alarmIdentifier]) {
 			this._scheduledNotifications[an.alarmInfo.alarmIdentifier].timeouts.forEach(to => {

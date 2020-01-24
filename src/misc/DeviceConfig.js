@@ -68,6 +68,11 @@ class DeviceConfig {
 		this._store()
 	}
 
+	setNoAlarmsScheduled() {
+		this._scheduledAlarmUsers = []
+		this._store()
+	}
+
 	getLanguage(): ?string {
 		return this._language
 	}

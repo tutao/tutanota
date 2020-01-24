@@ -4,30 +4,36 @@ import {promisify} from 'util'
 import {app, dialog} from 'electron'
 import fs from 'fs-extra'
 
-export type DesktopConfigKey
-	= 'any'
-	| 'heartbeatTimeoutInSeconds'
-	| 'defaultDownloadPath'
-	| 'enableAutoUpdate'
-	| 'pushIdentifier'
-	| 'runAsTrayApp'
-	| 'lastBounds'
-	| 'pushEncSessionKeys'
-	| 'scheduledAlarms'
-	| 'lastProcessedNotificationId'
+export const DesktopConfigKey = {
+	any: 'any',
+	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',
+	defaultDownloadPath: 'defaultDownloadPath',
+	enableAutoUpdate: 'enableAutoUpdate',
+	pushIdentifier: 'pushIdentifier',
+	runAsTrayApp: 'runAsTrayApp',
+	lastBounds: 'lastBounds',
+	pushEncSessionKeys: 'pushEncSessionKeys',
+	scheduledAlarms: 'scheduledAlarms',
+	lastProcessedNotificationId: 'lastProcessedNotificationId',
+	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
+	lastSSEConnectTime: 'lastSseConnectTime',
+}
+export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
 
-export type BuildConfigKey
-	= "pollingInterval"
-	| "checkUpdateSignature"
-	| "appUserModelId"
-	| "initialSseConnectTimeoutInSeconds"
-	| "maxSseConnectTimeoutInSeconds"
-	| "defaultDesktopConfig"
-	| "desktophtml"
-	| "preloadjs"
-	| "iconName"
-	| "fileManagerTimeout"
-	| "pubKeys"
+export const BuildConfigKey = {
+	pollingInterval: "pollingInterval",
+	checkUpdateSignature: "checkUpdateSignature",
+	appUserModelId: "appUserModelId",
+	initialSseConnectTimeoutInSeconds: "initialSseConnectTimeoutInSeconds",
+	maxSseConnectTimeoutInSeconds: "maxSseConnectTimeoutInSeconds",
+	defaultDesktopConfig: "defaultDesktopConfig",
+	desktophtml: "desktophtml",
+	preloadjs: "preloadjs",
+	iconName: "iconName",
+	fileManagerTimeout: "fileManagerTimeout",
+	pubKeys: "pubKeys",
+}
+export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>
 
 /**
  * manages build and user config
@@ -36,7 +42,7 @@ export class DesktopConfigHandler {
 	_buildConfig: any;
 	_desktopConfig: any; // user preferences as set for this installation
 	_desktopConfigPath: string;
-	_onValueSetListeners: {[DesktopConfigKey]: Array<(val: any)=>void>}
+	_onValueSetListeners: {[DesktopConfigKeyEnum]: Array<(val: any)=>void>}
 
 	constructor() {
 		this._desktopConfigPath = path.join(app.getPath('userData'), 'conf.json')
@@ -71,13 +77,13 @@ export class DesktopConfigHandler {
 		}
 	}
 
-	get(key?: BuildConfigKey): any {
+	get(key?: BuildConfigKeyEnum): any {
 		return key
 			? this._buildConfig[key]
 			: this._buildConfig
 	}
 
-	getDesktopConfig(key?: DesktopConfigKey): any {
+	getDesktopConfig(key?: DesktopConfigKeyEnum): any {
 		return key && key !== 'any'
 			? this._desktopConfig[key]
 			: this._desktopConfig
@@ -89,7 +95,7 @@ export class DesktopConfigHandler {
 	 * @param value the new value
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
-	setDesktopConfig(key: DesktopConfigKey, value: any): Promise<void> {
+	setDesktopConfig(key: DesktopConfigKeyEnum, value: any): Promise<void> {
 		setImmediate(() => this._emit(key, value))
 		if (key !== 'any') {
 			this._desktopConfig[key] = value
@@ -105,7 +111,7 @@ export class DesktopConfigHandler {
 	 * @param cb a function that's called when the config changes. argument is the new value or the entire config object in case of the "any" event.
 	 * @returns {DesktopConfigHandler}
 	 */
-	on(key: DesktopConfigKey, cb: (val: any) => void): DesktopConfigHandler {
+	on(key: DesktopConfigKeyEnum, cb: (val: any) => void): DesktopConfigHandler {
 		if (!this._onValueSetListeners[key]) {
 			this._onValueSetListeners[key] = [cb]
 		} else {
@@ -114,7 +120,7 @@ export class DesktopConfigHandler {
 		return this
 	}
 
-	removeAllListeners(key?: DesktopConfigKey) {
+	removeAllListeners(key?: DesktopConfigKeyEnum) {
 		if (key) {
 			this._onValueSetListeners[key] = []
 		} else {
@@ -124,14 +130,14 @@ export class DesktopConfigHandler {
 		return this
 	}
 
-	removeListener(key: DesktopConfigKey, cb: (val: any)=>void) {
+	removeListener(key: DesktopConfigKeyEnum, cb: (val: any)=>void) {
 		if (!this._onValueSetListeners[key]) return this
 		this._onValueSetListeners[key].splice(this._onValueSetListeners[key].indexOf(cb), 1)
 		return this
 	}
 
 	// calls every callback for the given key, and every "any" callback
-	_emit(key: DesktopConfigKey, val: any) {
+	_emit(key: DesktopConfigKeyEnum, val: any) {
 		if (this._onValueSetListeners["any"]) {
 			this._onValueSetListeners["any"].forEach(cb => cb(this._desktopConfig))
 		}

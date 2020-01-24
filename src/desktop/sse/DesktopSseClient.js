@@ -6,13 +6,14 @@ import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
+import {DesktopConfigKey} from "../DesktopConfigHandler"
 import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import {decryptAndMapToInstance} from "../../api/worker/crypto/InstanceMapper"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
+import {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 
 export type SseInfo = {|
 	identifier: string,
@@ -24,14 +25,17 @@ export type SseInfo = {|
 let INITIAL_CONNECT_TIMEOUT: number
 let MAX_CONNECT_TIMEOUT: number
 
+const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
+
 export class DesktopSseClient {
 	_conf: DesktopConfigHandler
 	_wm: WindowManager
 	_notifier: DesktopNotifier
 	_alarmScheduler: DesktopAlarmScheduler;
 	_net: DesktopNetworkClient;
-	_crypto: DesktopCryptoFacade;
+	_alarmStorage: DesktopAlarmStorage
 
+	_crypto: DesktopCryptoFacade;
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
 	_readTimeoutInSeconds: number;
@@ -39,14 +43,19 @@ export class DesktopSseClient {
 	_nextReconnect: ?TimeoutID;
 	_tryToReconnect: boolean;
 	_lastProcessedChangeTime: number;
+	// We use this promise for queueing processing of notifications. There could be a smarter queue which clears all downloads older than
+	// the response.
+	_handlingPushMessage: Promise<*>;
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler, net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade) {
+	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
+	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage) {
 		this._conf = conf
 		this._wm = wm
 		this._notifier = notifier
 		this._alarmScheduler = alarmScheduler
 		this._net = net
 		this._crypto = desktopCrypto
+		this._alarmStorage = alarmStorage
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
@@ -60,10 +69,11 @@ export class DesktopSseClient {
 		this._tryToReconnect = false
 		this._lastProcessedChangeTime = 0
 		app.on('will-quit', () => {
-			this._cleanup()
+			this._disconnect()
 			clearTimeout(neverNull(this._nextReconnect))
 			this._tryToReconnect = false
 		})
+		this._handlingPushMessage = Promise.resolve()
 	}
 
 	start() {
@@ -95,11 +105,8 @@ export class DesktopSseClient {
 		           })
 	}
 
-	getPushIdentifier(): ?string {
-		const pushIdentifier = this._conf.getDesktopConfig('pushIdentifier')
-		return pushIdentifier
-			? pushIdentifier.identifier
-			: null
+	getPushIdentifier(): ?SseInfo {
+		return this._conf.getDesktopConfig(DesktopConfigKey.pushIdentifier)
 	}
 
 	connect() {
@@ -109,12 +116,16 @@ export class DesktopSseClient {
 			return
 		}
 		const sseInfo = this._connectedSseInfo
+		if (this.hasNotificationTTLExpired()) {
+			console.log("invalidating alarms on connect")
+			return this.resetStoredState()
+		}
 
 		// now actually try to connect. cleaning up any old
 		// connection because us getting here means we timed out or had an error
 		this._connectTimeoutInSeconds = Math.min(this._connectTimeoutInSeconds * 2, MAX_CONNECT_TIMEOUT)
 		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
-		this._cleanup()
+		this._disconnect()
 
 		const url = sseInfo.sseOrigin + "/sse?_body=" + requestJson(sseInfo)
 		console.log(
@@ -137,8 +148,13 @@ export class DesktopSseClient {
 				console.log('sse: got 403, deleting identifier')
 				this._connectedSseInfo = null
 				this._conf.setDesktopConfig('pushIdentifier', null)
-				this._cleanup()
+				this._disconnect()
+			} else if (this._conf.getDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime) == null) {
+				// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
+				// MISSED_NOTIFICATION_TTL has passed and notifications has expired.
+				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			}
+
 			res.setEncoding('utf8')
 			let resData = ""
 			res.on('data', d => {
@@ -149,7 +165,7 @@ export class DesktopSseClient {
 				lines.forEach(l => this._processSseData(l))
 			}).on('close', () => {
 				console.log('sse response closed')
-				this._cleanup()
+				this._disconnect()
 				this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 				this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			}).on('error', e => console.error('sse response error:', e))
@@ -197,15 +213,59 @@ export class DesktopSseClient {
 
 	}
 
+	/**
+	 * We remember the last time we connected or fetched missed notification and if since the last time we did the the TTL time has
+	 * expired, we certainly missed some updates.
+	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
+	 */
+	hasNotificationTTLExpired(): boolean {
+		const lastMissedNotificationCheckTime = this._conf.getDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime)
+		console.log({lastMissedNotificationCheckTime})
+		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
+	}
+
+	/**
+	 * Reset state when TTL has expired,
+	 */
+	resetStoredState(): Promise<void> {
+		console.log("Resetting stored state")
+		return Promise
+			.all([
+				this._alarmScheduler.unscheduleAllAlarms(),
+				this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId),
+				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime),
+				this._conf.setDesktopConfig(DesktopConfigKey.lastSSEConnectTime),
+			])
+			.then(() => this._alarmStorage.removePushIdentifierKeys())
+			.then(() => {
+				const connectedSseInfo = this._connectedSseInfo
+				if (connectedSseInfo) {
+					connectedSseInfo.userIds = []
+					return this._conf.setDesktopConfig(DesktopConfigKey.pushIdentifier, connectedSseInfo)
+				}
+			})
+			.then(() => {
+				this._disconnect()
+				this._connectedSseInfo = null
+			})
+	}
+
 	_handlePushMessage(): Promise<void> {
-		return this._downloadMissedNotification()
-		           .then(mn => {
-			           this._conf.setDesktopConfig("lastProcessedNotificationId", mn.lastProcessNotification)
-			           // TODO translate
-			           mn.notificationInfos.forEach(ni => this._handleNotificationInfo("New message received", ni))
-			           mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
-		           })
-		           .catch(FileNotFoundError, e => console.log('404:', e))
+		const process = () => this._downloadMissedNotification()
+		                          .then(mn => {
+			                          this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotification)
+			                          if (mn.notificationInfos && mn.notificationInfos.length === 0
+				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
+				                          console.log("MissedNotification is empty")
+			                          } else {
+				                          // TODO translate
+				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo("New message received", ni))
+				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
+			                          }
+		                          })
+		                          .catch(FileNotFoundError, e => console.log('404:', e))
+		this._handlingPushMessage = this._handlingPushMessage.then(process, process)
+		return this._handlingPushMessage
 	}
 
 	_handleNotificationInfo(title: string, ni: NotificationInfo): void {
@@ -227,7 +287,7 @@ export class DesktopSseClient {
 	}
 
 
-	_downloadMissedNotification(): Promise<MissedNotification> {
+	_downloadMissedNotification(): Promise<any> {
 		return new Promise((resolve, reject) => {
 			const fail = (req: ClientRequest, res: ?http$IncomingMessage, e: ?Error | ?string) => {
 				if (res) {
@@ -244,8 +304,8 @@ export class DesktopSseClient {
 				v: MissedNotificationTypeModel.version,
 				cv: app.getVersion(),
 			}
-			if (this._conf.getDesktopConfig("lastProcessedNotificationId")) {
-				headers["lastProcessedNotification"] = this._conf.getDesktopConfig("lastProcessedNotificationId")
+			if (this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)) {
+				headers["lastProcessedNotification"] = this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)
 			}
 			const req = this._net.request(url, {
 					method: "GET",
@@ -269,8 +329,7 @@ export class DesktopSseClient {
 					resData += chunk
 				}).on('end', () => {
 					try {
-						const missedNotification = decryptAndMapToInstance(MissedNotificationTypeModel, JSON.parse(resData))
-						resolve(missedNotification)
+						resolve(JSON.parse(resData))
 					} catch (e) {
 						fail(req, res, e)
 					}
@@ -286,7 +345,7 @@ export class DesktopSseClient {
 		return neverNull(this._connectedSseInfo).sseOrigin + "/rest/sys/missednotification/" + base64ToBase64Url(customId)
 	}
 
-	_cleanup() {
+	_disconnect() {
 		if (this._connection) {
 			this._connection.abort()
 			this._connection = null

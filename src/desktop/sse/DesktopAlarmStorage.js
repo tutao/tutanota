@@ -9,6 +9,7 @@ import {elementIdPart} from "../../api/common/EntityFunctions"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {DesktopConfigKey} from "../DesktopConfigHandler"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
@@ -72,6 +73,10 @@ export class DesktopAlarmStorage {
 			           })
 		}
 		return Promise.resolve()
+	}
+
+	removePushIdentifierKeys(): Promise<void> {
+		return this._conf.setDesktopConfig(DesktopConfigKey.pushEncSessionKeys, null)
 	}
 
 	/**

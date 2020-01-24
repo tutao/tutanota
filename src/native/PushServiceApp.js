@@ -1,7 +1,7 @@
 //@flow
 import {load, loadAll, setup, update} from "../api/main/Entity"
 import {_TypeModel as PushIdentifierModel, createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
-import {neverNull, noOp} from "../api/common/utils/Utils"
+import {neverNull} from "../api/common/utils/Utils"
 import type {PushServiceTypeEnum} from "../api/common/TutanotaConstants"
 import {PushServiceType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
@@ -81,10 +81,16 @@ class PushServiceApp {
 		}
 	}
 
-	_loadPushIdentifierFromNative() {
+	_loadPushIdentifierFromNative(): Promise<?string> {
 		return nativeApp.invokeNative(new Request("getPushIdentifier", [
 			logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
-		]))
+		])).then(({identifier, invalidateAlarms}) => {
+			if (invalidateAlarms) {
+				console.log("invalidating for whom we saved alarms")
+				deviceConfig.setNoAlarmsScheduled()
+			}
+			return identifier
+		})
 	}
 
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {

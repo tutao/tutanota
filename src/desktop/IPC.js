@@ -22,6 +22,7 @@ import type {Socketeer} from "./Socketeer"
 import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
+import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -38,6 +39,7 @@ export class IPC {
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
+	_alarmScheduler: DesktopAlarmScheduler;
 
 	constructor(
 		conf: DesktopConfigHandler,
@@ -47,7 +49,8 @@ export class IPC {
 		sock: Socketeer,
 		alarmStorage: DesktopAlarmStorage,
 		desktopCryptoFacade: DesktopCryptoFacade,
-		dl: DesktopDownloadManager
+		dl: DesktopDownloadManager,
+		alarmScheduler: DesktopAlarmScheduler
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -57,6 +60,7 @@ export class IPC {
 		this._alarmStorage = alarmStorage
 		this._crypto = desktopCryptoFacade
 		this._dl = dl
+		this._alarmScheduler = alarmScheduler
 
 		this._initialized = []
 		this._queue = {}
@@ -144,7 +148,7 @@ export class IPC {
 					mailAddress: args[1].toString()
 				}
 				// we know there's a logged in window
-				//first, send error report if there is one
+				// first, send error report if there is one
 				return err.sendErrorReport(windowId)
 				          .then(() => {
 					          const w = this._wm.get(windowId)
@@ -153,7 +157,15 @@ export class IPC {
 					          if (!w.isHidden()) {
 						          this._notifier.resolveGroupedNotification(uInfo.userId)
 					          }
-					          return this._sse.getPushIdentifier()
+					          const sseInfo = this._sse.getPushIdentifier()
+					          if (this._sse.hasNotificationTTLExpired() || sseInfo && sseInfo.userIds.length === 0) {
+						          console.log("invalidating alarms on getPushIdentifier")
+						          // UserIds list must be empty if we already invalidated user data but web part doesn't know about it yet
+						          return this._sse.resetStoredState().then(() => {
+							          return {pushIdentifier: sseInfo && sseInfo.identifier, invalidateAlarms: true}
+						          })
+					          }
+					          return {pushIdentifier: sseInfo && sseInfo.identifier, invalidateAlarms: false}
 				          })
 			case 'storePushIdentifierLocally':
 				return Promise.all([
@@ -168,7 +180,8 @@ export class IPC {
 					)
 				]).return()
 			case 'initPushNotifications':
-				// no need to react, we start push service with node
+				console.log("initPushNotifications")
+				this._sse.connect()
 				return Promise.resolve()
 			case 'closePushNotifications':
 				// only gets called in the app
