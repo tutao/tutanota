@@ -149,6 +149,9 @@ export class ElectronUpdater {
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
+				    //the window manager enables force-quit on the app-quit event,
+				    // which is not emitted for quitAndInstall
+				    // so we enable force-quit manually with a custom event
 				    app.emit('enable-force-quit')
 				    autoUpdater.quitAndInstall(false, true)
 			    }
