@@ -369,7 +369,7 @@ declare module 'electron' {
 		unmaximize(): void;
 		isMaximized(): boolean;
 		loadFile(string): void;
-		loadURL(string): void;
+		loadURL(string): Promise<void>;
 		minimize(): void;
 		isMinimized(): boolean;
 		isFocused(): boolean;

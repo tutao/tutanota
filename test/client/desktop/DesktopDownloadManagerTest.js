@@ -21,7 +21,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 			'../TutanotaConstants',
 			'./utils/Encoding',
 			'../error/CryptoError',
-			'./TutanotaError'
+			'./TutanotaError',
+			'../api/common/error/FileOpenError'
 		]
 	})
 
