@@ -101,7 +101,7 @@ window.addEventListener('mouseout', (e) => {
 // needed to help the MacOs client to distinguish between Cmd+Arrow to navigate the history
 // and Cmd+Arrow to navigate a text editor
 window.addEventListener('keydown', e => {
-	if (!e.metaKey || e.key === 'Meta' || !window.tutao.client.isMacOS) return
+	if (!e.metaKey || e.key === 'Meta' || !window.tutao || !window.tutao.client || !window.tutao.client.isMacOS) return
 	// prevent history nav if the active element is an input / squire editor
 	if (e.target && (e.target.tagName === "INPUT" || e.target.contentEditable === 'true')) {
 		e.stopPropagation()

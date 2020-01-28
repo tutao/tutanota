@@ -132,9 +132,10 @@ export class ApplicationWindow {
 		    .on('context-menu', (e, params) => {
 			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
-		    .on('did-fail-load', (e, errorCode, errorDesc) => {
+		    .on('did-fail-load', (evt, errorCode, errorDesc) => {
+			    console.log("failed to load resource: ", errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
-				    console.log("ENOENT error, redirecting to start page...")
+				    console.log("redirecting to start page...")
 				    this._browserWindow.loadURL(this._startFile + "?noAutoLogin=true")
 				        .then(() => {
 					        console.log("...redirected")
