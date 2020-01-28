@@ -95,6 +95,7 @@ o.spec("ApplicationWindow Test", () => {
 
 				},
 				loadURL: function () {
+					return Promise.resolve()
 				},
 				close: function () {
 				},
@@ -257,6 +258,7 @@ o.spec("ApplicationWindow Test", () => {
 			'will-attach-webview',
 			'did-start-navigation',
 			'context-menu',
+			'did-fail-load',
 			'crashed',
 			'dom-ready'
 		])
@@ -267,6 +269,23 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance2.loadURL.callCount).equals(1)
 		o(bwInstance2.loadURL.args[0]).equals('desktophtml?noAutoLogin=true')
 		o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
+	})
+
+	o("redirect to start page after failing to load a page due to 404", () => {
+		const {wmMock, electronMock} = standardMocks()
+
+		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
+		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+
+		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+
+		w._browserWindow.webContents.callbacks['did-fail-load']({}, -6, 'ERR_FILE_NOT_FOUND')
+
+		o(bwInstance.loadURL.callCount).equals(2)
+		o(bwInstance.loadURL.args[0]).equals('desktophtml?noAutoLogin=true')
+
+		w._browserWindow.webContents.callbacks['did-fail-load']({}, -6, 'ERR_SOME_OTHER_ONE')
+		o(bwInstance.loadURL.callCount).equals(2)
 	})
 
 	o("shortcut creation, linux", () => {

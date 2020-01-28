@@ -106,6 +106,10 @@ o.spec("IPC tests", () => {
 		storePushIdentifierSessionKey: () => {}
 	}
 
+	const utils = {
+		noOp: () => {}
+	}
+
 	const standardMocks = () => {
 		windowMock = n.mock("__window", {
 			id: 42,
@@ -139,7 +143,8 @@ o.spec("IPC tests", () => {
 			workerProtocolMock: n.mock("../api/common/WorkerProtocol", workerProtocol).set(),
 			alarmStorageMock: n.mock("__alarmStorage", alarmStorage).set(),
 			cryptoMock: n.mock("./DesktopCryptoFacade", crypto).set(),
-			dlMock: n.mock("__dl", dl).set()
+			dlMock: n.mock("__dl", dl).set(),
+			utilsMock: n.mock("../api/common/utils/Utils", utils).set()
 		}
 	}
 
