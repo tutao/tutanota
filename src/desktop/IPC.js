@@ -8,6 +8,7 @@ import {noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
+import {DesktopConfigKey} from "./DesktopConfigHandler"
 import {
 	disableAutoLaunch,
 	enableAutoLaunch,
@@ -23,6 +24,7 @@ import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
+import type {SseInfo} from "./sse/DesktopSseClient"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -261,6 +263,13 @@ export class IPC {
 				    })
 			}
 		})
+
+		this._conf.on(DesktopConfigKey.pushIdentifier, (value: ?SseInfo) => {
+			if (value && value.userIds.length === 0) {
+				console.log("invalidating alarms for window", id)
+				this.sendRequest(id, "invalidateAlarms", [])
+			}
+		}, true)
 	}
 
 	removeWindow(id: number) {

@@ -108,13 +108,17 @@ export class DesktopConfigHandler {
 	 * listen to changes in the config
 	 * @param key the value you want to listen for. a key of "any" will be called with the complete config for any changes to the config.
 	 * @param cb a function that's called when the config changes. argument is the new value or the entire config object in case of the "any" event.
+	 * @param sendInitial {boolean} whether cb should be notified of current value right away. Default false.
 	 * @returns {DesktopConfigHandler}
 	 */
-	on(key: DesktopConfigKeyEnum, cb: (val: any) => void): DesktopConfigHandler {
+	on(key: DesktopConfigKeyEnum, cb: (val: any) => void, sendInitial: boolean = false): DesktopConfigHandler {
 		if (!this._onValueSetListeners[key]) {
 			this._onValueSetListeners[key] = [cb]
 		} else {
 			this._onValueSetListeners[key].push(cb)
+		}
+		if (sendInitial) {
+			cb(this.getDesktopConfig(key))
 		}
 		return this
 	}
