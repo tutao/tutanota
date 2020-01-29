@@ -232,9 +232,8 @@ export class DesktopSseClient {
 		return Promise
 			.all([
 				this._alarmScheduler.unscheduleAllAlarms(),
-				this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId),
-				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime),
-				this._conf.setDesktopConfig(DesktopConfigKey.lastSSEConnectTime),
+				this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, null),
+				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, null),
 			])
 			.then(() => this._alarmStorage.removePushIdentifierKeys())
 			.then(() => {
@@ -253,7 +252,8 @@ export class DesktopSseClient {
 	_handlePushMessage(): Promise<void> {
 		const process = () => this._downloadMissedNotification()
 		                          .then(mn => {
-			                          this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotification)
+			                          this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotificationId)
+			                          this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			                          if (mn.notificationInfos && mn.notificationInfos.length === 0
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
 				                          console.log("MissedNotification is empty")
@@ -305,7 +305,7 @@ export class DesktopSseClient {
 				cv: app.getVersion(),
 			}
 			if (this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)) {
-				headers["lastProcessedNotification"] = this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)
+				headers["lastProcessedNotificationId"] = this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)
 			}
 			const req = this._net.request(url, {
 					method: "GET",
