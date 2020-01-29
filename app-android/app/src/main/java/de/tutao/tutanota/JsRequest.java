@@ -8,7 +8,9 @@ public enum JsRequest {
 	showAlertDialog("showAlertDialog"),
 	openMailbox("openMailbox"),
 	openCalendar("openCalendar"),
-	visibilityChange("visibilityChange");
+	visibilityChange("visibilityChange"),
+	invalidateAlarms("invalidateAlarms");
+
 
 	private final String name;
 

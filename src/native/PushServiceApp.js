@@ -81,16 +81,20 @@ class PushServiceApp {
 		}
 	}
 
+	invalidateAlarms(): Promise<void> {
+		console.log("invalidating alarms")
+		deviceConfig.setNoAlarmsScheduled()
+		if (logins.isUserLoggedIn()) {
+			return this.register()
+		} else {
+			return Promise.resolve()
+		}
+	}
+
 	_loadPushIdentifierFromNative(): Promise<?string> {
 		return nativeApp.invokeNative(new Request("getPushIdentifier", [
 			logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress
-		])).then(({identifier, invalidateAlarms}) => {
-			if (invalidateAlarms) {
-				console.log("invalidating for whom we saved alarms")
-				deviceConfig.setNoAlarmsScheduled()
-			}
-			return identifier
-		})
+		]))
 	}
 
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {

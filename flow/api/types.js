@@ -204,6 +204,7 @@ type JsRequestType = 'createMailEditor'
 	| 'reportError'
 	| 'openCalendar'
 	| 'visibilityChange'
+	| 'invalidateAlarms'
 
 type WebContentsMessage
 	= 'setup-context-menu'

@@ -74,7 +74,7 @@ public class AlarmNotificationsManagerTest {
 		alarms.add(alarmNotification);
 		alarms.add(repeatingAlarmNotification);
 		alarms.add(anotherUserAlarm);
-		when(sseStorage.readSavedAlarmNotifications()).thenReturn(alarms);
+		when(sseStorage.readAlarmNotifications()).thenReturn(alarms);
 		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
 
 		manager.unscheduleAlarms(userId);

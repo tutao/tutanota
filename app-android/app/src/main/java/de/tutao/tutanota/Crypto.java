@@ -3,7 +3,8 @@ package de.tutao.tutanota;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.VisibleForTesting;
+
+import androidx.annotation.VisibleForTesting;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;

@@ -1,43 +1,53 @@
 package de.tutao.tutanota.alarms;
 
-import de.tutao.tutanota.*;
+import androidx.annotation.NonNull;
+import androidx.room.Embedded;
+import androidx.room.Entity;
+import androidx.room.TypeConverter;
+import androidx.room.TypeConverters;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
-public class AlarmNotification {
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.EncryptionUtils;
+import de.tutao.tutanota.IdTuple;
+import de.tutao.tutanota.OperationType;
 
+@Entity(primaryKeys = "identifier")
+@TypeConverters(AlarmNotification.OperationTypeConverter.class)
+public class AlarmNotification {
 	private OperationType operation;
 	private String summary;
 	private String eventStart;
 	private String eventEnd;
+	@Embedded
+	@NonNull
 	private AlarmInfo alarmInfo;
+	@Embedded
 	private RepeatRule repeatRule;
-	private List<NotificationSessionKey> notificationSessionKeys;
+	@Embedded(prefix = "key")
+	private NotificationSessionKey notificationSessionKey;
 	private String user;
 
-	private JSONObject originalJson;
-
-	public AlarmNotification(OperationType operation, String summaryEnc, String eventStart, String eventEnd,
+	public AlarmNotification(OperationType operation, String summary, String eventStart, String eventEnd,
 							 AlarmInfo alarmInfo,
 							 RepeatRule repeatRule,
-							 List<NotificationSessionKey> notificationSessionKeys,
-							 String user,
-							 JSONObject originalJson) {
+							 NotificationSessionKey notificationSessionKey,
+							 String user) {
 		this.operation = operation;
-		this.summary = summaryEnc;
+		this.summary = summary;
 		this.eventStart = eventStart;
 		this.eventEnd = eventEnd;
 		this.alarmInfo = alarmInfo;
 		this.repeatRule = repeatRule;
-		this.notificationSessionKeys = notificationSessionKeys;
+		this.notificationSessionKey = notificationSessionKey;
 		this.user = user;
-		this.originalJson = originalJson;
 	}
 
 	public static AlarmNotification fromJson(JSONObject jsonObject) throws JSONException {
@@ -53,34 +63,27 @@ public class AlarmNotification {
 		}
 		AlarmInfo alarmInfo = AlarmInfo.fromJson(jsonObject.getJSONObject("alarmInfo"));
 		JSONArray notificationSessionKeysJSON = jsonObject.getJSONArray("notificationSessionKeys");
-		List<NotificationSessionKey> notificationSessionKeys = new ArrayList<>();
-		for (int i = 0; i < notificationSessionKeysJSON.length(); i++) {
-			notificationSessionKeys.add(NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(i)));
-		}
+		NotificationSessionKey notificationSessionKey = NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(0));
 		String user = jsonObject.getString("user");
 		return new AlarmNotification(operationType, summaryEnc, eventStartEnc, eventEndEnc, alarmInfo,
-				repeatRule, notificationSessionKeys, user, jsonObject);
-	}
-
-	public JSONObject toJSON() {
-		return originalJson;
+				repeatRule, notificationSessionKey, user);
 	}
 
 	public OperationType getOperation() {
 		return operation;
 	}
 
-	public Date getEventStart(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public Date getEventStartDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		return EncryptionUtils.decryptDate(this.eventStart, crypto, sessionKey);
 
 	}
 
-	public Date getEventEnd(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public Date getEventEndDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		return EncryptionUtils.decryptDate(this.eventEnd, crypto, sessionKey);
 
 	}
 
-	public String getSummary(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public String getSummaryDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		return EncryptionUtils.decryptString(this.summary, crypto, sessionKey);
 	}
 
@@ -92,8 +95,20 @@ public class AlarmNotification {
 		return alarmInfo;
 	}
 
-	public List<NotificationSessionKey> getNotificationSessionKeys() {
-		return notificationSessionKeys;
+	public String getSummary() {
+		return summary;
+	}
+
+	public String getEventStart() {
+		return eventStart;
+	}
+
+	public String getEventEnd() {
+		return eventEnd;
+	}
+
+	public NotificationSessionKey getNotificationSessionKey() {
+		return notificationSessionKey;
 	}
 
 	public String getUser() {
@@ -116,6 +131,7 @@ public class AlarmNotification {
 	}
 
 	public static class NotificationSessionKey {
+		@Embedded
 		private final IdTuple pushIdentifier;
 		private final String pushIdentifierSessionEncSessionKey;
 
@@ -140,6 +156,18 @@ public class AlarmNotification {
 
 		public String getPushIdentifierSessionEncSessionKey() {
 			return pushIdentifierSessionEncSessionKey;
+		}
+	}
+
+	public static class OperationTypeConverter {
+		@TypeConverter
+		public OperationType fromNumber(int number) {
+			return OperationType.values()[number];
+		}
+
+		@TypeConverter
+		public int numberToOperationType(OperationType operationType) {
+			return operationType.ordinal();
 		}
 	}
 }

@@ -5,16 +5,33 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import javax.crypto.*;
-import javax.security.auth.x500.X500Principal;
+import androidx.annotation.RequiresApi;
+
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.UnrecoverableEntryException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.security.auth.x500.X500Principal;
 
 
 public class AndroidKeyStoreFacade {
@@ -62,24 +79,24 @@ public class AndroidKeyStoreFacade {
 	}
 
 
-	public String encryptKey(byte[] sessionKey) throws KeyStoreException, CryptoError {
+	public byte[] encryptKey(byte[] sessionKey) throws KeyStoreException, CryptoError {
 		initialize();
 
 		// If we started using asymmetric encryption on the previous Android version, we keep using uit
 		if (keyStore.containsAlias(ASYMMETRIC_KEY_ALIAS)) {
 			PublicKey publicKey = keyStore.getCertificate(ASYMMETRIC_KEY_ALIAS).getPublicKey();
 			try {
-				return Utils.bytesToBase64(this.createRSACipher(publicKey, Cipher.ENCRYPT_MODE).doFinal(sessionKey));
+				return this.createRSACipher(publicKey, Cipher.ENCRYPT_MODE).doFinal(sessionKey);
 			} catch (BadPaddingException | IllegalBlockSizeException e) {
 				throw new CryptoError(e);
 			}
 		} else {
 			Key key = getSymmetricKey();
-			return Utils.bytesToBase64(crypto.encryptKey(key, sessionKey));
+			return crypto.encryptKey(key, sessionKey);
 		}
 	}
 
-	public byte[] decryptKey(String encSessionKey) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+	public byte[] decryptKey(byte[] encSessionKey) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
 		initialize();
 
 		// If we started using asymmetric encryption on the previous Android version, we keep using uit
@@ -87,8 +104,7 @@ public class AndroidKeyStoreFacade {
 			PrivateKey privateKey;
 			try {
 				privateKey = (PrivateKey) keyStore.getKey(ASYMMETRIC_KEY_ALIAS, null);
-				byte[] encSessionKeyRaw = Utils.base64ToBytes(encSessionKey);
-				return this.createRSACipher(privateKey, Cipher.DECRYPT_MODE).doFinal(encSessionKeyRaw);
+				return this.createRSACipher(privateKey, Cipher.DECRYPT_MODE).doFinal(encSessionKey);
 			} catch (NoSuchAlgorithmException e) {
 				throw new RuntimeException(e);
 			} catch (BadPaddingException | IllegalBlockSizeException e) {
@@ -96,7 +112,7 @@ public class AndroidKeyStoreFacade {
 			}
 		} else {
 			Key key = getSymmetricKey();
-			return crypto.decryptKey(key, Utils.base64ToBytes(encSessionKey));
+			return crypto.decryptKey(key, encSessionKey);
 		}
 	}
 

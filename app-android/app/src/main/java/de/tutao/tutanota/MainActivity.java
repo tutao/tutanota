@@ -2,15 +2,16 @@ package de.tutao.tutanota;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.MailTo;
@@ -21,11 +22,6 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -35,6 +31,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.ComponentActivity;
+import androidx.core.content.ContextCompat;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -52,14 +55,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import de.tutao.tutanota.data.AppDatabase;
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ComponentActivity {
 
 	private static final String TAG = "MainActivity";
 	public static final String THEME_PREF = "theme";
+	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
 	private static Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
 	private static int requestId = 0;
 	private static final String ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations";
@@ -70,7 +75,8 @@ public class MainActivity extends Activity {
 	public static final String IS_SUMMARY_EXTRA = "isSummary";
 
 	private WebView webView;
-	public Native nativeImpl = new Native(this);
+	public SseStorage sseStorage;
+	public Native nativeImpl;
 	boolean firstLoaded = false;
 
 	@SuppressLint({"SetJavaScriptEnabled", "StaticFieldLeak"})
@@ -79,6 +85,13 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "App started");
 		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
 				.getString(THEME_PREF, "light"));
+
+		// TODO: remove
+//		deleteDatabase("tuta-db");
+
+		// TODO
+		sseStorage = new SseStorage(this, AppDatabase.getDatabase(this, /*allowMainThreadAccess*/true), new AndroidKeyStoreFacade(this));
+		nativeImpl = new Native(this, sseStorage);
 
 		super.onCreate(savedInstanceState);
 
@@ -106,7 +119,17 @@ public class MainActivity extends Activity {
 				handleIntent(getIntent());
 			}
 			firstLoaded = true;
+
+			webView.post(() -> { // use webView.post to switch to main thread again to be able to observe sseStorage
+				sseStorage.observiceUserInfo().observe(this, (userInfos) -> {
+					if (userInfos.isEmpty()) {
+						Log.d(TAG, "invalidateAlarms");
+						nativeImpl.sendRequest(JsRequest.invalidateAlarms, new Object[]{});
+					}
+				});
+			});
 		});
+
 		this.webView.setWebViewClient(new WebViewClient() {
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -168,6 +191,14 @@ public class MainActivity extends Activity {
 		} else {
 			startWebApp(queryParameters);
 		}
+
+		IntentFilter filter = new IntentFilter(INVALIDATE_SSE_ACTION);
+		this.registerReceiver(new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+
+			}
+		}, filter);
 	}
 
 	@Override
@@ -347,8 +378,7 @@ public class MainActivity extends Activity {
 	}
 
 	void setupPushNotifications() {
-		startService(PushNotificationService.startIntent(this,
-				new SseStorage(this).getSseInfo(), "MainActivity#setupPushNotifications"));
+		startService(PushNotificationService.startIntent(this, "MainActivity#setupPushNotifications"));
 
 		JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
 		jobScheduler.schedule(
@@ -502,6 +532,7 @@ public class MainActivity extends Activity {
 			goBack();
 		}
 	}
+
 
 	private void goBack() {
 		moveTaskToBack(false);

@@ -1,13 +1,15 @@
 package de.tutao.tutanota.alarms;
 
-import android.support.annotation.Nullable;
-import de.tutao.tutanota.Crypto;
-import de.tutao.tutanota.CryptoError;
-import de.tutao.tutanota.EncryptionUtils;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.TimeZone;
+
+import de.tutao.tutanota.Crypto;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.EncryptionUtils;
 
 public final class RepeatRule {
 	private final String frequency;
@@ -38,22 +40,22 @@ public final class RepeatRule {
 	}
 
 
-	public RepeatPeriod getFrequency(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public RepeatPeriod getFrequencyDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		long frequencyNumber = EncryptionUtils.decryptNumber(frequency, crypto, sessionKey);
 		return RepeatPeriod.get(frequencyNumber);
 	}
 
-	public int getInterval(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public int getIntervalDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		return (int) EncryptionUtils.decryptNumber(interval, crypto, sessionKey);
 	}
 
-	public TimeZone getTimeZone(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public TimeZone getTimeZoneDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		String timeZoneString = EncryptionUtils.decryptString(timeZone, crypto, sessionKey);
 		return TimeZone.getTimeZone(timeZoneString);
 	}
 
 	@Nullable
-	public EndType getEndType(Crypto crypto, byte[] sesionKey) throws CryptoError {
+	public EndType getEndTypeDec(Crypto crypto, byte[] sesionKey) throws CryptoError {
 		if (this.endType == null) {
 			return null;
 		}
@@ -61,11 +63,33 @@ public final class RepeatRule {
 		return EndType.get(endTypeNumber);
 	}
 
-	public long getEndValue(Crypto crypto, byte[] sessionKey) throws CryptoError {
+	public long getEndValueDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		if (this.endValue == null) {
 			return 0;
 		}
 		return EncryptionUtils.decryptNumber(endValue, crypto, sessionKey);
+	}
+
+	public String getFrequency() {
+		return frequency;
+	}
+
+	public String getInterval() {
+		return interval;
+	}
+
+	public String getTimeZone() {
+		return timeZone;
+	}
+
+	@Nullable
+	public String getEndType() {
+		return endType;
+	}
+
+	@Nullable
+	public String getEndValue() {
+		return endValue;
 	}
 }
 

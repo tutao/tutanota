@@ -131,14 +131,21 @@ function visibilityChange(msg: Request): Promise<void> {
 	})
 }
 
+function invalidateAlarms(msg: Request): Promise<void> {
+	return _asyncImport('src/native/PushServiceApp.js').then(({pushServiceApp}) => {
+		return pushServiceApp.invalidateAlarms()
+	})
+}
+
 export const appCommands = {
 	createMailEditor,
-	handleBackPress,
 	showAlertDialog,
 	openMailbox,
 	openCalendar,
+	invalidateAlarms,
 	keyboardSizeChanged,
-	visibilityChange
+	visibilityChange,
+	handleBackPress,
 }
 
 export const desktopCommands = {
@@ -146,7 +153,8 @@ export const desktopCommands = {
 	showAlertDialog,
 	openMailbox,
 	openCalendar,
+	invalidateAlarms,
 	print,
 	openFindInPage,
-	reportError
+	reportError,
 }

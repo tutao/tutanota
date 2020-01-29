@@ -1,14 +1,13 @@
 package de.tutao.tutanota.alarms;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.io.IOException;
+import androidx.annotation.Nullable;
+
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,57 +26,46 @@ public class AlarmNotificationsManager {
 	private final SseStorage sseStorage;
 	private final Crypto crypto;
 	private final SystemAlarmFacade systemAlarmFacade;
+	private final PushKeyResolver pushKeyResolver;
 
 	public AlarmNotificationsManager(AndroidKeyStoreFacade androidKeyStoreFacade, SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade) {
 		keyStoreFacade = androidKeyStoreFacade;
 		this.sseStorage = sseStorage;
 		this.crypto = crypto;
 		this.systemAlarmFacade = systemAlarmFacade;
+		this.pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage);
 	}
 
 	public void reScheduleAlarms() {
-		try {
-			PushKeyResolver pushKeyResolver =
-					new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
-			List<AlarmNotification> alarmInfos = sseStorage.readSavedAlarmNotifications();
-			for (AlarmNotification alarmNotification : alarmInfos) {
-				byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
-				if (sessionKey != null) {
-					this.schedule(alarmNotification, sessionKey);
-				}
+		PushKeyResolver pushKeyResolver =
+				new PushKeyResolver(keyStoreFacade, sseStorage);
+		List<AlarmNotification> alarmInfos = sseStorage.readAlarmNotifications();
+		for (AlarmNotification alarmNotification : alarmInfos) {
+			byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
+			if (sessionKey != null) {
+				this.schedule(alarmNotification, sessionKey);
 			}
-		} catch (IOException e) {
-			Log.w(TAG, "Could not read pushIdentifierKeys", e);
 		}
 	}
 
 	public byte[] resolveSessionKey(AlarmNotification notification, PushKeyResolver pushKeyResolver) {
-		for (AlarmNotification.NotificationSessionKey notificationSessionKey : notification.getNotificationSessionKeys()) {
-			try {
-				byte[] pushIdentifierSessionKey = pushKeyResolver
-						.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
-				if (pushIdentifierSessionKey != null) {
+		AlarmNotification.NotificationSessionKey notificationSessionKey = notification.getNotificationSessionKey();
+		try {
+			byte[] pushIdentifierSessionKey = pushKeyResolver
+					.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
+			if (pushIdentifierSessionKey != null) {
 
-					byte[] encNotificationSessionKeyKey = Utils.base64ToBytes(notificationSessionKey.getPushIdentifierSessionEncSessionKey());
-					return this.crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey);
-				}
-			} catch (UnrecoverableEntryException | KeyStoreException | CryptoError e) {
-				Log.w(TAG, "could not decrypt session key", e);
-				return null;
+				byte[] encNotificationSessionKeyKey = Utils.base64ToBytes(notificationSessionKey.getPushIdentifierSessionEncSessionKey());
+				return this.crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey);
 			}
+		} catch (UnrecoverableEntryException | KeyStoreException | CryptoError e) {
+			Log.w(TAG, "could not decrypt session key", e);
 		}
 		return null;
 	}
 
 	public void scheduleNewAlarms(List<AlarmNotification> alarmNotifications) {
-		PushKeyResolver pushKeyResolver;
-		try {
-			pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
-		} catch (IOException e) {
-			Log.w(TAG, "Failed to read pushIdentifierKeys", e);
-			return;
-		}
-		List<AlarmNotification> savedInfos = sseStorage.readSavedAlarmNotifications();
+
 		for (AlarmNotification alarmNotification : alarmNotifications) {
 			if (alarmNotification.getOperation() == OperationType.CREATE) {
 				byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
@@ -86,44 +74,34 @@ public class AlarmNotificationsManager {
 					return;
 				}
 				this.schedule(alarmNotification, sessionKey);
-				if (!savedInfos.contains(alarmNotification)) {
-					savedInfos.add(alarmNotification);
-				}
+				sseStorage.insertAlarmNotification(alarmNotification);
 			} else {
 				this.cancelScheduledAlarm(alarmNotification, pushKeyResolver);
-				savedInfos.remove(alarmNotification);
+				sseStorage.deleteAlarmNotification(alarmNotification.getAlarmInfo().getIdentifier());
 			}
 		}
-		sseStorage.writeAlarmInfos(savedInfos);
 	}
 
-	public void unscheduleAlarms(String userId) {
-		List<AlarmNotification> alarmNotifications = sseStorage.readSavedAlarmNotifications();
-		PushKeyResolver pushKeyResolver;
-		try {
-			pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage.getPushIdentifierKeys());
-		} catch (IOException e) {
-			Log.w(TAG, "Failed to read pushIdentifierKeys", e);
-			return;
-		}
-		Iterator<AlarmNotification> savedAlarmsIterator = alarmNotifications.iterator();
-		while (savedAlarmsIterator.hasNext()) {
-			AlarmNotification alarmNotification = savedAlarmsIterator.next();
-			if (alarmNotification.getUser().equals(userId)) {
+	/**
+	 * Deletes user alarms for a given user. If user is null then all scheduled alarms will be removed.
+	 */
+	public void unscheduleAlarms(@Nullable String userId) {
+		List<AlarmNotification> alarmNotifications = sseStorage.readAlarmNotifications();
+		for (AlarmNotification alarmNotification : alarmNotifications) {
+			if (userId == null || alarmNotification.getUser().equals(userId)) {
 				this.cancelSavedAlarm(alarmNotification, pushKeyResolver);
-				savedAlarmsIterator.remove();
+				sseStorage.deleteAlarmNotification(alarmNotification.getAlarmInfo().getIdentifier());
 			}
 		}
-		sseStorage.writeAlarmInfos(alarmNotifications);
 	}
 
 	private void schedule(AlarmNotification alarmNotification, byte[] sessionKey) {
 		try {
-			String trigger = alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey);
+			String trigger = alarmNotification.getAlarmInfo().getTriggerDec(crypto, sessionKey);
 			AlarmTrigger alarmTrigger = AlarmTrigger.get(trigger);
-			String summary = alarmNotification.getSummary(crypto, sessionKey);
+			String summary = alarmNotification.getSummaryDec(crypto, sessionKey);
 			String identifier = alarmNotification.getAlarmInfo().getIdentifier();
-			Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
+			Date eventStart = alarmNotification.getEventStartDec(crypto, sessionKey);
 
 			if (alarmNotification.getRepeatRule() == null) {
 				Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
@@ -152,7 +130,7 @@ public class AlarmNotificationsManager {
 	private void cancelScheduledAlarm(AlarmNotification alarmNotification,
 									  PushKeyResolver pushKeyResolver) {
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
-		List<AlarmNotification> alarmNotifications = sseStorage.readSavedAlarmNotifications();
+		List<AlarmNotification> alarmNotifications = sseStorage.readAlarmNotifications();
 		int indexOfExistingAlarm = alarmNotifications.indexOf(alarmNotification);
 		if (indexOfExistingAlarm == -1) {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.getAlarmInfo().getIdentifier());
@@ -178,6 +156,7 @@ public class AlarmNotificationsManager {
 				}
 			}
 		} else {
+			Log.d(TAG, "Cancelling alarm " + savedAlarmNotification.getAlarmInfo().getIdentifier());
 			systemAlarmFacade.cancelAlarm(savedAlarmNotification.getAlarmInfo().getIdentifier(), 0);
 		}
 	}
@@ -188,30 +167,31 @@ public class AlarmNotificationsManager {
 										 AlarmModel.AlarmIterationCallback callback
 	) throws CryptoError {
 		RepeatRule repeatRule = Objects.requireNonNull(alarmNotification.getRepeatRule());
-		TimeZone timeZone = repeatRule.getTimeZone(crypto, sessionKey);
+		TimeZone timeZone = repeatRule.getTimeZoneDec(crypto, sessionKey);
 
-		Date eventStart = alarmNotification.getEventStart(crypto, sessionKey);
-		Date eventEnd = alarmNotification.getEventEnd(crypto, sessionKey);
-		RepeatPeriod frequency = repeatRule.getFrequency(crypto, sessionKey);
-		int interval = repeatRule.getInterval(crypto, sessionKey);
-		EndType endType = repeatRule.getEndType(crypto, sessionKey);
-		long endValue = repeatRule.getEndValue(crypto, sessionKey);
+		Date eventStart = alarmNotification.getEventStartDec(crypto, sessionKey);
+		Date eventEnd = alarmNotification.getEventEndDec(crypto, sessionKey);
+		RepeatPeriod frequency = repeatRule.getFrequencyDec(crypto, sessionKey);
+		int interval = repeatRule.getIntervalDec(crypto, sessionKey);
+		EndType endType = repeatRule.getEndTypeDec(crypto, sessionKey);
+		long endValue = repeatRule.getEndValueDec(crypto, sessionKey);
 		AlarmTrigger alarmTrigger = AlarmTrigger.get(
-				alarmNotification.getAlarmInfo().getTrigger(crypto, sessionKey));
+				alarmNotification.getAlarmInfo().getTriggerDec(crypto, sessionKey));
 
 		AlarmModel.iterateAlarmOccurrences(new Date(),
 				timeZone, eventStart, eventEnd, frequency, interval, endType,
 				endValue, alarmTrigger, TimeZone.getDefault(), callback);
 	}
 
+
 	private static class PushKeyResolver {
 		private AndroidKeyStoreFacade keyStoreFacade;
-		private final Map<String, String> pushIdentifierToEncSessionKey;
+		private final SseStorage sseStorage;
 		private final Map<String, byte[]> pushIdentifierToResolvedSessionKey = new HashMap<>();
 
-		private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, Map<String, String> pushIdentifierToEncSessionKey) {
+		private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, SseStorage sseStorage) {
 			this.keyStoreFacade = keyStoreFacade;
-			this.pushIdentifierToEncSessionKey = pushIdentifierToEncSessionKey;
+			this.sseStorage = sseStorage;
 		}
 
 		@Nullable
@@ -221,13 +201,13 @@ public class AlarmNotificationsManager {
 			if (resolved != null) {
 				return resolved;
 			} else {
-				String encryptedSessionKey = pushIdentifierToEncSessionKey.get(pushIdentifierId);
-				if (encryptedSessionKey == null) {
+				byte[] pushIdentifierSessionKey = sseStorage.getPushIdentifierSessionKey(pushIdentifierId);
+				Log.d("XXXXX", "session from ssestorage: " + Utils.bytesToBase64(pushIdentifierSessionKey) + " for push identifier: " + pushIdentifierId);
+				if (pushIdentifierSessionKey == null) {
 					return null;
 				}
-				byte[] decryptedSessionKey = keyStoreFacade.decryptKey(encryptedSessionKey);
-				pushIdentifierToResolvedSessionKey.put(pushIdentifierId, decryptedSessionKey);
-				return decryptedSessionKey;
+				pushIdentifierToResolvedSessionKey.put(pushIdentifierId, pushIdentifierSessionKey);
+				return pushIdentifierSessionKey;
 			}
 		}
 	}

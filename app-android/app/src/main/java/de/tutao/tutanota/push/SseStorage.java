@@ -3,8 +3,12 @@ package de.tutao.tutanota.push;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.lifecycle.LiveData;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,12 +16,20 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableEntryException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import de.tutao.tutanota.AndroidKeyStoreFacade;
+import de.tutao.tutanota.CryptoError;
+import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
+import de.tutao.tutanota.data.AppDatabase;
+import de.tutao.tutanota.data.UserInfo;
 
 
 public class SseStorage {
@@ -25,90 +37,91 @@ public class SseStorage {
 	private static final String SSE_INFO_PREF = "sseInfo";
 	private static final String TAG = SseStorage.class.getSimpleName();
 	private static final String RECURRING_ALARMS_PREF_NAME = "RECURRING_ALARMS";
+	private static final String LAST_PROCESSED_NOTIFICATION_ID = "lastProcessedNotificationId";
+	private static final String LAST_MISSED_NOTIFICATION_CHECK_TIME = "'lastMissedNotificationCheckTime'";
+	private static final String DEVICE_IDENTIFIER = "deviceIdentifier";
+	private static final String SSE_ORIGIN = "sseOrigin";
+	public static final String CONNECT_TIMEOUT_SEC = "connectTimeoutSec";
 
 	private Context context;
+	private final AppDatabase db;
+	private final AndroidKeyStoreFacade keyStoreFacade;
 
-	public SseStorage(Context context) {
+	public SseStorage(Context context, AppDatabase db, AndroidKeyStoreFacade keyStoreFacade) {
 		this.context = context;
+		this.db = db;
+		this.keyStoreFacade = keyStoreFacade;
+		migrateSseInfoToDb();
 	}
+
+	private void migrateSseInfoToDb() {
+		Log.d("SSEstorage", "Migrating SSE to the database");
+		String sseInfoPref = getPrefs().getString(SSE_INFO_PREF, null);
+		/*if (sseInfoPref != null) {
+			SseInfo sseInfo = SseInfo.fromJson(sseInfoPref);
+			db.sseInfoDao().storeSseInfo(sseInfo);
+			getPrefs().edit().remove(sseInfoPref).apply();
+		}*/
+
+		this.getPrefs().edit().remove(SSE_INFO_PREF).apply();
+	}
+
+
+	/*public LiveData<SseInfo> observeSseInfo() {
+		return db.sseInfoDao().observeSseInfo();
+	}*/
 
 	@Nullable
 	public String getPushIdentifier() {
-		SseInfo sseInfo = getSseInfo();
-		if (sseInfo != null) {
-			return sseInfo.getPushIdentifier();
-		}
-		return null;
-	}
-
-	@Nullable
-	public SseInfo getSseInfo() {
-		String pushIdentifierPref = getPrefs().getString(SSE_INFO_PREF, null);
-		if (pushIdentifierPref == null) {
-			return null;
-		}
-		return SseInfo.fromJson(pushIdentifierPref);
+		return db.keyValueDao().getString(DEVICE_IDENTIFIER);
 	}
 
 
-	public void storePushIdentifier(String identifier, String userId, String sseOrigin) {
-		final SseInfo sseInfo = getSseInfo();
-		SseInfo newInfo;
-		if (sseInfo == null) {
-			newInfo = new SseInfo(identifier, Collections.singletonList(userId), sseOrigin);
-		} else {
-			List<String> userList = new ArrayList<>(sseInfo.getUserIds());
-			if (!userList.contains(userId)) {
-				userList.add(userId);
-			}
-			newInfo = new SseInfo(identifier, userList, sseOrigin);
-		}
-		getPrefs().edit().putString(SSE_INFO_PREF, newInfo.toJSON()).apply();
+	public void storePushIdentifier(String identifier, String sseOrigin) {
+		db.keyValueDao().putString(DEVICE_IDENTIFIER, identifier);
+		db.keyValueDao().putString(SSE_ORIGIN, sseOrigin);
 	}
 
 	public void clear() {
-		this.getPrefs().edit().remove(SSE_INFO_PREF).apply();
+		setLastMissedNotificationCheckTime(null);
+
+		db.userInfoDao().clear();
+		db.getAlarmInfoDao().clear();
 	}
 
 	private SharedPreferences getPrefs() {
 		return PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
-	public void storePushEncSessionKeys(Map<String, String> keys) throws IOException {
-		File file = getKeysFile();
-		JSONObject keysJson = new JSONObject();
-		try {
-			for (String key : keys.keySet()) {
-				keysJson.put(key, keys.get(key));
-			}
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
-
-		try (FileOutputStream fos = new FileOutputStream(file)) {
-			IOUtils.write(keysJson.toString(), fos, StandardCharsets.UTF_8);
-		}
+	public void storePushIdentifierSessionKey(String userId, String pushIdentiferId,
+											  String pushIdentifierSessionKeyB64) throws KeyStoreException, CryptoError {
+		byte[] deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
+		this.db.userInfoDao().insertUserInfo(new UserInfo(userId, pushIdentiferId, deviceEncSessionKey));
 	}
 
-	public Map<String, String> getPushIdentifierKeys() throws IOException {
-		JSONObject keysJson = getKeysJson(getKeysFile());
-		Map<String, String> keyMap = new HashMap<>();
-		Iterator<String> keys = keysJson.keys();
-		try {
-			while (keys.hasNext()) {
-				String key = keys.next();
-				keyMap.put(key, keysJson.getString(key));
-			}
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
+
+	public byte[] getPushIdentifierSessionKey(String pushIdentiferId) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
+		UserInfo userInfo = this.db.userInfoDao().getUserInfoByPushIdentifier(pushIdentiferId);
+		if (userInfo == null) {
+			return null;
 		}
-		return keyMap;
+		return this.keyStoreFacade.decryptKey(userInfo.getDeviceEncPushIdentifierKey());
 	}
 
+	public LiveData<List<UserInfo>> observiceUserInfo() {
+		return this.db.userInfoDao().observeUserInfos();
+	}
+
+	/**
+	 * For migration
+	 */
 	private File getKeysFile() {
 		return new File(context.getFilesDir(), "keys.json");
 	}
 
+	/**
+	 * For migration
+	 */
 	private JSONObject getKeysJson(File file) throws IOException {
 		JSONObject keyMapJson;
 		if (file.createNewFile()) {
@@ -131,7 +144,14 @@ public class SseStorage {
 		return keyMapJson;
 	}
 
-	public List<AlarmNotification> readSavedAlarmNotifications() {
+	public List<AlarmNotification> readAlarmNotifications() {
+		return db.getAlarmInfoDao().getAlarmNotifications();
+	}
+
+	/**
+	 * For migration
+	 */
+	public List<AlarmNotification> readAlarmNotificationsFromJSON() {
 		String jsonString = PreferenceManager.getDefaultSharedPreferences(context)
 				.getString(RECURRING_ALARMS_PREF_NAME, "[]");
 		ArrayList<AlarmNotification> alarmInfos = new ArrayList<>();
@@ -146,16 +166,51 @@ public class SseStorage {
 		return alarmInfos;
 	}
 
-	public void writeAlarmInfos(List<AlarmNotification> alarmNotifications) {
-		List<JSONObject> jsonObjectList = new ArrayList<>(alarmNotifications.size());
-		for (AlarmNotification alarmNotification : alarmNotifications) {
-			jsonObjectList.add(alarmNotification.toJSON());
-		}
-		String jsonString = JSONObject.wrap(jsonObjectList).toString();
-		PreferenceManager.getDefaultSharedPreferences(context)
-				.edit()
-				.putString(RECURRING_ALARMS_PREF_NAME, jsonString)
-				.apply();
+	public void insertAlarmNotification(AlarmNotification alarmNotification) {
+		db.getAlarmInfoDao().insertAlarmNotification(alarmNotification);
 	}
+
+	public void deleteAlarmNotification(String alarmIdetifier) {
+		db.getAlarmInfoDao().deleteAlarmNotification(alarmIdetifier);
+	}
+
+	@Nullable
+	@WorkerThread
+	public String getLastProcessedNotificationId() {
+		return db.keyValueDao().getString(LAST_PROCESSED_NOTIFICATION_ID);
+	}
+
+	@WorkerThread
+	public void setLastProcessedNotificationId(String id) {
+		db.keyValueDao().putString(LAST_PROCESSED_NOTIFICATION_ID, id);
+	}
+
+	@Nullable
+	@WorkerThread
+	public Date getLastMissedNotificationCheckTime() {
+		long value = db.keyValueDao().getLong(LAST_MISSED_NOTIFICATION_CHECK_TIME);
+		if (value == 0) {
+			return null;
+		}
+		return new Date(value);
+	}
+
+	@WorkerThread
+	public void setLastMissedNotificationCheckTime(@Nullable Date date) {
+		db.keyValueDao().putLong(LAST_MISSED_NOTIFICATION_CHECK_TIME, date == null ? 0L : date.getTime());
+	}
+
+	public String getSseOrigin() {
+		return this.db.keyValueDao().getString(SSE_ORIGIN);
+	}
+
+	public long getConnectTimeoutInSeconds() {
+		return db.keyValueDao().getLong(CONNECT_TIMEOUT_SEC);
+	}
+
+	public void setConnectTimeoutInSeconds(long connectTimeout) {
+		db.keyValueDao().putLong(CONNECT_TIMEOUT_SEC, connectTimeout);
+	}
+
 }
 

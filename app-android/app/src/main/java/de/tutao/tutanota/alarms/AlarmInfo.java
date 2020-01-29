@@ -1,5 +1,7 @@
 package de.tutao.tutanota.alarms;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,7 +12,9 @@ import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.CryptoError;
 
 public final class AlarmInfo {
+    @NonNull
     private final String trigger;
+    @NonNull
     private final String identifier;
 
     public static AlarmInfo fromJson(JSONObject jsonObject) throws JSONException {
@@ -24,8 +28,12 @@ public final class AlarmInfo {
         this.identifier = Objects.requireNonNull(identifier);
     }
 
-    public String getTrigger(Crypto crypto, byte[] sessionKey) throws CryptoError {
+    public String getTriggerDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
         return new String(crypto.aesDecrypt(sessionKey, this.trigger), StandardCharsets.UTF_8);
+    }
+
+    public String getTrigger() {
+        return trigger;
     }
 
     public String getIdentifier() {

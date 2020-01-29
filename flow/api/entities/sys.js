@@ -1809,7 +1809,7 @@ type MissedNotification = {
 	_permissions: Id;
 	changeTime: Date;
 	confirmationId: Id;
-	lastProcessedNotification: ?Id;
+	lastProcessedNotificationId: ?Id;
 
 	alarmNotifications: AlarmNotification[];
 	notificationInfos: NotificationInfo[];

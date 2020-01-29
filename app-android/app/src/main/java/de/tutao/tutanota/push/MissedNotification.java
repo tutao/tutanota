@@ -1,6 +1,5 @@
 package de.tutao.tutanota.push;
 
-import de.tutao.tutanota.alarms.AlarmNotification;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,11 +7,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.tutao.tutanota.alarms.AlarmNotification;
+
 public final class MissedNotification {
 	private final List<AlarmNotification> alarmNotifications;
 	private final List<PushMessage.NotificationInfo> notificationInfos;
-	private final String changeTime;
-	private final String confirmationId;
+	private final String lastProcessedNotificationId;
 
 	public static MissedNotification fromJson(JSONObject jsonObject) throws JSONException {
 		JSONArray alarmNotificationsJson = jsonObject.getJSONArray("alarmNotifications");
@@ -25,17 +25,16 @@ public final class MissedNotification {
 		for (int i = 0; i < notificationInfosJson.length(); i++) {
 			notificationInfos.add(PushMessage.NotificationInfo.fromJson(notificationInfosJson.getJSONObject(i), "mailAddress"));
 		}
-		String changeTime = jsonObject.getString("changeTime");
-		String confirmationId = jsonObject.getString("confirmationId");
-		return new MissedNotification(alarmNotifications, notificationInfos, changeTime, confirmationId);
+		String lastProcessedNotificationId = jsonObject.getString("lastProcessedNotificationId");
+		return new MissedNotification(alarmNotifications, notificationInfos, lastProcessedNotificationId);
 	}
 
 	private MissedNotification(List<AlarmNotification> alarmNotifications,
-							   List<PushMessage.NotificationInfo> notificationInfos, String changeTime, String confirmationId) {
+							   List<PushMessage.NotificationInfo> notificationInfos,
+							   String lastProcessedNotificationId) {
 		this.alarmNotifications = alarmNotifications;
 		this.notificationInfos = notificationInfos;
-		this.changeTime = changeTime;
-		this.confirmationId = confirmationId;
+		this.lastProcessedNotificationId = lastProcessedNotificationId;
 	}
 
 	public List<AlarmNotification> getAlarmNotifications() {
@@ -46,11 +45,7 @@ public final class MissedNotification {
 		return notificationInfos;
 	}
 
-	public String getChangeTime() {
-		return changeTime;
-	}
-
-	public String getConfirmationId() {
-		return confirmationId;
+	public String getLastProcessedNotificationId() {
+		return lastProcessedNotificationId;
 	}
 }

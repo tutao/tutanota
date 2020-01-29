@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+
+import androidx.annotation.Nullable;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -35,23 +36,21 @@ public final class Native {
 	private final static String TAG = "Native";
 
 	private static int requestId = 0;
-	private final AndroidKeyStoreFacade keyStoreFacade;
 	private Crypto crypto;
 	private FileUtil files;
 	private Contact contact;
 	private SseStorage sseStorage;
 	private Map<String, DeferredObject<Object, Exception, Void>> queue = new HashMap<>();
 	private final MainActivity activity;
-	private volatile DeferredObject<Void, Void, Void> webAppInitialized = new DeferredObject<>();
+	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
 
 
-	Native(MainActivity activity) {
+	Native(MainActivity activity, SseStorage sseStorage) {
 		this.activity = activity;
 		crypto = new Crypto(activity);
 		contact = new Contact(activity);
 		files = new FileUtil(activity);
-		sseStorage = new SseStorage(activity);
-		keyStoreFacade = new AndroidKeyStoreFacade(activity);
+		this.sseStorage = sseStorage;
 	}
 
 	public void setup() {
@@ -222,17 +221,18 @@ public final class Native {
 					promise.resolve(sseStorage.getPushIdentifier());
 					break;
 				case "storePushIdentifierLocally":
-					sseStorage.storePushIdentifier(args.getString(0), args.getString(1),
-							args.getString(2));
+
+					String deviceIdentififer = args.getString(0);
+					String userId = args.getString(1);
+					String sseOrigin = args.getString(2);
+					Log.d(TAG, "storePushIdentifierLocally: " + deviceIdentififer + " " + userId + " " + sseOrigin);
+					sseStorage.storePushIdentifier(deviceIdentififer, sseOrigin);
+
 					String pushIdentifierId = args.getString(3);
 					String pushIdentifierSessionKeyB64 = args.getString(4);
 
-					Map<String, String> keys = sseStorage.getPushIdentifierKeys();
-					if (!keys.containsKey(pushIdentifierId)) {
-						String deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
-						keys.put(pushIdentifierId, deviceEncSessionKey);
-						sseStorage.storePushEncSessionKeys(keys);
-					}
+					Log.d("XXXXX", "session from web: " + pushIdentifierSessionKeyB64 + " for push identifier: " + pushIdentifierId);
+					sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKeyB64);
 					promise.resolve(true);
 					break;
 				case "closePushNotifications":
@@ -330,7 +330,7 @@ public final class Native {
 		return Utils.bytesToBase64(s.getBytes());
 	}
 
-	DeferredObject<Void, Void, Void> getWebAppInitialized() {
+	DeferredObject<Void, Throwable, Void> getWebAppInitialized() {
 		return webAppInitialized;
 	}
 
