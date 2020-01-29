@@ -34,7 +34,7 @@ replaceNativeLogger(window, new Logger())
 // TODO: define type definition for top-level views. Maybe it's CurrentView?
 type View = Object
 
-Promise.config({
+window.Promise = Promise.config({
 	longStackTraces: false,
 	warnings: false
 })

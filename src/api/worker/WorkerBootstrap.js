@@ -1,6 +1,6 @@
 importScripts('../../../libs/bluebird.js', '../../../libs/system.src.js')
 
-Promise.config({
+self.Promise = Promise.config({
 	longStackTraces: false,
 	warnings: false
 })
