@@ -60,6 +60,7 @@ export class DesktopSseClient {
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
+		console.log("_connectedSseInfo", this._connectedSseInfo)
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
 		if (typeof this._readTimeoutInSeconds !== 'number' || Number.isNaN(this._readTimeoutInSeconds)) {
 			this._readTimeoutInSeconds = 30
@@ -328,6 +329,7 @@ export class DesktopSseClient {
 				res.on('data', chunk => {
 					resData += chunk
 				}).on('end', () => {
+					console.log("missedNOtification response", resData)
 					try {
 						resolve(JSON.parse(resData))
 					} catch (e) {

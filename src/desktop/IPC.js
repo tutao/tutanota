@@ -162,10 +162,10 @@ export class IPC {
 						          console.log("invalidating alarms on getPushIdentifier")
 						          // UserIds list must be empty if we already invalidated user data but web part doesn't know about it yet
 						          return this._sse.resetStoredState().then(() => {
-							          return {pushIdentifier: sseInfo && sseInfo.identifier, invalidateAlarms: true}
+							          return sseInfo && sseInfo.identifier
 						          })
 					          }
-					          return {pushIdentifier: sseInfo && sseInfo.identifier, invalidateAlarms: false}
+					          return sseInfo && sseInfo.identifier
 				          })
 			case 'storePushIdentifierLocally':
 				return Promise.all([
