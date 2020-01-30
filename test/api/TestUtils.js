@@ -7,6 +7,7 @@ import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
 import {EventQueue} from "../../src/api/worker/search/EventQueue"
 import {DbTransaction} from "../../src/api/worker/search/DbFacade"
 import {fixedIv} from "../../src/api/worker/crypto/CryptoUtils"
+import {defer} from "../../src/api/common/utils/Utils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -109,3 +110,22 @@ export function makeCore(args?: {
 	mocker && mock(core, mocker)
 	return core
 }
+
+export function makeTimeoutMock() {
+	let deferred = defer()
+	let timeoutId = 1
+	const timeoutMock = function (fn: () => any) {
+		deferred.promise.finally(() => {
+			deferred = defer()
+			fn()
+		})
+		timeoutId++
+		return timeoutId
+	}
+
+	timeoutMock.next = function () {
+		return deferred.resolve()
+	}
+	return timeoutMock
+}
+

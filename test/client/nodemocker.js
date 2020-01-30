@@ -13,10 +13,18 @@ let classCache = []
 let testcount = 0
 
 
-function startGroup(opts: {group: string, allowables?: Array<string>, cleanupFunctions?: Array<()=>void>, timeout?: number}) {
-	const {group, allowables, cleanupFunctions, timeout} = Object.assign({}, {cleanupFunctions: [], allowables: []}, opts)
+function startGroup(opts: {
+	group: string,
+	allowables?: Array<string>,
+	cleanupFunctions?: Array<()=>void>, timeout?: number,
+	beforeEach?: () => void
+}) {
+	const {group, allowables, cleanupFunctions, timeout, beforeEach} = Object.assign({}, {cleanupFunctions: [], allowables: []}, opts)
 	o.before(() => announce(group))
-	o.beforeEach(() => enable(allowables))
+	o.beforeEach(() => {
+		enable(allowables)
+		beforeEach && beforeEach()
+	})
 	o.afterEach(() => disable(cleanupFunctions))
 	if (typeof timeout == 'number') o.specTimeout(timeout)
 }
@@ -29,7 +37,7 @@ function enable(allowables: Array<string>) {
 	}))
 	random = setProperty(Math, 'random', () => 0)
 	setProperty(process, 'resourcesPath', 'app/path/resources')
-	mockery.enable({useCleanCache: true})
+	mockery.enable({useCleanCache: true, warnOnUnregistered: false})
 	mockery.registerAllowables(allowedNodeModules)
 	mockery.registerAllowables(allowables)
 	mockery.registerAllowables(['bluebird'])
@@ -103,9 +111,6 @@ function classify(template: {prototype: {}, statics: {}}): (?*, ?*)=>void {
 
 	const cls = function () {
 		cls.mockedInstances.push(this)
-		if (typeof template.prototype["constructor"] === 'function') {
-			template.prototype["constructor"].apply(this, arguments)
-		}
 		Object.keys(template.prototype).forEach(p => {
 			if ('function' === typeof template.prototype[p]) {
 				this[p] = o.spy(template.prototype[p]) // don't use spyify, we don't want these to be spyCached
@@ -122,6 +127,10 @@ function classify(template: {prototype: {}, statics: {}}): (?*, ?*)=>void {
 				this[p] = template.prototype[p]
 			}
 		})
+
+		if (typeof template.prototype["constructor"] === 'function') {
+			template.prototype["constructor"].apply(this, arguments)
+		}
 	}
 
 	if (template.statics) {

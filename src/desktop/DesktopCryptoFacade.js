@@ -47,6 +47,10 @@ export class DesktopCryptoFacade {
 		return decryptAndMapToInstance(model, instance, sk)
 	}
 
+	generateId(byteLength: number): string {
+		return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
+	}
+
 	_decrypt256KeyToArray(encryptionKey: string, keyB64: string): Aes256Key {
 		const encryptionKeyBuffer = Buffer.from(encryptionKey, 'base64')
 		const keyBuffer = Buffer.from(keyB64, 'base64')
@@ -57,10 +61,6 @@ export class DesktopCryptoFacade {
 
 	static generateDeviceKey(): string {
 		return crypto.randomBytes(32).toString('base64')
-	}
-
-	static generateId(byteLength: number): string {
-		return base64ToBase64Url(crypto.randomBytes(byteLength).toString('base64'))
 	}
 
 	static randomHexString(byteLength: number): string {

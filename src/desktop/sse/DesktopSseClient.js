@@ -1,6 +1,6 @@
 // @flow
 
-import {app} from 'electron'
+import type {App} from "electron"
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
 import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
@@ -13,7 +13,7 @@ import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
-import {DesktopAlarmStorage} from "./DesktopAlarmStorage"
+import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 
 export type SseInfo = {|
 	identifier: string,
@@ -28,6 +28,7 @@ let MAX_CONNECT_TIMEOUT: number
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 export class DesktopSseClient {
+	_app: App;
 	_conf: DesktopConfigHandler
 	_wm: WindowManager
 	_notifier: DesktopNotifier
@@ -46,9 +47,12 @@ export class DesktopSseClient {
 	// We use this promise for queueing processing of notifications. There could be a smarter queue which clears all downloads older than
 	// the response.
 	_handlingPushMessage: Promise<*>;
+	_delayHandler: typeof setTimeout
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
-	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage) {
+	constructor(app: App, conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
+	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage,
+	            delayHandler: typeof setTimeout = setTimeout) {
+		this._app = app
 		this._conf = conf
 		this._wm = wm
 		this._notifier = notifier
@@ -56,6 +60,8 @@ export class DesktopSseClient {
 		this._net = net
 		this._crypto = desktopCrypto
 		this._alarmStorage = alarmStorage
+		this._delayHandler = delayHandler
+
 
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
@@ -128,7 +134,7 @@ export class DesktopSseClient {
 		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
 		this._disconnect()
 
-		const url = sseInfo.sseOrigin + "/sse?_body=" + requestJson(sseInfo)
+		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo)
 		console.log(
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
 			'userIds', sseInfo.userIds
@@ -140,7 +146,7 @@ export class DesktopSseClient {
 				"Keep-Alive": "header",
 				"Accept": "text/event-stream",
 				"v": MissedNotificationTypeModel.version,
-				"cv": app.getVersion(),
+				"cv": this._app.getVersion(),
 			},
 			method: "GET"
 		}).on('response', res => {
@@ -233,7 +239,6 @@ export class DesktopSseClient {
 		return Promise
 			.all([
 				this._alarmScheduler.unscheduleAllAlarms(),
-				this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, null),
 				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, null),
 			])
 			.then(() => this._alarmStorage.removePushIdentifierKeys())
@@ -303,7 +308,7 @@ export class DesktopSseClient {
 			const headers: {[string]: string} = {
 				userIds: neverNull(this._connectedSseInfo).userIds.join(","),
 				v: MissedNotificationTypeModel.version,
-				cv: app.getVersion(),
+				cv: this._app.getVersion(),
 			}
 			if (this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)) {
 				headers["lastProcessedNotificationId"] = this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)
@@ -329,7 +334,6 @@ export class DesktopSseClient {
 				res.on('data', chunk => {
 					resData += chunk
 				}).on('end', () => {
-					console.log("missedNOtification response", resData)
 					try {
 						resolve(JSON.parse(resData))
 					} catch (e) {
@@ -364,17 +368,17 @@ export class DesktopSseClient {
 		}
 		console.log('scheduling to reconnect sse in', delay, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
-		this._nextReconnect = setTimeout(() => this.connect(), delay * 1000)
+		this._nextReconnect = this._delayHandler(() => this.connect(), delay * 1000)
 	}
-}
 
-function requestJson(sseInfo: SseInfo): string {
-	return encodeURIComponent(JSON.stringify({
-			"_format": '0',
-			"identifier": sseInfo.identifier,
-			"userIds": sseInfo.userIds.map(userId => {
-				return {"_id": DesktopCryptoFacade.generateId(4), "value": userId}
-			})
-		}
-	))
+	_requestJson(sseInfo: SseInfo): string {
+		return encodeURIComponent(JSON.stringify({
+				"_format": '0',
+				"identifier": sseInfo.identifier,
+				"userIds": sseInfo.userIds.map(userId => {
+					return {"_id": this._crypto.generateId(4), "value": userId}
+				})
+			}
+		))
+	}
 }

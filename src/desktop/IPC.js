@@ -160,13 +160,6 @@ export class IPC {
 						          this._notifier.resolveGroupedNotification(uInfo.userId)
 					          }
 					          const sseInfo = this._sse.getPushIdentifier()
-					          if (this._sse.hasNotificationTTLExpired() || sseInfo && sseInfo.userIds.length === 0) {
-						          console.log("invalidating alarms on getPushIdentifier")
-						          // UserIds list must be empty if we already invalidated user data but web part doesn't know about it yet
-						          return this._sse.resetStoredState().then(() => {
-							          return sseInfo && sseInfo.identifier
-						          })
-					          }
 					          return sseInfo && sseInfo.identifier
 				          })
 			case 'storePushIdentifierLocally':

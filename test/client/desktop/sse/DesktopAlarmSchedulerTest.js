@@ -160,7 +160,7 @@ o.spec("DesktopAlarmSchedulerTest", () => {
 
 			o(timeProviderMock.setTimeout.callCount).equals(0)
 			done()
-		}, 1000)
+		}, 10)
 	})
 
 	o("schedule at most MAX_OCCURRENCES alarms", done => {

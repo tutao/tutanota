@@ -2,6 +2,8 @@
 import n from "../nodemocker"
 import o from "ospec/ospec.js"
 import chalk from 'chalk'
+import {defer} from "../../../src/api/common/utils/Utils"
+import {DesktopConfigKey} from "../../../src/desktop/DesktopConfigHandler"
 
 o.spec("IPC tests", () => {
 	n.startGroup({
@@ -47,15 +49,22 @@ o.spec("IPC tests", () => {
 				dummy: "value"
 			}
 		},
-		setDesktopConfig: () => Promise.resolve()
+		setDesktopConfig: () => Promise.resolve(),
+		listeners: {},
+		on: function (key, listener) {
+			this.listeners[key] = this.listeners[key] || []
+			this.listeners[key].push(listener)
+		},
 	}
 	const notifier = {
 		resolveGroupedNotification: () => {
 		}
 	}
 	const sse = {
-		getPushIdentifier: () => "agarbledmess",
-		storePushIdentifier: () => Promise.resolve()
+		getPushIdentifier: () => ({identifier: "agarbledmess", userIds: ["userId1"]}),
+		storePushIdentifier: () => Promise.resolve(),
+		hasNotificationTTLExpired: () => false,
+		connect: () => null,
 	}
 	let windowMock
 	const wm = {
@@ -107,7 +116,8 @@ o.spec("IPC tests", () => {
 	}
 
 	const utils = {
-		noOp: () => {}
+		noOp: () => {},
+		defer: defer,
 	}
 
 	const standardMocks = () => {
@@ -846,5 +856,19 @@ o.spec("IPC tests", () => {
 			})
 			done()
 		}, 10)
+	})
+
+	o("invalidate alarms", async function () {
+		const {confMock} = setUpWithWindowAndInit()
+		await Promise.resolve()
+		const sseInfo = {userIds: []}
+		confMock.listeners[DesktopConfigKey.pushIdentifier][0](sseInfo)
+
+		await Promise.resolve()
+		o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+			id: 'desktop0',
+			type: 'invalidateAlarms',
+			args: []
+		})
 	})
 })

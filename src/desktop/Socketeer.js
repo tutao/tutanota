@@ -12,8 +12,11 @@ const SOCKET_PATH = '/tmp/tutadb.sock'
 export class Socketeer {
 	_server: ?net.Server;
 	_connection: ?net.Socket;
+	_delayHandler: typeof setTimeout
 
-	constructor() {
+	constructor(delayHandler: typeof setTimeout = setTimeout) {
+		this._delayHandler = delayHandler
+
 		app.on('will-quit', () => {
 			if (this._server || this._connection) {
 				console.log("cleaning up socket...")
@@ -44,7 +47,7 @@ export class Socketeer {
 		}).on('error', e => {
 			if (e.code === 'EADDRINUSE' && this._server) {
 				console.log('Socket in use, retrying...')
-				setTimeout(() => {
+				this._delayHandler(() => {
 					neverNull(this._server).close()
 					neverNull(this._server).listen(SOCKET_PATH)
 				}, 1000)
@@ -90,7 +93,7 @@ export class Socketeer {
 
 	_tryReconnect(ondata: (string)=>void): void {
 		this._connection = null
-		setTimeout(() => {
+		this._delayHandler(() => {
 			this.startClient(ondata)
 		}, 1000)
 	}

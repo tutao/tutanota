@@ -1,6 +1,7 @@
 // @flow
 import n from "../nodemocker"
 import o from "ospec/ospec.js"
+import {makeTimeoutMock} from "../../api/TestUtils"
 
 o.spec("Socketeer Test", (done, timeout) => {
 	n.startGroup({
@@ -76,6 +77,7 @@ o.spec("Socketeer Test", (done, timeout) => {
 		return {
 			netMock: n.mock("net", net).set(),
 			electronMock: n.mock("electron", electron).set(),
+			timeoutMock: makeTimeoutMock(),
 		}
 	}
 
@@ -165,10 +167,10 @@ o.spec("Socketeer Test", (done, timeout) => {
 		o(netMock.createConnection.callCount).equals(1)
 	})
 
-	o("reconnect on end", done => {
-		const {electronMock, netMock} = standardMocks()
+	o("reconnect on end", async function () {
+		const {electronMock, netMock, timeoutMock} = standardMocks()
 		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+		const sock = new Socketeer(timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
@@ -176,23 +178,23 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 		connectionMock.callbacks['end']()
 
-		setTimeout(() => {
-			o(connectionMock.on.callCount).equals(10)
+		timeoutMock.next()
 
-			// cleanup
-			electronMock.app.callbacks["will-quit"]()
+		await Promise.resolve()
 
-			o(netMock.createServer.callCount).equals(0)
-			o(netMock.createConnection.callCount).equals(2)
+		o(connectionMock.on.callCount).equals(10)
 
-			done()
-		}, 1500)
+		// cleanup
+		electronMock.app.callbacks["will-quit"]()
+
+		o(netMock.createServer.callCount).equals(0)
+		o(netMock.createConnection.callCount).equals(2)
 	})
 
-	o("reconnect on close with error", done => {
-		const {electronMock, netMock} = standardMocks()
+	o("reconnect on close with error", async function () {
+		const {electronMock, netMock, timeoutMock} = standardMocks()
 		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+		const sock = new Socketeer(timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
@@ -200,41 +202,38 @@ o.spec("Socketeer Test", (done, timeout) => {
 
 		connectionMock.callbacks['close'](true)
 
-		setTimeout(() => {
-			o(connectionMock.on.callCount).equals(10)
+		timeoutMock.next()
+		await Promise.resolve()
 
-			// cleanup
-			electronMock.app.callbacks["will-quit"]()
+		o(connectionMock.on.callCount).equals(10)
 
-			o(netMock.createServer.callCount).equals(0)
-			o(netMock.createConnection.callCount).equals(2)
+		// cleanup
+		electronMock.app.callbacks["will-quit"]()
 
-			done()
-		}, 1500)
+		o(netMock.createServer.callCount).equals(0)
+		o(netMock.createConnection.callCount).equals(2)
 	})
 
-	o("don't reconnect on close without error", done => {
-		const {electronMock, netMock} = standardMocks()
+	o("don't reconnect on close without error", async function () {
+		const {electronMock, netMock, timeoutMock} = standardMocks()
 		const {Socketeer} = n.subject('../../src/desktop/Socketeer.js')
-		const sock = new Socketeer()
+		const sock = new Socketeer(timeoutMock)
 		const ondata = o.spy(data => {
 		})
 
 		sock.startClient(ondata)
 
 		connectionMock.callbacks['close'](false)
+		timeoutMock.next()
+		await Promise.resolve()
 
-		setTimeout(() => {
-			o(connectionMock.on.callCount).equals(5)
+		o(connectionMock.on.callCount).equals(5)
 
-			// cleanup
-			electronMock.app.callbacks["will-quit"]()
+		// cleanup
+		electronMock.app.callbacks["will-quit"]()
 
-			o(netMock.createServer.callCount).equals(0)
-			o(netMock.createConnection.callCount).equals(1)
-
-			done()
-		}, 1500)
+		o(netMock.createServer.callCount).equals(0)
+		o(netMock.createConnection.callCount).equals(1)
 	})
 
 	o("sendSocketMessage calls write", () => {

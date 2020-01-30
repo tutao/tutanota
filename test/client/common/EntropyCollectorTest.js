@@ -1,7 +1,6 @@
 import o from "ospec/ospec.js"
 import {EntropyCollector} from "../../../src/api/main/EntropyCollector"
 import {EntropySrc as EntropyType} from "../../../src/api/common/TutanotaConstants"
-import {mockFunction, unmockFunction} from "../../api/TestUtils"
 
 o.spec("EntropyCollector", function () {
 
@@ -115,14 +114,14 @@ o.spec("EntropyCollector", function () {
 		timeout(2000)
 
 
-		collector.SEND_INTERVAL = 1000
+		collector.SEND_INTERVAL = 10
 		collector.start()
 		collector._addEntropy(5, 1, EntropyType.mouse)
 		setTimeout(() => {
 			o(worker.entropy.callCount).equals(1)
 			collector.SEND_INTERVAL = 5000
 			done()
-		}, 1500)
+		}, 15)
 	}))
 })
 
