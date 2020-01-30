@@ -1,6 +1,7 @@
 package de.tutao.tutanota.alarms;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.TypeConverter;
@@ -10,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
 
@@ -38,7 +40,7 @@ public class AlarmNotification {
 	public AlarmNotification(OperationType operation, String summary, String eventStart, String eventEnd,
 							 AlarmInfo alarmInfo,
 							 RepeatRule repeatRule,
-							 NotificationSessionKey notificationSessionKey,
+							 @Nullable NotificationSessionKey notificationSessionKey, // in case of a delete operation there is no session key
 							 String user) {
 		this.operation = operation;
 		this.summary = summary;
@@ -50,7 +52,7 @@ public class AlarmNotification {
 		this.user = user;
 	}
 
-	public static AlarmNotification fromJson(JSONObject jsonObject) throws JSONException {
+	public static AlarmNotification fromJson(JSONObject jsonObject, Collection<String> pushIdentifierIds) throws JSONException {
 		OperationType operationType = OperationType.values()[jsonObject.getInt("operation")];
 		String summaryEnc = jsonObject.getString("summary");
 		String eventStartEnc = jsonObject.getString("eventStart");
@@ -63,7 +65,20 @@ public class AlarmNotification {
 		}
 		AlarmInfo alarmInfo = AlarmInfo.fromJson(jsonObject.getJSONObject("alarmInfo"));
 		JSONArray notificationSessionKeysJSON = jsonObject.getJSONArray("notificationSessionKeys");
-		NotificationSessionKey notificationSessionKey = NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(0));
+
+		NotificationSessionKey notificationSessionKey = null;
+		if (notificationSessionKeysJSON.length() == 1) {
+			notificationSessionKey = NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(0));
+		} else {
+			for (int i = 0; i < notificationSessionKeysJSON.length(); i++) {
+				NotificationSessionKey sessionKey = NotificationSessionKey.fromJson(notificationSessionKeysJSON.getJSONObject(i));
+				if (pushIdentifierIds.contains(sessionKey.getPushIdentifier().getElementId())) {
+					notificationSessionKey = sessionKey;
+					break;
+				}
+			}
+		}
+
 		String user = jsonObject.getString("user");
 		return new AlarmNotification(operationType, summaryEnc, eventStartEnc, eventEndEnc, alarmInfo,
 				repeatRule, notificationSessionKey, user);
@@ -107,6 +122,7 @@ public class AlarmNotification {
 		return eventEnd;
 	}
 
+	@Nullable
 	public NotificationSessionKey getNotificationSessionKey() {
 		return notificationSessionKey;
 	}

@@ -21,15 +21,21 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.CryptoError;
 import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.data.AppDatabase;
-import de.tutao.tutanota.data.UserInfo;
+import de.tutao.tutanota.data.PushIdentifierKey;
+import de.tutao.tutanota.data.SseInfo;
+import de.tutao.tutanota.data.User;
 
 
 public class SseStorage {
@@ -51,25 +57,43 @@ public class SseStorage {
 		this.context = context;
 		this.db = db;
 		this.keyStoreFacade = keyStoreFacade;
-		migrateSseInfoToDb();
 	}
 
-	private void migrateSseInfoToDb() {
-		Log.d("SSEstorage", "Migrating SSE to the database");
+	public void migrateToDB() {
 		String sseInfoPref = getPrefs().getString(SSE_INFO_PREF, null);
-		/*if (sseInfoPref != null) {
+		if (sseInfoPref != null) {
+			Log.d("SSEstorage", "Migrating SSE to the database");
 			SseInfo sseInfo = SseInfo.fromJson(sseInfoPref);
-			db.sseInfoDao().storeSseInfo(sseInfo);
-			getPrefs().edit().remove(sseInfoPref).apply();
-		}*/
+			if (sseInfo != null) {
+				db.keyValueDao().putString(DEVICE_IDENTIFIER, sseInfo.getPushIdentifier());
+				db.keyValueDao().putString(SSE_ORIGIN, sseInfo.getSseOrigin());
 
-		this.getPrefs().edit().remove(SSE_INFO_PREF).apply();
+				for (String userId : sseInfo.getUserIds()) {
+					db.userInfoDao().insertUser(new User(userId));
+				}
+			}
+
+
+			try {
+				Map<String, String> pushIdToDeviceEncPushSessionKey = getPushIdentifierKeys();
+				for (Map.Entry<String, String> pushIdSessionKey : pushIdToDeviceEncPushSessionKey.entrySet()) {
+					PushIdentifierKey pushIdentifierKey = new PushIdentifierKey(pushIdSessionKey.getKey(), Utils.base64ToBytes(pushIdSessionKey.getValue()));
+					db.userInfoDao().insertPushIdentifierKey(pushIdentifierKey);
+				}
+				List<AlarmNotification> alarmNotifications = readAlarmNotificationsFromJSON(pushIdToDeviceEncPushSessionKey.keySet());
+				for (AlarmNotification alarmNotification : alarmNotifications) {
+					db.getAlarmInfoDao().insertAlarmNotification(alarmNotification);
+				}
+			} catch (IOException e) {
+				Log.w(TAG, "Could not migrate saved keys: " + e);
+			}
+
+			getKeysFile().delete();
+			this.getPrefs().edit().remove(SSE_INFO_PREF).apply();
+			this.getPrefs().edit().remove(RECURRING_ALARMS_PREF_NAME).apply();
+			this.getPrefs().edit().remove("heartbeatTimeoutInSeconds").apply();
+		}
 	}
-
-
-	/*public LiveData<SseInfo> observeSseInfo() {
-		return db.sseInfoDao().observeSseInfo();
-	}*/
 
 	@Nullable
 	public String getPushIdentifier() {
@@ -96,20 +120,21 @@ public class SseStorage {
 	public void storePushIdentifierSessionKey(String userId, String pushIdentiferId,
 											  String pushIdentifierSessionKeyB64) throws KeyStoreException, CryptoError {
 		byte[] deviceEncSessionKey = this.keyStoreFacade.encryptKey(Utils.base64ToBytes(pushIdentifierSessionKeyB64));
-		this.db.userInfoDao().insertUserInfo(new UserInfo(userId, pushIdentiferId, deviceEncSessionKey));
+		this.db.userInfoDao().insertPushIdentifierKey(new PushIdentifierKey(pushIdentiferId, deviceEncSessionKey));
+		this.db.userInfoDao().insertUser(new User(userId));
 	}
 
 
 	public byte[] getPushIdentifierSessionKey(String pushIdentiferId) throws UnrecoverableEntryException, KeyStoreException, CryptoError {
-		UserInfo userInfo = this.db.userInfoDao().getUserInfoByPushIdentifier(pushIdentiferId);
+		PushIdentifierKey userInfo = this.db.userInfoDao().getPushIdentifierKey(pushIdentiferId);
 		if (userInfo == null) {
 			return null;
 		}
 		return this.keyStoreFacade.decryptKey(userInfo.getDeviceEncPushIdentifierKey());
 	}
 
-	public LiveData<List<UserInfo>> observiceUserInfo() {
-		return this.db.userInfoDao().observeUserInfos();
+	public LiveData<List<User>> observeUsers() {
+		return this.db.userInfoDao().observeUsers();
 	}
 
 	/**
@@ -148,17 +173,35 @@ public class SseStorage {
 		return db.getAlarmInfoDao().getAlarmNotifications();
 	}
 
+	private Map<String, String> getPushIdentifierKeys() throws IOException {
+		JSONObject keysJson = getKeysJson(getKeysFile());
+		Map<String, String> keyMap = new HashMap<>();
+		Iterator<String> keys = keysJson.keys();
+		try {
+			while (keys.hasNext()) {
+				String key = keys.next();
+				keyMap.put(key, keysJson.getString(key));
+			}
+		} catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+		return keyMap;
+	}
+
+
 	/**
 	 * For migration
+	 *
+	 * @param pushIdentifierIds for filtering notification session keys.
 	 */
-	public List<AlarmNotification> readAlarmNotificationsFromJSON() {
+	public List<AlarmNotification> readAlarmNotificationsFromJSON(Collection<String> pushIdentifierIds) {
 		String jsonString = PreferenceManager.getDefaultSharedPreferences(context)
 				.getString(RECURRING_ALARMS_PREF_NAME, "[]");
 		ArrayList<AlarmNotification> alarmInfos = new ArrayList<>();
 		try {
 			JSONArray jsonArray = new JSONArray(jsonString);
 			for (int i = 0; i < jsonArray.length(); i++) {
-				alarmInfos.add(AlarmNotification.fromJson(jsonArray.getJSONObject(i)));
+				alarmInfos.add(AlarmNotification.fromJson(jsonArray.getJSONObject(i), pushIdentifierIds));
 			}
 		} catch (JSONException e) {
 			alarmInfos = new ArrayList<>();

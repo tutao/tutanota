@@ -86,11 +86,7 @@ public class MainActivity extends ComponentActivity {
 		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
 				.getString(THEME_PREF, "light"));
 
-		// TODO: remove
-//		deleteDatabase("tuta-db");
-
-		// TODO
-		sseStorage = new SseStorage(this, AppDatabase.getDatabase(this, /*allowMainThreadAccess*/true), new AndroidKeyStoreFacade(this));
+		sseStorage = new SseStorage(this, AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false), new AndroidKeyStoreFacade(this));
 		nativeImpl = new Native(this, sseStorage);
 
 		super.onCreate(savedInstanceState);
@@ -121,7 +117,7 @@ public class MainActivity extends ComponentActivity {
 			firstLoaded = true;
 
 			webView.post(() -> { // use webView.post to switch to main thread again to be able to observe sseStorage
-				sseStorage.observiceUserInfo().observe(this, (userInfos) -> {
+				sseStorage.observeUsers().observe(this, (userInfos) -> {
 					if (userInfos.isEmpty()) {
 						Log.d(TAG, "invalidateAlarms");
 						nativeImpl.sendRequest(JsRequest.invalidateAlarms, new Object[]{});

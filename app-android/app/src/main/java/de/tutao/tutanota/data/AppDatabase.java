@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 
 import de.tutao.tutanota.alarms.AlarmNotification;
 
-@Database(version = 1, entities = {KeyValue.class, UserInfo.class, AlarmNotification.class})
+@Database(version = 1, entities = {KeyValue.class, PushIdentifierKey.class, AlarmNotification.class, User.class})
 public abstract class AppDatabase extends RoomDatabase {
 	public static AppDatabase getDatabase(Context context, boolean allowMainThreadAccess) {
 		Builder<AppDatabase> builder = Room.databaseBuilder(context, AppDatabase.class, "tuta-db")

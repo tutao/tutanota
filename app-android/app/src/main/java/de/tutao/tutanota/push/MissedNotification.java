@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import de.tutao.tutanota.alarms.AlarmNotification;
@@ -18,7 +19,7 @@ public final class MissedNotification {
 		JSONArray alarmNotificationsJson = jsonObject.getJSONArray("alarmNotifications");
 		List<AlarmNotification> alarmNotifications = new ArrayList<>(alarmNotificationsJson.length());
 		for (int i = 0; i < alarmNotificationsJson.length(); i++) {
-			alarmNotifications.add(AlarmNotification.fromJson(alarmNotificationsJson.getJSONObject(i)));
+			alarmNotifications.add(AlarmNotification.fromJson(alarmNotificationsJson.getJSONObject(i), Collections.emptyList()));
 		}
 		JSONArray notificationInfosJson = jsonObject.getJSONArray("notificationInfos");
 		List<PushMessage.NotificationInfo> notificationInfos = new ArrayList<>(notificationInfosJson.length());

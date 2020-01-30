@@ -18,7 +18,7 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager;
 import de.tutao.tutanota.alarms.SystemAlarmFacade;
 import de.tutao.tutanota.data.AppDatabase;
 import de.tutao.tutanota.data.SseInfo;
-import de.tutao.tutanota.data.UserInfo;
+import de.tutao.tutanota.data.User;
 
 import static de.tutao.tutanota.Utils.atLeastOreo;
 
@@ -41,8 +41,11 @@ public final class PushNotificationService extends LifecycleJobService {
 	public void onCreate() {
 		super.onCreate();
 		AppDatabase appDatabase = AppDatabase.getDatabase(this, /*allowMainThreadAccess*/true);
+
 		AndroidKeyStoreFacade keyStoreFacade = new AndroidKeyStoreFacade(this);
 		SseStorage sseStorage = new SseStorage(this, appDatabase, keyStoreFacade);
+
+		sseStorage.migrateToDB();
 		alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, new Crypto(this),
 				new SystemAlarmFacade(this));
 		localNotificationsFacade = new LocalNotificationsFacade(this);
@@ -86,10 +89,10 @@ public final class PushNotificationService extends LifecycleJobService {
 			}
 		});
 
-		sseStorage.observiceUserInfo().observe(this, userInfos -> {
+		sseStorage.observeUsers().observe(this, userInfos -> {
 			Log.d(TAG, "sse storage updated " + userInfos.size());
 			Set<String> userIds = new HashSet<>();
-			for (UserInfo userInfo : userInfos) {
+			for (User userInfo : userInfos) {
 				userIds.add(userInfo.getUserId());
 			}
 			if (userIds.isEmpty()) {

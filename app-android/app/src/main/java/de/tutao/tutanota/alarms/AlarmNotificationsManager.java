@@ -44,13 +44,20 @@ public class AlarmNotificationsManager {
 			byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
 			if (sessionKey != null) {
 				this.schedule(alarmNotification, sessionKey);
+			} else {
+				Log.d(TAG, "Failed to resolve session key for saved alarm notification: " + alarmNotification);
 			}
 		}
 	}
 
 	public byte[] resolveSessionKey(AlarmNotification notification, PushKeyResolver pushKeyResolver) {
 		AlarmNotification.NotificationSessionKey notificationSessionKey = notification.getNotificationSessionKey();
+		if (notificationSessionKey == null) {
+			return null;
+		}
 		try {
+
+
 			byte[] pushIdentifierSessionKey = pushKeyResolver
 					.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
 			if (pushIdentifierSessionKey != null) {
