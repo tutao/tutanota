@@ -264,12 +264,17 @@ export class IPC {
 			}
 		})
 
-		this._conf.on(DesktopConfigKey.pushIdentifier, (value: ?SseInfo) => {
+		const sseValueListener = (value: ?SseInfo) => {
 			if (value && value.userIds.length === 0) {
 				console.log("invalidating alarms for window", id)
 				this.sendRequest(id, "invalidateAlarms", [])
+				    .catch((e) => {
+					    console.log("Could not invalidate alarms for window ", id, e)
+					    this._conf.removeListener(DesktopConfigKey.pushIdentifier, sseValueListener)
+				    })
 			}
-		}, true)
+		}
+		this._conf.on(DesktopConfigKey.pushIdentifier, sseValueListener, true)
 	}
 
 	removeWindow(id: number) {
