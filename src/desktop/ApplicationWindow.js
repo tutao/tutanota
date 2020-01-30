@@ -1,5 +1,5 @@
 // @flow
-import type {ElectronPermission} from 'electron'
+import type {ElectronPermission, FindInPageResult} from 'electron'
 import {BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
@@ -230,20 +230,24 @@ export class ApplicationWindow {
 		return url
 	}
 
-	findInPage(args: Array<any>): Promise<{currentMatch: number, numberOfMatches: number}> {
+	findInPage(args: Array<any>): Promise<FindInPageResult> {
 		if (args[0] !== '') {
 			this._browserWindow.webContents.findInPage(args[0], args[1])
 			return new Promise((resolve) => {
-				this._browserWindow.webContents.once('found-in-page', (ev: Event, res: {activeMatchOrdinal: number, matches: number}) => {
-					resolve({
-						currentMatch: res.activeMatchOrdinal - 1,
-						numberOfMatches: res.matches - 1
-					})
+				this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
+					res.activeMatchOrdinal -= 1
+					res.matches -= 1
+					resolve(res)
 				})
 			})
 		} else {
 			this.stopFindInPage()
-			return Promise.resolve({currentMatch: 0, numberOfMatches: 0})
+			return Promise.resolve({
+				activeMatchOrdinal: 0,
+				matches: 0,
+				selectionArea: {height: 0, width: 0, x: 0, y: 0},
+				finalUpdate: true
+			})
 		}
 	}
 

@@ -93,8 +93,15 @@ export class SearchInPageOverlay {
 				matchCase: this._matchCase
 			}
 		])).then(r => {
-			this._numberOfMatches = r.numberOfMatches
-			this._currentMatch = r.currentMatch
+			/* the search bar loses focus without any events when there
+			are no results except for the search bar itself. this enables
+			us to retain focus. */
+			if (r.matches === 0) {
+				this._domInput.blur()
+				this._domInput.focus()
+			}
+			this._numberOfMatches = r.matches
+			this._currentMatch = r.activeMatchOrdinal
 			m.redraw()
 		})
 	}

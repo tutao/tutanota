@@ -311,6 +311,14 @@ declare module 'electron' {
 		show(): void,
 	}
 
+	declare export type FindInPageResult = {
+		requestId: number,
+		activeMatchOrdinal: number,
+		matches: number,
+		selectionArea: Rectangle,
+		finalUpdate: boolean,
+	}
+
 	declare export type ElectronScreen = {
 		on(event: 'display-added' | 'display-removed', (ev: Event, display: Display) => void): void;
 		on(event: 'display-metrics-changed', (ev: Event, changedMetrics: Array<'bounds' | 'workArea' | 'scaleFactor' | 'rotation'>) => void): void;
