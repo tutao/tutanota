@@ -10,6 +10,13 @@ android {
 		versionCode 366070
 		versionName "3.66.7"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+
+		javaCompileOptions {
+			annotationProcessorOptions {
+				arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+			}
+		}
 	}
 	buildTypes {
 		debug {
