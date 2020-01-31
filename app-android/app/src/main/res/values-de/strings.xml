@@ -1,1 +1,5 @@
-<resources>    <string name="reminder_label">Erinnerung</string></resources>
+<resources>
+    <string name="reminder_label">Erinnerung</string>
+    <string name="pushNewMail_msg">Neue E-Mail eingegangen.</string>
+    <string name="notificationSync_msg">Synchronisiere Benachrichtigungen</string>
+</resources>

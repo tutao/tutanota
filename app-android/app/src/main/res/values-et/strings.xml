@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Meeldetuletus</string></resources>
+<resources>
+    <string name="reminder_label">Meeldetuletus</string>
+    <string name="pushNewMail_msg">Uus e-kiri saabunud.</string>
+</resources>

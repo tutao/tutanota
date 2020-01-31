@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2020-01-17T15:40:23Z",
+	"updated_at": "2020-01-31T09:06:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -659,6 +659,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß.",
 		"notificationsDisabled_label": "Deaktiviert",
 		"notificationSettings_action": "Benachrichtigungen",
+		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"no_label": "Nein",
 		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!",
@@ -912,6 +913,7 @@ module.exports = {
 		"sharedMailbox_label": "Geteilte Mailbox",
 		"shareWithEmailRecipient_label": "Freigeben für E-Mail-Empfänger",
 		"sharingBooking_label": "Freigeben-Funktion für {1} Benutzer",
+		"sharingDeletionWarning_msg": "Alle Freigaben von allen Benutzern werden automatisch gelöscht, wenn du die Freigeben-Funktion deaktivierst.",
 		"sharingFeatureNotOrderedAdmin_msg": "Zum Freigeben eines Kalenders muss die Freigeben-Funktion gebucht werden. Willst Du die Funktion jetzt buchen?",
 		"sharingFeatureNotOrderedUser_msg": "Zum Freigeben eines Kalenders muss die Freigeben-Funktion aktiv sein. Bitte wende Dich an Deinen Administrator.",
 		"sharingFeature_label": "Freigeben-Funktion",
@@ -1072,7 +1074,6 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"sharingDeletionWarning_msg": "Alle Freigaben von allen Benutzern werden automatisch gelöscht, wenn Du die Freigeben-Funktion deaktivierst."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

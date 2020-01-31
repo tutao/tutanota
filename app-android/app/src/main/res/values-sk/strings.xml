@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Pripomenutie</string></resources>
+<resources>
+    <string name="reminder_label">Pripomenutie</string>
+    <string name="pushNewMail_msg">Prišiel nový email.</string>
+</resources>

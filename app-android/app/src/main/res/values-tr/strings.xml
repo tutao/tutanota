@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">hatırlatıcı</string></resources>
+<resources>
+    <string name="reminder_label">hatırlatıcı</string>
+    <string name="pushNewMail_msg">Yeni e-posta alındı.</string>
+</resources>

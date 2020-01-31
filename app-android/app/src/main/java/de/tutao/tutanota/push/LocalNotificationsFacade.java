@@ -198,7 +198,7 @@ public final class LocalNotificationsFacade {
 	public void createNotificationChannels() {
 		NotificationChannel notificationsChannel = new NotificationChannel(
 				EMAIL_NOTIFICATION_CHANNEL_ID,
-				context.getString(R.string.notificationChannelEmail_label),
+				context.getString(R.string.notificationSync_msg),
 				NotificationManager.IMPORTANCE_DEFAULT);
 		notificationsChannel.setShowBadge(true);
 		Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

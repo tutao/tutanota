@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Podsjetnik</string></resources>
+<resources>
+    <string name="reminder_label">Podsjetnik</string>
+    <string name="pushNewMail_msg">Nova e-pošta je primljena</string>
+</resources>

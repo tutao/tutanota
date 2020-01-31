@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Påminnelse</string></resources>
+<resources>
+    <string name="reminder_label">Påminnelse</string>
+    <string name="pushNewMail_msg">Ny e-post mottatt.</string>
+</resources>

@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Připomenutí</string></resources>
+<resources>
+    <string name="reminder_label">Připomenutí</string>
+    <string name="pushNewMail_msg">Obdrželi jste nový e-mail.</string>
+</resources>

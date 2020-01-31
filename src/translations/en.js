@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-01-17T15:38:38Z",
+	"updated_at": "2020-01-31T09:04:53Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -655,6 +655,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large.",
 		"notificationsDisabled_label": "Disabled",
 		"notificationSettings_action": "Notifications",
+		"notificationSync_msg": "Synchronizing notifications",
 		"notSigned_msg": "Not signed.",
 		"no_label": "No",
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!",
@@ -908,6 +909,7 @@ module.exports = {
 		"sharedMailbox_label": "Shared mailbox",
 		"shareWithEmailRecipient_label": "Share with email recipient",
 		"sharingBooking_label": "Sharing feature for {1} users",
+		"sharingDeletionWarning_msg": "All shares of all users will be automatically deleted when you disable the sharing feature.",
 		"sharingFeatureNotOrderedAdmin_msg": "To share a calendar you have to order the sharing feature. Would you like to order it now?",
 		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator.",
 		"sharingFeature_label": "Sharing feature",
@@ -1068,7 +1070,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"sharingDeletionWarning_msg": "All shares of all users will be automatically deleted when you disable the sharing feature."
+		"yourMessage_label": "Your message"
 	}
 }

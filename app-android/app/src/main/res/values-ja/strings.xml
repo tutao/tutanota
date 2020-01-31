@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">リマインダー</string></resources>
+<resources>
+    <string name="reminder_label">リマインダー</string>
+    <string name="pushNewMail_msg">新しいメールが届いています。</string>
+</resources>

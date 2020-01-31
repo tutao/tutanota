@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-01-15T08:38:38Z",
+	"updated_at": "2020-01-19T20:54:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -578,6 +578,7 @@ module.exports = {
 		"more_label": "Mere",
 		"moveDown_action": "Flyt ned",
 		"moveToBottom_action": "Flyt til bunden",
+		"moveToInbox_action": "Flyt til indbakke",
 		"moveToTop_action": "Flyt til toppen",
 		"moveUp_action": "Flyt op",
 		"move_action": "Flyt",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2020-01-15T08:38:37Z",
+	"updated_at": "2020-01-23T05:27:08Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -201,7 +201,7 @@ module.exports = {
 		"contactFormSubmitConfirm_action": "Eu escrevi o endereço de email e minha senha!",
 		"contactFormSubmitConfirm_msg": "Seu pedido foi enviado com sucesso. Por favor, anote o seguinte endereço de email e sua senha para ler a resposta de seu pedido.",
 		"contactFormSubmitError_msg": "Desculpe, sua requisição não pôde ser completada. Por favor, tente novamente mais tarde.",
-		"contactForms_label": "Forms de contato",
+		"contactForms_label": "Formulários de contato",
 		"contactForm_label": "Formulário de contato",
 		"contactsUsageDescription_msg": "Encontrar email do destinatário nos contatos.",
 		"contacts_label": "Contatos",

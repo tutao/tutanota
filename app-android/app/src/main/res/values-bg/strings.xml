@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Напомняне</string></resources>
+<resources>
+    <string name="reminder_label">Напомняне</string>
+    <string name="pushNewMail_msg">Получено е ново електронно съобщение.</string>
+</resources>

@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Herinnering</string></resources>
+<resources>
+    <string name="reminder_label">Herinnering</string>
+    <string name="pushNewMail_msg">Nieuwe e-mail ontvangen</string>
+</resources>

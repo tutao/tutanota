@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Υπενθύμιση</string></resources>
+<resources>
+    <string name="reminder_label">Υπενθύμιση</string>
+    <string name="pushNewMail_msg">Έχετε νέο μήνυμα.</string>
+</resources>

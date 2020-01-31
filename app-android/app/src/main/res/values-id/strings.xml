@@ -1,1 +1,3 @@
-<resources></resources>
+<resources>
+    <string name="pushNewMail_msg">Surel baru diterima.</string>
+</resources>

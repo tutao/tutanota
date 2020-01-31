@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2020-01-15T08:38:38Z",
+	"updated_at": "2020-01-27T15:39:13Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Připojit se",
@@ -592,7 +592,7 @@ module.exports = {
 		"newPassword_label": "Nové heslo",
 		"nextSubscriptionPrice_msg": "Tato cena platí pro další předplatné po aktuálním období.",
 		"next_action": "Další",
-		"nickname_placeholder": "Přesdívka",
+		"nickname_placeholder": "Přezdívka",
 		"noAppAvailable_msg": "Pro tuto akci není nainstalována žádná aplikace.",
 		"noContacts_msg": "V tomto seznamu nejsou žádné kontakty.",
 		"noContact_msg": "Nebyl vybrán žádný kontakt.",

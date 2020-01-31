@@ -14,6 +14,7 @@ import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
+import {lang} from "../../misc/LanguageViewModel"
 
 export type SseInfo = {|
 	identifier: string,
@@ -264,8 +265,7 @@ export class DesktopSseClient {
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
 				                          console.log("MissedNotification is empty")
 			                          } else {
-				                          // TODO translate
-				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo("New message received", ni))
+				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo(lang.get("pushNewMail_msg"), ni))
 				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			                          }
 		                          })

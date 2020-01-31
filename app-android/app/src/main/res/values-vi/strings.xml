@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Nhắc nhở</string></resources>
+<resources>
+    <string name="reminder_label">Nhắc nhở</string>
+    <string name="pushNewMail_msg">Đã nhận được email mới.</string>
+</resources>

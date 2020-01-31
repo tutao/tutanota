@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2020-01-17T15:40:19Z",
+	"updated_at": "2020-01-31T09:06:07Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -662,6 +662,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß.",
 		"notificationsDisabled_label": "Deaktiviert",
 		"notificationSettings_action": "Benachrichtigungen",
+		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"no_label": "Nein",
 		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 100 Aliasse kostenfrei!",
@@ -914,6 +915,7 @@ module.exports = {
 		"sharedMailbox_label": "Geteilte Mailbox",
 		"shareWithEmailRecipient_label": "Freigeben für E-Mail-Empfänger",
 		"sharingBooking_label": "Freigeben-Funktion für {1} Benutzer",
+		"sharingDeletionWarning_msg": "Alle Freigaben von allen Benutzern werden automatisch gelöscht, wenn Sie die Freigeben-Funktion deaktivieren.",
 		"sharingFeatureNotOrderedAdmin_msg": "Zum Freigeben eines Kalenders muss die Freigeben-Funktion gebucht werden. Wollen Sie die Funktion jetzt buchen?",
 		"sharingFeatureNotOrderedUser_msg": "Zum Freigeben eines Kalenders muss die Freigeben-Funktion aktiv sein. Bitte wenden Sie sich an Ihren Administrator.",
 		"sharingFeature_label": "Freigeben-Funktion",

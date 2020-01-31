@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Recordatori</string></resources>
+<resources>
+    <string name="reminder_label">Recordatori</string>
+    <string name="pushNewMail_msg">Heu rebut un nou correu.</string>
+</resources>

@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Muistutus</string></resources>
+<resources>
+    <string name="reminder_label">Muistutus</string>
+    <string name="pushNewMail_msg">Uusi sähköposti vastaanotettu.</string>
+</resources>

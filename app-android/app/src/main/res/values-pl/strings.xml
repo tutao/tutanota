@@ -1,1 +1,4 @@
-<resources>    <string name="reminder_label">Przypomnienie</string></resources>
+<resources>
+    <string name="reminder_label">Przypomnienie</string>
+    <string name="pushNewMail_msg">Otrzymano nową wiadomość.</string>
+</resources>
