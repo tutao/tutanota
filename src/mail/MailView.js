@@ -110,7 +110,7 @@ export class MailView implements CurrentView {
 				               .map(mailGroupId => {
 						               let expander = this._mailboxExpanders[mailGroupId]
 						               return [
-							               m(".mr-negative-s.flex-space-between.plr-l", m(expander.expanderButton)),
+							               m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(expander.expanderButton)),
 							               m(neverNull(expander.expanderButton).panel)
 						               ]
 					               }

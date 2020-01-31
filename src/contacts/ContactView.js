@@ -73,7 +73,7 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
-						m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
+						m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(expander)),
 						m(expander.panel)
 					]
 				})
