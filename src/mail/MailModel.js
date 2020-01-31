@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {containsEventOfType, defer, identity, neverNull, noOp} from "../api/common/utils/Utils"
+import {containsEventOfType, neverNull, noOp} from "../api/common/utils/Utils"
 import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
@@ -121,18 +121,9 @@ export class MailModel {
 	}
 
 	getMailboxDetails(): Promise<Array<MailboxDetail>> {
-		if (this.mailboxDetails()) {
-			return Promise.resolve(this.mailboxDetails())
-		} else {
-			// Convert Stream to Promise: wait until the first value, resovle promise and unsubscribe from stream.
-			const deferred = defer()
-			const dependency = this.mailboxDetails.map(identity)
-			dependency.map((mailboxDetails) => {
-				deferred.resolve(mailboxDetails)
-				dependency.end(true)
-			})
-			return deferred.promise
-		}
+		return this.init().then(() => {
+			return this.mailboxDetails()
+		})
 	}
 
 	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail> {
