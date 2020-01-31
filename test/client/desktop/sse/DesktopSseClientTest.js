@@ -142,6 +142,12 @@ o.spec("DesktopSseClient Test", function () {
 		})
 	}
 
+	const lang = {
+		get: (key: string) => {
+			return key
+		}
+	}
+
 	const standardMocks = () => {
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
@@ -159,6 +165,7 @@ o.spec("DesktopSseClient Test", function () {
 			removePushIdentifierKeys: () => {}
 		}).set()
 		const timeoutMock = makeTimeoutMock()
+		const langMock = n.mock('__lang', lang).set()
 
 		return {
 			electronMock,
@@ -170,10 +177,11 @@ o.spec("DesktopSseClient Test", function () {
 			cryptoMock,
 			alarmStorageMock,
 			timeoutMock,
+			langMock
 		}
 	}
 
-	let electronMock, confMock, notifierMock, wmMock, netMock, alarmSchedulerMock, cryptoMock, alarmStorageMock, timeoutMock
+	let electronMock, confMock, notifierMock, wmMock, netMock, alarmSchedulerMock, cryptoMock, alarmStorageMock, timeoutMock, langMock
 
 	n.startGroup({
 		group: __filename,
@@ -216,20 +224,22 @@ o.spec("DesktopSseClient Test", function () {
 				alarmStorageMock,
 				cryptoMock,
 				alarmSchedulerMock,
-				timeoutMock
+				timeoutMock,
+				langMock
 			} = standardMocks())
 		}
 	})
 
 	o("construction", function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock)
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock,
+			langMock)
 
 		o(electronMock.app.on.callCount).equals(1)
 	})
 
 	o("start, connect, shutdown", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 
 		sse.start()
 		timeoutMock.next()
@@ -279,7 +289,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("reschedule on heartbeat timeout", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 		let res = new netMock.Response(200)
 		let oldTimeout
 		sse.start()
@@ -303,7 +313,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("403 response causes deletion of userids", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 		const res = new netMock.Response(403)
 		sse.start()
 		timeoutMock.next()
@@ -321,8 +331,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("invalid heartbeatTimeout from server is not saved", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock,
-			timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 		let res = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
@@ -343,7 +352,8 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("reschedule after receiving pushMessages", async function () {
 		const timeoutSpy: any = n.spyify(timeoutMock)
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock, timeoutSpy)
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmStorageMock, langMock, timeoutSpy)
 		let res = new netMock.Response(200)
 		sse.start()
 		o(timeoutSpy.callCount).equals(1)
@@ -361,7 +371,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("invalid pushMessages from server prevents reschedule", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 		let res = new netMock.Response(200)
 		let oldTimeout
 		sse.start()
@@ -397,7 +407,7 @@ o.spec("DesktopSseClient Test", function () {
 		const timeoutSpy = o.spy(timeoutMock)
 
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutSpy)
+			alarmStorageMock, langMock, timeoutSpy)
 		sse.start()
 		o(timeoutSpy.args[1]).equals(1000)
 		timeoutMock.next()
@@ -427,8 +437,8 @@ o.spec("DesktopSseClient Test", function () {
 				                  }
 			                  },
 		                  }).set()
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock,
-			timeoutMock)
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmStorageMock, langMock, timeoutMock)
 		const lastProcessedId = 'ab2c'
 		let sseConnectResponse = new netMock.Response(200)
 		sse.start()
@@ -467,7 +477,7 @@ o.spec("DesktopSseClient Test", function () {
 		await Promise.resolve()
 		o(confMock.setDesktopConfig.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
-		o(notifierMock.submitGroupedNotification.args[0]).equals("New message received")
+		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("me@here.com (2)")
 		o(notifierMock.submitGroupedNotification.args[2]).equals("someId")
 
@@ -476,7 +486,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("don't send notification for active window", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmSchedulerMock, timeoutMock)
+			alarmSchedulerMock, langMock, timeoutMock)
 		let res = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
@@ -506,7 +516,8 @@ o.spec("DesktopSseClient Test", function () {
 	})
 
 	o("download missed notification", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmStorageMock, timeoutMock)
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmStorageMock, langMock, timeoutMock)
 		let sseResponse = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
@@ -571,7 +582,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args.length).equals(4)
-		o(notifierMock.submitGroupedNotification.args[0]).equals("New message received")
+		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("id1@tuta.io (42)")
 		o(notifierMock.submitGroupedNotification.args[2]).equals("id1")
 		o(typeof notifierMock.submitGroupedNotification.args[3]).equals('function')
@@ -598,7 +609,8 @@ o.spec("DesktopSseClient Test", function () {
 	})
 
 	o("download nonexistent missed notification", async function () {
-		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock, alarmSchedulerMock, timeoutMock)
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmSchedulerMock, langMock, timeoutMock)
 		let res = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
@@ -621,7 +633,7 @@ o.spec("DesktopSseClient Test", function () {
 
 	o("error code on downloadMissedNotification ", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutMock)
+			alarmStorageMock, langMock, timeoutMock)
 		const sseResponse = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
@@ -667,7 +679,7 @@ o.spec("DesktopSseClient Test", function () {
 		                  }).set()
 		const timeoutSpy = o.spy(timeoutMock)
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
-			alarmStorageMock, timeoutSpy)
+			alarmStorageMock, langMock, timeoutSpy)
 		sse.start()
 		timeoutMock.next()
 		await Promise.resolve()

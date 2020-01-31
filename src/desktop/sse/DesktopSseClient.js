@@ -14,7 +14,7 @@ import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
-import {lang} from "../../misc/LanguageViewModel"
+import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 
 export type SseInfo = {|
 	identifier: string,
@@ -36,8 +36,10 @@ export class DesktopSseClient {
 	_alarmScheduler: DesktopAlarmScheduler;
 	_net: DesktopNetworkClient;
 	_alarmStorage: DesktopAlarmStorage
-
+	_delayHandler: typeof setTimeout
+	_lang: LanguageViewModelType
 	_crypto: DesktopCryptoFacade;
+
 	_connectedSseInfo: ?SseInfo;
 	_connection: ?ClientRequest;
 	_readTimeoutInSeconds: number;
@@ -48,11 +50,11 @@ export class DesktopSseClient {
 	// We use this promise for queueing processing of notifications. There could be a smarter queue which clears all downloads older than
 	// the response.
 	_handlingPushMessage: Promise<*>;
-	_delayHandler: typeof setTimeout
+
 
 	constructor(app: App, conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
 	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage,
-	            delayHandler: typeof setTimeout = setTimeout) {
+	            lang: LanguageViewModelType, delayHandler: typeof setTimeout = setTimeout) {
 		this._app = app
 		this._conf = conf
 		this._wm = wm
@@ -61,6 +63,7 @@ export class DesktopSseClient {
 		this._net = net
 		this._crypto = desktopCrypto
 		this._alarmStorage = alarmStorage
+		this._lang = lang
 		this._delayHandler = delayHandler
 
 
@@ -265,7 +268,7 @@ export class DesktopSseClient {
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
 				                          console.log("MissedNotification is empty")
 			                          } else {
-				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo(lang.get("pushNewMail_msg"), ni))
+				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni))
 				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			                          }
 		                          })

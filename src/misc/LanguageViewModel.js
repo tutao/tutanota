@@ -414,4 +414,5 @@ export function languageCodeToTag(code: string): string {
 
 export const assertTranslation: (id: string) => TranslationKey = downcast
 
+export type LanguageViewModelType = LanguageViewModel
 export const lang: LanguageViewModel = new LanguageViewModel()
