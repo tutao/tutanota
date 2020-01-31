@@ -16,9 +16,9 @@ const createMailEditor = (msg: Request) => {
 		return logins.waitForUserLogin()
 		             .then(() => Promise.join(
 			             mailToUrl ? [] : getFilesData(filesUris),
-			             mailModelModule.mailModel.init(),
-			             (files) => {
-				             const editor: MailEditor = new mailEditorModule.MailEditor(mailModelModule.mailModel.getUserMailboxDetails())
+			             mailModelModule.mailModel.getUserMailboxDetails(),
+			             (files, mailboxDetails) => {
+				             const editor: MailEditor = new mailEditorModule.MailEditor(mailboxDetails)
 				             let editorInit
 				             if (mailToUrl) {
 					             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
