@@ -6,7 +6,7 @@ declare type finder<T> = (T) => boolean
 
 declare function stringValidator(string): ?string;
 
-declare function validator(): ?string;
+declare function validator(): ?string | Promise<?string>;
 
 declare function progressUpdater(number): void;
 

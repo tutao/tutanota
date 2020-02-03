@@ -21,6 +21,7 @@ import {DialogHeaderBar} from "./DialogHeaderBar"
 import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
+import {showProgressDialog} from "./ProgressDialog"
 
 assertMainOrNode()
 
@@ -432,10 +433,10 @@ export class Dialog {
 		type?: DialogTypeEnum,
 	|}): Dialog {
 		let dialog: Dialog
-		const {title, child, okAction, validator, allowCancel, allowOkWithReturn,okActionTextId, cancelActionTextId, cancelAction, type} =
+		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
 			Object.assign({}, {
 				allowCancel: true,
-				allowOkWithReturn: false,okActionTextId: "ok_action",
+				allowOkWithReturn: false, okActionTextId: "ok_action",
 				cancelActionTextId: "cancel_action",
 				type: DialogType.EditSmall
 			}, props)
@@ -451,14 +452,19 @@ export class Dialog {
 			if (!okAction) {
 				return
 			}
-			let error_id = null
+			let validationResult = null
 			if (validator) {
-				error_id = validator()
+				validationResult = validator()
 			}
-			if (error_id) {
-				Dialog.error(error_id)
-			} else {
-				okAction(dialog)
+			let finalizer = Promise.resolve(validationResult).then(error_id => {
+				if (error_id) {
+					Dialog.error(error_id)
+				} else {
+					okAction(dialog)
+				}
+			})
+			if (validationResult instanceof Promise) {
+				return showProgressDialog("pleaseWait_msg", finalizer)
 			}
 		}
 
