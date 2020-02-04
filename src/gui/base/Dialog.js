@@ -464,7 +464,7 @@ export class Dialog {
 				}
 			})
 			if (validationResult instanceof Promise) {
-				return showProgressDialog("pleaseWait_msg", finalizer)
+				showProgressDialog("pleaseWait_msg", finalizer)
 			}
 		}
 

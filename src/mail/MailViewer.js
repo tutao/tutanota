@@ -867,20 +867,22 @@ export class MailViewer {
 						}
 					}
 					let editor = new MailEditor(mailboxDetails)
-					return editor.initAsResponse({
-						previousMail: this.mail,
-						conversationType: ConversationType.REPLY,
-						senderMailAddress: this._getSenderOfResponseMail(),
-						toRecipients,
-						ccRecipients,
-						bccRecipients,
-						attachments: [],
-						subject,
-						bodyText: body,
-						replyTos: [],
-						addSignature: true,
-						inlineImages: this._inlineImages,
-						blockExternalContent: this._contentBlocked
+					return this._getSenderOfResponseMail().then((senderMailAddress) => {
+						return editor.initAsResponse({
+							previousMail: this.mail,
+							conversationType: ConversationType.REPLY,
+							senderMailAddress,
+							toRecipients,
+							ccRecipients,
+							bccRecipients,
+							attachments: [],
+							subject,
+							bodyText: body,
+							replyTos: [],
+							addSignature: true,
+							inlineImages: this._inlineImages,
+							blockExternalContent: this._contentBlocked
+						})
 					}).then(() => {
 						editor.show()
 					})
@@ -925,22 +927,24 @@ export class MailViewer {
 		let body = infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + this._getMailBody() + "</blockquote>";
 
 		return mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
-			let editor = new MailEditor(mailboxDetails)
-			return editor.initAsResponse({
-				previousMail: this.mail,
-				conversationType: ConversationType.FORWARD,
-				senderMailAddress: this._getSenderOfResponseMail(),
-				toRecipients: recipients,
-				ccRecipients: [],
-				bccRecipients: [],
-				attachments: this._attachments.slice(),
-				subject: "FWD: " + this.mail.subject,
-				bodyText: body,
-				replyTos,
-				addSignature,
-				inlineImages: replaceInlineImages ? this._inlineImages : null,
-				blockExternalContent: this._contentBlocked
-			}).then(() => editor)
+			return this._getSenderOfResponseMail().then((senderMailAddress) => {
+				let editor = new MailEditor(mailboxDetails)
+				return editor.initAsResponse({
+					previousMail: this.mail,
+					conversationType: ConversationType.FORWARD,
+					senderMailAddress,
+					toRecipients: recipients,
+					ccRecipients: [],
+					bccRecipients: [],
+					attachments: this._attachments.slice(),
+					subject: "FWD: " + this.mail.subject,
+					bodyText: body,
+					replyTos,
+					addSignature,
+					inlineImages: replaceInlineImages ? this._inlineImages : null,
+					blockExternalContent: this._contentBlocked
+				}).then(() => editor)
+			})
 		})
 	}
 
