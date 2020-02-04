@@ -5,12 +5,12 @@ import {isApp, isDesktop} from "../api/Env"
 import {NotificationIcon} from "./base/icons/Icons"
 
 function _showNotification(title: string, options: ?NotificationOptions, onclick: clickHandler): ?Notification {
-	if (Notification.permission === "granted") {
+	if (window.Notification.permission === "granted") {
 		try {
 			const actualOptions: NotificationOptions = Object.assign({}, {
 				icon: NotificationIcon
 			}, options)
-			const notification = new Notification(title, actualOptions)
+			const notification = new window.Notification(title, actualOptions)
 			notification.onclick = onclick
 			return notification
 		} catch (e) {
@@ -41,8 +41,8 @@ export class Notifications {
 			return
 		}
 		try {
-			if (Notification.permission !== "denied") {
-				Notification.requestPermission()
+			if (window.Notification.permission !== "denied") {
+				window.Notification.requestPermission()
 			}
 		} catch (e) {
 			console.log("request notification permission error", e)
