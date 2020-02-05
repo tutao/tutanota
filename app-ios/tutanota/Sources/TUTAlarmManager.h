@@ -19,6 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)scheduleAlarms:(TUTMissedNotification*)notificaiton completionsHandler:(void(^)(void))completionHandler;
 - (void)fetchMissedNotifications:(void(^)(NSError *))completionHandler;
 - (void)rescheduleEvents;
+- (BOOL)hasNotificationTTLExpired;
+- (void)resetStoredState;
 
 @end
 

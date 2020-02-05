@@ -78,4 +78,17 @@ static const NSString *const tag = @"de.tutao.tutanota.notificationkey.";
     return [keyTag dataUsingEncoding:NSUTF8StringEncoding];
 }
 
+- (void)removePushIdentifierKeys:(NSError **)error  {
+    NSDictionary* deleteQuery = @{
+                               (id)kSecClass:(id)kSecClassKey,
+                             };
+    
+    OSStatus status = SecItemDelete((__bridge CFDictionaryRef) deleteQuery);
+    if (status != errSecSuccess) {
+        let errorString = [NSString stringWithFormat:@"Could not delete the keys, status: %jd", (intmax_t) status];
+        *error = [TUTErrorFactory createError:errorString];
+        return;
+    }
+}
+
 @end

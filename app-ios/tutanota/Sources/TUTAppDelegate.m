@@ -25,12 +25,16 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     TUTLog(@"start tutanota %@", launchOptions);
+    
+    // Importatnt: init services before ViewController
+    _userPreferences = [TUTUserPreferenceFacade new];
+    _alarmManager = [[TUTAlarmManager alloc] initWithUserPreferences:_userPreferences];
+    
     // Override point for customization after application launch.
     _window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
     _viewController = [TUTViewController new];
     _window.rootViewController = _viewController;
-    _userPreferences = [TUTUserPreferenceFacade new];
-    _alarmManager = [[TUTAlarmManager alloc] initWithUserPreferences:_userPreferences];
+    
     UNUserNotificationCenter.currentNotificationCenter.delegate = self;
     
     [_window makeKeyAndVisible];

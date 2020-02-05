@@ -48,6 +48,7 @@ typedef void(^VoidCallback)(void);
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @property (readonly, nonnull) TUTKeychainManager *keychainManager;
+@property (readonlz, nonnull) TUTUserPreferenceFacade *userPreferences;
 @property BOOL darkTheme;
 @end
 
@@ -65,6 +66,7 @@ typedef void(^VoidCallback)(void);
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
         _keychainManager = [TUTKeychainManager new];
+        _userPreferences = self.appDelegate.userPreferences;
         _darkTheme = NO;
 	}
 	return self;
@@ -111,15 +113,21 @@ typedef void(^VoidCallback)(void);
 	[_webView.topAnchor constraintEqualToAnchor:self.view.topAnchor].active = YES;
 	[_webView.rightAnchor constraintEqualToAnchor:self.view.rightAnchor].active = YES;
 	[_webView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor].active = YES;
-	[self loadMainPageWithParams:nil];
-    [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
-        if (error) {
-            TUTLog(@"Failed to fetch/process missed notifications: %@", error);
-        } else {
-            TUTLog(@"Successfully processed missed notifications");
-        }
-    }];
-    [self.appDelegate.alarmManager rescheduleEvents];
+    
+    if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
+        [self.appDelegate.alarmManager resetStoredState];
+    } else {
+        [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
+            if (error) {
+                TUTLog(@"Failed to fetch/process missed notifications: %@", error);
+            } else {
+                TUTLog(@"Successfully processed missed notifications");
+            }
+        }];
+        [self.appDelegate.alarmManager rescheduleEvents];
+    }
+    
+    [self loadMainPageWithParams:nil];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -141,6 +149,14 @@ typedef void(^VoidCallback)(void);
 			callback();
 		}
 		[_requestsBeforeInit removeAllObjects];
+        let sseInfo = _userPreferences.sseInfo;
+        // TODO: Do we even need to observe sseInfo here if we only invalidate on startup?
+        if (sseInfo && sseInfo.userIds.count == 0) {
+            TUTLog(@"Sending alarm invalidation");
+            [self sendRequestWithType:@"invalidateAlarms" args:@[] completion:^(NSDictionary * _Nullable value) {
+                TUTLog(@"Alarm invalidation received");
+            }];
+        }
 	} else if ([@"rsaEncrypt" isEqualToString:type]) {
 		[_crypto rsaEncryptWithPublicKey:arguments[0] base64Data:arguments[1] base64Seed:arguments[2] completion:sendResponseBlock];
 	} else if ([@"rsaDecrypt" isEqualToString:type]) {

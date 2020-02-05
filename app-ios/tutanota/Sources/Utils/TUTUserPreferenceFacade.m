@@ -10,13 +10,25 @@
 
 #import "Swiftier.h"
 #import "PSPDFFastEnumeration.h"
+#import "TUTLog.h"
 
 NSString *const SSE_INFO_KEY = @"sseInfo";
-NSString *const REPEATING_ALARM_NOTIFICATION_KEY = @"repeatingAlarmNotification";
+NSString *const ALARMS_KEY = @"repeatingAlarmNotification";
+NSString *const LAST_PROCESSED_NOTIFICAION_ID_KEY = @"lastProcessedNotificationId";
+NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCheckTime";
 
 @implementation TUTUserPreferenceFacade
 
-- (TUTSseInfo * _Nullable)getSseInfo {
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [NSUserDefaults.standardUserDefaults addObserver:self forKeyPath:SSE_INFO_KEY options:0 context:nil];
+    }
+    return self;
+}
+
+- (TUTSseInfo *_Nullable)sseInfo {
     var dict = [NSUserDefaults.standardUserDefaults dictionaryForKey:SSE_INFO_KEY];
     if (!dict) {
         return nil;
@@ -24,8 +36,17 @@ NSString *const REPEATING_ALARM_NOTIFICATION_KEY = @"repeatingAlarmNotification"
     return [[TUTSseInfo alloc] initWithDict:dict];
 }
 
+- (void)clear {
+    TUTLog(@"UserPreference clear");
+    let sseInfo = self.sseInfo;
+    sseInfo.userIds = @[];
+    [self putSseInfo:sseInfo];
+    self.lastMissedNotificationCheckTime = nil;
+    // We want to keep the lastProcessedNotificationId to not request old notifications
+}
+
 - (void)storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin {
-    var sseInfo = self.getSseInfo;
+    var sseInfo = self.sseInfo;
     if (!sseInfo) {
         sseInfo = [TUTSseInfo new];
         sseInfo.pushIdentifier = pushIdentifier;
@@ -40,21 +61,25 @@ NSString *const REPEATING_ALARM_NOTIFICATION_KEY = @"repeatingAlarmNotification"
         }
         sseInfo.userIds = userIds;
     }
+    [self putSseInfo:sseInfo];
+}
+
+-(void)putSseInfo:(TUTSseInfo *)sseInfo {
     [NSUserDefaults.standardUserDefaults setObject:sseInfo.toDict forKey:SSE_INFO_KEY];
 }
 
--(void)storeRepeatingAlarmNotifications:(NSArray<TUTAlarmNotification *> *)alarmNotifications {
+-(void)storeAlarms:(NSArray<TUTAlarmNotification *> *)alarmNotifications {
     NSMutableArray<NSDictionary *> *notificationsJson = [NSMutableArray new];
     foreach(notification, alarmNotifications) {
         [notificationsJson addObject:notification.jsonDict];
     }
     let jsonData = [NSJSONSerialization dataWithJSONObject:notificationsJson options:0 error:nil];
-    [NSUserDefaults.standardUserDefaults setObject:jsonData forKey:REPEATING_ALARM_NOTIFICATION_KEY];
+    [NSUserDefaults.standardUserDefaults setObject:jsonData forKey:ALARMS_KEY];
 }
 
--(NSMutableArray<TUTAlarmNotification *> *)getRepeatingAlarmNotifications {
+-(NSMutableArray<TUTAlarmNotification *> *)alarms {
     let defaults = NSUserDefaults.standardUserDefaults;
-    NSData *notificationsJsonData = [defaults objectForKey:REPEATING_ALARM_NOTIFICATION_KEY];
+    NSData *notificationsJsonData = [defaults objectForKey:ALARMS_KEY];
     NSMutableArray<TUTAlarmNotification *> * notifications = [NSMutableArray new];
     if (notificationsJsonData) {
         NSMutableArray<NSDictionary *> *_Nullable notificationsJson = [NSJSONSerialization JSONObjectWithData:notificationsJsonData options:0 error:nil];
@@ -66,14 +91,34 @@ NSString *const REPEATING_ALARM_NOTIFICATION_KEY = @"repeatingAlarmNotification"
     return notifications;
 }
 
+-(NSString *)lastProcessedNotificationId {
+    return [NSUserDefaults.standardUserDefaults stringForKey:LAST_PROCESSED_NOTIFICAION_ID_KEY];
+}
+
 -(void)setLastProcessedNotificationId:(NSString *)lastProcessedNotificationId {
     return [NSUserDefaults.standardUserDefaults setValue:lastProcessedNotificationId
-                                                  forKey:@"lastProcessedNotificationId"
+                                                  forKey:LAST_PROCESSED_NOTIFICAION_ID_KEY
             ];
 }
 
--(NSString *)lastProcessedNotificationId {
-    return [NSUserDefaults.standardUserDefaults stringForKey:@"lastProcessedNotificationId"];
+-(NSDate *_Nullable)lastMissedNotificationCheckTime {
+    return [NSUserDefaults.standardUserDefaults objectForKey:LAST_MISSED_NOTIFICATION_CHECK_TIME];
+}
+
+- (void)setLastMissedNotificationCheckTime:(NSDate *_Nullable)lastMissedNotificationCheckTime {
+    [NSUserDefaults.standardUserDefaults setValue:lastMissedNotificationCheckTime forKey:LAST_MISSED_NOTIFICATION_CHECK_TIME];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:SSE_INFO_KEY] && _sseObserver) {
+        _sseObserver(self.sseInfo);
+    }
+}
+
+- (void)setSseObserver:(void (^)(TUTSseInfo * _Nonnull))sseObserver {
+    _sseObserver = sseObserver;
+    sseObserver(self.sseInfo);
 }
 
 @end

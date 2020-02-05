@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)storeKey:(NSData *)key  withId:(NSString *)keyId error:(NSError **)error;
 - ( NSData * _Nullable)getKeyWithError:(NSString *)keyId error:(NSError **)error;
+- (void)removePushIdentifierKeys:(NSError **)error;
 
 @end
 
