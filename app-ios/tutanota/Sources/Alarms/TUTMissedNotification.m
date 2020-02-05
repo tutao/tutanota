@@ -14,13 +14,11 @@
 
 @implementation TUTMissedNotification
 
-- (TUTMissedNotification *)initWithConfirmationId:(NSString *)confirmationId
-                               alarmNotifications:(NSArray<TUTAlarmNotification *> *)alarmNotifications
-                                       changeTime:(NSString *_Nullable)changeTime {
+- (TUTMissedNotification *)initWithalarmNotifications:(NSArray<TUTAlarmNotification *> *)alarmNotifications
+                          lastProcessedNotificationId:(NSString *)lastProcessedNotificationId {
     self = [super init];
-    _confirmationId = confirmationId;
     _alarmNotifications = alarmNotifications;
-    _changeTime = changeTime;
+    _lastProcessedNotificationId = lastProcessedNotificationId;
     return self;
 }
 
@@ -30,13 +28,9 @@
     foreach(notification, notificationsJson) {
         [notifications addObject:[TUTAlarmNotification fromJSON:notification]];
     }
-    NSString *changeTime;
-    if (![jsonDict[@"changeTime"] isKindOfClass:NSNull.class]) {
-        changeTime = jsonDict[@"changeTime"];
-    }
-    return [[TUTMissedNotification alloc] initWithConfirmationId:jsonDict[@"confirmationId"]
-                                              alarmNotifications:notifications
-                                                      changeTime:changeTime];
+    NSString *lastProcessedNotificationId = jsonDict[@"lastProcessedNotificationId"];
+    return [[TUTMissedNotification alloc] initWithalarmNotifications:notifications
+                                         lastProcessedNotificationId:lastProcessedNotificationId];
 }
 
 @end

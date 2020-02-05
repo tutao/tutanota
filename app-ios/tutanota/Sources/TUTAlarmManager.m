@@ -30,7 +30,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 @interface TUTAlarmManager ()
 @property (nonnull, readonly) TUTKeychainManager *keychainManager;
 @property (nonnull, readonly) TUTUserPreferenceFacade *userPreference;
-@property NSUInteger lastProcessedChangeTime;
 @end
 
 @implementation TUTAlarmManager
@@ -41,7 +40,6 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     if (self) {
         _keychainManager = [TUTKeychainManager new];
         _userPreference = userPref;
-        _lastProcessedChangeTime = 0;
     }
     return self;
 }
@@ -69,39 +67,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
     });
 }
 
-- (void)sendConfirmationForIdentifier:(NSString *)identifier
-                       confirmationId:(NSString *)confirmationId
-                           changeTime:(NSString *)changeTime
-                               origin:(NSString *)origin
-                    completionHandler:(void (^)(NSError *))completionHandler {
-    let configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
-    configuration.HTTPAdditionalHeaders = @{
-                                            @"confirmationId":confirmationId,
-                                            @"changeTime":changeTime
-                                            };
-    let session = [NSURLSession sessionWithConfiguration:configuration];
-    let urlString = [self missedNotificationUrl:origin pushIdentifier:identifier];
-    
-    let request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
-    request.HTTPMethod = @"DELETE";
-    
-    [[session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        if (error) {
-            TUTLog(@"Notification confirmation failed: %@", error);
-            completionHandler(error);
-            return;
-        }
-        let statusCode = ((NSHTTPURLResponse *) response).statusCode;
-        TUTLog(@"sent confirmation with status code %ld", statusCode);
-        if (statusCode == 200) {
-            completionHandler(nil);
-        } else {
-            completionHandler([NSError errorWithDomain:TUT_NETWORK_ERROR code:statusCode userInfo:@{@"message": @"Failed to send confirmation"}]);
-        }
-    }] resume];
-}
-
-- (void)fetchMissedNotifications:(NSString *)changeTime :(void(^)(NSError *error))completionHandler {
+- (void)fetchMissedNotifications:(void(^)(NSError *error))completionHandler {
     let sseInfo = self.userPreference.getSseInfo;
     if (!sseInfo){
         TUTLog(@"No stored SSE info");
@@ -109,16 +75,11 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
         return;
     }
     
-    if (changeTime && changeTime.integerValue <= self.lastProcessedChangeTime) {
-        TUTLog(@"Already processed notification with changeTime %@, ignoring", changeTime);
-        completionHandler(nil);
-        return;
+    NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
+    additionalHeaders[@"userIds"] = [sseInfo.userIds componentsJoinedByString:@","];
+    if (_userPreference.lastProcessedNotificationId) {
+        additionalHeaders[@"lastProcessedNotificationId"] = _userPreference.lastProcessedNotificationId;
     }
-    
-    let additionalHeaders = @{
-                              @"userIds": [sseInfo.userIds componentsJoinedByString:@","]
-                              };
-    
     let configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
     configuration.HTTPAdditionalHeaders = additionalHeaders;
     
@@ -143,28 +104,12 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
                 return;
             }
             let missedNotification = [TUTMissedNotification fromJSON:json];
+            self.userPreference.lastProcessedNotificationId =
+            missedNotification.lastProcessedNotificationId;
             
-            [self sendConfirmationForIdentifier:sseInfo.pushIdentifier
-                                 confirmationId:missedNotification.confirmationId
-                                     changeTime:missedNotification.changeTime
-                                         origin:sseInfo.sseOrigin
-                              completionHandler:^(NSError *error) {
-                                  if (error && error.domain == TUT_NETWORK_ERROR && error.code == 412) { // Precondition failed
-                                      [self fetchMissedNotifications:changeTime :completionHandler];
-                                  } else if (error) {
-                                      if (missedNotification.changeTime) {
-                                          self.lastProcessedChangeTime = changeTime.integerValue;
-                                      }
-                                      completionHandler(error);
-                                  } else {
-                                      if (missedNotification.changeTime) {
-                                          self.lastProcessedChangeTime = changeTime.integerValue;
-                                      }
-                                      [self scheduleAlarms:missedNotification completionsHandler:^{
-                                          completionHandler(nil);
-                                      }];
-                                  }
-                              }];
+            [self scheduleAlarms:missedNotification completionsHandler:^{
+                completionHandler(nil);
+            }];
         }
     }] resume];
 }
@@ -179,7 +124,7 @@ static const int EVENTS_SCHEDULED_AHEAD = 100;
 
 - (NSString *)missedNotificationUrl:(NSString *)origin pushIdentifier:(NSString *)pushIdentifier {
     let base64urlId = [self stringToCustomId:pushIdentifier];
-    return [NSString stringWithFormat:@"%@/rest/sys/missednotification/A/%@", origin, base64urlId];
+    return [NSString stringWithFormat:@"%@/rest/sys/missednotification/%@", origin, base64urlId];
 }
 
 - (void) scheduleLocalAlarm:(TUTAlarmNotification*)alarmNotification handler:(nullable void(^)(NSError *__nullable error))completionHandler {

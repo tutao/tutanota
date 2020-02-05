@@ -66,5 +66,14 @@ NSString *const REPEATING_ALARM_NOTIFICATION_KEY = @"repeatingAlarmNotification"
     return notifications;
 }
 
+-(void)setLastProcessedNotificationId:(NSString *)lastProcessedNotificationId {
+    return [NSUserDefaults.standardUserDefaults setValue:lastProcessedNotificationId
+                                                  forKey:@"lastProcessedNotificationId"
+            ];
+}
+
+-(NSString *)lastProcessedNotificationId {
+    return [NSUserDefaults.standardUserDefaults stringForKey:@"lastProcessedNotificationId"];
+}
 
 @end

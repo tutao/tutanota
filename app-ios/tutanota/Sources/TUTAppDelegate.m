@@ -94,8 +94,7 @@
     TUTLog(@"receive notification: %@ \n alarmInfos: \n %@", userInfo, (NSArray *) apsDict[@"alarmInfos"]);
     
     if (apsDict[@"content-available"]) {
-        NSString *changeTime = apsDict[@"changeTime"];
-        [_alarmManager fetchMissedNotifications:changeTime :^(NSError *error) {
+        [_alarmManager fetchMissedNotifications:^(NSError *error) {
             completionHandler(error ? UIBackgroundFetchResultFailed : UIBackgroundFetchResultNewData);
         }];
     }
