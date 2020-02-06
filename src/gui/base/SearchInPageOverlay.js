@@ -24,6 +24,7 @@ export class SearchInPageOverlay {
 	_matchCase = false;
 	_numberOfMatches: number = 0;
 	_currentMatch: number = 0;
+	_skipNextBlur = false;
 
 	constructor() {
 		this._closeFunction = null
@@ -66,14 +67,22 @@ export class SearchInPageOverlay {
 	}
 
 	_inputField = (): VirtualElement | null => {
-		return m("input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper", {
+		return m("input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper", {
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.focus()
 				},
-				oninput: e => this._find(true).then(() => this._domInput.focus()),
-				onchange: e => this._domInput.focus(),
+				onblur: e => {
+					if (this._skipNextBlur) {
+						this._skipNextBlur = false
+						this._domInput.focus()
+					} else {
+						nativeApp.invokeNative(new Request("setSearchOverlayState", [false, false]))
+					}
+				},
+				onfocus: e => nativeApp.invokeNative(new Request("setSearchOverlayState", [true, false])),
+				oninput: e => this._find(true, false),
 				style: {
 					width: px(250),
 					top: 0,
@@ -85,25 +94,29 @@ export class SearchInPageOverlay {
 		)
 	}
 
-	_find = (forward: boolean) => {
+	_find = (forward: boolean, findNext: boolean) => {
 		console.log("finding next", this._domInput.value)
+		this._skipNextBlur = true
 		return nativeApp.invokeNative(new Request("findInPage", [
 			this._domInput.value, {
-				forward: forward,
-				matchCase: this._matchCase
+				forward,
+				matchCase: this._matchCase,
+				findNext,
 			}
-		])).then(r => {
+		])).then(r => this.applyNextResult(r.activeMatchOrdinal, r.matches))
+	}
+
+	applyNextResult(activeMatchOrdinal: number, matches: number): void {
+		if (matches === 1) {
 			/* the search bar loses focus without any events when there
-			are no results except for the search bar itself. this enables
-			us to retain focus. */
-			if (r.matches === 0) {
-				this._domInput.blur()
-				this._domInput.focus()
-			}
-			this._numberOfMatches = r.matches
-			this._currentMatch = r.activeMatchOrdinal
-			m.redraw()
-		})
+			*  are no results except for the search bar itself. this enables
+			*  us to retain focus. */
+			this._domInput.blur()
+			this._domInput.focus()
+		}
+		this._numberOfMatches = matches - 1
+		this._currentMatch = activeMatchOrdinal - 1
+		m.redraw()
 	}
 
 	_getComponent(): VirtualElement {
@@ -115,7 +128,7 @@ export class SearchInPageOverlay {
 			isSelected: () => this._matchCase,
 			click: () => {
 				this._matchCase = !this._matchCase
-				this._find(true)
+				this._find(true, false)
 			},
 		}
 
@@ -124,7 +137,7 @@ export class SearchInPageOverlay {
 			icon: () => Icons.ArrowForward,
 			type: ButtonType.Action,
 			noBubble: true,
-			click: () => this._find(true),
+			click: () => this._find(true, true),
 		}
 
 		let backwardButtonAttrs = {
@@ -132,7 +145,7 @@ export class SearchInPageOverlay {
 			icon: () => Icons.ArrowBackward,
 			type: ButtonType.Action,
 			noBubble: true,
-			click: () => this._find(false),
+			click: () => this._find(false, true),
 		}
 
 		let closeButtonAttrs = {

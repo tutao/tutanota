@@ -117,6 +117,7 @@ o.spec("IPC tests", () => {
 
 	const utils = {
 		noOp: () => {},
+		downcast: a => a,
 		defer: defer,
 	}
 
@@ -135,6 +136,7 @@ o.spec("IPC tests", () => {
 			},
 			show: () => {
 			},
+			setSearchOverlayState: () => {},
 			setUserInfo: () => {
 			},
 			isHidden: () => false
@@ -252,7 +254,7 @@ o.spec("IPC tests", () => {
 		}, 10)
 	})
 
-	o("findInPage & stopFindInPage", done => {
+	o("findInPage, setSearchOverlayState & stopFindInPage", done => {
 		const {electronMock} = setUpWithWindowAndInit()
 
 		electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
@@ -273,15 +275,35 @@ o.spec("IPC tests", () => {
 			})
 
 			electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
-				type: "stopFindInPage",
+				type: "setSearchOverlayState",
 				id: "id3",
-				args: []
+				args: [true, false]
 			}))
 
 		}, 10)
 
 		setTimeout(() => {
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
+			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
+				id: 'id3',
+				type: 'response',
+				value: undefined
+			})
+			o(windowMock.setSearchOverlayState.callCount).equals(1)
+			o(windowMock.setSearchOverlayState.args[0]).equals(true)
+			o(windowMock.setSearchOverlayState.args[1]).equals(false)
+
+			electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
+				type: "stopFindInPage",
+				id: "id4",
+				args: []
+			}))
+
+		}, 20)
+
+		setTimeout(() => {
+			o(windowMock.sendMessageToWebContents.callCount).equals(4)
 			o(windowMock.sendMessageToWebContents.args[0]).equals(42)
 			o(windowMock.stopFindInPage.callCount).equals(1)
 			o(windowMock.stopFindInPage.args[0]).equals(undefined)

@@ -98,6 +98,19 @@ window.addEventListener('mouseout', (e) => {
 	}
 })
 
+window.addEventListener('mouseup', e => {
+	/*
+	* we're catching enter key events on the main thread while the search overlay is open to enable
+	* next-result-via-enter behaviour.
+	*
+	* since losing focus on the overlay via issuing a search request seems to be indistinguishable
+	* from losing it via click/tab we need to check if anything else was clicked and tell the main thread to
+	* not search the next result for enter key events (otherwise we couldn't type newlines while the overlay is open)
+	*/
+	if (e.target.id === "search-overlay-input") return
+	window.tutao.nativeApp.invokeNative(new PreloadImports.Request("setSearchOverlayState", [false, true]))
+})
+
 // needed to help the MacOs client to distinguish between Cmd+Arrow to navigate the history
 // and Cmd+Arrow to navigate a text editor
 window.addEventListener('keydown', e => {

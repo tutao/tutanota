@@ -192,6 +192,7 @@ type NativeRequestType = 'init'
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
+	| 'setSearchOverlayState'
 
 
 type JsRequestType = 'createMailEditor'
@@ -205,11 +206,12 @@ type JsRequestType = 'createMailEditor'
 	| 'openCalendar'
 	| 'visibilityChange'
 	| 'invalidateAlarms'
+	| 'applySearchResultToOverlay'
 
 type WebContentsMessage
 	= 'setup-context-menu'
 	| 'open-context-menu'
-    | 'set-zoom-factor'
+	| 'set-zoom-factor'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>

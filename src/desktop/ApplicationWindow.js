@@ -23,6 +23,9 @@ export class ApplicationWindow {
 	_setBoundsTimeout: TimeoutID;
 	_preloadjs: string;
 	_desktophtml: string;
+	_findingInPage = false;
+	_skipNextSearchBarBlur = false;
+	_lastSearchRequest = null;
 	id: number;
 
 	constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
@@ -129,6 +132,17 @@ export class ApplicationWindow {
 				    this._browserWindow.loadURL(newURL)
 			    }
 		    })
+		    .on('before-input-event', (ev, input) => {
+			    const key = input.key
+			    if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && ["Enter", "Backspace"].includes(key)) {
+				    this._skipNextSearchBarBlur = true;
+				    const [searchTerm, options] = this._lastSearchRequest
+				    options.forward = key === "Enter"
+				    this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
+					    this._ipc.sendRequest(this.id, 'applySearchResultToOverlay', [res])
+				    }).findInPage(searchTerm, options)
+			    }
+		    })
 		    .on('context-menu', (e, params) => {
 			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
 		    })
@@ -231,18 +245,20 @@ export class ApplicationWindow {
 	}
 
 	findInPage(args: Array<any>): Promise<FindInPageResult> {
-		if (args[0] !== '') {
-			this._browserWindow.webContents.findInPage(args[0], args[1])
+		this._findingInPage = true
+		const [searchTerm, options] = args
+		if (searchTerm !== '') {
+			this._lastSearchRequest = [searchTerm, options]
+			this._browserWindow.webContents.findInPage(searchTerm, options)
 			return new Promise((resolve) => {
 				this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
-					res.activeMatchOrdinal -= 1
-					res.matches -= 1
 					resolve(res)
 				})
 			})
 		} else {
 			this.stopFindInPage()
 			return Promise.resolve({
+				requestId: -1,
 				activeMatchOrdinal: 0,
 				matches: 0,
 				selectionArea: {height: 0, width: 0, x: 0, y: 0},
@@ -252,7 +268,23 @@ export class ApplicationWindow {
 	}
 
 	stopFindInPage() {
+		this._findingInPage = false
+		this._lastSearchRequest = null
 		this._browserWindow.webContents.stopFindInPage('keepSelection')
+	}
+
+	/**
+	 * make it known to the window if the search overlay is focused.
+	 * used to check if enter events need to be caught to search the next result
+	 * @param state whether the search bar is focused right now
+	 * @param force ignores skipnextblur
+	 */
+	setSearchOverlayState(state: boolean, force: boolean) {
+		if (!force && !state && this._skipNextSearchBarBlur) {
+			this._skipNextSearchBarBlur = false;
+			return
+		}
+		this._findingInPage = state
 	}
 
 	_permissionRequestHandler(webContents: WebContents, permission: ElectronPermission, callback: (boolean) => void) {

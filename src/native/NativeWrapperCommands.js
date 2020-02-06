@@ -84,6 +84,14 @@ const openFindInPage = (): Promise<void> => {
 	})
 }
 
+const applySearchResultToOverlay = (result: any): Promise<void> => {
+	return _asyncImport('src/gui/base/SearchInPageOverlay.js').then(module => {
+		const {activeMatchOrdinal, matches} = result.args[0]
+		module.searchInPageOverlay.applyNextResult(activeMatchOrdinal, matches)
+		return Promise.resolve()
+	})
+}
+
 function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 	return Promise.all(filesUris.map(uri =>
 		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
@@ -156,5 +164,6 @@ export const desktopCommands = {
 	invalidateAlarms,
 	print,
 	openFindInPage,
-	reportError,
+	applySearchResultToOverlay,
+	reportError
 }

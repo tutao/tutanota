@@ -4,7 +4,7 @@ import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
@@ -92,6 +92,14 @@ export class IPC {
 						w.stopFindInPage()
 					}
 				}).catch(noOp)
+			case 'setSearchOverlayState':
+				const w = this._wm.get(windowId)
+				if (w) {
+					const state: boolean = downcast(args[0])
+					const force: boolean = downcast(args[1])
+					w.setSearchOverlayState(state, force)
+				}
+				return Promise.resolve()
 			case 'registerMailto':
 				return DesktopUtils.registerAsMailtoHandler(true)
 			case 'unregisterMailto':
