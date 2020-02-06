@@ -133,11 +133,10 @@ export class ApplicationWindow {
 			    }
 		    })
 		    .on('before-input-event', (ev, input) => {
-			    const key = input.key
-			    if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && ["Enter", "Backspace"].includes(key)) {
+			    if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && input.key === "Enter") {
 				    this._skipNextSearchBarBlur = true;
 				    const [searchTerm, options] = this._lastSearchRequest
-				    options.forward = key === "Enter"
+				    options.forward = true
 				    this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
 					    this._ipc.sendRequest(this.id, 'applySearchResultToOverlay', [res])
 				    }).findInPage(searchTerm, options)

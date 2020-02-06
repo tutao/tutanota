@@ -699,28 +699,19 @@ o.spec("ApplicationWindow Test", () => {
 		o(wcMock.findInPage.callCount).equals(2)
 		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options"})
 
-		// backspace key get caught
-		wcMock.callbacks['before-input-event']({}, {
-			type: 'keyDown',
-			key: 'Backspace',
-		})
-		o(wcMock.findInPage.callCount).equals(3)
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: false, also: "options"})
-
 		// don't react to key when search overlay is unfocused
 		w.setSearchOverlayState(false, true)
 		wcMock.callbacks['before-input-event']({}, {
 			type: 'keyDown',
 			key: 'Enter',
 		})
-		o(wcMock.findInPage.callCount).equals(3)
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: false, also: "options"})
+		o(wcMock.findInPage.callCount).equals(2)
 
 		// empty search term shouldn't be searched
 		w.findInPage(['', {findNext: false, forward: false, also: "options2"}])
-		o(wcMock.findInPage.callCount).equals(3)
+		o(wcMock.findInPage.callCount).equals(2)
 		o(wcMock.findInPage.args[0]).equals('searchTerm')
-		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: false, also: "options"})
+		o(wcMock.findInPage.args[1]).deepEquals({findNext: false, forward: true, also: "options"})
 		o(wcMock.stopFindInPage.callCount).equals(2)
 		o(wcMock.stopFindInPage.args[0]).equals('keepSelection')
 	})
