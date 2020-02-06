@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-01-22T00:32:04Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -655,6 +655,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "الگوی اطلاع رسان بیش از اندازه بزرگ است",
 		"notificationsDisabled_label": "غیرفعال‌شده",
 		"notificationSettings_action": "اعلان‌ها",
+		"notificationSync_msg": "هماهنگی اطلاعیه ها",
 		"notSigned_msg": "امضا نشده.",
 		"no_label": "نه",
 		"npoDiscount_msg": "پیشنهاد برای سازمان‌های ناسودبر (NPO): ٪۵۰ تخفیف کاربر برای اشتراک ویژه و ۱۰۰ نام مستعار به طور مجانی!",

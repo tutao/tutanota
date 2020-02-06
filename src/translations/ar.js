@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2020-01-23T02:49:35Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -661,6 +661,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "الإشعار نموذج الايميل كبير جداً.",
 		"notificationsDisabled_label": "معطل",
 		"notificationSettings_action": "الإشعارات",
+		"notificationSync_msg": "مزامنة الإشعارات",
 		"notSigned_msg": "غير مُوقّع",
 		"no_label": "لا",
 		"npoDiscount_msg": "عرض لـ NPOs: خصم 50٪ على بريميوم و 100 اسم مستعار مجاني!",

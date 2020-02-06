@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2020-01-15T08:38:37Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Моля приемете политиката за поверителност като изберете отметката.",

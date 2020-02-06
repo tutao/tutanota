@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2020-01-21T18:35:30Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -655,6 +655,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "La plantilla de correu de notificació és massa gran.",
 		"notificationsDisabled_label": "Deshabilitat",
 		"notificationSettings_action": "Notificacions",
+		"notificationSync_msg": "Sincronitzar notificacions",
 		"notSigned_msg": "No signat",
 		"no_label": "No",
 		"npoDiscount_msg": "Oferta per a ONGs: 50% descompte per usuaris Premium i 100 àlies gratuïts!",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2020-01-15T08:38:37Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Aksepter invitasjon",

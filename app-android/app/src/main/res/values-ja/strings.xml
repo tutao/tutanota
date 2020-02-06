@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">リマインダー</string>
     <string name="pushNewMail_msg">新しいメールが届いています。</string>
+    <string name="notificationSync_msg">通知を同期する</string>
 </resources>

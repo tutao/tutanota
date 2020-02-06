@@ -1,4 +1,4 @@
 <resources>
     <string name="reminder_label">स्मरण-पत्र</string>
-    <string name="pushNewMail_msg">नया संदेश प्राप्त हुआ !</string>
+    <string name="pushNewMail_msg">नया संदेश प्राप्त हुआ ! </string>
 </resources>

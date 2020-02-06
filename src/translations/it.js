@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2020-01-29T08:57:11Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -659,6 +659,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Il template della mail di notifica è troppo grande.",
 		"notificationsDisabled_label": "Disabilitato",
 		"notificationSettings_action": "Notifiche",
+		"notificationSync_msg": "Sincronizzazione delle notifiche",
 		"notSigned_msg": "Non firmato.",
 		"no_label": "No",
 		"npoDiscount_msg": "Offerta per le organizzazioni no-profit: 50% di sconto per l'utente Premium e 100 alias gratuiti!",

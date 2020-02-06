@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2020-01-21T20:26:11Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -657,6 +657,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Шаблон повідомлення електронної пошти занадто великий.",
 		"notificationsDisabled_label": "Вимкнуто",
 		"notificationSettings_action": "Сповіщення",
+		"notificationSync_msg": "Синхронізація сповіщень",
 		"notSigned_msg": "Не підписано.",
 		"no_label": "Ні",
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 100 aliases free of charge!\n\nПропозицiя для NPO: 50% знижка на Premium та 100 псевдонiмiв безкоштовно!",

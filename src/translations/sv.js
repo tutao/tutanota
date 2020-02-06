@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-01-22T12:47:38Z",
+	"updated_at": "2020-02-06T08:37:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -655,6 +655,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Mallen för aviseringsmeddelandet är för lång.",
 		"notificationsDisabled_label": "Inaktiverad",
 		"notificationSettings_action": "Aviseringar",
+		"notificationSync_msg": "Synkroniseringsnotiser",
 		"notSigned_msg": "Inte signerad.",
 		"no_label": "Nej",
 		"npoDiscount_msg": "Erbjudande för Ideella Organisationer: 50% rabatt för Premium och 100 alias utan kostnad!",

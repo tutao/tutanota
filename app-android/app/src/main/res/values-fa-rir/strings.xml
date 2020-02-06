@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">یادآور</string>
     <string name="pushNewMail_msg">ایمیل جدیدی رسید.</string>
+    <string name="notificationSync_msg">هماهنگی اطلاعیه ها</string>
 </resources>

@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Promemoria</string>
     <string name="pushNewMail_msg">Nuova email ricevuta.</string>
+    <string name="notificationSync_msg">Sincronizzazione delle notifiche</string>
 </resources>

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-01-31T09:04:53Z",
+	"updated_at": "2020-02-06T08:37:38Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -786,7 +786,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit special offer: 5 months discount for first year!",
 		"pushIdentifierCurrentDevice_label": "This device",
-		"pushIdentifierInfoMessage_msg": "List of all recipients receiving notifications for the current Tutanota user. You can delete an entry if you do not wish to receive notifications anymore.",
+		"pushIdentifierInfoMessage_msg": "List of all recipients receiving notifications for this user. You can deactivate entries if you do not wish to receive notifications or delete them for devices you don't use anymore.",
 		"pushNewMailReceivedBody_msg": "You have received a new email for your mailbox {emailAddress} at {domainName}.",
 		"pushNewMail_msg": "New email received.",
 		"pwChangeValid_msg": "Password was changed.",

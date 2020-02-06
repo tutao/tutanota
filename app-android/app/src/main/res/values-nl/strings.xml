@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Herinnering</string>
     <string name="pushNewMail_msg">Nieuwe e-mail ontvangen</string>
+    <string name="notificationSync_msg">Meldingen synchroniseren</string>
 </resources>

@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Нагадування</string>
     <string name="pushNewMail_msg">Отримано нове повідомлення.</string>
+    <string name="notificationSync_msg">Синхронізація сповіщень</string>
 </resources>

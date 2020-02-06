@@ -4,6 +4,7 @@ NSMicrophoneUsageDescription = "Thêm ảnh từ thư viện của bạn vào ph
 NSMicrophoneUsageDescription = "Được sử dụng khi quay video làm phần đính kèm.";
 NSContactsUsageDescription = "Tìm địa chỉ email người nhận trong danh bạ";
 NSRemindersUsageDescription = "Hiển thị thông báo khi email mới đến.";
+TutaoShowCameraAction = "Máy ảnh";
 TutaoChoosePhotosAction = "Hình";
 TutaoNoPermissionTitle = "Không có quyền";
 TutaoCancelAction = "Huỷ";

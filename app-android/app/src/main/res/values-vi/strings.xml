@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Nhắc nhở</string>
     <string name="pushNewMail_msg">Đã nhận được email mới.</string>
+    <string name="notificationSync_msg">Đang đồng bộ thông báo</string>
 </resources>
