@@ -301,32 +301,7 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.V,
 				exec: () => {
-					const selectedMails = this.mailList.list.getSelectedEntities()
-					mailModel.getMailboxFolders(selectedMails[0]).then((folders) => {
-						let dropdown = new DropdownN(() => {
-							const mailList = getListId(selectedMails[0])
-							if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
-								return []
-							}
-
-							const filteredFolders = folders.filter(f => f.mails !== mailList)
-							const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
-							return targetFolders.map(f => ({
-								label: () => getFolderName(f),
-								click: () => mailModel.moveMails(selectedMails, f),
-								icon: getFolderIcon(f),
-								type: ButtonType.Dropdown,
-							}))
-
-						}, 300)
-						if (this.mailViewer) {
-							const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
-							const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
-							dropdown.setOrigin(origin)
-							modal.displayUnique(dropdown)
-						}
-					})
-					return false
+					return this._moveMails()
 				},
 				help: "move_action"
 			},
@@ -421,6 +396,38 @@ export class MailView implements CurrentView {
 			keyManager.unregisterShortcuts(shortcuts)
 			this._countersStream.end(true)
 		}
+	}
+
+	_moveMails() {
+		const selectedMails = this.mailList.list.getSelectedEntities()
+		if (selectedMails.length === 0) {
+			return false
+		}
+		mailModel.getMailboxFolders(selectedMails[0]).then((folders) => {
+			let dropdown = new DropdownN(() => {
+				const mailList = getListId(selectedMails[0])
+				if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
+					return []
+				}
+
+				const filteredFolders = folders.filter(f => f.mails !== mailList)
+				const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
+				return targetFolders.map(f => ({
+					label: () => getFolderName(f),
+					click: () => mailModel.moveMails(selectedMails, f),
+					icon: getFolderIcon(f),
+					type: ButtonType.Dropdown,
+				}))
+
+			}, 300)
+			if (this.mailViewer) {
+				const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
+				const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
+				dropdown.setOrigin(origin)
+				modal.displayUnique(dropdown)
+			}
+		})
+		return false
 	}
 
 	switchToFolder(folderType: MailFolderTypeEnum) {
