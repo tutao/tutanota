@@ -21,6 +21,7 @@ import {getMailBodyText, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
+import type {PosRect} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -30,13 +31,18 @@ assertMainOrNode()
 export class MultiMailViewer {
 	view: Function;
 	_mailView: MailView
+	_domMailViewer: ?HTMLElement;
 
 	constructor(mailView: MailView) {
 		this._mailView = mailView
 		const actions = this.createActionBar(true)
 		this.view = () => {
 			return [
-				m(".fill-absolute.mt-xs.plr-l",
+				m(".fill-absolute.mt-xs.plr-l", {
+					oncreate: (vnode) => {
+						this._domMailViewer = vnode.dom
+					},
+					},
 					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0)
 						? [
 							m(".button-height"), // just for the margin
@@ -52,6 +58,10 @@ export class MultiMailViewer {
 						}))
 			]
 		}
+	}
+
+	getBounds(): ?PosRect {
+		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
 	}
 
 	_exportAll(mails: Mail[]): Promise<void> {

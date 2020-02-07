@@ -93,6 +93,7 @@ import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "./MailView"
+import type {PosRect} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -437,6 +438,10 @@ export class MailViewer {
 
 		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
+	}
+
+	getBounds(): ?PosRect {
+		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
 	}
 
 	_createAssignActionButton(mail: Mail): Button {

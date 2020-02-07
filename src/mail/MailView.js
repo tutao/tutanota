@@ -420,8 +420,9 @@ export class MailView implements CurrentView {
 				}))
 
 			}, 300)
-			if (this.mailViewer) {
-				const mailViewerOrigin = neverNull(this.mailViewer._domMailViewer).getBoundingClientRect()
+			const viewer = this.mailViewer || this._multiMailViewer
+			const mailViewerOrigin = viewer && viewer.getBounds()
+			if (mailViewerOrigin) {
 				const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
 				dropdown.setOrigin(origin)
 				modal.displayUnique(dropdown)
