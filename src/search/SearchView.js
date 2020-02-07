@@ -73,8 +73,8 @@ export class SearchView implements CurrentView {
 	_time: TextField;
 	_endDate: ?Date; // null = today
 	_startDate: ?Date; // null = current mail index date. this allows us to start the search (and the url) without end date set
-	_mailFolderSelection: DropDownSelector<?string>;
-	_mailFieldSelection: DropDownSelector<?string>;
+	_mailFolderSelection: ?DropDownSelector<?string>;
+	_mailFieldSelection: ?DropDownSelector<?string>;
 
 	_doNotUpdateQuery: boolean;
 
@@ -128,7 +128,7 @@ export class SearchView implements CurrentView {
 		this._mailFieldSelection.selectedValue.map(newValue => {
 			if (logins.getUserController().isFreeAccount()) {
 				if (newValue != null) {
-					this._mailFieldSelection.selectedValue(null)
+					neverNull(this._mailFieldSelection).selectedValue(null)
 					showNotAvailableForFreeDialog(true)
 				}
 			} else {
@@ -162,7 +162,7 @@ export class SearchView implements CurrentView {
 			this._mailFolderSelection.selectedValue.map(newValue => {
 				if (logins.getUserController().isFreeAccount()) {
 					if (newValue != null) {
-						this._mailFolderSelection.selectedValue(null)
+						neverNull(this._mailFolderSelection).selectedValue(null)
 						showNotAvailableForFreeDialog(true)
 					}
 				} else {
@@ -215,8 +215,8 @@ export class SearchView implements CurrentView {
 								]),
 								m(".plr-l.mt-negative-s", [
 									m(this._getUpdatedTimeField()),
-									m(this._mailFieldSelection),
-									m(this._mailFolderSelection),
+									this._mailFieldSelection ? m(this._mailFieldSelection) : null,
+									this._mailFolderSelection ? m(this._mailFolderSelection) : null,
 								])
 							])
 							: null
@@ -358,8 +358,8 @@ export class SearchView implements CurrentView {
 			searchCategory,
 			(this._endDate) ? getEndOfDay(this._endDate).getTime() : null,
 			(this._startDate) ? getStartOfDay(this._startDate).getTime() : null,
-			this._mailFieldSelection.selectedValue(),
-			this._mailFolderSelection.selectedValue()
+			this._mailFieldSelection && this._mailFieldSelection.selectedValue(),
+			this._mailFolderSelection && this._mailFolderSelection.selectedValue()
 		)
 		return getSearchUrl(locator.search.lastQuery(), restriction, selectedId)
 	}
@@ -494,8 +494,8 @@ export class SearchView implements CurrentView {
 			this._doNotUpdateQuery = true
 			this._endDate = restriction.start ? new Date(restriction.start) : null
 			this._startDate = restriction.end ? new Date(restriction.end) : null
-			this._mailFolderSelection.selectedValue(restriction.listId)
-			this._mailFieldSelection.selectedValue(restriction.field)
+			this._mailFolderSelection && this._mailFolderSelection.selectedValue(restriction.listId)
+			this._mailFieldSelection && this._mailFieldSelection.selectedValue(restriction.field)
 			this._doNotUpdateQuery = false
 		}
 
