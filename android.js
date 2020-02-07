@@ -18,7 +18,7 @@ options
 	.parse(process.argv)
 options.host = options.args[0] || 'prod'
 
-const BUILD_TOOLS_V = "27.0.3"
+const BUILD_TOOLS_V = "28.0.3"
 const log = (...messages) => console.log("\nBUILD: ", ...messages, "\n")
 
 log(`Starting build with buildtype: ${options.buildtype}, webclient: ${options.webclient}, host: ${options.host}`)
