@@ -90,12 +90,18 @@ public class TutanotaNotificationsHandler {
 				Log.w(TAG, e);
 				localNotificationsFacade.showErrorNotification();
 				return null;
+			} catch (ServerResponseException e) {
+				triesLeft--;
+				Log.w(TAG, e);
+			} catch (HttpException e) { // other HTTP exceptions, client ones
+				Log.w(TAG, e);
+				return null;
 			}
 		}
 		return null;
 	}
 
-	private MissedNotification executeMissedNotificationDownload(@NonNull SseInfo sseInfo) throws IllegalArgumentException, IOException {
+	private MissedNotification executeMissedNotificationDownload(@NonNull SseInfo sseInfo) throws IllegalArgumentException, IOException, HttpException {
 		try {
 			URL url = makeAlarmNotificationUrl(sseInfo);
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -108,6 +114,17 @@ public class TutanotaNotificationsHandler {
 			String lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId();
 			if (lastProcessedNotificationId != null) {
 				urlConnection.setRequestProperty("lastProcessedNotificationId", lastProcessedNotificationId);
+			}
+
+			int responseCode = urlConnection.getResponseCode();
+			Log.d(TAG, "MissedNotification response code " + responseCode);
+
+			if (responseCode == 404) {
+				throw new FileNotFoundException("Missed notification not found: " + 404);
+			} else if (400 <= responseCode && responseCode < 500) {
+				throw new ClientRequestException(responseCode);
+			} else if (500 <= responseCode && responseCode <= 600) {
+				throw new ServerResponseException(responseCode);
 			}
 
 			try (InputStream inputStream = urlConnection.getInputStream()) {
@@ -149,5 +166,25 @@ public class TutanotaNotificationsHandler {
 	public void onNotAuthorized() {
 		alarmNotificationsManager.unscheduleAlarms(null);
 		sseStorage.clear();
+	}
+
+	static class ClientRequestException extends HttpException {
+		ClientRequestException(int code) {
+			super(code);
+		}
+	}
+
+	static class ServerResponseException extends HttpException {
+		ServerResponseException(int code) {
+			super(code);
+		}
+	}
+
+	static class HttpException extends Exception {
+		final int code;
+
+		HttpException(int code) {
+			this.code = code;
+		}
 	}
 }
