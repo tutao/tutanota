@@ -35,7 +35,7 @@ import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundErr
 import {assertMainOrNode, isApp, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {debounce, downcast, neverNull} from "../api/common/utils/Utils"
 import {
 	createNewContact,
 	createRecipientInfo,
@@ -132,6 +132,8 @@ export class MailEditor {
 	_objectURLs: Array<string>;
 	_blockExternalContent: boolean;
 	_mentionedInlineImages: Array<string>
+	/** HTML elements which correspond to inline images. We need them to check that they are removed/remove them later */
+	_inlineImageElements: Array<HTMLElement>
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -154,6 +156,7 @@ export class MailEditor {
 		this._objectURLs = []
 		this._blockExternalContent = true
 		this._mentionedInlineImages = []
+		this._inlineImageElements = []
 
 		let props = logins.getUserController().props
 
@@ -587,21 +590,7 @@ export class MailEditor {
 				this._editor.setHTML(this._tempBody)
 				this._mailChanged = false
 				// Add mutation observer to remove attachments when corresponding DOM element is removed
-				new MutationObserver((mutationList) => {
-					mutationList.forEach((mutation) => {
-						for (let i = 0; i < mutation.removedNodes.length; i++) {// use for loop here because forEach is not defined on NodeList in IE11
-							const removedNode = mutation.removedNodes[i]
-							if (removedNode instanceof Image && removedNode.getAttribute("cid") != null) {
-								const cid = removedNode.getAttribute("cid")
-								const index = this._attachments.findIndex((attach) => attach.cid === cid)
-								if (index !== -1) {
-									this._attachments.splice(index, 1)
-									m.redraw()
-								}
-							}
-						}
-					})
-				}).observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
+				this._observeEditorMutations()
 			}
 			this._tempBody = null
 		})
@@ -628,7 +617,7 @@ export class MailEditor {
 					m.redraw()
 				})
 				this._editor.initialized.promise.then(() => {
-					replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages, (file, event, dom) => {
+					this._inlineImageElements = replaceCidsWithInlineImages(this._editor.getDOM(), loadedInlineImages, (file, event, dom) => {
 						createDropdown(() => [
 							{
 								label: "download_action",
@@ -730,6 +719,10 @@ export class MailEditor {
 					type: ButtonType.Secondary,
 					click: () => {
 						remove(this._attachments, file)
+						if (file.cid) {
+							const imageElement = this._inlineImageElements.find((e) => e.getAttribute("cid") === file.cid)
+							imageElement && imageElement.remove()
+						}
 						this._mailChanged = true
 						m.redraw()
 					}
@@ -756,7 +749,7 @@ export class MailEditor {
 				    const blob = new Blob([dataFile.data], {type: f.mimeType})
 				    let objectUrl = URL.createObjectURL(blob)
 				    this._objectURLs.push(objectUrl)
-				    this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'})
+				    this._inlineImageElements.push(this._editor.insertImage(objectUrl, {cid, style: 'max-width: 100%'}))
 			    })
 		    })
 	}
@@ -1142,6 +1135,35 @@ export class MailEditor {
 			}, m(DropDownSelectorN, languageDropDownAttrs))
 			: null
 		)
+	}
+
+	_cleanupInlineAttachments = debounce(50, () => {
+		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
+		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
+		// and check each descendant and if it's an image with CID or not.
+		// It's easier and faster to just go over each inline image that we know about. It's more bookkeeping but it's easier
+		// code which touches less dome.
+		//
+		// Alternative would be observe the parent of each inline image but that's more complexity and we need to take care of
+		// new (just inserted) inline images and also assign listener there.
+		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
+		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
+		// means removal + insertion.
+		this._inlineImageElements.forEach((inlineImage) => {
+			if (this._domElement && !this._domElement.contains(inlineImage)) {
+				const cid = inlineImage.getAttribute("cid")
+				const attachmentIndex = this._attachments.findIndex((a) => a.cid === cid)
+				if (attachmentIndex !== -1) {
+					this._attachments.splice(attachmentIndex, 1)
+					m.redraw()
+				}
+			}
+		})
+	})
+
+	_observeEditorMutations() {
+		new MutationObserver(this._cleanupInlineAttachments)
+			.observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
 	}
 
 	static writeSupportMail() {

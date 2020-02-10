@@ -471,14 +471,16 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 
 
 export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: InlineImages,
-                                            onContext: (TutanotaFile, Event, HTMLElement) => mixed) {
+                                            onContext: (TutanotaFile, Event, HTMLElement) => mixed): Array<HTMLElement> {
 	// all image tags which have cid attribute. The cid attribute has been set by the sanitizer for adding a default image.
 	const imageElements: Array<HTMLElement> = Array.from(dom.querySelectorAll("img[cid]"))
+	const elementsWithCid = []
 	imageElements.forEach((imageElement) => {
 		const cid = imageElement.getAttribute("cid")
 		if (cid) {
 			const inlineImage = inlineImages[cid]
 			if (inlineImage) {
+				elementsWithCid.push(imageElement)
 				imageElement.setAttribute("src", inlineImages[cid].url)
 				imageElement.classList.remove("tutanota-placeholder")
 
@@ -501,7 +503,7 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 						}
 					})
 
-					imageElement.addEventListener("touchend", (e: TouchEvent) => {
+					imageElement.addEventListener("touchend", () => {
 						timeoutId && clearTimeout(timeoutId)
 					})
 				}
@@ -515,6 +517,7 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 			}
 		}
 	})
+	return elementsWithCid
 }
 
 export function replaceInlineImagesWithCids(dom: HTMLElement): HTMLElement {
