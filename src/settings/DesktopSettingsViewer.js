@@ -33,6 +33,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_runAsTrayApp: Stream<?boolean>;
 	_runOnStartup: Stream<?boolean>;
 	_isIntegrated: Stream<?boolean>;
+	_isAutoUpdateEnabled: Stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -40,6 +41,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
 		this._isIntegrated = stream(false)
+		this._isAutoUpdateEnabled = stream(false)
 		this._requestDesktopConfig()
 	}
 
@@ -110,6 +112,19 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
+		const setAutoUpdateAttrs: DropDownSelectorAttrs<boolean> = {
+			label: "autoUpdate_label",
+			items: [
+				{name: lang.get("activated_label"), value: true},
+				{name: lang.get("deactivated_label"), value: false}
+			],
+			selectedValue: this._isAutoUpdateEnabled,
+			selectionChangedHandler: v => {
+				this._isAutoUpdateEnabled(v)
+				this.setBooleanSetting('enableAutoUpdate', v)
+			}
+		}
+
 		const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown({
 			label: "edit_action",
 			type: ButtonType.Action,
@@ -143,6 +158,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
 				env.platformId === 'linux' ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
+				m(DropDownSelectorN, setAutoUpdateAttrs)
 			])
 		]
 	}
@@ -175,6 +191,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
 			         this._runOnStartup(desktopConfig.runOnStartup)
 			         this._isIntegrated(desktopConfig.isIntegrated)
+			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
 			         m.redraw()
 		         })
 	}

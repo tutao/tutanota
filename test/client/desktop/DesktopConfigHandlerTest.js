@@ -237,7 +237,7 @@ o.spec('desktop config handler test', function () {
 		const anyListener = o.spy(v => {})
 
 		conf.on("defaultDownloadPath", downloadPathListener)
-		conf.on("heartBeatTimeoutInSeconds", heartbeatListener)
+		conf.on("heartbeatTimeoutInSeconds", heartbeatListener)
 		conf.on("any", anyListener)
 
 		conf.setDesktopConfig("defaultDownloadPath", "/mock-downloads/").then(() => {
@@ -255,6 +255,17 @@ o.spec('desktop config handler test', function () {
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
 			})
+		}).then(() => conf.setDesktopConfig("any", {
+				"heartbeatTimeoutInSeconds": 42,
+				"defaultDownloadPath": "/mock-downloads/",
+				"enableAutoUpdate": true,
+				"runAsTrayApp": true,
+			})
+		).then(() => {
+			o(anyListener.callCount).equals(2)
+			o(heartbeatListener.callCount).equals(1)
+			o(heartbeatListener.args[0]).equals(42)
+			o(downloadPathListener.callCount).equals(1)
 			done()
 		})
 	})

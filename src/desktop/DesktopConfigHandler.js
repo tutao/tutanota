@@ -3,6 +3,7 @@ import path from 'path'
 import {promisify} from 'util'
 import {app, dialog} from 'electron'
 import fs from 'fs-extra'
+import {getChangedProps} from "../api/common/utils/Utils"
 
 export const DesktopConfigKey = {
 	any: 'any',
@@ -95,13 +96,17 @@ export class DesktopConfigHandler {
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
 	setDesktopConfig(key: DesktopConfigKeyEnum, value: any): Promise<void> {
-		setImmediate(() => this._emit(key, value))
+		let oldVal
 		if (key !== 'any') {
+			oldVal = this._desktopConfig[key]
 			this._desktopConfig[key] = value
 		} else {
+			oldVal = this._desktopConfig
 			this._desktopConfig = value
 		}
-		return promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
+		return Promise.resolve()
+		              .then(() => this._notifyChangeListeners(key, value, oldVal))
+		              .then(() => promisify(fs.writeJson)(this._desktopConfigPath, this._desktopConfig, {spaces: 2}))
 	}
 
 	/**
@@ -140,11 +145,22 @@ export class DesktopConfigHandler {
 	}
 
 	// calls every callback for the given key, and every "any" callback
-	_emit(key: DesktopConfigKeyEnum, val: any) {
+	_notifyChangeListeners(key: DesktopConfigKeyEnum, value: any, oldValue: any) {
 		if (this._onValueSetListeners["any"]) {
 			this._onValueSetListeners["any"].forEach(cb => cb(this._desktopConfig))
 		}
-		if (key === "any" || !this._onValueSetListeners[key]) return
-		this._onValueSetListeners[key].forEach(cb => cb(val))
+		if (key === "any") {
+			// check if any props with listeners changed
+			getChangedProps(value, oldValue).forEach(p => {
+				if (p === 'any') return
+				if (this._onValueSetListeners[p]) {
+					this._onValueSetListeners[p]
+						.forEach(cb => cb(value[p]))
+				}
+			})
+		} else if (this._onValueSetListeners[key]) {
+			this._onValueSetListeners[key].forEach(cb => cb(value))
+		}
+
 	}
 }

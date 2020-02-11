@@ -284,3 +284,68 @@ export function errorToString(error: Error): string {
 export function objectEntries<A: (string | Symbol), B>(object: {[A]: B}): Array<[A, B]> {
 	return downcast(Object.entries(object))
 }
+
+/**
+ * modified deepEquals from ospec is only needed as long as we use custom classes (TypeRef) and Date is not properly handled
+ */
+export function deepEqual(a: any, b: any): boolean {
+	if (a === b) return true
+	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
+	if (typeof a === "object" && typeof b === "object") {
+		const aIsArgs = isArguments(a), bIsArgs = isArguments(b)
+		if (a.length === b.length && (a instanceof Array && b instanceof Array || aIsArgs && bIsArgs)) {
+			const aKeys = Object.getOwnPropertyNames(a), bKeys = Object.getOwnPropertyNames(b)
+			if (aKeys.length !== bKeys.length) return false
+			for (let i = 0; i < aKeys.length; i++) {
+				if (!hasOwn.call(b, aKeys[i]) || !deepEqual(a[aKeys[i]], b[aKeys[i]])) return false
+			}
+			return true
+		}
+		if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+		if (a instanceof Object && b instanceof Object && !aIsArgs && !bIsArgs) {
+			for (let i in a) {
+				if ((!(i in b)) || !deepEqual(a[i], b[i])) return false
+			}
+			for (let i in b) {
+				if (!(i in a)) return false
+			}
+			return true
+		}
+		if (typeof Buffer === "function" && a instanceof Buffer && b instanceof Buffer) {
+			for (let i = 0; i < a.length; i++) {
+				if (a[i] !== b[i]) return false
+			}
+			return true
+		}
+		if (a.valueOf() === b.valueOf()) return true
+	}
+	return false
+}
+
+function xor(a, b): boolean {
+	const aBool = !!a
+	const bBool = !!b
+	return (aBool && !bBool) || (bBool && !aBool)
+}
+
+function isArguments(a) {
+	if ("callee" in a) {
+		for (let i in a) if (i === "callee") return false
+		return true
+	}
+}
+
+const hasOwn = ({}).hasOwnProperty
+
+/**
+ * returns an array of top-level properties that are in both objA and objB, but differ in value
+ * does not handle functions or circular references
+ * treats undefined and null as equal
+ */
+export function getChangedProps(objA: any, objB: any): Array<string> {
+	if (objA == null || objB == null || objA === objB) return []
+	return Object.keys(objA)
+	             .filter(k => Object.keys(objB).includes(k))
+	             .filter(k => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
+	             .filter(k => !deepEqual(objA[k], objB[k]))
+}
