@@ -24,6 +24,15 @@ export function startsWith(string: string, substring: string): boolean {
 }
 
 /**
+ * uppercase the first letter of a string, lowercase the rest
+ * @param str string to transform
+ * @returns {string} str in lowercase with first letter Capitalized
+ */
+export function capitalizeFirstLetter(str: string): string {
+	return str[0].toUpperCase() + str.toLowerCase().slice(1);
+}
+
+/**
  * Checks if a string ends with another string.
  * @param string The string to test.
  * @param substring If the other string ends with this one, we return true.

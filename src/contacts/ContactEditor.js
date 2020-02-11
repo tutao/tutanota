@@ -17,7 +17,7 @@ import {
 	getContactSocialTypeLabel,
 	migrateToNewBirthday
 } from "./ContactUtils"
-import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType} from "../api/common/TutanotaConstants"
+import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
 import {animations, DefaultAnimationTime, height, opacity} from "../gui/animation/Animations"
 import {setup, update} from "../api/main/Entity"
 import {ContactMailAddressTypeRef, createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
@@ -30,7 +30,6 @@ import {clone, identity, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
-import {Keys} from "../misc/KeyManager"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"

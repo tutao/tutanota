@@ -6,14 +6,14 @@ import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {
 	FeatureType,
-	FULL_INDEXED_TIMESTAMP,
+	FULL_INDEXED_TIMESTAMP, Keys,
 	MailFolderType,
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
 } from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
-import {keyManager, Keys} from "../misc/KeyManager"
+import {keyManager} from "../misc/KeyManager"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonColors, NavButtonN} from "../gui/base/NavButtonN"
 import {theme} from "../gui/theme"

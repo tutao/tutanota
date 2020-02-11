@@ -11,7 +11,7 @@ import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ConversationType,
-	FeatureType,
+	FeatureType, Keys,
 	MAX_ATTACHMENT_SIZE,
 	OperationType,
 	ReplyType
@@ -59,7 +59,6 @@ import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {isSameId} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
-import {Keys} from "../misc/KeyManager"
 import {fileApp} from "../native/FileApp"
 import {PermissionError} from "../api/common/error/PermissionError"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"

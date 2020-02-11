@@ -92,6 +92,13 @@ const applySearchResultToOverlay = (result: any): Promise<void> => {
 	})
 }
 
+const addShortcuts = (msg: any) => {
+	msg.args.forEach(a => a.exec = () => true)
+	return _asyncImport('src/misc/KeyManager.js').then(module => {
+		module.keyManager.registerDesktopShortcuts(msg.args)
+	})
+}
+
 function getFilesData(filesUris: string[]): Promise<Array<FileReference>> {
 	return Promise.all(filesUris.map(uri =>
 		Promise.join(getName(uri), getMimeType(uri), getSize(uri), (name, mimeType, size) => {
@@ -165,5 +172,6 @@ export const desktopCommands = {
 	print,
 	openFindInPage,
 	applySearchResultToOverlay,
-	reportError
+	reportError,
+	addShortcuts
 }

@@ -7,9 +7,9 @@ import {Dialog} from "../gui/base/Dialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import type {Theme} from "../gui/theme"
 import {defaultTheme, theme, updateCustomTheme} from "../gui/theme"
-import {Keys} from "../misc/KeyManager"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {update} from "../api/main/Entity"
+import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

@@ -5,13 +5,13 @@ import {animations, DefaultAnimationTime, height, width} from "./../animation/An
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
 import {Button} from "./Button"
-import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
 import {client} from "../../misc/ClientDetector"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {windowFacade} from "../../misc/WindowFacade"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 

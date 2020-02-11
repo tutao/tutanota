@@ -9,7 +9,6 @@ import {neverNull} from "../api/common/utils/Utils"
 import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {Dialog} from "../gui/base/Dialog"
 import {getLanguage, lang} from "../misc/LanguageViewModel"
-import {Keys} from "../misc/KeyManager"
 import {progressIcon} from "../gui/base/Icon"
 import {InfoView} from "../gui/base/InfoView"
 import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
@@ -18,6 +17,7 @@ import {renderPrivacyAndImprintLinks} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {header} from "../gui/base/Header"
 import {ButtonType} from "../gui/base/ButtonN"
+import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

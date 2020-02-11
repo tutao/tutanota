@@ -7,7 +7,7 @@ import {ease} from "../animation/Easing"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode} from "../../api/Env"
-import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import {neverNull} from "../../api/common/utils/Utils"
 import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
@@ -22,6 +22,7 @@ import type {TextFieldAttrs} from "./TextFieldN"
 import {TextFieldN, Type} from "./TextFieldN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
 import {showProgressDialog} from "./ProgressDialog"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
