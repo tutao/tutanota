@@ -18,7 +18,7 @@ import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	FeatureType,
-	InboxRuleType,
+	InboxRuleType, Keys,
 	MailFolderType,
 	MailState,
 	SpamRuleFieldType as SparmRuleType,
@@ -58,7 +58,7 @@ import {
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
-import {keyManager, Keys} from "../misc/KeyManager"
+import {keyManager} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"
 import * as AddSpamRuleDialog from "../settings/AddSpamRuleDialog"

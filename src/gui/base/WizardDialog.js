@@ -3,7 +3,6 @@ import m from "mithril"
 import {Dialog} from "./Dialog"
 import {assertMainOrNode} from "../../api/Env"
 import {windowFacade} from "../../misc/WindowFacade"
-import {Keys} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonType} from "./ButtonN"
 import {Icons} from "./icons/Icons"
@@ -11,6 +10,7 @@ import {Icon} from "./Icon"
 import {getContentButtonIconBackground, theme} from "../theme"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

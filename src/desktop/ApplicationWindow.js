@@ -7,6 +7,8 @@ import u2f from '../misc/u2f-api.js'
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
+import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
+import {Keys} from "../api/common/TutanotaConstants"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -161,20 +163,41 @@ export class ApplicationWindow {
 			this.sendMessageToWebContents('setup-context-menu', [])
 		})
 
-		localShortcut.register(this._browserWindow, 'CommandOrControl+F', () => this._openFindInPage())
-		localShortcut.register(this._browserWindow, 'CommandOrControl+P', () => this._printMail())
-		localShortcut.register(this._browserWindow, 'F12', () => this._toggleDevTools())
-		localShortcut.register(this._browserWindow, 'F5', () => this._browserWindow.loadURL(this._startFile))
-		localShortcut.register(this._browserWindow, 'CommandOrControl+N', () => wm.newWindow(true))
-		if (process.platform === "darwin") {
-			localShortcut.register(this._browserWindow, 'Command+Control+F', () => this._toggleFullScreen())
-		} else {
-			localShortcut.register(this._browserWindow, 'F11', () => this._toggleFullScreen())
-			localShortcut.register(this._browserWindow, 'Alt+Right', () => this._browserWindow.webContents.goForward())
-			localShortcut.register(this._browserWindow, 'Alt+Left', () => this._tryGoBack())
-			localShortcut.register(this._browserWindow, 'Control+H', () => wm.hide())
-		}
+		const isMac = process.platform === 'darwin';
 
+		this._addShortcuts([
+				{key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
+				{key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
+				{key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
+				{key: Keys.F5, exec: () => this._browserWindow.loadURL(this._startFile), help: "reloadPage_action"},
+				{key: Keys.N, meta: isMac, ctrl: !isMac, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
+			].concat(isMac
+			? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]
+			: [
+				{key: Keys.F11, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},
+				{key: Keys.RIGHT, alt: true, exec: () => this._browserWindow.webContents.goForward(), help: "pageForward_label"},
+				{key: Keys.LEFT, alt: true, exec: () => this._tryGoBack(), help: "pageBackward_label"},
+				{key: Keys.H, ctrl: true, exec: () => wm.hide(), help: "hideWindows_action"},
+			])
+		)
+	}
+
+	_addShortcuts(shortcuts: Shortcut[]): void {
+		shortcuts.forEach(s => {
+			// build the accelerator string localShortcut understands
+			let shortcutString = ""
+			shortcutString += s.meta ? "Command+" : ""
+			shortcutString += s.ctrl ? "Control+" : ""
+			shortcutString += s.alt ? "Alt+" : ""
+			shortcutString += s.shift ? "Shift+" : ""
+			shortcutString += capitalizeFirstLetter(Object.keys(Keys).filter(k => s.key === Keys[k])[0])
+			localShortcut.register(this._browserWindow, shortcutString, s.exec)
+			// delete exec since functions don't cross IPC anyway.
+			// it will be replaced by () => true in the renderer thread.
+			delete s.exec
+		})
+
+		this._ipc.sendRequest(this.id, 'addShortcuts', shortcuts).then()
 	}
 
 	_tryGoBack(): void {

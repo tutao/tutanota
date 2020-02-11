@@ -4,7 +4,7 @@ import {modal} from "./Modal"
 import {animations, height, width} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {px, size} from "../size"
-import {focusNext, focusPrevious, Keys} from "../../misc/KeyManager"
+import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import {client} from "../../misc/ClientDetector"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isVisible} from "./ButtonN"
@@ -15,6 +15,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream/stream.js"
 import {asyncImport} from "../../api/common/utils/Utils"
 import type {PosRect} from "./Dropdown"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 

@@ -1071,6 +1071,13 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
+		"searchPage_label": "Search page",
+		"toggleDevTools_action": "Toggle Console",
+		"reloadPage_action": "Reload Page",
+		"toggleFullScreen_action": "Toggle full screen",
+		"pageForward_label": "Page forward",
+		"pageBackward_label": "Page backward",
+		"hideWindows_action": "Hide windows",
 		"autoUpdate_label": "Automatic Application Updates"
 	}
 }

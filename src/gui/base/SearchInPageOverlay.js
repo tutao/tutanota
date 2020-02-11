@@ -4,13 +4,13 @@ import {logins} from '../../api/main/LoginController.js'
 import {displayOverlay} from './Overlay'
 import {px, size} from "../size"
 import {Icons} from "./icons/Icons"
-import {Keys} from "../../misc/KeyManager"
 import {assertMainOrNode} from "../../api/Env"
 import {Request} from "../../api/common/WorkerProtocol.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {transform} from "../animation/Animations"
 import {nativeApp} from "../../native/NativeWrapper.js"
 import {ButtonN, ButtonType} from "./ButtonN"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

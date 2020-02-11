@@ -9,6 +9,7 @@ import {client} from "./ClientDetector"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
+import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -60,51 +61,12 @@ export function focusNext(dom: HTMLElement) {
 	}
 }
 
-export const Keys = {
-	NONE: {code: -1, name: ""},
-	RETURN: {code: 13, name: "⏎"},
-	TAB: {code: 9, name: "↹"},
-	SHIFT: {code: 16, name: "⇧"},
-	CTRL: {code: 17, name: "CTRL"},
-	META: {code: 91, name: '\u2318'}, // command key (left) (OSX)
-	ESC: {code: 27, name: "ESC"},
-	UP: {code: 38, name: "↑"},
-	DOWN: {code: 40, name: "↓"},
-	PAGE_UP: {code: 33, name: "Page ↑"},
-	PAGE_DOWN: {code: 34, name: "Page ↓"},
-	HOME: {code: 36, name: "Home"},
-	END: {code: 35, name: "End"},
-	DELETE: {code: 46, name: "DEL"},
-	ONE: {code: 49, name: "1"},
-	TWO: {code: 50, name: "2"},
-	THREE: {code: 51, name: "3"},
-	FOUR: {code: 52, name: "4"},
-	FIVE: {code: 53, name: "5"},
-	SIX: {code: 54, name: "6"},
-	A: {code: 65, name: "A"},
-	B: {code: 66, name: "B"},
-	C: {code: 67, name: "C"},
-	E: {code: 69, name: "E"},
-	F: {code: 70, name: "F"},
-	H: {code: 72, name: "H"},
-	I: {code: 73, name: "I"},
-	J: {code: 74, name: "J"},
-	K: {code: 75, name: "K"},
-	L: {code: 76, name: "L"},
-	M: {code: 77, name: "M"},
-	N: {code: 78, name: "N"},
-	R: {code: 82, name: "R"},
-	S: {code: 83, name: "S"},
-	U: {code: 85, name: "U"},
-	V: {code: 86, name: "V"},
-	F1: {code: 112, name: "F1"},
-}
-
 class KeyManager {
 	_shortcuts: Shortcut[];
 	_keyToShortcut: {[id: string]: Shortcut};
 	_modalShortcuts: Shortcut[]; // override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 	_keyToModalShortcut: {[id: string]: Shortcut};
+	_desktopShortcuts: Shortcut[]
 	_helpDialog: ?any;
 
 	constructor() {
@@ -118,7 +80,7 @@ class KeyManager {
 							return
 						}
 						let shortcuts = ((this._modalShortcuts.length
-							> 1) ? this._modalShortcuts : this._shortcuts).slice() // we do not want to show a dialog with the shortcuts of the help dialog
+							> 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
 						let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
 						                          .map(shortcut => {
 							                          return new TextField(() => this._getShortcutName(shortcut))
@@ -146,6 +108,7 @@ class KeyManager {
 		this._modalShortcuts = [helpShortcut]
 		this._keyToShortcut = {}
 		this._keyToModalShortcut = {}
+		this._desktopShortcuts = []
 		this._keyToShortcut[helpId] = helpShortcut
 		this._keyToModalShortcut[helpId] = helpShortcut // override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 
@@ -173,8 +136,11 @@ class KeyManager {
 	}
 
 	_getShortcutName(shortcut: Shortcut): string {
-		return ((shortcut.meta) ? Keys.META.name + " + " : "") + ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
-			+ ((shortcut.shift) ? Keys.SHIFT.name + " + " : "") + shortcut.key.name
+		return ((shortcut.meta) ? Keys.META.name + " + " : "")
+			+ ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
+			+ ((shortcut.shift) ? Keys.SHIFT.name + " + " : "")
+			+ ((shortcut.alt) ? Keys.ALT.name + " + " : "")
+			+ shortcut.key.name
 	}
 
 	_createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): string {
@@ -204,6 +170,10 @@ class KeyManager {
 			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
 			this._keyToModalShortcut[id] = s
 		}
+	}
+
+	registerDesktopShortcuts(shortcuts: Shortcut[]) {
+		addAll(this._desktopShortcuts, shortcuts)
 	}
 
 	unregisterModalShortcuts(shortcuts: Shortcut[]) {

@@ -207,6 +207,7 @@ type JsRequestType = 'createMailEditor'
 	| 'visibilityChange'
 	| 'invalidateAlarms'
 	| 'applySearchResultToOverlay'
+	| 'addShortcuts'
 
 type WebContentsMessage
 	= 'setup-context-menu'

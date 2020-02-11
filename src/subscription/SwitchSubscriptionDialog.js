@@ -3,7 +3,6 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {Keys} from "../misc/KeyManager"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -12,7 +11,7 @@ import {
 	AccountType,
 	BookingItemFeatureByCode,
 	BookingItemFeatureType,
-	Const,
+	Const, Keys,
 	UnsubscribeFailureReason
 } from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
