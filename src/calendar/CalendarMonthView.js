@@ -15,7 +15,7 @@ import {
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
-	getEventStart,
+	getEventStart, getStartOfDayWithZone,
 	getStartOfTheWeekOffset,
 	getWeekNumber,
 	layOutEvents
@@ -92,7 +92,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_renderCalendar(attrs: CalendarMonthAttrs, date: Date): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
-		const today = getStartOfDay(new Date())
+		const today = getStartOfDayWithZone(new Date())
 		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
 			styles.isDesktopLayout() ?
 				m(".mt-s.pr-l.flex.row.items-center",

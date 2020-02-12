@@ -295,6 +295,30 @@ o.spec("CalendarModel", function () {
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
 
+		o("weekly all-day with DST in another time zone", function () {
+			// This test checks that when there is a daylight saving change in UTC-m time zone all-day events in UTC+n still work like they
+			// should
+			const zone = 'Asia/Krasnoyarsk'
+			const event = createEvent(getAllDayDateUTC(new Date(2020, 1, 12)), getAllDayDateUTC(new Date(2020, 1, 13)))
+			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)
+			event.repeatRule.timeZone = 'America/Los_angeles'
+			const month = getMonth(DateTime.fromObject({year: 2020, month: 3, day: 1, zone}).toJSDate(), zone)
+			addDaysForRecurringEvent(eventsForDays, event, month, zone)
+			DateTime.fromObject({year: 2020, month: 3, day: 4, zone})
+
+			const expectedForMarch = {
+				[DateTime.fromObject({year: 2020, month: 3, day: 4, zone}).toMillis()]:
+					[cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 4)), getAllDayDateUTC(new Date(2020, 2, 5)))],
+				[DateTime.fromObject({year: 2020, month: 3, day: 11, zone}).toMillis()]:
+					[cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 11)), getAllDayDateUTC(new Date(2020, 2, 12)))],
+				[DateTime.fromObject({year: 2020, month: 3, day: 18, zone}).toMillis()]:
+					[cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 18)), getAllDayDateUTC(new Date(2020, 2, 19)))],
+				[DateTime.fromObject({year: 2020, month: 3, day: 25, zone}).toMillis()]:
+					[cloneEventWithNewTime(event, getAllDayDateUTC(new Date(2020, 2, 25)), getAllDayDateUTC(new Date(2020, 2, 26)))],
+			}
+			o(Object.keys(mapToObject(eventsForDays))).deepEquals(Object.keys(expectedForMarch))
+		})
+
 		o("end count", function () {
 			const event = createEvent(new Date(2019, 5, 2, 10), new Date(2019, 5, 2, 12))
 			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1)

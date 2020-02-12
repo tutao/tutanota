@@ -36,7 +36,7 @@ export function eventStartsBefore(currentDate: Date, event: CalendarEvent): bool
 }
 
 export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): boolean {
-	return getEventEnd(event).getTime() > getStartOfNextDay(currentDate).getTime()
+	return getEventEnd(event).getTime() > getStartOfNextDayWithZone(currentDate).getTime()
 }
 
 export function generateUid(event: CalendarEvent, timestamp: number): string {
@@ -137,13 +137,23 @@ export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date 
 }
 
 
-export function getMonth(date: Date): CalendarMonthTimeRange {
-	const start = new Date(date)
-	start.setDate(1)
-	start.setHours(0, 0, 0, 0)
-	const end = new Date(start)
-	end.setMonth(start.getMonth() + 1)
+export function getMonth(date: Date, zone: string = getTimeZone()): CalendarMonthTimeRange {
+	const startDateTime = DateTime.fromJSDate(date, {zone})
+	                              .set({day: 1, hour: 0, minute: 0, second: 0, millisecond: 0})
+	const start = startDateTime.toJSDate()
+	const end = startDateTime.plus({month: 1}).toJSDate()
 	return {start, end}
+}
+
+/**
+ * Provides a date representing the beginning of the given date in local time.
+ */
+export function getStartOfDayWithZone(date: Date, zone: string = getTimeZone()): Date {
+	return DateTime.fromJSDate(date, {zone}).set({hour: 0, minute: 0, second: 0, millisecond: 0}).toJSDate()
+}
+
+export function getStartOfNextDayWithZone(date: Date, zone: string = getTimeZone()): Date {
+	return DateTime.fromJSDate(date, {zone}).set({hour: 0, minute: 0, second: 0, millisecond: 0}).plus({day: 1}).toJSDate()
 }
 
 export function getTimeZone(): string {
@@ -330,8 +340,8 @@ function getCalculationEvent(event: CalendarEvent, handleAsAllDay: boolean): Cal
 			calcDate.startTime = getAllDayDateForTimezone(event.startTime, timeZone)
 			calcDate.endTime = getAllDayDateForTimezone(event.endTime, timeZone)
 		} else {
-			calcDate.startTime = getStartOfDay(event.startTime)
-			calcDate.endTime = getStartOfNextDay(event.endTime)
+			calcDate.startTime = getStartOfDayWithZone(event.startTime)
+			calcDate.endTime = getStartOfNextDayWithZone(event.endTime)
 		}
 		return calcDate
 	} else {
@@ -437,20 +447,26 @@ export function getWeekNumber(startOfTheWeek: Date): number {
 }
 
 
-export function getEventEnd(event: CalendarEvent): Date {
+export function getEventEnd(event: CalendarEvent, timeZone: string = getTimeZone()): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateForTimezone(event.endTime, getTimeZone())
+		return getAllDayDateForTimezone(event.endTime, timeZone)
 	} else {
 		return event.endTime
 	}
 }
 
-export function getEventStart(event: CalendarEvent): Date {
+export function getEventStart(event: CalendarEvent, timeZone: string = getTimeZone()): Date {
 	if (isAllDayEvent(event)) {
-		return getAllDayDateForTimezone(event.startTime, getTimeZone())
+		return getAllDayDateForTimezone(event.startTime, timeZone)
 	} else {
 		return event.startTime
 	}
+}
+
+export function getAllDayDateUTCFromZone(date: Date, timeZone: string): Date {
+	return DateTime.fromJSDate(date, {zone: timeZone})
+	               .setZone('utc', {keepLocalTime: true})
+	               .toJSDate()
 }
 
 export function isLongEvent(event: CalendarEvent): boolean {

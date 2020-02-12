@@ -33,7 +33,7 @@ import {
 	getCalendarName,
 	getDiffInDays,
 	getEventEnd,
-	getEventStart,
+	getEventStart, getStartOfDayWithZone, getStartOfNextDayWithZone,
 	getStartOfTheWeekOffsetForUser,
 	hasCapabilityOnGroup,
 	parseTime,
@@ -81,7 +81,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const selectedCalendar = stream(calendarArray[0])
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true, readOnly)
-	startDatePicker.setDate(getStartOfDay(date))
+	startDatePicker.setDate(getStartOfDayWithZone(date))
 	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true, readOnly)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
@@ -145,7 +145,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (allDay()) {
 			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
 		} else {
-			endDatePicker.setDate(getStartOfDay(getEventEnd(existingEvent)))
+			endDatePicker.setDate(getStartOfDayWithZone(getEventEnd(existingEvent)))
 		}
 		endTime(timeString(getEventEnd(existingEvent), amPmFormat))
 		if (existingEvent.repeatRule) {
@@ -174,7 +174,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		endDatePicker.setDate(getStartOfDay(date))
+		endDatePicker.setDate(getStartOfDayWithZone(date))
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
@@ -268,7 +268,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 		if (allDay()) {
 			startDate = getAllDayDateUTC(startDate)
-			endDate = getAllDayDateUTC(getStartOfNextDay(endDate))
+			endDate = getAllDayDateUTC(getStartOfNextDayWithZone(endDate))
 		} else {
 			const parsedStartTime = parseTime(startTime())
 			const parsedEndTime = parseTime(endTime())
@@ -315,7 +315,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					repeatRule.endValue = String(count)
 				}
 			} else if (stopType === EndType.UntilDate) {
-				const repeatEndDate = getStartOfNextDay(neverNull(repeatEndDatePicker.date()))
+				const repeatEndDate = getStartOfNextDayWithZone(neverNull(repeatEndDatePicker.date()))
 				if (repeatEndDate.getTime() < getEventStart(newEvent)) {
 					Dialog.error("startAfterEnd_label")
 					return

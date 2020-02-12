@@ -2,11 +2,18 @@
 import m from "mithril"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
-import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
 import {lang} from "../misc/LanguageViewModel"
 import {formatDate, formatDateWithWeekday} from "../misc/Formatter"
-import {eventEndsAfterDay, eventStartsBefore, getEventColor, getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
+import {
+	eventEndsAfterDay,
+	eventStartsBefore,
+	getEventColor,
+	getEventText,
+	getStartOfDayWithZone,
+	hasAlarmsForTheUser
+} from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {px, size} from "../gui/size"
@@ -27,7 +34,7 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>) {
 		const now = new Date()
 
-		const today = getStartOfDay(now)
+		const today = getStartOfDayWithZone(now)
 		const tomorrow = incrementDate(new Date(today), 1)
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)

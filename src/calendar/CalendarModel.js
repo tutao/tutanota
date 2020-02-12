@@ -1,14 +1,22 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
-import {getAllDayDateForTimezone, getEventEnd, getEventStart, getTimeZone, isLongEvent, isSameEvent} from "./CalendarUtils"
-import {getStartOfDay, incrementDate, isToday} from "../api/common/utils/DateUtils"
+import {
+	getAllDayDateForTimezone,
+	getAllDayDateUTCFromZone,
+	getEventEnd,
+	getEventStart, getStartOfDayWithZone,
+	getTimeZone,
+	isLongEvent,
+	isSameEvent
+} from "./CalendarUtils"
+import {getStartOfDay, isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, EndType, FeatureType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import {getAllDayDateUTC, isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
+import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
@@ -32,10 +40,11 @@ function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
 	return l.startTime.getTime() - r.startTime.getTime()
 }
 
-export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
-	const eventStart = getEventStart(event)
-	const calculationDate = getStartOfDay(eventStart)
-	const eventEndDate = getEventEnd(event);
+export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                zone: string = getTimeZone()) {
+	const eventStart = getEventStart(event, zone)
+	let calculationDate = getStartOfDayWithZone(eventStart, zone)
+	const eventEndDate = getEventEnd(event, zone);
 
 	// only add events when the start time is inside this month
 	if (eventStart.getTime() < month.start.getTime() || eventStart.getTime() >= month.end.getTime()) {
@@ -47,7 +56,7 @@ export function addDaysForEvent(events: Map<number, Array<CalendarEvent>>, event
 		if (eventEndDate.getTime() >= month.start.getTime()) {
 			insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
 		}
-		incrementDate(calculationDate, 1)
+		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
 	}
 }
 
@@ -57,16 +66,16 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
-	const repeatTimeZone = getValidTimeZone(repeatRule.timeZone)
 	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
 	const isLong = isLongEvent(event)
-	let eventStartTime = new Date(getEventStart(event))
-	let eventEndTime = new Date(getEventEnd(event))
+	let eventStartTime = new Date(getEventStart(event, timeZone))
+	let eventEndTime = new Date(getEventEnd(event, timeZone))
 	// Loop by the frequency step
 	let repeatEndTime = null
 	let endOccurrences = null
 	const allDay = isAllDayEvent(event)
+	const repeatTimeZone = allDay ? timeZone : getValidTimeZone(repeatRule.timeZone)
 	if (repeatRule.endType === EndType.Count) {
 		endOccurrences = Number(repeatRule.endValue)
 	} else if (repeatRule.endType === EndType.UntilDate) {
@@ -86,16 +95,16 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 		if (calcEndTime.getTime() >= month.start.getTime()) {
 			const eventClone = clone(event)
 			if (allDay) {
-				eventClone.startTime = getAllDayDateUTC(calcStartTime)
-				eventClone.endTime = getAllDayDateUTC(calcEndTime)
+				eventClone.startTime = getAllDayDateUTCFromZone(calcStartTime, timeZone)
+				eventClone.endTime = getAllDayDateUTCFromZone(calcEndTime, timeZone)
 			} else {
 				eventClone.startTime = new Date(calcStartTime)
 				eventClone.endTime = new Date(calcEndTime)
 			}
 			if (isLong) {
-				addDaysForLongEvent(events, eventClone, month)
+				addDaysForLongEvent(events, eventClone, month, timeZone)
 			} else {
-				addDaysForEvent(events, eventClone, month)
+				addDaysForEvent(events, eventClone, month, timeZone)
 			}
 		}
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
@@ -104,18 +113,19 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	}
 }
 
-export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange) {
+export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, event: CalendarEvent, month: CalendarMonthTimeRange,
+                                    zone: string = getTimeZone()) {
 	// for long running events we create events for the month only
 
 	// first start of event is inside month
-	const eventStart = getEventStart(event).getTime()
-	const eventEnd = getEventEnd(event).getTime()
+	const eventStart = getEventStart(event, zone).getTime()
+	const eventEnd = getEventEnd(event, zone).getTime()
 
 	let calculationDate
 	let eventEndInMonth
 
 	if (eventStart >= month.start.getTime() && eventStart < month.end.getTime()) { // first: start of event is inside month
-		calculationDate = getStartOfDay(new Date(eventStart))
+		calculationDate = getStartOfDayWithZone(new Date(eventStart), zone)
 		//eventEndInMonth = new Date(eventStart)
 	} else if (eventStart < month.start.getTime()) { // start is before month
 		calculationDate = new Date(month.start)
@@ -131,9 +141,13 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 		return // end is before start of month
 	}
 
+	let iterations = 0
 	while (calculationDate.getTime() < eventEndInMonth) {
 		insertIntoSortedArray(event, getFromMap(events, calculationDate.getTime(), () => []), eventComparator, isSameEvent)
-		incrementDate(calculationDate, 1)
+		calculationDate = incrementByRepeatPeriod(calculationDate, RepeatPeriod.DAILY, 1, zone)
+		if (iterations++ > 10000) {
+			throw new Error("Run into the infinite loop, addDaysForLongEvent")
+		}
 	}
 }
 
