@@ -658,7 +658,7 @@ $__System.registerDynamic('11', ['25'], true, function ($__require, exports, mod
     return cof(arg) == 'Array';
   };
 });
-$__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', '54', '55', '3e', '47', '48', '4b', '11', '56', '3d', '20', '57', '1c', '58', '59', '5a', '1b', '4c', '5b', '4e', '4d', '4a', '5c'], true, function ($__require, exports, module) {
+$__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', '54', '55', '3e', '47', '48', '4b', '11', '56', '3d', '14', '20', '57', '1c', '58', '59', '5a', '4d', '1b', '4c', '5b', '4e', '4a', '5c'], true, function ($__require, exports, module) {
   'use strict';
   // ECMAScript 6 symbols shim
 
@@ -681,12 +681,14 @@ $__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', 
   var isArray = $__require('11');
   var anObject = $__require('56');
   var isObject = $__require('3d');
+  var toObject = $__require('14');
   var toIObject = $__require('20');
   var toPrimitive = $__require('57');
   var createDesc = $__require('1c');
   var _create = $__require('58');
   var gOPNExt = $__require('59');
   var $GOPD = $__require('5a');
+  var $GOPS = $__require('4d');
   var $DP = $__require('1b');
   var $keys = $__require('4c');
   var gOPD = $GOPD.f;
@@ -703,7 +705,7 @@ $__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', 
   var AllSymbols = shared('symbols');
   var OPSymbols = shared('op-symbols');
   var ObjectProto = Object[PROTOTYPE];
-  var USE_NATIVE = typeof $Symbol == 'function';
+  var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
   var QObject = global.QObject;
   // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
   var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -815,7 +817,7 @@ $__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', 
     $DP.f = $defineProperty;
     $__require('5b').f = gOPNExt.f = $getOwnPropertyNames;
     $__require('4e').f = $propertyIsEnumerable;
-    $__require('4d').f = $getOwnPropertySymbols;
+    $GOPS.f = $getOwnPropertySymbols;
 
     if (DESCRIPTORS && !$__require('4a')) {
       redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -865,6 +867,18 @@ $__System.registerDynamic('c', ['49', '4f', '50', '10', '51', '52', '1e', '53', 
     getOwnPropertyNames: $getOwnPropertyNames,
     // 19.1.2.8 Object.getOwnPropertySymbols(O)
     getOwnPropertySymbols: $getOwnPropertySymbols
+  });
+
+  // Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
+  // https://bugs.chromium.org/p/v8/issues/detail?id=3443
+  var FAILS_ON_PRIMITIVES = $fails(function () {
+    $GOPS.f(1);
+  });
+
+  $export($export.S + $export.F * FAILS_ON_PRIMITIVES, 'Object', {
+    getOwnPropertySymbols: function getOwnPropertySymbols(it) {
+      return $GOPS.f(toObject(it));
+    }
   });
 
   // 24.3.2 JSON.stringify(value [, replacer [, space]])
@@ -1097,12 +1111,13 @@ $__System.registerDynamic("4d", [], true, function ($__require, exports, module)
       GLOBAL = global;
   exports.f = Object.getOwnPropertySymbols;
 });
-$__System.registerDynamic('6f', ['4c', '4d', '4e', '14', '21', '1e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('6f', ['50', '4c', '4d', '4e', '14', '21', '1e'], true, function ($__require, exports, module) {
   'use strict';
   // 19.1.2.1 Object.assign(target, source, ...)
 
   var global = this || self,
       GLOBAL = global;
+  var DESCRIPTORS = $__require('50');
   var getKeys = $__require('4c');
   var gOPS = $__require('4d');
   var pIE = $__require('4e');
@@ -1135,7 +1150,10 @@ $__System.registerDynamic('6f', ['4c', '4d', '4e', '14', '21', '1e'], true, func
       var length = keys.length;
       var j = 0;
       var key;
-      while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+      while (length > j) {
+        key = keys[j++];
+        if (!DESCRIPTORS || isEnum.call(S, key)) T[key] = S[key];
+      }
     }return T;
   } : $assign;
 });
@@ -1147,21 +1165,12 @@ $__System.registerDynamic('70', ['10', '6f'], true, function ($__require, export
 
   $export($export.S + $export.F, 'Object', { assign: $__require('6f') });
 });
-$__System.registerDynamic("71", [], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // 7.2.9 SameValue(x, y)
-  module.exports = Object.is || function is(x, y) {
-    // eslint-disable-next-line no-self-compare
-    return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
-  };
-});
-$__System.registerDynamic('72', ['10', '71'], true, function ($__require, exports, module) {
+$__System.registerDynamic('71', ['10', '72'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // 19.1.3.10 Object.is(value1, value2)
   var $export = $__require('10');
-  $export($export.S, 'Object', { is: $__require('71') });
+  $export($export.S, 'Object', { is: $__require('72') });
 });
 $__System.registerDynamic('73', ['10', '74'], true, function ($__require, exports, module) {
   var global = this || self,
@@ -1170,7 +1179,7 @@ $__System.registerDynamic('73', ['10', '74'], true, function ($__require, export
   var $export = $__require('10');
   $export($export.S, 'Object', { setPrototypeOf: $__require('74').set });
 });
-$__System.registerDynamic('75', ['c', '5d', '5e', '5f', '61', '63', '65', '68', '69', '6a', '6b', '6c', '6d', '6e', '70', '72', '73', 'd', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('75', ['c', '5d', '5e', '5f', '61', '63', '65', '68', '69', '6a', '6b', '6c', '6d', '6e', '70', '71', '73', 'd', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   $__require('c');
@@ -1188,7 +1197,7 @@ $__System.registerDynamic('75', ['c', '5d', '5e', '5f', '61', '63', '65', '68', 
   $__require('6d');
   $__require('6e');
   $__require('70');
-  $__require('72');
+  $__require('71');
   $__require('73');
   $__require('d');
 
@@ -1600,74 +1609,460 @@ $__System.registerDynamic('93', ['87'], true, function ($__require, exports, mod
     };
   });
 });
-$__System.registerDynamic('94', ['95'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // @@match logic
-  $__require('95')('match', 1, function (defined, MATCH, $match) {
-    // 21.1.3.11 String.prototype.match(regexp)
-    return [function match(regexp) {
-      'use strict';
-
-      var O = defined(this);
-      var fn = regexp == undefined ? undefined : regexp[MATCH];
-      return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
-    }, $match];
-  });
-});
-$__System.registerDynamic('96', ['95'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // @@replace logic
-  $__require('95')('replace', 2, function (defined, REPLACE, $replace) {
-    // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
-    return [function replace(searchValue, replaceValue) {
-      'use strict';
-
-      var O = defined(this);
-      var fn = searchValue == undefined ? undefined : searchValue[REPLACE];
-      return fn !== undefined ? fn.call(searchValue, O, replaceValue) : $replace.call(String(O), searchValue, replaceValue);
-    }, $replace];
-  });
-});
-$__System.registerDynamic('97', ['95'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // @@search logic
-  $__require('95')('search', 1, function (defined, SEARCH, $search) {
-    // 21.1.3.15 String.prototype.search(regexp)
-    return [function search(regexp) {
-      'use strict';
-
-      var O = defined(this);
-      var fn = regexp == undefined ? undefined : regexp[SEARCH];
-      return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
-    }, $search];
-  });
-});
-$__System.registerDynamic('95', ['5c', '51', '1e', '7a', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('94', ['56', '17', '95', '96', '97'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
       GLOBAL = global;
-  var hide = $__require('5c');
+  var anObject = $__require('56');
+  var toLength = $__require('17');
+  var advanceStringIndex = $__require('95');
+  var regExpExec = $__require('96');
+
+  // @@match logic
+  $__require('97')('match', 1, function (defined, MATCH, $match, maybeCallNative) {
+    return [
+    // `String.prototype.match` method
+    // https://tc39.github.io/ecma262/#sec-string.prototype.match
+    function match(regexp) {
+      var O = defined(this);
+      var fn = regexp == undefined ? undefined : regexp[MATCH];
+      return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
+    },
+    // `RegExp.prototype[@@match]` method
+    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@match
+    function (regexp) {
+      var res = maybeCallNative($match, regexp, this);
+      if (res.done) return res.value;
+      var rx = anObject(regexp);
+      var S = String(this);
+      if (!rx.global) return regExpExec(rx, S);
+      var fullUnicode = rx.unicode;
+      rx.lastIndex = 0;
+      var A = [];
+      var n = 0;
+      var result;
+      while ((result = regExpExec(rx, S)) !== null) {
+        var matchStr = String(result[0]);
+        A[n] = matchStr;
+        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
+        n++;
+      }
+      return n === 0 ? null : A;
+    }];
+  });
+});
+$__System.registerDynamic('98', ['56', '14', '17', '35', '95', '96', '97'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var anObject = $__require('56');
+  var toObject = $__require('14');
+  var toLength = $__require('17');
+  var toInteger = $__require('35');
+  var advanceStringIndex = $__require('95');
+  var regExpExec = $__require('96');
+  var max = Math.max;
+  var min = Math.min;
+  var floor = Math.floor;
+  var SUBSTITUTION_SYMBOLS = /\$([$&`']|\d\d?|<[^>]*>)/g;
+  var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&`']|\d\d?)/g;
+
+  var maybeToString = function (it) {
+    return it === undefined ? it : String(it);
+  };
+
+  // @@replace logic
+  $__require('97')('replace', 2, function (defined, REPLACE, $replace, maybeCallNative) {
+    return [
+    // `String.prototype.replace` method
+    // https://tc39.github.io/ecma262/#sec-string.prototype.replace
+    function replace(searchValue, replaceValue) {
+      var O = defined(this);
+      var fn = searchValue == undefined ? undefined : searchValue[REPLACE];
+      return fn !== undefined ? fn.call(searchValue, O, replaceValue) : $replace.call(String(O), searchValue, replaceValue);
+    },
+    // `RegExp.prototype[@@replace]` method
+    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@replace
+    function (regexp, replaceValue) {
+      var res = maybeCallNative($replace, regexp, this, replaceValue);
+      if (res.done) return res.value;
+
+      var rx = anObject(regexp);
+      var S = String(this);
+      var functionalReplace = typeof replaceValue === 'function';
+      if (!functionalReplace) replaceValue = String(replaceValue);
+      var global = rx.global;
+      if (global) {
+        var fullUnicode = rx.unicode;
+        rx.lastIndex = 0;
+      }
+      var results = [];
+      while (true) {
+        var result = regExpExec(rx, S);
+        if (result === null) break;
+        results.push(result);
+        if (!global) break;
+        var matchStr = String(result[0]);
+        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
+      }
+      var accumulatedResult = '';
+      var nextSourcePosition = 0;
+      for (var i = 0; i < results.length; i++) {
+        result = results[i];
+        var matched = String(result[0]);
+        var position = max(min(toInteger(result.index), S.length), 0);
+        var captures = [];
+        // NOTE: This is equivalent to
+        //   captures = result.slice(1).map(maybeToString)
+        // but for some reason `nativeSlice.call(result, 1, result.length)` (called in
+        // the slice polyfill when slicing native arrays) "doesn't work" in safari 9 and
+        // causes a crash (https://pastebin.com/N21QzeQA) when trying to debug it.
+        for (var j = 1; j < result.length; j++) captures.push(maybeToString(result[j]));
+        var namedCaptures = result.groups;
+        if (functionalReplace) {
+          var replacerArgs = [matched].concat(captures, position, S);
+          if (namedCaptures !== undefined) replacerArgs.push(namedCaptures);
+          var replacement = String(replaceValue.apply(undefined, replacerArgs));
+        } else {
+          replacement = getSubstitution(matched, S, position, captures, namedCaptures, replaceValue);
+        }
+        if (position >= nextSourcePosition) {
+          accumulatedResult += S.slice(nextSourcePosition, position) + replacement;
+          nextSourcePosition = position + matched.length;
+        }
+      }
+      return accumulatedResult + S.slice(nextSourcePosition);
+    }];
+
+    // https://tc39.github.io/ecma262/#sec-getsubstitution
+    function getSubstitution(matched, str, position, captures, namedCaptures, replacement) {
+      var tailPos = position + matched.length;
+      var m = captures.length;
+      var symbols = SUBSTITUTION_SYMBOLS_NO_NAMED;
+      if (namedCaptures !== undefined) {
+        namedCaptures = toObject(namedCaptures);
+        symbols = SUBSTITUTION_SYMBOLS;
+      }
+      return $replace.call(replacement, symbols, function (match, ch) {
+        var capture;
+        switch (ch.charAt(0)) {
+          case '$':
+            return '$';
+          case '&':
+            return matched;
+          case '`':
+            return str.slice(0, position);
+          case "'":
+            return str.slice(tailPos);
+          case '<':
+            capture = namedCaptures[ch.slice(1, -1)];
+            break;
+          default:
+            // \d\d?
+            var n = +ch;
+            if (n === 0) return match;
+            if (n > m) {
+              var f = floor(n / 10);
+              if (f === 0) return match;
+              if (f <= m) return captures[f - 1] === undefined ? ch.charAt(1) : captures[f - 1] + ch.charAt(1);
+              return match;
+            }
+            capture = captures[n - 1];
+        }
+        return capture === undefined ? '' : capture;
+      });
+    }
+  });
+});
+$__System.registerDynamic("72", [], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  // 7.2.9 SameValue(x, y)
+  module.exports = Object.is || function is(x, y) {
+    // eslint-disable-next-line no-self-compare
+    return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
+  };
+});
+$__System.registerDynamic('99', ['56', '72', '96', '97'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var anObject = $__require('56');
+  var sameValue = $__require('72');
+  var regExpExec = $__require('96');
+
+  // @@search logic
+  $__require('97')('search', 1, function (defined, SEARCH, $search, maybeCallNative) {
+    return [
+    // `String.prototype.search` method
+    // https://tc39.github.io/ecma262/#sec-string.prototype.search
+    function search(regexp) {
+      var O = defined(this);
+      var fn = regexp == undefined ? undefined : regexp[SEARCH];
+      return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
+    },
+    // `RegExp.prototype[@@search]` method
+    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@search
+    function (regexp) {
+      var res = maybeCallNative($search, regexp, this);
+      if (res.done) return res.value;
+      var rx = anObject(regexp);
+      var S = String(this);
+      var previousLastIndex = rx.lastIndex;
+      if (!sameValue(previousLastIndex, 0)) rx.lastIndex = 0;
+      var result = regExpExec(rx, S);
+      if (!sameValue(rx.lastIndex, previousLastIndex)) rx.lastIndex = previousLastIndex;
+      return result === null ? -1 : result.index;
+    }];
+  });
+});
+$__System.registerDynamic('84', ['3d', '25', '3e'], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  // 7.2.8 IsRegExp(argument)
+  var isObject = $__require('3d');
+  var cof = $__require('25');
+  var MATCH = $__require('3e')('match');
+  module.exports = function (it) {
+    var isRegExp;
+    return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
+  };
+});
+$__System.registerDynamic('9a', ['56', '28', '3e'], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  // 7.3.20 SpeciesConstructor(O, defaultConstructor)
+  var anObject = $__require('56');
+  var aFunction = $__require('28');
+  var SPECIES = $__require('3e')('species');
+  module.exports = function (O, D) {
+    var C = anObject(O).constructor;
+    var S;
+    return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+  };
+});
+$__System.registerDynamic('95', ['7d'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var at = $__require('7d')(true);
+
+  // `AdvanceStringIndex` abstract operation
+  // https://tc39.github.io/ecma262/#sec-advancestringindex
+  module.exports = function (S, index, unicode) {
+    return index + (unicode ? at(S, index).length : 1);
+  };
+});
+$__System.registerDynamic('96', ['9b'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var classof = $__require('9b');
+  var builtinExec = RegExp.prototype.exec;
+
+  // `RegExpExec` abstract operation
+  // https://tc39.github.io/ecma262/#sec-regexpexec
+  module.exports = function (R, S) {
+    var exec = R.exec;
+    if (typeof exec === 'function') {
+      var result = exec.call(R, S);
+      if (typeof result !== 'object') {
+        throw new TypeError('RegExp exec method returned something other than an Object or null');
+      }
+      return result;
+    }
+    if (classof(R) !== 'RegExp') {
+      throw new TypeError('RegExp#exec called on incompatible receiver');
+    }
+    return builtinExec.call(R, S);
+  };
+});
+$__System.registerDynamic('9c', ['9d', '10'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var regexpExec = $__require('9d');
+  $__require('10')({
+    target: 'RegExp',
+    proto: true,
+    forced: regexpExec !== /./.exec
+  }, {
+    exec: regexpExec
+  });
+});
+$__System.registerDynamic('9e', ['56'], true, function ($__require, exports, module) {
+  'use strict';
+  // 21.2.5.3 get RegExp.prototype.flags
+
+  var global = this || self,
+      GLOBAL = global;
+  var anObject = $__require('56');
+  module.exports = function () {
+    var that = anObject(this);
+    var result = '';
+    if (that.global) result += 'g';
+    if (that.ignoreCase) result += 'i';
+    if (that.multiline) result += 'm';
+    if (that.unicode) result += 'u';
+    if (that.sticky) result += 'y';
+    return result;
+  };
+});
+$__System.registerDynamic('9d', ['9e'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  var regexpFlags = $__require('9e');
+
+  var nativeExec = RegExp.prototype.exec;
+  // This always refers to the native implementation, because the
+  // String#replace polyfill uses ./fix-regexp-well-known-symbol-logic.js,
+  // which loads this file before patching the method.
+  var nativeReplace = String.prototype.replace;
+
+  var patchedExec = nativeExec;
+
+  var LAST_INDEX = 'lastIndex';
+
+  var UPDATES_LAST_INDEX_WRONG = function () {
+    var re1 = /a/,
+        re2 = /b*/g;
+    nativeExec.call(re1, 'a');
+    nativeExec.call(re2, 'a');
+    return re1[LAST_INDEX] !== 0 || re2[LAST_INDEX] !== 0;
+  }();
+
+  // nonparticipating capturing group, copied from es5-shim's String#split patch.
+  var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
+
+  var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED;
+
+  if (PATCH) {
+    patchedExec = function exec(str) {
+      var re = this;
+      var lastIndex, reCopy, match, i;
+
+      if (NPCG_INCLUDED) {
+        reCopy = new RegExp('^' + re.source + '$(?!\\s)', regexpFlags.call(re));
+      }
+      if (UPDATES_LAST_INDEX_WRONG) lastIndex = re[LAST_INDEX];
+
+      match = nativeExec.call(re, str);
+
+      if (UPDATES_LAST_INDEX_WRONG && match) {
+        re[LAST_INDEX] = re.global ? match.index + match[0].length : lastIndex;
+      }
+      if (NPCG_INCLUDED && match && match.length > 1) {
+        // Fix browsers whose `exec` methods don't consistently return `undefined`
+        // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
+        // eslint-disable-next-line no-loop-func
+        nativeReplace.call(match[0], reCopy, function () {
+          for (i = 1; i < arguments.length - 2; i++) {
+            if (arguments[i] === undefined) match[i] = undefined;
+          }
+        });
+      }
+
+      return match;
+    };
+  }
+
+  module.exports = patchedExec;
+});
+$__System.registerDynamic('97', ['9c', '51', '5c', '1e', '7a', '3e', '9d'], true, function ($__require, exports, module) {
+  'use strict';
+
+  var global = this || self,
+      GLOBAL = global;
+  $__require('9c');
   var redefine = $__require('51');
+  var hide = $__require('5c');
   var fails = $__require('1e');
   var defined = $__require('7a');
   var wks = $__require('3e');
+  var regexpExec = $__require('9d');
+
+  var SPECIES = wks('species');
+
+  var REPLACE_SUPPORTS_NAMED_GROUPS = !fails(function () {
+    // #replace needs built-in support for named groups.
+    // #match works fine because it just return the exec results, even if it has
+    // a "grops" property.
+    var re = /./;
+    re.exec = function () {
+      var result = [];
+      result.groups = { a: '7' };
+      return result;
+    };
+    return ''.replace(re, '$<a>') !== '7';
+  });
+
+  var SPLIT_WORKS_WITH_OVERWRITTEN_EXEC = function () {
+    // Chrome 51 has a buggy "split" implementation when RegExp#exec !== nativeExec
+    var re = /(?:)/;
+    var originalExec = re.exec;
+    re.exec = function () {
+      return originalExec.apply(this, arguments);
+    };
+    var result = 'ab'.split(re);
+    return result.length === 2 && result[0] === 'a' && result[1] === 'b';
+  }();
 
   module.exports = function (KEY, length, exec) {
     var SYMBOL = wks(KEY);
-    var fns = exec(defined, SYMBOL, ''[KEY]);
-    var strfn = fns[0];
-    var rxfn = fns[1];
-    if (fails(function () {
+
+    var DELEGATES_TO_SYMBOL = !fails(function () {
+      // String methods call symbol-named RegEp methods
       var O = {};
       O[SYMBOL] = function () {
         return 7;
       };
       return ''[KEY](O) != 7;
-    })) {
+    });
+
+    var DELEGATES_TO_EXEC = DELEGATES_TO_SYMBOL ? !fails(function () {
+      // Symbol-named RegExp methods call .exec
+      var execCalled = false;
+      var re = /a/;
+      re.exec = function () {
+        execCalled = true;return null;
+      };
+      if (KEY === 'split') {
+        // RegExp[@@split] doesn't call the regex's exec method, but first creates
+        // a new one. We need to return the patched regex when creating the new one.
+        re.constructor = {};
+        re.constructor[SPECIES] = function () {
+          return re;
+        };
+      }
+      re[SYMBOL]('');
+      return !execCalled;
+    }) : undefined;
+
+    if (!DELEGATES_TO_SYMBOL || !DELEGATES_TO_EXEC || KEY === 'replace' && !REPLACE_SUPPORTS_NAMED_GROUPS || KEY === 'split' && !SPLIT_WORKS_WITH_OVERWRITTEN_EXEC) {
+      var nativeRegExpMethod = /./[SYMBOL];
+      var fns = exec(defined, SYMBOL, ''[KEY], function maybeCallNative(nativeMethod, regexp, str, arg2, forceStringMethod) {
+        if (regexp.exec === regexpExec) {
+          if (DELEGATES_TO_SYMBOL && !forceStringMethod) {
+            // The native String method already delegates to @@method (this
+            // polyfilled function), leasing to infinite recursion.
+            // We avoid it by directly calling the native @@method method.
+            return { done: true, value: nativeRegExpMethod.call(regexp, str, arg2) };
+          }
+          return { done: true, value: nativeMethod.call(str, regexp, arg2) };
+        }
+        return { done: false };
+      });
+      var strfn = fns[0];
+      var rxfn = fns[1];
+
       redefine(String.prototype, KEY, strfn);
       hide(RegExp.prototype, SYMBOL, length == 2
       // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
@@ -1683,58 +2078,52 @@ $__System.registerDynamic('95', ['5c', '51', '1e', '7a', '3e'], true, function (
     }
   };
 });
-$__System.registerDynamic('84', ['3d', '25', '3e'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // 7.2.8 IsRegExp(argument)
-  var isObject = $__require('3d');
-  var cof = $__require('25');
-  var MATCH = $__require('3e')('match');
-  module.exports = function (it) {
-    var isRegExp;
-    return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
-  };
-});
-$__System.registerDynamic('98', ['95', '84'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // @@split logic
-  $__require('95')('split', 2, function (defined, SPLIT, $split) {
-    'use strict';
+$__System.registerDynamic('9f', ['84', '56', '9a', '95', '17', '96', '9d', '1e', '97'], true, function ($__require, exports, module) {
+  'use strict';
 
-    var isRegExp = $__require('84');
-    var _split = $split;
-    var $push = [].push;
-    var $SPLIT = 'split';
-    var LENGTH = 'length';
-    var LAST_INDEX = 'lastIndex';
+  var global = this || self,
+      GLOBAL = global;
+  var isRegExp = $__require('84');
+  var anObject = $__require('56');
+  var speciesConstructor = $__require('9a');
+  var advanceStringIndex = $__require('95');
+  var toLength = $__require('17');
+  var callRegExpExec = $__require('96');
+  var regexpExec = $__require('9d');
+  var fails = $__require('1e');
+  var $min = Math.min;
+  var $push = [].push;
+  var $SPLIT = 'split';
+  var LENGTH = 'length';
+  var LAST_INDEX = 'lastIndex';
+  var MAX_UINT32 = 0xffffffff;
+
+  // babel-minify transpiles RegExp('x', 'y') -> /x/y and it causes SyntaxError
+  var SUPPORTS_Y = !fails(function () {
+    RegExp(MAX_UINT32, 'y');
+  });
+
+  // @@split logic
+  $__require('97')('split', 2, function (defined, SPLIT, $split, maybeCallNative) {
+    var internalSplit;
     if ('abbc'[$SPLIT](/(b)*/)[1] == 'c' || 'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 || 'ab'[$SPLIT](/(?:ab)*/)[LENGTH] != 2 || '.'[$SPLIT](/(.?)(.?)/)[LENGTH] != 4 || '.'[$SPLIT](/()()/)[LENGTH] > 1 || ''[$SPLIT](/.?/)[LENGTH]) {
-      var NPCG = /()??/.exec('')[1] === undefined; // nonparticipating capturing group
       // based on es5-shim implementation, need to rework it
-      $split = function (separator, limit) {
+      internalSplit = function (separator, limit) {
         var string = String(this);
         if (separator === undefined && limit === 0) return [];
         // If `separator` is not a regex, use native split
-        if (!isRegExp(separator)) return _split.call(string, separator, limit);
+        if (!isRegExp(separator)) return $split.call(string, separator, limit);
         var output = [];
         var flags = (separator.ignoreCase ? 'i' : '') + (separator.multiline ? 'm' : '') + (separator.unicode ? 'u' : '') + (separator.sticky ? 'y' : '');
         var lastLastIndex = 0;
-        var splitLimit = limit === undefined ? 4294967295 : limit >>> 0;
+        var splitLimit = limit === undefined ? MAX_UINT32 : limit >>> 0;
         // Make `global` and avoid `lastIndex` issues by working with a copy
         var separatorCopy = new RegExp(separator.source, flags + 'g');
-        var separator2, match, lastIndex, lastLength, i;
-        // Doesn't need flags gy, but they don't hurt
-        if (!NPCG) separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
-        while (match = separatorCopy.exec(string)) {
-          // `separatorCopy.lastIndex` is not reliable cross-browser
-          lastIndex = match.index + match[0][LENGTH];
+        var match, lastIndex, lastLength;
+        while (match = regexpExec.call(separatorCopy, string)) {
+          lastIndex = separatorCopy[LAST_INDEX];
           if (lastIndex > lastLastIndex) {
             output.push(string.slice(lastLastIndex, match.index));
-            // Fix browsers whose `exec` methods don't consistently return `undefined` for NPCG
-            // eslint-disable-next-line no-loop-func
-            if (!NPCG && match[LENGTH] > 1) match[0].replace(separator2, function () {
-              for (i = 1; i < arguments[LENGTH] - 2; i++) if (arguments[i] === undefined) match[i] = undefined;
-            });
             if (match[LENGTH] > 1 && match.index < string[LENGTH]) $push.apply(output, match.slice(1));
             lastLength = match[0][LENGTH];
             lastLastIndex = lastIndex;
@@ -1749,19 +2138,68 @@ $__System.registerDynamic('98', ['95', '84'], true, function ($__require, export
       };
       // Chakra, V8
     } else if ('0'[$SPLIT](undefined, 0)[LENGTH]) {
-      $split = function (separator, limit) {
-        return separator === undefined && limit === 0 ? [] : _split.call(this, separator, limit);
+      internalSplit = function (separator, limit) {
+        return separator === undefined && limit === 0 ? [] : $split.call(this, separator, limit);
       };
+    } else {
+      internalSplit = $split;
     }
-    // 21.1.3.17 String.prototype.split(separator, limit)
-    return [function split(separator, limit) {
+
+    return [
+    // `String.prototype.split` method
+    // https://tc39.github.io/ecma262/#sec-string.prototype.split
+    function split(separator, limit) {
       var O = defined(this);
-      var fn = separator == undefined ? undefined : separator[SPLIT];
-      return fn !== undefined ? fn.call(separator, O, limit) : $split.call(String(O), separator, limit);
-    }, $split];
+      var splitter = separator == undefined ? undefined : separator[SPLIT];
+      return splitter !== undefined ? splitter.call(separator, O, limit) : internalSplit.call(String(O), separator, limit);
+    },
+    // `RegExp.prototype[@@split]` method
+    // https://tc39.github.io/ecma262/#sec-regexp.prototype-@@split
+    //
+    // NOTE: This cannot be properly polyfilled in engines that don't support
+    // the 'y' flag.
+    function (regexp, limit) {
+      var res = maybeCallNative(internalSplit, regexp, this, limit, internalSplit !== $split);
+      if (res.done) return res.value;
+
+      var rx = anObject(regexp);
+      var S = String(this);
+      var C = speciesConstructor(rx, RegExp);
+
+      var unicodeMatching = rx.unicode;
+      var flags = (rx.ignoreCase ? 'i' : '') + (rx.multiline ? 'm' : '') + (rx.unicode ? 'u' : '') + (SUPPORTS_Y ? 'y' : 'g');
+
+      // ^(? + rx + ) is needed, in combination with some S slicing, to
+      // simulate the 'y' flag.
+      var splitter = new C(SUPPORTS_Y ? rx : '^(?:' + rx.source + ')', flags);
+      var lim = limit === undefined ? MAX_UINT32 : limit >>> 0;
+      if (lim === 0) return [];
+      if (S.length === 0) return callRegExpExec(splitter, S) === null ? [S] : [];
+      var p = 0;
+      var q = 0;
+      var A = [];
+      while (q < S.length) {
+        splitter.lastIndex = SUPPORTS_Y ? q : 0;
+        var z = callRegExpExec(splitter, SUPPORTS_Y ? S : S.slice(q));
+        var e;
+        if (z === null || (e = $min(toLength(splitter.lastIndex + (SUPPORTS_Y ? 0 : q)), S.length)) === p) {
+          q = advanceStringIndex(S, q, unicodeMatching);
+        } else {
+          A.push(S.slice(p, q));
+          if (A.length === lim) return A;
+          for (var i = 1; i <= z.length - 1; i++) {
+            A.push(z[i]);
+            if (A.length === lim) return A;
+          }
+          q = p = e;
+        }
+      }
+      A.push(S.slice(p));
+      return A;
+    }];
   });
 });
-$__System.registerDynamic('99', ['76', '77', '7b', '44', '7c', '7e', '81', '83', '85', '86', '88', '89', '8a', '8b', '8c', '8d', '8e', '8f', '90', '91', '92', '93', '94', '96', '97', '98', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a0', ['76', '77', '7b', '44', '7c', '7e', '81', '83', '85', '86', '88', '89', '8a', '8b', '8c', '8d', '8e', '8f', '90', '91', '92', '93', '94', '98', '99', '9f', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   $__require('76');
@@ -1787,22 +2225,22 @@ $__System.registerDynamic('99', ['76', '77', '7b', '44', '7c', '7e', '81', '83',
   $__require('92');
   $__require('93');
   $__require('94');
-  $__require('96');
-  $__require('97');
   $__require('98');
+  $__require('99');
+  $__require('9f');
   module.exports = $__require('e').String;
 });
-$__System.registerDynamic('9a', ['9b', '9c', '9d'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a1', ['a2', 'a3', 'a4'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
       GLOBAL = global;
-  var strong = $__require('9b');
-  var validate = $__require('9c');
+  var strong = $__require('a2');
+  var validate = $__require('a3');
   var MAP = 'Map';
 
   // 23.1 Map Objects
-  module.exports = $__require('9d')(MAP, function (get) {
+  module.exports = $__require('a4')(MAP, function (get) {
     return function Map() {
       return get(this, arguments.length > 0 ? arguments[0] : undefined);
     };
@@ -1818,22 +2256,22 @@ $__System.registerDynamic('9a', ['9b', '9c', '9d'], true, function ($__require, 
     }
   }, strong, true);
 });
-$__System.registerDynamic('9e', ['d', '44', '9f', '9a', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a5', ['d', '44', 'a6', 'a1', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   $__require('d');
   $__require('44');
-  $__require('9f');
-  $__require('9a');
+  $__require('a6');
+  $__require('a1');
   module.exports = $__require('e').Map;
 });
-$__System.registerDynamic('d', ['a0', '3e', '51'], true, function ($__require, exports, module) {
+$__System.registerDynamic('d', ['9b', '3e', '51'], true, function ($__require, exports, module) {
   'use strict';
   // 19.1.3.6 Object.prototype.toString()
 
   var global = this || self,
       GLOBAL = global;
-  var classof = $__require('a0');
+  var classof = $__require('9b');
   var test = {};
   test[$__require('3e')('toStringTag')] = 'z';
   if (test + '' != '[object z]') {
@@ -1861,7 +2299,7 @@ $__System.registerDynamic('7d', ['35', '7a'], true, function ($__require, export
     };
   };
 });
-$__System.registerDynamic('44', ['7d', 'a1'], true, function ($__require, exports, module) {
+$__System.registerDynamic('44', ['7d', 'a7'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
@@ -1869,7 +2307,7 @@ $__System.registerDynamic('44', ['7d', 'a1'], true, function ($__require, export
   var $at = $__require('7d')(true);
 
   // 21.1.3.27 String.prototype[@@iterator]()
-  $__require('a1')(String, 'String', function (iterated) {
+  $__require('a7')(String, 'String', function (iterated) {
     this._t = String(iterated); // target
     this._i = 0; // next index
     // 21.1.5.2.1 %StringIteratorPrototype%.next()
@@ -1894,21 +2332,21 @@ $__System.registerDynamic('38', ['3e', '5c'], true, function ($__require, export
     ArrayProto[UNSCOPABLES][key] = true;
   };
 });
-$__System.registerDynamic('45', ['38', 'a2', 'a3', '20', 'a1'], true, function ($__require, exports, module) {
+$__System.registerDynamic('45', ['38', 'a8', 'a9', '20', 'a7'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
       GLOBAL = global;
   var addToUnscopables = $__require('38');
-  var step = $__require('a2');
-  var Iterators = $__require('a3');
+  var step = $__require('a8');
+  var Iterators = $__require('a9');
   var toIObject = $__require('20');
 
   // 22.1.3.4 Array.prototype.entries()
   // 22.1.3.13 Array.prototype.keys()
   // 22.1.3.29 Array.prototype.values()
   // 22.1.3.30 Array.prototype[@@iterator]()
-  module.exports = $__require('a1')(Array, 'Array', function (iterated, kind) {
+  module.exports = $__require('a7')(Array, 'Array', function (iterated, kind) {
     this._t = toIObject(iterated); // target
     this._i = 0; // next index
     this._k = kind; // kind
@@ -1933,7 +2371,7 @@ $__System.registerDynamic('45', ['38', 'a2', 'a3', '20', 'a1'], true, function (
   addToUnscopables('values');
   addToUnscopables('entries');
 });
-$__System.registerDynamic('9f', ['45', '4c', '51', '49', '5c', 'a3', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a6', ['45', '4c', '51', '49', '5c', 'a9', '3e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var $iterators = $__require('45');
@@ -1941,7 +2379,7 @@ $__System.registerDynamic('9f', ['45', '4c', '51', '49', '5c', 'a3', '3e'], true
   var redefine = $__require('51');
   var global = $__require('49');
   var hide = $__require('5c');
-  var Iterators = $__require('a3');
+  var Iterators = $__require('a9');
   var wks = $__require('3e');
   var ITERATOR = wks('iterator');
   var TO_STRING_TAG = wks('toStringTag');
@@ -2018,21 +2456,21 @@ $__System.registerDynamic('24', ['49'], true, function ($__require, exports, mod
   var document = $__require('49').document;
   module.exports = document && document.documentElement;
 });
-$__System.registerDynamic('58', ['56', '60', '67', 'a4', 'a5', '24'], true, function ($__require, exports, module) {
+$__System.registerDynamic('58', ['56', '60', '67', 'aa', 'ab', '24'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
   var anObject = $__require('56');
   var dPs = $__require('60');
   var enumBugKeys = $__require('67');
-  var IE_PROTO = $__require('a4')('IE_PROTO');
+  var IE_PROTO = $__require('aa')('IE_PROTO');
   var Empty = function () {/* empty */};
   var PROTOTYPE = 'prototype';
 
   // Create object with fake `null` prototype: use iframe Object with cleared prototype
   var createDict = function () {
     // Thrash, waste and sodomy: IE GC bug
-    var iframe = $__require('a5')('iframe');
+    var iframe = $__require('ab')('iframe');
     var i = enumBugKeys.length;
     var lt = '<';
     var gt = '>';
@@ -2063,7 +2501,7 @@ $__System.registerDynamic('58', ['56', '60', '67', 'a4', 'a5', '24'], true, func
     return Properties === undefined ? result : dPs(result, Properties);
   };
 });
-$__System.registerDynamic('a6', ['58', '1c', '54', '5c', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('ac', ['58', '1c', '54', '5c', '3e'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
@@ -2092,13 +2530,13 @@ $__System.registerDynamic('14', ['7a'], true, function ($__require, exports, mod
     return Object(defined(it));
   };
 });
-$__System.registerDynamic('64', ['4f', '14', 'a4'], true, function ($__require, exports, module) {
+$__System.registerDynamic('64', ['4f', '14', 'aa'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
   var has = $__require('4f');
   var toObject = $__require('14');
-  var IE_PROTO = $__require('a4')('IE_PROTO');
+  var IE_PROTO = $__require('aa')('IE_PROTO');
   var ObjectProto = Object.prototype;
 
   module.exports = Object.getPrototypeOf || function (O) {
@@ -2109,7 +2547,7 @@ $__System.registerDynamic('64', ['4f', '14', 'a4'], true, function ($__require, 
     }return O instanceof Object ? ObjectProto : null;
   };
 });
-$__System.registerDynamic('a1', ['4a', '10', '51', '5c', 'a3', 'a6', '54', '64', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a7', ['4a', '10', '51', '5c', 'a9', 'ac', '54', '64', '3e'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
@@ -2118,8 +2556,8 @@ $__System.registerDynamic('a1', ['4a', '10', '51', '5c', 'a3', 'a6', '54', '64',
   var $export = $__require('10');
   var redefine = $__require('51');
   var hide = $__require('5c');
-  var Iterators = $__require('a3');
-  var $iterCreate = $__require('a6');
+  var Iterators = $__require('a9');
+  var $iterCreate = $__require('ac');
   var setToStringTag = $__require('54');
   var getPrototypeOf = $__require('64');
   var ITERATOR = $__require('3e')('iterator');
@@ -2195,7 +2633,7 @@ $__System.registerDynamic('a1', ['4a', '10', '51', '5c', 'a3', 'a6', '54', '64',
     return methods;
   };
 });
-$__System.registerDynamic("a2", [], true, function ($__require, exports, module) {
+$__System.registerDynamic("a8", [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   module.exports = function (done, value) {
@@ -2222,23 +2660,23 @@ $__System.registerDynamic('42', ['49', '1b', '50', '3e'], true, function ($__req
     });
   };
 });
-$__System.registerDynamic('9b', ['1b', '58', 'a7', '13', 'a8', 'a9', 'a1', 'a2', '42', '50', '52', '9c'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a2', ['1b', '58', 'ad', '13', 'ae', 'af', 'a7', 'a8', '42', '50', '52', 'a3'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
       GLOBAL = global;
   var dP = $__require('1b').f;
   var create = $__require('58');
-  var redefineAll = $__require('a7');
+  var redefineAll = $__require('ad');
   var ctx = $__require('13');
-  var anInstance = $__require('a8');
-  var forOf = $__require('a9');
-  var $iterDefine = $__require('a1');
-  var step = $__require('a2');
+  var anInstance = $__require('ae');
+  var forOf = $__require('af');
+  var $iterDefine = $__require('a7');
+  var step = $__require('a8');
   var setSpecies = $__require('42');
   var DESCRIPTORS = $__require('50');
   var fastKey = $__require('52').fastKey;
-  var validate = $__require('9c');
+  var validate = $__require('a3');
   var SIZE = DESCRIPTORS ? '_s' : 'size';
 
   var getEntry = function (that, key) {
@@ -2371,7 +2809,7 @@ $__System.registerDynamic('9b', ['1b', '58', 'a7', '13', 'a8', 'a9', 'a1', 'a2',
     }
   };
 });
-$__System.registerDynamic('9c', ['3d'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a3', ['3d'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var isObject = $__require('3d');
@@ -2380,7 +2818,7 @@ $__System.registerDynamic('9c', ['3d'], true, function ($__require, exports, mod
     return it;
   };
 });
-$__System.registerDynamic('a7', ['51'], true, function ($__require, exports, module) {
+$__System.registerDynamic('ad', ['51'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var redefine = $__require('51');
@@ -2462,11 +2900,11 @@ $__System.registerDynamic('15', ['56'], true, function ($__require, exports, mod
     }
   };
 });
-$__System.registerDynamic('16', ['a3', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('16', ['a9', '3e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // check on default Array iterator
-  var Iterators = $__require('a3');
+  var Iterators = $__require('a9');
   var ITERATOR = $__require('3e')('iterator');
   var ArrayProto = Array.prototype;
 
@@ -2474,7 +2912,7 @@ $__System.registerDynamic('16', ['a3', '3e'], true, function ($__require, export
     return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
   };
 });
-$__System.registerDynamic('a0', ['25', '3e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('9b', ['25', '3e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // getting tag from 19.1.3.6 Object.prototype.toString()
@@ -2503,22 +2941,22 @@ $__System.registerDynamic('a0', ['25', '3e'], true, function ($__require, export
     : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
   };
 });
-$__System.registerDynamic("a3", [], true, function ($__require, exports, module) {
+$__System.registerDynamic("a9", [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   module.exports = {};
 });
-$__System.registerDynamic('19', ['a0', '3e', 'a3', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('19', ['9b', '3e', 'a9', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
-  var classof = $__require('a0');
+  var classof = $__require('9b');
   var ITERATOR = $__require('3e')('iterator');
-  var Iterators = $__require('a3');
+  var Iterators = $__require('a9');
   module.exports = $__require('e').getIteratorMethod = function (it) {
     if (it != undefined) return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
   };
 });
-$__System.registerDynamic('a9', ['13', '15', '16', '56', '17', '19'], true, function ($__require, exports, module) {
+$__System.registerDynamic('af', ['13', '15', '16', '56', '17', '19'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var ctx = $__require('13');
@@ -2549,7 +2987,7 @@ $__System.registerDynamic('a9', ['13', '15', '16', '56', '17', '19'], true, func
   exports.BREAK = BREAK;
   exports.RETURN = RETURN;
 });
-$__System.registerDynamic('a8', [], true, function ($__require, exports, module) {
+$__System.registerDynamic('ae', [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   module.exports = function (it, Constructor, name, forbiddenField) {
@@ -2617,7 +3055,7 @@ $__System.registerDynamic('54', ['1b', '4f', '3e'], true, function ($__require, 
     if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
   };
 });
-$__System.registerDynamic('5a', ['4e', '1c', '20', '57', '4f', 'aa', '50'], true, function ($__require, exports, module) {
+$__System.registerDynamic('5a', ['4e', '1c', '20', '57', '4f', 'b0', '50'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var pIE = $__require('4e');
@@ -2625,7 +3063,7 @@ $__System.registerDynamic('5a', ['4e', '1c', '20', '57', '4f', 'aa', '50'], true
   var toIObject = $__require('20');
   var toPrimitive = $__require('57');
   var has = $__require('4f');
-  var IE8_DOM_DEFINE = $__require('aa');
+  var IE8_DOM_DEFINE = $__require('b0');
   var gOPD = Object.getOwnPropertyDescriptor;
 
   exports.f = $__require('50') ? gOPD : function getOwnPropertyDescriptor(O, P) {
@@ -2667,7 +3105,7 @@ $__System.registerDynamic('74', ['3d', '56', '13', '5a'], true, function ($__req
     check: check
   };
 });
-$__System.registerDynamic('ab', ['3d', '74'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b1', ['3d', '74'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var isObject = $__require('3d');
@@ -2680,7 +3118,7 @@ $__System.registerDynamic('ab', ['3d', '74'], true, function ($__require, export
     }return that;
   };
 });
-$__System.registerDynamic('9d', ['49', '10', '51', 'a7', '52', 'a9', 'a8', '3d', '1e', '1a', '54', 'ab'], true, function ($__require, exports, module) {
+$__System.registerDynamic('a4', ['49', '10', '51', 'ad', '52', 'af', 'ae', '3d', '1e', '1a', '54', 'b1'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
@@ -2688,15 +3126,15 @@ $__System.registerDynamic('9d', ['49', '10', '51', 'a7', '52', 'a9', 'a8', '3d',
   var global = $__require('49');
   var $export = $__require('10');
   var redefine = $__require('51');
-  var redefineAll = $__require('a7');
+  var redefineAll = $__require('ad');
   var meta = $__require('52');
-  var forOf = $__require('a9');
-  var anInstance = $__require('a8');
+  var forOf = $__require('af');
+  var anInstance = $__require('ae');
   var isObject = $__require('3d');
   var fails = $__require('1e');
   var $iterDetect = $__require('1a');
   var setToStringTag = $__require('54');
-  var inheritIfRequired = $__require('ab');
+  var inheritIfRequired = $__require('b1');
 
   module.exports = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
     var Base = global[NAME];
@@ -2775,17 +3213,17 @@ $__System.registerDynamic('9d', ['49', '10', '51', 'a7', '52', 'a9', 'a8', '3d',
     return C;
   };
 });
-$__System.registerDynamic('ac', ['9b', '9c', '9d'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b2', ['a2', 'a3', 'a4'], true, function ($__require, exports, module) {
   'use strict';
 
   var global = this || self,
       GLOBAL = global;
-  var strong = $__require('9b');
-  var validate = $__require('9c');
+  var strong = $__require('a2');
+  var validate = $__require('a3');
   var SET = 'Set';
 
   // 23.2 Set Objects
-  module.exports = $__require('9d')(SET, function (get) {
+  module.exports = $__require('a4')(SET, function (get) {
     return function Set() {
       return get(this, arguments.length > 0 ? arguments[0] : undefined);
     };
@@ -2796,21 +3234,21 @@ $__System.registerDynamic('ac', ['9b', '9c', '9d'], true, function ($__require, 
     }
   }, strong);
 });
-$__System.registerDynamic('ad', ['d', '44', '9f', 'ac', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b3', ['d', '44', 'a6', 'b2', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   $__require('d');
   $__require('44');
-  $__require('9f');
-  $__require('ac');
+  $__require('a6');
+  $__require('b2');
   module.exports = $__require('e').Set;
 });
-$__System.registerDynamic('ae', ['10', 'af'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b4', ['10', 'b5'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // https://github.com/tc39/proposal-object-values-entries
   var $export = $__require('10');
-  var $values = $__require('af')(false);
+  var $values = $__require('b5')(false);
 
   $export($export.S, 'Object', {
     values: function values(it) {
@@ -2827,7 +3265,7 @@ $__System.registerDynamic('56', ['3d'], true, function ($__require, exports, mod
     return it;
   };
 });
-$__System.registerDynamic('a5', ['3d', '49'], true, function ($__require, exports, module) {
+$__System.registerDynamic('ab', ['3d', '49'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var isObject = $__require('3d');
@@ -2838,11 +3276,11 @@ $__System.registerDynamic('a5', ['3d', '49'], true, function ($__require, export
     return is ? document.createElement(it) : {};
   };
 });
-$__System.registerDynamic('aa', ['50', '1e', 'a5'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b0', ['50', '1e', 'ab'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   module.exports = !$__require('50') && !$__require('1e')(function () {
-    return Object.defineProperty($__require('a5')('div'), 'a', { get: function () {
+    return Object.defineProperty($__require('ab')('div'), 'a', { get: function () {
         return 7;
       } }).a != 7;
   });
@@ -2870,11 +3308,11 @@ $__System.registerDynamic('57', ['3d'], true, function ($__require, exports, mod
     throw TypeError("Can't convert object to primitive value");
   };
 });
-$__System.registerDynamic('1b', ['56', 'aa', '57', '50'], true, function ($__require, exports, module) {
+$__System.registerDynamic('1b', ['56', 'b0', '57', '50'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var anObject = $__require('56');
-  var IE8_DOM_DEFINE = $__require('aa');
+  var IE8_DOM_DEFINE = $__require('b0');
   var toPrimitive = $__require('57');
   var dP = Object.defineProperty;
 
@@ -2902,27 +3340,6 @@ $__System.registerDynamic("1c", [], true, function ($__require, exports, module)
     };
   };
 });
-$__System.registerDynamic("1e", [], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  module.exports = function (exec) {
-    try {
-      return !!exec();
-    } catch (e) {
-      return true;
-    }
-  };
-});
-$__System.registerDynamic('50', ['1e'], true, function ($__require, exports, module) {
-  var global = this || self,
-      GLOBAL = global;
-  // Thank's IE8 for his funny defineProperty
-  module.exports = !$__require('1e')(function () {
-    return Object.defineProperty({}, 'a', { get: function () {
-        return 7;
-      } }).a != 7;
-  });
-});
 $__System.registerDynamic('5c', ['1b', '1c', '50'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
@@ -2935,15 +3352,20 @@ $__System.registerDynamic('5c', ['1b', '1c', '50'], true, function ($__require, 
     return object;
   };
 });
-$__System.registerDynamic('51', ['49', '5c', '4f', '55', 'e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b6', ['53'], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  module.exports = $__require('53')('native-function-to-string', Function.toString);
+});
+$__System.registerDynamic('51', ['49', '5c', '4f', '55', 'b6', 'e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var global = $__require('49');
   var hide = $__require('5c');
   var has = $__require('4f');
   var SRC = $__require('55')('src');
+  var $toString = $__require('b6');
   var TO_STRING = 'toString';
-  var $toString = Function[TO_STRING];
   var TPL = ('' + $toString).split(TO_STRING);
 
   $__require('e').inspectSource = function (it) {
@@ -3052,6 +3474,27 @@ $__System.registerDynamic('10', ['49', 'e', '5c', '51', '13'], true, function ($
   $export.R = 128; // real proto method for `library`
   module.exports = $export;
 });
+$__System.registerDynamic("1e", [], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  module.exports = function (exec) {
+    try {
+      return !!exec();
+    } catch (e) {
+      return true;
+    }
+  };
+});
+$__System.registerDynamic('50', ['1e'], true, function ($__require, exports, module) {
+  var global = this || self,
+      GLOBAL = global;
+  // Thank's IE8 for his funny defineProperty
+  module.exports = !$__require('1e')(function () {
+    return Object.defineProperty({}, 'a', { get: function () {
+        return 7;
+      } }).a != 7;
+  });
+});
 $__System.registerDynamic("4f", [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
@@ -3121,7 +3564,7 @@ $__System.registerDynamic('33', ['20', '17', '26'], true, function ($__require, 
 $__System.registerDynamic('e', [], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
-  var core = module.exports = { version: '2.5.7' };
+  var core = module.exports = { version: '2.6.10' };
   if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 });
 $__System.registerDynamic('49', [], true, function ($__require, exports, module) {
@@ -3151,7 +3594,7 @@ $__System.registerDynamic('53', ['e', '49', '4a'], true, function ($__require, e
   })('versions', []).push({
     version: core.version,
     mode: $__require('4a') ? 'pure' : 'global',
-    copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
+    copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
   });
 });
 $__System.registerDynamic('55', [], true, function ($__require, exports, module) {
@@ -3163,7 +3606,7 @@ $__System.registerDynamic('55', [], true, function ($__require, exports, module)
     return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
   };
 });
-$__System.registerDynamic('a4', ['53', '55'], true, function ($__require, exports, module) {
+$__System.registerDynamic('aa', ['53', '55'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var shared = $__require('53')('keys');
@@ -3172,13 +3615,13 @@ $__System.registerDynamic('a4', ['53', '55'], true, function ($__require, export
     return shared[key] || (shared[key] = uid(key));
   };
 });
-$__System.registerDynamic('66', ['4f', '20', '33', 'a4'], true, function ($__require, exports, module) {
+$__System.registerDynamic('66', ['4f', '20', '33', 'aa'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   var has = $__require('4f');
   var toIObject = $__require('20');
   var arrayIndexOf = $__require('33')(false);
-  var IE_PROTO = $__require('a4')('IE_PROTO');
+  var IE_PROTO = $__require('aa')('IE_PROTO');
 
   module.exports = function (object, names) {
     var O = toIObject(object);
@@ -3253,9 +3696,10 @@ $__System.registerDynamic("4e", [], true, function ($__require, exports, module)
       GLOBAL = global;
   exports.f = {}.propertyIsEnumerable;
 });
-$__System.registerDynamic('af', ['4c', '20', '4e'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b5', ['50', '4c', '20', '4e'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
+  var DESCRIPTORS = $__require('50');
   var getKeys = $__require('4c');
   var toIObject = $__require('20');
   var isEnum = $__require('4e').f;
@@ -3267,18 +3711,22 @@ $__System.registerDynamic('af', ['4c', '20', '4e'], true, function ($__require, 
       var i = 0;
       var result = [];
       var key;
-      while (length > i) if (isEnum.call(O, key = keys[i++])) {
-        result.push(isEntries ? [key, O[key]] : O[key]);
-      }return result;
+      while (length > i) {
+        key = keys[i++];
+        if (!DESCRIPTORS || isEnum.call(O, key)) {
+          result.push(isEntries ? [key, O[key]] : O[key]);
+        }
+      }
+      return result;
     };
   };
 });
-$__System.registerDynamic('b0', ['10', 'af'], true, function ($__require, exports, module) {
+$__System.registerDynamic('b7', ['10', 'b5'], true, function ($__require, exports, module) {
   var global = this || self,
       GLOBAL = global;
   // https://github.com/tc39/proposal-object-values-entries
   var $export = $__require('10');
-  var $entries = $__require('af')(true);
+  var $entries = $__require('b5')(true);
 
   $export($export.S, 'Object', {
     entries: function entries(it) {
@@ -3286,7 +3734,7 @@ $__System.registerDynamic('b0', ['10', 'af'], true, function ($__require, export
     }
   });
 });
-$__System.register("a", ["b", "43", "46", "75", "99", "9e", "ad", "ae", "b0"], function($__export) {
+$__System.register("a", ["b", "43", "46", "75", "a0", "a5", "b3", "b4", "b7"], function($__export) {
   "use strict";
   var noOp;
   return {
