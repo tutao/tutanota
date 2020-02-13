@@ -122,6 +122,7 @@ function main() {
 		// this is fired for almost every interaction and on launch
 		// so set listener later to avoid the call on launch
 		wm.getLastFocused(true)
+		tray.clearBadge()
 	})
 	notifier.start(tray, 2000)
 	updater.start()

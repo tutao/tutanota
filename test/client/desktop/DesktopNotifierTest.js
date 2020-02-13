@@ -50,8 +50,8 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 				return 'this is a static icon'
 			}
 		},
-		update: () => {
-		}
+		update: () => {},
+		setBadge: () => {}
 	}
 
 	o("show no notifications before call to start()", done => {
@@ -167,6 +167,7 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 			o(electronMock.Notification.mockedInstances[2].close.callCount).equals(0)
 
 			o(desktopTrayMock.update.callCount).equals(3)
+			o(desktopTrayMock.setBadge.callCount).equals(3)
 			o(notifier.hasNotificationForId("gn1")).equals(true)
 			o(notifier.hasNotificationForId("gn2")).equals(true)
 			done()
@@ -226,6 +227,7 @@ o.spec("Desktop Notifier Test", (done, timeout) => {
 			o(electronMock.Notification.mockedInstances[0].close.callCount).equals(1)
 
 			o(desktopTrayMock.update.callCount).equals(2)
+			o(desktopTrayMock.setBadge.callCount).equals(1)
 			o(notifier.hasNotificationForId("gn1")).equals(false)
 			done()
 		}, notificationStartDelay * 2)

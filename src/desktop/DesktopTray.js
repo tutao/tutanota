@@ -53,6 +53,17 @@ export class DesktopTray {
 		}
 	}
 
+	setBadge() {
+		if (process.platform !== "darwin") return
+		app.dock.bounce()
+		app.dock.setBadge("●")
+	}
+
+	clearBadge() {
+		if (process.platform !== "darwin") return
+		app.dock.setBadge("")
+	}
+
 	getIcon(): NativeImage {
 		return DesktopTray.getIcon(this._conf.get('iconName'))
 	}

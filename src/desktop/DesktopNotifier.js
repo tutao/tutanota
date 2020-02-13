@@ -68,6 +68,7 @@ export class DesktopNotifier {
 				body: message,
 				icon: this._tray.getIcon(),
 			}, onClick)
+			this._tray.setBadge()
 			this._tray.update()
 		}
 

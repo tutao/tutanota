@@ -307,6 +307,7 @@ declare module 'electron' {
 	declare export type Dock = {
 		setMenu(Menu): void,
 		bounce(): void,
+		setBadge(text: string): void,
 		isVisible(): boolean;
 		hide(): void,
 		show(): void,
