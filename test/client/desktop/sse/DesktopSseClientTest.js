@@ -637,7 +637,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sseResponse = new netMock.Response(200)
 		sse.start()
 		timeoutMock.next()
-		await Promise.delay(10)
+		await Promise.delay(1)
 
 		netMock.ClientRequest.mockedInstances[0].callbacks['response'](sseResponse)
 		sseResponse.callbacks['data']("data: heartbeatTimeout:3\n")
@@ -682,7 +682,7 @@ o.spec("DesktopSseClient Test", function () {
 			alarmStorageMock, langMock, timeoutSpy)
 		sse.start()
 		timeoutMock.next()
-		await Promise.resolve()
+		await Promise.delay(1)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
 		o(confMock.setDesktopConfig.calls.map(c => c.args)).deepEquals([
