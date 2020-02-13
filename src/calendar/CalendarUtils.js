@@ -1,5 +1,5 @@
 //@flow
-import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {pad} from "../api/common/utils/StringUtils"
 import type {EventTextTimeOptionEnum, RepeatPeriodEnum, ShareCapabilityEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
 import {
@@ -31,12 +31,12 @@ export type CalendarMonthTimeRange = {
 }
 
 
-export function eventStartsBefore(currentDate: Date, event: CalendarEvent): boolean {
-	return getEventStart(event).getTime() < currentDate.getTime()
+export function eventStartsBefore(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventStart(event, zone).getTime() < currentDate.getTime()
 }
 
-export function eventEndsAfterDay(currentDate: Date, event: CalendarEvent): boolean {
-	return getEventEnd(event).getTime() > getStartOfNextDayWithZone(currentDate).getTime()
+export function eventEndsAfterDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventEnd(event, zone).getTime() > getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
 export function generateUid(event: CalendarEvent, timestamp: number): string {
@@ -137,7 +137,7 @@ export function getAllDayDateForTimezone(utcDate: Date, timeZone: string): Date 
 }
 
 
-export function getMonth(date: Date, zone: string = getTimeZone()): CalendarMonthTimeRange {
+export function getMonth(date: Date, zone: string): CalendarMonthTimeRange {
 	const startDateTime = DateTime.fromJSDate(date, {zone})
 	                              .set({day: 1, hour: 0, minute: 0, second: 0, millisecond: 0})
 	const start = startDateTime.toJSDate()
@@ -148,11 +148,11 @@ export function getMonth(date: Date, zone: string = getTimeZone()): CalendarMont
 /**
  * Provides a date representing the beginning of the given date in local time.
  */
-export function getStartOfDayWithZone(date: Date, zone: string = getTimeZone()): Date {
+export function getStartOfDayWithZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, {zone}).set({hour: 0, minute: 0, second: 0, millisecond: 0}).toJSDate()
 }
 
-export function getStartOfNextDayWithZone(date: Date, zone: string = getTimeZone()): Date {
+export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, {zone}).set({hour: 0, minute: 0, second: 0, millisecond: 0}).plus({day: 1}).toJSDate()
 }
 
@@ -279,19 +279,19 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: num
 	}
 }
 
-export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
+export function layOutEvents(events: Array<CalendarEvent>, zone: string, renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
 	events.sort((e1, e2) => {
-		if (getEventStart(e1) < getEventStart(e2)) return -1;
-		if (getEventStart(e1) > getEventStart(e2)) return 1;
-		if (getEventEnd(e1) < getEventEnd(e2)) return -1;
-		if (getEventEnd(e1) > getEventEnd(e2)) return 1;
+		if (getEventStart(e1, zone) < getEventStart(e2, zone)) return -1;
+		if (getEventStart(e1, zone) > getEventStart(e2, zone)) return 1;
+		if (getEventEnd(e1, zone) < getEventEnd(e2, zone)) return -1;
+		if (getEventEnd(e1, zone) > getEventEnd(e2, zone)) return 1;
 		return 0;
 	})
 	let lastEventEnding = null
 	let columns: Array<Array<CalendarEvent>> = []
 	const children = []
 	events.forEach((e) => {
-		const calcEvent = getCalculationEvent(e, handleAsAllDay)
+		const calcEvent = getCalculationEvent(e, zone, handleAsAllDay)
 
 		// Check if a new event group needs to be started
 		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
@@ -307,7 +307,7 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 		let placed = false
 		for (let i = 0; i < columns.length; i++) {
 			var col = columns[i]
-			const lastEvent = getCalculationEvent(col[col.length - 1], handleAsAllDay)
+			const lastEvent = getCalculationEvent(col[col.length - 1], zone, handleAsAllDay)
 			if (!collidesWith(lastEvent, calcEvent)) {
 				col.push(e) // push real event here not calc event
 				placed = true
@@ -332,16 +332,15 @@ export function layOutEvents(events: Array<CalendarEvent>, renderer: (columns: A
 }
 
 
-function getCalculationEvent(event: CalendarEvent, handleAsAllDay: boolean): CalendarEvent {
-	const timeZone = getTimeZone()
+function getCalculationEvent(event: CalendarEvent, zone: string, handleAsAllDay: boolean): CalendarEvent {
 	if (handleAsAllDay) {
 		const calcDate = clone(event)
 		if (isAllDayEvent(event)) {
-			calcDate.startTime = getAllDayDateForTimezone(event.startTime, timeZone)
-			calcDate.endTime = getAllDayDateForTimezone(event.endTime, timeZone)
+			calcDate.startTime = getAllDayDateForTimezone(event.startTime, zone)
+			calcDate.endTime = getAllDayDateForTimezone(event.endTime, zone)
 		} else {
-			calcDate.startTime = getStartOfDayWithZone(event.startTime)
-			calcDate.endTime = getStartOfNextDayWithZone(event.endTime)
+			calcDate.startTime = getStartOfDayWithZone(event.startTime, zone)
+			calcDate.endTime = getStartOfNextDayWithZone(event.endTime, zone)
 		}
 		return calcDate
 	} else {
@@ -447,7 +446,7 @@ export function getWeekNumber(startOfTheWeek: Date): number {
 }
 
 
-export function getEventEnd(event: CalendarEvent, timeZone: string = getTimeZone()): Date {
+export function getEventEnd(event: CalendarEvent, timeZone: string): Date {
 	if (isAllDayEvent(event)) {
 		return getAllDayDateForTimezone(event.endTime, timeZone)
 	} else {
@@ -455,7 +454,7 @@ export function getEventEnd(event: CalendarEvent, timeZone: string = getTimeZone
 	}
 }
 
-export function getEventStart(event: CalendarEvent, timeZone: string = getTimeZone()): Date {
+export function getEventStart(event: CalendarEvent, timeZone: string): Date {
 	if (isAllDayEvent(event)) {
 		return getAllDayDateForTimezone(event.startTime, timeZone)
 	} else {
@@ -469,12 +468,12 @@ export function getAllDayDateUTCFromZone(date: Date, timeZone: string): Date {
 	               .toJSDate()
 }
 
-export function isLongEvent(event: CalendarEvent): boolean {
-	return getEventEnd(event).getTime() - getEventStart(event).getTime() > DAYS_SHIFTED_MS
+export function isLongEvent(event: CalendarEvent, zone: string): boolean {
+	return getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
 }
 
-export function createEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
-	const listId = event.repeatRule || isLongEvent(event) ? groupRoot.longEvents : groupRoot.shortEvents
+export function createEventId(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot): void {
+	const listId = event.repeatRule || isLongEvent(event, zone) ? groupRoot.longEvents : groupRoot.shortEvents
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 

@@ -7,7 +7,7 @@ import {incrementDate, isSameDay} from "../api/common/utils/DateUtils"
 import {EventTextTimeOption} from "../api/common/TutanotaConstants"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
-import {CALENDAR_EVENT_HEIGHT, eventEndsAfterDay, eventStartsBefore, getEventColor} from "./CalendarUtils"
+import {CALENDAR_EVENT_HEIGHT, eventEndsAfterDay, eventStartsBefore, getEventColor, getTimeZone} from "./CalendarUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {theme} from "../gui/theme"
@@ -69,13 +69,14 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 		const shortEvents = []
 		const longEvents = []
 		const allDayEvents = []
+		const zone = getTimeZone()
 		events.forEach((e) => {
 			if (attrs.hiddenCalendars.has(neverNull(e._ownerGroup))) {
 				return
 			}
 			if (isAllDayEvent(e)) {
 				allDayEvents.push(e)
-			} else if (eventStartsBefore(date, e) || eventEndsAfterDay(date, e)) {
+			} else if (eventStartsBefore(date, zone, e) || eventEndsAfterDay(date, zone, e)) {
 				longEvents.push(e)
 			} else {
 				shortEvents.push(e)
@@ -87,6 +88,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 	_renderDay(vnode: Vnode<CalendarDayViewAttrs>, date: Date, thisPageEvents: PageEvents, mainPageEvents: PageEvents) {
 		const {shortEvents, longEvents, allDayEvents} = thisPageEvents
 		const mainPageEventsCount = mainPageEvents.allDayEvents.length + mainPageEvents.longEvents.length
+		const zone = getTimeZone()
 		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -112,6 +114,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						showTime: EventTextTimeOption.NO_TIME,
+						zone,
 					})
 				})),
 				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
@@ -121,6 +124,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
+					zone,
 				}))),
 				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0
 					? m(".mt-s")

@@ -1,5 +1,5 @@
 //@flow
-import {getStartOfDay, getStartOfNextDay, incrementDate} from "../api/common/utils/DateUtils"
+import {incrementDate} from "../api/common/utils/DateUtils"
 import stream from "mithril/stream/stream.js"
 import {DatePicker} from "../gui/base/DatePicker"
 import {Dialog} from "../gui/base/Dialog"
@@ -33,8 +33,11 @@ import {
 	getCalendarName,
 	getDiffInDays,
 	getEventEnd,
-	getEventStart, getStartOfDayWithZone, getStartOfNextDayWithZone,
+	getEventStart,
+	getStartOfDayWithZone,
+	getStartOfNextDayWithZone,
 	getStartOfTheWeekOffsetForUser,
+	getTimeZone,
 	hasCapabilityOnGroup,
 	parseTime,
 	timeString,
@@ -78,10 +81,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			readOnly = !hasCapabilityOnGroup(logins.getUserController().user, calendarInfoForEvent.group, ShareCapability.Write)
 		}
 	}
+	const zone = getTimeZone()
 	const selectedCalendar = stream(calendarArray[0])
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", true, readOnly)
-	startDatePicker.setDate(getStartOfDayWithZone(date))
+	startDatePicker.setDate(getStartOfDayWithZone(date, zone))
 	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", true, readOnly)
 	const amPmFormat = logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 	const startTime = stream(timeString(date, amPmFormat))
@@ -140,14 +144,14 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		if (calendarForGroup) {
 			selectedCalendar(calendarForGroup)
 		}
-		startTime(timeString(getEventStart(existingEvent), amPmFormat))
+		startTime(timeString(getEventStart(existingEvent, zone), amPmFormat))
 		allDay(existingEvent && isAllDayEvent(existingEvent))
 		if (allDay()) {
-			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent), -1))
+			endDatePicker.setDate(incrementDate(getEventEnd(existingEvent, zone), -1))
 		} else {
-			endDatePicker.setDate(getStartOfDayWithZone(getEventEnd(existingEvent)))
+			endDatePicker.setDate(getStartOfDayWithZone(getEventEnd(existingEvent, zone), zone))
 		}
-		endTime(timeString(getEventEnd(existingEvent), amPmFormat))
+		endTime(timeString(getEventEnd(existingEvent, zone), amPmFormat))
 		if (existingEvent.repeatRule) {
 			const existingRule = existingEvent.repeatRule
 			repeatPickerAttrs.selectedValue(downcast(existingRule.frequency))
@@ -174,7 +178,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	} else {
 		const endTimeDate = new Date(date)
 		endTimeDate.setMinutes(endTimeDate.getMinutes() + 30)
-		endDatePicker.setDate(getStartOfDayWithZone(date))
+		endDatePicker.setDate(getStartOfDayWithZone(date, zone))
 		endTime(timeString(endTimeDate, amPmFormat))
 		m.redraw()
 	}
@@ -268,7 +272,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 
 		if (allDay()) {
 			startDate = getAllDayDateUTC(startDate)
-			endDate = getAllDayDateUTC(getStartOfNextDayWithZone(endDate))
+			endDate = getAllDayDateUTC(getStartOfNextDayWithZone(endDate, zone))
 		} else {
 			const parsedStartTime = parseTime(startTime())
 			const parsedEndTime = parseTime(endTime())
@@ -315,8 +319,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					repeatRule.endValue = String(count)
 				}
 			} else if (stopType === EndType.UntilDate) {
-				const repeatEndDate = getStartOfNextDayWithZone(neverNull(repeatEndDatePicker.date()))
-				if (repeatEndDate.getTime() < getEventStart(newEvent)) {
+				const repeatEndDate = getStartOfNextDayWithZone(neverNull(repeatEndDatePicker.date()), zone)
+				if (repeatEndDate.getTime() < getEventStart(newEvent, zone)) {
 					Dialog.error("startAfterEnd_label")
 					return
 				} else {
@@ -343,7 +347,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			|| newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
 			|| !_repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)) {
 			// if values of the existing events have changed that influence the alarm time then delete the old event and create a new one.
-			createEventId(newEvent, groupRoot)
+			createEventId(newEvent, zone, groupRoot)
 			worker.createCalendarEvent(newEvent, newAlarms, existingEvent)
 		} else {
 			worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)

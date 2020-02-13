@@ -12,13 +12,14 @@ type ContinuingCalendarEventBubbleAttrs = {|
 	color: string,
 	onEventClicked: clickHandler,
 	showTime: EventTextTimeOptionEnum,
+	zone: string,
 |}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
 
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
-		const startsBefore = eventStartsBefore(attrs.startDate, attrs.event)
-		const endsAfter = eventEndsAfterDay(attrs.endDate, attrs.event)
+		const startsBefore = eventStartsBefore(attrs.startDate, attrs.zone, attrs.event)
+		const endsAfter = eventEndsAfterDay(attrs.endDate, attrs.zone, attrs.event)
 
 		return m(".flex.calendar-event-cont.darker-hover", [
 			startsBefore

@@ -15,12 +15,14 @@ import {
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
-	getEventStart, getStartOfDayWithZone,
+	getEventStart,
+	getStartOfDayWithZone,
 	getStartOfTheWeekOffset,
+	getTimeZone,
 	getWeekNumber,
 	layOutEvents
 } from "./CalendarUtils"
-import {getDateIndicator, getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
+import {getDateIndicator, incrementDate} from "../api/common/utils/DateUtils"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
@@ -92,7 +94,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_renderCalendar(attrs: CalendarMonthAttrs, date: Date): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
-		const today = getStartOfDayWithZone(new Date())
+		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
 			styles.isDesktopLayout() ?
 				m(".mt-s.pr-l.flex.row.items-center",
@@ -174,7 +176,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		const eventMargin = (styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile)
-		return layOutEvents(Array.from(events), (columns) => {
+		return layOutEvents(Array.from(events), getTimeZone(), (columns) => {
 			return columns.map((events, columnIndex) => {
 				return events.map(event => {
 					if (columnIndex < eventsPerDay) {
@@ -229,8 +231,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
 		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight
 
-		const eventStart = getEventStart(event)
-		const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event), -1) : event.endTime
+		const zone = getTimeZone()
+		const eventStart = getEventStart(event, zone)
+		const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
 
 		const dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
@@ -238,8 +241,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 
 
-		const left = (eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
-		const right = (eventEndsAfterDay(lastDayOfWeek, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth)) + calendarEventMargin
+		const left = (eventStartsBefore(firstDayOfWeek, zone, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
+		const right = (eventEndsAfterDay(lastDayOfWeek, zone, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth))
+			+ calendarEventMargin
 		return {
 			top,
 			left,
@@ -258,6 +262,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},
+			zone: getTimeZone(),
 		})
 	}
 

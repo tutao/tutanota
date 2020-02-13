@@ -4,12 +4,13 @@ import {
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
 	getEventEnd,
-	getEventStart, getStartOfDayWithZone,
+	getEventStart,
+	getStartOfDayWithZone,
 	getTimeZone,
 	isLongEvent,
 	isSameEvent
 } from "./CalendarUtils"
-import {getStartOfDay, isToday} from "../api/common/utils/DateUtils"
+import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
 import {clone, defer, downcast} from "../api/common/utils/Utils"
@@ -68,13 +69,16 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 	}
 	const frequency: RepeatPeriodEnum = downcast(repeatRule.frequency)
 	const interval = Number(repeatRule.interval)
-	const isLong = isLongEvent(event)
+	const isLong = isLongEvent(event, timeZone)
 	let eventStartTime = new Date(getEventStart(event, timeZone))
 	let eventEndTime = new Date(getEventEnd(event, timeZone))
 	// Loop by the frequency step
 	let repeatEndTime = null
 	let endOccurrences = null
 	const allDay = isAllDayEvent(event)
+	// For all-day events we should rely on the local time zone or at least we must use the same zone as in getAllDayDateUTCFromZone
+	// below. If they are not in sync, then daylight saving shifts may cause us to extract wrong UTC date (day in repeat rule zone and in
+	// local zone may be different).
 	const repeatTimeZone = allDay ? timeZone : getValidTimeZone(repeatRule.timeZone)
 	if (repeatRule.endType === EndType.Count) {
 		endOccurrences = Number(repeatRule.endValue)
@@ -294,8 +298,8 @@ class CalendarModel {
 
 	scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo) {
 		const repeatRule = event.repeatRule
+		const localZone = getTimeZone()
 		if (repeatRule) {
-			const localZone = getTimeZone()
 			let repeatTimeZone = getValidTimeZone(repeatRule.timeZone, localZone)
 
 			let calculationLocalZone = getValidTimeZone(localZone, null)
@@ -313,7 +317,7 @@ class CalendarModel {
 					this._scheduleNotification(getElementId(userAlarmInfo) + occurrence, event, time)
 				})
 		} else {
-			if (getEventStart(event).getTime() > Date.now()) {
+			if (getEventStart(event, localZone).getTime() > Date.now()) {
 				this._scheduleNotification(getElementId(userAlarmInfo), event, calculateAlarmTime(event.startTime, downcast(userAlarmInfo.alarmInfo.trigger)))
 			}
 		}
@@ -322,7 +326,7 @@ class CalendarModel {
 	_scheduleNotification(identifier: string, event: CalendarEvent, time: Date) {
 		this._runAtDate(time, identifier, () => {
 			const title = lang.get("reminder_label")
-			const eventStart = getEventStart(event)
+			const eventStart = getEventStart(event, getTimeZone())
 			let dateString: string
 			if (isToday(eventStart)) {
 				dateString = formatTime(eventStart)

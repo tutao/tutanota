@@ -24,7 +24,7 @@ o.spec("CalendarImporterTest", function () {
 					description: "Descr \\ ; \n",
 					uid: "test@tutanota.com",
 					location: "Some location",
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				"DTSTART:20190813T030600Z",
@@ -39,14 +39,15 @@ o.spec("CalendarImporterTest", function () {
 		})
 
 		o("all day", function () {
+			const zone = 'utc'
 			o(serializeEvent(createCalendarEvent({
 					_id: ["123", "456"],
 					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, zone: "UTC"}).toJSDate(),
-					endTime: DateTime.fromObject({year: 2019, month: 9, day: 14, zone: "UTC"}).toJSDate(),
+					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, zone}).toJSDate(),
+					endTime: DateTime.fromObject({year: 2019, month: 9, day: 14, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
-				}), [], now)
+				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				`DTSTART:20190813`,
@@ -80,7 +81,7 @@ o.spec("CalendarImporterTest", function () {
 					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
 					description: "Descr \\ ; \n",
-				}), [alarmOne, alarmTwo], now)
+				}), [alarmOne, alarmTwo], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
 				"DTSTART:20190813T030600Z",
@@ -359,7 +360,7 @@ o.spec("CalendarImporterTest", function () {
 			}
 		]
 		const versionNumber = "3.57.6"
-		const serialized = serializeCalendar(versionNumber, events, now)
+		const serialized = serializeCalendar(versionNumber, events, now, zone)
 		const eventsWithoutIds = events.map(({event, alarms}) => {
 			return {
 				event: Object.assign({}, event, {_id: null, uid: event.uid || `ownerId${now.getTime()}@tutanota.com`, _ownerGroup: null}),
@@ -420,6 +421,7 @@ END:VEVENT
 END:VCALENDAR`
 			.split("\n").join("\r\n")
 
+		const zone = "Europe/Berlin"
 		const versionNumber = "3.57.6"
 		const parsed = parseCalendarStringData(text)
 		const serialized = serializeCalendar(versionNumber, parsed.map(({event, alarms}) => {
@@ -427,7 +429,7 @@ END:VCALENDAR`
 				event: Object.assign({}, event, {_id: ["123", "456"]}),
 				alarms: alarms.map(alarmInfo => createUserAlarmInfo({alarmInfo}))
 			}
-		}), now)
+		}), now, zone)
 
 		o(serialized).deepEquals(text)
 	})

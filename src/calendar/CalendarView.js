@@ -495,7 +495,8 @@ export class CalendarView implements CurrentView {
 						icon: () => Icons.Export,
 						click: () => {
 							const alarmInfoList = logins.getUserController().user.alarmInfoList
-							alarmInfoList && exportCalendar(getCalendarName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms)
+							alarmInfoList
+							&& exportCalendar(getCalendarName(groupInfo, sharedCalendar), groupRoot, alarmInfoList.alarms, new Date(), getTimeZone())
 						},
 						isVisible: () => hasCapabilityOnGroup(logins.getUserController().user, group, ShareCapability.Read),
 						type: ButtonType.Dropdown,
@@ -566,7 +567,7 @@ export class CalendarView implements CurrentView {
 				// in case of a repeat rule we want to show the start event for now to indicate that we edit all events.
 				p = load(CalendarEventTypeRef, event._id)
 			}
-			p.then(e => showCalendarEventDialog(getEventStart(e), calendarInfos, e))
+			p.then(e => showCalendarEventDialog(getEventStart(e, getTimeZone()), calendarInfos, e))
 			 .catch(NotFoundError, () => {
 				 console.log("calendar event not found when clicking on the event")
 			 })
@@ -578,7 +579,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	_loadMonthIfNeeded(dayInMonth: Date): Promise<void> {
-		const month = getMonth(dayInMonth)
+		const month = getMonth(dayInMonth, getTimeZone())
 		if (!this._loadedMonths.has(month.start.getTime())) {
 			this._loadedMonths.add(month.start.getTime())
 			return this._loadEvents(month).catch((e) => {
@@ -648,7 +649,7 @@ export class CalendarView implements CurrentView {
 					const shortEvents = shortEventsResult.elements
 					shortEvents
 						.filter(e => {
-							const eventStart = getEventStart(e).getTime()
+							const eventStart = getEventStart(e, getTimeZone()).getTime()
 							return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
 						}) // only events for the loaded month
 						.forEach((e) => this._addDaysForEvent(e, month))
@@ -794,9 +795,10 @@ export class CalendarView implements CurrentView {
 	}
 
 	addOrUpdateEvent(calendarInfo: ?CalendarInfo, event: CalendarEvent) {
+		const zone = getTimeZone()
 		if (calendarInfo) {
-			const eventListId = getListId(event);
-			const eventMonth = getMonth(getEventStart(event))
+			const eventListId = getListId(event)
+			const eventMonth = getMonth(getEventStart(event, zone), zone)
 			if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
 				// If the month is not loaded, we don't want to put it into events.
 				// We will put it there when we load the month
@@ -810,7 +812,7 @@ export class CalendarView implements CurrentView {
 				this._removeExistingEvent(calendarInfo.longEvents, event)
 				calendarInfo.longEvents.push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
-					const loadedMonth = getMonth(new Date(firstDayTimestamp))
+					const loadedMonth = getMonth(new Date(firstDayTimestamp), zone)
 					if (event.repeatRule) {
 						this._addDaysForRecurringEvent(event, loadedMonth)
 					} else {

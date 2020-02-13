@@ -10,7 +10,10 @@ import {
 	eventStartsBefore,
 	getCalendarWeek,
 	getDiffInDays,
-	getEventColor, getEventEnd, getEventStart,
+	getEventColor,
+	getEventEnd,
+	getEventStart,
+	getTimeZone,
 	getWeekNumber,
 	layOutEvents
 } from "./CalendarUtils"
@@ -209,8 +212,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 				.forEach((event) => {
 					if (!attrs.hiddenCalendars.has(neverNull(event._ownerGroup)) && !eventsForWeek.has(event)) {
 						const isShort = !isAllDayEvent(event)
-							&& !eventStartsBefore(weekdayDate, event)
-							&& !eventEndsAfterDay(weekdayDate, event)
+							&& !eventStartsBefore(weekdayDate, getTimeZone(), event)
+							&& !eventEndsAfterDay(weekdayDate, getTimeZone(), event)
 						if (isShort) {
 							eventsForWeekDay.push(event)
 						} else {
@@ -234,15 +237,18 @@ export class CalendarWeekView implements MComponent<Attrs> {
 		const lastDayOfWeek = lastThrow(week)
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 
-		const children = layOutEvents(Array.from(eventsForWeek), (columns) => {
+		const zone = getTimeZone()
+		const children = layOutEvents(Array.from(eventsForWeek), zone, (columns) => {
 			maxColumns = Math.max(maxColumns, columns.length)
 			return columns.map((rows, c) =>
 				rows.map((event) => {
-					const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event), -1) : event.endTime
-					const dayOfStartDateInWeek = getDiffInDays(getEventStart(event), firstDayOfWeek)
+					const zone = getTimeZone()
+					const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
+					const dayOfStartDateInWeek = getDiffInDays(getEventStart(event, zone), firstDayOfWeek)
 					const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
-					const left = eventStartsBefore(firstDayOfWeek, event) ? 0 : dayOfStartDateInWeek * dayWidth
-					const right = (eventEndsAfterDay(lastDayOfWeek, event) ? 0 : (6 - dayOfEndDateInWeek) * dayWidth) + calendarEventMargin
+					const left = eventStartsBefore(firstDayOfWeek, zone, event) ? 0 : dayOfStartDateInWeek * dayWidth
+					const right = (eventEndsAfterDay(lastDayOfWeek, zone, event) ? 0 : (6 - dayOfEndDateInWeek) * dayWidth)
+						+ calendarEventMargin
 					return m(".abs", {
 						style: {
 							top: px(c * CALENDAR_EVENT_HEIGHT),
@@ -257,6 +263,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 						color: getEventColor(event, attrs.groupColors),
 						onEventClicked: attrs.onEventClicked,
 						showTime: isAllDayEvent(event) ? EventTextTimeOption.NO_TIME : EventTextTimeOption.START_TIME,
+						zone,
 					}))
 				}))
 		}, true)

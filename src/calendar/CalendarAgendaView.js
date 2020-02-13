@@ -12,6 +12,7 @@ import {
 	getEventColor,
 	getEventText,
 	getStartOfDayWithZone,
+	getTimeZone,
 	hasAlarmsForTheUser
 } from "./CalendarUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
@@ -33,8 +34,9 @@ type Attrs = {
 export class CalendarAgendaView implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>) {
 		const now = new Date()
+		const zone = getTimeZone()
 
-		const today = getStartOfDayWithZone(now)
+		const today = getStartOfDayWithZone(now, zone)
 		const tomorrow = incrementDate(new Date(today), 1)
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)
@@ -88,8 +90,8 @@ export class CalendarAgendaView implements MComponent<Attrs> {
 							}, events.length === 0
 								? m(".mb-s", lang.get("noEntries_msg"))
 								: events.map((ev) => {
-									const startsBefore = eventStartsBefore(day, ev)
-									const endsAfter = eventEndsAfterDay(day, ev)
+									const startsBefore = eventStartsBefore(day, zone, ev)
+									const endsAfter = eventEndsAfterDay(day, zone, ev)
 									let textOption
 									if (isAllDayEvent(ev) || (startsBefore && endsAfter)) {
 										textOption = EventTextTimeOption.ALL_DAY

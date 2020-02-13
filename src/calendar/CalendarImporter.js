@@ -33,6 +33,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
 		              const progress = stream(0)
 		              const progressMonitor = new ProgressMonitor(totalCount, progress)
+		              const zone = getTimeZone()
 
 		              const importPromise =
 			              loadAllEvents(calendarGroupRoot)
@@ -48,7 +49,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 								              return
 							              }
 							              const repeatRule = event.repeatRule
-							              createEventId(event, calendarGroupRoot)
+							              createEventId(event, zone, calendarGroupRoot)
 							              event._ownerGroup = calendarGroupRoot._id
 
 							              if (repeatRule && repeatRule.timeZone === "") {
@@ -58,7 +59,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              for (let alarmInfo of alarms) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
-							              createEventId(event, calendarGroupRoot)
+							              createEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
@@ -94,7 +95,13 @@ export function parseCalendarStringData(value: string) {
 	return parseCalendarEvents(tree)
 }
 
-export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoot, userAlarmInfos: Id) {
+export function exportCalendar(
+	calendarName: string,
+	groupRoot: CalendarGroupRoot,
+	userAlarmInfos: Id,
+	now: Date,
+	zone: string
+) {
 	showProgressDialog("pleaseWait_msg", loadAllEvents(groupRoot)
 		.then((allEvents) => {
 			return Promise.map(allEvents, event => {
@@ -107,7 +114,7 @@ export function exportCalendar(calendarName: string, groupRoot: CalendarGroupRoo
 				}
 			})
 		})
-		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms)))
+		.then((eventsWithAlarms) => exportCalendarEvents(calendarName, eventsWithAlarms, now, zone)))
 }
 
 function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
@@ -118,8 +125,13 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 			}))
 }
 
-function exportCalendarEvents(calendarName: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>) {
-	const stringValue = serializeCalendar(env.versionNumber, events)
+function exportCalendarEvents(
+	calendarName: string,
+	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
+	now: Date,
+	zone: string,
+) {
+	const stringValue = serializeCalendar(env.versionNumber, events, now, zone)
 	const data = stringToUtf8Uint8Array(stringValue)
 	const tmpFile = createFile()
 	tmpFile.name = calendarName === "" ? "export.ics" : (calendarName + "-export.ics")
@@ -128,7 +140,12 @@ function exportCalendarEvents(calendarName: string, events: Array<{event: Calend
 	return fileController.open(createDataFile(tmpFile, data))
 }
 
-export function serializeCalendar(versionNumber: string, events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>, now: Date = new Date()): string {
+export function serializeCalendar(
+	versionNumber: string,
+	events: Array<{event: CalendarEvent, alarms: Array<UserAlarmInfo>}>,
+	now: Date,
+	zone: string
+): string {
 	let value = [
 		"BEGIN:VCALENDAR",
 		`PRODID:-//Tutao GmbH//Tutanota ${versionNumber}//EN`,
@@ -138,7 +155,7 @@ export function serializeCalendar(versionNumber: string, events: Array<{event: C
 	]
 
 	for (let {event, alarms} of events) {
-		value.push(...serializeEvent(event, alarms, now))
+		value.push(...serializeEvent(event, alarms, now, zone))
 	}
 	value.push(...["END:VCALENDAR"])
 
@@ -223,7 +240,7 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 	]
 }
 
-export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date = new Date(), timeZone: string = getTimeZone()): Array<string> {
+export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	let dateStart, dateEnd
