@@ -204,7 +204,7 @@ declare module 'electron' {
 	declare export class App {
 		on(AppEvent, (Event, ...Array<any>) => any): App,
 		once(AppEvent, (Event, ...Array<any>) => any): App,
-		emit(AppEvent) : App,
+		emit(AppEvent): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
@@ -212,6 +212,7 @@ declare module 'electron' {
 		getVersion(): string,
 		name: string,
 		setPath(name: string, path: string): void;
+		allowRendererProcessReuse: boolean;
 		getLoginItemSettings(opts?: {path: string, args: string}): {
 			openAtLogin: boolean,
 			openAsHidden: boolean,

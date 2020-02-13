@@ -50,6 +50,7 @@ wm.setIPC(ipc)
 
 PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
+app.allowRendererProcessReuse = false
 console.log("argv: ", process.argv)
 console.log("version:  ", app.getVersion())
 
