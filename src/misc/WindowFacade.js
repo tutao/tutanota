@@ -142,12 +142,10 @@ class WindowFacade {
 	 */
 	addHistoryEventListener(listener: (e: Event) => boolean): ()=>void {
 		this._historyStateEventListeners.push(listener)
-		console.log("added history state listener:", this._historyStateEventListeners.length)
 		return () => {
 			const index = this._historyStateEventListeners.indexOf(listener)
 			if (index !== -1) {
 				this._historyStateEventListeners.splice(index, 1)
-				console.log("removed history state listener:", this._historyStateEventListeners.length)
 			}
 		}
 	}
@@ -165,11 +163,9 @@ class WindowFacade {
 		const len = this._historyStateEventListeners.length
 		if (len === 0) return
 		if (this._ignoreNextPopstate) {
-			console.log("ignoring popstate")
 			this._ignoreNextPopstate = false
 			return
 		}
-		console.log("windowfacade._popState")
 		if (!this._historyStateEventListeners[len - 1](e)) {
 			this._ignoreNextPopstate = true
 			history.go(1)

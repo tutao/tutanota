@@ -6,14 +6,22 @@ import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
 import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/EntityFunctions"
+import {
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	isSameTypeRef,
+	isSameTypeRefByAttr,
+	TypeRef
+} from "../../common/EntityFunctions"
 import type {DeferredObject} from "../../common/utils/Utils"
 import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {hash} from "../crypto/Sha256"
 import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
-import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, printMeasure, typeRefToTypeInfo} from "./IndexUtils"
+import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
@@ -405,7 +413,6 @@ export class Indexer {
 			.then(() => {
 				// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
 				this.addBatchesToQueue(batchesOfAllGroups)
-				console.log("_indexer.startProcessing from Indexer")
 				this.startProcessing()
 			})
 	}
@@ -501,11 +508,11 @@ export class Indexer {
 					}).then(() => {
 						markEnd("writeIndexUpdate")
 						markEnd("processEntityEvents")
-						if (!env.dist && env.mode !== "Test") {
-							printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
-								"processEntityEvents", "processEvent", "writeIndexUpdate"
-							])
-						}
+						// if (!env.dist && env.mode !== "Test") {
+						// 	printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
+						// 		"processEntityEvents", "processEvent", "writeIndexUpdate"
+						// 	])
+						// }
 					})
 				})
 			})

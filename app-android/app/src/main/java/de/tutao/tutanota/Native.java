@@ -230,8 +230,6 @@ public final class Native {
 
 					String pushIdentifierId = args.getString(3);
 					String pushIdentifierSessionKeyB64 = args.getString(4);
-
-					Log.d("XXXXX", "session from web: " + pushIdentifierSessionKeyB64 + " for push identifier: " + pushIdentifierId);
 					sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKeyB64);
 					promise.resolve(true);
 					break;

@@ -209,7 +209,6 @@ public class AlarmNotificationsManager {
 				return resolved;
 			} else {
 				byte[] pushIdentifierSessionKey = sseStorage.getPushIdentifierSessionKey(pushIdentifierId);
-				Log.d("XXXXX", "session from ssestorage: " + Utils.bytesToBase64(pushIdentifierSessionKey) + " for push identifier: " + pushIdentifierId);
 				if (pushIdentifierSessionKey == null) {
 					return null;
 				}

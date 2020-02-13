@@ -788,8 +788,6 @@ export class CalendarView implements CurrentView {
 						}
 					})
 
-				} else {
-					console.log(`unhandled update: ${update.operation} ${update.type}`)
 				}
 			})
 		})

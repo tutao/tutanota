@@ -112,7 +112,7 @@ public class TutanotaNotificationsHandler {
 
 			try (InputStream inputStream = urlConnection.getInputStream()) {
 				String responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-				Log.d(TAG, "Missed notifications response:\n" + responseString);
+				Log.d(TAG, "Loaded Missed notifications response");
 				return MissedNotification.fromJson(new JSONObject(responseString));
 			}
 		} catch (MalformedURLException | JSONException e) {

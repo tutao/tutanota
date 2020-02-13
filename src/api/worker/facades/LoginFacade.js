@@ -125,7 +125,6 @@ export class LoginFacade {
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
 			// check if it is the same user in _initSession()
 		}
-		console.log("createSession worker")
 		return this._loadUserPassphraseKey(mailAddress, passphrase).then(userPassphraseKey => {
 			// the verifier is always sent as url parameter, so it must be url encoded
 			let authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
@@ -282,7 +281,6 @@ export class LoginFacade {
 	 * Resume a session of stored credentials.
 	 */
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}> {
-		console.log("resumeSession worker")
 		return this._loadSessionData(credentials.accessToken).then(sessionData => {
 			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
 			let passphraseKeyPromise: Promise<Aes128Key>
@@ -523,7 +521,6 @@ export class LoginFacade {
 
 	storeEntropy(): Promise<void> {
 		if (!this._accessToken) return Promise.resolve()
-		console.log("updating stored entropy")
 		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)

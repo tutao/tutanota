@@ -239,7 +239,6 @@ export class IndexerCore {
 	}
 
 	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => $Promisable<void>): Promise<void> {
-		console.log("writeIndexUpdate")
 		return this._executeOperation({
 			transaction: null,
 			transactionFactory: () => this.db.dbFacade.createTransaction(false, [

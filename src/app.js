@@ -286,3 +286,30 @@ function setupExceptionHandling() {
 		}
 	})
 }
+
+env.dist && setTimeout(() => {
+	console.log(`
+
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''',:,''''''''''''    
+''''''''''''';:llllcccccccc,''''''''''''    Do you care about privacy?
+'''''''''''':kXWXkoc::;,,''''''''''''''' 
+'''''''''''',cdk0KKK00kxdolc;,''''''''''    Work at Tutanota! Fight for our rights!
+'''''''''''''''';coxOKNMMWWNK0kdl:,'''''    
+'''''''''''''''''''',;oKMMMMMMMMWX0dc,''    https://tutanota.com/jobs
+'''''''''''''''''''''';kWMMMMMMMMMMWXk:'
+'''''''''''''''''''',:xXMMMMMMMMMMMMMWKl
+''''''''''''''''';lk0KWMMMMMMMMMMMMMMMWK
+''''''''''''';cdOKWMMMMMMMMMMMMMMMMMMMMM
+'''''''',:ldOKNWMMMMMMMMMMMMMMMMMMMMMMMM
+''',:ldk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+ldk0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+
+`)
+}, 5000)

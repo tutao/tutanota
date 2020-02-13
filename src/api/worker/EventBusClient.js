@@ -418,7 +418,6 @@ export class EventBusClient {
 				           if (!isTest() && !isAdminClient()) {
 					           this._executeIfNotTerminated(() => {
 						           this._indexer.addBatchesToQueue([{groupId, batchId, events: filteredEvents}])
-						           console.log("_indexer.startProcessing from EventBusClient")
 						           this._indexer.startProcessing()
 					           })
 				           }
