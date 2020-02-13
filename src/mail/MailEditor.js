@@ -51,7 +51,7 @@ import {
 	resolveRecipientInfo
 } from "./MailUtils"
 import {fileController} from "../file/FileController"
-import {contains, remove, replace} from "../api/common/utils/ArrayUtils"
+import {contains, findAllAndRemove, remove, replace} from "../api/common/utils/ArrayUtils"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -1149,16 +1149,19 @@ export class MailEditor {
 		// Doing this check instead of relying on mutations also helps with the case when node is removed but inserted again
 		// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 		// means removal + insertion.
+		const elementsToRemove = []
 		this._inlineImageElements.forEach((inlineImage) => {
 			if (this._domElement && !this._domElement.contains(inlineImage)) {
 				const cid = inlineImage.getAttribute("cid")
 				const attachmentIndex = this._attachments.findIndex((a) => a.cid === cid)
 				if (attachmentIndex !== -1) {
 					this._attachments.splice(attachmentIndex, 1)
+					elementsToRemove.push(inlineImage)
 					m.redraw()
 				}
 			}
 		})
+		findAllAndRemove(this._inlineImageElements, (imageElement) => elementsToRemove.includes(imageElement))
 	})
 
 	_observeEditorMutations() {
