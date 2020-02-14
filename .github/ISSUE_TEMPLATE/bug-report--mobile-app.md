@@ -4,8 +4,11 @@ about: Create a report to help us improve
 title: ''
 labels: bug
 assignees: ''
-
 ---
+
+- [ ] This is not a feature request (existing functionality does not work, **not** missing functionality).
+ I will request features on [forum](https://www.reddit.com/r/tutanota/) or via support.
+- [ ] I've searched and did not find a similar issue.
 
 **Bug in mobile app**
 

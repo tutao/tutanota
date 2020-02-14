@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Forum
+    url: https://www.reddit.com/r/tutanota/
+    about: Please send feature requests, ask and answer questions here.
+  - name: Contact
+    url: https://tutanota.com/contact/
+    about: Contact page
