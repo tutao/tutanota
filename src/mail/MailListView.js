@@ -129,19 +129,20 @@ export class MailListView implements Component {
 			}
 			return acc
 		}, 0)
-		const counterValue = mailModel.getCounterValue(this.listId)
-		if (counterValue != null && counterValue !== unreadMails) {
-			mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetails) => {
-				const data = createWriteCounterData({
-					counterType: CounterType_UnreadMails,
-					row: mailboxDetails.mailGroup._id,
-					column: this.listId,
-					value: String(unreadMails)
+		mailModel.getCounterValue(this.listId).then((counterValue) => {
+			if (counterValue != null && counterValue !== unreadMails) {
+				mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetails) => {
+					const data = createWriteCounterData({
+						counterType: CounterType_UnreadMails,
+						row: mailboxDetails.mailGroup._id,
+						column: this.listId,
+						value: String(unreadMails)
+					})
+					serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
 				})
-				serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
-			})
 
-		}
+			}
+		})
 	})
 
 	view(): Children {

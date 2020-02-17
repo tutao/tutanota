@@ -263,14 +263,12 @@ export class MailModel {
 		})
 	}
 
-	getCounterValue(listId: Id): ?number {
-		const mailboxDetails = this.getMailboxDetailsForMailListId(listId)
-		const counters = this.mailboxCounters()
-		if (mailboxDetails.isFulfilled() && counters[mailboxDetails.value().mailGroup._id]) {
-			return counters[mailboxDetails.value().mailGroup._id][listId]
-		} else {
-			return null
-		}
+	getCounterValue(listId: Id): Promise<?number> {
+		return this.getMailboxDetailsForMailListId(listId).then((mailboxDetails) => {
+			const counters = this.mailboxCounters()
+			const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
+			return mailGroupCounter && mailGroupCounter[listId]
+		}).catch(() => null)
 	}
 }
 
