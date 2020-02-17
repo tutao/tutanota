@@ -30,6 +30,7 @@ import {
 	createEventId,
 	createRepeatRuleWithValues,
 	generateUid,
+	getAllDayDateForTimezone, getAllDayDateUTCFromZone,
 	getCalendarName,
 	getDiffInDays,
 	getEventEnd,
@@ -158,8 +159,15 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			repeatIntervalPickerAttrs.selectedValue(Number(existingRule.interval))
 			endTypePickerAttrs.selectedValue(downcast(existingRule.endType))
 			endCountPickerAttrs.selectedValue(existingRule.endType === EndType.Count ? Number(existingRule.endValue) : 1)
-			repeatEndDatePicker.setDate(existingRule.endType
-			=== EndType.UntilDate ? incrementDate(new Date(Number(existingRule.endValue)), -1) : null)
+			if (existingRule.endType === EndType.UntilDate) {
+				const rawEndDate = new Date(Number(existingRule.endValue))
+				const localDate = allDay() ? getAllDayDateForTimezone(rawEndDate, zone) : rawEndDate
+				// Shown date is one day behind the actual end (for us it's excluded)
+				const shownDate = incrementByRepeatPeriod(localDate, RepeatPeriod.DAILY, -1, zone)
+				repeatEndDatePicker.setDate(shownDate)
+			} else {
+				repeatEndDatePicker.setDate(null)
+			}
 		} else {
 			repeatPickerAttrs.selectedValue(null)
 		}
@@ -271,8 +279,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		let endDate = new Date(neverNull(endDatePicker.date()))
 
 		if (allDay()) {
-			startDate = getAllDayDateUTC(startDate)
-			endDate = getAllDayDateUTC(getStartOfNextDayWithZone(endDate, zone))
+			startDate = getAllDayDateUTCFromZone(startDate, zone)
+			endDate = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(endDate, zone), zone)
 		} else {
 			const parsedStartTime = parseTime(startTime())
 			const parsedEndTime = parseTime(endTime())
@@ -328,7 +336,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					// dependent and one is not then we have interesting bugs in edge cases (event created in -11 could
 					// end on another date in +12). So for all day events end date is UTC-encoded all day event and for
 					// regular events it is just a timestamp.
-					repeatRule.endValue = String((allDay() ? getAllDayDateUTC(repeatEndDate) : repeatEndDate).getTime())
+					repeatRule.endValue = String((allDay() ? getAllDayDateUTCFromZone(repeatEndDate, zone) : repeatEndDate).getTime())
 				}
 			}
 		}
