@@ -83,7 +83,7 @@ public final class PushNotificationService extends LifecycleJobService {
 			}
 
 			@Override
-			public void onTooManyReconnectionAttempts() {
+			public void onStoppingReconnectionAttempts() {
 				removeBackgroundServiceNotification();
 				finishJobIfNeeded();
 			}

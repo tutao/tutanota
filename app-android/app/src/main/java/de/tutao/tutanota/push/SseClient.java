@@ -146,12 +146,13 @@ public class SseClient {
 		if (failedConnectionAttempts > RECONNECTION_ATTEMPTS) {
 			failedConnectionAttempts = 0;
 			Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up");
-			sseListener.onTooManyReconnectionAttempts();
+			sseListener.onStoppingReconnectionAttempts();
 		} else if (this.networkObserver.hasNetworkConnection()) {
 			Log.e(TAG, "error opening sse, rescheduling after " + delay + ", failedConnectionAttempts: " + failedConnectionAttempts, exception);
 			reschedule(delay);
 		} else {
 			Log.e(TAG, "network is not connected, do not reschedule ", exception);
+			sseListener.onStoppingReconnectionAttempts();
 		}
 	}
 
@@ -245,6 +246,6 @@ public class SseClient {
 
 		void onNotAuthorized();
 
-		void onTooManyReconnectionAttempts();
+		void onStoppingReconnectionAttempts();
 	}
 }
