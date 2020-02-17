@@ -277,6 +277,9 @@ export class DropdownN {
 				}
 				if (this._domInput && !client.isMobileDevice()) {
 					this._domInput.focus()
+				} else {
+					const button = this._domDropdown.querySelector("button")
+					button && button.focus()
 				}
 			})
 		}
@@ -329,7 +332,7 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<$ReadOnlyArray<DropDo
 		// If the promise is pending and does not resolve in 100ms, show progress dialog
 		if (originalButtons.isPending()) {
 			buttons = Promise.race([
-				originalButtons,
+					originalButtons,
 					Promise.all([
 						Promise.delay(100),
 						asyncImport(typeof module !== "undefined" ? module.id : __moduleName,

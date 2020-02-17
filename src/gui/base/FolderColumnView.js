@@ -29,6 +29,7 @@ export class FolderColumnView implements MComponent<Attrs> {
 					}))
 					: null,
 				m(".scroll.overflow-x-hidden.flex.col.flex-grow", {
+						tabindex: "-1",
 						onscroll: (e) => {
 							if (attrs.button == null || e.target.scrollTop === 0) {
 								e.target.style.borderTop = ""

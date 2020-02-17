@@ -221,6 +221,7 @@ class Header {
 		} else {
 			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return m(".logo.logo-height.pl", {
+					"aria-hidden": "true",
 					style: {
 						"margin-left": px(sizes.drawer_menu_width)
 					},

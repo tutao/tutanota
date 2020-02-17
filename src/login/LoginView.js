@@ -24,6 +24,11 @@ import {header} from "../gui/base/Header"
 
 assertMainOrNode()
 
+const DisplayMode = Object.freeze({
+	Credentials: "credentials",
+	Form: "form",
+})
+
 export class LoginView {
 
 	targetPath: string;
@@ -37,7 +42,7 @@ export class LoginView {
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 	view: Function;
 	_knownCredentials: Credentials[];
-	_showingKnownCredentials: boolean;
+	_displayMode: ?$Values<typeof DisplayMode>;
 	_isDeleteCredentials: boolean;
 	_viewController: Promise<ILoginViewController>;
 	oncreate: Function;
@@ -126,7 +131,7 @@ export class LoginView {
 							width: client.isDesktopDevice() ? "360px" : null,
 						}
 					}, [
-						this._showingKnownCredentials ? this.credentialsSelector() : this.loginForm(),
+						this._displayMode === DisplayMode.Credentials ? this.credentialsSelector() : this.loginForm(),
 						(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
 							m(optionsExpander),
 						]) : null,
@@ -172,19 +177,19 @@ export class LoginView {
 	}
 
 	_signupLinkVisible(): boolean {
-		return !this._showingKnownCredentials && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+		return this._displayMode !== DisplayMode.Credentials && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
 	}
 
 	_loginAnotherLinkVisible(): boolean {
-		return this._showingKnownCredentials
+		return this._displayMode === DisplayMode.Credentials
 	}
 
 	_deleteCredentialsLinkVisible(): boolean {
-		return this._showingKnownCredentials
+		return this._displayMode === DisplayMode.Credentials
 	}
 
 	_knownCredentialsLinkVisible(): boolean {
-		return !this._showingKnownCredentials && (this._knownCredentials.length > 0)
+		return !this._displayMode !== DisplayMode.Credentials && (this._knownCredentials.length > 0)
 	}
 
 	_switchThemeLinkVisible(): boolean {
@@ -302,7 +307,9 @@ export class LoginView {
 
 	setKnownCredentials(credentials: Credentials[]) {
 		this._knownCredentials = credentials
-		this._showingKnownCredentials = this._showingKnownCredentials && (credentials.length > 0)
+		if (this._displayMode === DisplayMode.Credentials && credentials.length === 0) {
+			this._displayMode = DisplayMode.Form
+		}
 		m.redraw()
 	}
 
@@ -355,6 +362,9 @@ export class LoginView {
 
 		}
 		promise.then(() => {
+			if (this._displayMode) {
+				return
+			}
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
 				args.userId && deviceConfig.getByUserId(args.userId))) {
 				// there are no credentials stored for the desired email address or user id, so let the user enter the password
@@ -365,11 +375,11 @@ export class LoginView {
 				}
 				this.password.focus()
 				this._knownCredentials = []
-				this._showingKnownCredentials = false
+				this._displayMode = DisplayMode.Form
 				m.redraw()
 			} else {
 				this._knownCredentials = deviceConfig.getAllInternal()
-				this._showingKnownCredentials = this._knownCredentials.length > 0
+				this._displayMode = this._knownCredentials.length > 0 ? DisplayMode.Credentials : DisplayMode.Form
 				let autoLoginCredentials: ?Credentials = null
 				if (args.noAutoLogin !== true && this.permitAutoLogin) {
 					if (args.loginWith && deviceConfig.get(args.loginWith)) {
@@ -398,17 +408,17 @@ export class LoginView {
 	_showLoginForm(mailAddress: string) {
 		this.mailAddress.value(mailAddress)
 		this._isDeleteCredentials = false;
-		this._showingKnownCredentials = false;
+		this._displayMode = DisplayMode.Form
 		m.redraw()
 	}
 
 	_showCredentials() {
-		this._showingKnownCredentials = true;
+		this._displayMode = DisplayMode.Credentials
 		m.redraw()
 	}
 
 	onBackPress(): boolean {
-		if (!this._showingKnownCredentials && this._knownCredentials.length > 0) {
+		if (this._displayMode !== DisplayMode.Credentials && this._knownCredentials.length > 0) {
 			this._showCredentials()
 			return true
 		}

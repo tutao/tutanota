@@ -26,35 +26,39 @@ export class ExpanderButton {
 
 		this.view = (): VirtualElement => {
 			style.color = color()
-			return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-				m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
-					style,
-					onclick: (event: MouseEvent) => {
-						this.toggle()
-						event.stopPropagation()
-					},
-					oncreate: vnode => addFlash(vnode.dom),
-					onbeforeremove: (vnode) => removeFlash(vnode.dom),
-				}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
-					(this._showWarning) ? m(Icon, {
-						icon: Icons.Warning,
-						style: {fill: color()}
-					}) : null,
-					m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
-					m(Icon, {
-						icon: BootIcons.Expand,
-						class: "flex-center items-center",
-						style: {
-							fill: color(),
-							'margin-right': px(-4) // icon is has 4px whitespace to the right
+			return m(".flex.limit-width",
+				[ // .limit-width does not work without .flex in IE11
+					m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+
+						style,
+						onclick: (event: MouseEvent) => {
+							this.toggle()
+							event.stopPropagation()
 						},
-						oncreate: vnode => {
-							this._domIcon = vnode.dom
-							if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
-						},
-					}),
-				])),
-			])
+						oncreate: vnode => addFlash(vnode.dom),
+						onbeforeremove: (vnode) => removeFlash(vnode.dom),
+						// Must be "true" or "false" strings, mere presence of attribute doesn't signify anything
+						"aria-expanded": String(!!this.panel.expanded),
+					}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
+						(this._showWarning) ? m(Icon, {
+							icon: Icons.Warning,
+							style: {fill: color()}
+						}) : null,
+						m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
+						m(Icon, {
+							icon: BootIcons.Expand,
+							class: "flex-center items-center",
+							style: {
+								fill: color(),
+								'margin-right': px(-4) // icon is has 4px whitespace to the right
+							},
+							oncreate: vnode => {
+								this._domIcon = vnode.dom
+								if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
+							},
+						}),
+					])),
+				])
 		}
 	}
 

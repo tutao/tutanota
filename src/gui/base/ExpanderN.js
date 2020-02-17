@@ -38,6 +38,7 @@ class _ExpanderButton {
 				},
 				oncreate: vnode => addFlash(vnode.dom),
 				onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				"aria-expanded": String(!!a.expanded()),
 			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
 				(a.showWarning) ? m(Icon, {
 					icon: Icons.Warning,

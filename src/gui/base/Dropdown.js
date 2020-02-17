@@ -342,6 +342,9 @@ export class Dropdown {
 					}
 					if (this._domInput && !client.isMobileDevice()) {
 						this._domInput.focus()
+					} else {
+						const button = this._domDropdown.querySelector("button")
+						button && button.focus()
 					}
 				})
 		}

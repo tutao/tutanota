@@ -47,6 +47,7 @@ export class Dialog {
 	visible: boolean;
 	_focusOnLoadFunction: Function;
 	_closeHandler: ?() => void;
+	_focusedBeforeShown: ?HTMLElement
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.visible = false
@@ -84,8 +85,8 @@ export class Dialog {
 								: dialogType === DialogType.EditLarge ? 0 : mobileMargin,
 						},
 					}, m(this._getDialogStyle(dialogType), {
+						role: "dialog",
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
-
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
 							let animation = null
@@ -123,6 +124,11 @@ export class Dialog {
 		let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
 		if (inputs.length > 0) {
 			inputs[0].focus()
+		} else {
+			let button = this._domDialog.querySelector("button")
+			if (button) {
+				button.focus()
+			}
 		}
 	}
 
@@ -181,6 +187,7 @@ export class Dialog {
 	}
 
 	show(): Dialog {
+		this._focusedBeforeShown = document.activeElement
 		modal.display(this)
 		this.visible = true
 		return this
@@ -192,6 +199,7 @@ export class Dialog {
 	close(): void {
 		this.visible = false
 		modal.remove(this)
+		this._focusedBeforeShown && this._focusedBeforeShown.focus()
 	}
 
 
