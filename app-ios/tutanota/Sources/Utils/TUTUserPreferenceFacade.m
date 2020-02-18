@@ -19,15 +19,6 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
 
 @implementation TUTUserPreferenceFacade
 
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        [NSUserDefaults.standardUserDefaults addObserver:self forKeyPath:SSE_INFO_KEY options:0 context:nil];
-    }
-    return self;
-}
-
 - (TUTSseInfo *_Nullable)sseInfo {
     var dict = [NSUserDefaults.standardUserDefaults dictionaryForKey:SSE_INFO_KEY];
     if (!dict) {
@@ -42,6 +33,7 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
     sseInfo.userIds = @[];
     [self putSseInfo:sseInfo];
     self.lastMissedNotificationCheckTime = nil;
+    [self storeAlarms:@[]];
     // We want to keep the lastProcessedNotificationId to not request old notifications
 }
 
@@ -107,18 +99,6 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
 
 - (void)setLastMissedNotificationCheckTime:(NSDate *_Nullable)lastMissedNotificationCheckTime {
     [NSUserDefaults.standardUserDefaults setValue:lastMissedNotificationCheckTime forKey:LAST_MISSED_NOTIFICATION_CHECK_TIME];
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if ([keyPath isEqualToString:SSE_INFO_KEY] && _sseObserver) {
-        _sseObserver(self.sseInfo);
-    }
-}
-
-- (void)setSseObserver:(void (^)(TUTSseInfo * _Nonnull))sseObserver {
-    _sseObserver = sseObserver;
-    sseObserver(self.sseInfo);
 }
 
 @end

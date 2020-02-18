@@ -48,13 +48,13 @@ typedef void(^VoidCallback)(void);
 @property BOOL webViewInitialized;
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @property (readonly, nonnull) TUTKeychainManager *keychainManager;
-@property (readonlz, nonnull) TUTUserPreferenceFacade *userPreferences;
+@property (readonly, nonnull) TUTUserPreferenceFacade *userPreferences;
 @property BOOL darkTheme;
 @end
 
 @implementation TUTViewController
 
-- (instancetype)init
+- (instancetype)initWithPreferenceFacade:(TUTUserPreferenceFacade *)preferenceFacade
 {
 	self = [super init];
 	if (self) {
@@ -66,7 +66,7 @@ typedef void(^VoidCallback)(void);
 		_webViewInitialized = false;
 		_requestsBeforeInit = [NSMutableArray new];
         _keychainManager = [TUTKeychainManager new];
-        _userPreferences = self.appDelegate.userPreferences;
+        _userPreferences = preferenceFacade;
         _darkTheme = NO;
 	}
 	return self;
@@ -150,7 +150,6 @@ typedef void(^VoidCallback)(void);
 		}
 		[_requestsBeforeInit removeAllObjects];
         let sseInfo = _userPreferences.sseInfo;
-        // TODO: Do we even need to observe sseInfo here if we only invalidate on startup?
         if (sseInfo && sseInfo.userIds.count == 0) {
             TUTLog(@"Sending alarm invalidation");
             [self sendRequestWithType:@"invalidateAlarms" args:@[] completion:^(NSDictionary * _Nullable value) {

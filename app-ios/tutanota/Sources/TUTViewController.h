@@ -10,5 +10,7 @@
 
 @interface TUTViewController : UIViewController<UIScrollViewDelegate>
 
+- (instancetype)initWithPreferenceFacade:(TUTUserPreferenceFacade *)preferenceFacade;
+
 @end
 

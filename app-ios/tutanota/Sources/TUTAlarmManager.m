@@ -45,29 +45,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     return self;
 }
 
-
-- (void)scheduleAlarms:(TUTMissedNotification*) notificaiton completionsHandler:(void(^)(void))completionHandler {
-    dispatch_group_t group = dispatch_group_create();
-    
-    foreach(alarmNotification, notificaiton.alarmNotifications) {
-        dispatch_group_enter(group);
-        [self scheduleLocalAlarm:alarmNotification handler: ^(NSError * _Nullable error) {
-            if (error) {
-                TUTLog(@"schedule error %@", error);
-                completionHandler();
-            } else {
-                TUTLog(@"schedule success");
-                
-            }
-            dispatch_group_leave(group);
-        }];
-    }
-    
-    dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),^{
-        completionHandler();
-    });
-}
-
 - (void)fetchMissedNotifications:(void(^)(NSError *error))completionHandler {
     let sseInfo = self.userPreference.sseInfo;
     if (!sseInfo){
@@ -112,17 +89,20 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             self.userPreference.lastProcessedNotificationId =
             missedNotification.lastProcessedNotificationId;
             
-            [self scheduleAlarms:missedNotification completionsHandler:^{
-                completionHandler(nil);
-            }];
+            [self handleAlarmNotifications:missedNotification];
+            completionHandler(nil);
         }
     }] resume];
 }
 
 - (BOOL)hasNotificationTTLExpired {
     let lastMissedNotificationCheckTime = _userPreference.lastMissedNotificationCheckTime;
-    // Important: timeIntervalSinceNow is negative if it's in the past so we check with "less than"
-    return lastMissedNotificationCheckTime && lastMissedNotificationCheckTime.timeIntervalSinceNow < MISSED_NOTIFICATION_TTL_SEC;
+    if (!lastMissedNotificationCheckTime) {
+        return NO;
+    }
+    let sinceNow = lastMissedNotificationCheckTime.timeIntervalSinceNow;
+    // Important: timeIntervalSinceNow is negative if it's in the past
+    return sinceNow < 0 && fabs(sinceNow) > MISSED_NOTIFICATION_TTL_SEC;
 }
 
 -(void)resetStoredState {
@@ -146,7 +126,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             error = nil;
         }
     }
-    [_userPreference storeAlarms:alarms];
 }
 
 - (NSString *)stringToCustomId:(NSString *)string {
@@ -162,53 +141,24 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     return [NSString stringWithFormat:@"%@/rest/sys/missednotification/%@", origin, base64urlId];
 }
 
-- (void) scheduleLocalAlarm:(TUTAlarmNotification*)alarmNotification handler:(nullable void(^)(NSError *__nullable error))completionHandler {
-    let alarmIdentifier = alarmNotification.alarmInfo.alarmIdentifier;
-    if ([TUTOperationCreate isEqualToString:alarmNotification.operation] ) {
-        var sessionKey = [self resolveSessionKey:alarmNotification];
-        if (!sessionKey){
-            completionHandler([TUTErrorFactory createError:@"cannot resolve session key"]);
-            return;
-        }
-        
+- (void)handleAlarmNotifications:(TUTMissedNotification*) notification {
+    foreach(alarmNotification, notification.alarmNotifications) {
         NSError *error;
-        let startDate = [alarmNotification getEventStartDec:sessionKey error:&error];
-        let endDate = [alarmNotification getEventEndDec:sessionKey error:&error];
-        let trigger = [alarmNotification.alarmInfo getTriggerDec:sessionKey error:&error];
-        let repeatRule = alarmNotification.repeatRule;
-        let summary = [alarmNotification getSummaryDec:sessionKey error:&error];
-        
-        if (repeatRule) {
-            [self scheduleRepeatingAlarmEventWithTime:startDate
-                                             eventEnd:endDate
-                                              trigger:trigger
-                                              summary:summary
-                                      alarmIdentifier:alarmIdentifier
-                                           repeatRule:repeatRule
-                                           sessionKey:sessionKey
-                                                error:&error];
-            
-            if (!error) {
-                [self saveNewAlarm:alarmNotification];
-            } else {
-                let notificationCenter = UNUserNotificationCenter.currentNotificationCenter;
-                let content = [UNMutableNotificationContent new];
-                content.title =  [TUTUtils translate:@"TutaoCalendarAlarmTitle" default:@""];
-                content.body = @"Could not set up an alarm. Please update the application.";
-                content.sound = [UNNotificationSound defaultSound];
-                
-                let notificationRequest = [UNNotificationRequest requestWithIdentifier:@"parseError" content:content trigger:nil];
-                [notificationCenter addNotificationRequest:notificationRequest withCompletionHandler:nil];
-            }
+        [self handleAlarmNotification:alarmNotification error:&error];
+        if (error) {
+            TUTLog(@"schedule error %@", error);
         } else {
-            [self scheduleAlarmOccurrenceEventWithTime:startDate
-                                               trigger:trigger
-                                               summary:summary
-                                       alarmIdentifier:alarmIdentifier
-                                            occurrence:0];
+            TUTLog(@"schedule success");
+        }
+    }
+}
+
+- (void) handleAlarmNotification:(TUTAlarmNotification*)alarmNotification error:(NSError **)error {
+    if ([TUTOperationCreate isEqualToString:alarmNotification.operation] ) {
+        [self scheduleAlarm:alarmNotification error:error];
+        if (!(*error)) {
             [self saveNewAlarm:alarmNotification];
         }
-        completionHandler(nil);
     } else if ([TUTOperationDelete isEqualToString:alarmNotification.operation]) {
         let savedNotifications = [_userPreference alarms];
         
@@ -219,15 +169,16 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         } else {
             alarmToUnschedule = alarmNotification;
         }
-        NSError *error;
-        [self unscheduleAlarm:alarmToUnschedule error:&error];
-        if (error) {
-            TUTLog(@"Failed to cancel alarm %@ %@", alarmNotification, error);
+        [self unscheduleAlarm:alarmToUnschedule error:error];
+        if (*error) {
+            // don't cancel in case of error as we want to delete saved notifications
+            TUTLog(@"Failed to cancel alarm %@ %@", alarmNotification, *error);
         }
         
+        let lengthBeforeRemove = savedNotifications.count;
         [savedNotifications removeObject:alarmNotification];
+        TUTLog(@"Remove alarm length before %d after %d", lengthBeforeRemove, savedNotifications.count);
         [_userPreference storeAlarms:savedNotifications];
-        completionHandler(nil);
     }
 }
 
@@ -235,6 +186,55 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     let savedNotifications = [_userPreference alarms];
     [savedNotifications addObject:alarm];
     [_userPreference storeAlarms:savedNotifications];
+}
+
+- (void)scheduleAlarm:(TUTAlarmNotification *)alarmNotification error:(NSError **)error {
+    let alarmIdentifier = alarmNotification.alarmInfo.alarmIdentifier;
+    var sessionKey = [self resolveSessionKey:alarmNotification];
+    if (!sessionKey){
+        *error = [TUTErrorFactory createError:@"cannot resolve session key"];
+        return;
+    }
+    let startDate = [alarmNotification getEventStartDec:sessionKey error:error];
+    let endDate = [alarmNotification getEventEndDec:sessionKey error:error];
+    let trigger = [alarmNotification.alarmInfo getTriggerDec:sessionKey error:error];
+    let repeatRule = alarmNotification.repeatRule;
+    let summary = [alarmNotification getSummaryDec:sessionKey error:error];
+    
+    if (*error) {
+        return;
+    }
+    
+    if (repeatRule) {
+        [self iterateRepeatingAlarmtWithTime:startDate
+                                    eventEnd:endDate
+                                     trigger:trigger
+                                  repeatRule:repeatRule
+                                  sessionKey:sessionKey
+                                       error:error
+                                       block:^(NSDate *time, int occurrence, NSDate *occurrenceDate) {
+                                           [self scheduleAlarmOccurrenceEventWithTime:occurrenceDate trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
+                                       }];
+        if (*error) {
+            let notificationCenter = UNUserNotificationCenter.currentNotificationCenter;
+            let content = [UNMutableNotificationContent new];
+            content.title =  [TUTUtils translate:@"TutaoCalendarAlarmTitle" default:@""];
+            content.body = [TUTUtils translate:@"TutaoScheduleAlarmError" default:@"Could not set up an alarm. Please update the application."];
+            content.sound = [UNNotificationSound defaultSound];
+            let notificationRequest = [UNNotificationRequest requestWithIdentifier:@"parseError" content:content trigger:nil];
+            TUTLog(@"Could not set up an alarm. %@", alarmNotification);
+            [notificationCenter addNotificationRequest:notificationRequest withCompletionHandler:nil];
+        } else {
+            [self saveNewAlarm:alarmNotification];
+        }
+    } else {
+        [self scheduleAlarmOccurrenceEventWithTime:startDate
+                                           trigger:trigger
+                                           summary:summary
+                                   alarmIdentifier:alarmIdentifier
+                                        occurrence:0];
+        [self saveNewAlarm:alarmNotification];
+    }
 }
 
 - (void)unscheduleAlarm:(TUTAlarmNotification *)alarm error:(NSError **)error {
@@ -294,25 +294,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     }
     TUTLog(@"Failed to resolve session key %@, last error: %@", alarmNotification.alarmInfo.alarmIdentifier, error);
     return nil;
-}
-
--(void)scheduleRepeatingAlarmEventWithTime:(NSDate *)eventTime
-                                  eventEnd:(NSDate *)eventEnd
-                                   trigger:(NSString *)trigger
-                                   summary:(NSString *)summary
-                           alarmIdentifier:(NSString *)alarmIdentifier
-                                repeatRule:(TUTRepeatRule *)repeatRule
-                                sessionKey:(NSData *)sessionKey
-                                     error:(NSError **)error {
-    [self iterateRepeatingAlarmtWithTime:eventTime
-                                eventEnd:eventEnd
-                                 trigger:trigger
-                              repeatRule:repeatRule
-                              sessionKey:sessionKey
-                                   error:error
-                                   block:^(NSDate *time, int occurrence, NSDate *occurrenceDate) {
-                                       [self scheduleAlarmOccurrenceEventWithTime:occurrenceDate trigger:trigger summary:summary alarmIdentifier:alarmIdentifier occurrence:occurrence];
-                                   }];
 }
 
 -(void)iterateRepeatingAlarmtWithTime:(NSDate *)eventTime
@@ -403,30 +384,10 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         let savedNotifications = [self->_userPreference alarms];
         foreach(notification, savedNotifications) {
             NSError *error;
-            let sessionKey = [self resolveSessionKey:notification];
-            let alarmIdentifier = notification.alarmInfo.alarmIdentifier;
-            if (!sessionKey) {
-                TUTLog(@"Failed to rsolve session key for notification %@", alarmIdentifier);
-                continue;
-            }
-            
-            let startDate = [notification getEventStartDec:sessionKey error:&error];
-            let endDate = [notification getEventEndDec:sessionKey error:&error];
-            let trigger = [notification.alarmInfo getTriggerDec:sessionKey error:&error];
-            let repeatRule = notification.repeatRule;
-            let summary = [notification getSummaryDec:sessionKey error:&error];
+            [self scheduleAlarm:notification error:&error];
             if (error) {
-                TUTLog(@"Failed to decrypt notification %@ %@", alarmIdentifier, error);
-                continue;
+                TUTLog(@"Error when re-scheduling alarm %@ %@", notification, error);
             }
-            [self scheduleRepeatingAlarmEventWithTime:startDate
-                                             eventEnd:endDate
-                                              trigger:trigger
-                                              summary:summary
-                                      alarmIdentifier:alarmIdentifier
-                                           repeatRule:repeatRule
-                                           sessionKey:sessionKey
-                                                error:&error];
         }
     });
 }

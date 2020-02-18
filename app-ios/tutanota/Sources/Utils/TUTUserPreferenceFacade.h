@@ -21,7 +21,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)clear;
 @property (nonatomic, nullable) NSString *lastProcessedNotificationId;
 @property (nonatomic, nullable) NSDate *lastMissedNotificationCheckTime;
-@property (nonatomic, nullable) void (^sseObserver)(TUTSseInfo *sseInfo); 
 @end
 
 NS_ASSUME_NONNULL_END
