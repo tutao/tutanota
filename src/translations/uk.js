@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-11T20:43:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -95,6 +95,7 @@ module.exports = {
 		"auditLog_title": "Журнал аудиту",
 		"automaticRenewal_label": "автоматичне оновлення",
 		"automatic_label": "Автоматичний",
+		"autoUpdate_label": "Автоматичні оновлення",
 		"back_action": "Назад",
 		"balance_label": "Сальдо",
 		"bcc_label": "Прихована копія",
@@ -787,7 +788,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Пожертва для неприбуткових організацій: до 50 користувачів Premium та 100 псевдонімів до облікового запису безкоштовно!",
 		"promotion.tresoritDiscount_msg": "Спеціальна пропозиція Tutanota + Tresorit: 5 місяців знижки за перший рік!",
 		"pushIdentifierCurrentDevice_label": "Цей пристрій",
-		"pushIdentifierInfoMessage_msg": "Список усіх одержувачів, котрі отримують сповіщення для поточного користувача сервісу Tutanota. Якщо не бажаєте отримувати наступні сповіщення, можете видалити запис.",
+		"pushIdentifierInfoMessage_msg": "Список усіх одержувачів, котрі отримують сповіщення для цього користувача. Ви можете деактивувати записи, якщо не бажаєте отримувати сповіщення або видаляти їх на пристроях, якими більше не користуєтесь.",
 		"pushNewMailReceivedBody_msg": "Ви отримали нового листа у своїй поштовій скриньці {emailAddress} на {domainName}.\n\n\n",
 		"pushNewMail_msg": "Отримано нове повідомлення.",
 		"pwChangeValid_msg": "Пароль змінено",

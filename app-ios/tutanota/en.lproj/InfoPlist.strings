@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "To grant access you have to modify the permissions f
 TutaoCancelAction = "Cancel";
 TutaoSettingsAction = "Settings";
 TutaoCalendarAlarmTitle = "Reminder";
+TutaoScheduleAlarmError = "Could not set up an alarm. Please update the application.";

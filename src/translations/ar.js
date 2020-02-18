@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-11T17:50:56Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -100,6 +100,7 @@ module.exports = {
 		"auditLog_title": "سجل التدقيق",
 		"automaticRenewal_label": "تجديد تلقائي",
 		"automatic_label": "اتوماتيكى",
+		"autoUpdate_label": "التحديثات التلقائية",
 		"back_action": "العودة",
 		"balance_label": "رصيد ",
 		"bcc_label": "مخفية",
@@ -791,7 +792,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "التبرع للمنظمات غير الربحية (NPOs): ما يصل إلى 50 مستخدمًا لـ بريميوم و 100 اسم مستعار مجاني!",
 		"promotion.tresoritDiscount_msg": "توتانوتا + العرض الخاص تريسوريت : خصم 5 أشهر على السنة الأولى!",
 		"pushIdentifierCurrentDevice_label": "هذا الجهاز",
-		"pushIdentifierInfoMessage_msg": "قائمة جميع المستلمين الذين يتلقون إشعارات لمستخدم توتانوتا الحالي. يمكنك حذف إدخال معيّن إذا كنت لا ترغب في تلقي الإشعارات بعد الآن.",
+		"pushIdentifierInfoMessage_msg": "قائمة بجميع المستلمين الذين يتلقون إعلامات لهذا المستخدم. يمكنك إلغاء تنشيط الإدخالات إذا كنت لا ترغب في تلقي إعلامات أو حذفها من الأجهزة التي لم تعد تستخدمها بعد الآن.",
 		"pushNewMailReceivedBody_msg": "لقد تلقيت بريدًا إلكترونيًا جديدًا في صندوق بريدك {emailAddress} في {domainName}.",
 		"pushNewMail_msg": "تم تلقي بريد إلكتروني جديد.",
 		"pwChangeValid_msg": "تم تغيير كلمة المرور بنجاح.",

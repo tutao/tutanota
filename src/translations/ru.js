@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-11T17:45:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -99,6 +99,7 @@ module.exports = {
 		"auditLog_title": "Журнал аудита",
 		"automaticRenewal_label": "автоматическое продление",
 		"automatic_label": "Автоматически",
+		"autoUpdate_label": "Автоматические обновления",
 		"back_action": "Назад",
 		"balance_label": "Баланс",
 		"bcc_label": "Скрытая копия",

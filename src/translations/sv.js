@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-16T15:52:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -93,6 +93,7 @@ module.exports = {
 		"auditLog_title": "Granskningslogg",
 		"automaticRenewal_label": "automatisk förnyelse",
 		"automatic_label": "Automatiskt",
+		"autoUpdate_label": "Automatiska uppdateringar",
 		"back_action": "Tillbaka",
 		"balance_label": "Balans",
 		"bcc_label": "Bcc",
@@ -785,7 +786,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Donation för Ideella Organisationer: upp till 50 användare för Premium och 100 alias utan kostnad!",
 		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit Specialerbjudande: 5 månader rabatt första året!",
 		"pushIdentifierCurrentDevice_label": "Den här enheten",
-		"pushIdentifierInfoMessage_msg": "Lista över alla mottagare som får aviseringar för den aktuella Tutanota användaren. Du kan radera en post om du inte vill ta emot aviseringar längre.",
+		"pushIdentifierInfoMessage_msg": "Lista över alla mottagare som får aviseringar för den här användaren. Du kan inaktivera poster om du inte vill ta emot aviseringar eller ta bort dem för enheter som du inte använder längre.",
 		"pushNewMailReceivedBody_msg": "Du har fått ett nytt e-postmeddelande till din brevlåda {emailAddress} på {domainName}.",
 		"pushNewMail_msg": "Nytt meddelande mottaget.",
 		"pwChangeValid_msg": "Lösenordet ändrades.",

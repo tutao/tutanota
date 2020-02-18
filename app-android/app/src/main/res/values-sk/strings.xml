@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Pripomenutie</string>
     <string name="pushNewMail_msg">Prišiel nový email.</string>
+    <string name="notificationSync_msg">Synchronizujú sa oznámenia</string>
 </resources>

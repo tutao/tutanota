@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-11T16:05:53Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -97,6 +97,7 @@ module.exports = {
 		"auditLog_title": "Registro de auditoría",
 		"automaticRenewal_label": "renovación automática",
 		"automatic_label": "Automático",
+		"autoUpdate_label": "Actualizaciones automáticas",
 		"back_action": "Atrás ",
 		"balance_label": "Saldo",
 		"bcc_label": "Cco",
@@ -789,7 +790,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Donación para ONGs: ¡hasta 50 usuarios para usuarios Premium y 100 alias de forma gratuita!",
 		"promotion.tresoritDiscount_msg": "¡Oferta especial de Tutanota + Tresorit: 5 meses de descuento el primer año!",
 		"pushIdentifierCurrentDevice_label": "Dispositivo actual",
-		"pushIdentifierInfoMessage_msg": "Lista de los receptores que reciben notificaciones del servidor para el usuario Tutanota actual. Puedes borrar una entrada si no quieres recibir más notificaciones.",
+		"pushIdentifierInfoMessage_msg": "Lista de todos los destinatarios de notificaciones para este usuario. Puedes desactivar entradas si no quieres recibir notificaciones o borrarlas de los dispositivos que ya no usas.",
 		"pushNewMailReceivedBody_msg": "Has recibido un nuevo correo en tu cuenta {emailAddress} del dominio {domainName}.",
 		"pushNewMail_msg": "Nuevo correo recibido.",
 		"pwChangeValid_msg": "Se ha cambiado la contraseña.",

@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Rappel</string>
     <string name="pushNewMail_msg">Nouveau message reçu.</string>
+    <string name="notificationSync_msg">Notifications de synchronisation</string>
 </resources>

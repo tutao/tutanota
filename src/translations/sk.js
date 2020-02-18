@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-13T06:18:36Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -94,6 +94,7 @@ module.exports = {
 		"auditLog_title": "Denník auditu",
 		"automaticRenewal_label": "automatické obnovenie",
 		"automatic_label": "Automaticky",
+		"autoUpdate_label": "Automatické aktualizácie",
 		"back_action": "Späť",
 		"balance_label": "Zostatok",
 		"bcc_label": "Bcc",
@@ -656,6 +657,7 @@ module.exports = {
 		"notificationMailTemplateTooLarge_msg": "Šablóna e-mailového oznámenia je príliš veľká.",
 		"notificationsDisabled_label": "Vypnuté",
 		"notificationSettings_action": "Oznámenia",
+		"notificationSync_msg": "Synchronizujú sa oznámenia",
 		"notSigned_msg": "Nepodpísané.",
 		"no_label": "Nie",
 		"npoDiscount_msg": "Ponuka pre neziskovky: 50 % používateľská zľava na Premium a 100 aliasov zadarmo!",
@@ -785,7 +787,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Dar pre neziskovky: až do 50 používateľov verzie Premium a 100 aliasov zadarmo!",
 		"promotion.tresoritDiscount_msg": "Špeciálna ponuka Tutanoty a Tresoritu: Zľava na 5 mesiacov v prvom roku!",
 		"pushIdentifierCurrentDevice_label": "Toto zariadenie",
-		"pushIdentifierInfoMessage_msg": "Zoznam všetkých príjemcov dostávajúcich oznámenia pre aktuálneho používateľa Tutanoty. Ak si viac neželáš dostávať oznámenia, môžeš odstrániť príslušnú položku.",
+		"pushIdentifierInfoMessage_msg": "Zoznam všetkých príjemcov dostávajúcich oznámenia pre tohto používateľa. Ak si neželáš dostávať oznámenia, môžeš buď deaktivovať položky alebo si položky odstrániť pre zariadenia, ktoré už viac nepoužívaš.",
 		"pushNewMailReceivedBody_msg": "Do poštovej schránky {emailAddress} na doméne {domainName} ti prišiel nový e-mail. ",
 		"pushNewMail_msg": "Prišiel nový email.",
 		"pwChangeValid_msg": "Heslo bolo zmenené.",

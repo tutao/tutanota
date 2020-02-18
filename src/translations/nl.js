@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-02-12T15:07:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -97,6 +97,7 @@ module.exports = {
 		"auditLog_title": "Audit logboek",
 		"automaticRenewal_label": "automatisch verlengen",
 		"automatic_label": "Automatisch",
+		"autoUpdate_label": "Automatische Updates",
 		"back_action": "Terug",
 		"balance_label": "Saldo",
 		"bcc_label": "Bcc",
@@ -788,7 +789,7 @@ module.exports = {
 		"promotion.npoDonation_msg": "Gift aan NPO's: tot 50 gebruikers bij Premium en 100 aliassen gratis!",
 		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit speciale aanbieding: 5 maanden korting het eerste jaar!",
 		"pushIdentifierCurrentDevice_label": "Dit apparaat",
-		"pushIdentifierInfoMessage_msg": "Lijst van alle ontvangers die kennisgevingen ontvangen voor de huidige Tutanota-gebruiker. U kunt een melding verwijderen als u geen meldingen op dat apparaat wenst te ontvangen.",
+		"pushIdentifierInfoMessage_msg": "Lijst van alle ontvangers die kennisgevingen ontvangen voor deze gebruiker. U kan vermelding deactiveren als u geen meldingen wenst te ontvangen of ze verwijderen voor apparaten die u niet meer gebruikt.",
 		"pushNewMailReceivedBody_msg": "U heeft een nieuwe e-mail ontvangen voor uw mailbox {emailAddress} bij {domainName}.",
 		"pushNewMail_msg": "Nieuwe e-mail ontvangen",
 		"pwChangeValid_msg": "Wachtwoord gewijzigd.",

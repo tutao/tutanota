@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-02-06T08:37:38Z",
+	"updated_at": "2020-02-18T12:26:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -93,6 +93,7 @@ module.exports = {
 		"auditLog_title": "Audit log",
 		"automaticRenewal_label": "automatic renewal",
 		"automatic_label": "Automatic",
+		"autoUpdate_label": "Automatic Updates",
 		"back_action": "Back",
 		"balance_label": "Balance",
 		"bcc_label": "Bcc",
@@ -425,7 +426,7 @@ module.exports = {
 		"group_label": "Group",
 		"header_label": "Header",
 		"helpPage_label": "Help page",
-		"howtoMailBody_markdown": "Tutanota lets you send encrypted emails to any email address in the world - automatically if the recipient uses Tutanota as well, or via a shared password if the recipient uses another service. Even emails sent or received unencrypted are stored encrypted on our own servers based in Germany.\n\nPlease check the Tutanota FAQ, the How-to, and the support forum to learn everything you want to know about your new secure mailbox:\n\n* [FAQ]({faqLink})\n* [How-to]({howtoLink})\n* [Support Forum]({redditLink})\n\n**Search on encrypted data**\n\nTutanota lets you search your encrypted mailbox locally on your device to guarantee confidentiality of your data. Please click on the search bar at the top. Standard search goes back one month into the past. [To unlock unlimited search and lots of additional features in your Tutanota mailbox]({blogPremiumProLink}), you need to use the Premium or Pro version.\n\n**Direct support**\n\nAt Tutanota we enable everyone in the world to send emails confidentially. With millions of users, we can not answer everyone’s questions via email. In case you cannot find answers to your questions in our FAQ and How-to, [please ask the community here]({redditLink}). Support via email is limited to Premium & Pro users.\n\nStay secure,\\\nyour Tutanota Team",
+		"howtoMailBody_markdown": "Tutanota lets you send encrypted emails to any email address in the world - automatically if the recipient uses Tutanota as well, or via a shared password if the recipient uses another service. Even emails sent or received unencrypted are stored encrypted on our own servers based in Germany.\n\nPlease check the Tutanota FAQ, the How-to, and the support forum to learn everything you want to know about your new secure mailbox:\n\n* [FAQ]({faqLink})\n* [How-to]({howtoLink})\n* [Support Forum]({redditLink})\n\n**Search on encrypted data**\n\nTutanota lets you search your encrypted mailbox locally on your device to guarantee confidentiality of your data. Please click on the search bar at the top. Standard search goes back one month into the past. [To unlock unlimited search and lots of additional features in your Tutanota mailbox]({blogPremiumProLink}), you need to use a paid subscription of Tutanota.\n\n**Direct support**\n\nAt Tutanota we enable everyone in the world to send emails confidentially. With millions of users, we can not answer everyone’s questions via email. In case you cannot find answers to your questions in our FAQ and How-to, [please ask the community here]({redditLink}). Support via email is limited to paying users.\n\nStay secure,\\\nyour Tutanota Team",
 		"howtoMailSubject_msg": "How-to for your secure Tutanota mailbox",
 		"htmlSourceCode_label": "HTML source code",
 		"html_action": "HTML",
@@ -846,6 +847,7 @@ module.exports = {
 		"saveEncryptedIpAddress_label": "Save encrypted IP address in sessions and audit log",
 		"save_action": "Save",
 		"save_msg": "Saving data ...",
+		"scheduleAlarmError_msg": "Could not set up an alarm. Please update the application.",
 		"scrollDown_action": "Scroll down",
 		"scrollToBottom_action": "Scroll to bottom",
 		"scrollToTop_action": "Scroll to top",
@@ -1070,14 +1072,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"searchPage_label": "Search page",
-		"toggleDevTools_action": "Toggle Console",
-		"reloadPage_action": "Reload Page",
-		"toggleFullScreen_action": "Toggle full screen",
-		"pageForward_label": "Page forward",
-		"pageBackward_label": "Page backward",
-		"hideWindows_action": "Hide windows",
-		"autoUpdate_label": "Automatic Application Updates"
+		"yourMessage_label": "Your message"
 	}
 }

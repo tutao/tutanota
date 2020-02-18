@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Um die Berechtigung zu erteilen, müssen die Einstel
 TutaoCancelAction = "Abbrechen";
 TutaoSettingsAction = "Einstellungen";
 TutaoCalendarAlarmTitle = "Erinnerung";
+TutaoScheduleAlarmError = "Ein Fehler ist beim Erstellen einer Erinnerung aufgetreten. Bitte aktualisiere die Anwendung.";
