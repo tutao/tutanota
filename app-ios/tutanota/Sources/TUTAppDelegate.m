@@ -32,7 +32,8 @@
     
     // Override point for customization after application launch.
     _window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    _viewController = [[TUTViewController alloc] initWithPreferenceFacade:_userPreferences];
+    _viewController = [[TUTViewController alloc] initWithPreferenceFacade:_userPreferences
+                                                             alarmManager:_alarmManager];
     _window.rootViewController = _viewController;
     
     UNUserNotificationCenter.currentNotificationCenter.delegate = self;

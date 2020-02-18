@@ -18,7 +18,6 @@
 #import "TUTContactsSource.h"
 #import "TUTEncodingConverter.h"
 #import "TUTUserPreferenceFacade.h"
-#import "TUTAlarmManager.h"
 #import "Keychain/TUTKeychainManager.h"
 #import "TUTLog.h"
 #import "Utils/TUTLog.h"
@@ -49,12 +48,14 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) NSMutableArray<VoidCallback> *requestsBeforeInit;
 @property (readonly, nonnull) TUTKeychainManager *keychainManager;
 @property (readonly, nonnull) TUTUserPreferenceFacade *userPreferences;
+@property (readonly, nonnull) TUTAlarmManager *alarmManager;
 @property BOOL darkTheme;
 @end
 
 @implementation TUTViewController
 
 - (instancetype)initWithPreferenceFacade:(TUTUserPreferenceFacade *)preferenceFacade
+alarmManager:(TUTAlarmManager *)alarmManager
 {
 	self = [super init];
 	if (self) {
@@ -67,6 +68,7 @@ typedef void(^VoidCallback)(void);
 		_requestsBeforeInit = [NSMutableArray new];
         _keychainManager = [TUTKeychainManager new];
         _userPreferences = preferenceFacade;
+        _alarmManager = alarmManager;
         _darkTheme = NO;
 	}
 	return self;

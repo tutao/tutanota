@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D20B36322B8D61600472D12 /* TUTRepeatRule.m */; };
+		3D2DE2C823FC387700FFB95B /* AsyncBlockOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */; };
 		3D3697D722AA8CE9007F0A83 /* TUTUserPreferenceFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */; };
 		3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
 		3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
@@ -125,6 +126,8 @@
 /* Begin PBXFileReference section */
 		3D20B36222B8D61600472D12 /* TUTRepeatRule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTRepeatRule.h; sourceTree = "<group>"; };
 		3D20B36322B8D61600472D12 /* TUTRepeatRule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTRepeatRule.m; sourceTree = "<group>"; };
+		3D2DE2C623FC387700FFB95B /* AsyncBlockOperation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AsyncBlockOperation.h; sourceTree = "<group>"; };
+		3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AsyncBlockOperation.m; sourceTree = "<group>"; };
 		3D3697D522AA8CE9007F0A83 /* TUTUserPreferenceFacade.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTUserPreferenceFacade.h; sourceTree = "<group>"; };
 		3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTUserPreferenceFacade.m; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
@@ -385,6 +388,8 @@
 				3DB9A20D22BA5C23004EA08F /* TUTUtils.m */,
 				3D63A0DD233CF7C900D05259 /* TUTLog.h */,
 				3D63A0E2233D009E00D05259 /* TUTLog.m */,
+				3D2DE2C623FC387700FFB95B /* AsyncBlockOperation.h */,
+				3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1278,6 +1283,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D2DE2C823FC387700FFB95B /* AsyncBlockOperation.m in Sources */,
 				3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */,
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
 				3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */,

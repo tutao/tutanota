@@ -11,6 +11,7 @@
 #import "Utils/TUTErrorFactory.h"
 #import "Utils/TUTUtils.h"
 #import "Utils/TUTLog.h"
+#import "Utils/AsyncBlockOperation.h"
 #import "Keychain/TUTKeychainManager.h"
 #import "Alarms/TUTMissedNotification.h"
 #import "Alarms/TUTAlarmModel.h"
@@ -31,6 +32,7 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
 @interface TUTAlarmManager ()
 @property (nonnull, readonly) TUTKeychainManager *keychainManager;
 @property (nonnull, readonly) TUTUserPreferenceFacade *userPreference;
+@property (nonnull, readonly) NSOperationQueue *fetchQueue;
 @end
 
 @implementation TUTAlarmManager
@@ -41,58 +43,83 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     if (self) {
         _keychainManager = [TUTKeychainManager new];
         _userPreference = userPref;
+        _fetchQueue = [NSOperationQueue new];
+        // important: we don't want any concurrency for this queue
+        _fetchQueue.maxConcurrentOperationCount = 1;
     }
     return self;
 }
 
-- (void)fetchMissedNotifications:(void(^)(NSError *error))completionHandler {
-    let sseInfo = self.userPreference.sseInfo;
-    if (!sseInfo){
-        TUTLog(@"No stored SSE info");
-        completionHandler(nil);
-        return;
-    }
+- (void)fetchMissedNotifications:(void(^)(NSError *_Nullable error))completionHandler {
+    __weak TUTAlarmManager *weakSelf = self;
     
-    NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
-    additionalHeaders[@"userIds"] = [sseInfo.userIds componentsJoinedByString:@","];
-    if (_userPreference.lastProcessedNotificationId) {
-        additionalHeaders[@"lastProcessedNotificationId"] = _userPreference.lastProcessedNotificationId;
-    }
-    let configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
-    configuration.HTTPAdditionalHeaders = additionalHeaders;
-    
-    let urlSession = [NSURLSession sessionWithConfiguration:configuration];
-    let urlString = [self missedNotificationUrl:sseInfo.sseOrigin pushIdentifier:sseInfo.pushIdentifier];
-    
-    [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        let httpResponse = (NSHTTPURLResponse *) response;
-        TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
-        if (error) {
+    TUTLog(@"Scheduling fetch, running operations: %d",  _fetchQueue.operationCount);
+    // We use fetch queue to avoid race condition for cases when multiple notifications are received one after another
+    [_fetchQueue addAsyncOperationWithBlock:^(dispatch_block_t  _Nonnull queueCompletionHandler) {
+        __strong TUTAlarmManager *strongSelf = weakSelf;
+        TUTLog(@"Executing fetch, running operations: %d", weakSelf.fetchQueue.operationCount);
+        
+        void (^complete)(NSError *_Nullable) = ^void(NSError *_Nullable error) {
+            TUTLog(@"Completed");
+            queueCompletionHandler();
             completionHandler(error);
-        } if (httpResponse.statusCode == 404) {
-            completionHandler(nil);
-        } else if (httpResponse.statusCode != 200) {
-            let error = [NSError errorWithDomain:TUT_NETWORK_ERROR
-                                            code:httpResponse.statusCode
-                                        userInfo:@{@"message": @"Failed to fetch missed notification"}
-                         ];
-            completionHandler(error);
-        } else {
-            self.userPreference.lastMissedNotificationCheckTime = [NSDate new];
-            NSError *jsonError;
-            NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
-            if (jsonError) {
-                TUTLog(@"Failed to parse response for the missed notification request %@", jsonError);
-                return;
-            }
-            let missedNotification = [TUTMissedNotification fromJSON:json];
-            self.userPreference.lastProcessedNotificationId =
-            missedNotification.lastProcessedNotificationId;
-            
-            [self handleAlarmNotifications:missedNotification];
-            completionHandler(nil);
+        };
+        if (!strongSelf) {
+            TUTLog(@"Not fetching missed notifications, self is deallocated");
+            complete(nil);
+            return;
         }
-    }] resume];
+        let sseInfo = strongSelf.userPreference.sseInfo;
+        if (!sseInfo){
+            TUTLog(@"No stored SSE info");
+            complete(nil);
+            return;
+        }
+        
+        NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
+        additionalHeaders[@"userIds"] = [sseInfo.userIds componentsJoinedByString:@","];
+        if (strongSelf.userPreference.lastProcessedNotificationId) {
+            additionalHeaders[@"lastProcessedNotificationId"] = strongSelf.userPreference.lastProcessedNotificationId;
+        }
+        let configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+        configuration.HTTPAdditionalHeaders = additionalHeaders;
+        
+        let urlSession = [NSURLSession sessionWithConfiguration:configuration];
+        let urlString = [strongSelf missedNotificationUrl:sseInfo.sseOrigin pushIdentifier:sseInfo.pushIdentifier];
+        
+        [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+            let httpResponse = (NSHTTPURLResponse *) response;
+            TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
+            if (error) {
+                complete(error);
+            } else if (httpResponse.statusCode == 404) {
+                complete(nil);
+            } else if (httpResponse.statusCode != 200) {
+                let error = [NSError errorWithDomain:TUT_NETWORK_ERROR
+                                                code:httpResponse.statusCode
+                                            userInfo:@{@"message": @"Failed to fetch missed notification"}
+                             ];
+                complete(error);
+            } else {
+                strongSelf.userPreference.lastMissedNotificationCheckTime = [NSDate new];
+                NSError *jsonError;
+                NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+                if (jsonError) {
+                    TUTLog(@"Failed to parse response for the missed notification request %@", jsonError);
+                    complete(jsonError);
+                    return;
+                }
+                let missedNotification = [TUTMissedNotification fromJSON:json];
+                strongSelf.userPreference.lastProcessedNotificationId =
+                missedNotification.lastProcessedNotificationId;
+                
+                [strongSelf handleAlarmNotifications:missedNotification];
+                complete(nil);
+            }
+        }] resume];
+    }];
+    
+    
 }
 
 - (BOOL)hasNotificationTTLExpired {
@@ -147,8 +174,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         [self handleAlarmNotification:alarmNotification error:&error];
         if (error) {
             TUTLog(@"schedule error %@", error);
-        } else {
-            TUTLog(@"schedule success");
         }
     }
 }
@@ -174,10 +199,8 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             // don't cancel in case of error as we want to delete saved notifications
             TUTLog(@"Failed to cancel alarm %@ %@", alarmNotification, *error);
         }
-        
-        let lengthBeforeRemove = savedNotifications.count;
+
         [savedNotifications removeObject:alarmNotification];
-        TUTLog(@"Remove alarm length before %d after %d", lengthBeforeRemove, savedNotifications.count);
         [_userPreference storeAlarms:savedNotifications];
     }
 }
@@ -224,8 +247,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             let notificationRequest = [UNNotificationRequest requestWithIdentifier:@"parseError" content:content trigger:nil];
             TUTLog(@"Could not set up an alarm. %@", alarmNotification);
             [notificationCenter addNotificationRequest:notificationRequest withCompletionHandler:nil];
-        } else {
-            [self saveNewAlarm:alarmNotification];
         }
     } else {
         [self scheduleAlarmOccurrenceEventWithTime:startDate
@@ -233,7 +254,6 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
                                            summary:summary
                                    alarmIdentifier:alarmIdentifier
                                         occurrence:0];
-        [self saveNewAlarm:alarmNotification];
     }
 }
 
@@ -364,7 +384,7 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     let identifier = [self occurrenceIdentifier:alarmIdentifier occurrence:occurrence];
     let request = [UNNotificationRequest requestWithIdentifier:identifier content:content trigger:notificationTrigger];
     // Schedule the request with the system.
-    TUTLog(@"Scheduling a notification %@ at: %@", identifier, dateComponents);
+    TUTLog(@"Scheduling a notification %@ at: %@", identifier, [cal dateFromComponents:dateComponents]);
     [notificationCenter addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
         if (error) {
             TUTLog(@"Failed to schedule a notification: %@", error);
