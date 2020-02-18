@@ -511,7 +511,7 @@ declare module 'electron-localshortcut' {
 		register(win?: BrowserWindow, shortcut: string, cb: Function): void;
 		unregister(shortcut: string): void;
 		isRegistered(shortcut: string): boolean;
-		unregisterAll(): void;
+		unregisterAll(win?: BrowserWindow): void;
 		enableAll(win?: BrowserWindow): void;
 		disableAll(win?: BrowserWindow): void;
 	}

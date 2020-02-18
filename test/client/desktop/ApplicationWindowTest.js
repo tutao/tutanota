@@ -153,7 +153,8 @@ o.spec("ApplicationWindow Test", () => {
 		callbacks: {},
 		register: function (bw, key, cb) {
 			this.callbacks[key] = cb
-		}
+		},
+		unregisterAll: function (key) {}
 	}
 	const lang = {
 		lang: {
@@ -260,6 +261,7 @@ o.spec("ApplicationWindow Test", () => {
 			'before-input-event',
 			'context-menu',
 			'did-fail-load',
+			'did-finish-load',
 			'crashed',
 			'dom-ready'
 		])
@@ -296,6 +298,8 @@ o.spec("ApplicationWindow Test", () => {
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
 
+		w._browserWindow.webContents.callbacks['did-finish-load']()
+
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
 			'Control+F',
 			'Control+P',
@@ -315,6 +319,8 @@ o.spec("ApplicationWindow Test", () => {
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+
+		w._browserWindow.webContents.callbacks['did-finish-load']()
 
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
 			'Control+F',
@@ -336,6 +342,8 @@ o.spec("ApplicationWindow Test", () => {
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
 
+		w._browserWindow.webContents.callbacks['did-finish-load']()
+
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
 			'Command+F',
 			'Command+P',
@@ -353,6 +361,9 @@ o.spec("ApplicationWindow Test", () => {
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
 
+		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		bwInstance.webContents.callbacks['did-finish-load']()
+
 		// call all the shortcut callbacks
 		electronLocalshortcutMock.callbacks["Control+F"]()
 		o(wmMock.ipc.sendRequest.callCount).equals(2)
@@ -363,7 +374,6 @@ o.spec("ApplicationWindow Test", () => {
 		o(wmMock.ipc.sendRequest.callCount).equals(3)
 		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, 'print', []])
 
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		electronLocalshortcutMock.callbacks["F12"]()
 		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
 		o(bwInstance.webContents.openDevTools.callCount).equals(1)
@@ -405,6 +415,9 @@ o.spec("ApplicationWindow Test", () => {
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
 
+		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		bwInstance.webContents.callbacks['did-finish-load']()
+
 		// call all the shortcut callbacks
 		electronLocalshortcutMock.callbacks["Command+F"]()
 		o(wmMock.ipc.sendRequest.callCount).equals(2)
@@ -415,7 +428,6 @@ o.spec("ApplicationWindow Test", () => {
 		o(wmMock.ipc.sendRequest.callCount).equals(3)
 		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, 'print', []])
 
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		electronLocalshortcutMock.callbacks["F12"]()
 		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
 		o(bwInstance.webContents.openDevTools.callCount).equals(1)
@@ -627,7 +639,7 @@ o.spec("ApplicationWindow Test", () => {
 		setTimeout(() => {
 			o(wmMock.ipc.initialized.callCount).equals(1)
 			o(wmMock.ipc.initialized.args[0]).equals(w.id)
-			o(wmMock.ipc.sendRequest.callCount).equals(2)
+			o(wmMock.ipc.sendRequest.callCount).equals(1)
 			o(wmMock.ipc.sendRequest.args[0]).equals(w.id)
 			o(wmMock.ipc.sendRequest.args[1]).equals("openMailbox")
 			o(wmMock.ipc.sendRequest.args[2]).deepEquals([
