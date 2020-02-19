@@ -2,4 +2,5 @@
     <string name="reminder_label">Recordatori</string>
     <string name="pushNewMail_msg">Heu rebut un nou correu.</string>
     <string name="notificationSync_msg">Sincronitzar notificacions</string>
+    <string name="scheduleAlarmError_msg">No es pot configurar una alarma. Si us plau actualitzeu l'aplicació.</string>
 </resources>

@@ -2,4 +2,5 @@
     <string name="reminder_label">Promemoria</string>
     <string name="pushNewMail_msg">Nuova email ricevuta.</string>
     <string name="notificationSync_msg">Sincronizzazione delle notifiche</string>
+    <string name="scheduleAlarmError_msg">Impossibile impostare un allarme. Prego, aggiorna l'applicazione.</string>
 </resources>

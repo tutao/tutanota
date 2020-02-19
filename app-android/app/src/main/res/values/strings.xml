@@ -3,4 +3,5 @@
     <string name="reminder_label">Reminder</string>
     <string name="pushNewMail_msg">New email received.</string>
     <string name="notificationSync_msg">Synchronizing notifications</string>
+    <string name="scheduleAlarmError_msg">Could not set up an alarm. Please update the application.</string>
 </resources>

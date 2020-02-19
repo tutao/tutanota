@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Om toegang te verlenen, moet u de toelatingen voor d
 TutaoCancelAction = "Annuleer";
 TutaoSettingsAction = "Instellingen";
 TutaoCalendarAlarmTitle = "Herinnering";
+TutaoScheduleAlarmError = "Kon geen alarm instellen. Update het programma a.u.b.";

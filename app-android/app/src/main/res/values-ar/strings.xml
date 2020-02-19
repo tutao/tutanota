@@ -2,4 +2,5 @@
     <string name="reminder_label">تذكير </string>
     <string name="pushNewMail_msg">تم تلقي بريد إلكتروني جديد.</string>
     <string name="notificationSync_msg">مزامنة الإشعارات</string>
+    <string name="scheduleAlarmError_msg">لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.</string>
 </resources>

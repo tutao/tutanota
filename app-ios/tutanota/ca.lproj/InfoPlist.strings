@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Per tenir-hi accés, heu de modificar els permisos d
 TutaoCancelAction = "Cancel·la";
 TutaoSettingsAction = "Configuració";
 TutaoCalendarAlarmTitle = "Recordatori";
+TutaoScheduleAlarmError = "No es pot configurar una alarma. Si us plau actualitzeu l'aplicació.";

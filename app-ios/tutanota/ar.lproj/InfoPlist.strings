@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "لمنح حق الوصول يجب عليك تعدي�
 TutaoCancelAction = "إلغاء";
 TutaoSettingsAction = "إعدادات";
 TutaoCalendarAlarmTitle = "تذكير ";
+TutaoScheduleAlarmError = "لا يمكن إعداد التنبيه. يرجى تحديث التطبيق.";
