@@ -186,8 +186,8 @@ public final class LocalNotificationsFacade {
 	public void showErrorNotification() {
 		Notification notification = new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_status)
-				.setContentTitle("Could not schedule the alarm")
-				.setContentText("Please update the application")
+				.setContentTitle(context.getString(R.string.reminder_label))
+				.setContentText(context.getString(R.string.scheduleAlarmError_msg))
 				.setDefaults(NotificationCompat.DEFAULT_ALL)
 				.build();
 		getNotificationManager().notify(1000, notification);
