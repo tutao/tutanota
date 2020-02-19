@@ -18,7 +18,7 @@
                       repeatPerioud:(TUTRepeatPeriod)repeatPeriod
                            interval:(NSInteger)interval
                             endType:(TUTRepeatEndType)endType
-                            endValue:(NSInteger)endValue
+                            endValue:(long long)endValue
                              trigger:(NSString *)trigger
                       localTimeZone:(NSTimeZone *)localtimeZone
                        scheduleAhead:(NSInteger)scheduleAhead

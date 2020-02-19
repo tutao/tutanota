@@ -39,13 +39,13 @@
 
 -(NSDate * _Nullable)getEventStartDec:(NSData *)sessionKey error:(NSError**)error {
     let stringData = [TUTAes128Facade decryptBase64String:_eventStart encryptionKey:sessionKey error:error];
-    return [NSDate dateWithTimeIntervalSince1970:stringData.integerValue / 1000];
+    return [NSDate dateWithTimeIntervalSince1970:stringData.longLongValue / 1000];
 }
 
 
 -(NSDate * _Nullable)getEventEndDec:(NSData *)sessionKey error:(NSError**)error {
     let stringData = [TUTAes128Facade decryptBase64String:_eventEnd encryptionKey:sessionKey error:error];
-    return [NSDate dateWithTimeIntervalSince1970:stringData.integerValue / 1000];
+    return [NSDate dateWithTimeIntervalSince1970:stringData.longLongValue / 1000];
 }
 
 -(NSString * _Nullable)getSummaryDec:(NSData *)sessionKey error:(NSError**) error{
