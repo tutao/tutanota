@@ -97,7 +97,8 @@ export type ButtonAttrs = {
 	isVisible?: lazy<boolean>,
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
-	staticRightText?: string
+	staticRightText?: string,
+	"aria-labelledby"?: string,
 }
 
 /**
@@ -114,6 +115,7 @@ class _Button {
 		return m("button.limit-width.noselect",
 			{
 				class: this.getButtonClasses(a).join(' '),
+				"aria-labelledby": a["aria-labelledby"],
 				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
 				title: (type === ButtonType.Action
@@ -311,10 +313,7 @@ class _Button {
 
 	click(event: MouseEvent, a: ButtonAttrs, dom: HTMLElement) {
 		a.click(event, dom)
-		// in IE the activeElement might not be defined and blur might not exist
-		if (!a.noBubble && document.activeElement && typeof document.activeElement.blur === "function") {
-			document.activeElement.blur()
-		} else if (a.noBubble) {
+		if (a.noBubble) {
 			event.stopPropagation()
 		}
 	}

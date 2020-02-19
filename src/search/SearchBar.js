@@ -37,6 +37,7 @@ import {hasMoreResults} from "./SearchModel"
 import {SearchBarOverlay} from "./SearchBarOverlay"
 import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
+import {lang} from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -191,7 +192,9 @@ export class SearchBar implements Component {
 					}
 				}, [
 					styles.isDesktopLayout()
-						? m(".ml-negative-xs.click", {
+						? m("button.ml-negative-xs.click", {
+							"tabindex": "0",
+							"aria-label": "Search button",
 							onmousedown: (e) => {
 								if (this.focused) {
 									this.skipNextBlur(true) // avoid closing of overlay when clicking search icon
@@ -210,6 +213,8 @@ export class SearchBar implements Component {
 						}))
 						: null,
 					m(".searchInputWrapper.flex.items-center", {
+							"aria-hidden": String(!this.expanded),
+							"tabindex": this.expanded ? "0" : "-1",
 							style: (() => {
 								let paddingLeft: string
 								if (this.expanded || vnode.attrs.alwaysExpanded) {
@@ -233,9 +238,11 @@ export class SearchBar implements Component {
 						},
 						[
 							this._getInputField(vnode.attrs),
-							m(".closeIconWrapper", {
+							m("button.closeIconWrapper", {
 								onclick: (e) => this.close(),
-								style: {width: size.icon_size_large}
+								style: {width: size.icon_size_large},
+								label: lang.get("close_alt"),
+								tabindex: this.expanded ? 0 : -1,
 							}, this.busy
 								? m(Icon, {
 									icon: BootIcons.Progress,
@@ -513,13 +520,16 @@ export class SearchBar implements Component {
 
 	_getInputField(attrs: any): VirtualElement {
 		return m("input.input.input-no-clear", {
+			"aria-autocomplete": "list",
+			tabindex: this.expanded ? 0 : -1,
+			role: "combobox",
 			placeholder: attrs.placeholder,
 			type: Type.Text,
 			value: this._state().query,
 			oncreate: (vnode) => {
 				this._domInput = vnode.dom
 			},
-			onfocus: (e) => this.focus(),
+			onclick: () => this.focus(),
 			onblur: e => {
 				if (this.skipNextBlur()) {
 					setTimeout(() => this._domInput.focus(), 0) // setTimeout needed in Firefox to keep focus

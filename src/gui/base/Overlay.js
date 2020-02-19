@@ -55,7 +55,7 @@ export const overlay = {
 		style: {
 			display: overlays.length > 0 ? "" : 'none' // display: null not working for IE11
 		},
-		hidden: overlays.length > 0
+		hidden: overlays.length === 0
 	}, overlays.map((overlayAttrs) => {
 		const [attrs, dom, key] = overlayAttrs
 		return m(".abs.elevated-bg", {

@@ -14,6 +14,7 @@ import {Icons} from "./icons/Icons"
 import {repeat} from "../../api/common/utils/StringUtils"
 
 export type TextFieldAttrs = {
+	id?: string,
 	label: TranslationKey | lazy<string>,
 	value: Stream<string>,
 	preventAutofill?: boolean,
@@ -74,6 +75,7 @@ export class _TextField {
 	view(vnode: Vnode<TextFieldAttrs>) {
 		const a = vnode.attrs
 		return m(".text-field.rel.overflow-hidden.text", {
+			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
 			onclick: (e) => this.focus(e, a),
 			class: a.class != null ? a.class : "pt"

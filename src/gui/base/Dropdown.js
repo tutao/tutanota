@@ -74,6 +74,7 @@ export class Dropdown {
 	resizeListener: windowSizeListener;
 	oncreate: Function;
 	onremove: Function;
+	_focusedBeforeShown: ?HTMLElement;
 
 	constructor(lazyChildren: lazy<$ReadOnlyArray<string | Button>>, width: number) {
 		this.children = []
@@ -282,6 +283,7 @@ export class Dropdown {
 			this.closeHandler()
 		}
 		modal.remove(this)
+		this._focusedBeforeShown && this._focusedBeforeShown.focus()
 	}
 
 	popState(e: Event): boolean {
@@ -326,6 +328,7 @@ export class Dropdown {
 				Math.max(window.innerHeight - top, window.innerHeight - bottom) - 10
 			)
 
+			this._focusedBeforeShown = document.activeElement
 			return (animate
 				? animations.add(this._domDropdown, [
 					width(0, this._width),

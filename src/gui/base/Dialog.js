@@ -86,6 +86,8 @@ export class Dialog {
 						},
 					}, m(this._getDialogStyle(dialogType), {
 						role: "dialog",
+						"aria-labelledby": "dialog-title",
+						"aria-describedby": "dialog-message",
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
@@ -261,9 +263,9 @@ export class Dialog {
 
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line)).concat(
-						m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs))
-					)
+					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line))
+					     .concat(m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs))
+					     )
 			}).setCloseHandler(closeAction)
 			  .addShortcut({
 				  key: Keys.RETURN,
@@ -335,7 +337,7 @@ export class Dialog {
 
 			dialog = new Dialog(DialogType.Alert, {
 				view: () => [
-					m(".dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
+					m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable",
 						lang.getMaybeLazy(messageIdOrMessageFunction)),
 					m(".flex-center.dialog-buttons", buttonAttrs.map(a => m(ButtonN, a)))
 				]
@@ -400,7 +402,7 @@ export class Dialog {
 					m(".dialog-contentButtonsBottom.text-break.scroll", [
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
-							m(".pb", message),
+							m("#dialog-message.pb", message),
 							m("img[src=" + HabReminderImage + "].dialog-img.mb.bg-white.border-radius", {
 								style: {
 									'min-width': '150px'

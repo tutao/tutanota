@@ -21,9 +21,18 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 	}
 
 	let progressDialog = new Dialog(DialogType.Progress, {
-		view: () => m("", [
+		view: () => m("", {
+			// We make this element focusable so that the screen reader announces the dialog
+			tabindex: "0",
+			oncreate(vnode) {
+				// We need to delay so that the eelement is attached to the parent
+				setTimeout(() => {
+					vnode.dom.focus()
+				}, 10)
+			}
+		}, [
 			m(".flex-center", progressIndicator ? m(progressIndicator) : progressIcon()),
-			m("p", lang.getMaybeLazy(messageIdOrMessageFunction))
+			m("p#dialog-title", lang.getMaybeLazy(messageIdOrMessageFunction))
 		])
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event

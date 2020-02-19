@@ -18,6 +18,7 @@ import {getDefaultSenderFromUser, getFolderName} from "../mail/MailUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {MailboxDetail} from "../mail/MailModel"
 import {mailModel} from "../mail/MailModel"
 import {locator} from "../api/main/MainLocator"
 import stream from "mithril/stream/stream.js"
@@ -32,11 +33,10 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
+import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
-import type {MailboxDetail} from "../mail/MailModel"
 
 assertMainOrNode()
 
@@ -94,10 +94,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					      update(logins.getUserController().userGroupInfo)
 				      })
 			},
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			"aria-labelledby": "sender-name-field",
 		}
 
 		const senderNameAttrs: TextFieldAttrs = {
+			id: "sender-name-field",
 			label: "mailName_label",
 			value: this._senderName,
 			disabled: true,
@@ -107,11 +109,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		const changeSignatureButtonAttrs: ButtonAttrs = {
 			label: "edit_action",
+			"aria-labelledby": "signature-field",
 			click: () => EditSignatureDialog.show(logins.getUserController().props),
 			icon: () => Icons.Edit
 		}
 
 		const signatureAttrs: TextFieldAttrs = {
+			id: "signature-field",
 			label: "userEmailSignature_label",
 			value: this._signature,
 			disabled: true,

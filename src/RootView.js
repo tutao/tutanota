@@ -16,6 +16,7 @@ class RootView {
 
 		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
 		let onmousedown = (e) => {
+			console.log("disabling outline")
 			styles.registerStyle("outline", () => ({
 				"*": {
 					outline: "none",
