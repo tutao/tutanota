@@ -26,7 +26,14 @@ NSString *const TUTOperationCreate = @"0";
 NSString *const TUTOperationUpdate = @"1";
 NSString *const TUTOperationDelete = @"2";
 
-static const int EVENTS_SCHEDULED_AHEAD = 100;
+// iOS (13.3 at least) has a limit on saved alarms which empirically inferred to be.
+// It means that only *last* 64 alarms are stored in the internal plist by SpringBoard.
+// If we schedule too many some alarms will not be fired. We should be careful to not
+// schedule too far into the future.
+//
+// Better approach would be to calculate occurences from all alarms, sort them and take
+// the first 64. Or schedule later ones first so that newer ones have higher priority.
+static const int EVENTS_SCHEDULED_AHEAD = 24;
 static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
 
 @interface TUTAlarmManager ()
@@ -53,14 +60,11 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
 - (void)fetchMissedNotifications:(void(^)(NSError *_Nullable error))completionHandler {
     __weak TUTAlarmManager *weakSelf = self;
     
-    TUTLog(@"Scheduling fetch, running operations: %d",  _fetchQueue.operationCount);
     // We use fetch queue to avoid race condition for cases when multiple notifications are received one after another
     [_fetchQueue addAsyncOperationWithBlock:^(dispatch_block_t  _Nonnull queueCompletionHandler) {
         __strong TUTAlarmManager *strongSelf = weakSelf;
-        TUTLog(@"Executing fetch, running operations: %d", weakSelf.fetchQueue.operationCount);
         
         void (^complete)(NSError *_Nullable) = ^void(NSError *_Nullable error) {
-            TUTLog(@"Completed");
             queueCompletionHandler();
             completionHandler(error);
         };
@@ -364,6 +368,15 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         summary = @"Calendar event";
     }
     let alarmTime = [TUTAlarmModel alarmTimeWithTrigger:trigger eventTime:eventTime];
+    let fortNightSeconds = 60 * 60 * 24 * 14;
+    if (alarmTime.timeIntervalSinceNow < 0) {
+        TUTLog(@"Event alarm is in the past: %@ %@", alarmIdentifier, eventTime);
+        return;
+    }
+    if (alarmTime.timeIntervalSinceNow > fortNightSeconds) {
+        TUTLog(@"Event alarm is too far into the future: %@ %@", alarmIdentifier, eventTime);
+        return;
+    }
     
     let formattedTime = [NSDateFormatter localizedStringFromDate:eventTime dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle];
     let notificationText = [NSString stringWithFormat:@"%@: %@", formattedTime, summary];
