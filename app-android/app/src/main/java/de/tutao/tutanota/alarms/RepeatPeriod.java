@@ -9,4 +9,8 @@ public enum RepeatPeriod {
 		}
 		return RepeatPeriod.values()[(int) value];
 	}
+
+	public long value() {
+		return ordinal();
+	}
 }

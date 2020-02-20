@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.Crypto;
@@ -21,6 +22,8 @@ import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.push.SseStorage;
 
 public class AlarmNotificationsManager {
+	public static final long TIME_IN_THE_FUTURE_LIMIT_MS = TimeUnit.DAYS.toMillis(14);
+
 	private static final String TAG = "AlarmNotificationsMngr";
 	private final AndroidKeyStoreFacade keyStoreFacade;
 	private final SseStorage sseStorage;
@@ -113,19 +116,30 @@ public class AlarmNotificationsManager {
 			if (alarmNotification.getRepeatRule() == null) {
 				Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
 				Date now = new Date();
-				if (alarmTime.after(now)) {
+				if (occurrenceIsTooFar(alarmTime)) {
+					Log.d(TAG, "Alarm " + identifier + " at " + alarmTime + " is too far in the future, skipping");
+				} else if (alarmTime.after(now)) {
 					systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart, alarmNotification.getUser());
 				} else {
 					Log.d(TAG, "Alarm " + identifier + " at " + alarmTime + " is before " + now + ", skipping");
 				}
 			} else {
-				this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) ->
+				this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
+					if (occurrenceIsTooFar(alarmTime)) {
+						Log.d(TAG, "Alarm occurrence " + identifier + " " + occurrence + " at " + alarmTime + " is too far in the future, skipping");
+					} else {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, occurrence, identifier, summary, eventStartTime,
-								alarmNotification.getUser()));
+								alarmNotification.getUser());
+					}
+				});
 			}
 		} catch (CryptoError cryptoError) {
 			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
 		}
+	}
+
+	private boolean occurrenceIsTooFar(Date alarmTime) {
+		return alarmTime.getTime() > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS;
 	}
 
 

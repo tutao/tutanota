@@ -19,7 +19,7 @@ public class SystemAlarmFacade {
 		this.context = context;
 	}
 
-	void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence,
+	public void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence,
 										   String identifier, String summary,
 										   Date eventDate, String user) {
 		Log.d(TAG, "Scheduled notification " + identifier + " at: " + alarmTime);
