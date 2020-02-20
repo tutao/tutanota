@@ -1,16 +1,15 @@
 package de.tutao.tutanota;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
-import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE)
 public class AlarmNotificationsManagerTest {
 
 	AlarmNotificationsManager manager;
@@ -52,7 +52,7 @@ public class AlarmNotificationsManagerTest {
 	}
 
 	@Test
-	public void testUnscheduleAlarms() throws IOException, UnrecoverableEntryException, KeyStoreException, CryptoError {
+	public void testUnscheduleAlarms() throws UnrecoverableEntryException, KeyStoreException, CryptoError {
 		String userId = "userId";
 		String singleAlarmIdentifier = "singleAlarmIdentifier";
 		String repeatingAlarmIdentifier = "repeatingAlarmIdentifier";
@@ -62,8 +62,7 @@ public class AlarmNotificationsManagerTest {
 		String encPushIdentifierKey = "encPushIdentifierKey";
 		HashMap<String, String> pushIdentifierKeys = new HashMap<>();
 		pushIdentifierKeys.put(pushIdentifierElementId, encPushIdentifierKey);
-		when(sseStorage.getPushIdentifierKeys()).thenReturn(pushIdentifierKeys);
-		when(keyStoreFacade.decryptKey(encPushIdentifierKey)).thenReturn(pushIdentifierKey);
+		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
 
 		AlarmNotification alarmNotification = createAlarmNotification(userId, singleAlarmIdentifier, null, pushIdentifierElementId, pushIdentifierKey);
 		RepeatRule repeatRule = new RepeatRule("1", "1", "Europe/Berlin", String.valueOf(EndType.COUNT.ordinal()), "2");
@@ -75,7 +74,7 @@ public class AlarmNotificationsManagerTest {
 		alarms.add(repeatingAlarmNotification);
 		alarms.add(anotherUserAlarm);
 		when(sseStorage.readAlarmNotifications()).thenReturn(alarms);
-		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
+		when(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey);
 
 		manager.unscheduleAlarms(userId);
 
@@ -84,19 +83,18 @@ public class AlarmNotificationsManagerTest {
 		verify(systemAlarmFacade).cancelAlarm(repeatingAlarmIdentifier, 1);
 		verifyNoMoreInteractions(systemAlarmFacade);
 
-		ArrayList<AlarmNotification> expectedAlarms = new ArrayList<>();
-		expectedAlarms.add(anotherUserAlarm);
-		verify(sseStorage).writeAlarmInfos(expectedAlarms);
+		verify(sseStorage).deleteAlarmNotification(singleAlarmIdentifier);
+		verify(sseStorage).deleteAlarmNotification(repeatingAlarmIdentifier);
 	}
 
 	@NonNull
 	private AlarmNotification createAlarmNotification(String userId, String alarmIdentifier, @Nullable RepeatRule repeatRule, String pushIdentifierElementId,
 													  byte[] pushIdentifierKey) throws CryptoError {
-		ArrayList<AlarmNotification.NotificationSessionKey> sessionKeys = new ArrayList<>();
 		byte[] encSessionKey = "encSessionKey".getBytes();
 		when(crypto.decryptKey(aryEq(pushIdentifierKey), aryEq(encSessionKey))).thenReturn(encSessionKey);
-
-		sessionKeys.add(new AlarmNotification.NotificationSessionKey(new IdTuple("listId", pushIdentifierElementId), Utils.bytesToBase64(encSessionKey)));
+		AlarmNotification.NotificationSessionKey notificationSessionKey = new AlarmNotification.NotificationSessionKey(
+				new IdTuple("listId", pushIdentifierElementId),
+				Utils.bytesToBase64(encSessionKey));
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(Calendar.DATE, calendar.get(Calendar.DATE) + 2);
 		calendar.set(Calendar.MILLISECOND, 0);
@@ -106,6 +104,6 @@ public class AlarmNotificationsManagerTest {
 		String end = String.valueOf(calendar.getTimeInMillis());
 
 		return new AlarmNotification(OperationType.CREATE, "summary", start, end, new AlarmInfo("10M", alarmIdentifier), repeatRule,
-				sessionKeys, userId, new JSONObject());
+				notificationSessionKey, userId);
 	}
 }
