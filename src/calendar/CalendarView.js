@@ -18,7 +18,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
-import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {downcast, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
 	getCalendarName,
@@ -94,7 +94,9 @@ export const CalendarViewType = Object.freeze({
 const CalendarViewTypeByValue = reverse(CalendarViewType)
 
 export type CalendarViewTypeEnum = $Values<typeof CalendarViewType>
+type EventsForDays = Map<number, Array<CalendarEvent>>
 
+// noinspection JSUnusedGlobalSymbols
 export class CalendarView implements CurrentView {
 
 	sidebarColumn: ViewColumn
@@ -103,7 +105,7 @@ export class CalendarView implements CurrentView {
 	// Should not be changed directly but only through the URL
 	selectedDate: Stream<Date>
 	_calendarInfos: Promise<Map<Id, CalendarInfo>>
-	_eventsForDays: Map<number, Array<CalendarEvent>>
+	_eventsForDays: EventsForDays
 	_loadedMonths: Set<number> // first ms of the month
 	_currentViewType: CalendarViewTypeEnum
 	_hiddenCalendars: Set<Id>
@@ -113,7 +115,7 @@ export class CalendarView implements CurrentView {
 	constructor() {
 		this._currentViewType = deviceConfig.getDefaultCalendarView(logins.getUserController().user._id) || CalendarViewType.MONTH
 		this._loadedMonths = new Set()
-		this._eventsForDays = new Map()
+		this._eventsForDays = freezeMap(new Map())
 		this._hiddenCalendars = new Set()
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
@@ -146,12 +148,16 @@ export class CalendarView implements CurrentView {
 				: lang.get("calendar_label")
 		)
 
+		const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
+			return userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+				acc[gc.group] = gc.color
+				return acc
+			}, {})
+		})
+
 		this.contentColumn = new ViewColumn({
 			view: () => {
-				const groupColors = logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
-					acc[gc.group] = gc.color
-					return acc
-				}, {})
+				const groupColors = getGroupColors(logins.getUserController().userSettingsGroupRoot)
 
 				switch (this._currentViewType) {
 					case CalendarViewType.MONTH:
@@ -440,14 +446,17 @@ export class CalendarView implements CurrentView {
 					     [
 						     m(".flex.flex-grow.center-vertically.button-height", [
 							     m(".calendar-checkbox", {
-								     onclick: () => this._hiddenCalendars.has(groupRootId)
-									     ? this._hiddenCalendars.delete(groupRootId)
-									     : this._hiddenCalendars.add(groupRootId),
+								     onclick: () => {
+									     const newHiddenCalendars = new Set(this._hiddenCalendars)
+									     this._hiddenCalendars.has(groupRootId)
+										     ? newHiddenCalendars.delete(groupRootId)
+										     : newHiddenCalendars.add(groupRootId)
+									     this._hiddenCalendars = newHiddenCalendars
+								     },
 								     style: {
 									     "border-color": colorValue,
 									     "background": this._hiddenCalendars.has(groupRootId) ? "" : colorValue,
 									     "margin-left": "-4px", // .folder-row > a adds -10px margin to other items but it has 6px padding
-									     "transition": "all 0.3s",
 									     "cursor": "pointer",
 								     }
 							     }),
@@ -775,10 +784,9 @@ export class CalendarView implements CurrentView {
 							})
 							if (calendarMemberships.length !== calendarInfos.size) {
 								this._loadedMonths.clear()
-								this._eventsForDays.clear()
+								this._eventsForDays = freezeMap(new Map())
 								this._calendarInfos = this._loadCalendarInfos()
 								this._calendarInfos.then(() => {
-
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)
 									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
@@ -863,16 +871,28 @@ export class CalendarView implements CurrentView {
 			// occurrences of new event won't replace all occurrences of old event. Changes of start or repeat rule already change
 			// ID of the event so it is not a problem.
 			if (oldEvent.endTime.getTime() !== newEvent.endTime.getTime()) {
-				this._eventsForDays.forEach((dayEvents) =>
+				const newMap = new Map(this._eventsForDays)
+				newMap.forEach((dayEvents) =>
 					// finding all because event can overlap with itself so a day can have multiple occurrences of the same event in it
 					findAllAndRemove(dayEvents, (e) => isSameId(e._id, oldEvent._id)))
+				this._eventsForDays = freezeMap(newMap)
 			}
 			events.splice(indexOfOldEvent, 1)
 		}
 	}
 
 	_addDaysForEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		addDaysForEvent(this._eventsForDays, event, month)
+		const newMap = this._freshMap()
+		addDaysForEvent(newMap, event, month)
+		this._replaceMap(newMap)
+	}
+
+	_replaceMap(newMap: EventsForDays) {
+		this._eventsForDays = freezeMap(newMap)
+	}
+
+	_freshMap(): EventsForDays {
+		return new Map(this._eventsForDays)
 	}
 
 	_addDaysForRecurringEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
@@ -880,12 +900,16 @@ export class CalendarView implements CurrentView {
 			console.log("repeating event is too far into the past", event)
 			return
 		}
-		addDaysForRecurringEvent(this._eventsForDays, event, month, getTimeZone())
+		const newMap = this._freshMap()
+		addDaysForRecurringEvent(newMap, event, month, getTimeZone())
+		this._replaceMap(newMap)
 	}
 
 	_removeDaysForEvent(id: IdTuple, ownerGroupId: Id) {
-		this._eventsForDays.forEach((dayEvents) =>
+		const newMap = this._freshMap()
+		newMap.forEach((dayEvents) =>
 			findAllAndRemove(dayEvents, (e) => isSameId(e._id, id)))
+		this._replaceMap(newMap)
 		if (this._calendarInfos.isFulfilled()) {
 			const infos = this._calendarInfos.value()
 			const info = infos.get(ownerGroupId)
@@ -900,7 +924,9 @@ export class CalendarView implements CurrentView {
 	}
 
 	_addDaysForLongEvent(event: CalendarEvent, month: CalendarMonthTimeRange) {
-		addDaysForLongEvent(this._eventsForDays, event, month)
+		const newMap = this._freshMap()
+		addDaysForLongEvent(newMap, event, month)
+		this._replaceMap(newMap)
 	}
 
 	getViewSlider() {
@@ -911,4 +937,27 @@ export class CalendarView implements CurrentView {
 		const dateString = DateTime.fromJSDate(date).toISODate()
 		m.route.set("/calendar/:view/:date", {view, date: dateString}, {replace})
 	}
+}
+
+function mapSet(key) {
+	throw new Error('Can\'t add property ' + key + ', map is not extensible')
+}
+
+function mapDelete(key) {
+	throw new Error('Can\'t delete property ' + key + ', map is frozen')
+}
+
+function mapClear() {
+	throw new Error('Can\'t clear map, map is frozen')
+}
+
+function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
+	const anyMap = downcast(myMap)
+	anyMap.set = mapSet
+	anyMap.delete = mapDelete
+	anyMap.clear = mapClear
+
+	Object.freeze(anyMap)
+
+	return anyMap
 }

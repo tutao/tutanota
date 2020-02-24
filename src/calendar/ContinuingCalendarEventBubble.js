@@ -1,28 +1,24 @@
 //@flow
 
 import m from "mithril"
-import {eventEndsAfterDay, eventStartsBefore, getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
+import {getEventText, hasAlarmsForTheUser} from "./CalendarUtils"
 import type {EventTextTimeOptionEnum} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 
 type ContinuingCalendarEventBubbleAttrs = {|
 	event: CalendarEvent,
-	startDate: Date,
-	endDate: Date,
+	startsBefore: boolean,
+	endsAfter: boolean,
 	color: string,
 	onEventClicked: clickHandler,
 	showTime: EventTextTimeOptionEnum,
-	zone: string,
 |}
 
 export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalendarEventBubbleAttrs> {
 
 	view({attrs}: Vnode<ContinuingCalendarEventBubbleAttrs>) {
-		const startsBefore = eventStartsBefore(attrs.startDate, attrs.zone, attrs.event)
-		const endsAfter = eventEndsAfterDay(attrs.endDate, attrs.zone, attrs.event)
-
 		return m(".flex.calendar-event-cont.darker-hover", [
-			startsBefore
+			attrs.startsBefore
 				? m(".event-continues-right-arrow", {
 					style: {
 						"border-left-color": "transparent",
@@ -36,12 +32,12 @@ export class ContinuingCalendarEventBubble implements MComponent<ContinuingCalen
 					text: getEventText(attrs.event, attrs.showTime),
 					color: attrs.color,
 					onEventClicked: () => attrs.onEventClicked(attrs.event),
-					noBorderLeft: startsBefore,
-					noBorderRight: endsAfter,
-					hasAlarm:  hasAlarmsForTheUser(attrs.event)
+					noBorderLeft: attrs.startsBefore,
+					noBorderRight: attrs.endsAfter,
+					hasAlarm: hasAlarmsForTheUser(attrs.event)
 				}),
 			),
-			endsAfter
+			attrs.endsAfter
 				? m(".event-continues-right-arrow", {
 					style: {"border-left-color": "#" + attrs.color}
 				})

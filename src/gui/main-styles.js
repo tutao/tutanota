@@ -1037,9 +1037,25 @@ styles.registerStyle('main', () => {
 			'border': `1px solid ${theme.content_bg}`,
 			'padding-left': '4px',
 			'font-weight': '600',
-			'animation-duration': '0.3s',
 			'box-sizing': 'content-box',
-			'cursor': 'pointer'
+			'cursor': 'pointer',
+		},
+
+		'.fade-in': {
+			opacity: 1,
+			'animation-name': 'fadeInOpacity',
+			'animation-iteration-count': 1,
+			'animation-timing-function': 'ease-in',
+			'animation-duration': '200ms',
+		},
+
+		'@keyframes fadeInOpacity': {
+			'0%': {
+				opacity: 0,
+			},
+			'100%': {
+				opacity: 1,
+			},
 		},
 
 		'.calendar-bubble-more-padding-day .calendar-event': {

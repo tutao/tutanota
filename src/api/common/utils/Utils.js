@@ -173,6 +173,20 @@ export function lazyMemoized<T>(source: () => T): () => T {
 	}
 }
 
+export function memoized<T, R>(fn: (T) => R): (T) => R {
+	let lastArg: T
+	let lastResult: R
+	let didCache = false
+	return (arg) => {
+		if (!didCache || arg !== lastArg) {
+			lastArg = arg
+			didCache = true
+			lastResult = fn(arg)
+		}
+		return lastResult
+	}
+}
+
 /**
  * Function which returns what was passed into it
  */
@@ -348,4 +362,33 @@ export function getChangedProps(objA: any, objB: any): Array<string> {
 	             .filter(k => Object.keys(objB).includes(k))
 	             .filter(k => ![null, undefined].includes(objA[k]) || ![null, undefined].includes(objB[k]))
 	             .filter(k => !deepEqual(objA[k], objB[k]))
+}
+
+/**
+ * Disallow set, delete and clear on Map.
+ * Important: It is *not* a deep freeze.
+ * @param myMap
+ * @return {unknown}
+ */
+export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
+	function mapSet(key) {
+		throw new Error('Can\'t add property ' + key + ', map is not extensible')
+	}
+
+	function mapDelete(key) {
+		throw new Error('Can\'t delete property ' + key + ', map is frozen')
+	}
+
+	function mapClear() {
+		throw new Error('Can\'t clear map, map is frozen')
+	}
+
+	const anyMap = downcast(myMap)
+	anyMap.set = mapSet
+	anyMap.delete = mapDelete
+	anyMap.clear = mapClear
+
+	Object.freeze(anyMap)
+
+	return anyMap
 }

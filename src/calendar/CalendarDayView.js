@@ -109,22 +109,20 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 				m(".calendar-hour-margin.pr-l", allDayEvents.map(e => {
 					return m(ContinuingCalendarEventBubble, {
 						event: e,
-						startDate: date,
-						endDate: date,
+						startsBefore: eventStartsBefore(date, zone, e),
+						endsAfter: eventEndsAfterDay(date, zone, e),
 						color: getEventColor(e, vnode.attrs.groupColors),
 						onEventClicked: () => vnode.attrs.onEventClicked(e),
 						showTime: EventTextTimeOption.NO_TIME,
-						zone,
 					})
 				})),
 				m(".calendar-hour-margin.pr-l", longEvents.map(e => m(ContinuingCalendarEventBubble, {
 					event: e,
-					startDate: date,
-					endDate: date,
+					startsBefore: eventStartsBefore(date, zone, e),
+					endsAfter: eventEndsAfterDay(date, zone, e),
 					color: getEventColor(e, vnode.attrs.groupColors),
 					onEventClicked: () => vnode.attrs.onEventClicked(e),
 					showTime: EventTextTimeOption.START_TIME,
-					zone,
 				}))),
 				mainPageEvents.allDayEvents.length > 0 || mainPageEvents.longEvents.length > 0
 					? m(".mt-s")

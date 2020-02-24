@@ -9,14 +9,13 @@ import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {
 	CALENDAR_EVENT_HEIGHT,
-	eventEndsAfterDay,
-	eventStartsBefore,
+	getAllDayDateForTimezone,
 	getCalendarMonth,
 	getDiffInDays,
 	getEventColor,
 	getEventEnd,
-	getEventStart,
 	getStartOfDayWithZone,
+	getStartOfNextDayWithZone,
 	getStartOfTheWeekOffset,
 	getTimeZone,
 	getWeekNumber,
@@ -28,7 +27,7 @@ import {theme} from "../gui/theme"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import {styles} from "../gui/styles"
 import {formatMonthWithFullYear} from "../misc/Formatter"
-import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCalendarUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
@@ -52,12 +51,18 @@ const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
 
-export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
+export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecycle<CalendarMonthAttrs> {
 	_monthDom: ?HTMLElement;
 	_resizeListener: () => mixed;
+	_zone: string
+	_lastWidth: number
+	_lastHeight: number
 
 	constructor() {
 		this._resizeListener = m.redraw
+		this._zone = getTimeZone()
+		this._lastHeight = 0
+		this._lastHeight = 0
 	}
 
 	oncreate() {
@@ -77,21 +82,38 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		return m(PageView, {
 			previousPage: {
 				key: previousMonthDate.getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonthDate) : null
+				nodes: this._monthDom ? this._renderCalendar(attrs, previousMonthDate, this._zone) : null
 			},
 			currentPage: {
 				key: attrs.selectedDate.getTime(),
-				nodes: this._renderCalendar(attrs, attrs.selectedDate)
+				nodes: this._renderCalendar(attrs, attrs.selectedDate, this._zone)
 			},
 			nextPage: {
 				key: nextMonthDate.getTime(),
-				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonthDate) : null
+				nodes: this._monthDom ? this._renderCalendar(attrs, nextMonthDate, this._zone) : null
 			},
 			onChangePage: (next) => attrs.onChangeMonth(next)
 		})
 	}
 
-	_renderCalendar(attrs: CalendarMonthAttrs, date: Date): Children {
+	onbeforeupdate(newVnode: Vnode<CalendarMonthAttrs>, oldVnode: Vnode<CalendarMonthAttrs>) {
+		const dom = this._monthDom
+		const different = !dom
+			|| oldVnode.attrs.eventsForDays !== newVnode.attrs.eventsForDays
+			|| oldVnode.attrs.selectedDate !== newVnode.attrs.selectedDate
+			|| oldVnode.attrs.amPmFormat !== newVnode.attrs.amPmFormat
+			|| oldVnode.attrs.groupColors !== newVnode.attrs.groupColors
+			|| oldVnode.attrs.hiddenCalendars !== newVnode.attrs.hiddenCalendars
+			|| dom.offsetWidth !== this._lastWidth
+			|| dom.offsetHeight !== this._lastHeight
+		if (dom) {
+			this._lastWidth = dom.offsetWidth
+			this._lastHeight = dom.offsetHeight
+		}
+		return different
+	}
+
+	_renderCalendar(attrs: CalendarMonthAttrs, date: Date, zone: string): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
 		const {weekdays, weeks} = getCalendarMonth(date, startOfTheWeekOffset, false)
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
@@ -124,7 +146,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 			}, weeks.map((week) => {
 				return m(".flex.flex-grow.rel", [
 					week.map((d, i) => this._renderDay(attrs, d, today, i)),
-					this._monthDom ? this._renderWeekEvents(attrs, week) : null,
+					this._monthDom ? this._renderWeekEvents(attrs, week, zone) : null,
 				])
 			}))
 		])
@@ -157,7 +179,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		)
 	}
 
-	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>): Children {
+	_renderWeekEvents(attrs: CalendarMonthAttrs, week: Array<CalendarDay>, zone: string): Children {
 		const events = new Set()
 		week.forEach((day) => {
 			const dayEvents = attrs.eventsForDays.get(day.date.getTime())
@@ -167,7 +189,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		})
 
 
-		const firstDayOfWeek = week[0]
+		const firstDayOfWeek = week[0].date
 		const lastDayOfWeek = lastThrow(week)
 		const dayWidth = this._getWidthForDay()
 		const weekHeight = this._getHeightForWeek()
@@ -176,11 +198,16 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		const eventsPerDay = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
 		const eventMargin = (styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile)
-		return layOutEvents(Array.from(events), getTimeZone(), (columns) => {
+		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
+		return layOutEvents(Array.from(events), zone, (columns) => {
 			return columns.map((events, columnIndex) => {
 				return events.map(event => {
 					if (columnIndex < eventsPerDay) {
-						const position = this._getEventPosition(event, firstDayOfWeek.date, lastDayOfWeek.date, dayWidth, dayHeight(), columnIndex)
+						const eventIsAllDay = isAllDayEventByTimes(event.startTime, event.endTime)
+						const eventStart = eventIsAllDay ? getAllDayDateForTimezone(event.startTime, zone) : event.startTime
+						const eventEnd = eventIsAllDay ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
+						const position = this._getEventPosition(eventStart, eventEnd, firstDayOfWeek, firstDayOfNextWeek, dayWidth,
+							dayHeight(), columnIndex)
 						return m(".abs.overflow-hidden", {
 							key: event._id[0] + event._id[1] + event.startTime.getTime(),
 							style: {
@@ -189,7 +216,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 								left: px(position.left),
 								right: px(position.right)
 							}
-						}, this._renderEvent(attrs, event, firstDayOfWeek.date, lastDayOfWeek.date))
+						}, this._renderEvent(attrs, event, eventStart < firstDayOfWeek, firstDayOfNextWeek < eventEnd))
 
 					} else {
 						week.forEach((dayInWeek, index) => {
@@ -228,41 +255,38 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		}, true)
 	}
 
-	_getEventPosition(event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date, calendarDayWidth: number, calendarDayHeight: number, columnIndex: number): {top: number, left: number, right: number} {
+	_getEventPosition(
+		eventStart: Date,
+		eventEnd: Date,
+		firstDayOfWeek: Date,
+		firstDayOfNextWeek: Date,
+		calendarDayWidth: number,
+		calendarDayHeight: number,
+		columnIndex: number,
+	): {top: number, left: number, right: number} {
 		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight
 
-		const zone = getTimeZone()
-		const eventStart = getEventStart(event, zone)
-		const eventEnd = isAllDayEvent(event) ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
-
-		const dayOfStartDateInWeek = getDiffInDays(eventStart, firstDayOfWeek)
-		const dayOfEndDateInWeek = getDiffInDays(eventEnd, firstDayOfWeek)
+		const dayOfStartDateInWeek = getDiffInDaysFast(eventStart, firstDayOfWeek)
+		const dayOfEndDateInWeek = getDiffInDaysFast(eventEnd, firstDayOfWeek)
 
 		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
 
-
-		const left = (eventStartsBefore(firstDayOfWeek, zone, event) ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
-		const right = (eventEndsAfterDay(lastDayOfWeek, zone, event) ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth))
+		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
+		const right = (eventEnd > firstDayOfNextWeek ? 0 : ((6 - dayOfEndDateInWeek) * calendarDayWidth))
 			+ calendarEventMargin
-		return {
-			top,
-			left,
-			right,
-		}
+		return {top, left, right}
 	}
 
-
-	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, firstDayOfWeek: Date, lastDayOfWeek: Date): Children {
+	_renderEvent(attrs: CalendarMonthAttrs, event: CalendarEvent, startsBeforeWeek: boolean, endsAfterWeek: boolean): Children {
 		return m(ContinuingCalendarEventBubble, {
 			event: event,
-			startDate: firstDayOfWeek,
-			endDate: lastDayOfWeek,
+			startsBefore: startsBeforeWeek,
+			endsAfter: endsAfterWeek,
 			color: getEventColor(event, attrs.groupColors),
 			showTime: styles.isDesktopLayout() && !isAllDayEvent(event) ? EventTextTimeOption.START_TIME : EventTextTimeOption.NO_TIME,
 			onEventClicked: (e) => {
 				attrs.onEventClicked(event)
 			},
-			zone: getTimeZone(),
 		})
 	}
 
@@ -281,5 +305,17 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs> {
 		}
 		const monthDomWidth = this._monthDom.offsetWidth
 		return monthDomWidth / 7
+	}
+}
+
+/**
+ * Optimization to not create luxon's DateTime in simple case.
+ * May not work if we allow override time zones.
+ */
+function getDiffInDaysFast(left: Date, right: Date): number {
+	if (left.getMonth() === right.getMonth()) {
+		return left.getDate() - right.getDate()
+	} else {
+		return getDiffInDays(left, right)
 	}
 }

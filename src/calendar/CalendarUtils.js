@@ -279,19 +279,26 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: num
 	}
 }
 
-export function layOutEvents(events: Array<CalendarEvent>, zone: string, renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
+export function layOutEvents(events: Array<CalendarEvent>, zone: string,
+                             renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray, handleAsAllDay: boolean): ChildArray {
 	events.sort((e1, e2) => {
-		if (getEventStart(e1, zone) < getEventStart(e2, zone)) return -1;
-		if (getEventStart(e1, zone) > getEventStart(e2, zone)) return 1;
-		if (getEventEnd(e1, zone) < getEventEnd(e2, zone)) return -1;
-		if (getEventEnd(e1, zone) > getEventEnd(e2, zone)) return 1;
+		const e1Start = getEventStart(e1, zone)
+		const e2Start = getEventStart(e2, zone)
+		if (e1Start < e2Start) return -1;
+		if (e1Start > e2Start) return 1;
+		const e1End = getEventEnd(e1, zone)
+		const e2End = getEventEnd(e2, zone)
+		if (e1End < e2End) return -1;
+		if (e1End > e2End) return 1;
 		return 0;
 	})
 	let lastEventEnding = null
 	let columns: Array<Array<CalendarEvent>> = []
 	const children = []
+	// Cache for calculation events
+	const calcEvents = new Map()
 	events.forEach((e) => {
-		const calcEvent = getCalculationEvent(e, zone, handleAsAllDay)
+		const calcEvent = calcEvents.get(e) || getCalculationEvent(e, zone, handleAsAllDay)
 
 		// Check if a new event group needs to be started
 		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
@@ -306,9 +313,10 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string, rendere
 		// Try to place the event inside the existing columns
 		let placed = false
 		for (let i = 0; i < columns.length; i++) {
-			var col = columns[i]
-			const lastEvent = getCalculationEvent(col[col.length - 1], zone, handleAsAllDay)
-			if (!collidesWith(lastEvent, calcEvent)) {
+			const col = columns[i]
+			const lastEvent = col[col.length - 1]
+			const lastCalcEvent = calcEvents.get(e) || getCalculationEvent(lastEvent, zone, handleAsAllDay)
+			if (!collidesWith(lastCalcEvent, calcEvent)) {
 				col.push(e) // push real event here not calc event
 				placed = true
 				break
@@ -334,15 +342,15 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string, rendere
 
 function getCalculationEvent(event: CalendarEvent, zone: string, handleAsAllDay: boolean): CalendarEvent {
 	if (handleAsAllDay) {
-		const calcDate = clone(event)
+		const calcEvent = clone(event)
 		if (isAllDayEvent(event)) {
-			calcDate.startTime = getAllDayDateForTimezone(event.startTime, zone)
-			calcDate.endTime = getAllDayDateForTimezone(event.endTime, zone)
+			calcEvent.startTime = getAllDayDateForTimezone(event.startTime, zone)
+			calcEvent.endTime = getAllDayDateForTimezone(event.endTime, zone)
 		} else {
-			calcDate.startTime = getStartOfDayWithZone(event.startTime, zone)
-			calcDate.endTime = getStartOfNextDayWithZone(event.endTime, zone)
+			calcEvent.startTime = getStartOfDayWithZone(event.startTime, zone)
+			calcEvent.endTime = getStartOfNextDayWithZone(event.endTime, zone)
 		}
-		return calcDate
+		return calcEvent
 	} else {
 		return event
 	}
