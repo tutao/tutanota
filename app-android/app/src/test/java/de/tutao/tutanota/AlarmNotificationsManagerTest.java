@@ -72,12 +72,11 @@ public class AlarmNotificationsManagerTest {
 		String singleAlarmIdentifier = "singleAlarmIdentifier";
 		String repeatingAlarmIdentifier = "repeatingAlarmIdentifier";
 
-		AlarmNotification alarmNotification = createAlarmNotification(singleAlarmIdentifier, null, null, null
-		);
+		AlarmNotification alarmNotification = createAlarmNotification(userId, singleAlarmIdentifier, null, null, null);
 		RepeatRule repeatRule = new RepeatRule("1", "1", "Europe/Berlin", String.valueOf(EndType.COUNT.ordinal()), "2");
-		AlarmNotification repeatingAlarmNotification = createAlarmNotification(repeatingAlarmIdentifier, null, null, repeatRule
+		AlarmNotification repeatingAlarmNotification = createAlarmNotification(userId, repeatingAlarmIdentifier, null, null, repeatRule
 		);
-		AlarmNotification anotherUserAlarm = createAlarmNotification("someIdentifeir", null, null, null);
+		AlarmNotification anotherUserAlarm = createAlarmNotification("anotherUserId", "someIdentifeir", null, null, null);
 		ArrayList<AlarmNotification> alarms = new ArrayList<>();
 		alarms.add(alarmNotification);
 		alarms.add(repeatingAlarmNotification);
@@ -99,7 +98,7 @@ public class AlarmNotificationsManagerTest {
 	public void testScheduleSingleNotTooFar() {
 		String notFarIdentifier = "notFar";
 		Date startDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20));
-		AlarmNotification notTooFarSingle = createAlarmNotification(notFarIdentifier, startDate, null, null);
+		AlarmNotification notTooFarSingle = createAlarmNotification(userId, notFarIdentifier, startDate, null, null);
 
 		manager.scheduleNewAlarms(singletonList(notTooFarSingle));
 
@@ -111,7 +110,7 @@ public class AlarmNotificationsManagerTest {
 	public void testNotScheduleSingleTooFar() {
 		String identifier = "tooFar";
 		Date startDate = new Date(System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(20));
-		AlarmNotification tooFarSingle = createAlarmNotification(identifier, startDate, null, null);
+		AlarmNotification tooFarSingle = createAlarmNotification(userId, identifier, startDate, null, null);
 
 		manager.scheduleNewAlarms(singletonList(tooFarSingle));
 
@@ -123,7 +122,7 @@ public class AlarmNotificationsManagerTest {
 		String identifier = "notTooFarR";
 		Date startDate = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
 		RepeatRule repeatRule = new RepeatRule(String.valueOf(RepeatPeriod.WEEKLY.value()), "1", "Europe/Berlin", null, null);
-		AlarmNotification alarmNotification = createAlarmNotification(identifier, startDate, null, repeatRule);
+		AlarmNotification alarmNotification = createAlarmNotification(userId, identifier, startDate, null, repeatRule);
 
 		manager.scheduleNewAlarms(singletonList(alarmNotification));
 
@@ -138,7 +137,7 @@ public class AlarmNotificationsManagerTest {
 
 
 	@NonNull
-	private AlarmNotification createAlarmNotification(String alarmIdentifier, @Nullable Date startDate, @Nullable Date endDate,
+	private AlarmNotification createAlarmNotification(String userId, String alarmIdentifier, @Nullable Date startDate, @Nullable Date endDate,
 													  @Nullable RepeatRule repeatRule) {
 		byte[] encSessionKey = "encSessionKey".getBytes();
 		try {
