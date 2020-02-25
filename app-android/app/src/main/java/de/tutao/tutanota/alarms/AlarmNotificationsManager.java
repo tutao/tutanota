@@ -142,7 +142,7 @@ public class AlarmNotificationsManager {
 			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
 		} catch (Exception e) {
 			Log.e(TAG, "Error when scheduling alarm", e);
-			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg);
+			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e);
 		}
 	}
 

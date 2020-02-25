@@ -89,7 +89,7 @@ public class TutanotaNotificationsHandler {
 				Log.d(TAG, "Failed to download missed notification, tries left: " + triesLeft, e);
 			} catch (IllegalArgumentException e) {
 				Log.w(TAG, e);
-				localNotificationsFacade.showErrorNotification(R.string.scheduleAlarmError_msg);
+				localNotificationsFacade.showErrorNotification(R.string.scheduleAlarmError_msg, e);
 				return null;
 			} catch (ServerResponseException e) {
 				triesLeft--;

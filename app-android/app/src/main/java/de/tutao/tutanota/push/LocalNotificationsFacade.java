@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import de.tutao.tutanota.BuildConfig;
 import de.tutao.tutanota.MainActivity;
 import de.tutao.tutanota.R;
 
@@ -184,12 +187,25 @@ public class LocalNotificationsFacade {
 		notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
 	}
 
-	public void showErrorNotification(@StringRes int message) {
+	public void showErrorNotification(@StringRes int message, Throwable exception) {
+		Intent intent = new Intent(context, MainActivity.class)
+				.setAction(Intent.ACTION_SEND)
+				.setType("text/plain")
+				.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + BuildConfig.VERSION_NAME);
+		if (exception != null) {
+			String stackTrace = Log.getStackTraceString(exception);
+			String errorString = exception.getMessage() + "\n" + stackTrace;
+			intent.setClipData(ClipData.newPlainText("error", errorString));
+		}
+
 		Notification notification = new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_status)
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText(context.getString(message))
 				.setDefaults(NotificationCompat.DEFAULT_ALL)
+				.setStyle(new NotificationCompat.BigTextStyle())
+				.setContentIntent(PendingIntent.getActivity(context, (int) (Math.random() * 20000), intent, PendingIntent.FLAG_UPDATE_CURRENT))
+				.setAutoCancel(true)
 				.build();
 		getNotificationManager().notify(1000, notification);
 	}
