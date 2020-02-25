@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Подсетник</string>
     <string name="pushNewMail_msg">Примљена је нова е-пошта.</string>
+    <string name="wantToSendReport_msg">Десило се нешто неочекивано. Да ли желите да пошаљете извештај о грешци? Можете додати текст грешке како би нам помогли да је поправимо.</string>
 </resources>

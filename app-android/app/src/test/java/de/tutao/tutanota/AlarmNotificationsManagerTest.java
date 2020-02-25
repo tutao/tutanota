@@ -26,6 +26,7 @@ import de.tutao.tutanota.alarms.EndType;
 import de.tutao.tutanota.alarms.RepeatPeriod;
 import de.tutao.tutanota.alarms.RepeatRule;
 import de.tutao.tutanota.alarms.SystemAlarmFacade;
+import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
 import static java.util.Collections.singletonList;
@@ -60,7 +61,7 @@ public class AlarmNotificationsManagerTest {
 		sseStorage = mock(SseStorage.class);
 		keyStoreFacade = mock(AndroidKeyStoreFacade.class);
 		crypto = mock(Crypto.class);
-		manager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, crypto, systemAlarmFacade);
+		manager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
 
 		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
 		when(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey);

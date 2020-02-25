@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "För att bevilja åtkomst måste du ändra behörigh
 TutaoCancelAction = "Avbryt";
 TutaoSettingsAction = "Inställningar";
 TutaoCalendarAlarmTitle = "Påminnelse";
+TutaoScheduleAlarmError = "Det gick inte att ställa in ett alarm. Uppdatera programmet.";

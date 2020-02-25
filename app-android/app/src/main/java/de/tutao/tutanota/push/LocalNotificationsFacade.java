@@ -15,6 +15,7 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import de.tutao.tutanota.R;
 import static de.tutao.tutanota.Utils.atLeastNougat;
 import static de.tutao.tutanota.alarms.AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID;
 
-public final class LocalNotificationsFacade {
+public class LocalNotificationsFacade {
 
 	static final String NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed";
 	private static final String EMAIL_NOTIFICATION_CHANNEL_ID = "notifications";
@@ -183,11 +184,11 @@ public final class LocalNotificationsFacade {
 		notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification);
 	}
 
-	public void showErrorNotification() {
+	public void showErrorNotification(@StringRes int message) {
 		Notification notification = new NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_status)
-				.setContentTitle(context.getString(R.string.reminder_label))
-				.setContentText(context.getString(R.string.scheduleAlarmError_msg))
+				.setContentTitle(context.getString(R.string.app_name))
+				.setContentText(context.getString(message))
 				.setDefaults(NotificationCompat.DEFAULT_ALL)
 				.build();
 		getNotificationManager().notify(1000, notification);

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.tutao.tutanota.NetworkUtils;
+import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
 import de.tutao.tutanota.alarms.AlarmNotification;
 import de.tutao.tutanota.alarms.AlarmNotificationsManager;
@@ -88,7 +89,7 @@ public class TutanotaNotificationsHandler {
 				Log.d(TAG, "Failed to download missed notification, tries left: " + triesLeft, e);
 			} catch (IllegalArgumentException e) {
 				Log.w(TAG, e);
-				localNotificationsFacade.showErrorNotification();
+				localNotificationsFacade.showErrorNotification(R.string.scheduleAlarmError_msg);
 				return null;
 			} catch (ServerResponseException e) {
 				triesLeft--;

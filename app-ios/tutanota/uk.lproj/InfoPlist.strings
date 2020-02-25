@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Щоб надати доступ, змініть д�
 TutaoCancelAction = "Скасувати";
 TutaoSettingsAction = "Налаштування";
 TutaoCalendarAlarmTitle = "Нагадування";
+TutaoScheduleAlarmError = "Не вдалося налаштувати будильник. Оновіть програму.";

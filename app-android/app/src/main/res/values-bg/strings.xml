@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Напомняне</string>
     <string name="pushNewMail_msg">Получено е ново електронно съобщение.</string>
+    <string name="wantToSendReport_msg">Неочаквана грешка. Ще ни изпратите ли отчет? Може да добавите съобщение за да помогнете да отстраним грешката.</string>
 </resources>

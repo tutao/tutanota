@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "アクセスを認めるためには、このデバ�
 TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";
 TutaoCalendarAlarmTitle = "リマインダー";
+TutaoScheduleAlarmError = "アラームを設定できませんでした。 アプリケーションを更新してください。";

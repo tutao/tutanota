@@ -1,3 +1,4 @@
 <resources>
     <string name="pushNewMail_msg">收到新邮件。</string>
+    <string name="wantToSendReport_msg">出现未预料的问题。您想要发送错误报告吗？您可以添加消息以帮助我们解决此错误。</string>
 </resources>

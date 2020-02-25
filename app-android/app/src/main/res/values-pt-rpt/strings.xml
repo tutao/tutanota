@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Lembrete</string>
     <string name="pushNewMail_msg">Novo email recebido.</string>
+    <string name="wantToSendReport_msg">Algo inesperado correu mal. Deseja enviar um relatório de erro? Pode adicionar uma mensagem para nos ajudar a corrigir este erro.</string>
 </resources>

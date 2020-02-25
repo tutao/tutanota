@@ -18,7 +18,9 @@ import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.CryptoError;
 import de.tutao.tutanota.OperationType;
+import de.tutao.tutanota.R;
 import de.tutao.tutanota.Utils;
+import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
 public class AlarmNotificationsManager {
@@ -30,13 +32,16 @@ public class AlarmNotificationsManager {
 	private final Crypto crypto;
 	private final SystemAlarmFacade systemAlarmFacade;
 	private final PushKeyResolver pushKeyResolver;
+	private final LocalNotificationsFacade localNotificationsFacade;
 
-	public AlarmNotificationsManager(AndroidKeyStoreFacade androidKeyStoreFacade, SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade) {
+	public AlarmNotificationsManager(AndroidKeyStoreFacade androidKeyStoreFacade, SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade,
+									 LocalNotificationsFacade localNotificationsFacade) {
 		keyStoreFacade = androidKeyStoreFacade;
 		this.sseStorage = sseStorage;
 		this.crypto = crypto;
 		this.systemAlarmFacade = systemAlarmFacade;
 		this.pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage);
+		this.localNotificationsFacade = localNotificationsFacade;
 	}
 
 	public void reScheduleAlarms() {
@@ -135,6 +140,9 @@ public class AlarmNotificationsManager {
 			}
 		} catch (CryptoError cryptoError) {
 			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
+		} catch (Exception e) {
+			Log.e(TAG, "Error when scheduling alarm", e);
+			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg);
 		}
 	}
 
