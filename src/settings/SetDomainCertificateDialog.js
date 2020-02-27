@@ -33,11 +33,27 @@ function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?
 			      Dialog.error("certificateError_msg")
 		      })
 		      .catch(PreconditionFailedError, e => {
-			      Dialog.error("invalidCnameRecord_msg")
+			      switch (e.data) {
+				      case "lock.locked":
+					      Dialog.error("operationStillActive_msg")
+					      break
+				      case "domain.invalid_cname":
+					      Dialog.error("invalidCnameRecord_msg")
+					      break
+				      case "domain.not_a_subdomain":
+					      Dialog.error("notASubdomain_msg")
+					      break
+				      case "domain.invalid":
+				      case "domain.exists":
+					      Dialog.error("customDomainErrorDomainNotAvailable_msg")
+					      break
+				      default:
+					      throw e;
+			      }
 		      }))
 }
 
-export function show(customerInfo: CustomerInfo, whitelabelConfig: ?WhitelabelConfig): void {
+export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
 	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 	let domainField
@@ -71,7 +87,6 @@ export function show(customerInfo: CustomerInfo, whitelabelConfig: ?WhitelabelCo
 	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
-	const certificateInfo = whitelabelConfig && whitelabelConfig.certificateInfo
 	const selectedType = stream(certificateInfo ? getCertificateType(certificateInfo) : CertificateType.LETS_ENCRYPT)
 	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {
 		label: "certificateType_label",

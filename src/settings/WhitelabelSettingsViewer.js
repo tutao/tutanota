@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {load, loadAll, loadRange, update} from "../api/main/Entity"
+import {load, loadAll, loadRange, serviceRequest, update} from "../api/main/Entity"
 import {getCustomMailDomains, getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
@@ -18,7 +18,7 @@ import {
 	MAX_LOGO_SIZE,
 	OperationType
 } from "../api/common/TutanotaConstants"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/EntityFunctions"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {TextField, Type} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -34,7 +34,6 @@ import {formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {createStringWrapper} from "../api/entities/sys/StringWrapper"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
@@ -60,6 +59,9 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
+import {SysService} from "../api/entities/sys/Services"
+import {BrandingDomainGetReturnTypeRef} from "../api/entities/sys/BrandingDomainGetReturn"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -78,7 +80,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	_whitelabelRegistrationDomains: DropDownSelector<?string>;
 	_whitelabelStatusField: TextFieldAttrs;
 
-	_props: LazyLoaded<CustomerServerProperties>;
 	_customer: LazyLoaded<Customer>;
 	_customerInfo: LazyLoaded<CustomerInfo>;
 	_customerProperties: LazyLoaded<CustomerProperties>;
@@ -96,10 +97,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			return this._customer.getAsync().then(customer => load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 
-		this._props = new LazyLoaded(() => {
-			return worker.loadCustomerServerProperties()
-		})
-
 		this._customerProperties = new LazyLoaded(() =>
 			this._customer.getAsync().then((customer) => load(CustomerPropertiesTypeRef, neverNull(customer.properties))))
 
@@ -112,8 +109,6 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._lastBooking = null
 
 		this._updateFields()
-
-		this._updateWhitelabelRegistrationFields()
 
 		this._contactFormsExist = null
 		this._customer.getAsync().then(customer => {
@@ -161,6 +156,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							m(contactFormReportButton)
 						]),
 					]) : null,
+					m(".mb-l")
 				] : [
 					m(".flex-center.items-center.button-height.mt-l", progressIcon())
 				])
@@ -177,52 +173,24 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			this._whitelabelRegistrationDomains
 	}
 
-	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?WhitelabelConfig> {
+	_tryLoadWhitelabelConfig(domainInfo: ?DomainInfo): Promise<?{whitelabelConfig: WhitelabelConfig, certificateInfo: CertificateInfo}> {
 		if (domainInfo && domainInfo.whitelabelConfig) {
-			return load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig)
+			return Promise.all([
+				load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
+				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef)
+					.then((response) => response.certificateInfo)
+			]).then(([whitelabelConfig, certificateInfo]) => ({whitelabelConfig, certificateInfo}))
 		} else {
 			return Promise.resolve(null)
 		}
 	}
 
-	_updateWhitelabelRegistrationFields() {
-		this._props.getAsync().then(props => {
-			this._customerInfo.getAsync().then(customerInfo => {
-				this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null).setValue(props.whitelabelCode)
-																								   .setDisabled()
-				let editButton = new Button("edit_action", () => {
-					Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value())
-						  .then(newCode => {
-							  props.whitelabelCode = newCode
-							  update(props)
-						  })
-				}, () => Icons.Edit)
-				this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
-
-				let items = [{name: lang.get("deactivated_label"), value: null}]
-				items = items.concat(getCustomMailDomains(customerInfo).map(d => {
-					return {name: d.domain, value: d.domain}
-				}))
-				let initialValue = (props.whitelabelRegistrationDomains.length
-					=== 0) ? null : props.whitelabelRegistrationDomains[0].value
-				this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, stream(initialValue), 250).setSelectionChangedHandler(v => {
-					props.whitelabelRegistrationDomains.length = 0
-					if (v) {
-						let domain = createStringWrapper()
-						domain.value = v
-						props.whitelabelRegistrationDomains.push(domain)
-					}
-					update(props)
-				})
-				m.redraw()
-			})
-		})
-	}
-
 	_updateFields() {
 		this._customerInfo.getAsync().then(customerInfo => {
 			const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
-			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(whitelabelConfig => {
+			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(data => {
+				const whitelabelConfig = data && data.whitelabelConfig
+				const certificateInfo = data && data.certificateInfo
 				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
 						this._lastBooking = bookings.length === 1 ? bookings[0] : null
@@ -249,7 +217,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 						let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
 						// customJsonTheme is defined when brandingDomainInfo is defined
-						this._brandingDomainField = new TextField("whitelabelDomain_label", this._whitelabelInfo(whitelabelConfig))
+						this._brandingDomainField = new TextField("whitelabelDomain_label", this._whitelabelInfo(certificateInfo))
 							.setValue((whitelabelDomainInfo) ? whitelabelDomainInfo.domain : lang.get("deactivated_label"))
 							.setDisabled()
 						let deactivateAction = null
@@ -258,6 +226,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 									if (ok) {
 										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(whitelabelDomainInfo).domain))
+											.catch(PreconditionFailedError, e => {
+												if (e.data === "lock.locked") {
+													Dialog.error("operationStillActive_msg")
+												} else {
+													throw e;
+												}
+											})
 									}
 
 								})
@@ -270,7 +245,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								const whitelabelEnabledPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(true) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
 								whitelabelEnabledPromise.then(enabled => {
 									if (enabled) {
-										SetCustomDomainCertificateDialog.show(customerInfo, whitelabelConfig)
+										SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
 									}
 								})
 							}
@@ -303,7 +278,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							let chooseLogoButton = new Button("edit_action", () => {
 								fileController.showFileChooser(false).then(files => {
 									let extension = files[0].name.toLowerCase()
-															.substring(files[0].name.lastIndexOf(".") + 1)
+									                        .substring(files[0].name.lastIndexOf(".") + 1)
 									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
 										Dialog.error("customLogoInfo_msg")
 									} else {
@@ -332,7 +307,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 						let customColorsDefined = this._areCustomColorsDefined(customJsonTheme)
 						this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label"))
-																						   .setDisabled()
+						                                                                   .setDisabled()
 						if (customJsonTheme) {
 							let deactivateColorTheme
 							if (customColorsDefined) {
@@ -365,7 +340,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._whitelabelPrivacyUrl = new TextField("privacyPolicyUrl_label", null).setValue((whitelabelConfig
 							&& whitelabelConfig.privacyStatementUrl) ? whitelabelConfig.privacyStatementUrl : "").setDisabled()
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
-																							   .setDisabled()
+						                                                                       .setDisabled()
 						if (whitelabelConfig) {
 							let editCustomMetaTagsButton = new Button("edit_action", () => {
 								let metaTags = new TextField("customMetaTags_label")
@@ -419,6 +394,37 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							}, () => Icons.Edit)
 							this._whitelabelImprintUrl._injectionsRight = () => m(editImprintUrlButton)
 							this._whitelabelPrivacyUrl._injectionsRight = () => m(editPrivacyUrlButton)
+
+							this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null)
+								.setValue(whitelabelConfig.whitelabelCode)
+								.setDisabled()
+
+							let editButton = new Button("edit_action", () => {
+								Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value())
+								      .then(newCode => {
+									      whitelabelConfig.whitelabelCode = newCode
+									      update(whitelabelConfig)
+								      })
+							}, () => Icons.Edit)
+							this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
+
+							let items = [{name: lang.get("deactivated_label"), value: null}]
+								.concat(getCustomMailDomains(customerInfo)
+									.map(d => {
+										return {name: d.domain, value: d.domain}
+									}))
+							let initialValue = (whitelabelConfig.whitelabelRegistrationDomains.length === 0)
+								? null
+								: whitelabelConfig.whitelabelRegistrationDomains[0].value
+							this._whitelabelRegistrationDomains = new DropDownSelector("whitelabelRegistrationEmailDomain_label", null, items, stream(initialValue), 250).setSelectionChangedHandler(v => {
+								whitelabelConfig.whitelabelRegistrationDomains.length = 0
+								if (v) {
+									let domain = createStringWrapper()
+									domain.value = v
+									whitelabelConfig.whitelabelRegistrationDomains.push(domain)
+								}
+								update(whitelabelConfig)
+							})
 						}
 
 						let customGermanLanguageFileDefined = whitelabelConfig
@@ -447,14 +453,14 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_whitelabelInfo(whitelabelConfig: ?WhitelabelConfig): (() => Children) {
+	_whitelabelInfo(certificateInfo: ?CertificateInfo): (() => Children) {
 		let components: Array<string>
-		if (whitelabelConfig) {
-			switch (whitelabelConfig.certificateInfo.state) {
+		if (certificateInfo) {
+			switch (certificateInfo.state) {
 				case CertificateState.VALID:
 					components = [
-						lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(whitelabelConfig.certificateInfo.expiryDate))}),
-						this._certificateTypeString(whitelabelConfig)
+						lang.get("certificateExpiryDate_label", {"{date}": formatDateTime(neverNull(certificateInfo.expiryDate))}),
+						this._certificateTypeString(certificateInfo)
 					]
 					break
 				case CertificateState.VALIDATING:
@@ -472,8 +478,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		return () => m(".flex", components.map(c => m(".pr-s", c)))
 	}
 
-	_certificateTypeString(whitelabelConfig: WhitelabelConfig): string {
-		switch (whitelabelConfig.certificateInfo.type) {
+	_certificateTypeString(certificateInfo: CertificateInfo): string {
+		switch (certificateInfo.type) {
 			case CertificateType.LETS_ENCRYPT:
 				return lang.get("certificateTypeAutomatic_label")
 			case CertificateType.MANUAL:
@@ -601,15 +607,11 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customer.reset()
 				this._customer.getAsync().then(() => m.redraw())
-				this._updateWhitelabelRegistrationFields()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerInfo.reset()
 				this._updateFields()
 			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._updateFields()
-			} else if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._props.reset()
-				this._updateWhitelabelRegistrationFields()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerProperties.reset()
 				this._updateFields()
