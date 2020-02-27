@@ -14,20 +14,21 @@ public abstract class LifecycleJobService extends JobService implements Lifecycl
 
 	@Override
 	public void onCreate() {
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
 		super.onCreate();
-		lifecycleRegistry.markState(Lifecycle.State.CREATED);
 	}
 
-
+	@SuppressWarnings("deprecation")
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		lifecycleRegistry.markState(Lifecycle.State.STARTED);
-		return super.onStartCommand(intent, flags, startId);
+	public void onStart(Intent intent, int startId) {
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
+		super.onStart(intent, startId);
 	}
 
 	@Override
 	public void onDestroy() {
-		lifecycleRegistry.markState(Lifecycle.State.DESTROYED);
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
 		super.onDestroy();
 	}
 
