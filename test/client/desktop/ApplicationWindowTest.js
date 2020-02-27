@@ -186,6 +186,7 @@ o.spec("ApplicationWindow Test", () => {
 		newWindow: () => {
 		},
 		hide: () => {},
+		minimize: () => {},
 		getIcon: () => 'this is a wm icon',
 		recreateWindow: () => {
 		}
@@ -355,7 +356,7 @@ o.spec("ApplicationWindow Test", () => {
 		])
 	})
 
-	o("shortcuts are used, linux", async function () {
+	o("shortcuts are used, linux & win", async function () {
 		n.setPlatform('linux')
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -393,7 +394,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.loadURL.args[0]).equals('desktophtml')
 
 		electronLocalshortcutMock.callbacks["Control+H"]()
-		o(wmMock.hide.callCount).equals(1)
+		o(wmMock.minimize.callCount).equals(1)
 
 		electronLocalshortcutMock.callbacks["Control+N"]()
 		o(wmMock.newWindow.callCount).equals(1)

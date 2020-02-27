@@ -1,7 +1,7 @@
 // @flow
 import type {NativeImage} from 'electron'
 import {Notification} from 'electron'
-import {DesktopTray} from "./DesktopTray"
+import {DesktopTray} from "./tray/DesktopTray"
 import type {ApplicationWindow} from "./ApplicationWindow"
 import {neverNull} from "../api/common/utils/Utils"
 import type {NotificationResultEnum} from "./DesktopConstants"
@@ -107,7 +107,6 @@ export class DesktopNotifier {
 		body?: string,
 		icon?: NativeImage
 	|}, onClick: (res: NotificationResultEnum) => void): () => void {
-
 		const {title, body, icon} =
 			Object.assign({}, {body: "", icon: this._tray.getIcon()}, props)
 

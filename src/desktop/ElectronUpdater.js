@@ -8,7 +8,7 @@ import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfigHandler} from './DesktopConfigHandler'
 import {neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
-import {DesktopTray} from "./DesktopTray"
+import {DesktopTray} from "./tray/DesktopTray"
 
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;

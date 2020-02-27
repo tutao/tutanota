@@ -19,7 +19,6 @@ export type UserInfo = {|
 
 export class ApplicationWindow {
 	_ipc: IPC;
-	_wm: WindowManager;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
 	_preloadjs: string;
@@ -34,7 +33,6 @@ export class ApplicationWindow {
 	id: number;
 
 	constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
-		this._wm = wm
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._preloadjs = preloadjs
@@ -54,7 +52,7 @@ export class ApplicationWindow {
 				{key: Keys.F11, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},
 				{key: Keys.RIGHT, alt: true, exec: () => this._browserWindow.webContents.goForward(), help: "pageForward_label"},
 				{key: Keys.LEFT, alt: true, exec: () => this._tryGoBack(), help: "pageBackward_label"},
-				{key: Keys.H, ctrl: true, exec: () => wm.hide(), help: "hideWindows_action"},
+				{key: Keys.H, ctrl: true, exec: () => wm.minimize(), help: "hideWindows_action"},
 			])
 
 		console.log("startFile: ", this._startFile)
@@ -190,10 +188,10 @@ export class ApplicationWindow {
 		})
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
-		this._reRegisterShorctus(wm)
+		this._reRegisterShorctus()
 	}
 
-	_reRegisterShorctus(wm: WindowManager) {
+	_reRegisterShorctus() {
 		localShortcut.unregisterAll(this._browserWindow)
 		this._shortcuts.forEach(s => {
 			// build the accelerator string localShortcut understands

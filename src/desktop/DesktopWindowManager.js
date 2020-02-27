@@ -6,7 +6,7 @@ import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import {DesktopTray} from "./DesktopTray"
+import {DesktopTray} from "./tray/DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
@@ -51,11 +51,6 @@ export class WindowManager {
 		)
 		windows.unshift(w)
 		w.on('close', ev => {
-			// we don't want to actually close windows where someone is logged in, just hide them
-			if (this._conf.getDesktopConfig('runAsTrayApp') && w.getUserInfo() != null && !forceQuit) {
-				ev.preventDefault()
-				w.hide()
-			}
 			this.saveBounds(w)
 		}).on('closed', ev => {
 			windows.splice(windows.indexOf(w), 1)
@@ -92,6 +87,10 @@ export class WindowManager {
 		} else {
 			windows.forEach(w => w.hide())
 		}
+	}
+
+	minimize() {
+		windows.forEach(w => w.minimize())
 	}
 
 	getIcon(): NativeImage {

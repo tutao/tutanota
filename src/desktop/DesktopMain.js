@@ -5,10 +5,8 @@ import {DesktopConfigHandler} from './DesktopConfigHandler'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'
-import PreloadImports from './PreloadImports.js'
 import {WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
-import {DesktopTray} from './DesktopTray.js'
 import {ElectronUpdater} from "./ElectronUpdater"
 import {DesktopSseClient} from "./sse/DesktopSseClient"
 import {Socketeer} from "./Socketeer"
@@ -20,6 +18,8 @@ import en from "../translations/en"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
+import {DesktopTray} from "./tray/DesktopTray"
+import PreloadImports from "./PreloadImports"
 
 mp()
 
