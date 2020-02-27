@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createUserDataDelete(values?: $Shape<$Exact<UserDataDelete>>): UserDataDelete {

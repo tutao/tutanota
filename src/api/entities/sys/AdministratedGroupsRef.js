@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createAdministratedGroupsRef(values?: $Shape<$Exact<AdministratedGroupsRef>>): AdministratedGroupsRef {

@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createPriceServiceReturn(values?: $Shape<$Exact<PriceServiceReturn>>): PriceServiceReturn {

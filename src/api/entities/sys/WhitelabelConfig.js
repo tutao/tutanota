@@ -76,6 +76,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
+		},
+		"whitelabelCode": {
+			"name": "whitelabelCode",
+			"id": 1727,
+			"since": 56,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -93,13 +102,22 @@ export const _TypeModel: TypeModel = {
 			"id": 1506,
 			"since": 44,
 			"type": "AGGREGATION",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"refType": "CertificateInfo",
+			"final": false
+		},
+		"whitelabelRegistrationDomains": {
+			"name": "whitelabelRegistrationDomains",
+			"id": 1728,
+			"since": 56,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "StringWrapper",
 			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createWhitelabelConfig(values?: $Shape<$Exact<WhitelabelConfig>>): WhitelabelConfig {

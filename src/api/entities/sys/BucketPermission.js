@@ -83,7 +83,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createBucketPermission(values?: $Shape<$Exact<BucketPermission>>): BucketPermission {

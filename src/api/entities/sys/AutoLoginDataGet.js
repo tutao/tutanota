@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createAutoLoginDataGet(values?: $Shape<$Exact<AutoLoginDataGet>>): AutoLoginDataGet {

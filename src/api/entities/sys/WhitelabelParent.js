@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createWhitelabelParent(values?: $Shape<$Exact<WhitelabelParent>>): WhitelabelParent {

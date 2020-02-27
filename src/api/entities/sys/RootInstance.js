@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createRootInstance(values?: $Shape<$Exact<RootInstance>>): RootInstance {

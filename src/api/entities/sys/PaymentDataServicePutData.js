@@ -116,7 +116,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createPaymentDataServicePutData(values?: $Shape<$Exact<PaymentDataServicePutData>>): PaymentDataServicePutData {

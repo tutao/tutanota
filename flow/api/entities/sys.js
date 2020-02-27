@@ -864,12 +864,10 @@ type MailAddressAliasServiceReturn = {
 type DomainInfo = {
 	_type: TypeRef<DomainInfo>;
 	_id: Id;
-	certificateExpiryDate: ?Date;
 	domain: string;
 	validatedMxRecord: boolean;
 
 	catchAllMailGroup: ?Id;
-	certificate: ?Id;
 	whitelabelConfig: ?Id;
 }
 
@@ -1216,9 +1214,11 @@ type WhitelabelConfig = {
 	jsonTheme: string;
 	metaTags: string;
 	privacyStatementUrl: ?string;
+	whitelabelCode: string;
 
 	bootstrapCustomizations: BootstrapFeature[];
-	certificateInfo: CertificateInfo;
+	certificateInfo: ?CertificateInfo;
+	whitelabelRegistrationDomains: StringWrapper[];
 }
 
 type BrandingDomainData = {
@@ -1813,4 +1813,11 @@ type MissedNotification = {
 
 	alarmNotifications: AlarmNotification[];
 	notificationInfos: NotificationInfo[];
+}
+
+type BrandingDomainGetReturn = {
+	_type: TypeRef<BrandingDomainGetReturn>;
+	_format: NumberString;
+
+	certificateInfo: ?CertificateInfo;
 }

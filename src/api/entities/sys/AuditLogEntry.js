@@ -94,7 +94,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createAuditLogEntry(values?: $Shape<$Exact<AuditLogEntry>>): AuditLogEntry {

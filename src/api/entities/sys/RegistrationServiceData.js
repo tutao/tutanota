@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createRegistrationServiceData(values?: $Shape<$Exact<RegistrationServiceData>>): RegistrationServiceData {

@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createDomainsRef(values?: $Shape<$Exact<DomainsRef>>): DomainsRef {

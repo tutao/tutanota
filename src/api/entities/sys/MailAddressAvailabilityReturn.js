@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createMailAddressAvailabilityReturn(values?: $Shape<$Exact<MailAddressAvailabilityReturn>>): MailAddressAvailabilityReturn {

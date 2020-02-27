@@ -13,15 +13,6 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {"name": "_id", "id": 697, "since": 9, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
-		"certificateExpiryDate": {
-			"name": "certificateExpiryDate",
-			"id": 1134,
-			"since": 22,
-			"type": "Date",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"encrypted": false
-		},
 		"domain": {"name": "domain", "id": 698, "since": 9, "type": "String", "cardinality": "One", "final": true, "encrypted": false},
 		"validatedMxRecord": {
 			"name": "validatedMxRecord",
@@ -44,16 +35,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
-		"certificate": {
-			"name": "certificate",
-			"id": 1135,
-			"since": 22,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "SslCertificate",
-			"final": true,
-			"external": false
-		},
 		"whitelabelConfig": {
 			"name": "whitelabelConfig",
 			"id": 1136,
@@ -66,7 +47,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {

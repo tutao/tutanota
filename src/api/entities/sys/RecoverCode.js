@@ -62,7 +62,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createRecoverCode(values?: $Shape<$Exact<RecoverCode>>): RecoverCode {

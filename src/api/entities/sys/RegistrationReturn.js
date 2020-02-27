@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createRegistrationReturn(values?: $Shape<$Exact<RegistrationReturn>>): RegistrationReturn {

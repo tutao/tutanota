@@ -17,7 +17,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "55"
+	"version": "56"
 }
 
 export function createGeneratedIdWrapper(values?: $Shape<$Exact<GeneratedIdWrapper>>): GeneratedIdWrapper {
