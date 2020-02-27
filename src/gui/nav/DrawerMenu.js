@@ -5,11 +5,14 @@ import {ButtonColors, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../base/Header"
 import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
-import {isIOSApp} from "../../api/Env"
+import {isDesktop, isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
 import {isNewMailActionAvailable} from "../../mail/MailView"
+import {Icons} from "../base/icons/Icons"
+import {nativeApp} from "../../native/NativeWrapper"
+import {Request} from "../../api/common/WorkerProtocol"
 
 type Attrs = void
 
@@ -20,6 +23,15 @@ export class DrawerMenu implements MComponent<Attrs> {
 				'padding-left': getSafeAreaInsetLeft()
 			},
 		}, m(".flex.col.height-100p.items-center.pt.pb", [
+			isDesktop()
+				? m(ButtonN, {
+					icon: () => Icons.NewWindow,
+					label: "openNewWindow_action",
+					click: () => nativeApp.invokeNative(new Request('openNewWindow', [])),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav
+				})
+				: null,
 			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
@@ -63,7 +75,16 @@ export class DrawerMenu implements MComponent<Attrs> {
 				click: () => m.route.set(LogoutUrl),
 				type: ButtonType.ActionLarge,
 				colors: ButtonColors.DrawerNav,
-			})
+			}),
+			isDesktop()
+				? m(ButtonN, {
+					icon: () => Icons.Power,
+					label: "quit_action",
+					click: () => nativeApp.invokeNative(new Request('closeApp', [])),
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav
+				})
+				: null,
 		]))
 	}
 }

@@ -2,7 +2,7 @@
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
 import type {UserInfo} from "../../../src/desktop/ApplicationWindow"
-import {downcast, noOp} from "../../../src/api/common/utils/Utils"
+import {noOp} from "../../../src/api/common/utils/Utils"
 
 o.spec("Desktop Window Manager Test", () => {
 	n.startGroup({
@@ -159,7 +159,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -181,7 +181,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -214,7 +214,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
@@ -266,7 +266,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -301,7 +301,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -343,7 +343,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -377,7 +377,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
@@ -457,46 +457,6 @@ o.spec("Desktop Window Manager Test", () => {
 		}, 10)
 	})
 
-	o("retain logged in windows", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {
-			getIcon: () => "this is an icon", update: () => {
-			}
-		}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
-
-		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
-		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
-		wm.setIPC(ipcMock)
-
-		const w = wm.newWindow(true)
-		w.callbacks['ready-to-show']()
-		const e = {preventDefault: o.spy()}
-
-		// first, before before-quit
-		w.callbacks['close'](e)
-		o(w.hide.callCount).equals(1)
-		o(e.preventDefault.callCount).equals(1)
-		o(confMock.setDesktopConfig.callCount).equals(1)
-
-		//now, after
-		downcast(electronMock.app.callbacks)['before-quit']()
-		w.callbacks['close'](e)
-		o(w.hide.callCount).equals(1)
-		o(e.preventDefault.callCount).equals(1)
-		o(confMock.setDesktopConfig.callCount).equals(2)
-	})
-
 	o("hide() hides all windows", () => {
 		// node modules
 		const electronMock = n.mock("electron", electron).set()
@@ -504,7 +464,7 @@ o.spec("Desktop Window Manager Test", () => {
 		// our modules
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		n.mock("__dl", dl).set()
-		n.mock("./DesktopTray", desktopTray).set()
+		n.mock("./tray/DesktopTray", desktopTray).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()

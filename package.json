@@ -23,7 +23,7 @@
 		"squire-rte": "1.9.0",
 		"systemjs": "0.20.19",
 		"luxon": "^1.22.0",
-		"keytar": "5.2.0"
+		"keytar": "5.4.0"
 	},
 	"devDependencies": {
 		"babel-core": "6.26.3",
@@ -38,13 +38,13 @@
 		"chokidar-socket-emitter": "0.6.0",
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
-		"electron": "8.0.0",
-		"electron-builder": "22.3.3",
+		"electron": "8.0.2",
+		"electron-builder": "22.3.5",
 		"electron-localshortcut": "3.2.1",
 		"electron-notarize": "0.2.1",
 		"electron-packager": "14.2.1",
 		"electron-rebuild": "1.10.0",
-		"electron-updater": "4.2.1",
+		"electron-updater": "4.2.4",
 		"express": "4.17.1",
 		"flow-bin": "0.77.0",
 		"fs-extra": "8.1.0",

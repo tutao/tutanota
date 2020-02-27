@@ -29,8 +29,8 @@ o.spec("DesktopTrayTest", () => {
 		app: {
 			callbacks: {},
 			on: function (ev: string, cb: ()=>void) {
-				this.callbacks[ev] = cb
-				return n.spyify(electron.app)
+				this.callbacks[ev] = o.spy(cb)
+				return this
 			},
 			dock: {
 				show: () => {
@@ -121,16 +121,17 @@ o.spec("DesktopTrayTest", () => {
 		const electronMock = n.mock("electron", electron).set()
 
 		//our modules
-		n.mock('../misc/LanguageViewModel', lang).set()
+		n.mock('../../misc/LanguageViewModel', lang).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf).set()
 		const notifierMock = n.mock('__notifier', notifier).set()
 		const wmMock = n.mock('__wm', wm).set()
 
-		const {DesktopTray} = n.subject('../../src/desktop/DesktopTray.js')
+		const {DesktopTray} = n.subject('../../src/desktop/tray/DesktopTray.js')
 		const tray = new DesktopTray(confMock, notifierMock)
 		tray.setWindowManager(wmMock)
+		electronMock.app.callbacks["ready"]()
 
 		tray.update()
 		o(confMock.getDesktopConfig.callCount).equals(1)
@@ -143,7 +144,7 @@ o.spec("DesktopTrayTest", () => {
 		const electronMock = n.mock("electron", electron).set()
 
 		//our modules
-		n.mock('../misc/LanguageViewModel', lang).set()
+		n.mock('../../misc/LanguageViewModel', lang).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf)
@@ -161,9 +162,10 @@ o.spec("DesktopTrayTest", () => {
 		const notifierMock = n.mock('__notifier', notifier).set()
 		const wmMock = n.mock('__wm', wm).set()
 
-		const {DesktopTray} = n.subject('../../src/desktop/DesktopTray.js')
+		const {DesktopTray} = n.subject('../../src/desktop/tray/DesktopTray.js')
 		const tray = new DesktopTray(confMock, notifierMock)
 		tray.setWindowManager(wmMock)
+		electronMock.app.callbacks["ready"]()
 
 		tray.update()
 		setTimeout(() => {
@@ -185,7 +187,7 @@ o.spec("DesktopTrayTest", () => {
 		const electronMock = n.mock("electron", electron).set()
 
 		//our modules
-		n.mock('../misc/LanguageViewModel', lang).set()
+		n.mock('../../misc/LanguageViewModel', lang).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf)
@@ -203,9 +205,11 @@ o.spec("DesktopTrayTest", () => {
 		const notifierMock = n.mock('__notifier', notifier).set()
 		const wmMock = n.mock('__wm', wm).set()
 
-		const {DesktopTray} = n.subject('../../src/desktop/DesktopTray.js')
+		const {DesktopTray} = n.subject('../../src/desktop/tray/DesktopTray.js')
 		const tray = new DesktopTray(confMock, notifierMock)
 		tray.setWindowManager(wmMock)
+		console.log(electronMock.app.callbacks)
+		electronMock.app.callbacks["ready"]()
 
 		tray.update()
 		setTimeout(() => {
@@ -221,7 +225,7 @@ o.spec("DesktopTrayTest", () => {
 		const electronMock = n.mock("electron", electron).set()
 
 		//our modules
-		n.mock('../misc/LanguageViewModel', lang).set()
+		n.mock('../../misc/LanguageViewModel', lang).set()
 
 		// instances
 		const confMock = n.mock('__conf', conf)
@@ -239,9 +243,10 @@ o.spec("DesktopTrayTest", () => {
 		const notifierMock = n.mock('__notifier', notifier).set()
 		const wmMock = n.mock('__wm', wm).set()
 
-		const {DesktopTray} = n.subject('../../src/desktop/DesktopTray.js')
+		const {DesktopTray} = n.subject('../../src/desktop/tray/DesktopTray.js')
 		const tray = new DesktopTray(confMock, notifierMock)
 		tray.setWindowManager(wmMock)
+		electronMock.app.callbacks["ready"]()
 
 		tray.update()
 		setTimeout(() => {

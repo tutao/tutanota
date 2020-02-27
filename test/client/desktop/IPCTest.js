@@ -38,6 +38,9 @@ o.spec("IPC tests", () => {
 				return this
 			}
 		},
+		app: {
+			quit: () => {},
+		},
 		dialog: {
 			showOpenDialog: (e, opts) => Promise.resolve({filePaths: ["a", "list", "of", "paths"]})
 		},
@@ -759,6 +762,21 @@ o.spec("IPC tests", () => {
 				type: 'response',
 				value: undefined
 			})
+			done()
+		}, 10)
+	})
+
+	o("closeApp", done => {
+		const {electronMock} = setUpWithWindowAndInit()
+
+		electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
+			type: "closeApp",
+			id: "id2",
+			args: []
+		}))
+
+		setTimeout(() => {
+			o(electronMock.app.quit.callCount).equals(1)
 			done()
 		}, 10)
 	})

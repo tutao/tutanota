@@ -146,6 +146,7 @@ type MainRequestType = 'execNative'
 	| 'updateWebSocketState'
 	| 'counterUpdate'
 	| 'infoMessage'
+
 type NativeRequestType = 'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -193,6 +194,7 @@ type NativeRequestType = 'init'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
 	| 'setSearchOverlayState'
+	| 'closeApp'
 	| 'unload' // desktop
 
 

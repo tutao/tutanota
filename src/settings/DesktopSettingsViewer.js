@@ -26,8 +26,6 @@ const DownloadLocationStrategy = Object.freeze({
 })
 
 export class DesktopSettingsViewer implements UpdatableSettingsViewer {
-	view: Function;
-
 	_isDefaultMailtoHandler: Stream<?boolean>;
 	_defaultDownloadPath: Stream<string>;
 	_runAsTrayApp: Stream<?boolean>;
@@ -64,7 +62,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const setRunAsTrayAppAttrs: DropDownSelectorAttrs<boolean> = {
-			label: "runAsTrayApp_action",
+			label: env.platformId === 'linux' ? "showTrayIcon_action" : "runAsTrayApp_action",
+			helpLabel: env.platformId === 'linux' ? () => lang.get("mayNotWorkForAllDe_msg") : () => "",
 			items: [
 				{name: lang.get("yes_label"), value: true},
 				{name: lang.get("no_label"), value: false}

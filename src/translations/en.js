@@ -1079,6 +1079,8 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"showTrayIcon_action": "Show Tray Icon",
+		"mayNotWorkForAllDe_msg": "This may not work for all Linux desktop environments."
 	}
 }

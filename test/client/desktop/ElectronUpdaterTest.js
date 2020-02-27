@@ -27,7 +27,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		app: {
 			getPath: (path: string) => `/mock-${path}/`,
 			getVersion: (): string => "3.45.0",
-			emit: ()=>{}
+			emit: () => {}
 		}
 	}
 
@@ -40,43 +40,48 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	}
 
 	const autoUpdater = {
-		callbacks: {
-			'update-available': (any) => {
-				throw new Error('checkForUpdates called before setting listener')
+		autoUpdater: {
+			callbacks: {
+				'update-available': (any) => {
+					throw new Error('checkForUpdates called before setting listener')
+				},
+				'update-not-available': (any) => {
+					throw new Error('checkForUpdates called before setting listener')
+				},
+				'update-downloaded': (any) => {
+					throw new Error('downloadUpdates called before setting listener')
+				},
+				'error': (any) => {
+					throw new Error('error called before setting  error listener')
+				},
+				'checking-for-update': () => {
+					throw new Error('checking-for-updates called before setting listener')
+				}
 			},
-			'update-downloaded': (any) => {
-				throw new Error('downloadUpdates called before setting listener')
+			logger: undefined,
+			on: function (ev: string, cb: (any)=>void) {
+				this.callbacks[ev] = o.spy(cb)
+				return this
 			},
-			'error': (any) => {
-				throw new Error('error called before setting  error listener')
+			removeAllListeners: function (ev: string) {
+				this.callbacks[ev] = null
+				return this
 			},
-			'checking-for-update': () => {
-				throw new Error('checking-for-updates called before setting listener')
+			checkForUpdates: function () {
+				setTimeout(() => this.callbacks['update-available']({
+					sha512: 'sha512',
+					signature: 'signature',
+				}), 90)
+				return Promise.resolve()
+			},
+			downloadUpdate: function () {
+				setImmediate(() => this.callbacks['update-downloaded']({
+					version: '4.5.0',
+				}))
+				return Promise.resolve()
+			},
+			quitAndInstall: (isSilent: boolean, isForceRunAfter: boolean) => {
 			}
-		},
-		logger: undefined,
-		on: (ev: string, cb: (any)=>void) => {
-			autoUpdater.callbacks[ev] = cb
-			return n.spyify(autoUpdater)
-		},
-		removeAllListeners: (ev: string) => {
-			autoUpdater.callbacks[ev] = null
-			return n.spyify(autoUpdater)
-		},
-		checkForUpdates: () => {
-			setTimeout(() => autoUpdater.callbacks['update-available']({
-				sha512: 'sha512',
-				signature: 'signature',
-			}), 90)
-			return Promise.resolve()
-		},
-		downloadUpdate: () => {
-			setImmediate(() => autoUpdater.callbacks['update-downloaded']({
-				version: '4.5.0',
-			}))
-			return Promise.resolve()
-		},
-		quitAndInstall: (isSilent: boolean, isForceRunAfter: boolean) => {
 		}
 	}
 
@@ -133,11 +138,11 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	o("update is available", done => {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
 		const electronMock = n.mock('electron', electron).set()
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
@@ -193,7 +198,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater})
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
 		                         .with({
 			                         autoUpdater: {
 				                         //never emit update-available
@@ -203,7 +208,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		                         .set().autoUpdater
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
@@ -234,10 +239,10 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
@@ -309,35 +314,35 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater})
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
 		                         .with({
 			                         autoUpdater: {
-				                         checkForUpdates: () => {
-					                         setTimeout(() => autoUpdater.callbacks['update-available']({
+				                         checkForUpdates: function () {
+					                         setTimeout(() => this.callbacks['update-available']({
 						                         sha512: 'sha512',
 						                         signature: 'signature',
 					                         }), 90)
 					                         return Promise.resolve()
 				                         },
-				                         downloadUpdate: () => {
-					                         setTimeout(() => autoUpdater.callbacks['update-downloaded']({
+				                         downloadUpdate: function () {
+					                         setTimeout(() => this.callbacks['update-downloaded']({
 						                         version: '4.5.0',
 					                         }), 30)
 					                         return Promise.resolve()
 				                         },
-				                         on: (ev: string, cb: (e: {message: string})=>void) => {
-					                         autoUpdater.callbacks[ev] = cb
+				                         on: function (ev: string, cb: (e: {message: string})=>void) {
+					                         this.callbacks[ev] = cb
 					                         if (ev === "error") {
 						                         setTimeout(() => cb({message: "this is an autoUpdater error"}), 20)
 					                         }
-					                         return autoUpdaterMock
+					                         return this
 				                         }
 			                         }
 		                         })
 		                         .set().autoUpdater
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
@@ -380,13 +385,13 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		//mock node modules
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater})
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
 		                         .with({
 			                         autoUpdater: {
-				                         downloadUpdate: () => {
+				                         downloadUpdate: function () {
 					                         setImmediate(() => {
 						                         try {
-							                         autoUpdater.callbacks['error']({message: "this is an autoUpdater error"})
+							                         autoUpdaterMock.callbacks['error']({message: "this is an autoUpdater error"})
 						                         } catch (e) { // prevent escalation from killing the test suite
 							                         console.log("caught")
 							                         threw = true
@@ -399,7 +404,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		                         .set().autoUpdater
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances
@@ -416,7 +421,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			o(autoUpdaterMock.removeAllListeners.callCount).equals(4)
 			o(threw).equals(true)
 			done()
-		}, RETRY_INTERVAL * (MAX_NUM_ERRORS + 1))
+		}, RETRY_INTERVAL * (MAX_NUM_ERRORS * 2))
 	})
 
 	o("works if second key is right one", done => {
@@ -425,11 +430,11 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const forgeMock = n.mock('node-forge', nodeForge).with({
 			publicKeyFromPem: (pem: string) => n.spyify(pem === "no" ? rightKey : wrongKey)
 		}).set()
-		const autoUpdaterMock = n.mock('electron-updater', {autoUpdater}).set().autoUpdater
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
 		const electronMock = n.mock('electron', electron).set()
 
 		//mock our modules
-		n.mock('./DesktopTray', desktopTray).set()
+		n.mock('./tray/DesktopTray', desktopTray).set()
 		n.mock('../misc/LanguageViewModel', lang).set()
 
 		//mock instances

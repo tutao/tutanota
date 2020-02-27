@@ -4,12 +4,12 @@ import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
 import type {DesktopConfigHandler} from "../DesktopConfigHandler"
+import {DesktopConfigKey} from "../DesktopConfigHandler"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {elementIdPart} from "../../api/common/EntityFunctions"
+import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {uint8ArrayToBitArray} from "../../api/worker/crypto/CryptoUtils"
 import {base64ToUint8Array} from "../../api/common/utils/Encoding"
-import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import {DesktopConfigKey} from "../DesktopConfigHandler"
 
 const SERVICE_NAME = 'tutanota-vault'
 const ACCOUNT_NAME = 'tuta'
