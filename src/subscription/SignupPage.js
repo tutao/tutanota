@@ -184,7 +184,9 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 					             })
 				}
 			})
-		}))
+		})).catch(InvalidDataError, e => {
+			Dialog.error("invalidRegistrationCode_msg")
+		})
 	}
 
 	/**
@@ -239,7 +241,8 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 							right: [{label: "ok_action", click: okAction, type: ButtonType.Primary}],
 							middle: () => lang.get("captchaDisplay_label")
 						}
-						let captchaInput = new TextField(() => lang.get("captchaInput_label") + ' (hh:mm)', () => lang.get("captchaInfo_msg"))
+						let captchaInput = new TextField(() => lang.get("captchaInput_label")
+							+ ' (hh:mm)', () => lang.get("captchaInfo_msg"))
 						dialog = new Dialog(DialogType.EditSmall, {
 							view: (): Children => [
 								m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
