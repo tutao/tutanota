@@ -196,6 +196,10 @@ export class IPC {
 				return Promise.resolve()
 			case 'getLog':
 				return Promise.resolve(global.logger.getEntries())
+			case 'unload':
+				// On reloading the page reset window state to non-initialized because render process starts from scratch.
+				this.addWindow(windowId)
+				return Promise.resolve()
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}
@@ -236,7 +240,9 @@ export class IPC {
 
 	addWindow(id: number) {
 		this._initialized[id] = defer()
-		ipcMain.on(`${id}`, (ev: Event, msg: string) => {
+		// When the page is reloaded and this funciton is called again the listener below will still be invoked unless we remove it.
+		ipcMain.removeAllListeners(String(id))
+		ipcMain.on(String(id), (ev: Event, msg: string) => {
 			const request = JSON.parse(msg)
 			if (request.type === "response") {
 				this._queue[request.id](null, request.value);

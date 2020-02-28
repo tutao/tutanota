@@ -19,23 +19,44 @@ export type UserInfo = {|
 
 export class ApplicationWindow {
 	_ipc: IPC;
+	_wm: WindowManager;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
-	_userInfo: ?UserInfo;
-	_setBoundsTimeout: TimeoutID;
 	_preloadjs: string;
 	_desktophtml: string;
+
+	_userInfo: ?UserInfo;
+	_setBoundsTimeout: TimeoutID;
 	_findingInPage = false;
 	_skipNextSearchBarBlur = false;
 	_lastSearchRequest = null;
+	_shortcuts: Array<Shortcut>;
 	id: number;
 
 	constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
+		this._wm = wm
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._preloadjs = preloadjs
 		this._desktophtml = desktophtml
 		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
+
+		const isMac = process.platform === 'darwin';
+		this._shortcuts = [
+			{key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
+			{key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
+			{key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
+			{key: Keys.F5, exec: () => this._browserWindow.loadURL(this._startFile), help: "reloadPage_action"},
+			{key: Keys.N, meta: isMac, ctrl: !isMac, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
+		].concat(isMac
+			? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]
+			: [
+				{key: Keys.F11, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},
+				{key: Keys.RIGHT, alt: true, exec: () => this._browserWindow.webContents.goForward(), help: "pageForward_label"},
+				{key: Keys.LEFT, alt: true, exec: () => this._tryGoBack(), help: "pageBackward_label"},
+				{key: Keys.H, ctrl: true, exec: () => wm.hide(), help: "hideWindows_action"},
+			])
+
 		console.log("startFile: ", this._startFile)
 		this._createBrowserWindow(wm)
 		this._browserWindow.loadURL(
@@ -158,33 +179,23 @@ export class ApplicationWindow {
 			    }
 		    })
 		    .on('did-finish-load', () => {
-			    localShortcut.unregisterAll(this._browserWindow)
-			    const isMac = process.platform === 'darwin';
-			    this._addShortcuts([
-					    {key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
-					    {key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
-					    {key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
-					    {key: Keys.F5, exec: () => this._browserWindow.loadURL(this._startFile), help: "reloadPage_action"},
-					    {key: Keys.N, meta: isMac, ctrl: !isMac, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
-				    ].concat(isMac
-				    ? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]
-				    : [
-					    {key: Keys.F11, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},
-					    {key: Keys.RIGHT, alt: true, exec: () => this._browserWindow.webContents.goForward(), help: "pageForward_label"},
-					    {key: Keys.LEFT, alt: true, exec: () => this._tryGoBack(), help: "pageBackward_label"},
-					    {key: Keys.H, ctrl: true, exec: () => wm.hide(), help: "hideWindows_action"},
-				    ])
-			    )
+			    // This also covers the case when window was reloaded.
+			    // Wait for IPC to be initialized so that render process can process our messages.
+			    this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
 		    })
 		    .on('crashed', () => wm.recreateWindow(this))
 
 		this._browserWindow.webContents.on('dom-ready', () => {
 			this.sendMessageToWebContents('setup-context-menu', [])
 		})
+
+		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
+		this._reRegisterShorctus(wm)
 	}
 
-	_addShortcuts(shortcuts: Shortcut[]): void {
-		shortcuts.forEach(s => {
+	_reRegisterShorctus(wm: WindowManager) {
+		localShortcut.unregisterAll(this._browserWindow)
+		this._shortcuts.forEach(s => {
 			// build the accelerator string localShortcut understands
 			let shortcutString = ""
 			shortcutString += s.meta ? "Command+" : ""
@@ -193,12 +204,14 @@ export class ApplicationWindow {
 			shortcutString += s.shift ? "Shift+" : ""
 			shortcutString += capitalizeFirstLetter(Object.keys(Keys).filter(k => s.key === Keys[k])[0])
 			localShortcut.register(this._browserWindow, shortcutString, s.exec)
-			// delete exec since functions don't cross IPC anyway.
-			// it will be replaced by () => true in the renderer thread.
-			delete s.exec
 		})
+	}
 
-		this._ipc.sendRequest(this.id, 'addShortcuts', shortcuts).then()
+	_sendShortcutstoRender(): void {
+		// delete exec since functions don't cross IPC anyway.
+		// it will be replaced by () => true in the renderer thread.
+		const webShortcuts = this._shortcuts.map(s => Object.assign({}, s, {exec: null}))
+		this._ipc.sendRequest(this.id, 'addShortcuts', webShortcuts)
 	}
 
 	_tryGoBack(): void {

@@ -146,3 +146,7 @@ window.nativeApp = {
 	invoke: (msg: string) => ipcRenderer.send(`${remote.getCurrentWindow().id}`, msg),
 	getVersion: () => app.getVersion()
 }
+
+window.addEventListener("beforeunload", () =>
+	// There's no good way to detect reload using Electron APIs so we have to resort to DOM events
+	window.tutao && window.tutao.nativeApp && window.tutao.nativeApp.invokeNative({type: "unload", args: []}))

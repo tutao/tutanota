@@ -193,6 +193,7 @@ type NativeRequestType = 'init'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
 	| 'setSearchOverlayState'
+	| 'unload' // desktop
 
 
 type JsRequestType = 'createMailEditor'

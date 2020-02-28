@@ -1,6 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import n from "../nodemocker"
+import {defer} from "../../../src/api/common/utils/Utils"
 
 o.spec("ApplicationWindow Test", () => {
 	n.startGroup({
@@ -354,7 +355,7 @@ o.spec("ApplicationWindow Test", () => {
 		])
 	})
 
-	o("shortcuts are used, linux", () => {
+	o("shortcuts are used, linux", async function () {
 		n.setPlatform('linux')
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -363,6 +364,8 @@ o.spec("ApplicationWindow Test", () => {
 
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks['did-finish-load']()
+		// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
+		await wmMock.ipc.initialized()
 
 		// call all the shortcut callbacks
 		electronLocalshortcutMock.callbacks["Control+F"]()
@@ -408,7 +411,40 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.webContents.goForward.callCount).equals(1)
 	})
 
-	o("shortcuts are used, mac", () => {
+	o("shortcuts are set on window reload", async function () {
+		n.setPlatform('linux')
+		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
+
+		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
+		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+
+		o(wmMock.ipc.sendRequest.callCount).equals(0)
+		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		bwInstance.webContents.callbacks['did-finish-load']()
+		o(wmMock.ipc.sendRequest.callCount).equals(0)
+		// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
+		await wmMock.ipc.initialized()
+		o(wmMock.ipc.sendRequest.callCount).equals(1)
+		o(wmMock.ipc.sendRequest.calls[0].args[1]).equals("addShortcuts")
+
+		// Simulating reload from here
+		// Reset IPC
+		const initialized = defer()
+		wmMock.ipc.initialized = () => initialized.promise
+		bwInstance.webContents.callbacks['did-finish-load']()
+		// Still equals 1, ipc is not ready yet
+		o(wmMock.ipc.sendRequest.callCount).equals(1)
+
+		// Init IPC
+		initialized.resolve()
+		await initialized.promise
+
+		// Shortcuts should be added again because page has been reloaded
+		o(wmMock.ipc.sendRequest.callCount).equals(2)
+		o(wmMock.ipc.sendRequest.calls[1].args[1]).equals("addShortcuts")
+	})
+
+	o("shortcuts are used, mac", async function () {
 		n.setPlatform('darwin')
 		const {electronMock, electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -417,6 +453,7 @@ o.spec("ApplicationWindow Test", () => {
 
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks['did-finish-load']()
+		await wmMock.ipc.initialized()
 
 		// call all the shortcut callbacks
 		electronLocalshortcutMock.callbacks["Command+F"]()
