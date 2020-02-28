@@ -11,7 +11,7 @@ import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished, isApp} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
@@ -78,7 +78,7 @@ let origin = location.origin
 if (location.origin.indexOf("localhost") !== -1) {
 	origin += "/client/build/index"
 }
-if (navigator.registerProtocolHandler) {
+if (!isDesktop() && navigator.registerProtocolHandler) {
 	try {
 		navigator.registerProtocolHandler('mailto', origin + '/mailto#url=%s', 'Tutanota');
 	} catch (e) {
