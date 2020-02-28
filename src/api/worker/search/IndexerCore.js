@@ -309,8 +309,12 @@ export class IndexerCore {
 		const operation = this._currentWriteOperation
 		if (!visible && operation && operation.transaction) {
 			console.log("abort indexedDb transaction operation because background mode")
+			try {
+				neverNull(operation.transaction).abort()
+			} catch (e) {
+				console.log("Error when aborting on visibility change", e)
+			}
 			operation.isAbortedForBackgroundMode = true
-			neverNull(operation.transaction).abort()
 		}
 		if (visible && operation) {
 			console.log("restart indexedDb transaction operation after background mode")
