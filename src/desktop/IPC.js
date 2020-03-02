@@ -198,6 +198,7 @@ export class IPC {
 				return Promise.resolve(global.logger.getEntries())
 			case 'unload':
 				// On reloading the page reset window state to non-initialized because render process starts from scratch.
+				this.removeWindow(windowId)
 				this.addWindow(windowId)
 				return Promise.resolve()
 			default:
@@ -240,8 +241,6 @@ export class IPC {
 
 	addWindow(id: number) {
 		this._initialized[id] = defer()
-		// When the page is reloaded and this funciton is called again the listener below will still be invoked unless we remove it.
-		ipcMain.removeAllListeners(String(id))
 		ipcMain.on(String(id), (ev: Event, msg: string) => {
 			const request = JSON.parse(msg)
 			if (request.type === "response") {

@@ -196,7 +196,7 @@ o.spec("IPC tests", () => {
 
 			ipc.removeWindow(42)
 			// one call to clear when adding window, one when removing
-			o(electronMock.ipcMain.removeAllListeners.callCount).equals(2)
+			o(electronMock.ipcMain.removeAllListeners.callCount).equals(1)
 			o(electronMock.ipcMain.removeAllListeners.args[0]).equals(CALLBACK_ID)
 			let threw = false
 			ipc.initialized(42)
