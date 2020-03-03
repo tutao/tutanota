@@ -3,7 +3,8 @@ import path from 'path'
 import {promisify} from 'util'
 import {app, dialog} from 'electron'
 import fs from 'fs-extra'
-import {getChangedProps} from "../api/common/utils/Utils"
+import {getChangedProps} from "../../api/common/utils/Utils"
+import applyMigrations from "./migrations/DesktopConfigMigrator"
 
 export const DesktopConfigKey = {
 	any: 'any',
@@ -17,6 +18,7 @@ export const DesktopConfigKey = {
 	scheduledAlarms: 'scheduledAlarms',
 	lastProcessedNotificationId: 'lastProcessedNotificationId',
 	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
+	desktopConfigVersion: "desktopConfigVersion"
 }
 export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
 
@@ -64,11 +66,12 @@ export class DesktopConfigHandler {
 			return
 		}
 		try {
-			this._desktopConfig = this._buildConfig["defaultDesktopConfig"]
+			const defaultConf = this._buildConfig["defaultDesktopConfig"]
 			const userConf = fs.existsSync(this._desktopConfigPath)
 				? fs.readJSONSync(this._desktopConfigPath)
 				: {}
-			this._desktopConfig = Object.assign(this._desktopConfig, userConf)
+			this._desktopConfig = Object.assign({}, defaultConf, userConf)
+			this._desktopConfig = applyMigrations(this._desktopConfig, defaultConf)
 			fs.mkdirp(path.join(app.getPath('userData')))
 			fs.writeJSONSync(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
 		} catch (e) {

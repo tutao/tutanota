@@ -5,8 +5,8 @@ import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../
 import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
-import type {DesktopConfigHandler} from "../DesktopConfigHandler"
-import {DesktopConfigKey} from "../DesktopConfigHandler"
+import type {DesktopConfigHandler} from "../config/DesktopConfigHandler"
+import {DesktopConfigKey} from "../config/DesktopConfigHandler"
 import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"

@@ -1,7 +1,7 @@
 // @ flow
 import type {ElectronSession} from 'electron'
 import {app, dialog, shell} from "electron"
-import type {DesktopConfigHandler} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
 import path from "path"
 import DesktopUtils from "./DesktopUtils"
 import fs from "fs-extra"

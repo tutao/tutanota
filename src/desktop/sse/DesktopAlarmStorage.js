@@ -3,8 +3,8 @@ import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
-import type {DesktopConfigHandler} from "../DesktopConfigHandler"
-import {DesktopConfigKey} from "../DesktopConfigHandler"
+import type {DesktopConfigHandler} from "../config/DesktopConfigHandler"
+import {DesktopConfigKey} from "../config/DesktopConfigHandler"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {elementIdPart} from "../../api/common/EntityFunctions"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"

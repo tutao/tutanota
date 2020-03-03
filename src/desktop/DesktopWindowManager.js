@@ -5,7 +5,7 @@ import {app, screen} from "electron"
 import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
-import type {DesktopConfigHandler} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
 import {DesktopTray} from "./tray/DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
