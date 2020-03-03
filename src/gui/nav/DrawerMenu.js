@@ -23,6 +23,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				'padding-left': getSafeAreaInsetLeft()
 			},
 		}, m(".flex.col.height-100p.items-center.pt.pb", [
+			m(".flex-grow"),
 			isDesktop()
 				? m(ButtonN, {
 					icon: () => Icons.NewWindow,
@@ -32,7 +33,6 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			m(".flex-grow"),
 			!isIOSApp() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Premium,
