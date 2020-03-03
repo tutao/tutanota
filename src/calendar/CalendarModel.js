@@ -3,6 +3,7 @@ import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
+	getDiffInDays,
 	getEventEnd,
 	getEventStart,
 	getStartOfDayWithZone,
@@ -91,6 +92,7 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 		}
 	}
 	let calcStartTime = eventStartTime
+	const calcDuration = allDay ? getDiffInDays(eventEndTime, eventStartTime) : eventEndTime - eventStartTime
 	let calcEndTime = eventEndTime
 	let iteration = 1
 	while ((endOccurrences == null || iteration <= endOccurrences)
@@ -112,7 +114,9 @@ export function addDaysForRecurringEvent(events: Map<number, Array<CalendarEvent
 			}
 		}
 		calcStartTime = incrementByRepeatPeriod(eventStartTime, frequency, interval * iteration, repeatTimeZone)
-		calcEndTime = incrementByRepeatPeriod(eventEndTime, frequency, interval * iteration, repeatTimeZone)
+		calcEndTime = allDay
+			? incrementByRepeatPeriod(calcStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
+			: DateTime.fromJSDate(calcStartTime).plus(calcDuration).toJSDate()
 		iteration++
 	}
 }

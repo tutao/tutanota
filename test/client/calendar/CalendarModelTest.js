@@ -1,7 +1,7 @@
 //@flow
 import o from "ospec/ospec.js"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createRepeatRuleWithValues, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
+import {createRepeatRuleWithValues, getAllDayDateUTCFromZone, getMonth, getTimeZone} from "../../../src/calendar/CalendarUtils"
 import {getStartOfDay} from "../../../src/api/common/utils/DateUtils"
 import {clone, neverNull} from "../../../src/api/common/utils/Utils"
 import {mapToObject} from "../../api/TestUtils"
@@ -409,6 +409,71 @@ o.spec("CalendarModel", function () {
 			})
 			o(mapToObject(eventsForDays)).deepEquals(expectedForJuneAndJuly)
 		})
+
+
+		o("monthly with shorter month", function () {
+			// Potential problem with this case is that if the end date is calculated incorrectly, event might be shortened by a few
+			// days (see #1786).
+			const eventStart = getAllDayDateUTCFromZone(DateTime.fromISO("2020-03-29", {zone}).toJSDate(), zone)
+			const eventEnd = getAllDayDateUTCFromZone(DateTime.fromISO("2020-04-01", {zone}).toJSDate(), zone)
+			const event = createEvent(eventStart, eventEnd)
+			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
+			repeatRule.endValue = "2"
+			repeatRule.endType = EndType.Count
+			event.repeatRule = repeatRule
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 3).toJSDate(), zone), zone)
+
+			const expectedForMarch = {
+				[DateTime.fromISO("2020-03-29", {zone}).toMillis()]: [event],
+				[DateTime.fromISO("2020-03-30", {zone}).toMillis()]: [event],
+				[DateTime.fromISO("2020-03-31", {zone}).toMillis()]: [event],
+			}
+			o(mapToObject(eventsForDays)).deepEquals(expectedForMarch)
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 4).toJSDate(), zone), zone)
+
+			const occurrence = cloneEventWithNewTime(event,
+				getAllDayDateUTCFromZone(DateTime.fromISO("2020-04-29", {zone}).toJSDate(), zone),
+				getAllDayDateUTCFromZone(DateTime.fromISO("2020-05-02", {zone}).toJSDate(), zone),
+			)
+			const expectedForApril = Object.assign({}, expectedForMarch, {
+				[DateTime.fromISO("2020-04-29", {zone}).toMillis()]: [occurrence],
+				[DateTime.fromISO("2020-04-30", {zone}).toMillis()]: [occurrence],
+				[DateTime.fromISO("2020-05-01", {zone}).toMillis()]: [occurrence],
+			})
+			o(mapToObject(eventsForDays)).deepEquals(expectedForApril)
+		})
+
+		o("monthly with longer month", function () {
+			// Potential problem with this case is that if the end date is calculated incorrectly, event might be stretched by a few
+			// days (see #1786).
+			const eventStart = getAllDayDateUTCFromZone(DateTime.fromISO("2020-02-29", {zone}).toJSDate(), zone)
+			const eventEnd = getAllDayDateUTCFromZone(DateTime.fromISO("2020-03-01", {zone}).toJSDate(), zone)
+			const event = createEvent(eventStart, eventEnd)
+			const repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
+			repeatRule.endValue = "2"
+			repeatRule.endType = EndType.Count
+			event.repeatRule = repeatRule
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 2).toJSDate(), zone), zone)
+
+			const expectedForFebruary = {
+				[DateTime.fromISO("2020-02-29", {zone}).toMillis()]: [event],
+			}
+			o(mapToObject(eventsForDays)).deepEquals(expectedForFebruary)
+
+			addDaysForRecurringEvent(eventsForDays, event, getMonth(DateTime.local(2020, 3).toJSDate(), zone), zone)
+
+			const occurrence = cloneEventWithNewTime(event,
+				getAllDayDateUTCFromZone(DateTime.fromISO("2020-03-29", {zone}).toJSDate(), zone),
+				getAllDayDateUTCFromZone(DateTime.fromISO("2020-03-30", {zone}).toJSDate(), zone),
+			)
+			const expectedForMarch = Object.assign({}, expectedForFebruary, {
+				[DateTime.fromISO("2020-03-29", {zone}).toMillis()]: [occurrence],
+			})
+			o(mapToObject(eventsForDays)).deepEquals(expectedForMarch)
+		})
 	})
 
 	o.spec("addDaysForEvent for long events", function () {
@@ -471,14 +536,13 @@ o.spec("CalendarModel", function () {
 
 		})
 
-
 		o("longer than a month repeating", function () {
 			const zone = getTimeZone()
 			const event = createEvent(new Date(2019, 4, 2, 10), new Date(2019, 5, 2, 12))
 			event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 1)
 
 			const startingInMay = cloneEventWithNewTime(event, new Date(2019, 4, 2, 10), new Date(2019, 5, 2, 12))
-			const startingInJune = cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 6, 2, 12))
+			const startingInJune = cloneEventWithNewTime(event, new Date(2019, 5, 2, 10), new Date(2019, 6, 3, 12))
 			const startingInJuly = cloneEventWithNewTime(event, new Date(2019, 6, 2, 10), new Date(2019, 7, 2, 12))
 
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 5, 2), zone), zone) // invoke for June
@@ -492,8 +556,8 @@ o.spec("CalendarModel", function () {
 			addDaysForRecurringEvent(eventsForDays, event, getMonth(new Date(2019, 6, 2), zone), zone) // invoke for July
 			o(eventsForDays.size).equals(30 + 31) // Previous pls all of the July
 			o(eventsForDays.get(new Date(2019, 6, 1).getTime())).deepEquals([startingInJune])
-			o(eventsForDays.get(new Date(2019, 6, 2).getTime())).deepEquals([startingInJune, startingInJuly])
-			o(eventsForDays.get(new Date(2019, 6, 3).getTime())).deepEquals([startingInJuly])
+			o(eventsForDays.get(new Date(2019, 6, 3).getTime())).deepEquals([startingInJune, startingInJuly])
+			o(eventsForDays.get(new Date(2019, 6, 4).getTime())).deepEquals([startingInJuly])
 			o(eventsForDays.get(new Date(2019, 7, 1).getTime())).deepEquals(undefined)
 		})
 
