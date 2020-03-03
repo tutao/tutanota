@@ -534,6 +534,13 @@ export class MailView implements CurrentView {
 			&& args.mailId && !this.mailList.list.isEntitySelected(args.mailId)) {
 			// the mail list is visible already, just the selected mail is changed
 			this.mailList.list.scrollToIdAndSelect(args.mailId)
+		} else if (this.isInitialized() && args.listId && this.mailList && args.listId === this.mailList.listId && !args.mailId) {
+			// We have a list ID and it's a current list but we don't have a selected email, like when the last item in the list is
+			// deleted.
+			// If we are currently focused on the last column (viewer), we instead focus the second column (list).
+			if (this.viewSlider.focusedColumn === this.viewSlider.columns[2]) {
+				this.viewSlider.focus(this.viewSlider.columns[1])
+			}
 		} else if (!this.isInitialized()) {
 			mailModel.getMailboxDetails().then((mailboxDetails) => {
 				if (typeof args.listId === 'undefined') {
