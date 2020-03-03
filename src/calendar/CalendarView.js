@@ -70,6 +70,8 @@ import {loadGroupMembers} from "./CalendarSharingUtils"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {deviceConfig} from "../misc/DeviceConfig"
+import {SysService} from "../api/entities/sys/Services"
+import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -705,7 +707,12 @@ export class CalendarView implements CurrentView {
 								              shared: !isSameId(group.user, userId)
 							              })
 						              })
-						// TODO: remove notFoundMemberships from the user
+
+						// cleanup inconsistent memberships
+						Promise.each(notFoundMemberships, (notFoundMembership) => {
+							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
+							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
+						})
 						return calendarInfos
 					})
 			})
