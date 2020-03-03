@@ -3,7 +3,7 @@ import o from "ospec/ospec.js"
 import n from "../nodemocker"
 import {defer} from "../../../src/api/common/utils/Utils"
 
-o.spec("ApplicationWindow Test", () => {
+o.spec("ApplicationWindow Test", function () {
 	n.startGroup({
 		group: __filename,
 		allowables: [
@@ -221,7 +221,7 @@ o.spec("ApplicationWindow Test", () => {
 		}
 	}
 
-	o("construction", () => {
+	o("construction", function () {
 		// node modules
 		const {electronMock, wmMock} = standardMocks()
 
@@ -276,7 +276,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
 	})
 
-	o("redirect to start page after failing to load a page due to 404", () => {
+	o("redirect to start page after failing to load a page due to 404", function () {
 		const {wmMock, electronMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -293,7 +293,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.loadURL.callCount).equals(2)
 	})
 
-	o("shortcut creation, linux", () => {
+	o("shortcut creation, linux", function () {
 		n.setPlatform("linux")
 		const {electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -315,7 +315,7 @@ o.spec("ApplicationWindow Test", () => {
 		])
 	})
 
-	o("shortcut creation, windows", () => {
+	o("shortcut creation, windows", function () {
 		n.setPlatform('win32')
 		const {electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -337,7 +337,7 @@ o.spec("ApplicationWindow Test", () => {
 		])
 	})
 
-	o("shortcut creation, mac", () => {
+	o("shortcut creation, mac", function () {
 		n.setPlatform('darwin')
 		const {electronLocalshortcutMock, wmMock} = standardMocks()
 
@@ -491,7 +491,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.setFullScreen.args[0]).equals(true)
 	})
 
-	o("url rewriting", () => {
+	o("url rewriting", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -523,7 +523,7 @@ o.spec("ApplicationWindow Test", () => {
 
 	})
 
-	o("attaching webView is denied", () => {
+	o("attaching webView is denied", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -542,7 +542,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(threw).equals(true)
 	})
 
-	o("try to recreate on crashed", () => {
+	o("try to recreate on crashed", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -554,7 +554,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(wmMock.recreateWindow.args[0]).equals(w)
 	})
 
-	o("new-window is redirected to openExternal", () => {
+	o("new-window is redirected to openExternal", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -587,7 +587,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(e.preventDefault.callCount).equals(4)
 	})
 
-	o("sendMessageToWebContents checks if webContents is there", () => {
+	o("sendMessageToWebContents checks if webContents is there", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -636,7 +636,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwInstance.webContents.send.args[1]).equals(args)
 	})
 
-	o("context-menu is passed to webContents", () => {
+	o("context-menu is passed to webContents", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -651,7 +651,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(e.preventDefault.callCount).equals(0)
 	})
 
-	o("dom-ready causes context menu setup", done => {
+	o("dom-ready causes context menu setup", function (done) {
 		const {electronMock, wmMock, langMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -667,7 +667,7 @@ o.spec("ApplicationWindow Test", () => {
 		}, 10)
 	})
 
-	o("openMailbox sends mailbox info and shows window", done => {
+	o("openMailbox sends mailbox info and shows window", function (done) {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -692,7 +692,7 @@ o.spec("ApplicationWindow Test", () => {
 
 	})
 
-	o("setBounds and getBounds", done => {
+	o("setBounds and getBounds", function (done) {
 		n.setPlatform('linux')
 		const {electronMock, wmMock} = standardMocks()
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -724,7 +724,7 @@ o.spec("ApplicationWindow Test", () => {
 		}, 250)
 	})
 
-	o("findInPage, setSearchOverlayState & stopFindInPage", () => {
+	o("findInPage, setSearchOverlayState & stopFindInPage", function () {
 		const {electronMock, wmMock} = standardMocks()
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
@@ -766,7 +766,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(wcMock.stopFindInPage.args[0]).equals('keepSelection')
 	})
 
-	o("getPath returns correct substring", () => {
+	o("getPath returns correct substring", function () {
 		const {electronMock, wmMock} = standardMocks()
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
@@ -780,7 +780,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(w.getPath()).equals("desktophtml/meh/more")
 	})
 
-	o("show", () => {
+	o("show", function () {
 		const {electronMock, wmMock} = standardMocks()
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
@@ -818,7 +818,7 @@ o.spec("ApplicationWindow Test", () => {
 		o(bwMock.restore.callCount).equals(3)
 	})
 
-	o("on, once, getTitle, setZoomFactor, isFullScreen, isMinimized, minimize, hide, center, showInactive, isFocused", () => {
+	o("on, once, getTitle, setZoomFactor, isFullScreen, isMinimized, minimize, hide, center, showInactive, isFocused", function () {
 		const {electronMock, wmMock, langMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
