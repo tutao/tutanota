@@ -3,7 +3,7 @@ import n from "../nodemocker"
 import o from "ospec/ospec.js"
 import chalk from 'chalk'
 import {defer} from "../../../src/api/common/utils/Utils"
-import {DesktopConfigKey} from "../../../src/desktop/DesktopConfigHandler"
+import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfigHandler"
 
 o.spec("IPC tests", () => {
 	const CALLBACK_ID = "42"

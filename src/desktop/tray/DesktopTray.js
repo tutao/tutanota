@@ -1,7 +1,7 @@
 // @flow
 import type {NativeImage} from 'electron'
 import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
-import type {DesktopConfigHandler} from '../DesktopConfigHandler.js'
+import type {DesktopConfigHandler} from '../config/DesktopConfigHandler.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopNotifier} from "../DesktopNotifier.js"
 import {lang} from "../../misc/LanguageViewModel"

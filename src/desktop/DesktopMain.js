@@ -1,7 +1,7 @@
 // @flow
 import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
-import {DesktopConfigHandler} from './DesktopConfigHandler'
+import {DesktopConfigHandler} from './config/DesktopConfigHandler'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'

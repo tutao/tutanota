@@ -48,6 +48,10 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
 			"defaultDesktopConfig": {
+				/**
+				 * do not change defaultDesktopConfig
+				 * instead, add migrations to src/desktop/DesktopConfigMigrator.js
+				 */
 				"heartbeatTimeoutInSeconds": 30,
 				"defaultDownloadPath": null,
 				"enableAutoUpdate": true,

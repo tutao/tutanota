@@ -7,8 +7,8 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
-import type {DesktopConfigHandler} from "./DesktopConfigHandler"
-import {DesktopConfigKey} from "./DesktopConfigHandler"
+import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
+import {DesktopConfigKey} from "./config/DesktopConfigHandler"
 import {
 	disableAutoLaunch,
 	enableAutoLaunch,

@@ -5,7 +5,7 @@ import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
-import type {DesktopConfigHandler} from './DesktopConfigHandler'
+import type {DesktopConfigHandler} from './config/DesktopConfigHandler'
 import {neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
