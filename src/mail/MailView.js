@@ -291,7 +291,8 @@ export class MailView implements CurrentView {
 					archiveMails(this.mailList.list.getSelectedEntities())
 					return true
 				},
-				help: "archive_action"
+				help: "archive_action",
+				enabled: () => logins.isInternalUserLoggedIn(),
 			},
 			{
 				key: Keys.I,
