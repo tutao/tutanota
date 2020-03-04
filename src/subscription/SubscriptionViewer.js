@@ -125,7 +125,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			{name: lang.get("pricing.yearly_label") + ', ' + lang.get('automaticRenewal_label'), value: 12},
 			{name: lang.get("pricing.monthly_label") + ', ' + lang.get('automaticRenewal_label'), value: 1}
 		]
-		const selectedSubscriptionInterval = stream()
 
 		const isPremiumPredicate = () => logins.getUserController().isPremiumAccount()
 
@@ -224,8 +223,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						label: "businessOrPrivateUsage_label",
 						value: this._usageTypeFieldValue,
 						disabled: true,
-						injectionsRight: () =>
-							this._accountingInfo && !this._accountingInfo.business ? m(ButtonN, usageTypeActionAttrs) : null,
+						injectionsRight: () => this._accountingInfo && !this._accountingInfo.business
+						&& this._customer && !this._customer.canceledPremiumAccount
+							? m(ButtonN, usageTypeActionAttrs)
+							: null,
 					})
 					: null,
 				this._showOrderAgreement()
@@ -521,9 +522,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	_updateGroupsField(): Promise<void> {
 		let localAdminCount = getCurrentCount(BookingItemFeatureType.LocalAdminGroup, this._lastBooking)
-		const localAdminText = localAdminCount + " " + lang.get((localAdminCount == 1) ? "localAdminGroup_label" : "localAdminGroups_label")
+		const localAdminText = localAdminCount + " " + lang.get(localAdminCount === 1 ? "localAdminGroup_label" : "localAdminGroups_label")
 		let sharedMailCount = getCurrentCount(BookingItemFeatureType.SharedMailGroup, this._lastBooking)
-		const sharedMailText = sharedMailCount + " " + lang.get((sharedMailCount == 1) ? "sharedMailbox_label" : "sharedMailboxes_label")
+		const sharedMailText = sharedMailCount + " " + lang.get(sharedMailCount === 1 ? "sharedMailbox_label" : "sharedMailboxes_label")
 		if (localAdminCount === 0) { // also show the shared mailboxes text if no groups exists at all
 			this._groupsFieldValue(sharedMailText)
 		} else if (localAdminCount > 0 && sharedMailCount > 0) {
