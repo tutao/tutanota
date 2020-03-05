@@ -71,7 +71,11 @@ export class DesktopConfigHandler {
 				? fs.readJSONSync(this._desktopConfigPath)
 				: {}
 			this._desktopConfig = Object.assign({}, defaultConf, userConf)
-			this._desktopConfig = applyMigrations(this._desktopConfig, defaultConf)
+			this._desktopConfig = applyMigrations(
+				this._buildConfig["configMigrationFunction"],
+				this._desktopConfig,
+				defaultConf
+			)
 			fs.mkdirp(path.join(app.getPath('userData')))
 			fs.writeJSONSync(this._desktopConfigPath, this._desktopConfig, {spaces: 2})
 		} catch (e) {

@@ -1,10 +1,18 @@
 // @flow
 
-export default function applyMigrations(oldConfig: any, defaultConfig: any): any {
+/**
+ *
+ * @param migrationFunction name of the function to use for migration
+ * @param oldConfig old config read from disk
+ * @param defaultConfig default config to use if oldConfig is invalid
+ * @returns config after aplplication of all migrations
+ */
+export default function applyMigrations(migrationFunction: "migrateClient" | "migrateAdmin", oldConfig: any, defaultConfig: any): any {
+	if (oldConfig == null) oldConfig = {}
 	// noinspection FallThroughInSwitchStatementJS
 	switch (oldConfig.desktopConfigVersion) {
 		case undefined:
-			oldConfig = applyMigration(require('./migration-0000').default, oldConfig)
+			oldConfig = applyMigration(require('./migration-0000')[migrationFunction], oldConfig)
 		// no break, fallthrough applies all migrations in sequence
 		case 0:
 			console.log("config up to date")
@@ -17,7 +25,7 @@ export default function applyMigrations(oldConfig: any, defaultConfig: any): any
 	return oldConfig
 }
 
-function applyMigration(migration: any => any, config: any): any {
+function applyMigration(migration: any, config: any): any {
 	const oldVersion = Object.freeze(config.desktopConfigVersion)
 	config = migration(config)
 	const newVersion = config.desktopConfigVersion

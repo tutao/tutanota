@@ -36,7 +36,7 @@ o.spec('desktop config handler test', function () {
 		}
 	}
 
-	const configMigrator = (conf, def) => conf
+	const configMigrator = (f, conf, def) => conf
 
 	const packageJson = {
 		"tutao-config": {
@@ -67,7 +67,7 @@ o.spec('desktop config handler test', function () {
 		const conf = new DesktopConfigHandler()
 
 		o(migratorMock.callCount).equals(1)
-		o(migratorMock.args.length).equals(2)
+		o(migratorMock.args.length).equals(3)
 
 		// check if there is a user conf already (yes)
 		o(fsExtraMock.existsSync.callCount).equals(1)
@@ -96,7 +96,7 @@ o.spec('desktop config handler test', function () {
 		n.mock(path.resolve(__dirname, '../../../package.json'), packageJson).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).with(
-			(conf, def) => def
+			(f, conf, def) => def
 		).set()
 		const fsExtraMock = n.mock('fs-extra', fsExtra)
 		                     .with({existsSync: () => false})
@@ -154,7 +154,7 @@ o.spec('desktop config handler test', function () {
 		n.mock('fs-extra', fsExtra).set()
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).with(
-			(conf, def) => conf
+			(f, conf, def) => conf
 		).set()
 
 		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')

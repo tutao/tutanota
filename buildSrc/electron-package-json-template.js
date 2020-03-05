@@ -47,6 +47,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
+			"configMigrationFunction": "migrateClient",
 			"defaultDesktopConfig": {
 				/**
 				 * do not change defaultDesktopConfig
