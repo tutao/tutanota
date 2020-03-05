@@ -108,7 +108,13 @@ export function integrate(): Promise<void> {
 	const prefix = app.name.includes("test") ? "test " : ""
 	return copyIcons().then(
 		() => createDesktopEntry(prefix)
-	)
+	).then(() => {
+		if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
+		try {
+			exec(`update-desktop-database "${path.join(app.getPath('home'), ".local/share/applications")}`)
+		} catch (e) {
+		}
+	})
 }
 
 export function unintegrate(): Promise<void> {
