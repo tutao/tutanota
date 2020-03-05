@@ -26,6 +26,7 @@ import o from "ospec/ospec.js"
 node(() => {
 	require("./desktop/DesktopUtilsTest.js")
 	require("./desktop/DesktopConfigHandlerTest")
+	require("./desktop/config/migrations/DesktopConfigMigratorTest")
 	require("./desktop/ElectronUpdaterTest")
 	require("./desktop/DesktopNotifierTest")
 	require("./desktop/DesktopWindowManagerTest.js")
