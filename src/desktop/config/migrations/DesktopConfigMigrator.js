@@ -1,10 +1,10 @@
 // @flow
 
-module.exports = function applyMigrations(oldConfig: any, defaultConfig: any): any {
+export default function applyMigrations(oldConfig: any, defaultConfig: any): any {
 	// noinspection FallThroughInSwitchStatementJS
 	switch (oldConfig.desktopConfigVersion) {
 		case undefined:
-			oldConfig = applyMigration(require('./migration-0000'), oldConfig)
+			oldConfig = applyMigration(require('./migration-0000').default, oldConfig)
 		// no break, fallthrough applies all migrations in sequence
 		case 0:
 			console.log("config up to date")
@@ -18,7 +18,7 @@ module.exports = function applyMigrations(oldConfig: any, defaultConfig: any): a
 }
 
 function applyMigration(migration: any => any, config: any): any {
-	const oldVersion = config.desktopConfigVersion
+	const oldVersion = Object.freeze(config.desktopConfigVersion)
 	config = migration(config)
 	const newVersion = config.desktopConfigVersion
 	if (newVersion === undefined || oldVersion >= newVersion) {
