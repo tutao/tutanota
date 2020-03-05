@@ -18,7 +18,8 @@ import type {InboxRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	FeatureType,
-	InboxRuleType, Keys,
+	InboxRuleType,
+	Keys,
 	MailFolderType,
 	MailState,
 	SpamRuleFieldType as SparmRuleType,
@@ -81,6 +82,7 @@ import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscrib
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {exportAsEml} from "./Exporter"
 import {client} from "../misc/ClientDetector"
+import type {PosRect} from "../gui/base/Dropdown"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import Badge from "../gui/base/Badge"
@@ -93,7 +95,6 @@ import {createDropdown} from "../gui/base/DropdownN"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "./MailView"
-import type {PosRect} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -336,6 +337,7 @@ export class MailViewer {
 
 
 		this.view = () => {
+			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
 			return [
 				m("#mail-viewer.fill-absolute"
 					+ (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
@@ -362,12 +364,18 @@ export class MailViewer {
 							m(detailsExpander.panel),
 							m(".subject-actions.flex-space-between.mr-negative-s.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
-									m(".subject.text-break.selectable", this.mail.subject),
+									m(".subject.text-break.selectable", {
+										"aria-label": lang.get("subject_label") + ", " + this.mail.subject,
+									}, this.mail.subject),
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg"
-										+ (this.mail.confidential ? ".ml-negative-xs" : ""), [
+										+ (this.mail.confidential ? ".ml-negative-xs" : ""), {
+										// Orca refuses to read ut unless it's not focusable
+										tabindex: "0",
+										"aria-label": lang.get(this.mail.confidential ? "confidential_action" : "nonConfidential_action")
+											+ ", " + dateTime
+									}, [
 										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
-										m("small.date.mt-xs", formatDateWithWeekday(this.mail.receivedDate) + " • "
-											+ formatTime(this.mail.receivedDate))
+										m("small.date.mt-xs", dateTime)
 									]),
 								]),
 								m(actions)

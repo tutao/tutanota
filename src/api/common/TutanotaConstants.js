@@ -499,7 +499,7 @@ export const UnsubscribeFailureReason = Object.freeze({
 	FEATURE: "unsubscribe.feature",
 })
 export type UnsubscrubeFailureReasonEnum = $Values<typeof UnsubscribeFailureReason>
-export const Keys = {
+export const Keys = Object.freeze({
 	NONE: {code: -1, name: ""},
 	RETURN: {code: 13, name: "⏎"},
 	TAB: {code: 9, name: "↹"},
@@ -508,14 +508,15 @@ export const Keys = {
 	ALT: {code: 17, name: "ALT"},
 	META: {code: 91, name: '\u2318'}, // command key (left) (OSX)
 	ESC: {code: 27, name: "ESC"},
+	SPACE: {code: 32, name: "Space"},
+	PAGE_UP: {code: 33, name: "Page ↑"},
+	PAGE_DOWN: {code: 34, name: "Page ↓"},
+	END: {code: 35, name: "End"},
+	HOME: {code: 36, name: "Home"},
 	LEFT: {code: 37, name: "←"},
 	UP: {code: 38, name: "↑"},
 	RIGHT: {code: 39, name: "→"},
 	DOWN: {code: 40, name: "↓"},
-	PAGE_UP: {code: 33, name: "Page ↑"},
-	PAGE_DOWN: {code: 34, name: "Page ↓"},
-	HOME: {code: 36, name: "Home"},
-	END: {code: 35, name: "End"},
 	DELETE: {code: 46, name: "DEL"},
 	ONE: {code: 49, name: "1"},
 	TWO: {code: 50, name: "2"},
@@ -544,4 +545,5 @@ export const Keys = {
 	F5: {code: 116, name: "F5"},
 	F11: {code: 122, name: "F11"},
 	F12: {code: 123, name: "F12"},
-}
+})
+export type KeysEnum = $Values<typeof Keys>

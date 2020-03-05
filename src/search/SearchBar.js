@@ -193,8 +193,8 @@ export class SearchBar implements Component {
 				}, [
 					styles.isDesktopLayout()
 						? m("button.ml-negative-xs.click", {
-							"tabindex": "0",
-							"aria-label": "Search button",
+							tabindex: "0",
+							title: lang.get("search_label"),
 							onmousedown: (e) => {
 								if (this.focused) {
 									this.skipNextBlur(true) // avoid closing of overlay when clicking search icon
@@ -214,7 +214,7 @@ export class SearchBar implements Component {
 						: null,
 					m(".searchInputWrapper.flex.items-center", {
 							"aria-hidden": String(!this.expanded),
-							"tabindex": this.expanded ? "0" : "-1",
+							tabindex: this.expanded ? "0" : "-1",
 							style: (() => {
 								let paddingLeft: string
 								if (this.expanded || vnode.attrs.alwaysExpanded) {
@@ -241,7 +241,7 @@ export class SearchBar implements Component {
 							m("button.closeIconWrapper", {
 								onclick: (e) => this.close(),
 								style: {width: size.icon_size_large},
-								label: lang.get("close_alt"),
+								title: lang.get("close_alt"),
 								tabindex: this.expanded ? 0 : -1,
 							}, this.busy
 								? m(Icon, {

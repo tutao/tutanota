@@ -155,7 +155,7 @@ export class ViewSlider implements IViewSlider {
 			column.visible = visibleColumns.includes(column)
 		)
 
-		this.updateOffsets(this.columns)
+		this.updateOffsets()
 
 		this._visibleBackgroundColumns = visibleColumns
 
@@ -260,7 +260,7 @@ export class ViewSlider implements IViewSlider {
 			return this._busy;
 		}).finally(() => {
 			m.redraw()
-			viewColumn._domColumn && viewColumn._domColumn.focus()
+			viewColumn.focus()
 		}) // for updating header bar after animation
 	}
 
@@ -295,7 +295,7 @@ export class ViewSlider implements IViewSlider {
 		})
 	}
 
-	updateOffsets(columns: ViewColumn[]) {
+	updateOffsets() {
 		let offset = 0
 		for (let column of this.columns) {
 			if (column.columnType === ColumnType.Background || column.visible) {

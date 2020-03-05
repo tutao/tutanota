@@ -18,7 +18,7 @@ export type Attrs = {
 export class FolderColumnView implements MComponent<Attrs> {
 
 	view({attrs}: Vnode<Attrs>) {
-		return m(".flex.height-100p", [
+		return m("nav.flex.height-100p", {tabindex: "0"}, [
 			m(DrawerMenu),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", [
 				attrs.button

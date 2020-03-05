@@ -98,7 +98,6 @@ export type ButtonAttrs = {
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string,
-	"aria-labelledby"?: string,
 }
 
 /**
@@ -115,7 +114,6 @@ class _Button {
 		return m("button.limit-width.noselect",
 			{
 				class: this.getButtonClasses(a).join(' '),
-				"aria-labelledby": a["aria-labelledby"],
 				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, this._domButton),
 				title: (type === ButtonType.Action

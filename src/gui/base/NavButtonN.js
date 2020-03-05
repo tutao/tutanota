@@ -12,6 +12,8 @@ import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
+import {Keys} from "../../api/common/TutanotaConstants"
+import {isKeyPressed} from "../../misc/KeyManager"
 
 assertMainOrNodeBoot()
 
@@ -106,6 +108,11 @@ class _NavButton {
 			},
 			selector: navButtonSelector(a.vertical),
 			onclick: (e) => this.click(e, a),
+			onkeyup: (e) => {
+				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
+					this.click(e, a)
+				}
+			}
 		}
 		if (a.dropHandler) {
 			attr.ondragenter = (ev) => {

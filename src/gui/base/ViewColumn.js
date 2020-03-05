@@ -49,7 +49,7 @@ export class ViewColumn {
 			let zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
 			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border, {
-					"aria-hidden": this.visible ? "false" : "true",
+					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
 						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ?
@@ -61,7 +61,6 @@ export class ViewColumn {
 					},
 				},
 				m(this.component))
-
 		}
 	}
 
@@ -85,4 +84,8 @@ export class ViewColumn {
 		}
 	}
 
+	focus() {
+		const child = this._domColumn && this._domColumn.children[0] && this._domColumn.children[0]
+		child && child.focus()
+	}
 }

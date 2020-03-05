@@ -9,6 +9,7 @@ import {client} from "./ClientDetector"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
+import type {KeysEnum} from "../api/common/TutanotaConstants"
 import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
@@ -184,6 +185,10 @@ class KeyManager {
 		}
 	}
 
+}
+
+export function isKeyPressed(keyCode: number, ...keys: Array<KeysEnum>): boolean {
+	return keys.some((key) => key.code === keyCode)
 }
 
 export const keyManager: KeyManager = new KeyManager()

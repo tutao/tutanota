@@ -86,7 +86,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const editSenderNameButtonAttrs: ButtonAttrs = {
-			label: "edit_action",
+			label: "mailName_label",
 			click: () => {
 				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName())
 				      .then(newName => {
@@ -95,11 +95,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				      })
 			},
 			icon: () => Icons.Edit,
-			"aria-labelledby": "sender-name-field",
 		}
 
 		const senderNameAttrs: TextFieldAttrs = {
-			id: "sender-name-field",
 			label: "mailName_label",
 			value: this._senderName,
 			disabled: true,
@@ -108,14 +106,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const changeSignatureButtonAttrs: ButtonAttrs = {
-			label: "edit_action",
-			"aria-labelledby": "signature-field",
+			label: "userEmailSignature_label",
 			click: () => EditSignatureDialog.show(logins.getUserController().props),
 			icon: () => Icons.Edit
 		}
 
 		const signatureAttrs: TextFieldAttrs = {
-			id: "signature-field",
 			label: "userEmailSignature_label",
 			value: this._signature,
 			disabled: true,
@@ -206,6 +202,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", {
+				role: "group",
 				oncreate: () => {
 					this._indexStateWatch = locator.search.indexState.map((newValue) => {
 						this._enableMailIndexing(newValue.mailIndexEnabled)

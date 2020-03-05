@@ -6,7 +6,7 @@ import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
-import {OperationType} from "../../api/common/TutanotaConstants"
+import {Keys, OperationType} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import {debounceStart, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
@@ -21,6 +21,7 @@ import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import {isKeyPressed} from "../../misc/KeyManager"
 
 assertMainOrNode()
 
@@ -285,6 +286,11 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		virtualRow.domElement = domElement
 		domElement.onclick = (e) => {
 			if (!touchStartTime || Date.now() - touchStartTime < 400) {
+				virtualRow.entity && this._elementClicked(virtualRow.entity, e)
+			}
+		}
+		domElement.onkeyup = (e) => {
+			if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
 				virtualRow.entity && this._elementClicked(virtualRow.entity, e)
 			}
 		}

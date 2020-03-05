@@ -63,7 +63,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.setPlaceholderId("invoiceAddress_label")
 
 		const changeInvoiceDataButtonAttrs = {
-			label: "edit_action",
+			label: "invoiceData_msg",
 			click: createNotAvailableForFreeClickHandler(true, () => {
 				if (this._accountingInfo) {
 					const accountingInfo = neverNull(this._accountingInfo)
@@ -82,18 +82,18 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			icon: () => Icons.Edit
 		}
 		const changePaymentDataButtonAttrs = {
-			label: "edit_action",
+			label: "paymentMethod_label",
 			click: createNotAvailableForFreeClickHandler(true, () => {
-				if (this._accountingInfo) {
-					PaymentDataDialog.show(this._accountingInfo).then(success => {
-						if (success) {
-							if (this._isPayButtonVisible()) {
-								return this._showPayDialog(this._openBalance())
+					if (this._accountingInfo) {
+						PaymentDataDialog.show(this._accountingInfo).then(success => {
+							if (success) {
+								if (this._isPayButtonVisible()) {
+									return this._showPayDialog(this._openBalance())
+								}
 							}
-						}
-					})
-				}
-			},
+						})
+					}
+				},
 				// iOS app doesn't work with PayPal button or 3dsecure redirects
 				() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
 			icon: () => Icons.Edit
@@ -109,7 +109,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 
 		this.view = (): VirtualElement => {
-			return m("#invoicing-settings.fill-absolute.scroll.plr-l", [
+			return m("#invoicing-settings.fill-absolute.scroll.plr-l", {
+				role: "group",
+			}, [
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoiceData_msg')),
 					m(".mr-negative-s", m(ButtonN, changeInvoiceDataButtonAttrs))
