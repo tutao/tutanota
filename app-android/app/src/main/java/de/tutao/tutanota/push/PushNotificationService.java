@@ -89,7 +89,7 @@ public final class PushNotificationService extends LifecycleJobService {
 			}
 		});
 
-		sseStorage.observeUsers().observe(this, userInfos -> {
+		sseStorage.observeUsers().observeForever(userInfos -> {
 			Log.d(TAG, "sse storage updated " + userInfos.size());
 			Set<String> userIds = new HashSet<>();
 			for (User userInfo : userInfos) {
