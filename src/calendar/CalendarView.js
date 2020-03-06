@@ -29,6 +29,7 @@ import {
 	hasCapabilityOnGroup,
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
+	getCalendarWeek,
 } from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
@@ -327,7 +328,9 @@ export class CalendarView implements CurrentView {
 	headerRightView(): Children {
 		return m(ButtonN, {
 			label: 'newEvent_action',
-			click: () => this._newEvent(),
+			click: () => {
+				this._newEvent()
+			},
 			icon: () => Icons.Add,
 			type: ButtonType.Action,
 			colors: ButtonColors.Header
@@ -594,8 +597,27 @@ export class CalendarView implements CurrentView {
 
 
 	_newEvent(date?: ?Date) {
+		let dateToUse: Date
+		if (date == null) {
+			switch (this._currentViewType) {
+			case CalendarViewType.AGENDA:
+				dateToUse = this._getNextHalfHour()
+				break
+			case CalendarViewType.MONTH:
+				dateToUse = getMonth(this.selectedDate(), getTimeZone()).start
+				break
+			case CalendarViewType.WEEK:
+				const startOfTheWeek = downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
+				const currentWeek = getCalendarWeek(this.selectedDate(), startOfTheWeek)
+				dateToUse = currentWeek[0]
+			default:
+				dateToUse = this.selectedDate()
+			}
+		} else {
+			dateToUse = date
+		}
 		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
-		p.then(calendars => showCalendarEventDialog(date || this._getNextHalfHour(), calendars))
+		p.then(calendars => showCalendarEventDialog(dateToUse, calendars))
 	}
 
 	_getNextHalfHour() {
