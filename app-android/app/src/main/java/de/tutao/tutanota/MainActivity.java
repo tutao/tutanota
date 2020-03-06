@@ -32,6 +32,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
@@ -259,9 +260,15 @@ public class MainActivity extends ComponentActivity {
 
 	private void doChangeTheme(String themeName) {
 		boolean isDark = "dark".equals(themeName);
-		int backgroundRes = isDark ? R.color.darkDarkest : R.color.white;
+		@ColorRes int backgroundRes = isDark ? R.color.darkDarkest : R.color.white;
 		getWindow().setBackgroundDrawableResource(backgroundRes);
 		View decorView = getWindow().getDecorView();
+
+		if (Utils.atLeastOreo()) {
+			int navbarColor = ContextCompat.getColor(this, isDark ? R.color.darkLighter : R.color.white);
+			getWindow().setNavigationBarColor(navbarColor);
+			decorView.setSystemUiVisibility(isDark ? 0 : View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+		}
 
 		// Changing status bar color
 		// Before Android M there was no flag to use lightStatusBar (so that text is white or
