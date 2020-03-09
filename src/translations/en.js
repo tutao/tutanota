@@ -340,7 +340,7 @@ module.exports = {
 		"emailSenderInvalidRule_msg": "The rule for this email sender is not allowed.",
 		"emailSenderPlaceholder_label": "Email address or domain name",
 		"emailSenderRule_label": "Rule",
-		"emailSenderWhitelist_action": "No spam",
+		"emailSenderWhitelist_action": "Not spam",
 		"emailSender_label": "Email sender",
 		"emailSending_label": "Sending emails",
 		"emailSignatureTypeCustom_msg": "Custom",
