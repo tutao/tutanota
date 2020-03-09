@@ -25,5 +25,6 @@ export const SETTINGS_PREFIX = "/settings"
 export const navButtonRoutes = {
 	mailUrl: MAIL_PREFIX,
 	contactsUrl: CONTACTS_PREFIX,
+	calendarUrl: CALENDAR_PREFIX,
 	settingsUrl: SETTINGS_PREFIX,
 }

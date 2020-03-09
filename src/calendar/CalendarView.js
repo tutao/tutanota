@@ -7,6 +7,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
+import {keyManager} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../api/common/utils/DateUtils"
@@ -16,7 +17,7 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat, Keys} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
@@ -113,6 +114,9 @@ export class CalendarView implements CurrentView {
 	_hiddenCalendars: Set<Id>
 
 	_calendarInvitations: Array<ReceivedGroupInvitation>
+
+	oncreate: Function;
+	onbeforeremove: Function;
 
 	constructor() {
 		this._currentViewType = deviceConfig.getDefaultCalendarView(logins.getUserController().user._id) || CalendarViewType.MONTH
@@ -281,9 +285,94 @@ export class CalendarView implements CurrentView {
 			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
 		})
 
+		this._setupShortcuts();
+
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
 			this.entityEventReceived(updates, eventOwnerGroupId)
 		})
+	}
+
+	_setupShortcuts() {
+		let shortcuts: Shortcut[] = [
+			{
+				key: Keys.ONE,
+				exec: () => this._setUrl(CalendarViewType.DAY, this.selectedDate()),
+				help: "switchDayView_action"
+			},
+			{
+				key: Keys.TWO,
+				exec: () => this._setUrl(CalendarViewType.WEEK, this.selectedDate()),
+				help: "switchWeekView_action"
+			},
+			{
+				key: Keys.THREE,
+				exec: () => this._setUrl(CalendarViewType.MONTH, this.selectedDate()),
+				help: "switchMonthView_action"
+			},
+			{
+				key: Keys.FOUR,
+				exec: () => this._setUrl(CalendarViewType.AGENDA, this.selectedDate()),
+				help: "switchAgendaView_action"
+			},
+			{
+				key: Keys.T,
+				exec: () => this._setUrl(m.route.param("view"), new Date()),
+				help: "viewToday_action"
+			},
+			{
+				key: Keys.N,
+				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
+				exec: () => this._viewPeriod(true),
+				help: "viewNextPeriod_action"
+			},
+			{
+				key: Keys.P,
+				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
+				exec: () => this._viewPeriod(false),
+				help: "viewPrevPeriod_action"
+			},
+			{
+				key: Keys.C,
+				ctrl: true,
+				exec: () => this._showCreateCalendarDialog(),
+				help: "createCalendar_action"
+			},
+			{
+				key: Keys.F,
+				exec: () => this._newEvent(this.selectedDate()),
+				help: "createEvent_action"
+			}
+		]
+
+		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+	}
+
+	_viewPeriod(next) {
+		let newDate = new Date(this.selectedDate().getTime())
+	
+		switch (this._currentViewType) {
+			case CalendarViewType.MONTH:
+				newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+				this.selectedDate(newDate)
+
+				this._setUrl(CalendarViewType.MONTH, newDate)
+				break;
+
+			case CalendarViewType.WEEK:
+				newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+				this.selectedDate(newDate)
+
+				this._setUrl(CalendarViewType.WEEK, newDate)
+				break;
+
+			case CalendarViewType.DAY:
+				newDate.setDate(newDate.getDate() + (next ? 1 : -1))
+				this.selectedDate(newDate)
+
+				this._setUrl(CalendarViewType.DAY, newDate)
+				break;
+		}
 	}
 
 	_renderSidebarSection(label: TranslationKey, button: ?ButtonAttrs, content: Children): Children {

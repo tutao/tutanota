@@ -140,6 +140,12 @@ class Header {
 				help: "contactView_action"
 			},
 			{
+				key: Keys.O,
+				enabled: () => logins.isInternalUserLoggedIn(),
+				exec: key => m.route.set(navButtonRoutes.calendarUrl),
+				help: "calendarView_action"
+			},
+			{
 				key: Keys.S,
 				enabled: () => logins.isInternalUserLoggedIn(),
 				exec: key => m.route.set(navButtonRoutes.settingsUrl),
