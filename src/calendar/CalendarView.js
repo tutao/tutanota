@@ -348,7 +348,7 @@ export class CalendarView implements CurrentView {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
-	_viewPeriod(next) {
+	_viewPeriod(next: boolean) {
 		let newDate = new Date(this.selectedDate().getTime())
 	
 		switch (this._currentViewType) {
