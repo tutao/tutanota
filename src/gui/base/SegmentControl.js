@@ -23,7 +23,7 @@ export class SegmentControl<T> {
 		this.view = () => {
 			return [
 				m(".segmentControl.flex-center.button-height",
-					this._items.map(item => m(".segmentControlItem.flex-center.items-center.text-ellipsis.small"
+					this._items.map(item => m("button.segmentControlItem.flex-center.items-center.text-ellipsis.small"
 						+ (item === this.selectedValue() ?
 							".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"), {
 						style: {

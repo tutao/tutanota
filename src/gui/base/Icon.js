@@ -21,15 +21,17 @@ export type AllIconsEnum = BootIconsEnum | IconsEnum
 export type lazyIcon = lazy<AllIconsEnum>;
 
 let IconsSvg = {}
-asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/icons/Icons.js`).then(IconsModule => {
-	IconsSvg = IconsModule.IconsSvg
-})
+asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/icons/Icons.js`)
+	.then(IconsModule => {
+		IconsSvg = IconsModule.IconsSvg
+	})
 
 
 class _Icon {
 	view(vnode: Vnode<IconAttrs>): Children | null | void {
 		let icon = BootIconsSvg[(vnode.attrs.icon: any)] ? BootIconsSvg[(vnode.attrs.icon: any)] : IconsSvg[(vnode.attrs.icon: any)]
 		return m("span.icon", {
+			"aria-hidden": "true",
 			class: this.getClass(vnode.attrs),
 			style: this.getStyle(vnode.attrs.style)
 		}, m.trust(icon)) // icon is typed, so we may not embed untrusted data

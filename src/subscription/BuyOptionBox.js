@@ -64,10 +64,19 @@ class _BuyOptionBox {
 				m(".text-center.pt.flex.center-vertically.center-horizontally", [
 					m("span.h1", vnode.attrs.price),
 					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
-						?
-						m("span.strike.pl", "(" + vnode.attrs.originalPrice + ")")
-						:
-						null
+						? [
+							// This element is for the screen reader because they tend to not announce strikethrough.
+							m("span", {
+								style: {
+									opacity: "0",
+									width: "0",
+									height: "0",
+								},
+								// TODO: translate
+							}, "Original price: "),
+							m("s.pl", "(" + vnode.attrs.originalPrice + ")"),
+						]
+						: null
 				]),
 				m(".small.text-center.pb-s", lang.getMaybeLazy(vnode.attrs.helpLabel)),
 				(vnode.attrs.paymentInterval) ? m(SegmentControl, {
@@ -90,7 +99,9 @@ class _BuyOptionBox {
 							'padding-top': '5px'
 						}
 					}),
-					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {title: window.innerWidth > 809 ? f : ""}, f)
+					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {
+						title: window.innerWidth > 809 ? f : ""
+					}, f)
 				]
 			)))
 		])

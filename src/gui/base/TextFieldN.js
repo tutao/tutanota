@@ -143,6 +143,7 @@ export class _TextField {
 				m("input.input" + (a.alignRight ? ".right" : ""), {
 					autocomplete: a.preventAutofill ? "off" : "",
 					type: (a.type === Type.ExternalPassword) ? Type.Text : a.type,
+					"aria-label": lang.getMaybeLazy(a.label),
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
@@ -219,6 +220,7 @@ export class _TextField {
 			}, a.value())
 		} else {
 			return m("textarea.input-area.text-pre", {
+				"aria-label": lang.getMaybeLazy(a.label),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = a.value()

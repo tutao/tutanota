@@ -107,7 +107,7 @@ export class TextField {
 						},
 					}, [
 						this._injectionsLeft ? this._injectionsLeft() : null,
-						m(".inputWrapper.flex-space-between.items-end", {}, [ // a  dditional wrapper element for bubble input field. input field should always be in one line with right injections
+						m(".inputWrapper.flex-space-between.items-end", [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 							this.type !== Type.Area ? this._getInputField() : this._getTextArea(),
 							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-fixed", this._injectionsRight()) : null
 						])
@@ -170,6 +170,7 @@ export class TextField {
 				m("input.input" + (this._alignRight ? ".right" : ""), {
 					autocomplete: this._preventAutofill ? "off" : this.autocomplete,
 					type: typeAttr,
+					"aria-label": lang.getMaybeLazy(this.label),
 					oncreate: (vnode) => {
 						this._domInput = vnode.dom
 						if (this.type !== Type.Area) {
@@ -242,6 +243,7 @@ export class TextField {
 			}, this.value())
 		} else {
 			return m("textarea.input-area.text-pre", {
+				"aria-label": lang.getMaybeLazy(this.label),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					vnode.dom.value = this.value()

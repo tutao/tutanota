@@ -842,7 +842,8 @@ styles.registerStyle('main', () => {
 		},
 
 		'.segmentControlItem': {
-			cursor: 'pointer'
+			cursor: 'pointer',
+			background: "transparent"
 		},
 		'.segmentControlItem:last-child': {
 			'border-bottom-right-radius': px(size.border_radius),

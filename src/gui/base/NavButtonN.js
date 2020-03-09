@@ -150,10 +150,6 @@ class _NavButton {
 				if (a.click != null) {
 					a.click(event, this._domButton)
 				}
-				// in IE the activeElement might not be defined and blur might not exist
-				if (document.activeElement && typeof document.activeElement.blur === "function") {
-					document.activeElement.blur()
-				}
 				event.preventDefault()
 			} catch (e) {
 				handleUncaughtError(e)
