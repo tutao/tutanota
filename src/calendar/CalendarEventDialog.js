@@ -30,7 +30,8 @@ import {
 	createEventId,
 	createRepeatRuleWithValues,
 	generateUid,
-	getAllDayDateForTimezone, getAllDayDateUTCFromZone,
+	getAllDayDateForTimezone,
+	getAllDayDateUTCFromZone,
 	getCalendarName,
 	getDiffInDays,
 	getEventEnd,
@@ -44,7 +45,7 @@ import {
 	timeString,
 	timeStringFromParts
 } from "./CalendarUtils"
-import {generateEventElementId, getAllDayDateUTC, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {NotFoundError} from "../api/common/error/RestError"
 import {TimePicker} from "../gui/base/TimePicker"
@@ -222,19 +223,18 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	let oldStartTime: string = startTime()
 
 	function onStartTimeSelected(value) {
-		oldStartTime = startTime()
 		startTime(value)
 		let startDate = neverNull(startDatePicker.date())
 		let endDate = neverNull(endDatePicker.date())
 		if (startDate.getTime() === endDate.getTime()) {
-			fixTime()
+			adjustEndTime()
 		}
 	}
 
 	/**
 	 * Check if the start time is after the end time and fix that
 	 */
-	function fixTime() {
+	function adjustEndTime() {
 		const parsedOldStartTime = oldStartTime && parseTime(oldStartTime)
 		const parsedStartTime = parseTime(startTime())
 		const parsedEndTime = parseTime(endTime())
@@ -251,6 +251,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 		const newEndMinutes = newEndTotalMinutes % 60
 		endTime(timeStringFromParts(newEndHours, newEndMinutes, amPmFormat))
+		oldStartTime = startTime()
 		m.redraw()
 	}
 
