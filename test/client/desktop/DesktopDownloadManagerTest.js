@@ -169,7 +169,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		}
 	}
 
-	o("no default download path => do nothing", () => {
+	o("no default download path => don't assign save path", () => {
 		const {electronMock, netMock} = standardMocks()
 		const confMock = n.mock("__conf", conf).with({
 			getDesktopConfig: (key) => {
@@ -189,8 +189,9 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
 		o(sessionMock.on.callCount).equals(1)
 		o(sessionMock.on.args[0]).equals("will-download")
-		// no args so we throw when DownloadManager tries to do any work.
-		sessionMock.callbacks["will-download"]()
+		const itemMock = n.spyify({on: () => {}})
+		sessionMock.callbacks["will-download"](undefined, itemMock)
+		o(itemMock.on.callCount).equals(1)
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 
@@ -226,8 +227,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
 		o(sessionMock.on.callCount).equals(1)
 		o(sessionMock.on.args[0]).equals("will-download")
-		// no args so we throw when DownloadManager tries to do any work.
-		sessionMock.callbacks["will-download"]()
+		const itemMock = n.spyify({on: () => {}})
+		sessionMock.callbacks["will-download"](undefined, itemMock)
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
 	})
 

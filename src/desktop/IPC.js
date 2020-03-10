@@ -25,6 +25,7 @@ import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import type {SseInfo} from "./sse/DesktopSseClient"
+import {base64ToUint8Array} from "../api/common/utils/Encoding"
 
 /**
  * node-side endpoint for communication between the renderer thread and the node thread
@@ -133,6 +134,11 @@ export class IPC {
 			case 'download':
 				// sourceUrl, filename, headers
 				return this._dl.downloadNative(...args.slice(0, 3))
+			case 'saveBlob':
+				// args: [data.name, uint8ArrayToBase64(data.data)]
+				const filename : string = downcast(args[0])
+				const data : Uint8Array = base64ToUint8Array(downcast(args[1]))
+				return this._dl.saveBlob(filename, data, this._wm.get(windowId))
 			case "aesDecryptFile":
 				// key, path
 				return this._crypto.aesDecryptFile(...args.slice(0, 2))

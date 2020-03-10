@@ -157,7 +157,7 @@ export class FileController {
 			return fileApp.open(_file)
 		} else {
 			let dataFile: DataFile = _file
-			if (isApp()) {
+			if (isApp() || isDesktop()) {
 				return fileApp.saveBlob(dataFile)
 				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
 			}

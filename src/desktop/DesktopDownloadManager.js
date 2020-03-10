@@ -9,6 +9,7 @@ import {noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
+import {EventEmitter} from 'events'
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfigHandler;
@@ -76,8 +77,29 @@ export class DesktopDownloadManager {
 		}
 	}
 
+	saveBlob(filename: string, data: Uint8Array, win: ApplicationWindow): Promise<void> {
+		const write = ({canceled, filePath}): Promise<void> => {
+			if (!canceled) return fs.writeFile(filePath, data)
+			return Promise.reject('canceled')
+		}
+
+		const downloadItem = new EventEmitter()
+		downloadItem["savePath"] = null
+		downloadItem["getFilename"] = () => filename
+		this._handleDownloadItem("saveBlob", downloadItem)
+		const writePromise = downloadItem.savePath
+			? write({canceled: false, filePath: downloadItem.savePath})
+			: dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(app.getPath('downloads'), filename)})
+			        .then(write)
+		return writePromise.then(() => downloadItem.emit('done', undefined, 'completed'))
+		                   .catch(e => downloadItem.emit('done', e, 'cancelled'))
+	}
+
+
 	_handleDownloadItem(ev: Event, item: DownloadItem): void {
 		const defaultDownloadPath = this._conf.getDesktopConfig('defaultDownloadPath')
+		// if the last dl ended more than 30s ago, open dl dir in file manager
+		let fileManagerLock = noOp
 		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
 			try {
 				const fileName = path.basename(item.getFilename())
@@ -92,8 +114,6 @@ export class DesktopDownloadManager {
 				DesktopUtils.touch(savePath)
 				item.savePath = savePath
 
-				// if the last dl ended more than 30s ago, open dl dir in file manager
-				let fileManagerLock = noOp
 				if (this._fileManagersOpen === 0) {
 					this._fileManagersOpen = this._fileManagersOpen + 1
 					fileManagerLock = () => {
@@ -101,24 +121,25 @@ export class DesktopDownloadManager {
 						setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.get("fileManagerTimeout"))
 					}
 				}
-
-				item.on('done', (event, state) => {
-					if (state === 'completed') {
-						fileManagerLock()
-					}
-					if (state === 'interrupted') {
-						console.error("download itnerrupted", event)
-						showDownloadErrorMessageBox('download interrupted', item.getFilename())
-					}
-				})
-
 			} catch (e) {
 				console.error("error while downloading", e)
 				showDownloadErrorMessageBox(e.message, item.getFilename())
 			}
-		} else {
-			// if we do nothing, user will be prompted for destination
 		}
+
+		item.on('done', (event, state) => {
+			if (state === 'completed') {
+				console.log("download complete:", item.getFilename())
+				fileManagerLock()
+			}
+			if (state === 'interrupted') {
+				console.error("download interrupted", event)
+				showDownloadErrorMessageBox('download interrupted', item.getFilename())
+			}
+			if (state === 'cancelled') {
+				console.log("download cancelled", item.getFilename())
+			}
+		})
 	}
 }
 

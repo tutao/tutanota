@@ -81,6 +81,10 @@ export class ApplicationWindow {
 	showInactive = () => this._browserWindow.showInactive()
 	isFocused = () => this._browserWindow.isFocused()
 
+	get browserWindow() {
+		return this._browserWindow
+	}
+
 	show() {
 		if (!this._browserWindow) {
 			return
