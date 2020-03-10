@@ -22,7 +22,6 @@ public class SystemAlarmFacade {
 	public void scheduleAlarmOccurrenceWithSystem(Date alarmTime, int occurrence,
 										   String identifier, String summary,
 										   Date eventDate, String user) {
-		Log.d(TAG, "Scheduled notification " + identifier + " at: " + alarmTime);
 		AlarmManager alarmManager = getAlarmManager();
 		PendingIntent pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user);
 

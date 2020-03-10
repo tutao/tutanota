@@ -15,6 +15,7 @@ import java.security.UnrecoverableEntryException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import de.tutao.tutanota.alarms.AlarmInfo;
@@ -61,7 +62,7 @@ public class AlarmNotificationsManagerTest {
 		sseStorage = mock(SseStorage.class);
 		keyStoreFacade = mock(AndroidKeyStoreFacade.class);
 		crypto = mock(Crypto.class);
-		manager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
+		manager = new AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, mock(LocalNotificationsFacade.class));
 
 		when(crypto.aesDecrypt(any(), anyString())).thenAnswer((Answer<byte[]>) invocation -> ((String) invocation.getArgument(1)).getBytes());
 		when(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey);
@@ -95,46 +96,90 @@ public class AlarmNotificationsManagerTest {
 	}
 
 	@Test
-	public void testScheduleSingleNotTooFar() {
+	public void testScheduleSingle() {
 		String notFarIdentifier = "notFar";
 		Date startDate = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20));
 		AlarmNotification notTooFarSingle = createAlarmNotification(userId, notFarIdentifier, startDate, null, null);
 
-		manager.scheduleNewAlarms(singletonList(notTooFarSingle));
+		when(sseStorage.readAlarmNotifications()).thenReturn(singletonList(notTooFarSingle));
+		manager.reScheduleAlarms();
 
 		Date alarmtime = AlarmModel.calculateAlarmTime(startDate, null, AlarmTrigger.TEN_MINUTES);
 		verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId);
 	}
 
 	@Test
-	public void testNotScheduleSingleTooFar() {
-		String identifier = "tooFar";
-		Date startDate = new Date(System.currentTimeMillis() + AlarmNotificationsManager.TIME_IN_THE_FUTURE_LIMIT_MS + TimeUnit.MINUTES.toMillis(20));
-		AlarmNotification tooFarSingle = createAlarmNotification(userId, identifier, startDate, null, null);
+	public void scheduleOnlyAlarmLimit() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, 1);
+		Date now = cal.getTime();
+		List<AlarmNotification> alarms = new ArrayList<>();
+		for (int i = 0; i < 300; i++) {
+			cal.add(Calendar.MINUTE, 1);
+			alarms.add(createAlarmNotification(userId, "alarm_" + i, cal.getTime(), null, null));
+		}
+		when(sseStorage.readAlarmNotifications()).thenReturn(alarms);
+		manager.reScheduleAlarms();
 
-		manager.scheduleNewAlarms(singletonList(tooFarSingle));
-
-		verify(systemAlarmFacade, never()).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any());
+		for (int i = 0; i < AlarmNotificationsManager.ALARM_LIMIT; i++) {
+			AlarmNotification alarm = alarms.get(i);
+			verify(systemAlarmFacade).scheduleAlarmOccurrenceWithSystem(any(), eq(0), eq(alarm.getAlarmInfo().getIdentifier()), eq(alarm.getSummary()), any(),
+					eq(userId));
+		}
+		verify(systemAlarmFacade, never()).scheduleAlarmOccurrenceWithSystem(any(), anyInt(),
+				eq(alarms.get(AlarmNotificationsManager.ALARM_LIMIT).getAlarmInfo().getIdentifier()), any(), any(), eq(userId));
 	}
 
 	@Test
-	public void someAreTooFarRepeating() {
-		String identifier = "notTooFarR";
-		Date startDate = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
-		RepeatRule repeatRule = new RepeatRule(String.valueOf(RepeatPeriod.WEEKLY.value()), "1", "Europe/Berlin", null, null);
-		AlarmNotification alarmNotification = createAlarmNotification(userId, identifier, startDate, null, repeatRule);
+	public void scheduleOnlyAlarmLimitRepeating() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, 1);
+		Date now = cal.getTime();
+		List<AlarmNotification> alarms = new ArrayList<>();
+		for (int i = 0; i < 300; i++) {
+			cal.add(Calendar.DATE, 1);
+			cal.add(Calendar.MINUTE, 1); // so that it's easier to sort
+			RepeatRule repeatRule = new RepeatRule(String.valueOf(RepeatPeriod.DAILY.value()), "1", "Europe/Berlin", null, null);
+			alarms.add(createAlarmNotification(userId, "alarm_" + i, cal.getTime(), null, repeatRule));
+		}
+		when(sseStorage.readAlarmNotifications()).thenReturn(alarms);
+		manager.reScheduleAlarms();
 
-		manager.scheduleNewAlarms(singletonList(alarmNotification));
-
-		// It should stop after the second one because it would be too far into the future otherwise.
-		// This test case assumes 2W border for future events. It's the only one which makes sense with our reminders anyway.
-
-		// |_|______|_|______|_|______|
-		// s n     s+1 n+1  s+2 n+2   s+3
-		// s - event start, n - now. s+2 is before n+2 so it will occur but s+3 is already too far
-		verify(systemAlarmFacade, times(2)).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), eq("summary"), any(), eq(userId));
+		verify(systemAlarmFacade, times(10)).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), eq(alarms.get(0).getAlarmInfo().getIdentifier()), any(), any(),
+				eq(userId));
+		// first 10 days we add one event so that we get n? = 1 + 2 + .. + 10 = 10 * (10 + 1) / 2 = 55
+		// for later days (until near end) we will have 10 occurrences per day as we add and remove one. (180 - 55) / 10 = 12.5 more days
+		// day   0 total    1 :  0
+		// day   1 total    3 :  0  1
+		// day   2 total    6 :  0  1  2
+		// day   3 total   10 :  0  1  2  3
+		// day   4 total   15 :  0  1  2  3  4
+		// day   5 total   21 :  0  1  2  3  4  5
+		// day   6 total   28 :  0  1  2  3  4  5  6
+		// day   7 total   36 :  0  1  2  3  4  5  6  7
+		// day   8 total   45 :  0  1  2  3  4  5  6  7  8
+		// day   9 total   55 :  0  1  2  3  4  5  6  7  8  9
+		// day  10 total   65 :     1  2  3  4  5  6  7  8  9 10
+		// day  11 total   75 :        2  3  4  5  6  7  8  9 10 11
+		// day  12 total   85 :           3  4  5  6  7  8  9 10 11 12
+		// day  13 total   95 :              4  5  6  7  8  9 10 11 12 13
+		// day  14 total  105 :                 5  6  7  8  9 10 11 12 13 14
+		// day  15 total  115 :                    6  7  8  9 10 11 12 13 14 15
+		// day  16 total  125 :                       7  8  9 10 11 12 13 14 15 16
+		// day  17 total  135 :                          8  9 10 11 12 13 14 15 16 17
+		// day  18 total  145 :                             9 10 11 12 13 14 15 16 17 18
+		// day  19 total  155 :                               10 11 12 13 14 15 16 17 18 19
+		// day  20 total  165 :                                  11 12 13 14 15 16 17 18 19 20
+		// day  21 total  175 :                                     12 13 14 15 16 17 18 19 20 21
+		// day  22 total  185 :                                        13 14 15 16 17 18 19 20 21 22
+		verify(systemAlarmFacade, times(10)).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), eq(alarms.get(13).getAlarmInfo().getIdentifier()), any(), any(),
+				eq(userId));
+		// The last one is already out
+		verify(systemAlarmFacade, times(4)).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), eq(alarms.get(18).getAlarmInfo().getIdentifier()), any(), any(),
+				eq(userId));
+		verify(systemAlarmFacade, never()).scheduleAlarmOccurrenceWithSystem(any(), anyInt(), eq(alarms.get(23).getAlarmInfo().getIdentifier()), any(), any(),
+				eq(userId));
 	}
-
 
 	@NonNull
 	private AlarmNotification createAlarmNotification(String userId, String alarmIdentifier, @Nullable Date startDate, @Nullable Date endDate,

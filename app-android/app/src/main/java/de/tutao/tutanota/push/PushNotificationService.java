@@ -47,7 +47,7 @@ public final class PushNotificationService extends LifecycleJobService {
 
 		sseStorage.migrateToDB();
 		localNotificationsFacade = new LocalNotificationsFacade(this);
-		alarmNotificationsManager = new AlarmNotificationsManager(keyStoreFacade, sseStorage, new Crypto(this),
+		alarmNotificationsManager = new AlarmNotificationsManager(sseStorage, new Crypto(this),
 				new SystemAlarmFacade(this), localNotificationsFacade);
 		TutanotaNotificationsHandler tutanotaNotificationsHandler = new TutanotaNotificationsHandler(localNotificationsFacade, sseStorage,
 				alarmNotificationsManager);
