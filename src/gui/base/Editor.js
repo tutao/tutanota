@@ -67,6 +67,8 @@ export class Editor implements ImageHandler {
 
 		this.view = () => {
 			return m(".hide-outline.selectable", {
+				role: "textbox",
+				"aria-multiline": "true",
 				oncreate: vnode => this.initSquire(vnode.dom),
 				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
 			})
