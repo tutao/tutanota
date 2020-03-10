@@ -7,7 +7,8 @@ import {Button} from "../gui/base/Button"
 import {getPaymentMethodName} from "./PriceUtils"
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import {AccountType, Const} from "../api/common/TutanotaConstants"
+import type {PaidSubscriptionTypeEnum} from "../api/common/TutanotaConstants"
+import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaConstants"
 import {SysService} from "../api/entities/sys/Services"
 import {serviceRequestVoid} from "../api/main/Entity"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -19,6 +20,7 @@ import {deleteCampaign} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
+import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {formatPrice, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonType} from "../gui/base/ButtonN"
 
@@ -49,7 +51,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 		let upgradeButton = new Button("buy_action", () => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
-			serviceData.proUpgrade = (data.type === SubscriptionType.Pro)
+			serviceData.subscriptionType = this._subscriptionTypeToPaidSubscriptionType(data.type)
 			serviceData.date = Const.CURRENT_DATE
 			serviceData.campaign = this._upgradeData.campaign
 			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData)
@@ -63,7 +65,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 				.catch(PreconditionFailedError, e => {
 					Dialog.error(() => lang.get(getPreconditionFailedPaymentMsg(e))
 						+ ((data.upgradeType === UpgradeType.Signup) ? " "
-						+ lang.get("accountWasStillCreated_msg") : ""))
+							+ lang.get("accountWasStillCreated_msg") : ""))
 				})
 				.catch(BadGatewayError, e => {
 					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((data.upgradeType === UpgradeType.Signup) ? " "
@@ -104,6 +106,18 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(upgradeButton)))
 					]
 			]
+		}
+	}
+
+	_subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionTypeEnum): PaidSubscriptionTypeEnum {
+		if (subscriptionType === SubscriptionType.Premium) {
+			return PaidSubscriptionType.Premium
+		} else if (subscriptionType === SubscriptionType.Teams) {
+			return PaidSubscriptionType.Teams
+		} else if (subscriptionType === SubscriptionType.Pro) {
+			return PaidSubscriptionType.Pro
+		} else {
+			throw new Error("not a valid Premium subscription type: " + subscriptionType)
 		}
 	}
 
@@ -149,8 +163,8 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 			: lang.get("gross_label")
 		this._priceField.setValue(formatPrice(Number(this._upgradeData.price), true) + " "
 			+ (this._upgradeData.options.paymentInterval() === 12
-			? lang.get("pricing.perYear_label")
-			: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
+				? lang.get("pricing.perYear_label")
+				: lang.get("pricing.perMonth_label")) + " (" + netOrGross + ")")
 		if (this._upgradeData.priceNextYear) {
 			this._priceNextYearField.setValue(formatPrice(Number(this._upgradeData.priceNextYear), true) + " " +
 				(this._upgradeData.options.paymentInterval() === 12

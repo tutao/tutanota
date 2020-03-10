@@ -39,15 +39,16 @@ import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
 	getIncludedAliases,
 	getIncludedStorageCapacity,
+	getNbrOfUsers,
 	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
 	isSharingActive,
-	isWhitelabelActive,
-	SubscriptionType
+	isWhitelabelActive
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -79,19 +80,20 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_accountingInfo: ?AccountingInfo;
 	_lastBooking: ?Booking;
 	_orderAgreement: ?OrderProcessingAgreement;
-	_isPro: boolean;
+	_currentSubscription: SubscriptionTypeEnum;
 	_isCancelled: boolean;
 
 	constructor() {
-		this._isPro = false
 		let subscriptionAction = new Button("subscription_label", () => {
 			if (this._accountingInfo && this._customer && this._customerInfo) {
 				showSwitchDialog(this._accountingInfo,
-					this._isPro,
+					this._currentSubscription,
+					getNbrOfUsers(this._lastBooking),
 					getTotalStorageCapacity(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getTotalAliases(neverNull(this._customer), neverNull(this._customerInfo), this._lastBooking),
 					getIncludedStorageCapacity(neverNull(this._customerInfo)),
 					getIncludedAliases(neverNull(this._customerInfo)),
+					isSharingActive(this._lastBooking),
 					isWhitelabelActive(this._lastBooking))
 			}
 		}, () => Icons.Edit)
@@ -448,7 +450,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			? " "
 			+ lang.get("cancelledBy_label", {"{endOfSubscriptionPeriod}": formatDate(this._periodEndDate)}) : ""
 		const accountType: AccountTypeEnum = downcast(logins.getUserController().user.accountType)
-		this._subscriptionFieldValue(_getAccountTypeName(accountType, this._isPro) + cancelledText)
+		this._subscriptionFieldValue(_getAccountTypeName(accountType, this._currentSubscription) + cancelledText)
 	}
 
 	_updateBookings() {
@@ -464,7 +466,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 							this._isCancelled = customer.canceledPremiumAccount
-							this._isPro = getSubscriptionType(this._lastBooking, customer, customerInfo) === SubscriptionType.Pro
+							this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
 							this._updateSubscriptionField(this._isCancelled)
 							Promise.all([
 									this._updateUserField(),
@@ -579,9 +581,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function _getAccountTypeName(type: AccountTypeEnum, isPro: boolean): string {
-	if (type === AccountType.PREMIUM && isPro) {
-		return "Pro"
+function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTypeEnum): string {
+	if (type === AccountType.PREMIUM) {
+		return subscription
 	} else {
 		return AccountTypeNames[Number(type)];
 	}

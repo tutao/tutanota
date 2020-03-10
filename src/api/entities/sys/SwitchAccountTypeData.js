@@ -40,11 +40,11 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"date": {"name": "date", "id": 775, "since": 9, "type": "Date", "cardinality": "ZeroOrOne", "final": false, "encrypted": false},
-		"proUpgrade": {
-			"name": "proUpgrade",
+		"subscriptionType": {
+			"name": "subscriptionType",
 			"id": 1310,
 			"since": 30,
-			"type": "Boolean",
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "56"
+	"version": "57"
 }
 
 export function createSwitchAccountTypeData(values?: $Shape<$Exact<SwitchAccountTypeData>>): SwitchAccountTypeData {

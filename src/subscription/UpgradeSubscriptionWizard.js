@@ -14,7 +14,6 @@ import {UpgradeConfirmPage} from "./UpgradeConfirmPage"
 import {UpgradeSubscriptionPage} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {SignupPage} from "./SignupPage"
-import {worker} from "../api/main/WorkerClient"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import type {SubscriptionOptions, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
@@ -50,6 +49,7 @@ export type UpgradeSubscriptionData = {
 	campaignInfoTextId: ?TranslationKey,
 	upgradeType: UpgradeTypeEnum,
 	premiumPrices: PlanPrices,
+	teamsPrices: PlanPrices,
 	proPrices: PlanPrices
 }
 
@@ -119,6 +119,7 @@ export function showUpgradeWizard(): void {
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
 						premiumPrices: prices.premiumPrices,
+						teamsPrices: prices.teamsPrices,
 						proPrices: prices.proPrices,
 					}
 					const wizardPages = [
@@ -158,6 +159,7 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			upgradeType: UpgradeType.Signup,
 			premiumPrices: prices.premiumPrices,
+			teamsPrices: prices.teamsPrices,
 			proPrices: prices.proPrices
 		}
 		const wizardPages = [

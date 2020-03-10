@@ -135,7 +135,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "56"
+	"version": "57"
 }
 
 export function createInvoice(values?: $Shape<$Exact<Invoice>>): Invoice {

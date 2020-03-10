@@ -14,6 +14,7 @@ export type SubscriptionOptions = {
 export const SubscriptionType = Object.freeze({
 	Free: 'Free',
 	Premium: 'Premium',
+	Teams: 'Teams',
 	Pro: 'Pro'
 })
 export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
@@ -54,6 +55,7 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 export type SubscriptionData = {
 	options: SubscriptionOptions,
 	premiumPrices: PlanPrices,
+	teamsPrices: PlanPrices,
 	proPrices: PlanPrices
 }
 
@@ -66,8 +68,9 @@ export const UpgradePriceType = Object.freeze({
 })
 export type UpgradePriceTypeEnum = $Values<typeof UpgradePriceType>;
 
-export function getUpgradePrice(attrs: SubscriptionData, premium: boolean, type: UpgradePriceTypeEnum): number {
-	let prices = premium ? attrs.premiumPrices : attrs.proPrices
+export function getUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): number {
+	let prices = (subscription === SubscriptionType.Premium) ? attrs.premiumPrices :
+		((subscription === SubscriptionType.Teams) ? attrs.teamsPrices : attrs.proPrices)
 	let monthlyPriceString
 	let monthsFactor = (attrs.options.paymentInterval() === 12) ? 10 : 1
 	let discount = 0
@@ -91,8 +94,8 @@ export function getUpgradePrice(attrs: SubscriptionData, premium: boolean, type:
 	return Number(monthlyPriceString) * monthsFactor - discount
 }
 
-export function getFormattetUpgradePrice(attrs: SubscriptionData, premium: boolean, type: UpgradePriceTypeEnum): string {
-	return formatPrice(getUpgradePrice(attrs, premium, type), true)
+export function getFormattetUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
+	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
 }
 
 /**
@@ -120,6 +123,10 @@ export function getTotalAliases(customer: Customer, customerInfo: CustomerInfo, 
 	}
 }
 
+export function getNbrOfUsers(lastBooking: ?Booking): number {
+	return getCurrentCount(BookingItemFeatureType.Users, lastBooking)
+}
+
 export function isWhitelabelActive(lastBooking: ?Booking): boolean {
 	return getCurrentCount(BookingItemFeatureType.Branding, lastBooking) !== 0
 }
@@ -138,9 +145,13 @@ export function getSubscriptionType(lastBooking: ?Booking, customer: Customer, c
 	}
 	let aliases = getTotalAliases(customer, customerInfo, lastBooking)
 	let storage = getTotalStorageCapacity(customer, customerInfo, lastBooking)
-	return isWhitelabelActive(lastBooking) && aliases >= 20 && storage >= 10
-		? SubscriptionType.Pro
-		: SubscriptionType.Premium
+	if (isSharingActive(lastBooking) && isWhitelabelActive(lastBooking) && aliases >= 20 && storage >= 10) {
+		return SubscriptionType.Pro
+	} else if (isSharingActive(lastBooking) && storage >= 10) {
+		return SubscriptionType.Teams
+	} else {
+		return SubscriptionType.Premium
+	}
 }
 
 export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): TranslationKey {

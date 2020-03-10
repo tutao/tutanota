@@ -2,6 +2,9 @@
 
 import {downcast} from "./utils/Utils"
 
+export const reverse = (objectMap: Object) => Object.keys(objectMap)
+                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+
 export const GroupType = Object.freeze({
 	User: "0",
 	Admin: "1",
@@ -98,11 +101,16 @@ export const AccountType = Object.freeze({
 })
 export type AccountTypeEnum = $Values<typeof AccountType>;
 
-
 export const AccountTypeNames = ["System", "Free", "Outlook", "Premium", "Stream", "External"]
 
-export const reverse = (objectMap: Object) => Object.keys(objectMap)
-                                                    .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+export const PaidSubscriptionType = Object.freeze({
+	Premium: '0',
+	Legacy_Pro: '1',
+	Pro: '2',
+	Teams: '3'
+})
+export type PaidSubscriptionTypeEnum = $Values<typeof PaidSubscriptionType>;
+
 export const BookingItemFeatureType = Object.freeze({
 	Users: '0',
 	Storage: '1',

@@ -26,9 +26,12 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 					boxHeight: 250,
 					highlightPremium: true,
 					premiumPrices: upgradeData.premiumPrices,
+					teamsPrices: upgradeData.teamsPrices,
 					proPrices: upgradeData.proPrices,
 					isInitialUpgrade: upgradeData.upgradeType !== UpgradeType.Switch,
 					currentlyActive: currentSubscription,
+					currentlySharingOrdered: false,
+					currentlyWhitelabelOrdered: false,
 					freeActionButton: {
 						view: () => {
 							return m(ButtonN, {
@@ -53,8 +56,23 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 								label: "pricing.select_action",
 								click: () => {
 									this._upgradeData.type = SubscriptionType.Premium
-									this._upgradeData.price = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanActualPrice))
-									let nextYear = String(getUpgradePrice(upgradeData, true, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
+									this._pageActionHandler.showNext(this._upgradeData)
+								},
+								type: ButtonType.Login,
+							})
+						}
+					},
+					teamsActionButton: {
+						view: () => {
+							return m(ButtonN, {
+								label: "pricing.select_action",
+								click: () => {
+									this._upgradeData.type = SubscriptionType.Teams
+										this._upgradeData.price = String(getUpgradePrice(upgradeData, SubscriptionType.Teams, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, SubscriptionType.Teams, UpgradePriceType.PlanNextYearsPrice))
 									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
 									this._pageActionHandler.showNext(this._upgradeData)
 								},
@@ -68,8 +86,8 @@ export class UpgradeSubscriptionPage implements WizardPage<UpgradeSubscriptionDa
 								label: "pricing.select_action",
 								click: () => {
 									this._upgradeData.type = SubscriptionType.Pro
-									this._upgradeData.price = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanActualPrice))
-									let nextYear = String(getUpgradePrice(upgradeData, false, UpgradePriceType.PlanNextYearsPrice))
+									this._upgradeData.price = String(getUpgradePrice(upgradeData, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice))
+									let nextYear = String(getUpgradePrice(upgradeData, SubscriptionType.Pro, UpgradePriceType.PlanNextYearsPrice))
 									this._upgradeData.priceNextYear = (this._upgradeData.price !== nextYear) ? nextYear : null
 									this._pageActionHandler.showNext(this._upgradeData)
 								},

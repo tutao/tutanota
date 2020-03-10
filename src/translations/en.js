@@ -317,7 +317,7 @@ module.exports = {
 		"dnsRecordValueOrPointsTo_label": "Value/Points to",
 		"domain_label": "Domain",
 		"doNotAskAgain_label": "Don't ask again for this file",
-		"downgradeToPremium_msg": "Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without custom domain login and themes.",
+		"downgradeToPremium_msg": "Your account will be downgraded to a Premium account with 5 aliases, 1 GB of storage and without sharing or whitelabel functions.",
 		"download_action": "Download",
 		"draft_action": "Drafts",
 		"duplicatedMailAddressInUserList_msg": "The email address is included more than once in your input data.",
@@ -919,7 +919,7 @@ module.exports = {
 		"sharingDeletionWarning_msg": "All shares of all users will be automatically deleted when you disable the sharing feature.",
 		"sharingFeatureNotOrderedAdmin_msg": "To share a calendar you have to order the sharing feature. Would you like to order it now?",
 		"sharingFeatureNotOrderedUser_msg": "To share a calendar you have to order the sharing feature. Please contact your administrator.",
-		"sharingFeature_label": "Sharing feature",
+		"sharingFeature_label": "Sharing",
 		"sharing_label": "Sharing",
 		"showAddress_alt": "Show this address in Openstreetmap",
 		"showAll_action": "Show all",
@@ -1081,6 +1081,11 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"showTrayIcon_action": "Show Tray Icon",
-		"mayNotWorkForAllDe_msg": "This may not work for all Linux desktop environments."
+		"mayNotWorkForAllDe_msg": "This may not work for all Linux desktop environments.",
+		"upgradeTeams_msg": "Your subscription will be upgraded to Teams.",
+		"downgradeToTeams_msg": "Your account will be downgraded to a Teams account with 5 aliases, 10 GB of storage and without whitelabel functions.",
+		"pricing.comparisonSharingCalendar_msg": "Share calendars",
+		"pricing.comparisonOneCalendar_msg": "One calendar",
+		"pricing.comparisonMultipleCalendars_msg": "Multiple calendars",
 	}
 }

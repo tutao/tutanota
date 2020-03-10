@@ -118,7 +118,7 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 					additionalFeatures.push(lang.get("whitelabel_label"))
 				}
 				if (_getPriceFromPriceData(price.futurePriceNextPeriod, BookingItemFeatureType.Sharing) > 0) {
-					additionalFeatures.push(lang.get("sharingFeature_label"))
+					additionalFeatures.push(lang.get("sharing_label"))
 				}
 				if (additionalFeatures.length > 0) {
 					return count + " " + lang.get("bookingItemUsersIncluding_label") + " " + additionalFeatures.join(", ")

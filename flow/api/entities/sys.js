@@ -958,7 +958,7 @@ type SwitchAccountTypeData = {
 	accountType: NumberString;
 	campaign: ?string;
 	date: ?Date;
-	proUpgrade: boolean;
+	subscriptionType: NumberString;
 
 }
 
@@ -1557,6 +1557,7 @@ type UpgradePriceServiceReturn = {
 
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
+	teamsPrices: PlanPrices;
 }
 
 type RegistrationCaptchaServiceGetData = {

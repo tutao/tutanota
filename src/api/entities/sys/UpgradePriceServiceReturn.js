@@ -58,10 +58,19 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"refType": "PlanPrices",
 			"final": false
+		},
+		"teamsPrices": {
+			"name": "teamsPrices",
+			"id": 1729,
+			"since": 57,
+			"type": "AGGREGATION",
+			"cardinality": "One",
+			"refType": "PlanPrices",
+			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "56"
+	"version": "57"
 }
 
 export function createUpgradePriceServiceReturn(values?: $Shape<$Exact<UpgradePriceServiceReturn>>): UpgradePriceServiceReturn {
