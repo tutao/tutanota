@@ -14,10 +14,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern NSInteger const ALARM_LIMIT;
+
 @interface TUTAlarmManager : NSObject
 - (instancetype) initWithUserPreferences:(TUTUserPreferenceFacade *)userPref;
 - (void)fetchMissedNotifications:(void(^)(NSError *))completionHandler;
-- (void)rescheduleEvents;
+- (void)rescheduleAlarms;
 - (BOOL)hasNotificationTTLExpired;
 - (void)resetStoredState;
 

@@ -126,7 +126,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
                 TUTLog(@"Successfully processed missed notifications");
             }
         }];
-        [self.appDelegate.alarmManager rescheduleEvents];
+        [self.appDelegate.alarmManager rescheduleAlarms];
     }
     
     [self loadMainPageWithParams:nil];

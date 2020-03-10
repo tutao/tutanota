@@ -22,6 +22,7 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */; };
 		3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */; };
+		3D700E412418023200DC8419 /* AlarmOccurrence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D700E402418023200DC8419 /* AlarmOccurrence.swift */; };
 		3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
 		3D74536F2108A1FD00B16F2E /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
 		3D87ECDF212D921700FD7315 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
@@ -153,6 +154,8 @@
 		3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSseInfo.m; sourceTree = "<group>"; };
 		3D6C6D0622B7709A00289576 /* TUTKeychainManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTKeychainManager.h; sourceTree = "<group>"; };
 		3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTKeychainManager.m; sourceTree = "<group>"; };
+		3D700E3F2418023200DC8419 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
+		3D700E402418023200DC8419 /* AlarmOccurrence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmOccurrence.swift; sourceTree = "<group>"; };
 		3D74536521089F4800B16F2E /* TUTErrorFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTErrorFactory.h; sourceTree = "<group>"; };
 		3D74536621089F4800B16F2E /* TUTErrorFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTErrorFactory.m; sourceTree = "<group>"; };
 		3D74536D2108A1FD00B16F2E /* TUTContactsSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTContactsSource.h; sourceTree = "<group>"; };
@@ -303,6 +306,8 @@
 				3D20B36322B8D61600472D12 /* TUTRepeatRule.m */,
 				3DD7A23622C604F000876B85 /* TUTAlarmModel.h */,
 				3DD7A23722C604F000876B85 /* TUTAlarmModel.m */,
+				3D700E402418023200DC8419 /* AlarmOccurrence.swift */,
+				3D700E3F2418023200DC8419 /* tutanota-Bridging-Header.h */,
 			);
 			path = Alarms;
 			sourceTree = "<group>";
@@ -1074,6 +1079,7 @@
 				TargetAttributes = {
 					3DD4A08220F8C6240086EB36 = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1130;
 						SystemCapabilities = {
 							com.apple.Push = {
 								enabled = 1;
@@ -1299,6 +1305,7 @@
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3DD6D08922AAAE9800C0E312 /* TUTAlarmManager.m in Sources */,
 				3DB9A20E22BA5C23004EA08F /* TUTUtils.m in Sources */,
+				3D700E412418023200DC8419 /* AlarmOccurrence.swift in Sources */,
 				3D74536721089F4800B16F2E /* TUTErrorFactory.m in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
@@ -1974,6 +1981,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1998,6 +2006,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/Alarms/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -2006,6 +2017,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2030,6 +2042,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/Alarms/tutanota-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -2037,6 +2051,7 @@
 		3DD4A0A820F8C6260086EB36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
@@ -2056,6 +2071,7 @@
 		3DD4A0A920F8C6260086EB36 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
