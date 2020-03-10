@@ -82,6 +82,17 @@ if (process.argv.indexOf("-r") !== -1) {
 				wm.getAll().forEach(w => w.show())
 			}
 			handleArgv(args)
+		}).on('open-url', (e, url) => {
+			// MacOS mailto handling
+			e.preventDefault()
+			if (!url.startsWith('mailto:')) {
+			} else if (app.isReady()) {
+				// we can open a window now
+				handleMailto(url)
+			} else {
+				// wait until opening windows is possible, then handle.
+				app.once('ready', () => handleMailto(url))
+			}
 		})
 	}
 
@@ -94,12 +105,6 @@ function onAppReady() {
 		if (!conf.getDesktopConfig('runAsTrayApp')) {
 			app.quit()
 		}
-	}).on('open-url', (e, url) => { // MacOS mailto handling
-		e.preventDefault()
-		if (!url.startsWith('mailto:')) {
-			return
-		}
-		handleMailto(url)
 	})
 
 	err.init(wm, ipc)

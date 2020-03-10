@@ -1,4 +1,5 @@
 import {IncomingMessage} from "electron"
+import {Function} from "estree"
 
 /**
  * this file is highly inaccurate, check the docs at electronjs.org
@@ -205,11 +206,13 @@ declare module 'electron' {
 		on(AppEvent, (Event, ...Array<any>) => any): App,
 		once(AppEvent, (Event, ...Array<any>) => any): App,
 		emit(AppEvent): App,
+		removeListener(AppEvent, Function): App,
 		requestSingleInstanceLock(): void,
 		quit(): void,
 		exit(code: Number): void,
 		relaunch({args: Array<string>, execPath?: string}): void,
 		getVersion(): string,
+		isReady(): boolean,
 		name: string,
 		setPath(name: string, path: string): void;
 		allowRendererProcessReuse: boolean;
