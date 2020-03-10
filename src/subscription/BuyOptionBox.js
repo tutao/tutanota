@@ -1,13 +1,13 @@
 // @flow
 import m from "mithril"
 import {px} from "../gui/size"
-import {SegmentControl} from "./SegmentControl"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {PaymentIntervalItems} from "./SubscriptionUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
+import {SegmentControl} from "../gui/base/SegmentControl"
 
 
 export type BuyOptionBoxAttr = {|

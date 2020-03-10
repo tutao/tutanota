@@ -4,10 +4,10 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
-import {SegmentControl} from "./SegmentControl"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {size} from "../gui/size"
+import {SegmentControl} from "../gui/base/SegmentControl"
 
 export type SubscriptionSelectorAttr = {|
 	options: SubscriptionOptions,

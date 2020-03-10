@@ -1,10 +1,10 @@
 //@flow
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import type {SegmentControlItem} from "./SegmentControl"
 import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,

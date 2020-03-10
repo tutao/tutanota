@@ -11,12 +11,12 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {load, update} from "../api/main/Entity"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {SegmentControl} from "../gui/base/SegmentControl"
 import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {insertInlineImageB64ClickHandler} from "../mail/MailUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import {SegmentControl} from "../gui/base/SegmentControl"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
@@ -37,8 +37,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 
 	const editSegment = {name: lang.get("edit_action"), value: "edit"}
 	const previewSegment = {name: lang.get("preview_label"), value: "preview"}
-	const selectedTab = stream(editSegment)
-	const segmentControl = new SegmentControl([editSegment, previewSegment], selectedTab)
+	const selectedTab = stream(editSegment.value)
 
 	const sortedLanguages: {name: string, value: string}[] = languages.slice()
 	                                                                  .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
@@ -104,8 +103,11 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		title: lang.get("edit_action"),
 		child: () => {
 			return [
-				m(segmentControl),
-				selectedTab() === editSegment
+				m(SegmentControl, {
+					items: [editSegment, previewSegment],
+					selectedValue: selectedTab,
+				}),
+				selectedTab() === editSegment.value
 					? editTabContent()
 					: previewTabContent()
 			]
@@ -116,7 +118,8 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 				return
 			}
 			showProgressDialog("pleaseWait_msg", customerProperties.getAsync().then((customerProperties) => {
-				if (customerProperties.notificationMailTemplates.filter((t) => t !== existingTemplate && t.language === selectedLanguageStream()).length > 0) {
+				if (customerProperties.notificationMailTemplates.filter((t) => t !== existingTemplate && t.language
+					=== selectedLanguageStream()).length > 0) {
 					Dialog.error("templateLanguageExists_msg")
 					return
 				}

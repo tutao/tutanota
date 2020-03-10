@@ -6,8 +6,6 @@ import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
 import stream from "mithril/stream/stream.js"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentDataResultType} from "../api/common/TutanotaConstants"
@@ -25,21 +23,20 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonType} from "../gui/base/ButtonN"
-
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
+import {SegmentControl} from "../gui/base/SegmentControl"
 
 /**
  * Wizard page for editing invoice and payment data.
  */
 export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscriptionData> {
-
 	view: Function;
 	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
 	_upgradeData: UpgradeSubscriptionData;
 	_paymentMethodInput: PaymentMethodInput;
 	_invoiceDataInput: InvoiceDataInput;
 	_availablePaymentMethods: Array<SegmentControlItem<PaymentMethodTypeEnum>>;
-	_selectedPaymentMethod: Stream<SegmentControlItem<PaymentMethodTypeEnum>>;
-	_paymentMethodSelector: SegmentControl<PaymentMethodTypeEnum>;
+	_selectedPaymentMethod: Stream<PaymentMethodTypeEnum>;
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._selectedPaymentMethod = stream()
@@ -62,10 +59,12 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			}
 		}).setType(ButtonType.Login)
 
-
-		this.view = () => m("#upgrade-account-dialog.pt", this._paymentMethodSelector
+		this.view = () => m("#upgrade-account-dialog.pt", this._availablePaymentMethods
 			? [
-				m(this._paymentMethodSelector),
+				m(SegmentControl, {
+					items: this._availablePaymentMethods,
+					selectedValue: this._selectedPaymentMethod,
+				}),
 				m(".flex-space-around.flex-wrap.pt", [
 					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._invoiceDataInput)),
 					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._paymentMethodInput))
@@ -73,6 +72,8 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(nextButton)))
 			]
 			: null)
+
+		this._selectedPaymentMethod.map((method) => this._paymentMethodInput.updatePaymentMethod(method))
 	}
 
 	nextAction(): Promise<?UpgradeSubscriptionData> {
@@ -122,15 +123,8 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 			}
 			this._paymentMethodInput = new PaymentMethodInput(data.options, this._invoiceDataInput.selectedCountry, neverNull(data.accountingInfo), payPalRequestUrl)
 			this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
-			this._paymentMethodSelector = new SegmentControl(this._availablePaymentMethods, this._selectedPaymentMethod, 130)
-				.setSelectionChangedHandler((selectedItem) => {
-					this._selectedPaymentMethod(selectedItem)
-					this._paymentMethodInput.updatePaymentMethod(selectedItem.value)
-				})
-			let initialItem = this._availablePaymentMethods.find(item => item.value === data.paymentData.paymentMethod)
-				|| this._availablePaymentMethods[0]
-			this._selectedPaymentMethod(initialItem)
-			this._paymentMethodInput.updatePaymentMethod(initialItem.value, data.paymentData)
+			this._selectedPaymentMethod(data.paymentData.paymentMethod)
+			this._paymentMethodInput.updatePaymentMethod(data.paymentData.paymentMethod, data.paymentData)
 		})
 	}
 
