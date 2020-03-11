@@ -257,11 +257,13 @@ interface Lifecycle<Attrs> {
 	+oninit?: (vnode: Vnode<Attrs>) => any;
 	// The oncreate hook is called after a DOM element is created and attached to the document.
 	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onbeforeupdate hook is called before a vnode is diffed in a update.
-	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => Promise<any> | void;
+	// The onbeforeupdate hook is called before a vnode is diffed in a update. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
+	// Change to the correct return type after updating to Flow 0.85 or newer
+	// see https://github.com/facebook/flow/issues/6284
+	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => any;
 	// The onremove hook is called before a DOM element is removed from the document.
 	+onremove?: (vnode: VnodeDOM<Attrs>) => any;
-	// The onbeforeremove hook is called before a DOM element is detached from the document. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
+	// The onbeforeremove hook is called before a DOM element is detached from the document.
 	+onbeforeupdate?: (vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
 	// The onupdate hook is called after a DOM element is updated, while attached to the document.
 	+onupdate?: (vnode: VnodeDOM<Attrs>) => any;

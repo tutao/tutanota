@@ -20,6 +20,7 @@ import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import {logins} from "../api/main/LoginController"
 import {isSameId} from "../api/common/EntityFunctions"
+import {getFromMap} from "../api/common/utils/MapUtils"
 
 assertMainOrNode()
 
@@ -298,7 +299,7 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string,
 	// Cache for calculation events
 	const calcEvents = new Map()
 	events.forEach((e) => {
-		const calcEvent = calcEvents.get(e) || getCalculationEvent(e, zone, handleAsAllDay)
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, handleAsAllDay))
 
 		// Check if a new event group needs to be started
 		if (lastEventEnding !== null && calcEvent.startTime.getTime() >= lastEventEnding) {
@@ -315,7 +316,7 @@ export function layOutEvents(events: Array<CalendarEvent>, zone: string,
 		for (let i = 0; i < columns.length; i++) {
 			const col = columns[i]
 			const lastEvent = col[col.length - 1]
-			const lastCalcEvent = calcEvents.get(e) || getCalculationEvent(lastEvent, zone, handleAsAllDay)
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, handleAsAllDay))
 			if (!collidesWith(lastCalcEvent, calcEvent)) {
 				col.push(e) // push real event here not calc event
 				placed = true

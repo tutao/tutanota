@@ -96,7 +96,7 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 		})
 	}
 
-	onbeforeupdate(newVnode: Vnode<CalendarMonthAttrs>, oldVnode: Vnode<CalendarMonthAttrs>) {
+	onbeforeupdate(newVnode: Vnode<CalendarMonthAttrs>, oldVnode: VnodeDOM<CalendarMonthAttrs>): boolean {
 		const dom = this._monthDom
 		const different = !dom
 			|| oldVnode.attrs.eventsForDays !== newVnode.attrs.eventsForDays
