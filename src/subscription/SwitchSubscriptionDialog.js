@@ -41,6 +41,14 @@ type SubscriptionConfig = {
 }
 
 let subscriptions: {[SubscriptionTypeEnum]: SubscriptionConfig} = {}
+subscriptions[SubscriptionType.Free] = {
+	nbrOfAliases: 0,
+	orderNbrOfAliases: 0,
+	storageGb: 1,
+	orderStorageGb: 0,
+	sharing: false,
+	whitelabel: false
+}
 subscriptions[SubscriptionType.Premium] = {
 	nbrOfAliases: 5,
 	orderNbrOfAliases: 0,
@@ -109,7 +117,13 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 						view: () => {
 							return m(ButtonN, {
 								label: "pricing.select_action",
-								click: () => cancelSubscription(dialog),
+								click: () => cancelSubscription(dialog,
+									currentTotalAliases,
+									currentTotalStorage,
+									includedAliases,
+									includedStorage,
+									currentlySharingOrdered,
+									currentlyWhitelabelOrdered),
 								type: ButtonType.Login,
 							})
 						}
@@ -283,55 +297,70 @@ function getMonthlySinglePrice(priceData: PriceServiceReturn, featureType: Numbe
 	}
 }
 
-function cancelSubscription(dialog: Dialog) {
+function cancelSubscription(dialog: Dialog,
+                            currentNbrOfAliases: number,
+                            currentAmountOfStorage: number,
+                            includedAliases: number,
+                            includedStorage: number,
+                            currentlySharingOrdered: boolean,
+                            currentlyWhitelabelOrdered: boolean) {
 	Dialog.confirm("unsubscribeConfirm_msg").then(ok => {
 		if (ok) {
 			let d = createSwitchAccountTypeData()
 			d.accountType = AccountType.FREE
 			d.date = Const.CURRENT_DATE
 
-			showProgressDialog("pleaseWait_msg", serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
-				.then(() => worker.switchPremiumToFreeGroup()))
-				.finally(() => dialog.close())
-				.catch(PreconditionFailedError, (e) => {
-					const reason = e.data
-					if (reason == null) {
-						return Dialog.error("unknownError_msg")
-					} else {
-						let detailMsg;
-						switch (reason) {
-							case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
-								detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
-								break
-							case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
-								detailMsg = lang.get("accountSwitchCustomMailAddress_msg")
-								break
-							case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
-								detailMsg = lang.get("accountSwitchMultipleCalendars_msg")
-								break
-							case UnsubscribeFailureReason.CALENDAR_TYPE:
-								detailMsg = lang.get("accountSwitchSharedCalendar_msg")
-								break
-							case UnsubscribeFailureReason.TOO_MANY_ALIASES:
-								detailMsg = lang.get("accountSwitchAliases_msg")
-								break
-							default:
-								if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
-									const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
-									const featureName = BookingItemFeatureByCode[feature]
-									detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
-								} else {
-									detailMsg = lang.get("unknownError_msg")
-								}
-								break
+			showProgressDialog("pleaseWait_msg",
+				cancelAllAdditionalFeatures(SubscriptionType.Free,
+					currentNbrOfAliases,
+					currentAmountOfStorage,
+					includedAliases,
+					includedStorage,
+					currentlySharingOrdered,
+					currentlyWhitelabelOrdered)
+					.then(failed => {
+						if (!failed) {
+							return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
+								.then(() => worker.switchPremiumToFreeGroup())
+								.catch(PreconditionFailedError, (e) => {
+									const reason = e.data
+									if (reason == null) {
+										return Dialog.error("unknownError_msg")
+									} else {
+										let detailMsg;
+										switch (reason) {
+											case UnsubscribeFailureReason.TOO_MANY_ENABLED_USERS:
+												detailMsg = lang.get("accountSwitchTooManyActiveUsers_msg")
+												break
+											case UnsubscribeFailureReason.CUSTOM_MAIL_ADDRESS:
+												detailMsg = lang.get("accountSwitchCustomMailAddress_msg")
+												break
+											case UnsubscribeFailureReason.TOO_MANY_CALENDARS:
+												detailMsg = lang.get("accountSwitchMultipleCalendars_msg")
+												break
+											case UnsubscribeFailureReason.CALENDAR_TYPE:
+												detailMsg = lang.get("accountSwitchSharedCalendar_msg")
+												break
+											case UnsubscribeFailureReason.TOO_MANY_ALIASES:
+												detailMsg = lang.get("accountSwitchAliases_msg")
+												break
+											default:
+												if (reason.startsWith(UnsubscribeFailureReason.FEATURE)) {
+													const feature = reason.slice(UnsubscribeFailureReason.FEATURE.length + 1)
+													const featureName = BookingItemFeatureByCode[feature]
+													detailMsg = lang.get("accountSwitchFeature_msg", {"{featureName}": featureName})
+												} else {
+													detailMsg = lang.get("unknownError_msg")
+												}
+												break
+										}
+										return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
+									}
+								})
+								.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
+								.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
 						}
-						return Dialog.error(() => lang.get("accountSwitchNotPossible_msg", {"{detailMsg}": detailMsg}))
-					}
-				})
-				.catch(InvalidDataError, e => Dialog.error("accountSwitchTooManyActiveUsers_msg"))
-				.catch(PreconditionFailedError, e => Dialog.error("accountSwitchAdditionalPackagesActive_msg"))
-				.catch(BadRequestError, e => Dialog.error("deactivatePremiumWithCustomDomainError_msg"))
-
+					})).finally(() => dialog.close())
 		}
 	})
 }
@@ -418,27 +447,55 @@ function switchSubscription(
 	} else {
 		Dialog.confirm(targetSubscription === SubscriptionType.Premium ? "downgradeToPremium_msg" : "downgradeToTeams_msg").then(ok => {
 			if (ok) {
-				return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-					if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)) {
-						return buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
-					}
-				}).then(() => {
-					if (isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
-						return buyStorage(subscriptions[targetSubscription].orderStorageGb)
-					}
-				}).then(() => {
-					if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
-						return buySharing(false)
-					}
-				}).then(() => {
-					if (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
-						return buyWhitelabel(false)
-					}
-				}).then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
+				return showProgressDialog("pleaseWait_msg", cancelAllAdditionalFeatures(targetSubscription,
+					currentNbrOfAliases,
+					currentAmountOfStorage,
+					includedAliases,
+					includedStorage,
+					currentlySharingOrdered,
+					currentlyWhitelabelOrdered)
+					.then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
 					.then(() => dialog.close())
 			}
 		})
 	}
+}
+
+/**
+ * @returns True if any of the additional features could not be canceled, false otherwise
+ */
+function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
+                                     currentNbrOfAliases: number,
+                                     currentAmountOfStorage: number,
+                                     includedAliases: number,
+                                     includedStorage: number,
+                                     currentlySharingOrdered: boolean,
+                                     currentlyWhitelabelOrdered: boolean): Promise<boolean> {
+	return Promise.resolve().then(() => {
+		if (isDowngradeAliasesNeeded(targetSubscription, currentNbrOfAliases, includedAliases)) {
+			return buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
+		} else {
+			return false
+		}
+	}).then(previousFailed => {
+		if (isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
+			return buyStorage(subscriptions[targetSubscription].orderStorageGb).then(thisFailed => thisFailed || previousFailed)
+		} else {
+			return previousFailed
+		}
+	}).then(previousFailed => {
+		if (isDowngradeSharingNeeded(targetSubscription, currentlySharingOrdered)) {
+			return buySharing(false).then(thisFailed => thisFailed || previousFailed)
+		} else {
+			return previousFailed
+		}
+	}).then(previousFailed => {
+		if (isDowngradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
+			return buyWhitelabel(false).then(thisFailed => thisFailed || previousFailed)
+		} else {
+			return previousFailed
+		}
+	})
 }
 
 function updatePaymentInterval(paymentInterval: number, accountingInfo: AccountingInfo) {

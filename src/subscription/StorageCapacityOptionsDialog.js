@@ -21,14 +21,18 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import * as BuyDialog from "./BuyDialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 
-export function buyStorage(amount: number): Promise<void> {
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function buyStorage(amount: number): Promise<boolean> {
 	const bookingData = createBookingServiceData()
 	bookingData.amount = amount.toString()
 	bookingData.featureType = BookingItemFeatureType.Storage
 	bookingData.date = Const.CURRENT_DATE
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+		.return(false)
 		.catch(PreconditionFailedError, error => {
-			return Dialog.error("storageCapacityTooManyUsedForBooking_msg")
+			return Dialog.error("storageCapacityTooManyUsedForBooking_msg").return(true)
 		})
 }
 

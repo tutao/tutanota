@@ -242,9 +242,9 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							if (logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog(false)
 							} else {
-								const whitelabelEnabledPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(true) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
-								whitelabelEnabledPromise.then(enabled => {
-									if (enabled) {
+								const whitelabelFailedPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
+								whitelabelFailedPromise.then(failed => {
+									if (!failed) {
 										SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
 									}
 								})
@@ -581,10 +581,10 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			showNotAvailableForFreeDialog(false)
 		} else {
 
-			const whitelabelEnabledPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
-				Promise.resolve(true) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
-			whitelabelEnabledPromise.then(enabled => {
-				if (enabled) {
+			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
+				Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
+			whitelabelFailedPromise.then(failed => {
+				if (!failed) {
 					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)
 				}
 			})

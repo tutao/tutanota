@@ -20,15 +20,18 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
-
-export function buyAliases(amount: number): Promise<void> {
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function buyAliases(amount: number): Promise<boolean> {
 	const bookingData = createBookingServiceData()
 	bookingData.amount = amount.toString()
 	bookingData.featureType = BookingItemFeatureType.Alias
 	bookingData.date = Const.CURRENT_DATE
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+		.return(false)
 		.catch(PreconditionFailedError, error => {
-			return Dialog.error("emailAliasesTooManyActivatedForBooking_msg")
+			return Dialog.error("emailAliasesTooManyActivatedForBooking_msg").return(true)
 		})
 }
 
@@ -102,7 +105,8 @@ function createEmailAliasPackageBox(amount: number, freeAmount: number, buyActio
 		let price = formatPrice(getPriceFromPriceData(newPrice.futurePriceNextPeriod, BookingItemFeatureType.Alias), true)
 		attrs.price = price
 		attrs.originalPrice = price
-		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval === "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
+		attrs.helpLabel = (neverNull(newPrice.futurePriceNextPeriod).paymentInterval
+			=== "12") ? "pricing.perYear_label" : "pricing.perMonth_label"
 		m.redraw()
 	})
 	return {amount, buyOptionBoxAttr: attrs}

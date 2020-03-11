@@ -12,19 +12,22 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 
 /**
- * @returns true if the execution was successfull. False if the action has been cancelled by user or the precondition has failed.
+ * @returns True if it failed, false otherwise
  */
 export function buyWhitelabel(enable: boolean): Promise<boolean> {
 	return buy(BookingItemFeatureType.Branding, "whitelabelDomainExisting_msg", enable)
 }
 
 /**
- * @returns true if the execution was successfull. False if the action has been cancelled by user or the precondition has failed.
+ * @returns True if it failed, false otherwise
  */
 export function buySharing(enable: boolean): Promise<boolean> {
 	return buy(BookingItemFeatureType.Sharing, "unknownError_msg", enable)
 }
 
+/**
+ * @returns True if it failed, false otherwise
+ */
 function buy(bookingItemFeatureType: BookingItemFeatureTypeEnum, errorMessageId: TranslationKey, enable: boolean): Promise<boolean> {
 	const amount = enable ? 1 : 0
 	const bookingData = createBookingServiceData()
@@ -32,17 +35,17 @@ function buy(bookingItemFeatureType: BookingItemFeatureTypeEnum, errorMessageId:
 	bookingData.featureType = bookingItemFeatureType
 	bookingData.date = Const.CURRENT_DATE
 	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).then(() => {
-		return true
+		return false
 	}).catch(PreconditionFailedError, error => {
 		console.log(error)
-		return Dialog.error(errorMessageId).return(false)
+		return Dialog.error(errorMessageId).return(true)
 	})
 }
 
 /**
  * Shows the buy dialog to enable or disable the whitelabel package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns true if the execution was successfull. False if the action has been cancelled by user or the precondition has failed.
+ * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
  */
 export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
 	return showBuyDialog(BookingItemFeatureType.Branding, "whitelabelDomainExisting_msg", enable)
@@ -51,18 +54,21 @@ export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
 /**
  * Shows the buy dialog to enable or disable the sharing package.
  * @param enable true if the whitelabel package should be enabled otherwise false.
- * @returns true if the execution was successfull. False if the action has been cancelled by user or the precondition has failed.
+ * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
  */
 export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
 	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
 		if (ok) {
 			return showBuyDialog(BookingItemFeatureType.Sharing, "unknownError_msg", enable)
 		} else {
-			return false
+			return true
 		}
 	})
 }
 
+/**
+ * @returns True if it failed, false otherwise
+ */
 function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, errorMessageId: TranslationKey, enable: boolean): Promise<boolean> {
 	const amount = enable ? 1 : 0
 	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, 0, false))
@@ -70,7 +76,7 @@ function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, error
 			if (accepted) {
 				return buy(bookingItemFeatureType, errorMessageId, enable)
 			} else {
-				return false
+				return true
 			}
 		})
 }
