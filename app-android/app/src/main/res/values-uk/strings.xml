@@ -3,5 +3,4 @@
     <string name="pushNewMail_msg">Отримано нове повідомлення.</string>
     <string name="notificationSync_msg">Синхронізація сповіщень</string>
     <string name="scheduleAlarmError_msg">Не вдалося налаштувати будильник. Оновіть програму.</string>
-    <string name="wantToSendReport_msg">Несподівано щось пішло не так. Бажаєте відправити звіт про помилку? Ви можете залишити повідомлення, щоб допомогти нам виправити цю помилку.</string>
 </resources>

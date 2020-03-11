@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-02-20T15:16:20Z",
+	"updated_at": "2020-03-11T12:29:48Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -434,7 +434,7 @@ module.exports = {
 		"ignoreCase_alt": "Ignorera skiftläge",
 		"importCalendar_label": "Importera kalender",
 		"importReadFileError_msg": "Filen {filename} går inte att läsa.",
-		"importUsers_action": "Lägg till flera användare från CSV",
+		"importUsers_action": "Importera användare",
 		"importVCardError_msg": "Kan inte läsa vCard-fil.",
 		"importVCardSuccess_msg": "{1} kontakt(er) har importerats!",
 		"importVCard_action": "Importera vCard",
@@ -675,7 +675,7 @@ module.exports = {
 		"openCamera_action": "Kamera",
 		"openNewWindow_action": "Nytt Fönster",
 		"open_action": "Öppna",
-		"operationStillActive_msg": "Åtgärden kan inte utföras just nu eftersom en annan operation på denna mapp fortfarande körs. Försök igen senare.",
+		"operationStillActive_msg": "Åtgärden kan inte utföras just nu eftersom en annan åtgärd fortfarande körs. Försök igen senare.",
 		"optionalValues_label": "Frivilliga uppgifter",
 		"orderAliasesConfirm_msg": "Du kan välja ett större paket för att registrera fler alias.",
 		"orderProcessingAgreementInfo_msg": "Enligt EU: s GDPR är affärskunder skyldiga att ingå ett orderbearbetningsavtal med oss.",

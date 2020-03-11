@@ -1,4 +1,3 @@
 <resources>
     <string name="pushNewMail_msg">Új levél érkezett.</string>
-    <string name="wantToSendReport_msg">Váratlan hiba történt. Szeretne hibajelentést küldeni? Üzenetet írhat nekünk, amely segítségével orvosolni tudjuk a hibát.</string>
 </resources>

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-02-06T08:37:39Z",
+	"updated_at": "2020-03-11T12:27:55Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -81,6 +81,7 @@ module.exports = {
 		"auditLog_title": "Regnskabslog",
 		"automaticRenewal_label": "automatisk fornyelse",
 		"automatic_label": "Automatisk",
+		"autoUpdate_label": "Automatisk opdatering",
 		"back_action": "Tilbage",
 		"bcc_label": "Bcc",
 		"birthday_alt": "Fødselsdag",

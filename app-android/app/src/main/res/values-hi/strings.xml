@@ -1,5 +1,4 @@
 <resources>
     <string name="reminder_label">स्मरण-पत्र</string>
     <string name="pushNewMail_msg">नया संदेश प्राप्त हुआ ! </string>
-    <string name="wantToSendReport_msg">कुछ अनपेक्षित त्रुटि (समस्या) प्राप्त हुई  है।  रिपोर्ट भेजना चाहेंगे ? साथ-साथ आप इस समस्या से  सम्बन्धित जानकारी भी भेज सकते हैं।</string>
 </resources>

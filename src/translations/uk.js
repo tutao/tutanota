@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2020-02-20T12:54:17Z",
+	"updated_at": "2020-03-11T12:29:49Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -436,7 +436,7 @@ module.exports = {
 		"ignoreCase_alt": "Ігнорувати випадок",
 		"importCalendar_label": "Імпортування календаря",
 		"importReadFileError_msg": "На жаль цей файл {filename} не придатний для читання.",
-		"importUsers_action": "Додати кількох користувачів із CSV-файла",
+		"importUsers_action": "Імпорт користувачів",
 		"importVCardError_msg": "Не вдається прочитати цей файл vCard.",
 		"importVCardSuccess_msg": "{1} контакт(-и) успішно імпортовано!\n\n",
 		"importVCard_action": "Імпортувати vCard ",
@@ -677,7 +677,7 @@ module.exports = {
 		"openCamera_action": "Камера",
 		"openNewWindow_action": "Нове вікно",
 		"open_action": "Відкрити\n",
-		"operationStillActive_msg": "Не можемо цього зробити, оскільки в цій папці ще не закінчена інша дія. Спробуйте пізніше ще раз.",
+		"operationStillActive_msg": "Цю операцію наразі неможливо виконати, оскільки все ще виконується інша операція. Будь ласка, спробуйте пізніше.",
 		"optionalValues_label": "Добровільна інформація",
 		"orderAliasesConfirm_msg": "Можете обрати більший пакет псевдонімів, щоб зареєструвати більше додаткових псевдонімів поштових адрес.",
 		"orderProcessingAgreementInfo_msg": "Згідно з EU GDPR, бізнес-клієнти зобов'язані укласти з нами угоду про обробку замовлення.",

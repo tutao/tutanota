@@ -1,5 +1,4 @@
 <resources>
     <string name="reminder_label">Recordatorio</string>
     <string name="pushNewMail_msg">Novo correo recibido.</string>
-    <string name="wantToSendReport_msg">Aconteceu algo imprevisto. Quere informar do fallo? Pode engadir unha mensaxe para axudarnos a resolver este problema.</string>
 </resources>

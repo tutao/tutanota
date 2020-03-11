@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2020-02-18T15:18:18Z",
+	"updated_at": "2020-03-11T12:29:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -681,7 +681,7 @@ module.exports = {
 		"openCamera_action": "كاميرا",
 		"openNewWindow_action": "إطار جديد",
 		"open_action": "افتح",
-		"operationStillActive_msg": "لا يمكن تنفيذ هذه العملية في الوقت الحالي لأن عملية أخرى في هذا المجلد لا تزال قيد التشغيل. الرجاء معاودة المحاولة في وقت لاحق.",
+		"operationStillActive_msg": "لا يمكن تنفيذ هذه العملية في الوقت الحالي لأن عملية أخرى لا تزال قيد التشغيل. الرجاء معاودة المحاولة في وقت لاحق.",
 		"optionalValues_label": "معلومات طوعية",
 		"orderAliasesConfirm_msg": "يمكنك اختيار حزمة كبيرة من الأسماء المستعارة  لتسجيل المزيد منها",
 		"orderProcessingAgreementInfo_msg": "وفقًا لقانون حماية البيانات العامة للاتحاد الأوروبي (GDPR)، يلتزم عملاء الشركات بإبرام اتفاقية  لتحضير الطلبات معنا.",

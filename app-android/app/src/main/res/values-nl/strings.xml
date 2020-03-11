@@ -3,5 +3,4 @@
     <string name="pushNewMail_msg">Nieuwe e-mail ontvangen</string>
     <string name="notificationSync_msg">Meldingen synchroniseren</string>
     <string name="scheduleAlarmError_msg">Kon geen alarm instellen. Update het programma a.u.b.</string>
-    <string name="wantToSendReport_msg">Er is iets onverwachts verkeerd gegaan. Wilt u een foutrapport verzenden? U kunt een bericht toevoegen om ons te helpen de fout te repareren.</string>
 </resources>

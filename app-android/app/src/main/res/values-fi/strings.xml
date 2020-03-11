@@ -1,5 +1,4 @@
 <resources>
     <string name="reminder_label">Muistutus</string>
     <string name="pushNewMail_msg">Uusi sähköposti vastaanotettu.</string>
-    <string name="wantToSendReport_msg">Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.</string>
 </resources>

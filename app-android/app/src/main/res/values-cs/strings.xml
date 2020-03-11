@@ -1,5 +1,4 @@
 <resources>
     <string name="reminder_label">Připomenutí</string>
     <string name="pushNewMail_msg">Obdrželi jste nový e-mail.</string>
-    <string name="wantToSendReport_msg">Vyskytla se neočekávaná chyba. Chceš odeslat zprávu o chybě? Můžeš přidat zprávu a pomoci nám tak chybu odstranit.</string>
 </resources>
