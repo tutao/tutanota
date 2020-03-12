@@ -178,16 +178,7 @@ export class CalendarView implements CurrentView {
 								const viewType = styles.isDesktopLayout() ? CalendarViewType.WEEK : CalendarViewType.DAY
 								this._setUrl(viewType, date)
 							},
-							onChangeMonth: (next) => {
-								let newDate = new Date(this.selectedDate().getTime())
-								newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
-								// set date explicitly here and trigger a redraw manually to avoid flickering of calendar events when using swipe gesture in android web view.
-								// There might be another animation frame in between setUrl and updateUrl in which the PageSwipeHandler resets the swipe
-								// transformation. If then the selected date is not updated the PageView shows the previous page for a short time.
-								this.selectedDate(newDate)
-								m.redraw()
-								this._setUrl(CalendarViewType.MONTH, newDate)
-							},
+							onChangeMonth: (next) => this._viewPeriod(next),
 							amPmFormat: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS,
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
@@ -223,13 +214,7 @@ export class CalendarView implements CurrentView {
 							startOfTheWeek: downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 							groupColors,
 							hiddenCalendars: this._hiddenCalendars,
-							onChangeWeek: (next) => {
-								let newDate = new Date(this.selectedDate().getTime())
-								newDate.setDate(newDate.getDate() + (next ? 7 : -7))
-								this.selectedDate(newDate)
-								m.redraw()
-								this._setUrl(CalendarViewType.WEEK, newDate)
-							}
+							onChangeWeek: (next) => this._viewPeriod(next)
 						})
 					case CalendarViewType.AGENDA:
 						return m(CalendarAgendaView, {
@@ -320,25 +305,19 @@ export class CalendarView implements CurrentView {
 				help: "viewToday_action"
 			},
 			{
-				key: Keys.N,
+				key: Keys.K,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
 				exec: () => this._viewPeriod(true),
 				help: "viewNextPeriod_action"
 			},
 			{
-				key: Keys.P,
+				key: Keys.J,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
 				exec: () => this._viewPeriod(false),
 				help: "viewPrevPeriod_action"
 			},
 			{
-				key: Keys.C,
-				ctrl: true,
-				exec: () => this._showCreateCalendarDialog(),
-				help: "createCalendar_action"
-			},
-			{
-				key: Keys.F,
+				key: Keys.N,
 				exec: () => this._newEvent(this.selectedDate()),
 				help: "createEvent_action"
 			}
@@ -355,21 +334,21 @@ export class CalendarView implements CurrentView {
 			case CalendarViewType.MONTH:
 				newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
 				this.selectedDate(newDate)
-
+				m.redraw()
 				this._setUrl(CalendarViewType.MONTH, newDate)
 				break;
 
 			case CalendarViewType.WEEK:
 				newDate.setDate(newDate.getDate() + (next ? 7 : -7))
 				this.selectedDate(newDate)
-
+				m.redraw()
 				this._setUrl(CalendarViewType.WEEK, newDate)
 				break;
 
 			case CalendarViewType.DAY:
 				newDate.setDate(newDate.getDate() + (next ? 1 : -1))
 				this.selectedDate(newDate)
-
+				m.redraw()
 				this._setUrl(CalendarViewType.DAY, newDate)
 				break;
 		}
