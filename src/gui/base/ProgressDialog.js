@@ -21,7 +21,7 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 	}
 
 	let progressDialog = new Dialog(DialogType.Progress, {
-		view: () => m("", {
+		view: () => m(".hide-outline", {
 			// We make this element focusable so that the screen reader announces the dialog
 			tabindex: "0",
 			oncreate(vnode) {
