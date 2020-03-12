@@ -1,5 +1,4 @@
 import {IncomingMessage} from "electron"
-import {Function} from "estree"
 
 /**
  * this file is highly inaccurate, check the docs at electronjs.org

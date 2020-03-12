@@ -86,6 +86,7 @@ if (process.argv.indexOf("-r") !== -1) {
 			// MacOS mailto handling
 			e.preventDefault()
 			if (!url.startsWith('mailto:')) {
+				// do nothing if this is not a mailto: url
 			} else if (app.isReady()) {
 				// we can open a window now
 				handleMailto(url)

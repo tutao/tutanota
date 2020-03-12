@@ -3,7 +3,7 @@ import fs from "fs-extra"
 import {app, dialog} from "electron"
 import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
-import {exec} from "child_process"
+import {execFile} from "child_process"
 
 const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
@@ -22,6 +22,12 @@ const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integratio
 
 fs.access(iconSourcePath512, fs.constants.F_OK)
   .catch(() => console.error("icon logo-solo-red.png not found, has the file name changed?"))
+
+function logExecFile(err, stdout, stderr) {
+	if (stdout && stdout !== "") console.log("stdout:", stdout)
+	if (err) console.error(err)
+	if (stderr && stderr !== "") console.error("stderr:", stderr)
+}
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
 	return checkFileIsThere(autoLaunchPath)
@@ -111,7 +117,7 @@ export function integrate(): Promise<void> {
 	).then(() => {
 		if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
 		try {
-			exec(`update-desktop-database "${path.join(app.getPath('home'), ".local/share/applications")}`)
+			execFile('update-desktop-database', [path.join(app.getPath('home'), ".local/share/applications")], logExecFile)
 		} catch (e) {
 		}
 	})
@@ -166,7 +172,7 @@ function copyIcons(): Promise<void> {
 		])
 	}).then(() => {
 		try {// refresh icon cache (update last modified timestamp)
-			exec(`touch "${path.join(app.getPath('home'), ".local/share/icons/hicolor")}"`)
+			execFile('touch', [path.join(app.getPath('home'), ".local/share/icons/hicolor")], logExecFile)
 		} catch (e) {
 			// it's ok if this fails for some reason, the icons will appear after a reboot at the latest
 		}
