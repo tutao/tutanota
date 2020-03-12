@@ -1,3 +1,5 @@
 <resources>
     <string name="pushNewMail_msg">E-mail nou primit.</string>
+    <string name="wantToSendReport_msg">Ceva neprevăzut nu a mers bine. Vreți să trimiteți un raport cu eroarea?
+Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
 </resources>

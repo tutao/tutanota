@@ -3,4 +3,5 @@
     <string name="pushNewMail_msg">Prišiel nový email.</string>
     <string name="notificationSync_msg">Synchronizujú sa oznámenia</string>
     <string name="scheduleAlarmError_msg">Alarm sa nepodarilo nastaviť. Prosím, aktualizuj aplikáciu.</string>
+    <string name="wantToSendReport_msg">Vyskytla sa neočakávaná chyba. Chceš odoslať chybové hlásenie? Ak pridáš aj vlastnú správu, môže nám to pomôcť s opravou tejto chyby.</string>
 </resources>

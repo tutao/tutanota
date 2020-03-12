@@ -3,4 +3,5 @@
     <string name="pushNewMail_msg">Получено новое сообщение.</string>
     <string name="notificationSync_msg">Синхронизация уведомлений</string>
     <string name="scheduleAlarmError_msg">Не удалось настроить оповещение. Пожалуйста обновите приложение.</string>
+    <string name="wantToSendReport_msg">Что-то неожиданно  пошло не так. Отправить отчет об ошибке? Вы можете добавить сообщение, чтобы помочь нам исправить эту ошибку. </string>
 </resources>

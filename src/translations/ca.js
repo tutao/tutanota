@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2020-03-11T12:29:48Z",
+	"updated_at": "2020-03-11T14:57:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -317,7 +317,7 @@ module.exports = {
 		"dnsRecordValueOrPointsTo_label": "Valor/Punts per",
 		"domain_label": "Domini",
 		"doNotAskAgain_label": "No torneu a preguntar per aquest fitxer",
-		"downgradeToPremium_msg": "El compte es canviarà a un compte Premium amb 5 àlies, 1 GB d'emmagatzematge i sense domini personalitzat ni temes.",
+		"downgradeToPremium_msg": "El compte es canviarà a un compte Premium amb 5 àlies, 1 GB d'emmagatzematge i sense funcions compartir o d'Etiqueta Blanca",
 		"download_action": "Descarregar",
 		"draft_action": "Esborranys",
 		"duplicatedMailAddressInUserList_msg": "L'adreça de correu electrònic s'inclou més d'una vegada en les seves dades d'entrada.",
@@ -918,7 +918,7 @@ module.exports = {
 		"sharingDeletionWarning_msg": "Tot el compartit de tots els usuaris s'eliminaran automàticament quan desactiveu la funció de compartir.",
 		"sharingFeatureNotOrderedAdmin_msg": "Per compartir un calendari, heu d'ordenar la funció de compartició. Vols demanar-la ara?",
 		"sharingFeatureNotOrderedUser_msg": "Per compartir un calendari, heu d'ordenar la funció de compartició. Contacteu amb l'administrador.",
-		"sharingFeature_label": "Funció compartir",
+		"sharingFeature_label": "Compartir",
 		"sharing_label": "Compartir",
 		"showAddress_alt": "Mostra aquesta adreça a Openstreetmap",
 		"showAll_action": "Mostra'ls tots",

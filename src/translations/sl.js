@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-03-11T12:45:22Z",
+	"updated_at": "2020-03-11T23:34:34Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -605,6 +605,7 @@ module.exports = {
 		"markRead_action": "Označi prebrano",
 		"markUnread_action": "Označi neprebrano",
 		"matchCase_alt": "Upoštevaj velike/male črke",
+		"mayNotWorkForAllDe_msg": "To mogoče ne bo delalo v vseh Linux namiznih okoljih.",
 		"mergeAllSelectedContacts_msg": "Ali ste prepričani, da želite združiti izbrane stike?",
 		"mergeContacts_action": "Spoji stike",
 		"merge_action": "Spoji",
@@ -939,6 +940,7 @@ module.exports = {
 		"showMoreUpgrade_action": "Pokaži več",
 		"showMore_action": "PRIKAŽI VEČ",
 		"showRichTextToolbar_action": "Prikaži orodja za oblikovanje",
+		"showTrayIcon_action": "Pokaži ikono pladnja",
 		"showURL_alt": "Odpri link",
 		"show_action": "Prikaži",
 		"signedOn_msg": "Podpisano dne {date}.",

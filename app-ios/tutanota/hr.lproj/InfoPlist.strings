@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Da biste odobrili pristup, morate izmijeniti dopušt
 TutaoCancelAction = "Odustani";
 TutaoSettingsAction = "Postavke";
 TutaoCalendarAlarmTitle = "Podsjetnik";
+TutaoScheduleAlarmError = "Nije moguće postaviti alarm. Ažurirajte aplikaciju.";

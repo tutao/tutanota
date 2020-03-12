@@ -1,4 +1,5 @@
 <resources>
     <string name="reminder_label">Przypomnienie</string>
     <string name="pushNewMail_msg">Otrzymano nową wiadomość.</string>
+    <string name="wantToSendReport_msg">Coś poszło nie tak. Chcesz wysłać raport o błędzie? Możesz dodać wiadomość, która pomoże nam naprawić ten błąd.</string>
 </resources>
