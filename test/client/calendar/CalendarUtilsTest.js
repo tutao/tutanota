@@ -1,7 +1,14 @@
 // @flow
 import o from "ospec/ospec.js"
 import type {CalendarMonth} from "../../../src/calendar/CalendarUtils"
-import {getCalendarMonth, getStartOfWeek, getWeekNumber, hasCapabilityOnGroup, parseTime, timeStringFromParts} from "../../../src/calendar/CalendarUtils"
+import {
+	getCalendarMonth,
+	getStartOfWeek,
+	getWeekNumber,
+	hasCapabilityOnGroup,
+	parseTime,
+	timeStringFromParts
+} from "../../../src/calendar/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createGroup} from "../../../src/api/entities/sys/Group"
@@ -208,6 +215,7 @@ o.spec("calendar utils tests", function () {
 		o("works", function () {
 			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
 			o(getStartOfWeek(new Date(2019, 6, 7), 1).toISOString()).equals(new Date(2019, 6, 1).toISOString())
+			o(getStartOfWeek(new Date(2019, 6, 7, 3, 4, 5), 1).toISOString()).equals(new Date(2019, 6, 1).toISOString())
 		})
 	})
 

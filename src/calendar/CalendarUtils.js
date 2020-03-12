@@ -421,7 +421,7 @@ export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: numbe
 	} else {
 		firstDay = date.getDay() - firstDayOfWeekFromSundayOffset
 	}
-	return incrementDate(new Date(date), -firstDay)
+	return incrementDate(getStartOfDay(date), -firstDay)
 }
 
 export function getCalendarWeek(dayInTheWeek: Date, startOfTheWeek: WeekStartEnum): Array<Date> {

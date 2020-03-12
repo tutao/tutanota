@@ -9,7 +9,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
-import {DAY_IN_MILLIS, getStartOfDay, isSameDay} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
@@ -76,6 +76,7 @@ import {SysService} from "../api/entities/sys/Services"
 import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
+export const DEFAULT_HOUR_OF_DAY = 6
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
@@ -615,39 +616,46 @@ export class CalendarView implements CurrentView {
 					dateToUse = this._getNextHalfHour()
 					break
 				case CalendarViewType.MONTH:
-					var startOfCurrentDay = getStartOfDay(new Date())
-
+					// use the current day if it is visible in the displayed month, otherwise use the start of the month
+					let currentDayStartOfMonth = getMonth(new Date(), getTimeZone()).start
 					let visibleStartOfMonth = getMonth(this.selectedDate(), getTimeZone()).start
-					let currentDayStartOfMonth = getMonth(startOfCurrentDay, getTimeZone()).start
-
-					if (isSameDay(currentDayStartOfMonth, visibleStartOfMonth)) {
-						dateToUse = startOfCurrentDay
-					} else {
-						dateToUse = visibleStartOfMonth
-					}
+					dateToUse = this._getNewEventStartDate(currentDayStartOfMonth, visibleStartOfMonth)
 					break
 				case CalendarViewType.WEEK:
+					// use the current day if it is visible in the displayed week, otherwise use the start of the week
 					const startOfTheWeekOffset = getStartOfTheWeekOffset(downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek))
-					var startOfCurrentDay = getStartOfDay(new Date())
-
-					// use the current day if it is visible in the displayed week, othersise use the start of the week
-					let currentDayStartOfTheWeek = getStartOfWeek(startOfCurrentDay, startOfTheWeekOffset)
+					let currentDayStartOfTheWeek = getStartOfWeek(new Date(), startOfTheWeekOffset)
 					let visibleStartOfTheWeek = getStartOfWeek(this.selectedDate(), startOfTheWeekOffset)
-
-					if (isSameDay(currentDayStartOfTheWeek, visibleStartOfTheWeek)) {
-						dateToUse = startOfCurrentDay
-					} else {
-						dateToUse = visibleStartOfTheWeek
-					}
+					dateToUse = this._getNewEventStartDate(currentDayStartOfTheWeek, visibleStartOfTheWeek)
 					break
-				default:
-					dateToUse = this.selectedDate()
+				default: // DAY
+					dateToUse = this._getNewEventStartDate(new Date(), this.selectedDate())
+					break
 			}
 		} else {
 			dateToUse = date
 		}
 		let p = this._calendarInfos.isFulfilled() ? this._calendarInfos : showProgressDialog("pleaseWait_msg", this._calendarInfos)
 		p.then(calendars => showCalendarEventDialog(dateToUse, calendars))
+	}
+
+	/**
+	 * Provides the start date for a new event created with the new date button (no pre-selected time). Provides the next half hour if
+	 * that time is on the current day and if the current day is visible in the current view, otherwise provides 6:00 on the first day of
+	 * the visible view.
+	 * @param currentDayStartOfView The start of the visible time period type (month, week, day) for the current day,
+	 * e.g. if the month view is visible, the start of the current day's month
+	 * @param visibleStartOfView The start of the visible time period
+	 */
+	_getNewEventStartDate(currentDayStartOfView: Date, visibleStartOfView: Date): Date {
+		if (isSameDay(currentDayStartOfView, visibleStartOfView)) {
+			let nextHalfHour = this._getNextHalfHour()
+			// only use the next half hour if it is not already on the next day, i.e. the current time is <= 23:30
+			if (isSameDay(nextHalfHour, new Date())) {
+				return nextHalfHour
+			}
+		}
+		return getHourOfDay(visibleStartOfView, DEFAULT_HOUR_OF_DAY)
 	}
 
 	_getNextHalfHour() {

@@ -31,6 +31,7 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {PageView} from "../gui/base/PageView"
+import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -58,7 +59,7 @@ export class CalendarWeekView implements MComponent<Attrs> {
 	_scrollPosition: number;
 
 	constructor() {
-		this._scrollPosition = size.calendar_hour_height * 6
+		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 	}
 
 	view(vnode: Vnode<Attrs>) {

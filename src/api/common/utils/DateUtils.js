@@ -25,8 +25,15 @@ export function getEndOfDay(date: Date): Date {
  * Provides a date representing the beginning of the given date in local time.
  */
 export function getStartOfDay(date: Date): Date {
+	return getHourOfDay(date, 0)
+}
+
+/**
+ * Provides a date representing the day of the given date at the given hour in local time.
+ */
+export function getHourOfDay(date: Date, hour: number): Date {
 	let d = new Date(date.getTime())
-	d.setHours(0, 0, 0, 0) // sets the beginning of the day in local time
+	d.setHours(hour, 0, 0, 0)
 	return d
 }
 

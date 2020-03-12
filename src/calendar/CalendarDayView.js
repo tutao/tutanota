@@ -13,6 +13,7 @@ import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {PageView} from "../gui/base/PageView"
+import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 
 export type CalendarDayViewAttrs = {
 	selectedDate: Date,
@@ -34,7 +35,7 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 
 	constructor() {
-		this._scrollPosition = size.calendar_hour_height * 6
+		this._scrollPosition = size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 	}
 
 	view(vnode: Vnode<CalendarDayViewAttrs>): Children {
