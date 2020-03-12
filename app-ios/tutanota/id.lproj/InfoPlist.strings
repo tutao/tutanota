@@ -1,2 +1,5 @@
+NSContactsUsageDescription = "Cari alamat email penerima di daftar kontak.";
+TutaoShowCameraAction = "Kamera";
+TutaoChangePermissionMsg = "Untuk memberikan akses Anda perlu memodifikasi perizinan bagi perangkat ini.";
 TutaoCancelAction = "Batal";
 TutaoSettingsAction = "Pengaturan";

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-04-29T21:24:33Z",
+	"updated_at": "2020-07-23T12:59:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1037,7 +1037,6 @@ module.exports = {
 		"type_label": "类型",
 		"u2fAuthUnregisteredDevice_msg": "该安全密钥未注册到您的账户，请使用有效密钥。",
 		"u2fSecurityKey_label": "安全密钥（U2F）",
-		"u2fUnexpectedError_msg": "您的安全密钥有未知错误。",
 		"undo_action": "撤销",
 		"unknownError_msg": "发生意外错误，请稍后再试。",
 		"unlimited_label": "无限",

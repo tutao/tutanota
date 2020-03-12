@@ -3,6 +3,7 @@ import m from "mithril"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {isSameId} from "../api/common/EntityFunctions"
+import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
 import {load, update} from "../api/main/Entity"
@@ -37,8 +38,9 @@ import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
-import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {LockedError} from "../api/common/error/RestError"
+import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
+import {createEditAliasFormAttrs, updateNbrOfAliases} from "./EditAliasesFormN"
 
 assertMainOrNode()
 
@@ -54,6 +56,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesExpanded: Stream<boolean>;
 	_indexStateWatch: ?Stream<any>;
 	_identifierListViewer: IdentifierListViewer;
+	_editAliasFormAttrs: EditAliasesFormAttrs;
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser())
@@ -69,6 +72,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 
 		this._updateInboxRules(logins.getUserController().props)
+
+		this._editAliasFormAttrs = createEditAliasFormAttrs(logins.getUserController().userGroupInfo)
+
+		if (logins.getUserController().isGlobalAdmin()) {
+			updateNbrOfAliases(this._editAliasFormAttrs)
+		}
 	}
 
 	view() {
@@ -226,7 +235,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelectorN, sendPlaintextAttrs),
 				logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelectorN, noAutomaticContactsAttrs),
 				m(DropDownSelectorN, enableMailIndexingAttrs),
-				(logins.getUserController().isGlobalAdmin()) ? m(EditAliasesFormN, {userGroupInfo: logins.getUserController().userGroupInfo}) : null,
+				(logins.getUserController().isGlobalAdmin()) ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 				logins.isEnabled(FeatureType.InternalCommunication) ? null : [
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('inboxRulesSettings_action')),
@@ -295,6 +304,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
 				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this._senderName(groupInfo.name)
+					this._editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()
 				})
 			}

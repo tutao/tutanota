@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Pääsyn salliminen edellyttää laitekohtaisen käy
 TutaoCancelAction = "Peruuta";
 TutaoSettingsAction = "Asetukset";
 TutaoCalendarAlarmTitle = "Muistutus";
+TutaoScheduleAlarmError = "Hälytystä ei voitu asettaa. Päivitä sovellus.";

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-05-28T21:12:26Z",
+	"updated_at": "2020-07-22T12:42:44Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -981,7 +981,6 @@ module.exports = {
 		"type_label": "Type",
 		"u2fAuthUnregisteredDevice_msg": "Denne sikkerhedsnøgle er ikke blevet registreret på din konto. Brug venligst en gyldig en.",
 		"u2fSecurityKey_label": "Sikkerhedsnøgle (U2F)",
-		"u2fUnexpectedError_msg": "En uventet fejl opstod med din sikkerhedsnøgle.",
 		"undo_action": "Fortryd",
 		"unknownError_msg": "En uventet fejl opstod: Prøv venligst igen senere.",
 		"unlimited_label": "Ubegrænset",
@@ -1021,6 +1020,7 @@ module.exports = {
 		"weekNumber_label": "Uge {week}",
 		"weekStart_label": "Ugestart",
 		"welcomeMailBodyTweetText_msg": "Jeg har lige oprettet min Tutanota konto. Mine e-mails er nu beskyttet fra overvågning! Du kan også oprette dig:",
+		"welcomeMailBody_markdown": "Velkommen til Deres sikre og reklame fri Tutanota Email, som er beskyttet med stærk kryptering. Tutanota gør det let, at skifte fra andre Email udbydere. Vores intuitive web klient, apps til Android & iOS samt skrivebords apps til Windows, Mac OS og Linux gør det muligt, at tilgå Deres sikre Email på enhver enhed.",
 		"welcomeMailSubject_msg": "Føl dig hjemme. Dine data forbliver sikrede.",
 		"whatIsPhishing_msg": "Hvad er phishing?",
 		"whitelabelAccounts_label": "Whitelabel konti",

@@ -44,7 +44,8 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 import {checkAndImportUserData} from "./ImportUsersViewer"
-import {EditAliasesFormN} from "./EditAliasesFormN"
+import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
+import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 
 assertMainOrNode()
@@ -65,6 +66,8 @@ export class UserViewer {
 	_deactivated: DropDownSelector<boolean>;
 	_whitelistProtection: ?DropDownSelector<boolean>;
 	_secondFactorsForm: EditSecondFactorsForm;
+	_editAliasFormAttrs: EditAliasesFormAttrs;
+
 
 	constructor(userGroupInfo: GroupInfo, isAdmin: boolean) {
 		this.userGroupInfo = userGroupInfo
@@ -182,8 +185,16 @@ export class UserViewer {
 			})
 		})
 
+		this._editAliasFormAttrs = createEditAliasFormAttrs(this.userGroupInfo)
+
+		if (logins.getUserController().isGlobalAdmin()) {
+			updateNbrOfAliases(this._editAliasFormAttrs)
+		}
+
+
 		this.view = () => {
 			const whitelistProtestciton = this._whitelistProtection
+
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".h4.mt-l", lang.get('userSettings_label')),
@@ -207,7 +218,7 @@ export class UserViewer {
 					(this._groupsTable) ? m(this._groupsTable) : null,
 					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
-					m(EditAliasesFormN, {userGroupInfo: this.userGroupInfo}),
+					m(EditAliasesFormN, this._editAliasFormAttrs),
 					logins.getUserController().isPremiumAccount() && whitelistProtestciton
 						? [
 							m(".h4.mt-l", lang.get('mailSettings_label')),
@@ -445,6 +456,7 @@ export class UserViewer {
 					if (this._administratedBy) {
 						this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
 					}
+					this._editAliasFormAttrs.userGroupInfo = this.userGroupInfo
 					m.redraw()
 				})
 			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE && this._user.isLoaded()

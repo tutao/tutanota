@@ -6,7 +6,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {CustomDomainCheckResult, DnsRecordType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {DomainDnsStatus} from "./DomainDnsStatus"
-import {createDnsRecordTable} from "./AddDomainDialog"
+import {createDnsRecordTable} from "./emaildomain/AddDomainWizard"
 
 assertMainOrNode()
 

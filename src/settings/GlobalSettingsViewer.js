@@ -38,7 +38,6 @@ import type {TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, createRowActions} from "../gui/base/TableN"
 import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {ButtonType} from "../gui/base/ButtonN"
-import {showAddDomainDialog} from "./AddDomainDialog"
 import {DomainDnsStatus} from "./DomainDnsStatus"
 import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
@@ -49,6 +48,7 @@ import {generatedIdToTimestamp, timestampToGeneratedId} from "../api/common/util
 import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
+import {showAddDomainWizard} from "./emaildomain/AddDomainWizard"
 
 assertMainOrNode()
 
@@ -145,7 +145,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						if (logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog(true)
 						} else {
-							this._customerInfo.getAsync().then(customerInfo => showAddDomainDialog(customerInfo, this._domainDnsStatus))
+							this._customerInfo.getAsync().then(customerInfo => showAddDomainWizard("", customerInfo))
 						}
 					},
 					icon: () => Icons.Add
@@ -213,7 +213,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					cells: () => [
 						{
 							main: fieldToName[getSparmRuleField(rule)],
-							info: rule.value,
+							info: [rule.value],
 						},
 						{
 							main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
@@ -264,7 +264,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								return [
 									{
 										main: rejectedSender.senderMailAddress,
-										info: `${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`,
+										info: [`${rejectDate}, ${rejectedSender.senderHostname} (${rejectedSender.senderIp})`],
 										click: () => showRejectedSendersInfoDialog(rejectedSender)
 									}
 								]
@@ -420,14 +420,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						cells: () => [
 							{
 								main: domainInfo.domain,
-								info: domainDnsStatus.getDnsStatusInfo(),
+								info: [domainDnsStatus.getDnsStatusInfo()],
 								click: (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) ? () => {
 									showDnsCheckDialog(domainDnsStatus)
 								} : noOp
 							},
 							{
 								main: catchAllGroupName,
-								info: null
 							}
 						],
 						actionButtonAttrs: {
@@ -436,9 +435,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							click: createDropdown(() => (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine() ? [
 								{
 									type: ButtonType.Dropdown,
-									label: "checkDnsRecords_action",
+									label: "resumeSetup_label",
 									click: () => {
-										showDnsCheckDialog(domainDnsStatus)
+										showAddDomainWizard(domainDnsStatus.domain, customerInfo)
 									}
 								}
 							] : []).concat([
@@ -452,7 +451,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									label: "delete_action",
 									click: () => this._deleteCustomDomain(domainInfo)
 								}
-							]), 250)
+							]), 260)
 						}
 					}
 				})

@@ -645,4 +645,13 @@ export const MailReportType = Object.freeze({
 	PHISHING: "0",
 	SPAM: "1",
 })
+
+export const DnsRecordValidation = Object.freeze({
+	OK: "✓",
+	BAD: "✗",
+	WARN: "⚠"
+})
+export type DnsRecordValidationTypeEnum = $Values<typeof DnsRecordValidation>;
+
+
 export type MailReportTypeEnum = $Values<typeof MailReportType>

@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {deleteCampaign} from "./UpgradeSubscriptionWizard"
-import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import {SelectMailAddressForm} from "../settings/SelectMailAddressForm"
 import {Checkbox} from "../gui/base/Checkbox"
 import {isApp, isTutanotaDomain} from "../api/Env"
@@ -31,23 +31,29 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {SubscriptionType} from "./SubscriptionUtils"
-
-export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
-	view: Function;
-	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
-	_upgradeData: UpgradeSubscriptionData;
+import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 
 
-	constructor(upgradeData: UpgradeSubscriptionData) {
-		this._upgradeData = upgradeData
+type ConfirmStatus = {
+	type: string,
+	text: TranslationKey
+}
 
-		let mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())
-		let passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
-		let codeField = new TextField("whitelabelRegistrationCode_label")
+export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
+	_mailAddressForm: SelectMailAddressForm
+	_passwordForm: PasswordForm
+	_codeField: TextField
+	_confirm: Checkbox
+	_confirmAge: Checkbox
+	_confirmStatus: Stream<ConfirmStatus>
 
-		let confirm = new Checkbox(() => [
+	constructor() {
+		this._mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())
+		this._passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
+		this._codeField = new TextField("whitelabelRegistrationCode_label")
+		this._confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
-
 			m("div", m(`a[href=${this._getTermsLink()}][target=_blank]`, {
 				onclick: (e) => {
 					if (isApp()) {
@@ -65,96 +71,71 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 				}
 			}, lang.get("privacyLink_label")))
 		])
-		let confirmAge = new Checkbox(() => [
+		this._confirmAge = new Checkbox(() => [
 			m("div", lang.get("ageConfirmation_msg"))
 		])
-		let confirmStatus = confirm.checked.map(checked => {
+		this._confirmStatus = this._confirm.checked.map(checked => {
 			if (!checked) {
 				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
 			} else {
 				return {type: "valid", text: "emptyString_msg"}
 			}
 		})
+	}
+
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		const a = vnode.attrs
+		const newAccountData = a.data.newAccountData
 
 		let _createAccount = () => {
-			let errorMessageId = mailAddressForm.getErrorMessageId() || passwordForm.getErrorMessageId()
-				|| ((confirmStatus().type !== "valid") ? confirmStatus().text : null)
+			let errorMessageId = this._mailAddressForm.getErrorMessageId() || this._passwordForm.getErrorMessageId()
+				|| ((this._confirmStatus().type !== "valid") ? this._confirmStatus().text : null)
 			if (errorMessageId) {
 				Dialog.error(errorMessageId)
 				return
 			}
 
 			let p = Promise.resolve(true)
-			if (!confirmAge.checked()) {
+			if (!this._confirmAge.checked()) {
 				p = Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			}
 
 			p.then(confirmed => {
 				if (confirmed) {
-					return this._signup(mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), codeField.value(), this._upgradeData.campaign)
+					return this._signup(a.data, vnode.dom, this._mailAddressForm.getCleanMailAddress(), this._passwordForm.getNewPassword(), this._codeField.value(), a.data.campaign)
 				}
 			})
 		}
 
-		this.view = (): VirtualElement => {
-			const newAccountData = this._upgradeData.newAccountData
-			return m("#signup-account-dialog.flex-center", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
-					newAccountData
-						? m("div", [
-							m(TextFieldN, {
-								label: 'mailAddress_label',
-								value: stream(newAccountData.mailAddress),
-								disabled: true
-							}),
-							m(".mt-l.mb-l", m(ButtonN, {
-								label: 'next_action',
-								type: ButtonType.Login,
-								click: () => this._pageActionHandler.showNext(this._upgradeData)
-							}))
-						])
-						: m("div", [
-							m(mailAddressForm),
-							m(passwordForm),
-							(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
-							m(confirm),
-							m(confirmAge),
-							m(".mt-l.mb-l", m(ButtonN, {
-								label: "next_action",
-								click: () => _createAccount(),
-								type: ButtonType.Login,
-							})),
-						])
-				])
-			)
-		}
-
+		return m("#signup-account-dialog.flex-center", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+				newAccountData
+					? m("div", [
+						m(TextFieldN, {
+							label: 'mailAddress_label',
+							value: stream(newAccountData.mailAddress),
+							disabled: true
+						}),
+						m(".mt-l.mb-l", m(ButtonN, {
+							label: 'next_action',
+							type: ButtonType.Login,
+							click: () => emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+						}))
+					])
+					: m("div", [
+						m(this._mailAddressForm),
+						m(this._passwordForm),
+						(getWhitelabelRegistrationDomains().length > 0) ? m(this._codeField) : null,
+						m(this._confirm),
+						m(this._confirmAge),
+						m(".mt-l.mb-l", m(ButtonN, {
+							label: "next_action",
+							click: () => _createAccount(),
+							type: ButtonType.Login,
+						})),
+					])
+			])
+		)
 	}
-
-	headerTitle(): string {
-		return lang.get("subscription_label")
-	}
-
-	nextAction(): Promise<?UpgradeSubscriptionData> {
-		// next action not available for this page
-		return Promise.resolve(null)
-	}
-
-	isNextAvailable() {
-		return false
-	}
-
-	setPageActionHandler(handler: WizardPageActionHandler<UpgradeSubscriptionData>) {
-		this._pageActionHandler = handler
-	}
-
-	updateWizardData(wizardData: UpgradeSubscriptionData) {
-		this._upgradeData = wizardData
-	}
-
-	getUncheckedWizardData(): UpgradeSubscriptionData {
-		return this._upgradeData
-	}
-
 
 	_getTermsLink() {
 		return (lang.code === "de" || lang.code === "de_sie") ?
@@ -166,23 +147,22 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 			"https://tutanota.com/de/terms#privacy" : "https://tutanota.com/terms#privacy"
 	}
 
-
 	/**
 	 * @return Signs the user up, if no captcha is needed or it has been solved correctly
 	 */
-	_signup(mailAddress: string, pw: string, registrationCode: string, campaign: ?string): Promise<void> {
+	_signup(data: UpgradeSubscriptionData, dom: HTMLElement, mailAddress: string, pw: string, registrationCode: string, campaign: ?string): Promise<void> {
 		return showWorkerProgressDialog("createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
-			return this._runCaptcha(mailAddress, campaign).then(regDataId => {
+			return this._runCaptcha(data, mailAddress, campaign).then(regDataId => {
 				if (regDataId) {
 					return worker.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)
 					             .then((recoverCode) => {
 						             deleteCampaign()
-						             this._upgradeData.newAccountData = {
+						             data.newAccountData = {
 							             mailAddress,
 							             password: pw,
 							             recoverCode
 						             }
-						             this._pageActionHandler.showNext(this._upgradeData)
+						             emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE)
 					             })
 				}
 			})
@@ -194,13 +174,13 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	/**
 	 * @returns the auth token for the signup if the captcha was solved or no captcha was necessary, null otherwise
 	 */
-	_runCaptcha(mailAddress: string, campaignToken: ?string): Promise<?string> {
+	_runCaptcha(wizardData: UpgradeSubscriptionData, mailAddress: string, campaignToken: ?string): Promise<?string> {
 		let data = createRegistrationCaptchaServiceGetData()
 		data.token = campaignToken
 		data.mailAddress = mailAddress
 		data.signupToken = deviceConfig.getSignupToken()
-		data.businessUseSelected = this._upgradeData.options.businessUse()
-		data.paidSubscriptionSelected = this._upgradeData.type !== SubscriptionType.Free
+		data.businessUseSelected = wizardData.options.businessUse()
+		data.paidSubscriptionSelected = wizardData.type !== SubscriptionType.Free
 		return serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, data, RegistrationCaptchaServiceReturnTypeRef)
 			.then(captchaReturn => {
 				let regDataId = captchaReturn.token
@@ -224,7 +204,7 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 									})
 									.catch(InvalidDataError, e => {
 										return Dialog.error("createAccountInvalidCaptcha_msg").then(() => {
-											this._runCaptcha(mailAddress, campaignToken).then(regDataId => {
+											this._runCaptcha(wizardData, mailAddress, campaignToken).then(regDataId => {
 												callback(null, regDataId)
 											})
 										})
@@ -305,8 +285,30 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 				}).show()
 			})
 	}
+}
 
-	isEnabled(data: UpgradeSubscriptionData) {
+export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+
+	data: UpgradeSubscriptionData
+
+	constructor(signupData: UpgradeSubscriptionData) {
+		this.data = signupData
+	}
+
+	headerTitle(): string {
+		return lang.get("subscription_label")
+	}
+
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		// next action not available for this page
+		return Promise.resolve(true)
+	}
+
+	isSkipAvailable(): boolean {
+		return false
+	}
+
+	isEnabled(): boolean {
 		return true
 	}
 }

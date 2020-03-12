@@ -1,19 +1,18 @@
 // @flow
 import {assertMainOrNode} from "../api/Env"
 import {neverNull} from "../api/common/utils/Utils"
+import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {load, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {Const, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
 import {getByAbbreviation} from "../api/common/CountryList"
-import {WizardDialog} from "../gui/base/WizardDialog"
-import {InvoiceAndPaymentDataPage} from "./InvoiceAndPaymentDataPage"
-import {UpgradeConfirmPage} from "./UpgradeConfirmPage"
-import {UpgradeSubscriptionPage} from "./UpgradeSubscriptionPage"
+import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
-import {SignupPage} from "./SignupPage"
 import {client} from "../misc/ClientDetector"
 import m from "mithril"
 import type {SubscriptionOptions, SubscriptionTypeEnum, UpgradeTypeEnum} from "./SubscriptionUtils"
@@ -22,14 +21,16 @@ import stream from "mithril/stream/stream.js"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createUpgradePriceServiceData} from "../api/entities/sys/UpgradePriceServiceData"
 import {SysService} from "../api/entities/sys/Services"
+import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceServiceReturn"
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
-import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceServiceReturn"
-import type {Customer} from "../api/entities/sys/Customer"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
+import {createWizardDialog} from "../gui/base/WizardDialogN"
+import {Dialog} from "../gui/base/Dialog"
+import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
+import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
+import {SignupPage, SignupPageAttrs} from "./SignupPage"
 
 assertMainOrNode()
 
@@ -55,7 +56,8 @@ export type UpgradeSubscriptionData = {
 	upgradeType: UpgradeTypeEnum,
 	premiumPrices: PlanPrices,
 	teamsPrices: PlanPrices,
-	proPrices: PlanPrices
+	proPrices: PlanPrices,
+	currentSubscription: ?SubscriptionTypeEnum
 }
 
 const TOKEN_PARAM_NAME = "#token="
@@ -126,20 +128,30 @@ export function showUpgradeWizard(): void {
 						premiumPrices: prices.premiumPrices,
 						teamsPrices: prices.teamsPrices,
 						proPrices: prices.proPrices,
+						currentSubscription: SubscriptionType.Free
 					}
 					const wizardPages = [
-						new UpgradeSubscriptionPage(upgradeData, SubscriptionType.Free),
-						new InvoiceAndPaymentDataPage(upgradeData),
-						new UpgradeConfirmPage(upgradeData)
+						{
+							attrs: new UpgradeSubscriptionPageAttrs(upgradeData),
+							componentClass: UpgradeSubscriptionPage
+						},
+						{
+							attrs: new InvoiceAndPaymentDataPageAttrs(upgradeData),
+							componentClass: InvoiceAndPaymentDataPage
+						},
+						{
+							attrs: new UpgradeConfirmPageAttrs(upgradeData),
+							componentClass: UpgradeConfirmPage
+						}
 					]
-					new WizardDialog(wizardPages, () => Promise.resolve()).show()
+					const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
+					wizardBuilder.dialog.show()
 				})
 			}
 		)
 }
 
-
-export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData>> {
+export function loadSignupWizard(): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 		const signupData: UpgradeSubscriptionData = {
 			options: {
@@ -165,15 +177,29 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 			upgradeType: UpgradeType.Signup,
 			premiumPrices: prices.premiumPrices,
 			teamsPrices: prices.teamsPrices,
-			proPrices: prices.proPrices
+			proPrices: prices.proPrices,
+			currentSubscription: null
 		}
 		const wizardPages = [
-			new UpgradeSubscriptionPage(signupData),
-			new SignupPage(signupData),
-			new InvoiceAndPaymentDataPage(signupData),
-			new UpgradeConfirmPage(signupData)
+			{
+				attrs: new UpgradeSubscriptionPageAttrs(signupData),
+				componentClass: UpgradeSubscriptionPage
+			},
+			{
+				attrs: new SignupPageAttrs(signupData),
+				componentClass: SignupPage
+			},
+			{
+				attrs: new InvoiceAndPaymentDataPageAttrs(signupData),
+				componentClass: InvoiceAndPaymentDataPage
+			},
+			{
+				attrs: new UpgradeConfirmPageAttrs(signupData),
+				componentClass: UpgradeConfirmPage
+			}
 		]
-		return new WizardDialog(wizardPages, () => {
+
+		const wizardBuilder = createWizardDialog(signupData, wizardPages, () => {
 			let promise
 			if (logins.isUserLoggedIn()) {
 				promise = logins.logout(false)
@@ -188,5 +214,9 @@ export function loadSignupWizard(): Promise<WizardDialog<UpgradeSubscriptionData
 				}
 			})
 		})
+		const wizard = wizardBuilder.dialog
+		const wizardAttrs = wizardBuilder.attrs
+		//we only return the dialog so that it can be shown
+		return wizard
 	})
 }

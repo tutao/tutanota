@@ -192,7 +192,9 @@ styles.registerStyle('main', () => {
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
 		'.ml-m': {'margin-left': px(size.hpad_medium)},
+		'.ml-l': {'margin-left': px(size.hpad_large)},
 		'.mr-m': {'margin-right': px(size.hpad_medium)},
+		'.mr-l': {'margin-right': px(size.hpad_large)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -235,6 +237,7 @@ styles.registerStyle('main', () => {
 		'.mr-button': {'margin-right': px(size.hpad_button)},
 
 		'.mt-negative-s': {'margin-top': px(-size.hpad_button)},
+		'.mt-negative-l': {'margin-top': px(-size.hpad_large)},
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
 		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
 		'.ml-negative-l': {'margin-left': px(-size.hpad_large)},
@@ -935,7 +938,7 @@ styles.registerStyle('main', () => {
 			width: '100%'
 		},
 
-		'.table tr:first-child': {
+		'.table-header-border tr:first-child': {
 			'border-bottom': `1px solid ${theme.content_border}`
 		},
 

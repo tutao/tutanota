@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2020-04-29T21:24:33Z",
+	"updated_at": "2020-07-23T12:59:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -858,7 +858,6 @@ module.exports = {
 		"type_label": "類型",
 		"u2fAuthUnregisteredDevice_msg": "此密鑰並未註冊於您的帳戶。請使用有效密鑰。",
 		"u2fSecurityKey_label": "安全金鑰（U2F）",
-		"u2fUnexpectedError_msg": "處理您的安全密鑰時發生未預期之錯誤。",
 		"undo_action": "復原",
 		"unknownError_msg": "發生未預期之錯誤。請稍後再試。",
 		"unlimited_label": "無限期",

@@ -135,13 +135,13 @@ export class Dialog {
 	}
 
 	_defaultFocusOnLoad() {
-		let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
-		if (inputs.length > 0) {
-			inputs[0].focus()
-		} else {
-			let button = this._domDialog.querySelector("button")
-			if (button) {
-				button.focus()
+			let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
+			if (inputs.length > 0) {
+				inputs[0].focus()
+			} else {
+				let button = this._domDialog.querySelector("button")
+				if (button) {
+					button.focus()
 			}
 		}
 	}

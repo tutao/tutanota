@@ -2,7 +2,6 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
@@ -24,14 +23,13 @@ import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 
 /**
  * Wizard page for editing invoice and payment data.
  */
-export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscriptionData> {
-	view: Function;
-	_pageActionHandler: WizardPageActionHandler<UpgradeSubscriptionData>;
-	_upgradeData: UpgradeSubscriptionData;
+export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptionData> {
 	_paymentMethodInput: PaymentMethodInput;
 	_invoiceDataInput: InvoiceDataInput;
 	_availablePaymentMethods: Array<SegmentControlItem<PaymentMethodTypeEnum>>;
@@ -39,73 +37,25 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._selectedPaymentMethod = stream()
-		this._upgradeData = upgradeData
-
-		const onNextClick = () => {
-			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
-			if (error) {
-				return Dialog.error(error).then(() => null)
-			} else {
-				this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
-				this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
-				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(this._upgradeData.options, this._upgradeData.invoiceData, this._upgradeData.paymentData, null,
-					this._upgradeData.upgradeType === UpgradeType.Signup)
-					.then(success => {
-						if (success) {
-							this._pageActionHandler.showNext(this._upgradeData)
-						}
-					}))
-			}
-		}
-
-		this.view = () => m("#upgrade-account-dialog.pt", this._availablePaymentMethods
-			? [
-				m(SegmentControl, {
-					items: this._availablePaymentMethods,
-					selectedValue: this._selectedPaymentMethod,
-				}),
-				m(".flex-space-around.flex-wrap.pt", [
-					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._invoiceDataInput)),
-					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._paymentMethodInput))
-				]),
-				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
-					label: "next_action",
-					click: onNextClick,
-					type: ButtonType.Login,
-				})))
-			]
-			: null)
-
 		this._selectedPaymentMethod.map((method) => this._paymentMethodInput.updatePaymentMethod(method))
 	}
 
-	nextAction(): Promise<?UpgradeSubscriptionData> {
-		return Promise.resolve(null)
-	}
-
-	headerTitle(): string {
-		return lang.get("adminPayment_action")
-	}
-
-
-	isNextAvailable() {
-		return false
-	}
-
-	setPageActionHandler(handler: WizardPageActionHandler<UpgradeSubscriptionData>) {
-		this._pageActionHandler = handler
-	}
-
-	getUncheckedWizardData(): UpgradeSubscriptionData {
+	onremove(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		const data = vnode.attrs.data
+		// TODO check if correct place to update these
 		if (this._invoiceDataInput && this._paymentMethodInput) {
-			this._upgradeData.invoiceData = this._invoiceDataInput.getInvoiceData()
-			this._upgradeData.paymentData = this._paymentMethodInput.getPaymentData()
+			data.invoiceData = this._invoiceDataInput.getInvoiceData()
+			data.paymentData = this._paymentMethodInput.getPaymentData()
 		}
-		return this._upgradeData
 	}
 
-	updateWizardData(data: UpgradeSubscriptionData) {
-		this._upgradeData = data
+	oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		const data = vnode.attrs.data
+		// TODO check if correct place to update these
+		if (this._invoiceDataInput && this._paymentMethodInput) {
+			data.invoiceData = this._invoiceDataInput.getInvoiceData()
+			data.paymentData = this._paymentMethodInput.getPaymentData()
+		}
 		let login = Promise.resolve()
 		if (!logins.isUserLoggedIn()) {
 			login = worker.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, client.getIdentifier(), false, true)
@@ -131,8 +81,66 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 		})
 	}
 
-	isEnabled(data: UpgradeSubscriptionData) {
-		return data.type !== SubscriptionType.Free
+	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		const a = vnode.attrs
+		const onNextClick = () => {
+			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
+			if (error) {
+				return Dialog.error(error).then(() => null)
+			} else {
+				a.data.invoiceData = this._invoiceDataInput.getInvoiceData()
+				a.data.paymentData = this._paymentMethodInput.getPaymentData()
+				showProgressDialog("updatePaymentDataBusy_msg", updatePaymentData(a.data.options, a.data.invoiceData, a.data.paymentData, null,
+					a.data.upgradeType === UpgradeType.Signup)
+					.then(success => {
+						if (success) {
+							emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+						}
+					}))
+			}
+		}
+		return m("#upgrade-account-dialog.pt", this._availablePaymentMethods
+			? [
+				m(SegmentControl, {
+					items: this._availablePaymentMethods,
+					selectedValue: this._selectedPaymentMethod,
+				}),
+				m(".flex-space-around.flex-wrap.pt", [
+					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._invoiceDataInput)),
+					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._paymentMethodInput))
+				]),
+				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
+					label: "next_action",
+					click: onNextClick,
+					type: ButtonType.Login,
+				})))
+			]
+			: null)
+	}
+}
+
+export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+
+	data: UpgradeSubscriptionData
+
+	constructor(upgradeData: UpgradeSubscriptionData) {
+		this.data = upgradeData
+	}
+
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		return Promise.resolve(true)
+	}
+
+	headerTitle(): string {
+		return lang.get("adminPayment_action")
+	}
+
+	isSkipAvailable() {
+		return false
+	}
+
+	isEnabled(): boolean {
+		return this.data.type !== SubscriptionType.Free
 	}
 
 }

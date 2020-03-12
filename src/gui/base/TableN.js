@@ -27,7 +27,7 @@ export type ColumnWidthEnum = $Values<typeof ColumnWidth>
  * @param lines the lines of the table
  */
 export type TableAttrs = {
-	columnHeading: Array<lazy<string> | TranslationKey>,
+	columnHeading?: Array<lazy<string> | TranslationKey>,
 	columnWidths: ColumnWidthEnum[],
 	columnAlignments?: Array<boolean>,
 	showActionButtonColumn: boolean,
@@ -37,7 +37,7 @@ export type TableAttrs = {
 
 export type CellTextData = {
 	main: string,
-	info?: ?string,
+	info?: string[],
 	click?: clickHandler,
 	mainStyle?: string
 }
@@ -62,13 +62,13 @@ export class TableN implements MComponent<TableAttrs> {
 			: []
 
 		return m("", [
-			m("table.table", [
-				[
+			m(`table.table${a.columnHeading ? ".table-header-border" : ""}`, [
+				(a.columnHeading ? [
 					this._createLine({
 						cells: a.columnHeading.map(textIdOrFunction => lang.getMaybeLazy(textIdOrFunction)),
 						actionButtonAttrs: (loading) ? null : a.addButtonAttrs
 					}, a.showActionButtonColumn, a.columnWidths, true, alignments)
-				].concat(lineAttrs)
+				] : []).concat(lineAttrs)
 			]),
 			(loading)
 				? m(".flex-center.items-center.button-height", progressIcon())
@@ -102,7 +102,7 @@ export class TableN implements MComponent<TableAttrs> {
 							const dom = downcast(event.target)
 							cellTextData.click ? cellTextData.click(event, dom) : null
 						}
-					}, cellTextData.info)
+					}, cellTextData.info ? cellTextData.info.map(line => m("", line)) : null)
 				]))
 		} else {
 			cells = lineAttrs.cells.map((text, index) =>

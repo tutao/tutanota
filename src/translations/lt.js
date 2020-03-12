@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2020-04-29T20:49:59Z",
+	"updated_at": "2020-06-03T10:22:25Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -583,7 +583,6 @@ module.exports = {
 		"type_label": "Tipas",
 		"u2fAuthUnregisteredDevice_msg": "Šis saugos raktas nebuvo registruotas su jūsų paskyra. Prašome naudoti teisingą raktą.",
 		"u2fSecurityKey_label": "Saugos raktai (U2F)",
-		"u2fUnexpectedError_msg": "Įvyko netikėta klaida susyjusi su jūsų saugos raktu.",
 		"unknownError_msg": "Įvyko netikėta klaida. Vėliau pabandykite dar kartą.",
 		"unlimited_label": "Nelimituotas",
 		"unrecognizedU2fDevice_msg": "Jūsų saugos raktas buvo neatpažintas.",

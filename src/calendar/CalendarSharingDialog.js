@@ -18,6 +18,7 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
 import {findAndRemove, remove} from "../api/common/utils/ArrayUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {ShareCapabilityEnum} from "../api/common/TutanotaConstants"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
@@ -25,6 +26,7 @@ import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {getCalendarName, getCapabilityText, hasCapabilityOnGroup, isSharedGroupOwner} from "./CalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showSharingBuyDialog} from "../subscription/WhitelabelAndSharingBuyDialog"
@@ -38,10 +40,8 @@ import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} fr
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {Group} from "../api/entities/sys/Group"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
-import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
@@ -151,7 +151,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				cells: () => [
 					{
 						main: sentGroupInvitation.inviteeMailAddress,
-						info: lang.get("invited_label") + ", " + getCapabilityText(downcast(sentGroupInvitation.capability)),
+						info: [lang.get("invited_label") + ", " + getCapabilityText(downcast(sentGroupInvitation.capability))],
 						mainStyle: ".i"
 					}
 				],
@@ -181,8 +181,8 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				cells: () => [
 					{
 						main: getDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
-						info: (isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label"))
-							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))
+						info: [(isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label"))
+							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))]
 					}
 				], actionButtonAttrs: {
 					label: "delete_action",

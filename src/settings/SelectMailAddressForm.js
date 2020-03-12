@@ -29,8 +29,10 @@ export class SelectMailAddressForm {
 	_messageId: Stream<TranslationKey>;
 	_checkAddressTimeout: ?TimeoutID;
 	_availableDomains: string[];
+	injectionsRightButtonAttrs: ?ButtonAttrs;
 
-	constructor(availableDomains: string[]) {
+	constructor(availableDomains: string[], injectionsRightButtonAttrs: ?ButtonAttrs = null) {
+		this.injectionsRightButtonAttrs = injectionsRightButtonAttrs
 		this._messageId = stream("mailAddressNeutral_msg")
 		this._availableDomains = availableDomains
 		this._checkAddressTimeout = null
@@ -62,7 +64,9 @@ export class SelectMailAddressForm {
 			helpLabel: () => lang.get(this._messageId()),
 			injectionsRight: () => [
 				m(".flex.items-end.mr-s", {style: {"padding-bottom": '1px', "flex": "1 1 auto"}}, `@${this.domain()}`),
-				m(ButtonN, domainChooserAttrs)
+				this._availableDomains.length > 1
+					? m(ButtonN, domainChooserAttrs)
+					: (this.injectionsRightButtonAttrs ? m(ButtonN, this.injectionsRightButtonAttrs) : null)
 			]
 		}
 		return m(TextFieldN, userNameAttrs)

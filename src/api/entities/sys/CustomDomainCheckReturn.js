@@ -51,10 +51,19 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"refType": "DnsRecord",
 			"final": false
+		},
+		"requiredRecords": {
+			"name": "requiredRecords",
+			"id": 1755,
+			"since": 62,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "DnsRecord",
+			"final": false
 		}
 	},
 	"app": "sys",
-	"version": "61"
+	"version": "62"
 }
 
 export function createCustomDomainCheckReturn(values?: $Shape<$Exact<CustomDomainCheckReturn>>): CustomDomainCheckReturn {
@@ -69,4 +78,5 @@ export type CustomDomainCheckReturn = {
 
 	invalidRecords: DnsRecord[];
 	missingRecords: DnsRecord[];
+	requiredRecords: DnsRecord[];
 }

@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Nincs engedély.";
 TutaoChangePermissionMsg = "A hozzáféréshez módosítani kell az engedélyeket az eszközön.";
 TutaoCancelAction = "Mégse";
 TutaoSettingsAction = "Beállítások";
+TutaoCalendarAlarmTitle = "Emlékeztető";

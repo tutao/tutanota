@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2020-04-29T20:49:59Z",
+	"updated_at": "2020-07-23T12:59:28Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -726,7 +726,6 @@ module.exports = {
 		"typeToFilter_label": "Kirjuta filtreerimiseks...",
 		"type_label": "Tüüp",
 		"u2fSecurityKey_label": "Turvavõti (U2F)",
-		"u2fUnexpectedError_msg": "Ootamatu viga tekkis Teie turvavõtmega.",
 		"undo_action": "Võta tagasi",
 		"unknownError_msg": "Tekkis ootamatu viga. Palun proovige hiljem uuesti.",
 		"unlimited_label": "Piiramatu",

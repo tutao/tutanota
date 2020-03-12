@@ -2,6 +2,6 @@
     <string name="reminder_label">Påminnelse</string>
     <string name="pushNewMail_msg">Ny e-post mottatt.</string>
     <string name="notificationSync_msg">Synkronisering av varsler</string>
-    <string name="scheduleAlarmError_msg">Kunne ikke sette opp en alarm. Vennligst oppdater programmet.</string>
+    <string name="scheduleAlarmError_msg">Kunne ikke stille inn en alarm. Oppdater applikasjonen.</string>
     <string name="wantToSendReport_msg">En uventet feil oppstod. Vil du sende en feilmelding? Du kan legge ved en melding for å hjelpe oss løse denne feilen.</string>
 </resources>

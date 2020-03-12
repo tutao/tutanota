@@ -5,6 +5,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {load, serviceRequest, serviceRequestVoid} from "../api/main/Entity"
 import {lang} from "../misc/LanguageViewModel.js"
 import {TextField} from "../gui/base/TextField"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
 import {createNotAvailableForFreeClickHandler, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
@@ -36,12 +37,11 @@ import {CustomerAccountReturnTypeRef} from "../api/entities/accounting/CustomerA
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
+import type {InvoiceInfo} from "../api/entities/sys/InvoiceInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
+import type {CustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
-import type {CustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
-import type {InvoiceInfo} from "../api/entities/sys/InvoiceInfo"
 
 assertMainOrNode()
 
@@ -186,7 +186,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							cells: () => [
 								{
 									main: getPostingTypeText(posting),
-									info: formatDate(posting.valueDate)
+									info: [formatDate(posting.valueDate)]
 								},
 								{
 									main: formatPrice(Number(posting.amount), true)

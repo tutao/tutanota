@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-04-29T21:24:33Z",
+	"updated_at": "2020-07-23T12:59:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -1007,7 +1007,6 @@ module.exports = {
 		"type_label": "تایپ",
 		"u2fAuthUnregisteredDevice_msg": "این کلید امنیتی  برای حساب شما ثبت نشده است. لطفاً کلید معتبررا استفاده کنید.",
 		"u2fSecurityKey_label": "کد امنیتی(U2F)",
-		"u2fUnexpectedError_msg": "یک خطای غیر منتظره  با کلید امنیتی شما رخ داده است.",
 		"undo_action": "واگردانی",
 		"unknownError_msg": "یک خطای غیر منتظره رخ داده است. لطفا بعدا دوباره امتحان کنید.",
 		"unlimited_label": "نامحدود",

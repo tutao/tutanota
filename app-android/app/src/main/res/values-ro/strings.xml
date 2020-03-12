@@ -1,5 +1,8 @@
 <resources>
+    <string name="reminder_label">Reamintire</string>
     <string name="pushNewMail_msg">E-mail nou primit.</string>
+    <string name="notificationSync_msg">Sincronizarea notificărilor</string>
+    <string name="scheduleAlarmError_msg">Alarma nu a putut fi setată. Vă rugăm să actualizați aplicația.</string>
     <string name="wantToSendReport_msg">Ceva neprevăzut nu a mers bine. Vreți să trimiteți un raport cu eroarea?
 Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
 </resources>

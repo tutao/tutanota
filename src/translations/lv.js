@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2020-04-29T21:24:33Z",
+	"updated_at": "2020-07-16T13:35:45Z",
 	"source_locale": null,
 	"keys": {
 		"action_label": "Darbība",
@@ -633,7 +633,6 @@ module.exports = {
 		"type_label": "Tips",
 		"u2fAuthUnregisteredDevice_msg": "Drošības atslēga neatbilst jūsu kontam. Lūdzu, izmantojiet atbilstošo.",
 		"u2fSecurityKey_label": "Drošības atslēga (U2F)",
-		"u2fUnexpectedError_msg": "Ar jūsu drošības atslēgu ir notikus kļūda.",
 		"unknownError_msg": "Notikusi negaidīta kļūda. Lūdzu vēlāk mēģiniet vēlreiz.",
 		"unlimited_label": "Neierobežots",
 		"unregistered_label": "Nav reģistrēts",
