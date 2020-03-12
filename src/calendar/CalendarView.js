@@ -9,7 +9,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
-import {DAY_IN_MILLIS, getStartOfDay} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS, getStartOfDay, isSameDay} from "../api/common/utils/DateUtils"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
@@ -25,11 +25,12 @@ import {
 	getCapabilityText,
 	getEventStart,
 	getMonth,
+	getStartOfTheWeekOffset,
+	getStartOfWeek,
 	getTimeZone,
 	hasCapabilityOnGroup,
 	isSameEvent,
 	shouldDefaultToAmPmTimeFormat,
-	getCalendarWeek,
 } from "./CalendarUtils"
 import {showCalendarEventDialog} from "./CalendarEventDialog"
 import {worker} from "../api/main/WorkerClient"
@@ -610,18 +611,37 @@ export class CalendarView implements CurrentView {
 		let dateToUse: Date
 		if (date == null) {
 			switch (this._currentViewType) {
-			case CalendarViewType.AGENDA:
-				dateToUse = this._getNextHalfHour()
-				break
-			case CalendarViewType.MONTH:
-				dateToUse = getMonth(this.selectedDate(), getTimeZone()).start
-				break
-			case CalendarViewType.WEEK:
-				const startOfTheWeek = downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek)
-				const currentWeek = getCalendarWeek(this.selectedDate(), startOfTheWeek)
-				dateToUse = currentWeek[0]
-			default:
-				dateToUse = this.selectedDate()
+				case CalendarViewType.AGENDA:
+					dateToUse = this._getNextHalfHour()
+					break
+				case CalendarViewType.MONTH:
+					var startOfCurrentDay = getStartOfDay(new Date())
+
+					let visibleStartOfMonth = getMonth(this.selectedDate(), getTimeZone()).start
+					let currentDayStartOfMonth = getMonth(startOfCurrentDay, getTimeZone()).start
+
+					if (isSameDay(currentDayStartOfMonth, visibleStartOfMonth)) {
+						dateToUse = startOfCurrentDay
+					} else {
+						dateToUse = visibleStartOfMonth
+					}
+					break
+				case CalendarViewType.WEEK:
+					const startOfTheWeekOffset = getStartOfTheWeekOffset(downcast(logins.getUserController().userSettingsGroupRoot.startOfTheWeek))
+					var startOfCurrentDay = getStartOfDay(new Date())
+
+					// use the current day if it is visible in the displayed week, othersise use the start of the week
+					let currentDayStartOfTheWeek = getStartOfWeek(startOfCurrentDay, startOfTheWeekOffset)
+					let visibleStartOfTheWeek = getStartOfWeek(this.selectedDate(), startOfTheWeekOffset)
+
+					if (isSameDay(currentDayStartOfTheWeek, visibleStartOfTheWeek)) {
+						dateToUse = startOfCurrentDay
+					} else {
+						dateToUse = visibleStartOfTheWeek
+					}
+					break
+				default:
+					dateToUse = this.selectedDate()
 			}
 		} else {
 			dateToUse = date
