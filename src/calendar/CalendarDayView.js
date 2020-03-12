@@ -65,7 +65,8 @@ export class CalendarDayView implements MComponent<CalendarDayViewAttrs> {
 
 	_calculateEventsForDate(attrs: CalendarDayViewAttrs,
 	                        date: Date): PageEvents {
-		const events = getFromMap(attrs.eventsForDays, date.getTime(), () => [])
+		let dayEvents = attrs.eventsForDays.get(date.getTime())
+		const events = dayEvents ? dayEvents : []
 		const shortEvents = []
 		const longEvents = []
 		const allDayEvents = []
