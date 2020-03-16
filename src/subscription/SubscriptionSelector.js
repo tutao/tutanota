@@ -68,12 +68,6 @@ class _SubscriptionSelector {
 	_createFreeUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
 		return {
 			heading: 'Free',
-			// TODO add action button in website
-			// actionButton: m(".text-center", m(Link, {
-			// 	label: "pricing.select_action",
-			// 	href: "https://mail.tutanota.com/signup",
-			// 	type: LinkType.NavBtnRedBg
-			// })),
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Free
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.freeActionButton,
@@ -105,12 +99,6 @@ class _SubscriptionSelector {
 		] : []
 		return {
 			heading: 'Premium',
-			// TODO add action button in website
-			// actionButton: m(".text-center", m(Link, {
-			// 	label: "pricing.select_action",
-			// 	href: "https://mail.tutanota.com/signup",
-			// 	type: LinkType.NavBtnRedBg
-			// })),
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Premium
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.premiumActionButton,
@@ -146,12 +134,6 @@ class _SubscriptionSelector {
 		] : []
 		return {
 			heading: 'Teams',
-			// TODO add action button in website
-			// actionButton: m(".text-center", m(Link, {
-			// 	label: "pricing.select_action",
-			// 	href: "https://mail.tutanota.com/signup",
-			// 	type: LinkType.NavBtnRedBg
-			// })),
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Teams
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.teamsActionButton,
@@ -179,12 +161,6 @@ class _SubscriptionSelector {
 	_createProUpgradeBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
 		return {
 			heading: 'Pro',
-			// TODO add action button in website
-			// actionButton: m(".text-center", m(Link, {
-			// 	label: "pricing.select_action",
-			// 	href: "https://mail.tutanota.com/signup",
-			// 	type: LinkType.NavBtnRedBg
-			// })),
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Pro
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.proActionButton,
