@@ -81,7 +81,7 @@ export class ExternalLoginView {
 		if (!this._loading || this._loading.isPending() || this._autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this._errorMessageId) {
-			return m("p.center", m(MessageBoxN, {label: this._errorMessageId}))
+			return m("p.center", m(MessageBoxN, this._errorMessageId && lang.get(this._errorMessageId)))
 		} else {
 			return [
 				this._phoneNumbers.length > 0 ? [

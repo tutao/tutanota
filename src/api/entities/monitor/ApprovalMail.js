@@ -21,7 +21,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"_id": {"name": "_id", "id": 223, "since": 14, "type": "CustomId", "cardinality": "One", "final": true, "encrypted": false},
+		"_id": {
+			"name": "_id",
+			"id": 223,
+			"since": 14,
+			"type": "CustomId",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
 			"id": 226,
@@ -40,9 +48,33 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"date": {"name": "date", "id": 228, "since": 14, "type": "Date", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"range": {"name": "range", "id": 227, "since": 14, "type": "String", "cardinality": "ZeroOrOne", "final": true, "encrypted": false},
-		"text": {"name": "text", "id": 229, "since": 14, "type": "String", "cardinality": "One", "final": true, "encrypted": false}
+		"date": {
+			"name": "date",
+			"id": 228,
+			"since": 14,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"range": {
+			"name": "range",
+			"id": 227,
+			"since": 14,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
+		"text": {
+			"name": "text",
+			"id": 229,
+			"since": 14,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
 	},
 	"associations": {
 		"customer": {

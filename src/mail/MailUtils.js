@@ -4,7 +4,7 @@ import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientI
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
+import type {MailFolderTypeEnum, ReportedMailFieldTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
@@ -23,7 +23,6 @@ import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
 import {NotFoundError} from "../api/common/error/RestError"
-import {client} from "../misc/ClientDetector"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {logins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -39,6 +38,7 @@ import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {InlineImages} from "./MailViewer"
+import murmurHash from "../api/worker/crypto/lib/murmurhash3_32"
 
 assertMainOrNode()
 
@@ -138,7 +138,7 @@ export function resolveRecipientInfo(recipientInfo: RecipientInfo): Promise<Reci
 export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean) {
 	if (name === "") {
 		return mailAddress;
-	} else if (client.isMobileDevice() || preferNameOnly) {
+	} else if (preferNameOnly) {
 		return name
 	} else {
 		return name + " <" + mailAddress + ">"

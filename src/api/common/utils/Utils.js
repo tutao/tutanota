@@ -392,3 +392,7 @@ export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
 
 	return anyMap
 }
+
+export function addressDomain(senderAddress: string) {
+	return senderAddress.slice(senderAddress.lastIndexOf("@") + 1)
+}

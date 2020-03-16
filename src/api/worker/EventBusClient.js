@@ -14,7 +14,8 @@ import {
 	handleRestError,
 	NotAuthorizedError,
 	NotFoundError,
-	ServiceUnavailableError, SessionExpiredError
+	ServiceUnavailableError,
+	SessionExpiredError
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
@@ -25,6 +26,7 @@ import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
+import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
 
 assertWorkerOrNode()
 
@@ -57,6 +59,7 @@ export class EventBusClient {
 	_immediateReconnect: boolean; // if true tries to reconnect immediately after the websocket is closed
 	_lastEntityEventIds: {[key: Id]: Id[]}; // maps group id to last event ids (max. 1000). we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
 	_queueWebsocketEvents: boolean
+	_lastAntiphishingMarkersId: ?Id;
 
 	_websocketWrapperQueue: WebsocketEntityData[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
 
@@ -119,7 +122,9 @@ export class EventBusClient {
 			"modelVersions=" + WebsocketEntityDataTypeModel.version + "." + MailTypeModel.version
 			+ "&clientVersion=" + env.versionNumber
 			+ "&userId=" + this._login.getLoggedInUser()._id
-			+ "&" + ("accessToken=" + authHeaders.accessToken)
+			+ "&accessToken=" + authHeaders.accessToken
+			+ (this._lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this._lastAntiphishingMarkersId : "")
+
 		let url = getWebsocketOrigin() + "/event?" + authQuery;
 		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
@@ -242,6 +247,14 @@ export class EventBusClient {
 				})
 		} else if (type === "unreadCounterUpdate") {
 			this._worker.updateCounter(JSON.parse(value))
+		} else if (type === "phishingMarkers") {
+			return decryptAndMapToInstance(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null)
+				.then((data) => {
+					this._lastAntiphishingMarkersId = data.lastId
+					this._worker.phishingMarkers(data)
+				})
+		} else {
+			console.log("ws message with unknown type", type)
 		}
 		return Promise.resolve()
 	}

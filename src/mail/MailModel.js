@@ -28,6 +28,7 @@ import {Notifications} from "../gui/Notifications"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import {getFromMap} from "../api/common/utils/MapUtils"
+import {worker} from "../api/main/WorkerClient"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -269,6 +270,10 @@ export class MailModel {
 			const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
 			return mailGroupCounter && mailGroupCounter[listId]
 		}).catch(() => null)
+	}
+
+	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
+		return worker.checkMailForPhishing(mail, links, this._eventController.phishingMarkers())
 	}
 }
 

@@ -179,6 +179,7 @@ styles.registerStyle('main', () => {
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 		'.ml-s': {'margin-left': px(size.vpad_small)},
 		'.ml-m': {'margin-left': px(size.hpad_medium)},
+		'.mr-m': {'margin-right': px(size.hpad_medium)},
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -218,6 +219,7 @@ styles.registerStyle('main', () => {
 
 		'.plr-nav-button': {'padding-left': px(size.hpad_nav_button), 'padding-right': px(size.hpad_nav_button)},
 		'.pl-button': {'padding-left': px(size.hpad_button)},
+		'.mr-button': {'margin-right': px(size.hpad_button)},
 
 		'.mt-negative-s': {'margin-top': px(-size.hpad_button)},
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},

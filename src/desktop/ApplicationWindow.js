@@ -186,7 +186,6 @@ export class ApplicationWindow {
 			    // Wait for IPC to be initialized so that render process can process our messages.
 			    this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
 		    })
-		    .on('crashed', () => wm.recreateWindow(this))
 
 		this._browserWindow.webContents.on('dom-ready', () => {
 			this.sendMessageToWebContents('setup-context-menu', [])
@@ -368,6 +367,9 @@ export class ApplicationWindow {
 		if (process.platform !== 'linux') return
 		clearTimeout(this._setBoundsTimeout)
 		this._setBoundsTimeout = setTimeout(() => {
+			if (this._browserWindow.isDestroyed()) {
+				return
+			}
 			const newRect = this._browserWindow.getBounds()
 			if (bounds.rect.y !== newRect.y) {
 				// window was moved by some bug/OS interaction, so we move it back twice the distance.

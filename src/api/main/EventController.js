@@ -3,6 +3,7 @@ import {remove} from "../common/utils/ArrayUtils"
 import {assertMainOrNode} from "../Env"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
+import {PhishingMarkerStatus} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 import stream from "mithril/stream/stream.js"
 import {downcast, identity} from "../common/utils/Utils"
@@ -25,11 +26,13 @@ export class EventController {
 	_countersStream: Stream<WebsocketCounterData>;
 	_entityListeners: Array<EntityEventsListener>;
 	_logins: LoginController;
+	_phishingMarkers: Set<string>;
 
 	constructor(logins: LoginController) {
+		this._logins = logins
 		this._countersStream = stream()
 		this._entityListeners = []
-		this._logins = logins
+		this._phishingMarkers = new Set()
 	}
 
 	addEntityListener(listener: EntityEventsListener) {
@@ -43,6 +46,10 @@ export class EventController {
 	countersStream(): Stream<WebsocketCounterData> {
 		// Create copy so it's never ended
 		return this._countersStream.map(identity)
+	}
+
+	phishingMarkers(): Set<string> {
+		return this._phishingMarkers
 	}
 
 	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>, eventOwnerGroupId: Id) {
@@ -62,5 +69,15 @@ export class EventController {
 
 	counterUpdateReceived(update: WebsocketCounterData) {
 		this._countersStream(update)
+	}
+
+	phishingMarkersUpdateReceived(update: PhishingMarkerWebsocketData) {
+		update.markers.forEach((marker) => {
+			if (marker.status === PhishingMarkerStatus.INACTIVE) {
+				this._phishingMarkers.delete(marker.marker)
+			} else {
+				this._phishingMarkers.add(marker.marker)
+			}
+		})
 	}
 }

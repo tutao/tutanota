@@ -555,3 +555,72 @@ export const TabIndex = Object.freeze({
 	Programmatic: "-1", // focus on element can only be set programmatically
 	Default: "0", // regular tab order
 })
+
+export const ReportedMailFieldType = Object.freeze({
+	/**
+	 * From header address, authenticated.
+	 */
+	FROM_ADDRESS: "0",
+	/**
+	 * From header address, not authenticated with DMARC.
+	 */
+	FROM_ADDRESS_NON_AUTH: "1",
+	/**
+	 * From header address domain
+	 */
+	FROM_DOMAIN: "2",
+	/**
+	 * From header address domain, not authenticated not authenticated with DMARC.
+	 */
+	FROM_DOMAIN_NON_AUTH: "3",
+	/**
+	 * Email subject
+	 */
+	SUBJECT: "4",
+	/**
+	 * Link in the body of email
+	 */
+	LINK: "5",
+	/**
+	 * Domain of the link in the body
+	 */
+	LINK_DOMAIN: "6",
+})
+export type ReportedMailFieldTypeEnum = $Values<typeof ReportedMailFieldType>
+
+export const MailPhishingStatus = Object.freeze({
+	UNKNOWN: "0",
+	SUSPICIOUS: "1",
+	WHITELISTED: "2",
+})
+export type MailPhishingStatusEnum = $Values<typeof MailPhishingStatus>
+
+export const PhishingMarkerStatus = Object.freeze({
+	ACTIVE: "0",
+	INACTIVE: "1",
+})
+export type PhishingMarkerStatusEnum = $Values<typeof PhishingMarkerStatus>
+
+export const MailAuthenticationStatus = Object.freeze({
+	/**
+	 * Disposition: None. All checks have passed.
+	 */
+	AUTHENTICATED: "0",
+	/**
+	 * Authentication has failed because of the domain policy or because of the SPF.
+	 */
+	HARD_FAIL: "1",
+	/**
+	 * Authentication has failed because of our own policy, most commonly authentication is "missing".
+	 */
+	SOFT_FAIL: "2",
+	/**
+	 * Authentication has failed because From header is not valid so we couldn't do authentication checks.
+	 */
+	INVALID_MAIL_FROM: "3",
+	/**
+	 * Authentication has failed because From header is missing. Most likely it is some technical message like bounce mail.
+	 */
+	MISSING_MAIL_FROM: "4",
+})
+export type MailAuthenticationStatusEnum = $Values<typeof MailAuthenticationStatus>

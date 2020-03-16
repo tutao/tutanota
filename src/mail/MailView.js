@@ -190,13 +190,30 @@ export class MailView implements CurrentView {
 	}
 
 	headerRightView(): Children {
+		const newMailButton = () => m(ButtonN, {
+			label: "newMail_action",
+			click: () => this._newMail().catch(PermissionError, noOp),
+			type: ButtonType.Action,
+			icon: () => Icons.PencilSquare,
+			colors: ButtonColors.Header,
+		})
+
 		return isNewMailActionAvailable()
-			? m(ButtonN, {
-				label: "newMail_action",
-				click: () => this._newMail().catch(PermissionError, noOp),
-				type: ButtonType.Action,
-				icon: () => Icons.PencilSquare,
-				colors: ButtonColors.Header,
+			? newMailButton()
+			: null
+	}
+
+	/**
+	 * Used by Header to figure out when content needs to be injected there
+	 * @returns {Children} Mithril children or null
+	 */
+	headerView(): Children {
+		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.mailList && this.mailList.list
+		&& this.mailList.list.isMobileMultiSelectionActionActive()
+			? m(MultiSelectionBar, {
+				selectNoneHandler: () => this.mailList.list.selectNone(),
+				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
+				content: this._actionBar()
 			})
 			: null
 	}
@@ -794,19 +811,6 @@ export class MailView implements CurrentView {
 				}
 			})
 		}
-	}
-
-	/**
-	 * Used by Header to figure out when content needs to be injected there
-	 * @returns {Children} Mithril children or null
-	 */
-	headerView(): Children {
-		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.mailList && this.mailList.list
-		&& this.mailList.list.isMobileMultiSelectionActionActive() ? m(MultiSelectionBar, {
-			selectNoneHandler: () => this.mailList.list.selectNone(),
-			selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			content: this._actionBar()
-		}) : null
 	}
 }
 

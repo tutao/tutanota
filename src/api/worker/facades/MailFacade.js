@@ -4,8 +4,8 @@ import {aes128RandomKey} from "../crypto/Aes"
 import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
-import type {ConversationTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, OperationType} from "../../common/TutanotaConstants"
+import type {ConversationTypeEnum, ReportedMailFieldTypeEnum} from "../../common/TutanotaConstants"
+import {GroupType, MailAuthenticationStatus as MailAuthStatus, OperationType, ReportedMailFieldType} from "../../common/TutanotaConstants"
 import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
 import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
 import {createDraftData} from "../../entities/tutanota/DraftData"
@@ -24,7 +24,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
-import {defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
+import {addressDomain, defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -44,6 +44,7 @@ import {contains} from "../../common/utils/ArrayUtils"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
+import murmurHash from "../crypto/lib/murmurhash3_32"
 
 assertWorkerOrNode()
 
@@ -295,6 +296,51 @@ export class MailFacade {
 			})
 	}
 
+	checkMailForPhishing(mail: Mail, links: Array<string>, markers: Set<string>): Promise<boolean> {
+		let score = 0
+		const senderAddress = mail.sender.address
+		const senderAuthenticated = mail.authStatus === MailAuthStatus.AUTHENTICATED
+
+		if (senderAuthenticated) {
+			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {
+				score += 6
+			} else {
+				const senderDomain = addressDomain(senderAddress)
+				if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_DOMAIN, senderDomain)) {
+					score += 6
+				}
+			}
+		} else {
+			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_ADDRESS_NON_AUTH, senderAddress)) {
+				score += 6
+			} else {
+				const senderDomain = addressDomain(senderAddress)
+				if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_DOMAIN_NON_AUTH, senderDomain)) {
+					score += 6
+				}
+			}
+		}
+
+		if (this._checkFieldForPhishing(markers, ReportedMailFieldType.SUBJECT, mail.subject)) {
+			score += 3
+		}
+		for (const link of links) {
+			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK, link)) {
+				score += 6
+				break
+			} else if (this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK_DOMAIN, new URL(link).hostname)) {
+				score += 6
+				break
+			}
+		}
+		return Promise.resolve(7 < score)
+	}
+
+	_checkFieldForPhishing(markers: Set<string>, type: ReportedMailFieldTypeEnum, value: string): boolean {
+		const hash = phishingMarkerValue(type, value)
+		return markers.has(hash)
+	}
+
 	_addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipientInfos: RecipientInfo[], senderMailGroupId: Id): Promise<void> {
 		let notFoundRecipients = []
 		return Promise.all(recipientInfos.map(recipientInfo => {
@@ -429,6 +475,10 @@ export class MailFacade {
 	}
 
 
+}
+
+export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: string) {
+	return type + murmurHash(value.replace(/\s/g, ""))
 }
 
 function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {

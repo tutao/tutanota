@@ -36,6 +36,7 @@ import "./common/PromiseUtilTest"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import "./crypto/RsaTest.js"
+import "./worker/facades/MailFacadeTest"
 
 const disabledTests = ["./common/IntegrationTest", "./common/WorkerTest"]
 console.log("!!! Some tests are disabled because they need a server instance, see Suite.js", disabledTests)

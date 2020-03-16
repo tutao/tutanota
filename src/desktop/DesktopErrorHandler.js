@@ -21,9 +21,11 @@ class DesktopErrorHandler {
 	_ipc: IPC
 	_errorLogPath: string;
 	lastErrorLog: ?ErrorLog;
+	_showingErrorDialog: boolean;
 
 	constructor() {
 		this._errorLogPath = path.join(app.getPath('userData'), 'lasterror.log')
+		this._showingErrorDialog = false
 	}
 
 	// these listeners can only be set after the app ready event
@@ -56,6 +58,10 @@ class DesktopErrorHandler {
 	}
 
 	handleUnexpectedFailure(error: Error) {
+		if (this._showingErrorDialog) {
+			return
+		}
+		this._showingErrorDialog = true
 		console.error("unexpected error:", error)
 		this.lastErrorLog = {
 			name: error.name,
@@ -83,12 +89,14 @@ class DesktopErrorHandler {
 				} else {
 					const loggedInWindow = this._wm.getAll().find(w => w.getTitle() !== LOGIN_TITLE)
 					if (loggedInWindow) {
-						this.sendErrorReport(loggedInWindow.id)
+						return this.sendErrorReport(loggedInWindow.id)
 					} else {
-						this.sendErrorReport(this._wm.getLastFocused(true).id)
+						return this.sendErrorReport(this._wm.getLastFocused(true).id)
 					}
 				}
 			}
+		}).finally(() => {
+			this._showingErrorDialog = false
 		})
 	}
 

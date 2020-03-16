@@ -327,7 +327,9 @@ export class WorkerImpl {
 			rejectGroupInvitation: (message: Request) => {
 				return locator.share.rejectGroupInvitation(...message.args)
 			},
-
+			checkMailForPhishing: (message: Request) => {
+				return locator.mail.checkMailForPhishing(...message.args)
+			}
 		})
 
 		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
@@ -406,6 +408,10 @@ export class WorkerImpl {
 
 	infoMessage(message: InfoMessage) {
 		return this._queue.postMessage(new Request("infoMessage", [message]))
+	}
+
+	phishingMarkers(markersData: PhishingMarkerWebsocketData) {
+		return this._queue.postMessage(new Request("phishingMarkers", [markersData]))
 	}
 }
 

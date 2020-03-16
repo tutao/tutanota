@@ -187,9 +187,7 @@ o.spec("ApplicationWindow Test", function () {
 		},
 		hide: () => {},
 		minimize: () => {},
-		getIcon: () => 'this is a wm icon',
-		recreateWindow: () => {
-		}
+		getIcon: () => 'this is a wm icon'
 	}
 
 	const u2f = {
@@ -264,7 +262,6 @@ o.spec("ApplicationWindow Test", function () {
 			'context-menu',
 			'did-fail-load',
 			'did-finish-load',
-			'crashed',
 			'dom-ready'
 		])
 
@@ -540,18 +537,6 @@ o.spec("ApplicationWindow Test", function () {
 			threw = true
 		}
 		o(threw).equals(true)
-	})
-
-	o("try to recreate on crashed", function () {
-		const {electronMock, wmMock} = standardMocks()
-
-		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
-		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-
-		bwInstance.webContents.callbacks['crashed']()
-		o(wmMock.recreateWindow.callCount).equals(1)
-		o(wmMock.recreateWindow.args[0]).equals(w)
 	})
 
 	o("new-window is redirected to openExternal", function () {

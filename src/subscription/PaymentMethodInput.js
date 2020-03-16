@@ -16,6 +16,7 @@ import {locator} from "../api/main/MainLocator"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
+import {px} from "../gui/size"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -79,9 +80,8 @@ export class PaymentMethodInput {
 		this._invoiceComponent = {
 			view: () => {
 				return m(".flex-center", m(MessageBoxN, {
-					label: this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg",
-					marginTop: 16
-				}))
+					style: {marginTop: px(16)},
+				}), this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg")
 			}
 		}
 

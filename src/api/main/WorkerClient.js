@@ -89,7 +89,11 @@ export class WorkerClient {
 			infoMessage: (message: Message) => {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
-			}
+			},
+			phishingMarkers: (message: Message) => {
+				locator.eventController.phishingMarkersUpdateReceived(downcast(message.args[0]))
+				return Promise.resolve()
+			},
 		})
 	}
 
@@ -559,6 +563,10 @@ export class WorkerClient {
 
 	rejectGroupInvitation(receivedGroupInvitaitonId: IdTuple): Promise<void> {
 		return this._queue.postMessage(new Request("rejectGroupInvitation", [receivedGroupInvitaitonId]))
+	}
+
+	checkMailForPhishing(mail: Mail, links: Array<string>, markers: Set<string>): Promise<boolean> {
+		return this._queue.postMessage(new Request("checkMailForPhishing", [mail, links, markers]))
 	}
 }
 

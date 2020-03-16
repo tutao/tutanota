@@ -128,35 +128,6 @@ export class WindowManager {
 			|| this.newWindow(true, true)
 	}
 
-	recreateWindow(w: ApplicationWindow): void {
-		console.log("browserWindow crashed, trying to reopen at", w.getPath())
-		const lastPath = w.getPath()
-		const userInfo = w.getUserInfo()
-		const isMinimized = w.isMinimized()
-		const isFocused = w.isFocused()
-		const isHidden = w.isHidden()
-		const bounds = w.getBounds()
-		w._browserWindow.destroy() // drastic, but still fires the closed event
-
-		w = this.newWindow(false)
-		w.setBounds(bounds)
-		let p = Promise.resolve()
-		if (userInfo) {
-			p = w.openMailBox(userInfo, lastPath)
-		}
-		p.then(() => {
-			if (isFocused) {
-				w.show()
-			} else if (!isHidden) {
-				if (isMinimized) {
-					w.minimize()
-				}
-				w.showInactive()
-			}
-		})
-	}
-
-
 	saveBounds(w: ApplicationWindow): void {
 		const lastBounds = w.getBounds()
 		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {

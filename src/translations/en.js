@@ -1093,8 +1093,17 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
 		"dark_label": "Dark",
-		"light_label": "Light"
+		"light_label": "Light",
+		"yourMessage_label": "Your message",
+		// TODO: add to Phrase
+		"phisingReport_msg": "Contents of the message will be transmitted to the server in unencrypted form so that we can improve phishing protection. Are you sure you want to report this message?",
+		"phishingMessage_label": "This message looks suspicious.",
+		"phishingMessageBody_msg": "It is similar to other messages reported for phishing.",
+		"reportPhishing_action": "Report phishing",
+		"markAsNotPhishing_action": "Mark as not phishing",
+		"mailAuthFailed_label": "Mail authentication failed",
+		"mailAuthFailed_msg": "Message might be not authentic. Don't trust contents of this message, like sender address or mail body!",
+		"mailAuthMissing_label": "We could not prove authenticy of this message"
 	}
 }

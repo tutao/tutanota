@@ -2,6 +2,7 @@
 import DOMPurify from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
 import {client} from "./ClientDetector"
+import {downcast} from "../api/common/utils/Utils"
 
 // the svg data string must contain ' instead of " to avoid display errors in Edge
 // '#' character is reserved in URL and FF won't display SVG otherwise
@@ -16,6 +17,7 @@ class HtmlSanitizer {
 	_blockExternalContent: boolean
 	_externalContent: string[]
 	_inlineImageCids: Array<string>
+	_links: Array<string>
 	purifier: IDOMPurify
 
 	constructor() {
@@ -42,26 +44,7 @@ class HtmlSanitizer {
 				}
 
 				this._replaceAttributes(currentNode)
-
-				// set target="_blank" for all links
-				if (currentNode.tagName && (
-					currentNode.tagName.toLowerCase() === "a"
-					|| currentNode.tagName.toLowerCase() === "area"
-					|| currentNode.tagName.toLowerCase() === "form")) {
-					const href = currentNode.getAttribute("href")
-					if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
-						currentNode.setAttribute('rel', 'noopener noreferrer')
-						currentNode.setAttribute('target', '_blank')
-					} else if (href.trim() === '{link}') {
-						// notification mail template
-						currentNode.href = '{link}'
-						currentNode.setAttribute('rel', 'noopener noreferrer')
-						currentNode.setAttribute('target', '_blank')
-					} else {
-						console.log("Relative/invalid URL", currentNode, href)
-						currentNode.href = "javascript:void(0)"
-					}
-				}
+				this._processLink(currentNode, config)
 
 				return currentNode;
 			}
@@ -77,7 +60,7 @@ class HtmlSanitizer {
 		const config = this._prepareSanitize(html, blockExternalContent, allowRelativeLinks)
 
 		let cleanHtml = this.purifier.sanitize(html, config)
-		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids}
+		return {"text": cleanHtml, "externalContent": this._externalContent, "inlineImageCids": this._inlineImageCids, links: this._links}
 	}
 
 	/**
@@ -87,10 +70,15 @@ class HtmlSanitizer {
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
 	sanitizeFragment(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false
-	): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>} {
+	): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>} {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
 			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {RETURN_DOM_FRAGMENT: true})
-		return {html: this.purifier.sanitize(html, config), externalContent: this._externalContent, inlineImageCids: this._inlineImageCids}
+		return {
+			html: this.purifier.sanitize(html, config),
+			externalContent: this._externalContent,
+			inlineImageCids: this._inlineImageCids,
+			links: this._links
+		}
 	}
 
 	_prepareSanitize(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean): SanitizeConfig {
@@ -98,6 +86,7 @@ class HtmlSanitizer {
 		this._blockExternalContent = blockExternalContent;
 		this._externalContent = []
 		this._inlineImageCids = []
+		this._links = []
 
 		return {
 			ADD_ATTR: ['target', 'controls', 'cid'], // for target = _blank, controls for audio element, cid for embedded images to allow our own cid attribute
@@ -186,6 +175,32 @@ class HtmlSanitizer {
 			htmlNode.style[styleAttributeName] = newImage;
 			if (limitWidth) {
 				htmlNode.style["max-width"] = "100px"
+			}
+		}
+	}
+
+	_processLink(currentNode: HTMLElement, config) {
+		// set target="_blank" for all links
+		// collect them
+		if (currentNode.tagName && (
+			currentNode.tagName.toLowerCase() === "a"
+			|| currentNode.tagName.toLowerCase() === "area"
+			|| currentNode.tagName.toLowerCase() === "form")
+		) {
+			const href = currentNode.getAttribute("href")
+			href && this._links.push(href)
+
+			if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
+				currentNode.setAttribute('rel', 'noopener noreferrer')
+				currentNode.setAttribute('target', '_blank')
+			} else if (href.trim() === '{link}') {
+				// notification mail template
+				downcast(currentNode).href = '{link}'
+				currentNode.setAttribute('rel', 'noopener noreferrer')
+				currentNode.setAttribute('target', '_blank')
+			} else {
+				console.log("Relative/invalid URL", currentNode, href)
+				downcast(currentNode).href = "javascript:void(0)"
 			}
 		}
 	}

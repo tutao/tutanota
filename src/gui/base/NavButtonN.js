@@ -35,7 +35,7 @@ const navButtonSelector = (vertical) =>
 	"a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height"
 	+ (vertical ? ".col" : "")
 
-class _NavButton {
+export class NavButtonN implements MComponent<NavButtonAttrs> {
 	_domButton: HTMLElement;
 	_draggedOver: boolean;
 	_dropCounter: number; // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
@@ -163,9 +163,6 @@ class _NavButton {
 	}
 
 }
-
-
-export const NavButtonN: Class<MComponent<NavButtonAttrs>> = _NavButton
 
 export const NavButtonColors = Object.freeze({
 	Header: 'header',
