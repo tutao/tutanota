@@ -268,7 +268,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	}
 
 	let windowCloseUnsubscribe
-	const now = Date.now()
 
 	const okAction = (dialog) => {
 		const newEvent = createCalendarEvent()
@@ -472,7 +471,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		okAction: readOnly ? null : (dialog) => requestAnimationFrame(() => okAction(dialog))
 
 	})
-	if (client.isMobileDevice() && Date.now() - now < 1000) {
+	if (client.isMobileDevice()) {
+		// suppress keyboard on mobile
 		dialog.setFocusOnLoadFunction(function () {})
 	}
 	dialog.show()
