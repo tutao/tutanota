@@ -39,6 +39,19 @@ export const DialogType = Object.freeze({
 })
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
+type ActionDialogProps = {|
+	title: lazy<string> | string,
+	child: Component | lazy<Children>,
+	validator?: validator,
+	okAction: null | (Dialog) => mixed,
+	allowCancel?: boolean,
+	allowOkWithReturn?: boolean,
+	okActionTextId?: TranslationKey,
+	cancelAction?: ?(Dialog) => mixed,
+	cancelActionTextId?: TranslationKey,
+	type?: DialogTypeEnum,
+|}
+
 export class Dialog {
 	static _keyboardHeight = 0;
 	_domDialog: HTMLElement;
@@ -431,18 +444,12 @@ export class Dialog {
 	 * @param   props.cancelAction called when allowCancel is true and the cancel button/shortcut was pressed.
 	 * @returns the Dialog
 	 */
-	static showActionDialog(props: {|
-		title: lazy<string> | string,
-		child: Component | lazy<Children>,
-		validator?: validator,
-		okAction: null | (Dialog) => mixed,
-		allowCancel?: boolean,
-		allowOkWithReturn?: boolean,
-		okActionTextId?: TranslationKey,
-		cancelAction?: ?(Dialog) => mixed,
-		cancelActionTextId?: TranslationKey,
-		type?: DialogTypeEnum,
-	|}): Dialog {
+	static showActionDialog(props: ActionDialogProps): Dialog {
+		let dialog = this.createActionDialog(props)
+		return dialog.show()
+	}
+
+	static createActionDialog(props: ActionDialogProps) {
 		let dialog: Dialog
 		const {title, child, okAction, validator, allowCancel, allowOkWithReturn, okActionTextId, cancelActionTextId, cancelAction, type} =
 			Object.assign({}, {
@@ -509,8 +516,7 @@ export class Dialog {
 				help: "ok_action"
 			})
 		}
-
-		return dialog.show()
+		return dialog
 	}
 
 	/**

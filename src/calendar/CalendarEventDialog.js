@@ -366,7 +366,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		dialog.close()
 	}
 
-	const dialog = Dialog.showActionDialog({
+	const dialog = Dialog.createActionDialog({
 		title: () => lang.get("createEvent_label"),
 		child: () => m("", {
 			oncreate: vnode => windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {}),
@@ -375,11 +375,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			m(TextFieldN, {
 				label: "title_placeholder",
 				value: summary,
-				onfocus: (dom, input) => {
-					if (client.isMobileDevice() && Date.now() - now < 1000) {
-						input.blur()
-					}
-				},
 				disabled: readOnly
 			}),
 			m(".flex", [
@@ -477,6 +472,10 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		okAction: readOnly ? null : (dialog) => requestAnimationFrame(() => okAction(dialog))
 
 	})
+	if (client.isMobileDevice() && Date.now() - now < 1000) {
+		dialog.setFocusOnLoadFunction(function () {})
+	}
+	dialog.show()
 }
 
 function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
