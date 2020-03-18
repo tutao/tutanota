@@ -6,6 +6,8 @@ import {theme} from "../theme"
 import m from "mithril"
 import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
+import {AriaLandmarks} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -13,14 +15,18 @@ export type Attrs = {
 	/** Button to be displayed on top of the  */
 	button: ?{label: TranslationKey, click: clickHandler},
 	content: Children,
+	ariaLabel: TranslationKey | lazy<string>
 }
 
 export class FolderColumnView implements MComponent<Attrs> {
-
 	view({attrs}: Vnode<Attrs>) {
-		return m("nav.flex.height-100p", {tabindex: "0"}, [
+		return m(".flex.height-100p", [
 			m(DrawerMenu),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", [
+			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", {
+				role: AriaLandmarks.Navigation,
+				"aria-label": lang.getMaybeLazy(attrs.ariaLabel),
+				tabindex: "-1",
+			}, [
 				attrs.button
 					? m(".mlr-l.mt.mb", m(ButtonN, {
 						label: attrs.button.label,
@@ -29,7 +35,6 @@ export class FolderColumnView implements MComponent<Attrs> {
 					}))
 					: null,
 				m(".scroll.overflow-x-hidden.flex.col.flex-grow", {
-						tabindex: "-1",
 						onscroll: (e) => {
 							if (attrs.button == null || e.target.scrollTop === 0) {
 								e.target.style.borderTop = ""

@@ -110,7 +110,8 @@ export class SettingsView implements CurrentView {
 					logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
 					logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
 					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
-				])
+				]),
+				ariaLabel: "settings_label"
 			})
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("settings_label"))
 

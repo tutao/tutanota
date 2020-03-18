@@ -3,10 +3,12 @@ import m from "mithril"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {
 	FeatureType,
-	FULL_INDEXED_TIMESTAMP, Keys,
+	FULL_INDEXED_TIMESTAMP,
+	Keys,
 	MailFolderType,
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
@@ -51,9 +53,9 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
-import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
 import {isNewMailActionAvailable} from "../mail/MailView"
+import {FolderColumnView} from "../gui/base/FolderColumnView"
 
 assertMainOrNode()
 
@@ -175,30 +177,9 @@ export class SearchView implements CurrentView {
 		this.folderColumn = new ViewColumn({
 			view: () => {
 				const restriction = getRestriction(m.route.get())
-				return m(".flex.height-100p", [
-					m(DrawerMenu),
-					m(".folder-column.scroll.overflow-x-hidden.flex-grow", [
-						styles.isUsingBottomNavigation()
-							? null
-							: isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
-							? m(".mlr-l.mt", m(ButtonN, {
-								click: () => {
-									mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
-								},
-								label: "newMail_action",
-								type: ButtonType.PrimaryBorder,
-							}))
-							: isSameTypeRef(restriction.type, ContactTypeRef)
-								? m(".mlr-l.mt", m(ButtonN, {
-									click: () => {
-										LazyContactListId.getAsync().then(contactListId => {
-											new ContactEditor(null, contactListId, null).show()
-										})
-									},
-									label: "newContact_action",
-									type: ButtonType.PrimaryBorder,
-								}))
-								: null,
+				return m(FolderColumnView, {
+					button: null, //this.getMainButton(restriction.type),
+					content: [
 						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
 							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},
 								lang.get("search_label").toLocaleUpperCase())
@@ -220,8 +201,9 @@ export class SearchView implements CurrentView {
 								])
 							])
 							: null
-					])
-				])
+					],
+					ariaLabel: "searchOptions_label"
+				})
 			}
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("search_label"))
 
@@ -550,4 +532,30 @@ export class SearchView implements CurrentView {
 			content: this._viewer.multiSearchActionBar()
 		}) : null
 	}
+
+	getMainButton(typeRef: TypeRef<any>): ?{label: TranslationKey, click: clickHandler} {
+		if (styles.isUsingBottomNavigation()) {
+			return null;
+		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
+			return {
+				click: () => {
+					mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+				},
+				label: "newMail_action",
+			}
+		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
+			return {
+				click: () => {
+					LazyContactListId.getAsync().then(contactListId => {
+						new ContactEditor(null, contactListId, null).show()
+					})
+				},
+				label: "newContact_action",
+			}
+		} else {
+			return null;
+		}
+	}
 }
+
+

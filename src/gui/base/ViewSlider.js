@@ -11,6 +11,8 @@ import {assertMainOrNode} from "../../api/Env"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
 import {styles} from "../styles"
+import type {AriaLandmarksEnum} from "../../api/common/TutanotaConstants"
+import {AriaLandmarks} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -68,6 +70,8 @@ export class ViewSlider implements IViewSlider {
 		this._parentName = parentName
 		this._isModalBackgroundVisible = false
 
+		this.columns.forEach((column => column.setRole(this._getColumnRole(column))))
+
 		this.view = (): Children => {
 			const mainSliderColumns = this._getColumnsForMainSlider()
 			const allBackgroundColumnsAreVisible = this._visibleBackgroundColumns.length === mainSliderColumns.length
@@ -102,6 +106,14 @@ export class ViewSlider implements IViewSlider {
 				this._createModalBackground(),
 			])
 		}
+	}
+
+	_getColumnRole(column: ViewColumn): ?AriaLandmarksEnum {
+		// role  for foreground column is handled inside FolderColumnView
+		if (column.columnType === ColumnType.Foreground) {
+			return null
+		}
+		return this._mainColumn === column ? AriaLandmarks.Main : AriaLandmarks.Complementary
 	}
 
 	_getColumnsForMainSlider(): Array<ViewColumn> {

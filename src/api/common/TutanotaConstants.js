@@ -549,3 +549,15 @@ export const Keys = Object.freeze({
 	F12: {code: 123, name: "F12"},
 })
 export type KeysEnum = $Values<typeof Keys>
+
+
+// See: https://webaim.org/techniques/aria/#landmarks
+export const AriaLandmarks = Object.freeze({
+	Banner: "banner",
+	Search: "search",
+	Navigation: "navigation",
+	Main: "main",
+	Complementary: "complementary",
+	Contentinfo: "contentinfo",
+})
+export type AriaLandmarksEnum = $Values<typeof AriaLandmarks>

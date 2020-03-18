@@ -13,12 +13,16 @@ import {isNewMailActionAvailable} from "../../mail/MailView"
 import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
+import {AriaLandmarks} from "../../api/common/TutanotaConstants"
 
 type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		return m("drawer-menu", {
+			"aria-label": "side",
+			tabindex: "-1",
+			role: AriaLandmarks.Contentinfo,
 			style: {
 				'padding-left': getSafeAreaInsetLeft()
 			},
@@ -33,7 +37,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			!isIOSApp() && logins.getUserController().isFreeAccount()
+			!isIOSApp() && logins.loginComplete() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Premium,
 					label: "upgradePremium_label",
@@ -42,7 +46,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			logins.getUserController().isPremiumAccount()
+			logins.loginComplete() && logins.getUserController().isPremiumAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Help,
 					label: "supportMenu_label",

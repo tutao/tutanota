@@ -37,9 +37,7 @@ import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {navButtonRoutes, throttleRoute} from "../misc/RouteChange"
-import {getSafeAreaInsetLeft} from "../gui/HtmlUtils"
 import {NavButtonN} from "../gui/base/NavButtonN"
-import {DrawerMenu} from "../gui/nav/DrawerMenu"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
@@ -93,7 +91,7 @@ export class ContactView implements CurrentView {
 		this.contactColumn = new ViewColumn({
 			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
 		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, () => {
-			let selectedEntities = this._contactList.list.getSelectedEntities();
+			let selectedEntities = this._contactList ? this._contactList.list.getSelectedEntities() : []
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this._contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
 				return selectedIndex + "/" + this._contactList.list._loadedEntities.length

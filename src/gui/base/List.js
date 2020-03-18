@@ -153,7 +153,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 
 		this.view = (): VirtualElement => {
-			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
+			let list = m(".list-container.fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
 					this._width = this._domListContainer.clientWidth
@@ -194,15 +194,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 										return m("li.list-row.pl.pr-l"
 											// Doesn't make sense to drag in mobile layout, can be useful on big tablets like iPad Pro though
 											+ (styles.isDesktopLayout() && this._config.elementsDraggable ? '[draggable="true"]' : ""), {
-											oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
-											tabIndex: 0,
-											style: {
-												transform: `translateY(-${this._config.rowHeight}px)`,
-												paddingTop: px(15),
-												paddingBottom: px(15),
-											},
-											ondragstart: (event) => this._dragstart(event, virtualRow)
-										}, virtualRow.render())
+												tabindex: 0,
+												oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
+												style: {
+													transform: `translateY(-${this._config.rowHeight}px)`,
+													paddingTop: px(15),
+													paddingBottom: px(15),
+												},
+												ondragstart: (event) => this._dragstart(event, virtualRow)
+											}, virtualRow.render()
+										)
 									}),
 									// odd-row is switched directly on the dom element when the number of elements changes
 									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {

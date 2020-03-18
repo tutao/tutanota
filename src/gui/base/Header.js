@@ -227,7 +227,8 @@ class Header {
 		} else {
 			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return m(".logo.logo-height.pl", {
-					"aria-hidden": "true",
+					role: "banner",
+					"aria-label": "Tutanota logo",
 					style: {
 						"margin-left": px(sizes.drawer_menu_width)
 					},

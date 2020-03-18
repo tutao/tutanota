@@ -1,6 +1,8 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
+import type {AriaLandmarksEnum} from "../../api/common/TutanotaConstants"
+import {AriaLandmarks} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -25,6 +27,7 @@ export class ViewColumn {
 	view: Function;
 	isInForeground: boolean;
 	visible: boolean;
+	_ariaRole: ? AriaLandmarksEnum;
 
 	/**
 	 * Create a view column.
@@ -34,7 +37,7 @@ export class ViewColumn {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param title A function that returns the translated title text for a column.
 	 */
-	constructor(component: Component, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>) {
+	constructor(component: Component, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>,) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth
@@ -50,10 +53,16 @@ export class ViewColumn {
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
 			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border, {
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
+					tabindex: "-1",
+					role: this._ariaRole ? this._ariaRole : null,
+					"aria-label": this.getTitle(),
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
 						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ?
 							'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null
+						if (this._ariaRole === AriaLandmarks.Main) {
+							this.focus()
+						}
 					},
 					style: {
 						width: this.width + 'px',
@@ -66,6 +75,10 @@ export class ViewColumn {
 
 	setWidth(width: number) {
 		this.width = width
+	}
+
+	setRole(landmark: ?AriaLandmarksEnum) {
+		this._ariaRole = landmark
 	}
 
 	getWidth(): number {
@@ -85,7 +98,6 @@ export class ViewColumn {
 	}
 
 	focus() {
-		const child = this._domColumn && this._domColumn.children[0] && this._domColumn.children[0]
-		child && child.focus()
+		this._domColumn && this._domColumn.focus()
 	}
 }

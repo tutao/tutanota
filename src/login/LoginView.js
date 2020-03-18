@@ -294,12 +294,21 @@ export class LoginView {
 	credentialsSelector(): Children {
 		return this._knownCredentials.map(c => {
 			const credentialButtons = [];
-			credentialButtons.push(m(new Button(() => c.mailAddress, () => this._viewController.then(
-				(viewController: ILoginViewController) => viewController.autologin(c))).setType(ButtonType.Login)))
+
+			credentialButtons.push(m(ButtonN, {
+				label: () => c.mailAddress,
+				click: () => this._viewController.then(
+					(viewController: ILoginViewController) => viewController.autologin(c)),
+				type: ButtonType.Login
+			}))
+
 			if (this._isDeleteCredentials) {
-				credentialButtons.push(m(new Button("delete_action", () => this._viewController.then(
-					(viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c)))
-					.setType(ButtonType.Secondary)))
+				credentialButtons.push(m(ButtonN, {
+					label: "delete_action",
+					click: () => this._viewController.then(
+						(viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c)),
+					type: ButtonType.Secondary
+				}))
 			}
 			return m(".flex-space-between.pt-l.child-grow.last-child-fixed", credentialButtons)
 		})
