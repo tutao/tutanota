@@ -73,7 +73,8 @@ export class ContactView implements CurrentView {
 					content: [
 						m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(expander)),
 						m(expander.panel)
-					]
+					],
+					ariaLabel: "folderTitle_label"
 				})
 			},
 			ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("folderTitle_label")

@@ -148,7 +148,8 @@ export class CalendarView implements CurrentView {
 						this._calendarInvitations.length > 0
 							? this._renderSidebarSection("calendarInvitations_label", null, this._renderCalendarInvitations())
 							: null,
-					]
+					],
+					ariaLabel: "calendar_label"
 				})
 
 			},

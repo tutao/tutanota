@@ -114,7 +114,8 @@ export class MailView implements CurrentView {
 							               m(neverNull(expander.expanderButton).panel)
 						               ]
 					               }
-				               )
+				               ),
+				ariaLabel: "folderTitle_label"
 			})
 		}, ColumnType.Foreground, size.first_col_min_width, size.first_col_max_width, () => lang.get("folderTitle_label"))
 
