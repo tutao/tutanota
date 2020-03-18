@@ -281,21 +281,16 @@ export class CalendarView implements CurrentView {
 		let shortcuts: Shortcut[] = [
 			{
 				key: Keys.ONE,
-				exec: () => this._setUrl(CalendarViewType.DAY, this.selectedDate()),
-				help: "switchDayView_action"
-			},
-			{
-				key: Keys.TWO,
 				exec: () => this._setUrl(CalendarViewType.WEEK, this.selectedDate()),
 				help: "switchWeekView_action"
 			},
 			{
-				key: Keys.THREE,
+				key: Keys.TWO,
 				exec: () => this._setUrl(CalendarViewType.MONTH, this.selectedDate()),
 				help: "switchMonthView_action"
 			},
 			{
-				key: Keys.FOUR,
+				key: Keys.THREE,
 				exec: () => this._setUrl(CalendarViewType.AGENDA, this.selectedDate()),
 				help: "switchAgendaView_action"
 			},
@@ -305,13 +300,13 @@ export class CalendarView implements CurrentView {
 				help: "viewToday_action"
 			},
 			{
-				key: Keys.K,
+				key: Keys.J,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
 				exec: () => this._viewPeriod(true),
 				help: "viewNextPeriod_action"
 			},
 			{
-				key: Keys.J,
+				key: Keys.K,
 				enabled: () => this._currentViewType !== CalendarViewType.AGENDA,
 				exec: () => this._viewPeriod(false),
 				help: "viewPrevPeriod_action"
@@ -343,13 +338,6 @@ export class CalendarView implements CurrentView {
 				this.selectedDate(newDate)
 				m.redraw()
 				this._setUrl(CalendarViewType.WEEK, newDate)
-				break;
-
-			case CalendarViewType.DAY:
-				newDate.setDate(newDate.getDate() + (next ? 1 : -1))
-				this.selectedDate(newDate)
-				m.redraw()
-				this._setUrl(CalendarViewType.DAY, newDate)
 				break;
 		}
 	}
