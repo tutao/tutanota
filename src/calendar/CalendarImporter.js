@@ -79,7 +79,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 function parseFile(file: DataFile) {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
-		return parseCalendarStringData(stringData)
+		return parseCalendarStringData(stringData, getTimeZone())
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw new ParserError(e.message, file.name)
@@ -90,9 +90,9 @@ function parseFile(file: DataFile) {
 
 }
 
-export function parseCalendarStringData(value: string) {
+export function parseCalendarStringData(value: string, zone: string) {
 	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree)
+	return parseCalendarEvents(tree, zone)
 }
 
 export function exportCalendar(

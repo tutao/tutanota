@@ -6,7 +6,7 @@ import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/comm
 import {AlarmInterval, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
 import {createRepeatRule} from "../api/entities/sys/RepeatRule"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
-import {DAY_IN_MILLIS, incrementDate} from "../api/common/utils/DateUtils"
+import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import type {Parser} from "../misc/parsing"
 import {
 	combineParsers,
@@ -134,7 +134,7 @@ export const propertySequenceParser: Parser<[
 	?[string, Array<[string, string, string]>],
 	string,
 	string
-	]> =
+]> =
 	combineParsers(
 		parsePropertyName,
 		maybeParse(parsePropertyParameters),
@@ -221,7 +221,7 @@ function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	let trigger: AlarmIntervalEnum
 	// Absolute time
 	if (triggerValue.endsWith("Z")) {
-		const triggerTime = parseTime(triggerValue)
+		const triggerTime = parseTime(triggerValue).date
 		const tillEvent = event.startTime.getTime() - triggerTime.getTime()
 		if (tillEvent >= DAY_IN_MILLIS * 7) {
 			trigger = AlarmInterval.ONE_WEEK
@@ -346,7 +346,13 @@ function getTzId(prop: Property): ?string {
 	return tzId
 }
 
-export function parseCalendarEvents(icalObject: ICalObject): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
+function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: ?string, zone: string): Date {
+	return DateTime.fromJSDate(startTime, {zone: allDay ? "UTC" : (tzId || zone)})
+	               .plus({day: 1})
+	               .toJSDate()
+}
+
+export function parseCalendarEvents(icalObject: ICalObject, zone: string): Array<{event: CalendarEvent, alarms: Array<AlarmInfo>}> {
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
 
 	return eventObjects.map((eventObj) => {
@@ -354,22 +360,28 @@ export function parseCalendarEvents(icalObject: ICalObject): Array<{event: Calen
 		const startProp = getProp(eventObj, "DTSTART")
 		if (typeof startProp.value !== "string") throw new ParserError("DTSTART value is not a string")
 		const tzId = getTzId(startProp)
-		event.startTime = parseTime(startProp.value, tzId)
+		const {date: startTime, allDay} = parseTime(startProp.value, tzId)
+		event.startTime = startTime
 
 		const endProp = eventObj.properties.find(p => p.name === "DTEND")
 		if (endProp) {
 			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
 			const endTzId = getTzId(endProp)
-			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null)
+			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : null).date
+			if (event.endTime <= event.startTime) {
+				// If the end time is not after the start (as per RFC) then we assume one day duration.
+				event.endTime = oneDayDurationEnd(startTime, allDay, tzId, zone)
+			}
 		} else {
 			const durationProp = eventObj.properties.find(p => p.name === "DURATION")
 			if (durationProp) {
 				parseEventDuration(durationProp, event)
 			} else {
-				// If nothing else duration is one day.
-				// We interpret it like that. Maybe it should be different for all-day events
-				// It's not common to omit end date anyway.
-				event.endTime = incrementDate(new Date(event.startTime), 1)
+				// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
+				// "DURATION" property, the event's duration is taken to be one day.
+				//
+				// https://tools.ietf.org/html/rfc5545#section-3.6.1
+				event.endTime = oneDayDurationEnd(startTime, allDay, tzId, zone)
 			}
 		}
 
@@ -467,14 +479,15 @@ export function parseUntilRruleTime(value: string, zone: ?string): Date {
 	return toValidJSDate(startOfNextDay, value, components.zone)
 }
 
-export function parseTime(value: string, zone: ?string): Date {
+export function parseTime(value: string, zone: ?string): {date: Date, allDay: boolean} {
 	const components = parseTimeIntoComponents(value)
+	const allDay = !("minute" in components)
 	const filledComponents = Object.assign(
 		{},
-		"minute" in components ? {zone} : {hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"},
+		allDay ? {hour: 0, minute: 0, second: 0, millisecond: 0, zone: "UTC"} : {zone},
 		components
 	)
-	return toValidJSDate(DateTime.fromObject(filledComponents), value, zone)
+	return {date: toValidJSDate(DateTime.fromObject(filledComponents), value, zone), allDay}
 }
 
 function toValidJSDate(dateTime: DateTime, value: string, zone: ?string): Date {

@@ -8,6 +8,7 @@ import {createUserAlarmInfo} from "../../../src/api/entities/sys/UserAlarmInfo"
 import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
+import {getAllDayDateUTCFromZone} from "../../../src/calendar/CalendarUtils"
 
 const zone = "Europe/Berlin"
 const now = new Date(1565704860630)
@@ -233,7 +234,7 @@ o.spec("CalendarImporterTest", function () {
 				"RRULE:FREQ=WEEKLY;INTERVAL=3",
 				"END:VEVENT",
 				"END:VCALENDAR"
-			].join("\r\n"))[0]
+			].join("\r\n"), zone)[0]
 		).deepEquals([
 			{
 				event: createCalendarEvent({
@@ -250,7 +251,78 @@ o.spec("CalendarImporterTest", function () {
 				}),
 				alarms: []
 			},
+		][0])
+	})
 
+	o("import all-day event", function () {
+		o(parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				"SUMMARY:Labor Day / May Day",
+				"DTSTART;VALUE=DATE:20200501",
+				"DTEND;VALUE=DATE:20200502",
+				"LOCATION:Brazil",
+				"DESCRIPTION:Some description",
+				"UID:5e528f277e20e1582468903@calendarlabs.com",
+				"DTSTAMP:20200223T144143Z",
+				"STATUS:CONFIRMED",
+				"TRANSP:TRANSPARENT",
+				"SEQUENCE:0",
+				"END:VEVENT",
+				"END:VCALENDAR",
+			].join("\r\n"), zone)[0]
+		).deepEquals([
+			{
+				event: createCalendarEvent({
+					summary: "Labor Day / May Day",
+					startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
+					endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
+					uid: "5e528f277e20e1582468903@calendarlabs.com",
+					description: "Some description",
+					location: "Brazil",
+				}),
+				alarms: []
+			},
+		][0])
+	})
+
+	o("import all-day event with invalid DTEND", function () {
+		o(parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				"SUMMARY:Labor Day / May Day",
+				"DTSTART:20200501",
+				"DTEND:20200501",
+				"LOCATION:Brazil",
+				"DESCRIPTION:Some description",
+				"UID:5e528f277e20e1582468903@calendarlabs.com",
+				"DTSTAMP:20200223T144143Z",
+				"STATUS:CONFIRMED",
+				"TRANSP:TRANSPARENT",
+				"SEQUENCE:0",
+				"END:VEVENT",
+				"END:VCALENDAR",
+			].join("\r\n"), zone)[0]
+		).deepEquals([
+			{
+				event: createCalendarEvent({
+					summary: "Labor Day / May Day",
+					startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
+					endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
+					uid: "5e528f277e20e1582468903@calendarlabs.com",
+					description: "Some description",
+					location: "Brazil",
+				}),
+				alarms: []
+			},
 		][0])
 	})
 
@@ -273,7 +345,7 @@ o.spec("CalendarImporterTest", function () {
 				"END:VALARM",
 				"END:VEVENT",
 				"END:VCALENDAR"
-			].join("\r\n"))[0]
+			].join("\r\n"), zone)[0]
 		).deepEquals([
 			{
 				event: createCalendarEvent({
@@ -345,8 +417,8 @@ o.spec("CalendarImporterTest", function () {
 					_id: ["123", "456"],
 					_ownerGroup: "ownerId",
 					summary: "Word \\ ; \n",
-					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13, zone}).toJSDate()),
-					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15, zone}).toJSDate()),
+					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 13}).toJSDate()),
+					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2019, month: 8, day: 15}).toJSDate()),
 					uid: "b64lookingValue==",
 					repeatRule: createRepeatRule({
 						endType: EndType.UntilDate,
@@ -367,7 +439,7 @@ o.spec("CalendarImporterTest", function () {
 				alarms: alarms.map(a => a.alarmInfo),
 			}
 		})
-		const parsed = parseCalendarStringData(serialized)
+		const parsed = parseCalendarStringData(serialized, zone)
 		o(parsed).deepEquals(eventsWithoutIds)
 	})
 
@@ -423,7 +495,7 @@ END:VCALENDAR`
 
 		const zone = "Europe/Berlin"
 		const versionNumber = "3.57.6"
-		const parsed = parseCalendarStringData(text)
+		const parsed = parseCalendarStringData(text, zone)
 		const serialized = serializeCalendar(versionNumber, parsed.map(({event, alarms}) => {
 			return {
 				event: Object.assign({}, event, {_id: ["123", "456"]}),

@@ -72,7 +72,7 @@ o.spec("CalendarParser", function () {
 	})
 
 	o("parseTime", function () {
-		o(parseTime("20180115T214000Z", "Europe/Berlin")).deepEquals(new Date(Date.UTC(2018, 0, 15, 21, 40, 0)))
+		o(parseTime("20180115T214000Z", "Europe/Berlin")).deepEquals({date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)), allDay: false})
 		o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
 	})
 })
