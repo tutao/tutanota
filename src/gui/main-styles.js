@@ -648,7 +648,12 @@ styles.registerStyle('main', () => {
 			outline: 'none'
 		},
 		'.input': {
-			outline: 'none',
+			outline: 'none'
+		},
+
+		'*:focus': {
+			outline: "1px solid " + theme.content_fg
+
 		},
 
 		'blockquote.tutanota_quote, blockquote[type=cite]': {

@@ -18,9 +18,9 @@ class RootView {
 		let onmousedown = (e) => {
 			console.log("disabling outline")
 			styles.registerStyle("outline", () => ({
-				"*": {
+				/*"*": {
 					outline: "none",
-				}
+				}*/
 			}))
 			// remove event listener after the first click to not re-register style
 			onmousedown = null
