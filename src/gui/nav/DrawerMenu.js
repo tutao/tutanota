@@ -37,7 +37,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			!isIOSApp() && logins.loginComplete() && logins.getUserController().isFreeAccount()
+			!isIOSApp() && logins.isUserLoggedIn() && logins.getUserController().isFreeAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Premium,
 					label: "upgradePremium_label",
@@ -46,7 +46,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			logins.loginComplete() && logins.getUserController().isPremiumAccount()
+			logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()
 				? m(ButtonN, {
 					icon: () => BootIcons.Help,
 					label: "supportMenu_label",
