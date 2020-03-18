@@ -90,6 +90,7 @@ class _NavButton {
 
 	createButtonAttributes(a: NavButtonAttrs) {
 		let attr: any = {
+			role: "button", // role button for screen readers
 			href: this._getUrl(a.href),
 			style: {
 				color: (isNavButtonSelected(a) || this._draggedOver)
@@ -112,7 +113,8 @@ class _NavButton {
 				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
 					this.click(e, a)
 				}
-			}
+			},
+			onblur: () => console.log("focus lost: " + this.getLabel(a.label), "active:", document.activeElement)
 		}
 		if (a.dropHandler) {
 			attr.ondragenter = (ev) => {

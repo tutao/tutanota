@@ -8,6 +8,8 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
+import {isKeyPressed} from "../../misc/KeyManager"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -126,7 +128,12 @@ class _Button {
 					this._domButton = vnode.dom
 					a.oncreate && a.oncreate(vnode)
 				},
-				onbeforeremove: (vnode) => removeFlash(vnode.dom)
+				onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				onkeyup: (e) => {
+					if (isKeyPressed(e.keyCode, Keys.RETURN)) {
+						this.click(e, a, this._domButton)
+					}
+				}
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 				class: this.getWrapperClasses(a).join(' '),
 				style: {
