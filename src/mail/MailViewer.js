@@ -23,7 +23,7 @@ import {
 	MailFolderType,
 	MailState,
 	SpamRuleFieldType as SparmRuleType,
-	SpamRuleType
+	SpamRuleType, TabIndex
 } from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
@@ -370,7 +370,7 @@ export class MailViewer {
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg"
 										+ (this.mail.confidential ? ".ml-negative-xs" : ""), {
 										// Orca refuses to read ut unless it's not focusable
-										tabindex: "0",
+										tabindex: TabIndex.Default,
 										"aria-label": lang.get(this.mail.confidential ? "confidential_action" : "nonConfidential_action")
 											+ ", " + dateTime
 									}, [

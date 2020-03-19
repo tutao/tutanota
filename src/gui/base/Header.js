@@ -9,7 +9,7 @@ import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
-import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
+import {AriaLandmarks, FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
 import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
@@ -210,7 +210,10 @@ class Header {
 		const viewSlider = this._getViewSlider()
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			return m(NavButtonN, {
-				label: () => neverNull(viewSlider.getPreviousColumn()).getTitle(),
+				label: () => {
+					const prevColumn = viewSlider.getPreviousColumn()
+					return prevColumn ? prevColumn.getTitle() : ""
+				},
 				icon: () => (this._currentView
 				&& this._currentView.overrideBackIcon ? this._currentView.overrideBackIcon() : !viewSlider.getBackgroundColumns()[0].visible)
 					? BootIcons.Back
@@ -227,7 +230,7 @@ class Header {
 		} else {
 			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 				return m(".logo.logo-height.pl", {
-					role: "banner",
+					role: AriaLandmarks.Banner,
 					"aria-label": "Tutanota logo",
 					style: {
 						"margin-left": px(sizes.drawer_menu_width)

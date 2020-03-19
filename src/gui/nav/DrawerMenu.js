@@ -14,15 +14,13 @@ import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {AriaLandmarks} from "../../api/common/TutanotaConstants"
+import {landmarkAttrs} from "../../api/common/utils/Utils"
 
 type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("drawer-menu", {
-			"aria-label": "side",
-			tabindex: "-1",
-			role: AriaLandmarks.Contentinfo,
+		return m("drawer-menu" + landmarkAttrs(AriaLandmarks.Navigation, "side"), {
 			style: {
 				'padding-left': getSafeAreaInsetLeft()
 			},

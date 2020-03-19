@@ -13,7 +13,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
 import {keyManager} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {BootstrapFeatureType, Keys} from "../api/common/TutanotaConstants"
+import {AriaLandmarks, BootstrapFeatureType, Keys, TabIndex} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -126,6 +126,12 @@ export class LoginView {
 			}, [
 				m(header),
 				m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", {
+						tabindex: TabIndex.Programmatic,
+						role: AriaLandmarks.Main,
+						"aria-label": lang.get("login_label"),
+						oncreate: (vnode) => {
+							vnode.dom.focus()
+						},
 						style: {
 							// width: workaround for IE11 which does not center the area, otherwise
 							width: client.isDesktopDevice() ? "360px" : null,

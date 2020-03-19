@@ -9,6 +9,7 @@ import {progressIcon} from "./Icon"
 import {PasswordIndicator} from "./PasswordIndicator"
 import stream from "mithril/stream/stream.js"
 import {worker} from "../../api/main/WorkerClient"
+import {TabIndex} from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -23,7 +24,7 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 	let progressDialog = new Dialog(DialogType.Progress, {
 		view: () => m(".hide-outline", {
 			// We make this element focusable so that the screen reader announces the dialog
-			tabindex: "0",
+			tabindex: TabIndex.Default,
 			oncreate(vnode) {
 				// We need to delay so that the eelement is attached to the parent
 				setTimeout(() => {

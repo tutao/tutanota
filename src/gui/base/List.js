@@ -6,7 +6,7 @@ import {client} from "../../misc/ClientDetector"
 import type {ListElement} from "../../api/common/EntityFunctions"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/EntityFunctions"
 import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
-import {Keys, OperationType} from "../../api/common/TutanotaConstants"
+import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import {debounceStart, neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
@@ -154,6 +154,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 
 		this.view = (): VirtualElement => {
 			let list = m(".list-container.fill-absolute.scroll.list-bg.nofocus.overflow-x-hidden", {
+				tabindex: TabIndex.Programmatic,
 				oncreate: (vnode) => {
 					this._domListContainer = vnode.dom
 					this._width = this._domListContainer.clientWidth
@@ -162,7 +163,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 						m.render(vnode.dom, [
 							m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
 								oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
-								tabindex: -1,
+								tabindex: TabIndex.Programmatic,
 								"aria-hidden": "true",
 								style: {
 									height: px(this._config.rowHeight),
@@ -174,7 +175,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 							}, this._config.swipe.renderLeftSpacer()),
 							m(".swipe-spacer.flex.items-center.pl-l.red", {
 								oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
-								tabindex: -1,
+								tabindex: TabIndex.Programmatic,
 								"aria-hidden": "true",
 								style: {
 									height: px(this._config.rowHeight),
@@ -194,7 +195,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 										return m("li.list-row.pl.pr-l"
 											// Doesn't make sense to drag in mobile layout, can be useful on big tablets like iPad Pro though
 											+ (styles.isDesktopLayout() && this._config.elementsDraggable ? '[draggable="true"]' : ""), {
-												tabindex: 0,
+												tabindex: TabIndex.Default,
 												oncreate: (vnode) => this._initRow(virtualRow, vnode.dom),
 												style: {
 													transform: `translateY(-${this._config.rowHeight}px)`,

@@ -3,6 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
 import type {AriaLandmarksEnum} from "../../api/common/TutanotaConstants"
 import {AriaLandmarks} from "../../api/common/TutanotaConstants"
+import {landmarkAttrs} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -49,13 +50,11 @@ export class ViewColumn {
 		this.visible = false
 
 		this.view = (vnode: Vnode<Attrs>) => {
-			let zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
+			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
-			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border, {
+			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.getTitle()) : ""
+			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border + landmark, {
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
-					tabindex: "-1",
-					role: this._ariaRole ? this._ariaRole : null,
-					"aria-label": this.getTitle(),
 					oncreate: (vnode) => {
 						this._domColumn = vnode.dom
 						this._domColumn.style.transform = this.columnType === ColumnType.Foreground ?

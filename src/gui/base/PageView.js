@@ -27,6 +27,7 @@ export class PageView implements MComponent<Attrs> {
 			},
 			[
 				m(".abs", {
+					"aria-hidden": "true",
 					key: attrs.previousPage.key,
 					style: this._viewDom && this._viewDom.offsetWidth > 0 && {
 						width: this._viewDom.offsetWidth + "px",
@@ -37,6 +38,7 @@ export class PageView implements MComponent<Attrs> {
 				}, attrs.previousPage.nodes),
 				m(".fill-absolute", {key: attrs.currentPage.key}, attrs.currentPage.nodes),
 				m(".abs", {
+					"aria-hidden": "true",
 					key: attrs.nextPage.key,
 					style: this._viewDom && this._viewDom.offsetWidth > 0 && {
 						width: this._viewDom.offsetWidth + "px",
@@ -69,7 +71,8 @@ export class PageSwipeHandler extends SwipeHandler {
 	onHorizontalGestureCompleted(delta: {x: number, y: number}): Promise<void> {
 		if (Math.abs(delta.x) > 100) {
 			this._xoffset = 0
-			return animations.add(this.touchArea, transform(transform.type.translateX, delta.x, this.touchArea.offsetWidth * (delta.x > 0 ? 1 : -1)))
+			return animations.add(this.touchArea, transform(transform.type.translateX, delta.x, this.touchArea.offsetWidth * (delta.x
+			> 0 ? 1 : -1)))
 			                 .then(() => {
 				                 this._onGestureCompleted(delta.x < 0)
 				                 requestAnimationFrame(() => {

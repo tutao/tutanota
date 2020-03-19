@@ -561,3 +561,9 @@ export const AriaLandmarks = Object.freeze({
 	Contentinfo: "contentinfo",
 })
 export type AriaLandmarksEnum = $Values<typeof AriaLandmarks>
+
+// See: https://webaim.org/techniques/keyboard/tabindex#overview
+export const TabIndex = Object.freeze({
+	Programmatic: "-1", // focus on element can only be set programmatically
+	Default: "0", // regular tab order
+})

@@ -23,7 +23,7 @@ import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {AriaLandmarks, FULL_INDEXED_TIMESTAMP, Keys} from "../api/common/TutanotaConstants"
+import {AriaLandmarks, FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
@@ -194,7 +194,7 @@ export class SearchBar implements Component {
 				}, [
 					styles.isDesktopLayout()
 						? m("button.ml-negative-xs.click", {
-							tabindex: "0",
+							tabindex: TabIndex.Default,
 							title: lang.get("search_label"),
 							onmousedown: (e) => {
 								if (this.focused) {
@@ -215,7 +215,7 @@ export class SearchBar implements Component {
 						: null,
 					m(".searchInputWrapper.flex.items-center", {
 							"aria-hidden": String(!this.expanded),
-							tabindex: this.expanded ? "0" : "-1",
+							tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
 							style: (() => {
 								let paddingLeft: string
 								if (this.expanded || vnode.attrs.alwaysExpanded) {
@@ -243,7 +243,7 @@ export class SearchBar implements Component {
 								onclick: (e) => this.close(),
 								style: {width: size.icon_size_large},
 								title: lang.get("close_alt"),
-								tabindex: this.expanded ? 0 : -1,
+								tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic
 							}, this.busy
 								? m(Icon, {
 									icon: BootIcons.Progress,
@@ -522,7 +522,7 @@ export class SearchBar implements Component {
 	_getInputField(attrs: any): VirtualElement {
 		return m("input.input.input-no-clear", {
 			"aria-autocomplete": "list",
-			tabindex: this.expanded ? 0 : -1,
+			tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
 			role: "combobox",
 			placeholder: attrs.placeholder,
 			type: Type.Text,
