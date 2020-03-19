@@ -161,12 +161,10 @@ export class MailEditor {
 		let props = logins.getUserController().props
 
 		this._senderField = new DropDownSelector("sender_label", null, getEnabledMailAddresses(this._mailboxDetails)
-			.map(mailAddress => ({
+			.sort().map(mailAddress => ({
 				name: mailAddress,
 				value: mailAddress
-			}))
-			.sort((a, b) => (a.name > b.name) ? 1 : -1),
-			stream(getDefaultSender(this._mailboxDetails)), 250)
+			})), stream(getDefaultSender(this._mailboxDetails)), 250)
 
 		let sortedLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._selectedNotificationLanguage = stream(getAvailableLanguageCode(props.notificationMailLanguage || lang.code))
