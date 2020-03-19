@@ -52,7 +52,8 @@ export function show(mailAddress?: ?string, resetAction?: ResetAction): Dialog {
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",
 		click: resetActionClickHandler,
-		icon: () => Icons.Edit
+		icon: () => Icons.Edit,
+		endAligned: true,
 	}
 
 	const selectedValueLabelStream = selectedAction.map(v => {

@@ -13,10 +13,10 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
-import {Button} from "../gui/base/Button"
 import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -37,15 +37,16 @@ export class WhitelabelChildViewer {
 		                                              .setValue(whitelabelChild.comment)
 		                                              .setDisabled()
 
-		let editCommentButton = new Button("edit_action", () => {
-			Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this._comment.value())
-			      .then(newComment => {
-				      this.whitelabelChild.comment = newComment
-				      update(this.whitelabelChild)
-			      })
-		}, () => Icons.Edit)
-
-		this._comment._injectionsRight = () => [m(editCommentButton)]
+		this._comment._injectionsRight = () => m(ButtonN, {
+			label: "edit_action",
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: () => Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this._comment.value())
+			                   .then(newComment => {
+				                   this.whitelabelChild.comment = newComment
+				                   update(this.whitelabelChild)
+			                   })
+		})
 
 		this._deactivated = new DropDownSelector("state_label", null, [
 			{name: lang.get("activated_label"), value: false},

@@ -4,7 +4,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Dialog} from "../gui/base/Dialog"
-import {Button} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -18,6 +17,7 @@ import stream from "mithril/stream/stream.js"
 import type {CertificateTypeEnum} from "../api/common/TutanotaConstants"
 import {CertificateType, getCertificateType} from "../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -64,28 +64,36 @@ export function show(customerInfo: CustomerInfo, certificateInfo: ?CertificateIn
 	}
 
 	let certChainFile: ?DataFile = null
-	let certificateChainField = new TextField("certificateChain_label",
+	const certificateChainField = new TextField("certificateChain_label",
 		() => lang.get("certificateChainInfo_msg")).setValue("").setDisabled()
-	let chooseCertificateChainButton = new Button("edit_action", () => {
-		fileController.showFileChooser(false).then(files => {
-			certChainFile = files[0]
-			certificateChainField.setValue(certChainFile.name)
-			m.redraw()
-		})
-	}, () => Icons.Edit)
-	certificateChainField._injectionsRight = () => [m(chooseCertificateChainButton)]
+	certificateChainField._injectionsRight = () => m(ButtonN, {
+		label: "edit_action",
+		icon: () => Icons.Edit,
+		endAligned: true,
+		click: () => {
+			fileController.showFileChooser(false).then(files => {
+				certChainFile = files[0]
+				certificateChainField.setValue(certChainFile.name)
+				m.redraw()
+			})
+		}
+	})
 
 	let privKeyFile: ?DataFile = null
-	let privateKeyField = new TextField("privateKey_label",
+	const privateKeyField = new TextField("privateKey_label",
 		() => lang.get("privateKeyInfo_msg")).setValue("").setDisabled()
-	let choosePrivateKeyButton = new Button("edit_action", () => {
-		fileController.showFileChooser(false).then(files => {
-			privKeyFile = files[0]
-			privateKeyField.setValue(privKeyFile.name)
-			m.redraw()
-		})
-	}, () => Icons.Edit)
-	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
+	privateKeyField._injectionsRight = () => m(ButtonN, {
+		label: "edit_action",
+		icon: () => Icons.Edit,
+		endAligned: true,
+		click: () => {
+			fileController.showFileChooser(false).then(files => {
+				privKeyFile = files[0]
+				privateKeyField.setValue(privKeyFile.name)
+				m.redraw()
+			})
+		}
+	})
 
 	const selectedType = stream(certificateInfo ? getCertificateType(certificateInfo) : CertificateType.LETS_ENCRYPT)
 	const certOptionDropDownAttrs: DropDownSelectorAttrs<CertificateTypeEnum> = {

@@ -11,7 +11,8 @@ import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ConversationType,
-	FeatureType, Keys,
+	FeatureType,
+	Keys,
 	MAX_ATTACHMENT_SIZE,
 	OperationType,
 	ReplyType
@@ -188,13 +189,15 @@ export class MailEditor {
 			icon: () => this._confidentialButtonState ? Icons.Lock : Icons.Unlock,
 			isSelected: () => this._confidentialButtonState,
 			noBubble: true,
+			endAligned: true,
 		}
 
 		let attachFilesButtonAttrs = {
 			label: "attachFiles_action",
 			click: (ev, attrs) => this._showFileChooserForAttachments(ev.target.getBoundingClientRect()),
 			icon: () => Icons.Attachment,
-			noBubble: true
+			noBubble: true,
+			endAligned: true,
 		}
 
 		const toolbarButton = () => (!logins.getUserController().props.sendPlaintextOnly)
@@ -203,7 +206,8 @@ export class MailEditor {
 				icon: () => Icons.FontSize,
 				click: () => this._showToolbar = !this._showToolbar,
 				isSelected: () => this._showToolbar,
-				noBubble: true
+				noBubble: true,
+				endAligned: true,
 			})
 			: null
 
@@ -1003,7 +1007,7 @@ export class MailEditor {
 			label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 			type: ButtonType.TextBubble,
 			isSelected: () => false,
-			color: ButtonColors.Elevated
+			colors: ButtonColors.Elevated
 		}, () => {
 			if (recipientInfo.resolveContactPromise) {
 				return recipientInfo.resolveContactPromise.then(contact => {

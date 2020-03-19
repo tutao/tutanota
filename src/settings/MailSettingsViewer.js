@@ -95,6 +95,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				      })
 			},
 			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 
 		const senderNameAttrs: TextFieldAttrs = {
@@ -108,14 +109,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const changeSignatureButtonAttrs: ButtonAttrs = {
 			label: "userEmailSignature_label",
 			click: () => EditSignatureDialog.show(logins.getUserController().props),
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 
 		const signatureAttrs: TextFieldAttrs = {
 			label: "userEmailSignature_label",
 			value: this._signature,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, changeSignatureButtonAttrs)]
+			injectionsRight: () => [m(ButtonN, changeSignatureButtonAttrs)],
 		}
 
 		const defaultUnconfidentialAttrs: DropDownSelectorAttrs<boolean> = {

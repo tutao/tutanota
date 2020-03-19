@@ -41,6 +41,7 @@ import {HtmlEditor as Editor, Mode} from "../gui/base/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./ContactFormListView"
 import {checkAndImportUserData} from "./ImportUsersViewer"
 import {EditAliasesFormN} from "./EditAliasesFormN"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 export const CSV_USER_FORMAT = "username;user@domain.com;password"
@@ -72,14 +73,18 @@ export class UserViewer {
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync()
 		                                                .then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
 		this._senderName = new TextField("mailName_label").setValue(this.userGroupInfo.name).setDisabled()
-		let editSenderNameButton = new Button("edit_action", () => {
-			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
-			      .then(newName => {
-				      this.userGroupInfo.name = newName
-				      update(this.userGroupInfo)
-			      })
-		}, () => Icons.Edit)
-		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
+		this._senderName._injectionsRight = () => m(ButtonN, {
+			label: "edit_action",
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: () => {
+				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value())
+				      .then(newName => {
+					      this.userGroupInfo.name = newName
+					      update(this.userGroupInfo)
+				      })
+			}
+		})
 
 		let mailAddress = new TextField("mailAddress_label").setValue(this.userGroupInfo.mailAddress).setDisabled()
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.userGroupInfo.created))
@@ -115,8 +120,12 @@ export class UserViewer {
 		})
 
 		let password = new TextField("password_label").setValue("***").setDisabled()
-		let changePasswordButton = new Button("changePassword_label", () => this._changePassword(), () => Icons.Edit)
-		password._injectionsRight = () => [m(changePasswordButton)]
+		password._injectionsRight = () => m(ButtonN, {
+			label: "changePassword_label",
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: () => this._changePassword()
+		})
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
 

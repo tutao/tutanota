@@ -6,7 +6,8 @@ import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
 import {
 	FeatureType,
-	FULL_INDEXED_TIMESTAMP, Keys,
+	FULL_INDEXED_TIMESTAMP,
+	Keys,
 	MailFolderType,
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType
@@ -34,7 +35,6 @@ import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../
 import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../misc/Formatter"
 import {TextField} from "../gui/base/TextField"
-import {Button} from "../gui/base/Button"
 import {showDatePickerDialog} from "../gui/base/DatePickerDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {getEndOfDay, getStartOfDay, isSameDay, isToday} from "../api/common/utils/DateUtils"
@@ -96,29 +96,33 @@ export class SearchView implements CurrentView {
 		this._endDate = null
 		this._startDate = null
 		this._time = new TextField("periodOfTime_label").setValue().setDisabled()
-		let changeTimeButton = new Button("selectPeriodOfTime_label", () => {
-			if (logins.getUserController().isFreeAccount()) {
-				showNotAvailableForFreeDialog(true)
-			} else {
-				showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
-					(this._endDate) ? this._endDate : new Date())
-					.then(dates => {
-						if (dates.end && isToday(dates.end)) {
-							this._endDate = null
-						} else {
-							this._endDate = dates.end
-						}
-						let current = this._getCurrentMailIndexDate()
-						if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
-							this._startDate = null
-						} else {
-							this._startDate = dates.start
-						}
-						this._searchAgain()
-					})
+		this._time._injectionsRight = () => m(ButtonN, {
+			label: "selectPeriodOfTime_label",
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: () => {
+				if (logins.getUserController().isFreeAccount()) {
+					showNotAvailableForFreeDialog(true)
+				} else {
+					showDatePickerDialog(getStartOfTheWeekOffsetForUser(), (this._startDate) ? this._startDate : this._getCurrentMailIndexDate(),
+						(this._endDate) ? this._endDate : new Date())
+						.then(dates => {
+							if (dates.end && isToday(dates.end)) {
+								this._endDate = null
+							} else {
+								this._endDate = dates.end
+							}
+							let current = this._getCurrentMailIndexDate()
+							if (dates.start && current && isSameDay(current, neverNull(dates.start))) {
+								this._startDate = null
+							} else {
+								this._startDate = dates.start
+							}
+							this._searchAgain()
+						})
+				}
 			}
-		}, () => Icons.Edit)
-		this._time._injectionsRight = () => [m(changeTimeButton)]
+		})
 
 		let mailAttributes = SEARCH_MAIL_FIELDS.map(f => {
 			return {name: lang.get(f.textId), value: f.field}

@@ -31,6 +31,7 @@ import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {ButtonN} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -64,21 +65,25 @@ export class GroupViewer {
 		})
 
 		this._name = new TextField("name_label").setValue(this.groupInfo.name).setDisabled()
-		let editNameButton = new Button("edit_action", () => {
-			Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim()
-					=== "") {
-					return "enterName_msg"
-				} else {
-					return null
-				}
-			}).then(newName => {
-				let newGroupInfo = Object.assign({}, this.groupInfo)
-				newGroupInfo.name = newName
-				update(newGroupInfo)
-			})
-		}, () => Icons.Edit)
-		this._name._injectionsRight = () => [m(editNameButton)]
+		this._name._injectionsRight = () => m(ButtonN, {
+			label: "edit_action",
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: () => {
+				Dialog.showTextInputDialog("edit_action", "name_label", null, this._name.value(), newName => {
+					if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim()
+						=== "") {
+						return "enterName_msg"
+					} else {
+						return null
+					}
+				}).then(newName => {
+					let newGroupInfo = Object.assign({}, this.groupInfo)
+					newGroupInfo.name = newName
+					update(newGroupInfo)
+				})
+			}
+		})
 
 		let mailAddress = new TextField("mailAddress_label").setValue(this.groupInfo.mailAddress).setDisabled()
 		let created = new TextField("created_label").setValue(formatDateWithMonth(this.groupInfo.created)).setDisabled()
@@ -236,7 +241,7 @@ export class GroupViewer {
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {view: () => m(dropdown)},
-						allowOkWithReturn: true,okAction: addUserToGroupOkAction
+						allowOkWithReturn: true, okAction: addUserToGroupOkAction
 					})
 				}
 			})

@@ -3,7 +3,6 @@ import {TextField} from "./TextField"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
-import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
 import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
@@ -17,6 +16,8 @@ import {getDateIndicator, getStartOfDay, isSameDayOfDate} from "../../api/common
 import type {CalendarDay} from "../../calendar/CalendarUtils"
 import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import {DateTime} from "luxon"
+import {ButtonN} from "./ButtonN"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -34,12 +35,12 @@ export class DatePicker implements Component {
 	_forceCompact: boolean;
 	_startOfTheWeekOffset: number
 
-	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: string | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false, disabled: boolean = false) {
+	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>,
+	            nullSelectionTextId: TranslationKey = "emptyString_msg", forceCompact: boolean = false, disabled: boolean = false) {
 		this.date = stream(null)
 		this._forceCompact = forceCompact
 		this._startOfTheWeekOffset = startOfTheWeekOffset
 
-		let pickerButton = new Button(labelTextIdOrTextFunction, this._showPickerDialog, () => BootIcons.Calendar)
 		let inputDate: ?Date
 
 		this.invalidDate = false
@@ -55,7 +56,14 @@ export class DatePicker implements Component {
 		if (disabled) {
 			this.input.setDisabled()
 		}
-		this.input._injectionsRight = () => (forceCompact || client.isMobileDevice()) && !disabled ? [m(pickerButton)] : null
+		this.input._injectionsRight = () => (forceCompact || client.isMobileDevice()) && !disabled
+			? m(ButtonN, {
+				label: labelTextIdOrTextFunction,
+				icon: () => BootIcons.Calendar,
+				endAligned: true,
+				click: this._showPickerDialog
+			})
+			: null
 		this.input.onUpdate(value => {
 			try {
 				if (value.trim().length > 0) {

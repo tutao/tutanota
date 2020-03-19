@@ -39,6 +39,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {createCustomerAccountPosting} from "../api/entities/accounting/CustomerAccountPosting"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {component} from "../gui/base/ComponentWrapper"
 
 assertMainOrNode()
 
@@ -62,7 +63,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.setEnabled(false)
 			.setPlaceholderId("invoiceAddress_label")
 
-		const changeInvoiceDataButtonAttrs = {
+		const changeInvoiceDataButton = component(() => m(ButtonN, {
 			label: "invoiceData_msg",
 			click: createNotAvailableForFreeClickHandler(true, () => {
 				if (this._accountingInfo) {
@@ -80,28 +81,28 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				}
 			}, () => logins.getUserController().isPremiumAccount()),
 			icon: () => Icons.Edit
-		}
-		const changePaymentDataButtonAttrs = {
-			label: "paymentMethod_label",
-			click: createNotAvailableForFreeClickHandler(true, () => {
-					if (this._accountingInfo) {
-						PaymentDataDialog.show(this._accountingInfo).then(success => {
-							if (success) {
-								if (this._isPayButtonVisible()) {
-									return this._showPayDialog(this._openBalance())
-								}
-							}
-						})
-					}
-				},
-				// iOS app doesn't work with PayPal button or 3dsecure redirects
-				() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
-			icon: () => Icons.Edit
-		}
-
+		}))
 		this._invoiceVatNumber = new TextField("invoiceVatIdNo_label").setValue(lang.get("loading_msg")).setDisabled()
 		this._paymentMethodField = new TextField("paymentMethod_label").setValue(lang.get("loading_msg")).setDisabled()
-		this._paymentMethodField._injectionsRight = () => [m(ButtonN, changePaymentDataButtonAttrs)]
+		this._paymentMethodField._injectionsRight = () => m(ButtonN, {
+				label: "paymentMethod_label",
+				endAligned: true,
+				click: createNotAvailableForFreeClickHandler(true, () => {
+						if (this._accountingInfo) {
+							PaymentDataDialog.show(this._accountingInfo).then(success => {
+								if (success) {
+									if (this._isPayButtonVisible()) {
+										return this._showPayDialog(this._openBalance())
+									}
+								}
+							})
+						}
+					},
+					// iOS app doesn't work with PayPal button or 3dsecure redirects
+					() => !isIOSApp() && logins.getUserController().isPremiumAccount()),
+				icon: () => Icons.Edit
+			}
+		)
 		this._postings = []
 		this._paymentBusy = false
 
@@ -114,7 +115,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			}, [
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get('invoiceData_msg')),
-					m(".mr-negative-s", m(ButtonN, changeInvoiceDataButtonAttrs))
+					m(".mr-negative-s", m(changeInvoiceDataButton))
 				]),
 				m(this._invoiceAddressField),
 				(this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0)

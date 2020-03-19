@@ -30,7 +30,7 @@ class _ExpanderButton {
 	view(vnode: Vnode<ExpanderAttrs>) {
 		const a = vnode.attrs
 		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.mr-s", {
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
 					this.toggle(a.expanded)

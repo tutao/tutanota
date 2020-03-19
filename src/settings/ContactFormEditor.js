@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField} from "../gui/base/TextField"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../api/common/TutanotaConstants"
@@ -37,7 +37,9 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {windowFacade} from "../misc/WindowFacade"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {createDropdown} from "../gui/base/DropdownN"
+import {component} from "../gui/base/ComponentWrapper"
 
 assertMainOrNode()
 
@@ -104,25 +106,44 @@ export class ContactFormEditor {
 				this._receivingMailboxField.value(prefix + getGroupInfoDisplayName(groupInfo))
 			}
 		})
-		let userDropdown = createDropDownButton("account_label", () => BootIcons.Contacts, () => {
-			return allUserGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => {
-				this._participantGroupInfoList.length = 0
-				this._updateParticipantGroupInfosTable()
-				this._receivingMailbox(gi)
-			}).setType(ButtonType.Dropdown)
-			  .setSelected(() => this._receivingMailbox() === gi))
-		}, 250)
-		let groupsDropdown = null
-		if (allSharedMailboxGroupInfos.length > 0) {
-			groupsDropdown = createDropDownButton("groups_label", () => Icons.People, () => {
-				return allSharedMailboxGroupInfos.map(gi => new Button(() => getGroupInfoDisplayName(gi), () => this._receivingMailbox(gi))
-					.setType(ButtonType.Dropdown)
-					.setSelected(() => this._receivingMailbox() === gi))
-			}, 250)
-		}
-		this._receivingMailboxField._injectionsRight = () => (groupsDropdown) ? [
-			m(userDropdown), m(groupsDropdown)
-		] : [m(userDropdown)]
+		const userDropdown = component(() => m(ButtonN, {
+				label: "account_label",
+				icon: () => BootIcons.Contacts,
+				endAligned: true,
+				click: createDropdown(
+					() => allUserGroupInfos.map(gi => ({
+						label: () => getGroupInfoDisplayName(gi),
+						type: ButtonType.Dropdown,
+						click: () => {
+							this._participantGroupInfoList.length = 0
+							this._updateParticipantGroupInfosTable()
+							this._receivingMailbox(gi)
+						},
+						isSelected: () => this._receivingMailbox() === gi
+					})),
+					250,
+				)
+			}
+		))
+		const groupsDropdown = allSharedMailboxGroupInfos.length > 0
+			? component(() => m(ButtonN, {
+				label: "groups_label",
+				icon: () => Icons.People,
+				endAligned: true,
+				click: createDropdown(
+					() =>
+						allSharedMailboxGroupInfos.map(gi => ({
+							label: () => getGroupInfoDisplayName(gi),
+							type: ButtonType.Dropdown,
+							click: () => this._receivingMailbox(gi),
+							isSelected: () => this._receivingMailbox() === gi,
+						})),
+					250
+				)
+			}))
+			: null
+
+		this._receivingMailboxField._injectionsRight = () => (groupsDropdown) ? [m(userDropdown), m(groupsDropdown)] : m(userDropdown)
 
 		// remove all groups that do not exist any more
 		this._participantGroupInfoList = mapAndFilterNull(this._contactForm.participantGroupInfos, groupInfoId => allUserGroupInfos.find(g => isSameId(g._id, groupInfoId)))
@@ -162,50 +183,64 @@ export class ContactFormEditor {
 		let language = getDefaultContactFormLanguage(this._languages)
 		this._language = stream(language)
 		this._languageField = new TextField("language_label").setDisabled()
-		let selectLanguageButton = createDropDownButton("more_label", () => Icons.More, () => {
-			let buttons: Array<Button> = this._languages.map(l => {
-				return new Button(
-					() => getLanguageName(l.code),
-					e => this._language(l)
-				).setType(ButtonType.Dropdown)
-			}).sort((a: Button, b: Button) => a.getLabel().localeCompare(b.getLabel()))
-			buttons.push(new Button("addLanguage_action", e => {
-				let additionalLanguages = languages.filter(t => {
-					if (t.code.endsWith('_sie')) {
-						return false
-					} else if (this._languages.find(l => l.code === t.code) == null) {
-						return true
-					}
-					return false
-				}).map(l => {
-					return {name: lang.get(l.textId), value: l.code}
-				}).sort((a, b) => a.name.localeCompare(b.name))
-				let newLanguageCode: Stream<string> = stream(additionalLanguages[0].value)
-				let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
+		const selectLanguageButton = component(() => m(ButtonN, {
+			label: "more_label",
+			icon: () => Icons.More,
+			endAligned: true,
+			click: createDropdown(() =>
+					this._languages
+					    .sort((a, b) => getLanguageName(a.code).localeCompare(getLanguageName(b.code)))
+					    .map(l => ({
+						    label: () => getLanguageName(l.code),
+						    click: this._language,
+						    type: ButtonType.Dropdown,
+					    }))
+					    .concat({
+						    label: "addLanguage_action",
+						    type: ButtonType.Dropdown,
+						    click: () => {
+							    let additionalLanguages = languages.filter(t => {
+								    if (t.code.endsWith('_sie')) {
+									    return false
+								    } else if (this._languages.find(l => l.code === t.code) == null) {
+									    return true
+								    }
+								    return false
+							    }).map(l => {
+								    return {name: lang.get(l.textId), value: l.code}
+							    }).sort((a, b) => a.name.localeCompare(b.name))
+							    let newLanguageCode: Stream<string> = stream(additionalLanguages[0].value)
+							    let tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
 
-				setTimeout(() => {
-					let addLanguageOkAction = (dialog) => {
-						let newLang = createContactFormLanguage()
-						newLang.code = newLanguageCode()
-						this._languages.push(newLang)
-						this._language(newLang)
-						dialog.close()
-					}
+							    setTimeout(() => {
+								    let addLanguageOkAction = (dialog) => {
+									    let newLang = createContactFormLanguage()
+									    newLang.code = newLanguageCode()
+									    this._languages.push(newLang)
+									    this._language(newLang)
+									    dialog.close()
+								    }
 
-					Dialog.showActionDialog({
-						title: lang.get("addLanguage_action"),
-						child: {view: () => m(tagName)},
-						allowOkWithReturn: true,
-						okAction: addLanguageOkAction
-					})
-				}, DefaultAnimationTime)// wait till the dropdown is hidden
-			}).setType(ButtonType.Dropdown))
-			return buttons
-		}, 250)
-		let deleteLanguageButton = new Button('delete_action', () => {
-			remove(this._languages, this._language())
-			this._language(this._languages[0])
-		}, () => Icons.Cancel)
+								    Dialog.showActionDialog({
+									    title: lang.get("addLanguage_action"),
+									    child: tagName,
+									    allowOkWithReturn: true,
+									    okAction: addLanguageOkAction
+								    })
+							    }, DefaultAnimationTime)// wait till the dropdown is hidden
+						    }
+					    }),
+				250)
+		}))
+		const deleteLanguageButton = component(() => m(ButtonN, {
+			label: "delete_action",
+			icon: () => Icons.Cancel,
+			endAligned: true,
+			click: () => {
+				remove(this._languages, this._language())
+				this._language(this._languages[0])
+			}
+		}))
 		this._languageField._injectionsRight = () => [
 			m(selectLanguageButton),
 			this._languages.length > 1 ? m(deleteLanguageButton) : null

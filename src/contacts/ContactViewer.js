@@ -9,7 +9,6 @@ import {
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel
 } from "./ContactUtils"
-import {ActionBar} from "../gui/base/ActionBar"
 import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/Env"
@@ -23,6 +22,8 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType, getContactSocialType, Keys} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
+import {ButtonN} from "../gui/base/ButtonN"
+import {component} from "../gui/base/ComponentWrapper"
 
 assertMainOrNode()
 
@@ -54,19 +55,34 @@ export class ContactViewer {
 	constructor(contact: Contact) {
 		this.contact = contact
 
-		let actions = new ActionBar()
-			.add(new Button('edit_action', () => this.edit(), () => Icons.Edit))
-			.add(new Button('delete_action', () => this.delete(), () => Icons.Trash))
-		let title = this.contact.title ? this.contact.title + " " : ""
-		let nickname = (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")
-		let fullName = this.contact.firstName + " " + this.contact.lastName
+		const actions = component(() => m(".action-bar.flex-end.items-center", [
+			m(ButtonN, {
+				label: "edit_action",
+				icon: () => Icons.Edit,
+				endAligned: true,
+				click: () => this.edit()
+			}),
+			m(ButtonN, {
+				label: "delete_action",
+				icon: () => Icons.Trash,
+				endAligned: true,
+				click: () => this.delete(),
+			})
+		]))
+		const title = this.contact.title ? this.contact.title + " " : ""
+		const nickname = (this.contact.nickname ? ' | "' + this.contact.nickname + '"' : "")
+		const fullName = this.contact.firstName + " " + this.contact.lastName
 		this.contactAppellation = (title + fullName + nickname).trim()
 		this.mailAddresses = this.contact.mailAddresses.map(element => {
 			let textField = new TextField(() => getContactAddressTypeLabel((element.type: any), element.customTypeName))
 				.setValue(element.address)
 				.setDisabled()
-			let newMailButton = new Button('sendMail_alt', () => this._writeMail(element.address), () => BootIcons.Mail)
-			textField._injectionsRight = () => [m(newMailButton)]
+			textField._injectionsRight = () => m(ButtonN, {
+				label: 'sendMail_alt',
+				icon: () => BootIcons.Mail,
+				endAligned: true,
+				click: () => this._writeMail(element.address),
+			})
 			return textField
 		})
 		this.phones = this.contact.phoneNumbers.map(element => {
@@ -75,7 +91,12 @@ export class ContactViewer {
 				.setValue(element.number)
 				.setDisabled()
 			let callButton = new Button('callNumber_alt', () => null, () => Icons.Call)
-			textField._injectionsRight = () => m(`a[href="tel:${element.number}"][target=_blank]`, m(callButton))
+			textField._injectionsRight = () => m(ButtonN, {
+				label: 'callNumber_alt',
+				icon: () => Icons.Call,
+				endAligned: true,
+				click: () => window.open(`tel:${element.number}`),
+			})
 			return textField
 		})
 		this.addresses = this.contact.addresses.map(element => {
@@ -90,8 +111,12 @@ export class ContactViewer {
 			} else {
 				prepAddress = encodeURIComponent(element.address)
 			}
-			let showButton = new Button('showAddress_alt', () => null, () => Icons.Pin)
-			showAddress._injectionsRight = () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, m(showButton))
+			showAddress._injectionsRight = () => m(ButtonN, {
+				label: 'showAddress_alt',
+				icon: () => Icons.Pin,
+				endAligned: true,
+				click: () => window.open(`https://www.openstreetmap.org/search?query=${prepAddress}`)
+			})
 			return showAddress
 		})
 		this.socials = this.contact.socialIds.map(element => {
@@ -99,7 +124,12 @@ export class ContactViewer {
 				.setValue(element.socialId)
 				.setDisabled()
 			let showButton = new Button('showURL_alt', () => null, () => Icons.ArrowForward)
-			showURL._injectionsRight = () => m(`a[href=${this.getSocialUrl(element)}][target=_blank]`, m(showButton))
+			showURL._injectionsRight = () => m(ButtonN, {
+				label: 'showURL_alt',
+				icon: () => Icons.ArrowForward,
+				endAligned: true,
+				click: () => window.open(this.getSocialUrl(element))
+			})
 			return showURL
 		})
 

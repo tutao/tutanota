@@ -62,6 +62,7 @@ import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
 import {BrandingDomainGetReturnTypeRef} from "../api/entities/sys/BrandingDomainGetReturn"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import {component} from "../gui/base/ComponentWrapper"
 
 assertMainOrNode()
 
@@ -202,6 +203,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(true),
 								() => logins.getUserController().isPremiumAccount()),
 							icon: () => Icons.Edit,
+							endAligned: true,
 						}
 						const disableWhiteLabelAction = {
 							label: "whitelabelDomain_label",
@@ -209,10 +211,12 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(false),
 								() => logins.getUserController().isPremiumAccount()),
 							icon: () => Icons.Cancel,
+							endAligned: true,
 						}
 
 						this._whitelabelStatusField.value(whitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"))
-						this._whitelabelStatusField.injectionsRight = () => whitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)
+						this._whitelabelStatusField.injectionsRight = () =>
+							whitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)
 
 
 						let customJsonTheme = (whitelabelConfig) ? JSON.parse(whitelabelConfig.jsonTheme) : null
@@ -220,40 +224,48 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._brandingDomainField = new TextField("whitelabelDomain_label", this._whitelabelInfo(certificateInfo))
 							.setValue((whitelabelDomainInfo) ? whitelabelDomainInfo.domain : lang.get("deactivated_label"))
 							.setDisabled()
-						let deactivateAction = null
-						if (whitelabelDomainInfo) {
-							deactivateAction = new Button("deactivate_action", () => {
-								Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
-									if (ok) {
-										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(whitelabelDomainInfo).domain))
-											.catch(PreconditionFailedError, e => {
-												if (e.data === "lock.locked") {
-													Dialog.error("operationStillActive_msg")
-												} else {
-													throw e;
-												}
-											})
-									}
+						const deactivateAction = whitelabelDomainInfo
+							? component(() => m(ButtonN, {
+								label: "deactivate_action",
+								icon: () => Icons.Cancel,
+								endAligned: true,
+								click: () => {
+									Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
+										if (ok) {
+											showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(whitelabelDomainInfo).domain))
+												.catch(PreconditionFailedError, e => {
+													if (e.data === "lock.locked") {
+														Dialog.error("operationStillActive_msg")
+													} else {
+														throw e;
+													}
+												})
+										}
 
-								})
-							}, () => Icons.Cancel)
-						}
-						let editAction = new Button("edit_action", () => {
-							if (logins.getUserController().isFreeAccount()) {
-								showNotAvailableForFreeDialog(false)
-							} else {
-								const whitelabelFailedPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
-								whitelabelFailedPromise.then(failed => {
-									if (!failed) {
-										SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
-									}
-								})
+									})
+								}
+							}))
+							: null
+						const editAction = component(() => m(ButtonN, {
+							label: "edit_action",
+							icon: () => Icons.Edit,
+							endAligned: true,
+							click: () => {
+								if (logins.getUserController().isFreeAccount()) {
+									showNotAvailableForFreeDialog(false)
+								} else {
+									const whitelabelFailedPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
+									whitelabelFailedPromise.then(failed => {
+										if (!failed) {
+											SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
+										}
+									})
+								}
 							}
-						}, () => Icons.Edit)
+						}))
 						this._brandingDomainField._injectionsRight = () => [
 							(deactivateAction) ? m(deactivateAction) : null, m(editAction)
 						]
-
 
 						let customLogoDefined = customJsonTheme && customJsonTheme.logo
 						this._customLogoField = new TextField("customLogo_label", () =>
@@ -261,47 +273,56 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							.setValue(lang.get(customLogoDefined ? "activated_label" : "deactivated_label"))
 							.setDisabled()
 						if (customJsonTheme) {
-							let deleteCustomLogo
-							if (customLogoDefined) {
-								deleteCustomLogo = new Button("deactivate_action", () => {
-									Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
-										if (ok) {
-											delete neverNull(customJsonTheme).logo
+							const deleteCustomLogoButton = customLogoDefined
+								? component(() => m(ButtonN, {
+									label: "deactivate_action",
+									icon: () => Icons.Cancel,
+									endAligned: true,
+									click: () => {
+										Dialog.confirm("confirmDeactivateCustomLogo_msg").then(ok => {
+											if (ok) {
+												delete neverNull(customJsonTheme).logo
+												neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+												update(whitelabelConfig)
+												updateCustomTheme(customJsonTheme)
+											}
+										})
+									}
+								}))
+								: null
+							const chooseLogoButton = component(() => m(ButtonN, {
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								endAligned: true,
+								click: () => {
+									fileController.showFileChooser(false).then(files => {
+										let extension = files[0].name.toLowerCase()
+										                        .substring(files[0].name.lastIndexOf(".") + 1)
+										if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
+											Dialog.error("customLogoInfo_msg")
+										} else {
+											let imageData = null
+											if (extension === "svg") {
+												imageData = utf8Uint8ArrayToString(files[0].data)
+											} else {
+												imageData = "<img src=\"data:image/" +
+													((extension === "jpeg") ? "jpg" : extension)
+													+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
+											}
+											neverNull(customJsonTheme).logo = imageData
 											neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
 											update(whitelabelConfig)
 											updateCustomTheme(customJsonTheme)
+											this._customLogoField.setValue(lang.get("activated_label"))
+											m.redraw()
 										}
 									})
-								}, () => Icons.Cancel)
-							}
-
-							let chooseLogoButton = new Button("edit_action", () => {
-								fileController.showFileChooser(false).then(files => {
-									let extension = files[0].name.toLowerCase()
-									                        .substring(files[0].name.lastIndexOf(".") + 1)
-									if (files[0].size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
-										Dialog.error("customLogoInfo_msg")
-									} else {
-										let imageData = null
-										if (extension === "svg") {
-											imageData = utf8Uint8ArrayToString(files[0].data)
-										} else {
-											imageData = "<img src=\"data:image/" +
-												((extension === "jpeg") ? "jpg" : extension)
-												+ ";base64," + uint8ArrayToBase64(files[0].data) + "\">"
-										}
-										neverNull(customJsonTheme).logo = imageData
-										neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
-										update(whitelabelConfig)
-										updateCustomTheme(customJsonTheme)
-										this._customLogoField.setValue(lang.get("activated_label"))
-										m.redraw()
-									}
-								})
-							}, () => Icons.Edit)
+								}
+							}))
 
 							this._customLogoField._injectionsRight = () => [
-								(deleteCustomLogo) ? m(deleteCustomLogo) : null, m(chooseLogoButton)
+								deleteCustomLogoButton ? m(deleteCustomLogoButton) : null,
+								m(chooseLogoButton)
 							]
 						}
 
@@ -309,28 +330,37 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._customColorsField = new TextField("customColors_label", null).setValue((customColorsDefined) ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                   .setDisabled()
 						if (customJsonTheme) {
-							let deactivateColorTheme
-							if (customColorsDefined) {
-								deactivateColorTheme = new Button("deactivate_action", () => {
-									Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
-										if (ok) {
-											Object.keys(neverNull(customJsonTheme)).forEach(key => {
-												if (key !== "logo") {
-													delete neverNull(customJsonTheme)[key]
-												}
-											})
-											neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
-											update(whitelabelConfig)
-											updateCustomTheme(customJsonTheme)
-										}
-									})
-								}, () => Icons.Cancel)
-							}
-
-							let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme),), () => Icons.Edit)
+							const deactivateColorThemeButton = customColorsDefined
+								? component(() => m(ButtonN, {
+									label: "deactivate_action",
+									icon: () => Icons.Cancel,
+									endAligned: true,
+									click: () => {
+										Dialog.confirm("confirmDeactivateCustomColors_msg").then(ok => {
+											if (ok) {
+												Object.keys(neverNull(customJsonTheme)).forEach(key => {
+													if (key !== "logo") {
+														delete neverNull(customJsonTheme)[key]
+													}
+												})
+												neverNull(whitelabelConfig).jsonTheme = JSON.stringify(customJsonTheme)
+												update(whitelabelConfig)
+												updateCustomTheme(customJsonTheme)
+											}
+										})
+									}
+								}))
+								: null
+							const editCustomColorButton = component(() => m(ButtonN, {
+								label: "edit_action",
+								endAligned: true,
+								icon: () => Icons.Edit,
+								click: () => EditCustomColorsDialog.show(neverNull(whitelabelConfig), neverNull(customJsonTheme))
+							}))
 
 							this._customColorsField._injectionsRight = () => [
-								(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)
+								(deactivateColorThemeButton) ? m(deactivateColorThemeButton) : null,
+								m(editCustomColorButton)
 							]
 						}
 
@@ -342,71 +372,87 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._customMetaTagsField = new TextField("customMetaTags_label", null).setValue(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"))
 						                                                                       .setDisabled()
 						if (whitelabelConfig) {
-							let editCustomMetaTagsButton = new Button("edit_action", () => {
-								let metaTags = new TextField("customMetaTags_label")
-									.setValue(neverNull(whitelabelConfig).metaTags)
-									.setType(Type.Area)
-								let dialog = Dialog.showActionDialog({
-									title: lang.get("customMetaTags_label"),
-									child: {view: () => m(metaTags)},
-									okAction: (ok) => {
-										if (ok) {
-											neverNull(whitelabelConfig).metaTags = metaTags.value()
-											update(whitelabelConfig)
-											dialog.close()
+							this._customMetaTagsField._injectionsRight = () => m(ButtonN, {
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								endAligned: true,
+								click: () => {
+									const metaTags = new TextField("customMetaTags_label")
+										.setValue(neverNull(whitelabelConfig).metaTags)
+										.setType(Type.Area)
+									const dialog = Dialog.showActionDialog({
+										title: lang.get("customMetaTags_label"),
+										child: {view: () => m(metaTags)},
+										okAction: (ok) => {
+											if (ok) {
+												neverNull(whitelabelConfig).metaTags = metaTags.value()
+												update(whitelabelConfig)
+												dialog.close()
+											}
 										}
-									}
-								})
-							}, () => Icons.Edit)
-							this._customMetaTagsField._injectionsRight = () => m(editCustomMetaTagsButton)
+									})
+								}
+							})
 
-							let editImprintUrlButton = new Button("edit_action", () => {
-								let imprintUrl = new TextField("imprintUrl_label")
-									.setValue(neverNull(whitelabelConfig).imprintUrl)
-								let dialog = Dialog.showActionDialog({
-									title: lang.get("imprintUrl_label"),
-									child: {view: () => m(imprintUrl)},
-									allowOkWithReturn: true,
-									okAction: (ok) => {
-										if (ok) {
-											neverNull(whitelabelConfig).imprintUrl = imprintUrl.value() ? imprintUrl.value() : null
-											update(whitelabelConfig)
-											dialog.close()
+							this._whitelabelImprintUrl._injectionsRight = () => m(ButtonN, {
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								endAligned: true,
+								click: () => {
+									let imprintUrl = new TextField("imprintUrl_label")
+										.setValue(neverNull(whitelabelConfig).imprintUrl)
+									let dialog = Dialog.showActionDialog({
+										title: lang.get("imprintUrl_label"),
+										child: imprintUrl,
+										allowOkWithReturn: true,
+										okAction: (ok) => {
+											if (ok) {
+												neverNull(whitelabelConfig).imprintUrl = imprintUrl.value() ? imprintUrl.value() : null
+												update(whitelabelConfig)
+												dialog.close()
+											}
 										}
-									}
-								})
-							}, () => Icons.Edit)
-							let editPrivacyUrlButton = new Button("edit_action", () => {
-								let privacyUrl = new TextField("privacyPolicyUrl_label")
-									.setValue(neverNull(whitelabelConfig).privacyStatementUrl)
-								let dialog = Dialog.showActionDialog({
-									title: lang.get("privacyLink_label"),
-									child: {view: () => m(privacyUrl)},
-									allowOkWithReturn: true,
-									okAction: (ok) => {
-										if (ok) {
-											neverNull(whitelabelConfig).privacyStatementUrl = privacyUrl.value() ? privacyUrl.value() : null
-											update(whitelabelConfig)
-											dialog.close()
+									})
+								}
+							})
+							this._whitelabelPrivacyUrl._injectionsRight = () => m(ButtonN, {
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								endAligned: true,
+								click: () => {
+									const privacyUrl = new TextField("privacyPolicyUrl_label")
+										.setValue(neverNull(whitelabelConfig).privacyStatementUrl)
+									let dialog = Dialog.showActionDialog({
+										title: lang.get("privacyLink_label"),
+										child: privacyUrl,
+										allowOkWithReturn: true,
+										okAction: (ok) => {
+											if (ok) {
+												neverNull(whitelabelConfig).privacyStatementUrl = privacyUrl.value() ? privacyUrl.value() : null
+												update(whitelabelConfig)
+												dialog.close()
+											}
 										}
-									}
-								})
-							}, () => Icons.Edit)
-							this._whitelabelImprintUrl._injectionsRight = () => m(editImprintUrlButton)
-							this._whitelabelPrivacyUrl._injectionsRight = () => m(editPrivacyUrlButton)
+									})
+								}
+							})
 
 							this._whitelabelCodeField = new TextField("whitelabelRegistrationCode_label", null)
 								.setValue(whitelabelConfig.whitelabelCode)
 								.setDisabled()
 
-							let editButton = new Button("edit_action", () => {
-								Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, this._whitelabelCodeField.value())
-								      .then(newCode => {
-									      whitelabelConfig.whitelabelCode = newCode
-									      update(whitelabelConfig)
-								      })
-							}, () => Icons.Edit)
-							this._whitelabelCodeField._injectionsRight = () => [m(editButton)]
+							this._whitelabelCodeField._injectionsRight = () => m(ButtonN, {
+								label: "edit_action",
+								icon: () => Icons.Edit,
+								endAligned: true,
+								click: () =>
+									Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null,
+										this._whitelabelCodeField.value())
+									      .then(newCode => {
+										      whitelabelConfig.whitelabelCode = newCode
+										      update(whitelabelConfig)
+									      })
+							})
 
 							let items = [{name: lang.get("deactivated_label"), value: null}]
 								.concat(getCustomMailDomains(customerInfo)

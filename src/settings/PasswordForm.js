@@ -44,7 +44,7 @@ export class PasswordForm {
 
 		let passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
 		this._newPasswordField = new TextField("newPassword_label", () => m(this._newPasswordFieldStatus)).setType(Type.Password).setPreventAutofill(true)
-		this._newPasswordField._injectionsRight = () => m(".mb-s.mlr", [m(passwordIndicator)])
+		this._newPasswordField._injectionsRight = () => m(".mb-s.ml-s", m(passwordIndicator))
 		this._newPasswordFieldStatus = new StatusField(Stream.combine(() => {
 			if (this._newPasswordField.value() === "") {
 				return {type: "neutral", text: "password1Neutral_msg"}

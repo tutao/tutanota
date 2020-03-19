@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Dialog} from "../gui/base/Dialog"
-import {Button, createDropDownButton} from "../gui/base/Button"
+import {Button} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {parseBirthday} from "../misc/Formatter"
@@ -35,7 +35,8 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {createDropdown} from "../gui/base/DropdownN"
 
 
 assertMainOrNode()
@@ -407,37 +408,42 @@ class ContactAggregateEditor {
 		if (isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
 			this.textfield.setType(Type.Area)
 		}
-		let typeButton = createDropDownButton("more_label",
-			() => Icons.More,
-			() => Object.keys(TypeToLabelMap)
-			            .map(key => {
-				            return new Button((TypeToLabelMap: any)[key], e => {
-					            if (isCustom(key)) {
-						            setTimeout(() => {
-							            Dialog.showTextInputDialog("customLabel_label",
-								            "customLabel_label",
-								            null,
-								            this.aggregate.customTypeName,
-								            null//validator needed?
-							            ).then((name) => {
-								            this.aggregate.customTypeName = name
-								            this.aggregate.type = key
-							            })
-						            }, DefaultAnimationTime)// wait till the dropdown is hidden
-					            } else {
-						            this.aggregate.type = key
-					            }
-				            }).setType(ButtonType.Dropdown)
-			            }))
-
-
-		let cancelButton = new Button('cancel_action', () => cancelAction(this), () => Icons.Cancel)
+		const typeButtonClickHandler = createDropdown(() =>
+			Object.keys(TypeToLabelMap)
+			      .map(key => {
+				      return new Button((TypeToLabelMap: any)[key], e => {
+					      if (isCustom(key)) {
+						      setTimeout(() => {
+							      Dialog.showTextInputDialog("customLabel_label",
+								      "customLabel_label",
+								      null,
+								      this.aggregate.customTypeName,
+								      null//validator needed?
+							      ).then((name) => {
+								      this.aggregate.customTypeName = name
+								      this.aggregate.type = key
+							      })
+						      }, DefaultAnimationTime)// wait till the dropdown is hidden
+					      } else {
+						      this.aggregate.type = key
+					      }
+				      }).setType(ButtonType.Dropdown)
+			      }))
 
 		this.textfield._injectionsRight = () => {
 			return [
-				m(typeButton),
+				m(ButtonN, {
+					label: "more_label",
+					icon: () => Icons.More,
+					endAligned: true,
+					click: typeButtonClickHandler,
+				}),
 				this.isInitialized
-					? m(cancelButton, {
+					? m(ButtonN, {
+						label: 'cancel_action',
+						click: () => cancelAction(this),
+						icon: () => Icons.Cancel,
+						endAligned: true,
 						oncreate: vnode => {
 							vnode.dom.style.opacity = 0
 							return animations.add(vnode.dom, opacity(0, 1, true))

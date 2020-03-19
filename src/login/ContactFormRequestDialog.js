@@ -30,10 +30,13 @@ import stream from "mithril/stream/stream.js"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
+/**
+ * Contact Form/Secure Connect dialog, shown when user makes a request via contact form.
+ */
 export class ContactFormRequestDialog {
 	_dialog: Dialog;
 	_subject: TextField;
@@ -41,7 +44,6 @@ export class ContactFormRequestDialog {
 	view: Function;
 	_attachments: Array<TutanotaFile | DataFile | FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
-	_attachFilesButton: Button;
 	_loadingAttachments: boolean;
 	_contactForm: ContactForm;
 	_domElement: HTMLElement;
@@ -61,10 +63,12 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
-		this._subject._injectionsRight = () => {
-			return [m(this._attachFilesButton)]
-		}
+		this._subject._injectionsRight = () => m(ButtonN, {
+			label: 'attachFiles_action',
+			icon: () => Icons.Attachment,
+			endAligned: true,
+			click: () => this._showFileChooserForAttachments(),
+		})
 
 		this._statisticFields = this._createStatisticFields(contactForm)
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);

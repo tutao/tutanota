@@ -128,7 +128,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			label: "edit_action",
 			type: ButtonType.Action,
 			click: noOp,
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			endAligned: true,
 		}, () => [
 			{
 				label: "alwaysAsk_action",

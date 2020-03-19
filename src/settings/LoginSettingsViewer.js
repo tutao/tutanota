@@ -54,23 +54,24 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._mailAddress,
 			disabled: true,
 		}
-		const changePasswordButtonAttrs: ButtonAttrs = {
-			label: "changePassword_label",
-			click: () => PasswordForm.showChangeOwnPasswordDialog(),
-			icon: () => Icons.Edit
-		}
 		const passwordAttrs: TextFieldAttrs = {
 			label: "password_label",
 			value: this._stars,
 			disabled: true,
-			injectionsRight: () => m(ButtonN, changePasswordButtonAttrs)
+			injectionsRight: () => m(ButtonN, {
+				label: "changePassword_label",
+				click: () => PasswordForm.showChangeOwnPasswordDialog(),
+				icon: () => Icons.Edit,
+				endAligned: true,
+			})
 		}
 
 		const recoveryCodeDropdownButtonAttrs: ButtonAttrs = attachDropdown(
 			{
 				label: "edit_action",
 				icon: () => Icons.Edit,
-				click: noOp
+				click: noOp,
+				endAligned: true,
 			}, () => [
 				{
 					label: "show_action",

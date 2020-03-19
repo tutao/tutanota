@@ -98,6 +98,7 @@ export type ButtonAttrs = {
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string,
+	endAligned?: boolean,
 }
 
 /**
@@ -247,11 +248,10 @@ class _Button {
 	getWrapperClasses(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		let wrapperClasses = ["button-content", "flex", "items-center", type]
-		if (![ButtonType.Floating, ButtonType.TextBubble, ButtonType.Toggle].includes(type)) {
-			wrapperClasses.push("plr-button")
-		}
 		if (type === ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
+		} else if (a.endAligned) {
+			wrapperClasses.push("justify-end")
 		} else {
 			wrapperClasses.push("justify-center")
 		}
@@ -264,7 +264,7 @@ class _Button {
 	_getLabelElement(a: ButtonAttrs) {
 		const type = this.getType(a.type)
 		const label = lang.getMaybeLazy(a.label)
-		if (label.trim() === '' || [ButtonType.Action, ButtonType.Floating].includes(type)) {
+		if (label.trim() === '' || [ButtonType.Action, ButtonType.Floating, ButtonType.ActionLarge].includes(type)) {
 			return null
 		}
 		let classes = ["text-ellipsis"]

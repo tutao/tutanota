@@ -101,24 +101,27 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const upgradeActionAttrs = {
 			label: "upgrade_action",
 			click: showUpgradeWizard,
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const usageTypeActionAttrs = {
 			label: "pricing.businessUse_label",
 			click: () => this._switchToBusinessUse(),
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const signOrderAgreementActionAttrs = {
 			label: "sign_action",
 			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-			icon: () => Icons.Edit
+			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const showOrderAgreementActionAttrs = {
 			label: "show_action",
 			click: () => load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
 				.then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
 			icon: () => Icons.Download,
-
+			endAligned: true,
 		}
 
 		let subscriptionPeriods = [
@@ -133,73 +136,85 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			click: createNotAvailableForFreeClickHandler(false, AddUserDialog.show, isPremiumPredicate),
 			icon: () => Icons.Add,
 			type: ButtonType.Action,
+			endAligned: true,
 		}
 		const editUsersButtonAttrs = {
 			label: "bookingItemUsers_label",
 			click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/users"), isPremiumPredicate),
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
+			endAligned: true,
 		}
 		const changeStorageCapacityButtonAttrs = {
 			label: "storageCapacity_label",
 			click: createNotAvailableForFreeClickHandler(false, () => StorageCapacityOptionsDialog.show(), isPremiumPredicate),
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
+			endAligned: true,
 		}
 		const changeEmailAliasPackageButtonAttrs = {
 			label: "emailAlias_label",
 			click: createNotAvailableForFreeClickHandler(true, EmailAliasOptionsDialog.show, isPremiumPredicate),
 			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const addGroupsActionAttrs = {
 			label: "addGroup_label",
 			click: createNotAvailableForFreeClickHandler(false, AddGroupDialog.show, isPremiumPredicate),
 			icon: () => Icons.Add,
+			endAligned: true,
 		}
 		const editGroupsActionAttrs = {
 			label: "groups_label",
 			click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/groups"), isPremiumPredicate),
 			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const addContactFormActionAttrs = {
 			label: "createContactForm_label",
 			click: createNotAvailableForFreeClickHandler(false, () => ContactFormEditor.show(null, true, noOp), isPremiumPredicate),
 			icon: () => Icons.Add,
+			endAligned: true,
 		}
 		const editContactFormsActionAttrs = {
 			label: "contactForms_label",
 			click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/contactforms"), isPremiumPredicate),
 			icon: () => Icons.Edit,
-
+			endAligned: true,
 		}
 		const enableWhiteLabelActionAttrs = {
 			label: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const disableWhiteLabelActionAttrs = {
 			label: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
+			endAligned: true,
 		}
 		const enableSharingActionAttrs = {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
+			endAligned: true,
 		}
 		const disableSharingActionAttrs = {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(false,
 				() => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
+			endAligned: true,
 		}
 		const deleteButtonAttrs = {
 			label: "adminDeleteAccount_action",
 			click: showDeleteAccountDialog,
 			type: ButtonType.Login,
+			endAligned: true,
 		}
 		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
 			view: () => m(".flex-center.mb-l", m("", {style: {"width": '200px'}}, m(ButtonN, deleteButtonAttrs)))

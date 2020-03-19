@@ -434,12 +434,13 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				disabled: readOnly,
 				injectionsRight: () => {
 					let address = encodeURIComponent(locationValue())
-					if (address == "") {
+					if (address === "") {
 						return null;
 					}
 					return m(ButtonN, {
 						label: 'showAddress_alt',
 						icon: () => Icons.Pin,
+						endAligned: true,
 						click: () => {
 							window.open(`https://www.openstreetmap.org/search?query=${address}`, '_blank')
 						}

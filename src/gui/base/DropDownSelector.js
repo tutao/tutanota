@@ -6,7 +6,8 @@ import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {lazyStringValue} from "../../api/common/utils/StringUtils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {ButtonType} from "./ButtonN"
+import {ButtonN, ButtonType} from "./ButtonN"
+import {createDropdown} from "./DropdownN"
 
 assertMainOrNode()
 
@@ -33,19 +34,27 @@ export class DropDownSelector<T> {
 				return ''
 			}
 		})
-		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
-			return items.map(item => new Button(() => item.name, () => {
-				if (this.selectedValue() !== item.value) {
-					if (this._changeHandler) {
-						this._changeHandler(item.value)
-					} else {
-						this.selectedValue(item.value)
-						m.redraw()
-					}
-				}
-			}).setType(ButtonType.Dropdown).setSelected(() => this.selectedValue() === item.value))
-		}, (dropdownWidth) ? dropdownWidth : undefined)
-		this._field._injectionsRight = () => [m(itemChooser)]
+
+		this._field._injectionsRight = () => m(ButtonN, {
+			label: labelIdOrLabelTextFunction,
+			icon: () => Icons.Edit,
+			endAligned: true,
+			click: createDropdown(
+				() => items.map(item => ({
+					label: () => item.name,
+					click: () => {
+						if (this._changeHandler) {
+							this._changeHandler(item.value)
+						} else {
+							this.selectedValue(item.value)
+							m.redraw()
+						}
+					},
+					type: ButtonType.Dropdown,
+					isSelected: () => this.selectedValue() === item.value,
+				})),
+				dropdownWidth || undefined)
+		})
 
 		this.view = () => {
 			return m(this._field)

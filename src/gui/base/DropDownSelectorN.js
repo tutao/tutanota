@@ -41,6 +41,7 @@ export class DropDownSelectorN<T> implements MComponent<DropDownSelectorAttrs<T>
 				: m(ButtonN, {
 					label: a.label,
 					icon: () => a.icon ? a.icon : Icons.Edit,
+					endAligned: true,
 					click: this.createDropdown(a),
 				})
 		})

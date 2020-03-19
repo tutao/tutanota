@@ -26,7 +26,7 @@ export function show(whitelabelConfig: WhitelabelConfig, themeToEdit: Theme) {
 			                        return [
 				                        m("", {
 					                        style: {
-						                        width: "106px", // 100 + 6px negative margin
+						                        width: "100px", // 100 + 6px negative margin
 						                        height: "20px",
 						                        "margin-bottom": "2px",
 						                        "background-color": getValidColorValue(field) || theme.content_bg

@@ -46,7 +46,8 @@ export class SelectMailAddressForm {
 		const domainChooserAttrs: ButtonAttrs = attachDropdown({
 			label: "domain_label",
 			icon: () => Icons.More,
-			noBubble: true
+			noBubble: true,
+			endAligned: true,
 		}, () => this._availableDomains.map(domain => {
 			return {
 				label: () => domain,
@@ -61,7 +62,7 @@ export class SelectMailAddressForm {
 			alignRight: true,
 			helpLabel: () => lang.get(this._messageId()),
 			injectionsRight: () => [
-				m(".flex.items-end.mr-s", {style: {"padding-bottom": '1px', "flex": "1 1 auto"}}, `@${this.domain()}`),
+				m(".flex.items-end", {style: {"padding-bottom": '1px', "flex": "1 1 auto"}}, `@${this.domain()}`),
 				m(ButtonN, domainChooserAttrs)
 			]
 		}
