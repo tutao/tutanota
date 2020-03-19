@@ -71,7 +71,7 @@ class _EditAliasesForm {
 	}
 
 	_getAliasLineAttrs(groupInfo: GroupInfo): Array<TableLineAttrs> {
-		return groupInfo.mailAddressAliases.map(alias => {
+		return groupInfo.mailAddressAliases.sort((a, b) => (a.mailAddress > b.mailAddress) ? 1 : -1).map(alias => {
 			const actionButtonAttrs: ButtonAttrs = attachDropdown(
 				{
 					label: "edit_action",
@@ -110,7 +110,7 @@ class _EditAliasesForm {
 				],
 				actionButtonAttrs: actionButtonAttrs
 			}
-		}).sort((a, b) => (a.cells[0] > b.cells[0]) ? 1 : -1)
+		})
 	}
 
 	_showAddAliasDialog(groupInfo: GroupInfo) {
