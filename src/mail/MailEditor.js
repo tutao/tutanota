@@ -164,7 +164,9 @@ export class MailEditor {
 			.map(mailAddress => ({
 				name: mailAddress,
 				value: mailAddress
-			})), stream(getDefaultSender(this._mailboxDetails)), 250)
+			}))
+			.sort((a, b) => (a.name > b.name) ? 1 : -1),
+			stream(getDefaultSender(this._mailboxDetails)), 250)
 
 		let sortedLanguages = languages.slice().sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
 		this._selectedNotificationLanguage = stream(getAvailableLanguageCode(props.notificationMailLanguage || lang.code))

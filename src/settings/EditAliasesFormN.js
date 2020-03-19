@@ -110,7 +110,7 @@ class _EditAliasesForm {
 				],
 				actionButtonAttrs: actionButtonAttrs
 			}
-		})
+		}).sort((a, b) => (a.cells[0] > b.cells[0]) ? 1 : -1)
 	}
 
 	_showAddAliasDialog(groupInfo: GroupInfo) {
