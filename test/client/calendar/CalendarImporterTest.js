@@ -218,147 +218,149 @@ o.spec("CalendarImporterTest", function () {
 
 	})
 
-	o("importer", function () {
-		o(parseCalendarStringData([
-				"BEGIN:VCALENDAR",
-				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-				"VERSION:2.0",
-				"CALSCALE:GREGORIAN",
-				"METHOD:PUBLISH",
-				"BEGIN:VEVENT",
-				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:test@tutanota.com`,
-				"SUMMARY:Word \\\\ \\; \\n",
-				"RRULE:FREQ=WEEKLY;INTERVAL=3",
-				"END:VEVENT",
-				"END:VCALENDAR"
-			].join("\r\n"), zone)[0]
-		).deepEquals([
-			{
-				event: createCalendarEvent({
-					summary: "Word \\ ; \n",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					uid: "test@tutanota.com",
-					repeatRule: createRepeatRule({
-						endType: EndType.Never,
-						interval: "3",
-						frequency: RepeatPeriod.WEEKLY,
-						timeZone: zone,
-					})
-				}),
-				alarms: []
-			},
-		][0])
-	})
+	o.spec("import", function() {
+		o("regular event", function () {
+			o(parseCalendarStringData([
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:test@tutanota.com`,
+					"SUMMARY:Word \\\\ \\; \\n",
+					"RRULE:FREQ=WEEKLY;INTERVAL=3",
+					"END:VEVENT",
+					"END:VCALENDAR"
+				].join("\r\n"), zone)[0]
+			).deepEquals([
+				{
+					event: createCalendarEvent({
+						summary: "Word \\ ; \n",
+						startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						uid: "test@tutanota.com",
+						repeatRule: createRepeatRule({
+							endType: EndType.Never,
+							interval: "3",
+							frequency: RepeatPeriod.WEEKLY,
+							timeZone: zone,
+						})
+					}),
+					alarms: []
+				},
+			][0])
+		})
 
-	o("import all-day event", function () {
-		o(parseCalendarStringData([
-				"BEGIN:VCALENDAR",
-				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-				"VERSION:2.0",
-				"CALSCALE:GREGORIAN",
-				"METHOD:PUBLISH",
-				"BEGIN:VEVENT",
-				"SUMMARY:Labor Day / May Day",
-				"DTSTART;VALUE=DATE:20200501",
-				"DTEND;VALUE=DATE:20200502",
-				"LOCATION:Brazil",
-				"DESCRIPTION:Some description",
-				"UID:5e528f277e20e1582468903@calendarlabs.com",
-				"DTSTAMP:20200223T144143Z",
-				"STATUS:CONFIRMED",
-				"TRANSP:TRANSPARENT",
-				"SEQUENCE:0",
-				"END:VEVENT",
-				"END:VCALENDAR",
-			].join("\r\n"), zone)[0]
-		).deepEquals([
-			{
-				event: createCalendarEvent({
-					summary: "Labor Day / May Day",
-					startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
-					endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
-					uid: "5e528f277e20e1582468903@calendarlabs.com",
-					description: "Some description",
-					location: "Brazil",
-				}),
-				alarms: []
-			},
-		][0])
-	})
+		o("all-day event", function () {
+			o(parseCalendarStringData([
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					"SUMMARY:Labor Day / May Day",
+					"DTSTART;VALUE=DATE:20200501",
+					"DTEND;VALUE=DATE:20200502",
+					"LOCATION:Brazil",
+					"DESCRIPTION:Some description",
+					"UID:5e528f277e20e1582468903@calendarlabs.com",
+					"DTSTAMP:20200223T144143Z",
+					"STATUS:CONFIRMED",
+					"TRANSP:TRANSPARENT",
+					"SEQUENCE:0",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"), zone)[0]
+			).deepEquals([
+				{
+					event: createCalendarEvent({
+						summary: "Labor Day / May Day",
+						startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
+						endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
+						uid: "5e528f277e20e1582468903@calendarlabs.com",
+						description: "Some description",
+						location: "Brazil",
+					}),
+					alarms: []
+				},
+			][0])
+		})
 
-	o("import all-day event with invalid DTEND", function () {
-		o(parseCalendarStringData([
-				"BEGIN:VCALENDAR",
-				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-				"VERSION:2.0",
-				"CALSCALE:GREGORIAN",
-				"METHOD:PUBLISH",
-				"BEGIN:VEVENT",
-				"SUMMARY:Labor Day / May Day",
-				"DTSTART:20200501",
-				"DTEND:20200501",
-				"LOCATION:Brazil",
-				"DESCRIPTION:Some description",
-				"UID:5e528f277e20e1582468903@calendarlabs.com",
-				"DTSTAMP:20200223T144143Z",
-				"STATUS:CONFIRMED",
-				"TRANSP:TRANSPARENT",
-				"SEQUENCE:0",
-				"END:VEVENT",
-				"END:VCALENDAR",
-			].join("\r\n"), zone)[0]
-		).deepEquals([
-			{
-				event: createCalendarEvent({
-					summary: "Labor Day / May Day",
-					startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
-					endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
-					uid: "5e528f277e20e1582468903@calendarlabs.com",
-					description: "Some description",
-					location: "Brazil",
-				}),
-				alarms: []
-			},
-		][0])
-	})
+		o("all-day event with invalid DTEND", function () {
+			o(parseCalendarStringData([
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					"SUMMARY:Labor Day / May Day",
+					"DTSTART:20200501",
+					"DTEND:20200501",
+					"LOCATION:Brazil",
+					"DESCRIPTION:Some description",
+					"UID:5e528f277e20e1582468903@calendarlabs.com",
+					"DTSTAMP:20200223T144143Z",
+					"STATUS:CONFIRMED",
+					"TRANSP:TRANSPARENT",
+					"SEQUENCE:0",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"), zone)[0]
+			).deepEquals([
+				{
+					event: createCalendarEvent({
+						summary: "Labor Day / May Day",
+						startTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 1, zone}).toJSDate(), zone),
+						endTime: getAllDayDateUTCFromZone(DateTime.fromObject({year: 2020, month: 5, day: 2, zone}).toJSDate(), zone),
+						uid: "5e528f277e20e1582468903@calendarlabs.com",
+						description: "Some description",
+						location: "Brazil",
+					}),
+					alarms: []
+				},
+			][0])
+		})
 
-	o("parse calendar with alarm in the future", function () {
-		o(parseCalendarStringData([
-				"BEGIN:VCALENDAR",
-				"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
-				"VERSION:2.0",
-				"CALSCALE:GREGORIAN",
-				"METHOD:PUBLISH",
-				"BEGIN:VEVENT",
-				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:test@tutanota.com`,
-				"SUMMARY:Word \\\\ \\; \\n",
-				"BEGIN:VALARM",
-				"ACTION:DISPLAY",
-				"TRIGGER:P1D",
-				"END:VALARM",
-				"END:VEVENT",
-				"END:VCALENDAR"
-			].join("\r\n"), zone)[0]
-		).deepEquals([
-			{
-				event: createCalendarEvent({
-					summary: "Word \\ ; \n",
-					startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
-					uid: "test@tutanota.com",
-					repeatRule: null,
-				}),
-				alarms: []
-			},
+		o("with alarm in the future", function () {
+			o(parseCalendarStringData([
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:test@tutanota.com`,
+					"SUMMARY:Word \\\\ \\; \\n",
+					"BEGIN:VALARM",
+					"ACTION:DISPLAY",
+					"TRIGGER:P1D",
+					"END:VALARM",
+					"END:VEVENT",
+					"END:VCALENDAR"
+				].join("\r\n"), zone)[0]
+			).deepEquals([
+				{
+					event: createCalendarEvent({
+						summary: "Word \\ ; \n",
+						startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+						uid: "test@tutanota.com",
+						repeatRule: null,
+					}),
+					alarms: []
+				},
 
-		][0])
+			][0])
+		})
 	})
 
 	o("roundtrip export -> import", function () {
