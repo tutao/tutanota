@@ -51,8 +51,8 @@ o.spec("CalendarImporterTest", function () {
 				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
-				`DTSTART:20190813`,
-				`DTEND:20190914`,
+				`DTSTART;VALUE=DATE:20190813`,
+				`DTEND;VALUE=DATE:20190914`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
@@ -206,8 +206,8 @@ o.spec("CalendarImporterTest", function () {
 				}), [], now, zone)
 			).deepEquals([
 				"BEGIN:VEVENT",
-				`DTSTART:20190813`,
-				`DTEND:20190815`,
+				`DTSTART;VALUE=DATE:20190813`,
+				`DTEND;VALUE=DATE:20190815`,
 				`DTSTAMP:20190813T140100Z`,
 				`UID:ownerId${now.getTime()}@tutanota.com`,
 				"SUMMARY:Word \\\\ \\; \\n",
@@ -218,7 +218,7 @@ o.spec("CalendarImporterTest", function () {
 
 	})
 
-	o.spec("import", function() {
+	o.spec("import", function () {
 		o("regular event", function () {
 			o(parseCalendarStringData([
 					"BEGIN:VCALENDAR",
@@ -300,8 +300,8 @@ o.spec("CalendarImporterTest", function () {
 					"METHOD:PUBLISH",
 					"BEGIN:VEVENT",
 					"SUMMARY:Labor Day / May Day",
-					"DTSTART:20200501",
-					"DTEND:20200501",
+					"DTSTART;VALUE=DATE:20200501",
+					"DTEND;VALUE=DATE:20200501",
 					"LOCATION:Brazil",
 					"DESCRIPTION:Some description",
 					"UID:5e528f277e20e1582468903@calendarlabs.com",
@@ -485,8 +485,8 @@ SUMMARY:Word \\\\ \\; \\n repeating
 RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z
 END:VEVENT
 BEGIN:VEVENT
-DTSTART:20190813
-DTEND:20190815
+DTSTART;VALUE=DATE:20190813
+DTEND;VALUE=DATE:20190815
 DTSTAMP:20190813T140100Z
 UID:b64lookingValue==
 SUMMARY:Word \\\\ \\; \\n
