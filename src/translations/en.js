@@ -494,7 +494,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "there is a new invoice with the number {1} for you available. You can download it in {2}. The payment is due 7 days after the invoice date.",
 		"invoiceMailSubject_msg": "New invoice for Tutanota",
 		"invoiceNotPaidUser_msg": "Sorry, you are currently not allowed to send emails. Please contact your administrator.",
-		"invoiceNotPaid_msg": "Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data at {1} in 'Settings' -> 'Payment data' and pay the invoices in 'Settings'->'Invoicing' afterwards.",
+		"invoiceNotPaid_msg": "Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data in 'Settings' -> 'Payment data' and trigger the payment there afterwards.",
 		"invoicePayConfirm_msg": "We will now debit the following amount:",
 		"invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added in the future.",
 		"invoicePay_action": "Pay",
