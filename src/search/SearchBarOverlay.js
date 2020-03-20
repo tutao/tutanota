@@ -45,9 +45,7 @@ export class SearchBarOverlay implements MComponent<SearchBarOverlayAttrs> {
 	}
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs) {
-		return m("ul.list.click.mail-list", {
-			role: "listbox",
-		}, [
+		return m("ul.list.click.mail-list", [
 			state.entities.map((result) => {
 				return m("li.plr-l.flex-v-center.", {
 					style: {

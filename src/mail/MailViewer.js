@@ -23,7 +23,8 @@ import {
 	MailFolderType,
 	MailState,
 	SpamRuleFieldType as SparmRuleType,
-	SpamRuleType, TabIndex
+	SpamRuleType,
+	TabIndex
 } from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"

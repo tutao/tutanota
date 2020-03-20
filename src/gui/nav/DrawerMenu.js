@@ -13,14 +13,13 @@ import {isNewMailActionAvailable} from "../../mail/MailView"
 import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
-import {AriaLandmarks} from "../../api/common/TutanotaConstants"
-import {landmarkAttrs} from "../../api/common/utils/Utils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		return m("drawer-menu" + landmarkAttrs(AriaLandmarks.Navigation, "side"), {
+		return m("drawer-menu" + landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"), {
 			style: {
 				'padding-left': getSafeAreaInsetLeft()
 			},

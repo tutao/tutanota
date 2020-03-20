@@ -550,18 +550,6 @@ export const Keys = Object.freeze({
 })
 export type KeysEnum = $Values<typeof Keys>
 
-
-// See: https://webaim.org/techniques/aria/#landmarks
-export const AriaLandmarks = Object.freeze({
-	Banner: "banner",
-	Search: "search",
-	Navigation: "navigation",
-	Main: "main",
-	Complementary: "complementary",
-	Contentinfo: "contentinfo",
-})
-export type AriaLandmarksEnum = $Values<typeof AriaLandmarks>
-
 // See: https://webaim.org/techniques/keyboard/tabindex#overview
 export const TabIndex = Object.freeze({
 	Programmatic: "-1", // focus on element can only be set programmatically

@@ -1,5 +1,5 @@
 // @flow
-import type {AriaLandmarksEnum, GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
+import type {GroupTypeEnum, OperationTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 import {TypeRef} from "../EntityFunctions"
 import type {EntityUpdateData} from "../../main/EventController"
@@ -391,9 +391,4 @@ export function freezeMap<K, V>(myMap: Map<K, V>): Map<K, V> {
 	Object.freeze(anyMap)
 
 	return anyMap
-}
-
-
-export function landmarkAttrs(role: AriaLandmarksEnum, label: ?string): string {
-	return `[role="${role}"][tabindex="-1"]` + (label ? `[aria-label="${label}"]` : "")
 }

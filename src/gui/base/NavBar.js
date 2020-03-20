@@ -14,7 +14,9 @@ import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {createDropdown} from "./DropdownN"
 import {BootIcons} from "./icons/BootIcons"
 import {CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {AriaLandmarks, TabIndex} from "../../api/common/TutanotaConstants"
+import {TabIndex} from "../../api/common/TutanotaConstants"
+import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
+
 
 assertMainOrNodeBoot()
 

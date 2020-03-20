@@ -1,9 +1,8 @@
 // @flow
 import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
-import type {AriaLandmarksEnum} from "../../api/common/TutanotaConstants"
-import {AriaLandmarks} from "../../api/common/TutanotaConstants"
-import {landmarkAttrs} from "../../api/common/utils/Utils"
+import type {AriaLandmarksEnum} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
@@ -22,6 +21,7 @@ export class ViewColumn {
 	minWidth: number;
 	maxWidth: number;
 	title: ?lazy<string>;
+	ariaLabel: ?lazy<string>;
 	width: number;
 	offset: number; // offset to the left
 	_domColumn: ?HTMLElement;
@@ -38,12 +38,13 @@ export class ViewColumn {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param title A function that returns the translated title text for a column.
 	 */
-	constructor(component: Component, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>,) {
+	constructor(component: Component, columnType: ColumnTypeEnum, minWidth: number, maxWidth: number, title: ?lazy<string>, ariaLabel: ?lazy<string>) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth
 		this.maxWidth = maxWidth
 		this.title = title
+		this.ariaLabel = ariaLabel
 		this.width = minWidth
 		this.offset = 0
 		this.isInForeground = false
@@ -52,7 +53,7 @@ export class ViewColumn {
 		this.view = (vnode: Vnode<Attrs>) => {
 			const zIndex = !this.visible && this.columnType === ColumnType.Foreground ? ".z4" : ""
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
-			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.getTitle()) : ""
+			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : ""
 			return m(".view-column.overflow-x-hidden.fill-absolute.backface_fix" + zIndex + border + landmark, {
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
 					oncreate: (vnode) => {

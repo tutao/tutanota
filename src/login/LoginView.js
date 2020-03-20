@@ -13,7 +13,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
 import {keyManager} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {AriaLandmarks, BootstrapFeatureType, Keys, TabIndex} from "../api/common/TutanotaConstants"
+import {BootstrapFeatureType, Keys} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -21,6 +21,7 @@ import {DeviceType} from "../misc/ClientConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {show} from "./RecoverLoginDialog"
 import {header} from "../gui/base/Header"
+import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
@@ -125,10 +126,8 @@ export class LoginView {
 				}
 			}, [
 				m(header),
-				m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", {
-						tabindex: TabIndex.Programmatic,
-						role: AriaLandmarks.Main,
-						"aria-label": lang.get("login_label"),
+				m(".flex-grow.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-s.pt.plr-l"
+					+ landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")), {
 						oncreate: (vnode) => {
 							vnode.dom.focus()
 						},
@@ -280,19 +279,20 @@ export class LoginView {
 				? m(this.savePassword)
 				: null,
 			m(".pt", m(this.loginButton)),
-			m("p.center.statusTextColor", m("small", [
-				this.helpText + " ",
-				this.invalidCredentials && this._recoverLoginVisible()
-					? m('a', {
-						href: '/recover',
-						onclick: e => {
-							m.route.set('/recover')
-							show(this.mailAddress.value(), "password")
-							e.preventDefault()
-						}
-					}, lang.get("recoverAccountAccess_action"))
-					: null
-			])),
+			m("p.center.statusTextColor", m("small" + liveDataAttrs(),
+				[
+					this.helpText + " ",
+					this.invalidCredentials && this._recoverLoginVisible()
+						? m('a', {
+							href: '/recover',
+							onclick: e => {
+								m.route.set('/recover')
+								show(this.mailAddress.value(), "password")
+								e.preventDefault()
+							}
+						}, lang.get("recoverAccountAccess_action"))
+						: null
+				])),
 			!(isApp() || isDesktop()) && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
 	}

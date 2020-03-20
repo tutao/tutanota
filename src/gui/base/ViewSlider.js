@@ -11,8 +11,8 @@ import {assertMainOrNode} from "../../api/Env"
 import {BottomNav} from "../nav/BottomNav"
 import {header} from "./Header"
 import {styles} from "../styles"
-import type {AriaLandmarksEnum} from "../../api/common/TutanotaConstants"
-import {AriaLandmarks} from "../../api/common/TutanotaConstants"
+import type {AriaLandmarksEnum} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
@@ -113,7 +113,7 @@ export class ViewSlider implements IViewSlider {
 		if (column.columnType === ColumnType.Foreground) {
 			return null
 		}
-		return this._mainColumn === column ? AriaLandmarks.Main : AriaLandmarks.Complementary
+		return this._mainColumn === column ? AriaLandmarks.Main : AriaLandmarks.Region
 	}
 
 	_getColumnsForMainSlider(): Array<ViewColumn> {

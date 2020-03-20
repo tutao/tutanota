@@ -89,9 +89,8 @@ export class ContactView implements CurrentView {
 		this.contactViewer = null
 
 		this._multiContactViewer = new MultiContactViewer(this)
-		this.contactColumn = new ViewColumn({
-			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
-		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, () => {
+
+		const contactColumnTitle = () => {
 			let selectedEntities = this._contactList ? this._contactList.list.getSelectedEntities() : []
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this._contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
@@ -99,7 +98,11 @@ export class ContactView implements CurrentView {
 			} else {
 				return ""
 			}
-		})
+		}
+		this.contactColumn = new ViewColumn({
+			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(this._multiContactViewer))
+		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, contactColumnTitle, () => lang.get("contacts_label")
+			+ " " + contactColumnTitle())
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 

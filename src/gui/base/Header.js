@@ -9,7 +9,7 @@ import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
-import {AriaLandmarks, FeatureType, Keys} from "../../api/common/TutanotaConstants"
+import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
 import {assertMainOrNodeBoot, isDesktop} from "../../api/Env"
 import {BootIcons} from "./icons/BootIcons"
@@ -18,6 +18,7 @@ import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
+import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")

@@ -23,6 +23,7 @@ import {TextFieldN, Type} from "./TextFieldN"
 import {DropDownSelectorN} from "./DropDownSelectorN"
 import {showProgressDialog} from "./ProgressDialog"
 import {Keys} from "../../api/common/TutanotaConstants"
+import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
@@ -97,10 +98,7 @@ export class Dialog {
 								? px(Dialog._keyboardHeight)
 								: dialogType === DialogType.EditLarge ? 0 : mobileMargin,
 						},
-					}, m(this._getDialogStyle(dialogType), {
-						role: "dialog",
-						"aria-labelledby": "dialog-title",
-						"aria-describedby": "dialog-message",
+					}, m(this._getDialogStyle(dialogType) + dialogAttrs("dialog-title", "dialog-message"), {
 						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						oncreate: vnode => {
 							this._domDialog = vnode.dom

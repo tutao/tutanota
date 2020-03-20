@@ -129,10 +129,8 @@ export class MailView implements CurrentView {
 
 		this._multiMailViewer = new MultiMailViewer(this)
 		this._actionBar = lazyMemoized(() => this._multiMailViewer.createActionBar())
-		this.mailColumn = new ViewColumn({
-			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
-		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, () => {
 
+		const mailColumnTitle = () => {
 			let selectedEntities = this.mailList ? this.mailList.list.getSelectedEntities() : [];
 			if (selectedEntities.length > 0) {
 				let selectedIndex = this.mailList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
@@ -140,7 +138,12 @@ export class MailView implements CurrentView {
 			} else {
 				return ""
 			}
-		})
+		}
+
+		this.mailColumn = new ViewColumn({
+			view: () => m(".mail", this.mailViewer != null ? m(this.mailViewer) : m(this._multiMailViewer))
+		}, ColumnType.Background, size.third_col_min_width, size.third_col_max_width, mailColumnTitle, () => lang.get("email_label") + " "
+			+ mailColumnTitle())
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 

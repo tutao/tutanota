@@ -23,7 +23,7 @@ import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {AriaLandmarks, FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
+import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
@@ -38,6 +38,7 @@ import {SearchBarOverlay} from "./SearchBarOverlay"
 import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
+import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
@@ -122,8 +123,7 @@ export class SearchBar implements Component {
 		let shortcuts
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
 			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
-				m(".search-bar.flex-end.items-center", {
-					role: AriaLandmarks.Search,
+				m(".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search), {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom
 						shortcuts = this._setupShortcuts()

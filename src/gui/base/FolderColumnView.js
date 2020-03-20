@@ -7,8 +7,7 @@ import m from "mithril"
 import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {AriaLandmarks} from "../../api/common/TutanotaConstants"
-import {landmarkAttrs} from "../../api/common/utils/Utils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 assertMainOrNode()
 
