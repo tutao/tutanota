@@ -29,11 +29,13 @@ export type EditAliasesFormAttrs = {
 }
 
 class _EditAliasesForm {
-	_nbrOfAliases: number;
+	_nbrOfAliasesToCreate: number;
+	_nbrOfAliasesToEnable: number;
 	_expanded: Stream<boolean>;
 
 	constructor() {
-		this._nbrOfAliases = 0
+		this._nbrOfAliasesToCreate = 0
+		this._nbrOfAliasesToEnable = 0
 		this._expanded = stream(false)
 	}
 
@@ -64,9 +66,9 @@ class _EditAliasesForm {
 				m(ExpanderButtonN, {label: "showEmailAliases_action", expanded: this._expanded})
 			]),
 			m(ExpanderPanelN, {expanded: this._expanded}, m(TableN, aliasesTableAttrs)),
-			m(".small", (this._nbrOfAliases === 0) ?
+			m(".small", (this._nbrOfAliasesToCreate === 0) ?
 				lang.get("adminMaxNbrOfAliasesReached_msg")
-				: lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliases}))
+				: lang.get('mailAddressAliasesMaxNbr_label', {'{1}': this._nbrOfAliasesToCreate}))
 		]
 	}
 
@@ -114,7 +116,7 @@ class _EditAliasesForm {
 	}
 
 	_showAddAliasDialog(groupInfo: GroupInfo) {
-		if (this._nbrOfAliases === 0) {
+		if (this._nbrOfAliasesToEnable === 0) {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(true)
 			} else {
@@ -162,8 +164,11 @@ class _EditAliasesForm {
 		worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
 			const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
 				- Number(mailAddressAliasServiceReturn.usedAliases))
-			if (this._nbrOfAliases !== newNbr) {
-				this._nbrOfAliases = newNbr
+			const newNbrToEnable = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
+				- Number(mailAddressAliasServiceReturn.enabledAliases))
+			if (this._nbrOfAliasesToCreate !== newNbr || this._nbrOfAliasesToEnable !== newNbrToEnable) {
+				this._nbrOfAliasesToCreate = newNbr
+				this._nbrOfAliasesToEnable = newNbrToEnable
 				m.redraw()
 			}
 		})
