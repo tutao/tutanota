@@ -17,7 +17,7 @@ import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defaultCalendarColor, GroupType, OperationType, reverse, ShareCapability, TimeFormat, Keys} from "../api/common/TutanotaConstants"
+import {defaultCalendarColor, GroupType, Keys, OperationType, reverse, ShareCapability, TimeFormat} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {downcast, freezeMap, memoized, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
@@ -81,7 +81,6 @@ export const DEFAULT_HOUR_OF_DAY = 6
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
-	shortEvents: Array<CalendarEvent>,
 	longEvents: Array<CalendarEvent>,
 	groupInfo: GroupInfo,
 	group: Group,
@@ -324,7 +323,7 @@ export class CalendarView implements CurrentView {
 
 	_viewPeriod(next: boolean) {
 		let newDate = new Date(this.selectedDate().getTime())
-	
+
 		switch (this._currentViewType) {
 			case CalendarViewType.MONTH:
 				newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
@@ -759,40 +758,45 @@ export class CalendarView implements CurrentView {
 			// events anyway.
 			const startId = getEventElementMinId(month.start.getTime() - DAY_IN_MILLIS)
 			const endId = geEventElementMaxId(month.end.getTime() + DAY_IN_MILLIS)
-			const newEvents = this._cloneEvents()
-			return Promise.map(calendarInfos.values(), ({group, groupRoot, groupInfo, longEvents, shared}) => {
+			// We collect events from all calendars together and then replace map synchronously.
+			// This is important to replace the map synchronously to not get race conditions because we load different months in parallel.
+			// We could replace map more often instead of aggregating events but this would mean creating even more (cals * months) maps.
+			//
+			// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
+			// take care of this now.
+			const aggregateShortEvents = []
+			const aggregateLongEvents = []
+			return Promise.map(calendarInfos.values(), (calendarInfo) => {
+				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
 					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
 				]).then(([shortEventsResult, longEvents]) => {
-					const shortEvents = shortEventsResult.elements
-					shortEvents
-						.filter(e => {
-							const eventStart = getEventStart(e, getTimeZone()).getTime()
-							return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
-						}) // only events for the loaded month
-						.forEach((e) => {
-							addDaysForEvent(newEvents, e, month)
-						})
-					const zone = getTimeZone()
-					longEvents.forEach((e) => {
-						if (e.repeatRule) {
-							addDaysForRecurringEvent(newEvents, e, month, zone)
-						} else {
-							addDaysForLongEvent(newEvents, e, month, zone)
-						}
-					})
-					calendarInfos.set(groupRoot._id, {
-							groupRoot,
-							groupInfo,
-							group,
-							shortEvents,
-							longEvents,
-							shared
-						}
-					)
+					aggregateShortEvents.push(...shortEventsResult.elements)
+					aggregateLongEvents.push(...longEvents)
+
+					calendarInfo.longEvents = longEvents
 				})
-			}).finally(() => this._replaceEvents(newEvents))
+			}).then(() => {
+				const newEvents = this._cloneEvents()
+				aggregateShortEvents
+					.filter(e => {
+						const eventStart = getEventStart(e, getTimeZone()).getTime()
+						return eventStart >= month.start.getTime() && eventStart < month.end.getTime()
+					}) // only events for the loaded month
+					.forEach((e) => {
+						addDaysForEvent(newEvents, e, month)
+					})
+				const zone = getTimeZone()
+				aggregateLongEvents.forEach((e) => {
+					if (e.repeatRule) {
+						addDaysForRecurringEvent(newEvents, e, month, zone)
+					} else {
+						addDaysForLongEvent(newEvents, e, month, zone)
+					}
+				})
+				this._replaceEvents(newEvents)
+			})
 		})
 	}
 
@@ -931,8 +935,6 @@ export class CalendarView implements CurrentView {
 				if (!this._loadedMonths.has(eventMonth.start.getTime())) {
 					return
 				}
-				this._removeExistingEvent(calendarInfo.shortEvents, event)
-				calendarInfo.shortEvents.push(event)
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
 				this._removeExistingEvent(calendarInfo.longEvents, event)
@@ -1003,9 +1005,7 @@ export class CalendarView implements CurrentView {
 			const infos = this._calendarInfos.value()
 			const info = infos.get(ownerGroupId)
 			if (info) {
-				if (isSameId(listIdPart(id), info.groupRoot.shortEvents)) {
-					findAndRemove(info.shortEvents, (e) => isSameId(e._id, id))
-				} else {
+				if (isSameId(listIdPart(id), info.groupRoot.longEvents)) {
 					findAndRemove(info.longEvents, (e) => isSameId(e._id, id))
 				}
 			}
