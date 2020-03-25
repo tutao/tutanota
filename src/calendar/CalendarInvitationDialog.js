@@ -13,8 +13,8 @@ import {getCapabilityText} from "./CalendarUtils"
 import {downcast} from "../api/common/utils/Utils"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {isSameId} from "../api/common/EntityFunctions"
+import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 
 
 export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
@@ -68,27 +68,27 @@ export function showInvitationDialog(invitation: ReceivedGroupInvitation) {
 					type: ButtonType.Login,
 					click: () => {
 
-						if (logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(true)
-						} else {
-							acceptInvite(invitation).then(() => {
-								dialog.close()
-								const newColor = colorStream().substring(1) // color is stored without #
-								if (existingGroupSettings) {
-									existingGroupSettings.color = newColor
-									console.log("existing group color", newColor)
-								} else {
-									const groupSettings = Object.assign(createGroupSettings(), {
-										group: invitation.sharedGroup,
-										color: newColor
-									})
-									userSettingsGroupRoot.groupSettings.push(groupSettings)
-									console.log("existing group color", newColor)
-								}
+						premiumSubscriptionActive(false).then(ok => {
+							if (ok) {
+								acceptInvite(invitation).then(() => {
+									dialog.close()
+									const newColor = colorStream().substring(1) // color is stored without #
+									if (existingGroupSettings) {
+										existingGroupSettings.color = newColor
+										console.log("existing group color", newColor)
+									} else {
+										const groupSettings = Object.assign(createGroupSettings(), {
+											group: invitation.sharedGroup,
+											color: newColor
+										})
+										userSettingsGroupRoot.groupSettings.push(groupSettings)
+										console.log("existing group color", newColor)
+									}
 
-								return update(userSettingsGroupRoot)
-							})
-						}
+									return update(userSettingsGroupRoot)
+								})
+							}
+						})
 					}
 				})
 			])

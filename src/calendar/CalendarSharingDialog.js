@@ -36,6 +36,7 @@ import {locator} from "../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,
@@ -306,36 +307,43 @@ function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
 }
 
 function sendCalendarInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
-	return showProgressDialog("calendarInvitationProgress_msg",
-		worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo, false), recipients, capability)
-	).then((groupInvitationReturn) => {
-		if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
-			let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
-			let invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
-			Dialog.error(() => {
-				let msg = ""
-				msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
-				msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
-				msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-				return msg
+	return premiumSubscriptionActive(false).then(ok => {
+		if (ok) {
+			return showProgressDialog("calendarInvitationProgress_msg",
+				worker.sendGroupInvitation(sharedGroupInfo, getCalendarName(sharedGroupInfo, false), recipients, capability)
+			).then((groupInvitationReturn) => {
+				if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
+					let existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
+					let invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
+					Dialog.error(() => {
+						let msg = ""
+						msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
+						msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
+						msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+						return msg
+					})
+				}
+				return groupInvitationReturn.invitedMailAddresses
+			}).catch(PreconditionFailedError, e => {
+				if (logins.getUserController().isGlobalAdmin()) {
+					return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
+					             .then(confirmed => {
+						             if (confirmed) {
+							             showSharingBuyDialog(true)
+						             }
+					             }).return([])
+				} else {
+					return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
+				}
+			}).catch(RecipientsNotFoundError, e => {
+				let invalidRecipients = e.message.join("\n")
+				return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
+					+ invalidRecipients).return([])
 			})
-		}
-		return groupInvitationReturn.invitedMailAddresses
-	}).catch(PreconditionFailedError, e => {
-		if (logins.getUserController().isGlobalAdmin()) {
-			return Dialog.confirm("sharingFeatureNotOrderedAdmin_msg")
-			             .then(confirmed => {
-				             if (confirmed) {
-					             showSharingBuyDialog(true)
-				             }
-			             }).return([])
 		} else {
-			return Dialog.error("sharingFeatureNotOrderedUser_msg").return([])
+			return Promise.resolve([])
 		}
-	}).catch(RecipientsNotFoundError, e => {
-		let invalidRecipients = e.message.join("\n")
-		return Dialog.error(() => lang.get("invalidRecipients_msg") + "\n"
-			+ invalidRecipients).return([])
 	})
+
 }
 

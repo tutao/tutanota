@@ -75,6 +75,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {SysService} from "../api/entities/sys/Services"
 import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
+import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
@@ -438,13 +439,9 @@ export class CalendarView implements CurrentView {
 	_onPressedAddCalendar() {
 		if (logins.getUserController().getCalendarMemberships().length === 0) {
 			this._showCreateCalendarDialog()
-		} else if (logins.getUserController().isFreeAccount()) {
-			showNotAvailableForFreeDialog(true)
 		} else {
-			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-				if (customer.canceledPremiumAccount) {
-					return Dialog.error("subscriptionCancelledMessage_msg")
-				} else {
+			premiumSubscriptionActive(true).then(ok => {
+				if (ok) {
 					this._showCreateCalendarDialog()
 				}
 			})

@@ -5,6 +5,10 @@ import {lang} from "../misc/LanguageViewModel.js"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {neverNull} from "../api/common/utils/Utils"
+import {logins} from "../api/main/LoginController"
+import {load} from "../api/main/Entity"
+import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {Dialog} from "../gui/base/Dialog"
 
 export function getPaymentMethodName(paymentMethod: ?PaymentMethodTypeEnum): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -91,4 +95,18 @@ export function createNotAvailableForFreeClickHandler(includedInPremium: boolean
 			click(e, dom)
 		}
 	}
+}
+
+export function premiumSubscriptionActive(included: boolean): Promise<boolean> {
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(included)
+		return Promise.resolve(false)
+	}
+	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+		if (customer.canceledPremiumAccount) {
+			return Dialog.error("subscriptionCancelledMessage_msg").return(false)
+		} else {
+			return Promise.resolve(true)
+		}
+	})
 }
