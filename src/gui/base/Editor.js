@@ -123,6 +123,10 @@ export class Editor implements ImageHandler {
 				squire.modifyBlocks(function (fragment) {
 					if (fragment.firstChild && fragment.firstChild.firstChild) {
 						let textNode = fragment.firstChild.firstChild
+						while (textNode.nodeType !== Node.TEXT_NODE && textNode.firstChild !== null
+						&& textNode.nodeName.toLowerCase() !== "li") {
+							textNode = textNode.firstChild
+						}
 						if (textNode.nodeType === Node.TEXT_NODE) {
 							textNode.textContent = textNode.textContent.replace(regex, '')
 						}
