@@ -75,13 +75,17 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {SysService} from "../api/entities/sys/Services"
 import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
+import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot,
-	longEvents: Array<CalendarEvent>,
+	// We use LazyLoaded so that we don't get races for loading these events which is
+	// 1. Good because loading them twice is not optimal
+	// 2. Event identity is required by some functions (e.g. when determining week events)
+	longEvents: LazyLoaded<Array<CalendarEvent>>,
 	groupInfo: GroupInfo,
 	group: Group,
 	shared: boolean
@@ -770,12 +774,10 @@ export class CalendarView implements CurrentView {
 				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
-					longEvents.length === 0 ? loadAll(CalendarEventTypeRef, groupRoot.longEvents, null) : longEvents,
+					longEvents.getAsync(),
 				]).then(([shortEventsResult, longEvents]) => {
 					aggregateShortEvents.push(...shortEventsResult.elements)
 					aggregateLongEvents.push(...longEvents)
-
-					calendarInfo.longEvents = longEvents
 				})
 			}).then(() => {
 				const newEvents = this._cloneEvents()
@@ -792,6 +794,8 @@ export class CalendarView implements CurrentView {
 					if (e.repeatRule) {
 						addDaysForRecurringEvent(newEvents, e, month, zone)
 					} else {
+						// Event through we get the same set of long events for each month we have to invoke this for each month
+						// because addDaysForLongEvent adds days only for the specified month.
 						addDaysForLongEvent(newEvents, e, month, zone)
 					}
 				})
@@ -826,7 +830,7 @@ export class CalendarView implements CurrentView {
 								              groupRoot,
 								              groupInfo,
 								              shortEvents: [],
-								              longEvents: [],
+								              longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
 								              group: group,
 								              shared: !isSameId(group.user, userId)
 							              })
@@ -937,8 +941,8 @@ export class CalendarView implements CurrentView {
 				}
 				this._addDaysForEvent(event, eventMonth)
 			} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
-				this._removeExistingEvent(calendarInfo.longEvents, event)
-				calendarInfo.longEvents.push(event)
+				this._removeExistingEvent(calendarInfo.longEvents.getLoaded(), event)
+				calendarInfo.longEvents.getLoaded().push(event)
 				this._loadedMonths.forEach(firstDayTimestamp => {
 					const loadedMonth = getMonth(new Date(firstDayTimestamp), zone)
 					if (event.repeatRule) {
@@ -1006,7 +1010,7 @@ export class CalendarView implements CurrentView {
 			const info = infos.get(ownerGroupId)
 			if (info) {
 				if (isSameId(listIdPart(id), info.groupRoot.longEvents)) {
-					findAndRemove(info.longEvents, (e) => isSameId(e._id, id))
+					findAndRemove(info.longEvents.getLoaded(), (e) => isSameId(e._id, id))
 				}
 			}
 		}

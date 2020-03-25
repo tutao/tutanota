@@ -134,7 +134,6 @@ export function addDaysForLongEvent(events: Map<number, Array<CalendarEvent>>, e
 
 	if (eventStart >= month.start.getTime() && eventStart < month.end.getTime()) { // first: start of event is inside month
 		calculationDate = getStartOfDayWithZone(new Date(eventStart), zone)
-		//eventEndInMonth = new Date(eventStart)
 	} else if (eventStart < month.start.getTime()) { // start is before month
 		calculationDate = new Date(month.start)
 	} else {
