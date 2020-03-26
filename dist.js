@@ -49,6 +49,9 @@ options
 	.option('-m --mac', 'Build desktop client for mac')
 	.option('-d, --deb', 'Build .deb package. Requires -wlm to be set or installers to be present')
 	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
+	.option('--custom-release', "use if manually building from source. doesn't install autoupdates, but may still notify about new releases")
+	.option('--unpacked', "don't pack the app into an installer")
+	.option('--out-dir <outDir>', "where to copy the client",)
 	.action((stage, host) => {
 		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
 			|| (stage !== "host" && host)
@@ -177,26 +180,32 @@ function buildDesktopClient() {
 	if (options.desktop) {
 		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 		if (options.stage === "release") {
-			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://mail.tutanota.com/desktop", "",  /*notarize*/true))
-				.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test",  /*notarize*/true))
+			const updateUrl = options.customRelease
+				? ""
+				: "https://mail.tutanota.com/desktop"
+			const buildPromise = createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, updateUrl, "",  /*notarize*/true, options.outDir, options.unpacked))
+			if (!options.customRelease) { // don't build the test version for manual/custom builds
+				buildPromise.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
+				            .then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test",  /*notarize*/true, options.outDir, options.unpacked))
+			}
+			return buildPromise
 		} else if (options.stage === "local") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000", "-snapshot"))
+					options.desktop, "http://localhost:9000", "-snapshot", options.outDir, options.unpacked))
 		} else if (options.stage === "test") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "https://test.tutanota.com/desktop", "-test"))
+					options.desktop, "https://test.tutanota.com/desktop", "-test", options.outDir, options.unpacked))
 		} else if (options.stage === "prod") {
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop", ""))
+					options.desktop, "http://localhost:9000/desktop", "", options.outDir, options.unpacked))
 		} else { // stage = host
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host, version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop-snapshot", "-snapshot"))
+					options.desktop, "http://localhost:9000/desktop-snapshot", "-snapshot", options.outDir, options.unpacked))
 		}
 	}
 }

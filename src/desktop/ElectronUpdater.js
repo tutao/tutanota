@@ -9,6 +9,8 @@ import type {DesktopConfigHandler} from './config/DesktopConfigHandler'
 import {neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
+import fs from 'fs-extra'
+import path from 'path'
 
 export class ElectronUpdater {
 	_conf: DesktopConfigHandler;
@@ -91,6 +93,14 @@ export class ElectronUpdater {
 	+_enableAutoUpdateListener = () => this.start()
 
 	start() {
+		try {
+			const appUpdateYmlPath = path.join(path.dirname(app.getPath('exe')), 'resources', 'app-update.yml')
+			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
+		} catch (e) {
+			console.log("no update info on disk, disabling updater.")
+			return
+		}
+
 		// if user changes auto update setting, we want to know
 		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)
 		    .on('enableAutoUpdate', this._enableAutoUpdateListener)
