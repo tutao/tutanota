@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2020-03-11T12:29:48Z",
+	"updated_at": "2020-03-17T08:07:39Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",

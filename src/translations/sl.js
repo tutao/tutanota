@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-03-11T23:34:34Z",
+	"updated_at": "2020-03-22T13:09:10Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -342,7 +342,7 @@ module.exports = {
 		"emailSenderInvalidRule_msg": "Ni dovoljeno postaviti pravila za tega pošiljatelja e-pošte.",
 		"emailSenderPlaceholder_label": "E-poštni naslov ali ime domene",
 		"emailSenderRule_label": "Pravilo",
-		"emailSenderWhitelist_action": "Ni vsiljene pošte",
+		"emailSenderWhitelist_action": "Ni vsiljena pošta",
 		"emailSender_label": "Pošiljatelj sporočila",
 		"emailSending_label": "Pošiljamo e-pošto",
 		"emailSignatureTypeCustom_msg": "Po meri",
@@ -493,7 +493,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "prejeli ste nov račun s številko {1}. Lahko ga prenesete v {2}. Rok plačila je 7 dni po datumu na računu.",
 		"invoiceMailSubject_msg": "Nov račun za Tutanota",
 		"invoiceNotPaidUser_msg": "Trenutno nimate dovoljenja za pošiljanje pošte. Prosimo, kontaktirajte skrbnika.",
-		"invoiceNotPaid_msg": "Žal vam trenutno ni dovoljeno pošiljati sporočil, ker vsaj eden od računov ni plačan. Prosimo, posodobite podatke o plačilu na {1} v \"Nastavitve\"-> \"Podatki o plačilu\" in nato plačajte račune v \"Nastavitve\"-> \"Računi\".",
+		"invoiceNotPaid_msg": "Žal vam trenutno ni dovoljeno pošiljati sporočil, ker vsaj eden od računov ni plačan. Prosimo, posodobite podatke o plačilu v \"Nastavitve\"-> \"Podatki o plačilu\" in nato sprožite plačilo.",
 		"invoicePayConfirm_msg": "Bremenili bomo sledeči znesek:",
 		"invoicePaymentMethodInfo_msg": "Prosimo, izberite plačilno sredstvo. Več možnosti bo dodanih v prihodnje.",
 		"invoicePay_action": "Plačajte",

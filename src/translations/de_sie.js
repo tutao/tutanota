@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2020-03-11T12:52:41Z",
+	"updated_at": "2020-03-24T14:05:54Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -498,7 +498,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "es ist eine neue Rechnung mit der Nummer {1} verfügbar. Die Rechnung kann in {2} abgerufen werden. Der Rechnungsbetrag ist 7 Tage nach Rechnungsdatum fällig.",
 		"invoiceMailSubject_msg": "Neue Rechnung für Tutanota",
 		"invoiceNotPaidUser_msg": "Sie dürfen leider keine E-Mails senden. Bitte wenden Sie sich an den Administrator.",
-		"invoiceNotPaid_msg": "Sie dürfen leider keine E-Mails senden, da mindestens eine Ihrer Rechnungen nicht bezahlt ist. Bitte aktualisieren Sie Ihre Zahlungsdaten unter {1} in 'Einstellungen' -> 'Zahlungsdaten' und bezahlen Sie die ausstehenden Rechnungen in 'Einstellungen'->'Rechnungen'.",
+		"invoiceNotPaid_msg": "Sie dürfen leider keine E-Mails senden, da mindestens eine Ihrer Rechnungen nicht bezahlt ist. Bitte aktualisieren Sie Ihre Zahlungsdaten unter {1} in 'Einstellungen' -> 'Zahlungsdaten' und und lösen Sie die Zahlung dort danach aus.",
 		"invoicePayConfirm_msg": "Wir werden jetzt den folgenden Betrag abbuchen:",
 		"invoicePaymentMethodInfo_msg": "Bitte wählen Sie eine Zahlungsmethode. Weitere Zahlungsoptionen werden in Zukunft hinzugefügt.",
 		"invoicePay_action": "Bezahlen",

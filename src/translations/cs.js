@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2020-03-11T12:27:55Z",
+	"updated_at": "2020-03-20T14:50:59Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Připojit se",

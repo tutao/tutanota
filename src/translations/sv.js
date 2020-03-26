@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-03-11T13:21:35Z",
+	"updated_at": "2020-03-22T14:35:48Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -491,7 +491,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "Det finns en ny faktura för dig med nummer {1}. Du kan hämta den under {2}. Fakturan förfaller inom 7 dagar efter fakturadatum.",
 		"invoiceMailSubject_msg": "Ny faktura för Tutanota",
 		"invoiceNotPaidUser_msg": "Tyvärr, du tillåts för närvarande inte skicka e-post. Kontakta din administratör.",
-		"invoiceNotPaid_msg": "Ledsen, du är för närvarande inte tillåten att skicka e-post eftersom minst en av dina fakturor inte är betald. Uppdatera dina betalningsuppgifter på {1} under 'Inställningar'-> 'Betalningsdata' och betala fakturor under 'Inställningar'-> 'Fakturering' efteråt.",
+		"invoiceNotPaid_msg": "Ledsen, du är för närvarande inte tillåten att skicka e-post eftersom minst en av dina fakturor inte är betald. Uppdatera dina betalningsuppgifter under 'Inställningar'-> 'Betalningsdata' och genomför sedan betalningen.",
 		"invoicePayConfirm_msg": "Vi kommer nu debitera följande belopp:",
 		"invoicePaymentMethodInfo_msg": "Välj en betalningsmetod. Fler alternativ kommer att läggas till i framtiden.",
 		"invoicePay_action": "Betala",

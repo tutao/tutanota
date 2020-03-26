@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-03-11T12:29:48Z",
+	"updated_at": "2020-03-20T14:50:58Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",

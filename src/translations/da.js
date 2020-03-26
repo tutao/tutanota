@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-03-11T12:27:55Z",
+	"updated_at": "2020-03-20T14:50:59Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Accepter venligst privatlivspolitikken ved at markere afkrydsningsfeltet.",
@@ -334,6 +334,7 @@ module.exports = {
 		"errorAtLine_msg": "Fejl på linje {index} : {error}",
 		"errorDuringUpdate_msg": "Der var noget der gik galt under opdateringen. Vi prøver igen senere.",
 		"errorReport_label": "Åh nej!",
+		"existingMailAddress_msg": "Følgende email adresser kunne ikke inviteres, fordi de enten er en deltager eller allerede er invitereret til kalenderen:",
 		"expiredLink_msg": "Beklager, dette link er ikke længere gyldigt. Du burde have modtaget en ny notifikations e-mail med det nuværende gyldige link. Tidligere links er deaktiveret af sikkerhedsmæssige årsager.",
 		"exportSelectedAsVCard_action": "Eksporter valgte kontakter som vCard",
 		"exportVCard_action": "Eksporter vCard",
@@ -679,6 +680,7 @@ module.exports = {
 		"paymentMethod_label": "Betalingsmetode",
 		"paymentProviderNotAvailableError_msg": "Betalingsudbyderen understøttes ikke på nuværende tidspunkt. Prøv venligst igen senere.",
 		"payPalRedirect_msg": "Du bliver sendt videre til PayPal hjemmesiden",
+		"payPaypalConfirmAgainError_msg": "Betalingstransaktionen mislykkedes. Opdater og bekræft venligst dine betalingsoplysninger.",
 		"periodOfTime_label": "Tidsperiode",
 		"permanentAliasWarning_msg": "Dette er et Tutanota-alias. I modsætning til et bruger-ejet domæne-alias kan dette alias ikke slettes men kun deaktiveres. Det tæller derfor permanent med i din begrænsede alias-kvote.",
 		"permissions_label": "Tilladelse",

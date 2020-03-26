@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2020-03-11T21:06:02Z",
+	"updated_at": "2020-03-21T11:00:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -494,7 +494,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "Une nouvelle facture ayant pour numéro {1} est disponible. Vous pouvez la télécharger ici {2}. Le paiement est dû 7 jours après la date de facturation.",
 		"invoiceMailSubject_msg": "Nouvelle facture pour Tutanota",
 		"invoiceNotPaidUser_msg": "Désolé, vous n'êtes pas autorisé à envoyer des emails actuellement. Veuillez contacter votre administrateur.",
-		"invoiceNotPaid_msg": "Désolé, vous n'êtes pas autorisés à envoyer des emails car au moins l'une de vos factures n'est pas payée. Veuillez mettre à jour vos données de paiement à {1} dans le menu \"Paramètres\" -> \"Données de paiement\" et payer ensuite les factures dans \"Paramètres\" -> \"Facturation\".",
+		"invoiceNotPaid_msg": "Désolés, vous n'êtes pas autorisé·e à envoyer des e-mails car au moins une de vos factures n'est pas payée. Veuillez mettre à jour vos données de paiement dans \"Paramètres\" -> \"Paiement\", puis déclanchez-y le paiement.",
 		"invoicePayConfirm_msg": "Nous allons débiter le montant suivant :",
 		"invoicePaymentMethodInfo_msg": "Veuillez choisir un moyen de paiement. De nouvelles options seront ajoutées prochainement.",
 		"invoicePay_action": "Paiement",

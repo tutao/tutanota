@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2020-03-11T12:29:48Z",
+	"updated_at": "2020-03-25T21:40:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Aksepter invitasjon",
@@ -654,7 +654,7 @@ module.exports = {
 		"openCamera_action": "Kamera",
 		"openNewWindow_action": "Nytt vindu",
 		"open_action": "Åpne",
-		"operationStillActive_msg": "Denne operasjon kan ikke gjennomføres for øyeblikket, fordi en annen operasjon på denne mappen fortsatt kjører. Vennligst prøv igjen senere.",
+		"operationStillActive_msg": "Denne operasjon kan ikke gjennomføres for øyeblikket fordi en annen operasjon fortsatt kjører. Vennligst prøv igjen senere.",
 		"optionalValues_label": "Valgfri informasjon",
 		"orderAliasesConfirm_msg": "Du kan velge en større alias pakke for å registrere flere alias.",
 		"orderProcessingAgreementInfo_msg": "I henhold til EUs GDPR er bedriftkunder forpliktet til å fullføre en ordrebehandlingsavtale med oss.",

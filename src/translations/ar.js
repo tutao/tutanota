@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2020-03-11T22:32:51Z",
+	"updated_at": "2020-03-23T22:29:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -347,7 +347,7 @@ module.exports = {
 		"emailSenderInvalidRule_msg": "القاعدة لمُرسِل البريد الإلكتروني هذا غير مسموح بها.",
 		"emailSenderPlaceholder_label": "عنوان البريد الإلكتروني أو إسم النطاق",
 		"emailSenderRule_label": "قانون",
-		"emailSenderWhitelist_action": "بريد غير مؤذي",
+		"emailSenderWhitelist_action": "بريد إلكتروني مرغوب فيه",
 		"emailSender_label": "مرسل البريد الإلكتروني",
 		"emailSending_label": "إرسال رسائل البريد الإلكتروني",
 		"emailSignatureTypeCustom_msg": "مخصّص",
@@ -497,7 +497,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "هناك فاتورة جديدة متوفّرة، تحمل الرقم {1}. يمكنك تنزيلها من خلال {2}. ومهلة الدفع هي 7 أيّام بعد تاريخ الفاتورة.",
 		"invoiceMailSubject_msg": "فاتورة جديدة من توتانوتا",
 		"invoiceNotPaidUser_msg": "عفوًا، لا يُسمح لك إرسال رسائل إلكترونيّة حاليًّا. الرجاء الإتصال بخادمك.",
-		"invoiceNotPaid_msg": "عفوًا، لا يُسمح لك حاليًّا إرسال الرسائل الإلكترونيّة لأن إحد فواتيرك على الأقل غير مدفوعة. الرجاء تحديث بيانات الدفع في {1} في 'الإعدادات' -> 'بيانات الدفع' ودفع الفواتير في 'الإعدادات' -> 'الفواتير' بعد ذلك.",
+		"invoiceNotPaid_msg": "عفوًا، لا يُسمح لك حاليًّا إرسال الرسائل الإلكترونيّة لأن إحد فواتيرك على الأقل غير مدفوعة. الرجاء تحديث بيانات الدفع في 'الإعدادات' -> 'بيانات الدفع' وتشغيل الدفع بعد ذلك.\n",
 		"invoicePayConfirm_msg": "سنقوم الآن بخصم المبلغ التالي : ",
 		"invoicePaymentMethodInfo_msg": "يرجى اختيار طريقة الدفع. سيتم إضافة المزيد من الخيارات في المستقبل.",
 		"invoicePay_action": "إدفع",

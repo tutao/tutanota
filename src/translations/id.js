@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2020-03-11T12:27:55Z",
+	"updated_at": "2020-03-17T08:07:40Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "Silakan nonaktifkan semua pengguna tambahan sebelum berganti tipe langganan.",
