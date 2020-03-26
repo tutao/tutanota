@@ -14,8 +14,7 @@ import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {createDropdown} from "./DropdownN"
 import {BootIcons} from "./icons/BootIcons"
 import {CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {TabIndex} from "../../api/common/TutanotaConstants"
-import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 
 assertMainOrNodeBoot()
@@ -96,10 +95,7 @@ export class NavBar {
 
 		this.view = (): Children => {
 			let buttons = this.getVisibleButtons()
-			return m("nav.nav-bar.flex-end", {
-					"aria-label": "top",
-					role: AriaLandmarks.Navigation,
-					tabindex: TabIndex.Programmatic,
+			return m("nav.nav-bar.flex-end" + landmarkAttrs(AriaLandmarks.Navigation, "top"), {
 					oncreate: (vnode) => this._setDomNavBar(vnode.dom)
 				},
 				[this._searchBar()].concat(buttons.visible.map((wrapper: ButtonWrapper) =>

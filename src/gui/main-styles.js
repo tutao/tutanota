@@ -651,11 +651,6 @@ styles.registerStyle('main', () => {
 			outline: 'none'
 		},
 
-		'*:focus': {
-			outline: "1px solid " + theme.content_fg
-
-		},
-
 		'blockquote.tutanota_quote, blockquote[type=cite]': {
 			'border-left': `1px solid ${theme.content_accent}`,
 			'padding-left': px(size.hpad),

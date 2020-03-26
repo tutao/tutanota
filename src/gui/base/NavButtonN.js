@@ -113,8 +113,7 @@ class _NavButton {
 				if (isKeyPressed(e.keyCode, Keys.SPACE)) {
 					this.click(e, a)
 				}
-			},
-			onblur: () => console.log("focus lost: " + this.getLabel(a.label), "active:", document.activeElement)
+			}
 		}
 		if (a.dropHandler) {
 			attr.ondragenter = (ev) => {

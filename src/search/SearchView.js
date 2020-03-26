@@ -178,7 +178,7 @@ export class SearchView implements CurrentView {
 			view: () => {
 				const restriction = getRestriction(m.route.get())
 				return m(FolderColumnView, {
-					button: null, //this.getMainButton(restriction.type),
+					button: this.getMainButton(restriction.type),
 					content: [
 						m(".folder-row.flex-space-between.pt-s.plr-l", {style: {height: px(size.button_height)}}, [
 							m("small.b.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}},

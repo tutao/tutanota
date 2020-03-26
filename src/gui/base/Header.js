@@ -18,7 +18,7 @@ import type {MainLocatorType} from "../../api/main/MainLocator"
 import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {AriaLandmarks} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -230,9 +230,7 @@ class Header {
 			})
 		} else {
 			if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
-				return m(".logo.logo-height.pl", {
-					role: AriaLandmarks.Banner,
-					"aria-label": "Tutanota logo",
+				return m(".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"), {
 					style: {
 						"margin-left": px(sizes.drawer_menu_width)
 					},
