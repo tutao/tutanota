@@ -12,7 +12,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
-4. Do `npm install`
+4. run `npm install` to install dependencies.
 5. Build the web part: `node dist prod`
 6. Switch into the build directory: `cd build/dist`
 7. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
@@ -21,7 +21,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 ## Building and running your own Tutanota Android app
 
 If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically.
-If you prefer the auto-update feature, use the Google Play Store or F-Droid in the future.
+If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid.
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
@@ -37,3 +37,27 @@ If you prefer the auto-update feature, use the Google Play Store or F-Droid in t
 5. Create a keystore if you don't have one: `keytool -genkey -noprompt -keystore MyKeystore.jks -alias tutaKey -keyalg RSA -keysize 2048 -validity 10000 -deststoretype pkcs12 -storepass CHANGEME -keypass CHANGEME -dname "CN=com.example"`
 6. run `APK_SIGN_ALIAS="tutaKey" APK_SIGN_STORE='MyKeystore.jks' APK_SIGN_STORE_PASS="CHANGEME" APK_SIGN_KEY_PASS="CHANGEME" node android`
 7. Install the app on your device: `adb install -r <path-to-apk>` (path as printed by the build script)
+
+## Building and running your own Tutanota Desktop client
+
+Keep in mind that your own build of Tutanota Desktop will not update automatically.
+
+### Pre-requisites:
+* An up-to-date version of Git is installed.
+* An up-to-date version of Node.js is installed
+
+### Preparations:
+0. Open a terminal.
+1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`.
+2. Switch into the Tutanota directory: `cd tutanota`
+3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
+4. Run `npm install` to install dependencies.
+
+### Build:  
+Linux: `node dist -l --custom-release`  
+Windows: `node dist -w --custom-release`  
+MacOs: `node dist -m --custom-release`
+
+The client will be in `build/desktop/`
+Note that you can add `--unpacked` to the build command to skip the packaging of the installer.
+This will yield a directory containing the client that can be run without installation.

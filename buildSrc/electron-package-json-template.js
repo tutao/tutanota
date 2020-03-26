@@ -6,7 +6,7 @@ const pj = require('../package.json')
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notarize) {
+module.exports = function (nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked) {
 	return {
 		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",
@@ -88,12 +88,14 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				}
 			],
 			"forceCodeSigning": sign || !!process.env.JENKINS,
-			"publish": {
-				"provider": "generic",
-				"url": targetUrl,
-				"channel": "latest",
-				"publishAutoUpdate": true
-			},
+			"publish": updateUrl
+				? {
+					"provider": "generic",
+					"url": updateUrl,
+					"channel": "latest",
+					"publishAutoUpdate": true
+				}
+				: undefined,
 			"directories": {
 				"output": "installers"
 			},
@@ -112,7 +114,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 					: undefined,
 				"target": [
 					{
-						"target": "nsis",
+						"target": unpacked ? "dir" : "nsis",
 						"arch": "x64"
 					}
 				]
@@ -134,16 +136,18 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				"extendInfo": {
 					"LSUIElement": 1 //hide dock icon on startup
 				},
-				"target": [
-					{
-						"target": "zip",
-						"arch": "x64"
-					},
-					{
-						"target": "dmg",
-						"arch": "x64"
-					}
-				]
+				"target": unpacked
+					? [{"target": "dir", "arch": "x64"}]
+					: [
+						{
+							"target": "zip",
+							"arch": "x64"
+						},
+						{
+							"target": "dmg",
+							"arch": "x64"
+						}
+					]
 			},
 			"linux": {
 				"icon": path.join(path.dirname(iconPath), "icon/"),
@@ -154,7 +158,7 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				},
 				"target": [
 					{
-						"target": "AppImage",
+						"target": unpacked ? "dir" : "AppImage",
 						"arch": "x64"
 					}
 				]

@@ -3,15 +3,14 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-
-function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
+function build(dirname, version, targets, updateUrl, nameSuffix, notarize, outDir, unpacked) {
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
 	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
-	const updateSubDir = "desktop" + nameSuffix
 	const distDir = path.join(dirname, '/build/dist/')
-
+	outDir = path.join(outDir || path.join(distDir, ".."), 'desktop' + nameSuffix)
+	console.log("artifacts will be moved to", outDir)
 	const requiredEntities = fs.readdirSync(path.join(dirname, './src/api/entities/sys/'))
 	                           .map(fn => path.join(dirname, './src/api/entities/sys', fn))
 	const languageFiles = fs.readdirSync(path.join(dirname, './src/translations/'))
@@ -24,14 +23,14 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
 		nameSuffix !== "-snapshot",
-		notarize
+		notarize,
+		unpacked
 	)
-	console.log("updateUrl is", updateUrl)
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')
 
 	//prepare files
 	return writeConfig
-		.then(() => fs.removeAsync(path.join(distDir, "..", updateSubDir)))
+		.then(() => fs.removeAsync(outDir))
 		.then(() => {
 			console.log("Tracing dependencies...")
 			transpile(['./src/desktop/DesktopMain.js', './src/desktop/preload.js']
@@ -52,24 +51,28 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize) {
 			})
 		})
 		.then(() => {
-			console.log("Move output to /build/" + updateSubDir + "/...")
+			const installerDir = path.join(distDir, 'installers')
+			console.log("Move artifacts to", outDir)
+			const unpackedFilter = file => file.endsWith("-unpacked") || file === "mac"
+			const packedFilter = file => file.startsWith(content.name) || file.endsWith('.yml')
+
 			return Promise.all(
-				fs.readdirSync(path.join(distDir, '/installers'))
-				  .filter((file => file.startsWith(content.name) || file.endsWith('.yml')))
+				fs.readdirSync(installerDir)
+				  .filter(unpacked ? unpackedFilter : packedFilter)
 				  .map(file => fs.moveAsync(
-					  path.join(distDir, '/installers/', file),
-					  path.join(distDir, `../${updateSubDir}`, file)
+					  path.join(installerDir, file),
+					  path.join(outDir, file)
 					  )
 				  )
-			).then(() => Promise.all([
-				fs.removeAsync(path.join(distDir, '/installers/')),
-				fs.removeAsync(path.join(distDir, '/node_modules/')),
-				fs.removeAsync(path.join(distDir, '/cache.json')),
-				fs.removeAsync(path.join(distDir, '/package.json')),
-				fs.removeAsync(path.join(distDir, '/package-lock.json')),
-				fs.removeAsync(path.join(distDir, '/src/')),
-			]))
-		})
+			)
+		}).then(() => Promise.all([
+			fs.removeAsync(path.join(distDir, '/installers/')),
+			fs.removeAsync(path.join(distDir, '/node_modules/')),
+			fs.removeAsync(path.join(distDir, '/cache.json')),
+			fs.removeAsync(path.join(distDir, '/package.json')),
+			fs.removeAsync(path.join(distDir, '/package-lock.json')),
+			fs.removeAsync(path.join(distDir, '/src/')),
+		]))
 }
 
 /**
