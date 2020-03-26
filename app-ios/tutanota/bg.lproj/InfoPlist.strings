@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "За да предоставите достъп, т�
 TutaoCancelAction = "Откажи";
 TutaoSettingsAction = "Настройки";
 TutaoCalendarAlarmTitle = "Напомняне";
+TutaoScheduleAlarmError = "Не можеше да се създаде аларма. Моля актуализирайте приложението.";

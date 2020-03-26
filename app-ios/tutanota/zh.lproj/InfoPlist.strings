@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "未授权";
 TutaoChangePermissionMsg = "为了授权，你必须更改这台设备的权限。";
 TutaoCancelAction = "取消";
 TutaoSettingsAction = "设置";
+TutaoCalendarAlarmTitle = "通知";
