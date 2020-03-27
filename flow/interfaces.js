@@ -20,6 +20,8 @@ interface IViewSlider {
 	getBackgroundColumns(): ViewColumn[];
 
 	isUsingOverlayColumns(): boolean;
+
+	getMainColumn(): ViewColumn;
 }
 
 interface IUserController {

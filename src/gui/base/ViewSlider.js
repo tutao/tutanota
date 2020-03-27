@@ -116,6 +116,10 @@ export class ViewSlider implements IViewSlider {
 		return this._mainColumn === column ? AriaLandmarks.Main : AriaLandmarks.Region
 	}
 
+	getMainColumn() {
+		return this._mainColumn;
+	}
+
 	_getColumnsForMainSlider(): Array<ViewColumn> {
 		return this.columns.filter(c => c.columnType === ColumnType.Background || c.visible)
 	}
