@@ -1,0 +1,16 @@
+What's new
+* Improved support for screen readers
+* Sort aliases
+* Add calendar keyboard shortcuts
+* Tutanota desktop app as a default mail app
+
+Bugfixes
+* Earlier events from the current day are visible in the agenda
+* BadRequestError when accepting an calendar invitation as a cancelled premium customer
+* Race condition when loading events
+* Long events are loaded multiple times when opening calendar
+* Misleading text when trying to send email and invoice is not paid
+* Sometimes lists in email editor adds additional list item marker
+* Alias cannot be moved from one user to another user if alias limit has been reached
+* System navbar buttons are not visible on some Android versions
+* Title field of new calendar entry jumps around
