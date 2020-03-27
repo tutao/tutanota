@@ -53,7 +53,12 @@ export function liveDataAttrs(): string {
 }
 
 export function landmarkAttrs(role: AriaLandmarksEnum, label: ?string): string {
-	return `[role="${role}"][tabindex="${TabIndex.Programmatic}"]` + (label ? `[aria-label="${label}"]` : "")
+	// We disable outline for landmarks. Outlines are useful as a visual clue for users who use keyboard navigation (or similar). Landmarks
+	// are screen reader function and can only be focused using special landmark menu, they are not in the tab index. This makes them
+	// redundant.
+	// As they are big elements which receive focus automatically we would like to avoid showing them when we don't have to.
+
+	return `.hide-outline[role="${role}"][tabindex="${TabIndex.Programmatic}"]` + (label ? `[aria-label="${label}"]` : "")
 }
 
 
