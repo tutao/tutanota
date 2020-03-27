@@ -243,7 +243,7 @@ export class SearchBar implements Component {
 								onclick: (e) => this.close(),
 								style: {width: size.icon_size_large},
 								title: lang.get("close_alt"),
-								tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic
+								tabindex: this.expanded ? TabIndex.Default : TabIndex.Programmatic,
 							}, this.busy
 								? m(Icon, {
 									icon: BootIcons.Progress,
@@ -531,6 +531,10 @@ export class SearchBar implements Component {
 				this._domInput = vnode.dom
 			},
 			onclick: () => this.focus(),
+			onfocus: () => {
+				// to highlight elements correctly when focused via keyboard
+				this.focused = true
+			},
 			onblur: e => {
 				if (this.skipNextBlur()) {
 					setTimeout(() => this._domInput.focus(), 0) // setTimeout needed in Firefox to keep focus
