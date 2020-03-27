@@ -1,7 +1,6 @@
 // @flow
 import m from "mithril"
 import {NavBar} from "./NavBar"
-import type {NavButtonAttrs} from "./NavButtonN"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
 import {asyncImport, neverNull} from "../../api/common/utils/Utils"
@@ -40,47 +39,16 @@ export interface CurrentView extends Component {
 }
 
 class Header {
-	buttonBar: NavBar;
 	view: Function;
 	_currentView: ?CurrentView;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
 	onbeforeremove: Function;
 	_shortcuts: Shortcut[];
-	mailNavButton: NavButtonAttrs;
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
 
 	constructor() {
 		this._currentView = null
-		const isNotSignup = () => {
-			return !m.route.get().startsWith("/signup")
-		}
-
-		this.mailNavButton = {
-			label: 'emails_label',
-			icon: () => BootIcons.Mail,
-			href: () => navButtonRoutes.mailUrl,
-			isSelectedPrefix: MAIL_PREFIX,
-			isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn()
-		}
-
-		this.buttonBar = new NavBar()
-			.addButton(this.mailNavButton, 0, false)
-			.addButton({
-				label: 'contacts_label',
-				icon: () => BootIcons.Contacts,
-				href: () => navButtonRoutes.contactsUrl,
-				isSelectedPrefix: CONTACTS_PREFIX,
-				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
-			})
-			.addButton({
-				label: "calendar_label",
-				icon: () => BootIcons.Calendar,
-				href: CALENDAR_PREFIX,
-				isVisible: () => isNotSignup() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
-					&& client.calendarSupported()
-			})
-
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
@@ -95,7 +63,10 @@ class Header {
 				styles.isUsingBottomNavigation()
 					? m(".header-right.pr-s.flex-end.items-center",
 					this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
-					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", m(this.buttonBar))
+					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
+						this._renderDesktopSearchBar(),
+						m(NavBar, this._renderButtons(isNotSignup()))
+					])
 			]))
 		}
 
@@ -115,7 +86,49 @@ class Header {
 			})
 	}
 
-	_searchBarVisible(): boolean {
+	_renderDesktopSearchBar() {
+		return this.searchBar && this._desktopSearchBarVisible()
+			? m(this.searchBar, {
+				spacer: true,
+				placeholder: this._searchPlaceholder(),
+			})
+			: null
+	}
+
+	_renderButtons(isNotSignup: boolean): Children {
+		return [
+			isNotSignup && logins.isInternalUserLoggedIn()
+				? m(NavButtonN, {
+					label: 'emails_label',
+					icon: () => BootIcons.Mail,
+					href: () => navButtonRoutes.mailUrl,
+					isSelectedPrefix: MAIL_PREFIX,
+					colors: NavButtonColors.Header,
+				})
+				: null,
+			isNotSignup && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
+				? m(NavButtonN, {
+					label: 'contacts_label',
+					icon: () => BootIcons.Contacts,
+					href: () => navButtonRoutes.contactsUrl,
+					isSelectedPrefix: CONTACTS_PREFIX,
+					colors: NavButtonColors.Header,
+				})
+				: null,
+			isNotSignup && logins.isInternalUserLoggedIn()
+			&& !logins.isEnabled(FeatureType.DisableCalendar)
+			&& client.calendarSupported()
+				? m(NavButtonN, {
+					label: "calendar_label",
+					icon: () => BootIcons.Calendar,
+					href: CALENDAR_PREFIX,
+					colors: NavButtonColors.Header,
+				})
+				: null
+		]
+	}
+
+	_mobileSearchBarVisible(): boolean {
 		let route = m.route.get()
 		let locator: ?MainLocatorType = window.tutao.locator
 		return this.searchBar != null
@@ -167,11 +180,11 @@ class Header {
 	}
 
 
-	_getCenterContent(): Vnode<mixed> | null {
+	_getCenterContent(): Children {
 		const viewSlider = this._getViewSlider()
 		const header = (title: string) => m(".flex-center.header-middle.items-center.text-ellipsis.b", title)
-		if (this._searchBarVisible()) {
-			return this._searchBar()
+		if (this._mobileSearchBarVisible()) {
+			return this._renderMobileSearchBar()
 		} else if (viewSlider) {
 			const fistVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
 			const title = fistVisibleBgColumn ? fistVisibleBgColumn.getTitle() : ""
@@ -185,7 +198,7 @@ class Header {
 		}
 	}
 
-	_searchBar(): Vnode<any> {
+	_renderMobileSearchBar(): Vnode<any> {
 		let placeholder;
 		const route = m.route.get()
 		if (route.startsWith("/search/mail")) {
@@ -260,6 +273,39 @@ class Header {
 			return m(".indefinite-progress")
 		}
 	}
+
+	_searchPlaceholder(): ?string {
+		const route = m.route.get()
+		if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
+			return lang.get("searchEmails_placeholder")
+		} else if (route.startsWith(CONTACTS_PREFIX) || route.startsWith("/search/contact")) {
+			return lang.get("searchContacts_placeholder")
+		} else if (route.startsWith("/settings/users")) {
+			return lang.get("searchUsers_placeholder")
+		} else if (route.startsWith("/settings/groups")) {
+			return lang.get("searchGroups_placeholder")
+		} else {
+			return null
+		}
+	}
+
+	_desktopSearchBarVisible(): boolean {
+		let route = m.route.get()
+		let locator: ?MainLocatorType = window.tutao.locator
+		return this.searchBar != null && locator != null && !locator.search.indexState().initializing
+			&& styles.isDesktopLayout()
+			&& logins.isInternalUserLoggedIn()
+			&& (route.startsWith(SEARCH_PREFIX)
+				|| route.startsWith(MAIL_PREFIX)
+				|| route.startsWith(CONTACTS_PREFIX)
+				|| route.startsWith("/settings/users")
+				|| route.startsWith("/settings/groups")
+				|| route.startsWith("/settings/whitelabelaccounts"))
+	}
+}
+
+function isNotSignup(): boolean {
+	return !m.route.get().startsWith("/signup")
 }
 
 export const header: Header = new Header()

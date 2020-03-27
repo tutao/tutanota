@@ -119,10 +119,11 @@ export class UserListView implements UpdatableSettingsViewer {
 
 		this.list.loadInitial()
 
+		const searchBar = neverNull(header.searchBar)
 		this._listId.getAsync().then(listId => {
-			header.buttonBar.searchBar.setGroupInfoRestrictionListId(listId)
+			searchBar.setGroupInfoRestrictionListId(listId)
 		})
-		this._searchResultStreamDependency = header.buttonBar.searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
+		this._searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
 			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
