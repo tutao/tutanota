@@ -29,7 +29,7 @@ import {compareContacts} from "../contacts/ContactUtils"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector";
-import {debounce, downcast} from "../api/common/utils/Utils"
+import {debounce, downcast, noOp} from "../api/common/utils/Utils"
 import {load} from "../api/main/Entity"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
@@ -88,6 +88,7 @@ export class SearchBar implements Component {
 	lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild>;
 	_closeOverlayFunction: ?(() => void);
 	_overlayContentComponent: {view: () => ?Children};
+	_returnListener: () => void;
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
@@ -96,6 +97,7 @@ export class SearchBar implements Component {
 		this.focused = false
 		this.skipNextBlur = stream(false)
 		this.busy = false
+		this._returnListener = noOp
 		this._state = stream({
 			query: "",
 			searchResult: null,
@@ -568,6 +570,7 @@ export class SearchBar implements Component {
 							this.search()
 						}
 					}
+					this._returnListener()
 				} else if (keyCode === Keys.UP.code) {
 					if (entities.length > 0) {
 						let oldSelected = selected || entities[0]
@@ -622,6 +625,10 @@ export class SearchBar implements Component {
 
 	getMaxWidth(): number {
 		return SEARCH_INPUT_WIDTH + 40 // includes  input width + search icon(21) + margin right(15) + spacer(4)
+	}
+
+	setReturnListener(listener: () => void) {
+		this._returnListener = listener
 	}
 
 	_updateState(update: $Shape<SearchBarState>): SearchBarState {

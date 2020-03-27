@@ -45,6 +45,7 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {PageSize} from "../gui/base/List"
 import {MultiSelectionBar} from "../gui/base/MultiSelectionBar"
 import type {CurrentView} from "../gui/base/Header"
+import {header} from "../gui/base/Header"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {worker} from "../api/main/WorkerClient"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
@@ -424,11 +425,14 @@ export class SearchView implements CurrentView {
 			},
 		]
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		this.oncreate = () => {
+			keyManager.registerShortcuts(shortcuts)
+			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
+		}
 		this.onbeforeremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
+			neverNull(header.searchBar).setReturnListener(noOp)
 		}
-
 	}
 
 	elementSelected(entries: SearchResultListEntry[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
