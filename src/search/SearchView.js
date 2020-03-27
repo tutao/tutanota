@@ -515,10 +515,6 @@ export class SearchView implements CurrentView {
 		}
 	}
 
-	newResultReceived() {
-		this.viewSlider.focus(this.viewSlider._mainColumn);
-	}
-
 	/**
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null

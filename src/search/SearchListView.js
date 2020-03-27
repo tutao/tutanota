@@ -83,7 +83,6 @@ export class SearchListView {
 						this._loadInitial(l)
 					})
 				}
-				this._searchView.newResultReceived()
 			})
 		}
 
