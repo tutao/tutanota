@@ -94,22 +94,25 @@ styles.registerStyle('main', () => {
 
 		'html, body': {height: '100%', margin: 0, width: "100%"},
 		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
-		'body': {position: "fixed"}, // Fix body for iOS & Safari
+		'body': {
+			position: 'fixed',  // Fix body for iOS & Safari
+			'background-color': theme.content_bg,
+		},
 		'button, textarea': {
 			padding: 0,
 			'text-align': 'left'
 		},
-
-		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
+		'button': {
+			'background': 'transparent', // removes default browser style for buttons
+		},
+		'body, button': { // Yes we have to tell buttons separately because browser button styles override general body ones
 			overflow: 'hidden',
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
 			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
 			'line-height': size.line_height,
 			color: theme.content_fg,
-			'background-color': theme.content_bg,
 			'-webkit-text-size-adjust': 'none' // fix for safari browser
-
 		},
 
 		'small, .small': {
