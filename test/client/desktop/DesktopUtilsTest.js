@@ -26,7 +26,7 @@ function setEnv(platform: string) {
 		enumerable: true
 	})
 
-	Object.defineProperty(path, 'sep', {
+	Object.defineProperty((path: any), 'sep', {
 		value: sep,
 		writable: false,
 		enumerable: true

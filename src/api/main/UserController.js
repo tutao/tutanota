@@ -141,7 +141,7 @@ export class UserController implements IUserController {
 	}
 
 
-	deleteSessionSync() {
+	deleteSessionSync(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 			if (sendBeacon) {

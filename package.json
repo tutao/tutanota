@@ -46,7 +46,7 @@
 		"electron-rebuild": "1.10.0",
 		"electron-updater": "4.2.4",
 		"express": "4.17.1",
-		"flow-bin": "0.77.0",
+		"flow-bin": "0.81.0",
 		"fs-extra": "8.1.0",
 		"glob": "7.1.6",
 		"js-yaml": "3.13.1",
