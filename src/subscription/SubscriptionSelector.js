@@ -3,7 +3,7 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
-import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
+import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement, BOX_MARGIN} from "./BuyOptionBox"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {size} from "../gui/size"
@@ -29,6 +29,7 @@ export type SubscriptionSelectorAttr = {|
 |}
 
 class _SubscriptionSelector {
+	_containerDOM: ?Element;
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>) {
 		let buyBoxesViewPlacement
@@ -39,8 +40,10 @@ class _SubscriptionSelector {
 				m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs))
 			]
 		} else {
-			//shows different order of BuyBoxes if screen with is smaller than 810 px. Changes order of BuyBoxes to Premium Pro Free, needed for mobile view
-			if (window.innerWidth < (size.desktop_layout_width + 90)) {
+			// Add BuyOptionBox margin twice to the boxWidth received
+			const columnWidth = vnode.attrs.boxWidth + (BOX_MARGIN * 2);
+			// Changes order of BuyBoxes to Premium Pro Free, needed for mobile view (one column layout)
+			if (this._containerDOM && this._containerDOM.clientWidth < columnWidth * 2) {
 				buyBoxesViewPlacement = [
 					m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
 					m(BuyOptionBox, this._createTeamsUpgradeBoxAttr(vnode.attrs)),
@@ -61,7 +64,13 @@ class _SubscriptionSelector {
 			}) : null,
 			vnode.attrs.campaignInfoTextId
 			&& lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
-			m(".flex.center-horizontally.wrap", buyBoxesViewPlacement)
+			m(".flex.center-horizontally.wrap", {
+				oncreate: (vnode) => {
+					this._containerDOM = vnode.dom;
+					m.redraw();
+				},
+			},
+			buyBoxesViewPlacement)
 		]
 	}
 

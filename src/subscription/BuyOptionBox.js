@@ -36,6 +36,8 @@ export function getActiveSubscriptionActionButtonReplacement() {
 	}
 }
 
+export const BOX_MARGIN = 10
+
 class _BuyOptionBox {
 
 	constructor() {
@@ -46,7 +48,7 @@ class _BuyOptionBox {
 
 		return m("", {
 			style: {
-				margin: "10px",
+				margin: px(BOX_MARGIN),
 				width: px(vnode.attrs.width),
 				padding: "10px"
 			}
