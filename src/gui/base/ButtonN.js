@@ -129,7 +129,7 @@ class _Button {
 					a.oncreate && a.oncreate(vnode)
 				},
 				onbeforeremove: (vnode) => removeFlash(vnode.dom),
-				onkeyup: (e) => {
+				onkeydown: (e) => { // we use keydown to trigger action because KeyManager also uses keydown for key recognition. If we don't use the same event listener, two action can be triggered with the same key press.
 					if (isKeyPressed(e.keyCode, Keys.RETURN)) {
 						this.click(e, a, this._domButton)
 					}
