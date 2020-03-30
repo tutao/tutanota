@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-03-30T14:10:09Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -134,6 +134,7 @@ module.exports = {
 		"calendarShareCapabilityInvite_label": "Write and manage sharing",
 		"calendarShareCapabilityRead_label": "Read only",
 		"calendarShareCapabilityWrite_label": "Read and write",
+		"calendarView_action": "Switch to the calendar view",
 		"calendar_label": "Calendar",
 		"callNumber_alt": "Call this number",
 		"cameraUsageDescription_msg": "Take a picture or video for adding it as attachment.",
@@ -973,14 +974,17 @@ module.exports = {
 		"subscription_label": "Subscription",
 		"summary_label": "Summary",
 		"supportMenu_label": "Support",
+		"switchAgendaView_action": "Switch to agenda view",
 		"switchArchive_action": "Switch to archive folder",
 		"switchColorTheme_action": "Switch color theme",
 		"switchDrafts_action": "Switch to drafts folder",
 		"switchInbox_action": "Switch to inbox folder",
+		"switchMonthView_action": "Switch to month view",
 		"switchSearchInMenu_label": "You can switch search type in the menu",
 		"switchSentFolder_action": "Switch to sent folder",
 		"switchSpam_action": "Switch to spam folder",
 		"switchTrash_action": "Switch to trash folder",
+		"switchWeekView_action": "Switch to week view",
 		"takeoverAccountInvalid_msg": "The email address specified as the take over target account does not belong to a Premium admin.",
 		"takeoverMailAddressInfo_msg": "Optional: Specify the target Premium account admin email address in order to re-use your email addresses in the target account.",
 		"takeoverMailAddress_label": "Take over email address",
@@ -1059,6 +1063,9 @@ module.exports = {
 		"userEmailSignature_label": "Email signature",
 		"userSettings_label": "User settings",
 		"validInputFormat_msg": "Format ok.",
+		"viewNextPeriod_action": "View next period",
+		"viewPrevPeriod_action": "View previous period",
+		"viewToday_action": "View current period",
 		"view_label": "View",
 		"waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval. This process is necessary to offer a privacy-friendly registration and prevent mass registrations at the same time. Your account will be automatically approved after 48 hours. Thank you for your patience!",
 		"wantToSendReport_msg": "Something unexpected went wrong. Do you want to send an error report?  You can add a message to help us fix this error.",
@@ -1086,15 +1093,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"calendarView_action": "Switch to the calendar view",
-		"viewNextPeriod_action": "View next period",
-		"viewPrevPeriod_action": "View previous period",
-		"viewToday_action": "View current period",
-		"switchAgendaView_action": "Switch to agenda view",
-		"switchWeekView_action": "Switch to week view",
-		"switchMonthView_action": "Switch to month view"
-
-
+		"yourMessage_label": "Your message"
 	}
 }

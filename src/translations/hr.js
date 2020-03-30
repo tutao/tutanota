@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-03-26T17:19:02Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -496,7 +496,7 @@ module.exports = {
 		"invoiceMailBodyOnAccount_msg": "postoji nova dostavnica sa brojem {1} koja je dostupna za Vas. Možete je skinuti za {2}. Rok za uplatu je 7 dana nakon datuma dostavnice.",
 		"invoiceMailSubject_msg": "Novi račun za Tutanotu",
 		"invoiceNotPaidUser_msg": "Ispričavamo se, trenutno vam nije dozvoljeno slati emailove. Molimo kontaktirajte vašeg administratora.",
-		"invoiceNotPaid_msg": "Nažalost ne možete slati e-poštu jer barem jedan Vaš račun nije plaćen. Molimo vas ažurirajte svoje podatke plaćanja {1} u postavkama i platite dostavnice.",
+		"invoiceNotPaid_msg": "Nažalost ne možete slati e-poštu jer nijedan plaćun nije podmiren. Molimo vas ažurirajte svoje podatke plaćanja {1} u postavkama i platite dostavnice.",
 		"invoicePayConfirm_msg": "Sada ćemo teretiti sljedeći iznos:",
 		"invoicePaymentMethodInfo_msg": "Odaberite način plaćanja. Više opcija će biti dostupno uskoro.",
 		"invoicePay_action": "Plati",
