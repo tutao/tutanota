@@ -60,6 +60,7 @@ import {
 } from "./MailUtils"
 import {ContactEditor} from "../contacts/ContactEditor"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
+import type {KeyPress} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"

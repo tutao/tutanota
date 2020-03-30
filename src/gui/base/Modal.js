@@ -3,6 +3,7 @@ import m from "mithril"
 import {alpha, animations} from "./../animation/Animations"
 import {theme} from "../theme"
 import {assertMainOrNodeBoot} from "../../api/Env"
+import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -165,3 +166,16 @@ if (replaced && replaced.components) {
 	replaced.components.map(wrapper => replaced.remove(wrapper.component))
 }
 
+interface ModalComponent {
+	hideAnimation(): Promise<void>;
+
+	onClose(): void;
+
+	shortcuts(): Shortcut[];
+
+	view(vnode: Vnode<any>): Vnode<any>;
+
+	backgroundClick(e: MouseEvent): void;
+
+	popState(e: Event): boolean;
+}

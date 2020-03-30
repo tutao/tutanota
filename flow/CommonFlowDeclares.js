@@ -25,29 +25,6 @@ declare function clickHandler(event: MouseEvent, dom: HTMLElement): void;
 
 declare type dropHandler = (dragData: string) => void;
 
-type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
-
-declare function keyMatcher(key: KeyPress): boolean;
-
-type Key = {code: number, name: string};
-
-declare interface Shortcut {
-	key: Key;
-	ctrl?: boolean; // undefined == false
-	alt?: boolean; // undefined == false
-	shift?: boolean; // undefined == false
-	meta?: boolean; // undefined == false
-	enabled?: lazy<boolean>;
-
-	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
-	help: TranslationKey;
-}
-
-/**
- * @return false, if the default action should be aborted
- */
-type keyHandler = (key: KeyPress) => boolean;
-
 
 declare interface UpdatableSettingsViewer {
 	view(): Children;
@@ -148,20 +125,6 @@ declare type VirtualElement = Object
 declare var document: Document
 
 declare interface View {
-}
-
-declare interface ModalComponent {
-	hideAnimation(): Promise<void>;
-
-	onClose(): void;
-
-	shortcuts(): Shortcut[];
-
-	view(vnode: Vnode<any>): Vnode<any>;
-
-	backgroundClick(e: MouseEvent): void;
-
-	popState(e: Event): boolean;
 }
 
 type LogCategory = {[key: string]: string}

@@ -18,6 +18,7 @@ import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import type {Shortcut} from "../../misc/KeyManager"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")

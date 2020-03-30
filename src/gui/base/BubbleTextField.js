@@ -7,6 +7,7 @@ import {assertMainOrNode} from "../../api/Env"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN, isSelected} from "./ButtonN"
+import type {KeyPress} from "../../misc/KeyManager"
 
 assertMainOrNode()
 

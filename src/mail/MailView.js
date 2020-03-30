@@ -62,6 +62,7 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
+import type {Shortcut} from "../misc/KeyManager"
 
 assertMainOrNode()
 

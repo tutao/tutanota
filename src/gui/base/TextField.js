@@ -7,6 +7,7 @@ import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {theme} from "../theme"
+import type {keyHandler} from "../../misc/KeyManager"
 
 assertMainOrNodeBoot()
 

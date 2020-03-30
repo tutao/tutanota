@@ -12,6 +12,7 @@ import {Dialog} from "./Dialog"
 import {formatDate, parseDate} from "../../misc/Formatter"
 import {Icons} from "./icons/Icons"
 import {repeat} from "../../api/common/utils/StringUtils"
+import type {keyHandler} from "../../misc/KeyManager"
 
 export type TextFieldAttrs = {
 	id?: string,

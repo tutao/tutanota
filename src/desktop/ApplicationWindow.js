@@ -9,6 +9,7 @@ import type {IPC} from "./IPC"
 import url from "url"
 import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
+import type {Shortcut} from "../misc/KeyManager"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 

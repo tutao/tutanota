@@ -1086,6 +1086,15 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"calendarView_action": "Switch to the calendar view",
+		"viewNextPeriod_action": "View next period",
+		"viewPrevPeriod_action": "View previous period",
+		"viewToday_action": "View current period",
+		"switchAgendaView_action": "Switch to agenda view",
+		"switchWeekView_action": "Switch to week view",
+		"switchMonthView_action": "Switch to month view"
+
+
 	}
 }

@@ -7,6 +7,7 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {ViewSlider} from "../gui/base/ViewSlider"
+import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
@@ -318,7 +319,7 @@ export class CalendarView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => this._newEvent(this.selectedDate()),
-				help: "createEvent_action"
+				help: "newEvent_action"
 			}
 		]
 

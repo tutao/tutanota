@@ -39,6 +39,7 @@ import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
+import type {Shortcut} from "../misc/KeyManager"
 
 assertMainOrNode()
 

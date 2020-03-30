@@ -41,7 +41,7 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-
+import type {Shortcut} from "../misc/KeyManager"
 
 assertMainOrNode()
 

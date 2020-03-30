@@ -6,6 +6,7 @@ import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
 import {TextField} from "../gui/base/TextField"
 import {client} from "./ClientDetector"
+import type {TranslationKey} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
 import {BrowserType} from "./ClientConstants"
 import {mod} from "./MathUtils"
@@ -17,6 +18,25 @@ assertMainOrNodeBoot()
 
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
+export type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
+type Key = {code: number, name: string};
+
+/**
+ * @return false, if the default action should be aborted
+ */
+export type keyHandler = (key: KeyPress) => boolean;
+
+export interface Shortcut {
+	key: Key;
+	ctrl?: boolean; // undefined == false
+	alt?: boolean; // undefined == false
+	shift?: boolean; // undefined == false
+	meta?: boolean; // undefined == false
+	enabled?: lazy<boolean>;
+
+	exec(key: KeyPress, e?: Event): ?boolean; // must return true, if preventDefault should not be invoked
+	help: TranslationKey;
+}
 
 export function focusPrevious(dom: HTMLElement) {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
