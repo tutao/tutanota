@@ -11,7 +11,7 @@ import {TextField} from "../gui/base/TextField"
 import {formatBirthdayNumeric, getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {defer} from "../api/common/utils/Utils"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 export class ContactMergeView {
 	view: Function;
@@ -25,9 +25,7 @@ export class ContactMergeView {
 		this.contact2 = contact2
 
 		// following code prepares c1 and c2 for rendering in mithrill
-		let mergeButton = new Button("mergeContacts_action", () => {
-			this._close(ContactMergeAction.Merge)
-		}).setType(ButtonType.Login)
+
 		let delButton1 = new Button('delete_action', () => {
 			Dialog.confirm("deleteContact_msg").then((confirmed) => {
 				if (confirmed) {
@@ -144,7 +142,11 @@ export class ContactMergeView {
 			}, [
 				m(".flex-center.mt", [
 					m(".full-width.max-width-s", [
-						m(mergeButton)
+						m(ButtonN, {
+							label: "mergeContacts_action",
+							click: () => this._close(ContactMergeAction.Merge),
+							type: ButtonType.Login,
+						})
 					])
 				]),
 				m(".non-wrapping-row", [

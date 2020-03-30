@@ -10,7 +10,6 @@ import stream from "mithril/stream/stream.js"
 import type {PaymentMethodTypeEnum} from "../api/common/TutanotaConstants"
 import {PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
-import {Button} from "../gui/base/Button"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
 import {logins} from "../api/main/LoginController"
@@ -22,7 +21,7 @@ import {load} from "../api/main/Entity"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 
@@ -41,7 +40,8 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this._selectedPaymentMethod = stream()
 		this._upgradeData = upgradeData
-		let nextButton = new Button("next_action", () => {
+
+		const onNextClick = () => {
 			let error = this._invoiceDataInput.validateInvoiceData() || this._paymentMethodInput.validatePaymentData()
 			if (error) {
 				return Dialog.error(error).then(() => null)
@@ -55,9 +55,8 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 							this._pageActionHandler.showNext(this._upgradeData)
 						}
 					}))
-
 			}
-		}).setType(ButtonType.Login)
+		}
 
 		this.view = () => m("#upgrade-account-dialog.pt", this._availablePaymentMethods
 			? [
@@ -69,7 +68,11 @@ export class InvoiceAndPaymentDataPage implements WizardPage<UpgradeSubscription
 					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._invoiceDataInput)),
 					m(".flex-grow-shrink-half.plr-l", {style: {minWidth: "260px"}}, m(this._paymentMethodInput))
 				]),
-				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(nextButton)))
+				m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
+					label: "next_action",
+					click: onNextClick,
+					type: ButtonType.Login,
+				})))
 			]
 			: null)
 

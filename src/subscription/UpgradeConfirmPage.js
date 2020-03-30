@@ -22,7 +22,7 @@ import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {formatPrice, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 
 export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
@@ -45,10 +45,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 
 		this.updateWizardData(data)
 
-		let confirmButton = new Button("ok_action", () => {
-			this.close()
-		}).setType(ButtonType.Login)
-		let upgradeButton = new Button("buy_action", () => {
+		const upgrade =() => {
 			const serviceData = createSwitchAccountTypeData()
 			serviceData.accountType = AccountType.PREMIUM
 			serviceData.subscriptionType = this._subscriptionTypeToPaidSubscriptionType(data.type)
@@ -71,7 +68,7 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 					Dialog.error(() => lang.get("paymentProviderNotAvailableError_msg") + ((data.upgradeType === UpgradeType.Signup) ? " "
 						+ lang.get("accountWasStillCreated_msg") : ""))
 				})
-		}).setType(ButtonType.Login)
+		}
 
 		this.view = () => {
 			const newAccountData = this._upgradeData.newAccountData
@@ -88,7 +85,11 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 								m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}})),
 						]),
-						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(confirmButton)))
+						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
+							label: "ok_action",
+							click: () => this.close(),
+							type: ButtonType.Login,
+						})))
 					]
 					: [
 						m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
@@ -103,7 +104,11 @@ export class UpgradeConfirmPage implements WizardPage<UpgradeSubscriptionData> {
 							m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 								m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
 						]),
-						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(upgradeButton)))
+						m(".flex-center.full-width.pt-l", m("", {style: {width: "260px"}}, m(ButtonN, {
+							label: "buy_action",
+							click: upgrade,
+							type: ButtonType.Login,
+						})))
 					]
 			]
 		}

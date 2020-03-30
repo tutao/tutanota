@@ -96,8 +96,6 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 			})
 		}
 
-		let signupButton = new Button('next_action', () => _createAccount()).setType(ButtonType.Login)
-
 		this.view = (): VirtualElement => {
 			const newAccountData = this._upgradeData.newAccountData
 			return m("#signup-account-dialog.flex-center", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
@@ -120,7 +118,11 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 							(getWhitelabelRegistrationDomains().length > 0) ? m(codeField) : null,
 							m(confirm),
 							m(confirmAge),
-							m(".mt-l.mb-l", m(signupButton)),
+							m(".mt-l.mb-l", m(ButtonN, {
+								label: "next_action",
+								click: () => _createAccount(),
+								type: ButtonType.Login,
+							})),
 						])
 				])
 			)

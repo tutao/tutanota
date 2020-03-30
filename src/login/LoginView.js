@@ -38,7 +38,6 @@ export class LoginView {
 	helpText: string;
 	invalidCredentials: boolean;
 	savePassword: Checkbox;
-	loginButton: Button;
 	appButtons: Button[];
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 	view: Function;
@@ -87,8 +86,6 @@ export class LoginView {
 				.setIsVisibleHandler(() => client.isDesktopDevice() || client.device === DeviceType.ANDROID)
 				.setType(ButtonType.ActionLarge)
 		]
-
-		this.loginButton = new Button('login_action', () => this.login()).setType(ButtonType.Login)
 
 		this._knownCredentials = []
 		this._isDeleteCredentials = false;
@@ -278,7 +275,11 @@ export class LoginView {
 				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1)
 				? m(this.savePassword)
 				: null,
-			m(".pt", m(this.loginButton)),
+			m(".pt", m(ButtonN, {
+				label: 'login_action',
+				click: () => this.login(),
+				type: ButtonType.Login,
+			})),
 			m("p.center.statusTextColor", m("small" + liveDataAttrs(),
 				[
 					this.helpText + " ",

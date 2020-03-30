@@ -16,7 +16,7 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {header} from "../gui/base/Header"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
@@ -25,9 +25,6 @@ class ContactFormView {
 
 	view: Function;
 	_contactForm: ?ContactForm;
-	_createRequestButton: Button;
-	_moreInformationButton: Button;
-	_readResponseButton: Button;
 	_moreInformationDialog: Dialog;
 	_formId: string;
 	_loading: boolean;
@@ -36,10 +33,6 @@ class ContactFormView {
 	_footerHtml: ?string;
 
 	constructor() {
-		this._createRequestButton = new Button('createContactRequest_action', () => {
-			new ContactFormRequestDialog(neverNull(this._contactForm)).show()
-		}).setType(ButtonType.Login)
-
 		this._contactForm = null
 		this._helpHtml = null
 		this._headerHtml = null
@@ -61,9 +54,6 @@ class ContactFormView {
 			exec: closeAction,
 			help: "close_alt"
 		}).setCloseHandler(closeAction)
-
-		this._readResponseButton = new Button('readResponse_action', () => m.route.set("/login")).setType(ButtonType.Login)
-		this._moreInformationButton = new Button('moreInformation_action', () => this._moreInformationDialog.show()).setType(ButtonType.Secondary)
 
 		this.view = (): VirtualElement => {
 			return m(".main-view.flex.col", [
@@ -88,9 +78,23 @@ class ContactFormView {
 				m("", m.trust(neverNull(this._headerHtml))), // is sanitized in updateUrl
 				m(".flex.justify-center", [
 					m(".max-width-m.flex-grow-shrink-auto", [
-						m(".pt-l", m(this._createRequestButton)),
-						m(".pt-l", m(this._readResponseButton)),
-						(this._helpHtml) ? m(".pt-l.flex-center", m(this._moreInformationButton)) : null,
+						m(".pt-l", m(ButtonN, {
+							label: "createContactRequest_action",
+							click: () => new ContactFormRequestDialog(neverNull(this._contactForm)).show(),
+							type: ButtonType.Login,
+						})),
+						m(".pt-l", m(ButtonN, {
+							label: "readResponse_action",
+							click: () => m.route.set("login"),
+							type: ButtonType.Login,
+						})),
+						(this._helpHtml)
+							? m(".pt-l.flex-center", m(ButtonN, {
+								label: "moreInformation_action",
+								click: () => this._moreInformationDialog.show(),
+								type: ButtonType.Secondary,
+							}))
+							: null,
 					])
 				]),
 				m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
