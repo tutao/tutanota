@@ -22,7 +22,7 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize, outDi
 		version,
 		updateUrl,
 		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		nameSuffix !== "-snapshot",
+		nameSuffix !== '-snapshot' && updateUrl !== "", // don't sign if it's a test build or if we don't download updates
 		notarize,
 		unpacked
 	)

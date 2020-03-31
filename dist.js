@@ -49,7 +49,7 @@ options
 	.option('-m --mac', 'Build desktop client for mac')
 	.option('-d, --deb', 'Build .deb package. Requires -wlm to be set or installers to be present')
 	.option('-p, --publish', 'Git tag and upload package, only allowed in release stage. Implies -d.')
-	.option('--custom-release', "use if manually building from source. doesn't install autoupdates, but may still notify about new releases")
+	.option('--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
 	.option('--unpacked', "don't pack the app into an installer")
 	.option('--out-dir <outDir>', "where to copy the client",)
 	.action((stage, host) => {
@@ -63,15 +63,21 @@ options
 		options.stage = stage || "release"
 		options.host = host
 		options.deb = options.deb || options.publish
-
 		options.desktop = {
 			win: options.win ? [] : undefined,
 			linux: options.linux ? [] : undefined,
 			mac: options.mac ? [] : undefined
 		}
+
 		options.desktop = Object.values(options.desktop).some(Boolean)
 			? options.desktop
-			: undefined
+			: !!options.customDesktopRelease // no platform flags given, build desktop for current platform if customDesktopBuild flag is set.
+				? {
+					win: process.platform === "win32" ? [] : undefined,
+					linux: process.platform === "linux" ? [] : undefined,
+					mac: process.platform === "darwin" ? [] : undefined
+				}
+				: undefined
 	})
 	.parse(process.argv)
 
@@ -180,12 +186,13 @@ function buildDesktopClient() {
 	if (options.desktop) {
 		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
 		if (options.stage === "release") {
-			const updateUrl = options.customRelease
+			const updateUrl = options.customDesktopRelease
 				? ""
 				: "https://mail.tutanota.com/desktop"
+			const notarize = !!options.customDesktopRelease
 			const buildPromise = createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, updateUrl, "",  /*notarize*/true, options.outDir, options.unpacked))
-			if (!options.customRelease) { // don't build the test version for manual/custom builds
+				.then(() => desktopBuilder.build(__dirname, version, options.desktop, updateUrl, "", notarize, options.outDir, options.unpacked))
+			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				buildPromise.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
 				            .then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test",  /*notarize*/true, options.outDir, options.unpacked))
 			}
