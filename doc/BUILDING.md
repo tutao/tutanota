@@ -54,10 +54,8 @@ Keep in mind that your own build of Tutanota Desktop will not update automatical
 4. Run `npm install` to install dependencies.
 
 ### Build:  
-Linux: `node dist -l --custom-release`  
-Windows: `node dist -w --custom-release`  
-MacOs: `node dist -m --custom-release`
+Run `node dist --custom-desktop-release`.
 
-The client will be in `build/desktop/`
+The client for your platform will be in `build/desktop/`.
 Note that you can add `--unpacked` to the build command to skip the packaging of the installer.
 This will yield a directory containing the client that can be run without installation.
