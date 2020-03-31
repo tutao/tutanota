@@ -102,13 +102,14 @@ module.exports = function (nameSuffix, version, targetUrl, iconPath, sign, notar
 				"to": "./icons/"
 			},
 			"win": {
+				"verifyUpdateCodeSignature": sign,
 				"publisherName": "Tutao GmbH",
 				"sign": sign
 					? "./buildSrc/winsigner.js"
 					: undefined,
-				"signingHashAlgorithms": [
-					"sha256"
-				],
+				"signingHashAlgorithms": sign
+					? ["sha256"]
+					: undefined,
 				"target": [
 					{
 						"target": "nsis",

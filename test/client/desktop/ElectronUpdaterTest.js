@@ -27,7 +27,12 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		app: {
 			getPath: (path: string) => `/mock-${path}/`,
 			getVersion: (): string => "3.45.0",
-			emit: () => {}
+			emit: () => {},
+			callbacks: [],
+			once: function (ev: string, cb: ()=>void) {
+				this.callbacks[ev] = cb
+				return n.spyify(electron.app)
+			},
 		}
 	}
 
