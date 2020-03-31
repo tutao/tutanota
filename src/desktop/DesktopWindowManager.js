@@ -19,10 +19,6 @@ export type WindowBounds = {|
 |}
 
 const windows: ApplicationWindow[] = []
-let forceQuit = false
-let enableForceQuit = () => forceQuit = true
-app.once('before-quit', enableForceQuit)
-   .once('enable-force-quit', enableForceQuit)
 
 export class WindowManager {
 	_conf: DesktopConfigHandler

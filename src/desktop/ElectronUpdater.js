@@ -17,6 +17,7 @@ export class ElectronUpdater {
 	_checkUpdateSignature: boolean;
 	_errorCount: number;
 	_fallbackPollInterval: number = 15 * 60 * 1000;
+	_installOnQuit = false;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
 
 	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
@@ -33,6 +34,8 @@ export class ElectronUpdater {
 			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
 		}
 		autoUpdater.logger = null
+		autoUpdater.autoDownload = false
+		autoUpdater.autoInstallOnAppQuit = false
 		autoUpdater.on('update-available', updateInfo => {
 			this._logger.info("update-available")
 			this._stopPolling()
@@ -47,6 +50,7 @@ export class ElectronUpdater {
 		}).on('update-downloaded', info => {
 			this._logger.info("update-downloaded")
 			this._stopPolling()
+			this._installOnQuit = true
 			this._notifyAndInstall(info)
 		}).on('checking-for-update', () => {
 			this._logger.info("checking-for-update")
@@ -64,6 +68,22 @@ export class ElectronUpdater {
 				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${e.message}`)
 				this._notifyUpdateError()
 				setTimeout(() => this._startPolling(), this._fallbackPollInterval)
+			}
+		})
+
+		/**
+		 * this replaces the autoInstallOnAppQuit feature of autoUpdater,
+		 * which causes the app to uninstall itself if it is installed for
+		 * all users on a windows system.
+		 *
+		 * should be removed once https://github.com/electron-userland/electron-builder/issues/4815
+		 * is resolved.
+		 */
+		app.once('before-quit', ev => {
+			if (this._installOnQuit) {
+				ev.preventDefault()
+				this._installOnQuit = false
+				autoUpdater.quitAndInstall(false, false)
 			}
 		})
 	}
@@ -85,7 +105,6 @@ export class ElectronUpdater {
 		}
 
 		this._checkUpdateSignature = this._conf.get('checkUpdateSignature')
-		autoUpdater.autoDownload = !this._checkUpdateSignature
 		this._startPolling()
 	}
 
@@ -153,6 +172,7 @@ export class ElectronUpdater {
 				    // which is not emitted for quitAndInstall
 				    // so we enable force-quit manually with a custom event
 				    app.emit('enable-force-quit')
+				    this._installOnQuit = false
 				    autoUpdater.quitAndInstall(false, true)
 			    }
 		    })
