@@ -8,8 +8,6 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {NavButtonAttrs} from "./NavButtonN"
-import {isKeyPressed} from "../../misc/KeyManager"
-import {Keys} from "../../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -129,11 +127,6 @@ class _Button {
 					a.oncreate && a.oncreate(vnode)
 				},
 				onbeforeremove: (vnode) => removeFlash(vnode.dom),
-				onkeydown: (e) => { // we use keydown to trigger action because KeyManager also uses keydown for key recognition. If we don't use the same event listener, two action can be triggered with the same key press.
-					if (isKeyPressed(e.keyCode, Keys.RETURN)) {
-						this.click(e, a, this._domButton)
-					}
-				}
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 				class: this.getWrapperClasses(a).join(' '),
 				style: {
