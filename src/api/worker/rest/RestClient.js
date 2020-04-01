@@ -69,14 +69,14 @@ export class RestClient {
 						console.log(`rate limited request to ${path}, retry after ${retryAfter}s`)
 					} else {
 						console.log("failed request", method, url, xhr.status, xhr.statusText, headers, body)
-						reject(handleRestError(xhr.status, xhr.statusText, `| ${method} ${path}`))
+						reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 					}
 				}
 			}
 			xhr.onerror = function () {
 				clearTimeout(timeout)
 				console.log("failed to request", method, url, headers, body)
-				reject(handleRestError(xhr.status, xhr.statusText, ` | ${method} ${path}`))
+				reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 			}
 
 			try {

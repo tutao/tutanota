@@ -211,7 +211,8 @@ public class FileUtil {
 			IOUtils.copy(inputStream, con.getOutputStream());
 			JSONObject response = new JSONObject();
 			response.put("statusCode", con.getResponseCode());
-			response.put("statusMessage", con.getResponseMessage());
+			response.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
+			response.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
 			return response;
 		} finally {
 			con.disconnect();
@@ -243,8 +244,9 @@ public class FileUtil {
 
 			JSONObject result = new JSONObject();
 			result.put("statusCode", con.getResponseCode());
-			result.put("statusMessage", con.getResponseMessage());
 			result.put("encryptedFileUri", encryptedFile != null ? Utils.fileToUri(encryptedFile) : JSONObject.NULL);
+			result.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
+			result.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
 			return result;
 		} finally {
 			if (con != null) {

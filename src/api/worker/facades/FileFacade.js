@@ -62,7 +62,7 @@ export class FileFacade {
 				let queryParams = {'_body': encodeURIComponent(body)}
 				let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", queryParams)
 
-				return fileApp.download(url, file.name, headers).then(({statusCode, statusMessage, encryptedFileUri}) => {
+				return fileApp.download(url, file.name, headers).then(({statusCode, encryptedFileUri, errorId, precondition}) => {
 					return ((statusCode === 200 && encryptedFileUri != null)
 						? aesDecryptFile(neverNull(sessionKey), encryptedFileUri).then(decryptedFileUrl => {
 							return {
@@ -73,7 +73,7 @@ export class FileFacade {
 								size: file.size
 							}
 						})
-						: Promise.reject(handleRestError(statusCode, statusMessage, ` | GET ${url} failed to natively download attachment`)))
+						: Promise.reject(handleRestError(statusCode, ` | GET ${url} failed to natively download attachment`, errorId, precondition)))
 						.finally(() => encryptedFileUri != null && fileApp.deleteFile(encryptedFileUri)
 						                                                  .catch(() => console.log("Failed to delete encrypted file", encryptedFileUri)))
 				})
@@ -113,11 +113,11 @@ export class FileFacade {
 						let headers = this._login.createAuthHeaders()
 						headers['v'] = FileDataDataReturnTypeModel.version
 						let url = addParamsToUrl(getHttpOrigin() + "/rest/tutanota/filedataservice", {fileDataId})
-						return fileApp.upload(encryptedFileInfo.uri, url, headers).then(({statusCode, statusMessage}) => {
+						return fileApp.upload(encryptedFileInfo.uri, url, headers).then(({statusCode, uri, errorId, precondition}) => {
 							if (statusCode === 200) {
 								return fileDataId;
 							} else {
-								throw handleRestError(statusCode, statusMessage, ` | PUT ${url} failed to natively upload attachment`)
+								throw handleRestError(statusCode, ` | PUT ${url} failed to natively upload attachment`, errorId, precondition)
 							}
 						})
 					})

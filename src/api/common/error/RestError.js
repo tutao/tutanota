@@ -165,8 +165,8 @@ export class ResourceError extends TutanotaError {
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
-export function handleRestError(errorCode: number, reason: ?string, path: string) {
-	let message = `${errorCode}: ${reason ? reason : ""} ${path}`
+export function handleRestError(errorCode: number, path: string, errorId: ?string, precondition: ?string) {
+	let message = `${errorCode}: ${errorId ? (errorId + " ") : ""}${precondition ? (precondition + " ") : ""}${path}`
 	switch (errorCode) {
 		case ConnectionError.CODE:
 			return new ConnectionError(message);
@@ -181,7 +181,7 @@ export function handleRestError(errorCode: number, reason: ?string, path: string
 		case MethodNotAllowedError.CODE:
 			return new MethodNotAllowedError(message);
 		case PreconditionFailedError.CODE:
-			return new PreconditionFailedError(message, reason);
+			return new PreconditionFailedError(message, precondition);
 		case TooManyRequestsError.CODE:
 			return new TooManyRequestsError(message);
 		case SessionExpiredError.CODE:
