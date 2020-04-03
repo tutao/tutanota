@@ -32,6 +32,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_runOnStartup: Stream<?boolean>;
 	_isIntegrated: Stream<?boolean>;
 	_isAutoUpdateEnabled: Stream<?boolean>;
+	_showAutoUpdateOption: Stream<?boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -40,6 +41,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._runOnStartup = stream(false)
 		this._isIntegrated = stream(false)
 		this._isAutoUpdateEnabled = stream(false)
+		this._showAutoUpdateOption = stream(true)
 		this._requestDesktopConfig()
 	}
 
@@ -157,7 +159,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
 				env.platformId === 'linux' ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
-				m(DropDownSelectorN, setAutoUpdateAttrs)
+				this._showAutoUpdateOption() ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
 			])
 		]
 	}
@@ -190,6 +192,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
 			         this._runOnStartup(desktopConfig.runOnStartup)
 			         this._isIntegrated(desktopConfig.isIntegrated)
+			         this._showAutoUpdateOption(desktopConfig.showAutoUpdateOption)
 			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
 			         m.redraw()
 		         })

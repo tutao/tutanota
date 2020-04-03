@@ -123,9 +123,12 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
+		setDesktopConfig: (key, value) => {},
 		getDesktopConfig: (key: string) => {
 			switch (key) {
 				case 'enableAutoUpdate':
+					return true
+				case 'showAutoUpdateOption':
 					return true
 				default:
 					throw new Error(`unexpected getDesktopConfig key ${key}`)
@@ -169,6 +172,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		o(autoUpdaterMock.logger).equals(null)
 
 		upd.start()
+
+		o(confMock.setDesktopConfig.callCount).equals(1)
+		o(confMock.setDesktopConfig.args).deepEquals(['showAutoUpdateOption', true])
 
 		// there is only one enableAutoUpdate listener
 		o(confMock.removeListener.callCount).equals(1)
@@ -278,6 +284,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				                  switch (key) {
 					                  case 'enableAutoUpdate':
 						                  return enabled
+					                  case 'showAutoUpdateOption':
+						                  return true
 					                  default:
 						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
 				                  }
@@ -531,6 +539,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 			upd.start()
 
+			o(confMock.setDesktopConfig.callCount).equals(1)
+			o(confMock.setDesktopConfig.args).deepEquals(['showAutoUpdateOption', false])
 			o(confMock.removeListener.callCount).equals(0)
 		}
 	)
