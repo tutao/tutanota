@@ -38,7 +38,7 @@
 		"chokidar-socket-emitter": "0.6.0",
 		"commander": "5.0.0-2",
 		"core-js": "2.6.10",
-		"electron": "8.0.2",
+		"electron": "8.2.0",
 		"electron-builder": "22.3.5",
 		"electron-localshortcut": "3.2.1",
 		"electron-notarize": "0.2.1",
