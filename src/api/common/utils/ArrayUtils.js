@@ -198,30 +198,35 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 	}, [])
 }
 
+/**
+ * Inserts element into the sorted array. Will fine <b>the last</b> matching position.
+ * Might add or replace element based on {@param replaceIf} identity check.
+ * Equality per {@param comparator} is precondition for replacement.
+ * @param element to place
+ * @param array where element should be placed
+ * @param comparator for sorting
+ * @param replaceIf identity comparison for replacement
+ */
 export function insertIntoSortedArray<T>(element: T, array: Array<T>,
                                          comparator: (left: T, right: T) => number,
                                          replaceIf: (newElement: T, existing: T) => boolean = () => false) {
-	if (array.length === 0) {
-		array.push(element)
-	} else if (comparator(element, lastThrow(array)) >= 0) {
-		if (replaceIf(element, lastThrow(array))) {
-			array.pop()
-		}
-		array.push(element)
-	} else {
-		for (let i = 0; i < array.length; i++) {
-			const compareResult = comparator(element, array[i])
-			if (compareResult < 0) {
-				const replaceIfResult = i > 0 && replaceIf(element, array[i - 1])
-				if (replaceIfResult) {
-					array.splice(i - 1, 1, element)
-				} else {
-					array.splice(i, 0, element)
-				}
-				return
-			}
+	let i = 0
+	while (i < array.length) {
+		const compareResult = comparator(array[i], element)
+		// We need to check for replacement for each element that is equal or we might miss it
+		if (compareResult === 0 && replaceIf(element, array[i])) {
+			array.splice(i, 1, element)
+			return
+		} else if (compareResult <= 0) {
+			// We continue searching until the last suitable position
+			i++
+		} else {
+			break
 		}
 	}
+
+	// This also handles empty array
+	array.splice(i, 0, element)
 }
 
 export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {

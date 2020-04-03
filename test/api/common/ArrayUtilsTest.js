@@ -49,7 +49,7 @@ o.spec("array utils", function () {
 	o.spec("insertIntoSortedArray", function () {
 		// We wrap them into objects
 		const comparator = (l, r) => l.v - r.v
-		const equals = (l, r) => l.id === r.id
+		const same = (l, r) => l.id === r.id
 
 		function test(arr: Array<ObjectWithId>, insert: ObjectWithId, expect: Array<ObjectWithId>, equalsFn?: (ObjectWithId, ObjectWithId) => boolean) {
 			insertIntoSortedArray(insert, arr, comparator, equalsFn)
@@ -57,6 +57,7 @@ o.spec("array utils", function () {
 		}
 
 		o("appends in the beginning", function () {
+			// Here is takes the last matching position, not the first one
 			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
 				{v: 1, id: -1},
 				[{v: 1, id: 0}, {v: 1, id: -1}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}])
@@ -84,23 +85,32 @@ o.spec("array utils", function () {
 		})
 		o("replaces in the beginning", function () {
 			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
-				{v: 1, id: 0, replaced: true}
-				, [{v: 1, id: 0, replaced: true}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}], equals)
+				{v: 1, id: 0, replaced: true},
+				[{v: 1, id: 0, replaced: true}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
+				same)
+		})
+		o("replaced in the beginning even if the last is equal", function () {
+			test(
+				[{v: 1, id: 0}, {v: 1, id: 1}],
+				{v: 1, id: 0, replaced: true},
+				[{v: 1, id: 0, replaced: true}, {v: 1, id: 1}],
+				same
+			)
 		})
 
 		o("replaces in the middle", function () {
 			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
 				{v: 2, id: 1, replaced: true},
-				[{v: 1, id: 0}, {v: 2, id: 1, replaced: true}, {v: 8, id: 3}, {v: 10, id: 4}], equals)
+				[{v: 1, id: 0}, {v: 2, id: 1, replaced: true}, {v: 8, id: 3}, {v: 10, id: 4}], same)
 		})
 
 		o("replaces in the end", function () {
 			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
 				{v: 10, id: 4, replaced: true},
-				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4, replaced: true}], equals)
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4, replaced: true}], same)
 			test([{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}],
 				{v: 12, id: 5},
-				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}, {v: 12, id: 5}], equals)
+				[{v: 1, id: 0}, {v: 2, id: 1}, {v: 8, id: 3}, {v: 10, id: 4}, {v: 12, id: 5}], same)
 		})
 	})
 })
