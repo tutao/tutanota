@@ -11,6 +11,7 @@ export const DesktopConfigKey = {
 	heartbeatTimeoutInSeconds: 'heartbeatTimeoutInSeconds',
 	defaultDownloadPath: 'defaultDownloadPath',
 	enableAutoUpdate: 'enableAutoUpdate',
+	showAutoUpdateOption: 'showAutoUpdateOption',
 	pushIdentifier: 'pushIdentifier',
 	runAsTrayApp: 'runAsTrayApp',
 	lastBounds: 'lastBounds',

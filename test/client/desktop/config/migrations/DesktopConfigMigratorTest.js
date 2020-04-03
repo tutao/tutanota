@@ -15,7 +15,8 @@ o.spec('desktop config migrator test', function () {
 			"defaultDownloadPath": null,
 			"enableAutoUpdate": true,
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 0
+			"desktopConfigVersion": 1,
+			"showAutoUpdateOption": true,
 		}
 
 		o(migrator("migrateClient", oldConfig, oldConfig)).deepEquals(requiredResult)
@@ -28,7 +29,8 @@ o.spec('desktop config migrator test', function () {
 		}
 		const requiredResult = {
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 0
+			"desktopConfigVersion": 1,
+			"showAutoUpdateOption": true,
 		}
 
 		o(migrator("migrateAdmin", oldConfig, oldConfig)).deepEquals(requiredResult)

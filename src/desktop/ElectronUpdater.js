@@ -98,8 +98,13 @@ export class ElectronUpdater {
 			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
 		} catch (e) {
 			console.log("no update info on disk, disabling updater.")
+			this._conf.setDesktopConfig('showAutoUpdateOption', false)
 			return
 		}
+
+		// if we got here, we could theoretically download updates.
+		// show the option in the settings menu
+		this._conf.setDesktopConfig('showAutoUpdateOption', true)
 
 		// if user changes auto update setting, we want to know
 		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)

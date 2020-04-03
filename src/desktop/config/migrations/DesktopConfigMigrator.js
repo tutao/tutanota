@@ -15,6 +15,8 @@ export default function applyMigrations(migrationFunction: "migrateClient" | "mi
 			oldConfig = applyMigration(require('./migration-0000')[migrationFunction], oldConfig)
 		// no break, fallthrough applies all migrations in sequence
 		case 0:
+			oldConfig = applyMigration(require('./migration-0001')[migrationFunction], oldConfig)
+		case 1:
 			console.log("config up to date")
 			/* add new migrations as needed */
 			break;
