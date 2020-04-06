@@ -14,8 +14,6 @@ import {load, update} from "../api/main/Entity"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {incrementDate} from "../api/common/utils/DateUtils"
-import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
-import {CalendarViewType} from "../calendar/CalendarView"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -39,7 +37,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemeId> = {
 			label: "switchColorTheme_action",
-			items: [{name: "Light", value: "light"}, {name: "Dark", value: "dark"}],
+			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}],
 			selectedValue: themeId,
 			selectionChangedHandler: (value) => deviceConfig.setTheme(value)
 		}
