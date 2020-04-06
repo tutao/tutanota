@@ -118,18 +118,13 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 															completion(nil, error);
 															return;
 														}
-
 														const NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+            
+                                                        // response for upload: statusCode: number, errorId: ?string, precondition: ?string
 														NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
-														[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
-
-														const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
-														if (errorId == nil) {
-															[responseDict setValue:NSNull.null forKey:@"statusMessage"];
-														} else {
-															[responseDict setValue:errorId forKey:@"statusMessage"];
-														}
-
+                                                        [TUTFileUtil addStatusCodeToResponseDict:responseDict from:httpResponse];
+                                                        [TUTFileUtil addErrorIdHeaderToResponseDict:responseDict from:httpResponse];
+                                                        [TUTFileUtil addPreconditionHeaderToResponseDict:responseDict from:httpResponse];
 														completion(responseDict, nil);
 													}];
 		[task resume];
@@ -156,15 +151,9 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 					completion(nil, error);
                     return;
                 }
-				NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
-				[responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
-				const NSString *errorId = httpResponse.allHeaderFields[@"ErrorId"];
-				if (errorId == nil) {
-					[responseDict setValue:NSNull.null forKey:@"statusMessage"];
-				} else {
-					[responseDict setValue:errorId forKey:@"statusMessage"];
-				}
-
+                
+                NSString *filePath;
+                
 				if ([httpResponse statusCode] == 200) {
                     NSError *error = nil;
 					NSString *encryptedPath = [TUTFileUtil getEncryptedFolder: &error];
@@ -172,22 +161,22 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 						completion(nil, error);
 						return;
 					}
-					NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
+					filePath = [encryptedPath stringByAppendingPathComponent:fileName];
 					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
-					if (!error) {
-						if (filePath == nil) {
-							[responseDict setValue:NSNull.null forKey:@"encryptedFileUri"];
-						} else {
-							[responseDict setValue:filePath forKey:@"encryptedFileUri"];
-						}
-
-						completion(responseDict, nil);
-					} else {
+					if (error) {
 						completion(nil, error);
+                        return;
 					}
-				} else {
-					completion(responseDict, nil);
 				}
+                //response for download: statusCode: number, encryptedFileUri: ?string, errorId: ?string, precondition: ?string
+                NSMutableDictionary<NSString *, id> *responseDict = [NSMutableDictionary new];
+                [TUTFileUtil addStatusCodeToResponseDict:responseDict from:httpResponse];
+                [TUTFileUtil addEncFileUriToResponseDict:responseDict fileUri:filePath];
+                [TUTFileUtil addErrorIdHeaderToResponseDict:responseDict from:httpResponse];
+                [TUTFileUtil addPreconditionHeaderToResponseDict:responseDict from:httpResponse];
+                completion(responseDict, nil);
+                
+                
 			}] resume];
 		});
 }
@@ -253,6 +242,37 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 			[fileManager removeItemAtURL:file error:&error];
 		}
 	}
+}
+
+
++ (void) addStatusCodeToResponseDict:(NSMutableDictionary*)responseDict from:(const NSHTTPURLResponse*)httpResponse {
+        [responseDict setValue:@(httpResponse.statusCode) forKey:@"statusCode"];
+}
+
++ (void) addEncFileUriToResponseDict:(NSMutableDictionary*)responseDict fileUri:(NSString*)filePath {
+    if (filePath == nil) {
+        [responseDict setValue:NSNull.null forKey:@"encryptedFileUri"];
+    } else {
+        [responseDict setValue:filePath forKey:@"encryptedFileUri"];
+    }
+}
+
++ (void) addErrorIdHeaderToResponseDict:(NSMutableDictionary*)responseDict from:(const NSHTTPURLResponse*)httpResponse {
+    const NSString *header = httpResponse.allHeaderFields[@"Error-Id"];
+    if (header == nil) {
+        [responseDict setValue:NSNull.null forKey:@"errorId"];
+    } else {
+        [responseDict setValue:header forKey:@"errorId"];
+    }
+}
+
++ (void) addPreconditionHeaderToResponseDict:(NSMutableDictionary*)responseDict from:(const NSHTTPURLResponse*)httpResponse {
+    const NSString *header = httpResponse.allHeaderFields[@"Precondition"];
+    if (header == nil) {
+        [responseDict setValue:NSNull.null forKey:@"precondition"];
+    } else {
+        [responseDict setValue:header forKey:@"precondition"];
+    }
 }
 
 @end
