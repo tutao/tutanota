@@ -11,7 +11,8 @@ import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ConversationType,
-	FeatureType, Keys,
+	FeatureType,
+	Keys,
 	MAX_ATTACHMENT_SIZE,
 	OperationType,
 	ReplyType
@@ -26,6 +27,7 @@ import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {
 	AccessBlockedError,
 	ConnectionError,
+	NotAuthorizedError,
 	NotFoundError,
 	PreconditionFailedError,
 	TooManyRequestsError
@@ -57,7 +59,7 @@ import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEnt
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {ContactEditor} from "../contacts/ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {isSameId} from "../api/common/EntityFunctions"
+import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
 import {windowFacade} from "../misc/WindowFacade"
 import {fileApp} from "../native/FileApp"
 import {PermissionError} from "../api/common/error/PermissionError"
@@ -97,6 +99,7 @@ import {px, size} from "../gui/size"
 import {isMailAddress} from "../misc/FormatValidator"
 import {DbError} from "../api/common/error/DbError"
 import {findRecipients} from "../native/ContactApp"
+import {createApprovalMail} from "../api/entities/monitor/ApprovalMail"
 
 assertMainOrNode()
 
@@ -847,38 +850,55 @@ export class MailEditor {
 			})
 			.then(confirmed => {
 				if (confirmed) {
+					let isApprovalMail = false
 					let send = this
 						._waitForResolvedRecipients() // Resolve all added recipients before trying to send it
-						.then((recipients) =>
-							this.saveDraft(true, false)
-							    .return(recipients))
+						.then((recipients) => {
+							if (recipients.length === 1 && recipients[0].mailAddress.toLowerCase().trim() === "approval@tutao.de") {
+								isApprovalMail = true
+								return recipients
+							} else {
+								return this.saveDraft(true, false)
+								           .return(recipients)
+							}
+						})
 						.then(resolvedRecipients => {
-							let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
-							if (this._confidentialButtonState && externalRecipients.length > 0
-								&& externalRecipients.find(r => this.getPasswordField(r).value().trim()
-									!== "") == null) {
-								throw new UserError("noPreSharedPassword_msg")
-							}
-
-							let sendMail = Promise.resolve(true)
-							if (this._confidentialButtonState
-								&& externalRecipients.reduce((min, current) =>
-									Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
-								sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
-							}
-
-							return sendMail.then(ok => {
-								if (ok) {
-									return this._updateContacts(resolvedRecipients)
-									           .then(() => worker.sendMailDraft(
-										           neverNull(this.draft),
-										           resolvedRecipients,
-										           this._selectedNotificationLanguage()))
-									           .then(() => this._updatePreviousMail())
-									           .then(() => this._updateExternalLanguage())
-									           .then(() => this._close())
+							if (isApprovalMail) {
+								let m = createApprovalMail()
+								m._id = ["---------c--", stringToCustomId(this._senderField.selectedValue())]
+								m._ownerGroup = logins.getUserController().user.userGroup.group
+								m.text = "Subject: " + this.subject.value() + "<br>" + this._editor.getDOM().innerHTML
+								return setup(m._id[0], m)
+									.catch(NotAuthorizedError, e => console.log("not authorized for approval message"))
+									.then(() => this._close())
+							} else {
+								let externalRecipients = resolvedRecipients.filter(r => isExternal(r))
+								if (this._confidentialButtonState && externalRecipients.length > 0
+									&& externalRecipients.find(r => this.getPasswordField(r).value().trim()
+										!== "") == null) {
+									throw new UserError("noPreSharedPassword_msg")
 								}
-							})
+
+								let sendMail = Promise.resolve(true)
+								if (this._confidentialButtonState
+									&& externalRecipients.reduce((min, current) =>
+										Math.min(min, this.getPasswordStrength(current)), 100) < 80) {
+									sendMail = Dialog.confirm("presharedPasswordNotStrongEnough_msg")
+								}
+
+								return sendMail.then(ok => {
+									if (ok) {
+										return this._updateContacts(resolvedRecipients)
+										           .then(() => worker.sendMailDraft(
+											           neverNull(this.draft),
+											           resolvedRecipients,
+											           this._selectedNotificationLanguage()))
+										           .then(() => this._updatePreviousMail())
+										           .then(() => this._updateExternalLanguage())
+										           .then(() => this._close())
+									}
+								})
+							}
 						})
 						.catch(RecipientNotResolvedError, e => {
 							return Dialog.error("tooManyAttempts_msg")

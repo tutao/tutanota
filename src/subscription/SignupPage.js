@@ -8,7 +8,6 @@ import type {WizardPage, WizardPageActionHandler} from "../gui/base/WizardDialog
 import {SelectMailAddressForm} from "../settings/SelectMailAddressForm"
 import {Checkbox} from "../gui/base/Checkbox"
 import {isApp, isTutanotaDomain} from "../api/Env"
-import {Button} from "../gui/base/Button"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {TextField} from "../gui/base/TextField"
@@ -30,7 +29,7 @@ import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/Regis
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
-
+import {deviceConfig} from "../misc/DeviceConfig"
 
 export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
@@ -198,6 +197,7 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 		let data = createRegistrationCaptchaServiceGetData()
 		data.token = campaignToken
 		data.mailAddress = mailAddress
+		data.signupToken = deviceConfig.getSignupToken()
 		return serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, data, RegistrationCaptchaServiceReturnTypeRef)
 			.then(captchaReturn => {
 				let regDataId = captchaReturn.token

@@ -18,7 +18,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "57"
+	"version": "58"
 }
 
 export function createException(values?: $Shape<$Exact<Exception>>): Exception {

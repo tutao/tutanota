@@ -1564,6 +1564,7 @@ type RegistrationCaptchaServiceGetData = {
 	_type: TypeRef<RegistrationCaptchaServiceGetData>;
 	_format: NumberString;
 	mailAddress: string;
+	signupToken: ?string;
 	token: ?string;
 
 }

@@ -3,6 +3,7 @@ import {assertMainOrNodeBoot} from "../api/Env"
 import {themeId} from "../gui/theme"
 import {client} from "./ClientDetector"
 import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
+import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 
 assertMainOrNodeBoot()
 
@@ -19,6 +20,7 @@ class DeviceConfig {
 	_theme: ThemeId;
 	_language: ?string;
 	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
+	_signupToken: string;
 
 	/**
 	 * @param config The config to copy from
@@ -39,6 +41,20 @@ class DeviceConfig {
 		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 		this._language = loadedConfig && loadedConfig._language
 		this._defaultCalendarView = loadedConfig && loadedConfig._defaultCalendarView || {}
+
+		let loadedSignupToken = loadedConfig && loadedConfig._signupToken
+		if (loadedSignupToken) {
+			this._signupToken = loadedSignupToken
+		} else {
+			let bytes = new Uint8Array(6);
+			crypto.getRandomValues(bytes)
+			this._signupToken = uint8ArrayToBase64(bytes)
+			this._store()
+		}
+	}
+
+	getSignupToken(): string {
+		return this._signupToken
 	}
 
 	getStoredAddresses(): string[] {

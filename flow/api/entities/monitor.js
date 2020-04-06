@@ -22,3 +22,16 @@ type WriteCounterData = {
 	value: NumberString;
 
 }
+
+type ApprovalMail = {
+	_type: TypeRef<ApprovalMail>;
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: ?Id;
+	_permissions: Id;
+	date: ?Date;
+	range: ?string;
+	text: string;
+
+	customer: ?Id;
+}
