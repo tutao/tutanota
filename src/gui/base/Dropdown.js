@@ -330,24 +330,27 @@ export class Dropdown {
 
 			this._focusedBeforeShown = document.activeElement
 			return (animate
+				// We would prefer to cancel current animation but we don't have infrastructure for this yet
 				? animations.add(this._domDropdown, [
 					width(0, this._width),
 					height(0, this.maxHeight)
 				], {easing: ease.out, duration: DefaultAnimationTime})
+				            .then(() => {
+				            	// Only do it on the "real" show, which is with animation, don't do it for resizes
+					            if (this._domInput && !client.isMobileDevice()) {
+						            this._domInput.focus()
+					            } else {
+						            const button = this._domDropdown.querySelector("button")
+						            button && button.focus()
+					            }
+				            })
 				: Promise.resolve())
-			// We would prefer to cancel current animation but we don't have infrastructure for this yet
 				.then(() => {
 					this._domDropdown.style.height = px(this.maxHeight)
 					if (this.maxHeight - this._getFilterHeight() < contentsHeight) {
 						// do not show the scrollbar during the animation.
 						this._domContents.style.maxHeight = px(this.maxHeight - this._getFilterHeight())
 						this._domContents.style.overflowY = client.overflowAuto
-					}
-					if (this._domInput && !client.isMobileDevice()) {
-						this._domInput.focus()
-					} else {
-						const button = this._domDropdown.querySelector("button")
-						button && button.focus()
 					}
 				})
 		}
