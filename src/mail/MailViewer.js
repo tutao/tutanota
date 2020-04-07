@@ -359,7 +359,7 @@ export class MailViewer {
 			]
 		}
 
-		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
+		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
 		this._setupShortcuts()
 	}
 

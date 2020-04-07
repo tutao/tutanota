@@ -55,7 +55,7 @@ export class ContactView implements CurrentView {
 	_multiContactViewer: MultiContactViewer;
 	view: Function;
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 	_throttledSetUrl: (string) => void;
 
 	constructor() {
@@ -193,7 +193,7 @@ export class ContactView implements CurrentView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
 	createContactFoldersExpander(): ExpanderButton {

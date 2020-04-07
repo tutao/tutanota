@@ -73,7 +73,7 @@ export class Button {
 					oncreate: (vnode) => {
 						this._domButton = vnode.dom
 					},
-					onbeforeremove: (vnode) => removeFlash(vnode.dom)
+					onremove: (vnode) => removeFlash(vnode.dom)
 				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 					class: this.getWrapperClasses().join(' '),
 					oncreate: (vnode) => {

@@ -4,6 +4,7 @@ import {NavBar} from "./NavBar"
 import {NavButtonColors, NavButtonN} from "./NavButtonN"
 import {styles} from "../styles"
 import {asyncImport, neverNull} from "../../api/common/utils/Utils"
+import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
@@ -18,7 +19,6 @@ import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
-import type {Shortcut} from "../../misc/KeyManager"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl = location.hash.startsWith("#mail")
@@ -43,7 +43,7 @@ class Header {
 	view: Function;
 	_currentView: ?CurrentView;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 	_shortcuts: Shortcut[];
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
@@ -184,7 +184,7 @@ class Header {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
 

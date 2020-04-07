@@ -36,7 +36,7 @@ export class ExpanderButton {
 							event.stopPropagation()
 						},
 						oncreate: vnode => addFlash(vnode.dom),
-						onbeforeremove: (vnode) => removeFlash(vnode.dom),
+						onremove: (vnode) => removeFlash(vnode.dom),
 						// Must be "true" or "false" strings, mere presence of attribute doesn't signify anything
 						"aria-expanded": String(!!this.panel.expanded),
 					}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869

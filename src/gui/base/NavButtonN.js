@@ -104,7 +104,7 @@ export class NavButtonN implements MComponent<NavButtonAttrs> {
 				this._domButton = vnode.dom
 				addFlash(vnode.dom)
 			},
-			onbeforeremove: (vnode) => {
+			onremove: (vnode) => {
 				removeFlash(vnode.dom)
 			},
 			selector: navButtonSelector(a.vertical),

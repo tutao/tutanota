@@ -209,7 +209,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						m.redraw()
 					})
 				},
-				onbeforeremove: () => {
+				onremove: () => {
 					if (this._indexStateWatch) {
 						this._indexStateWatch.end(true)
 					}

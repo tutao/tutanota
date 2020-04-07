@@ -24,6 +24,7 @@ import {lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
 import {MailEditor, newMail} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
+import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../api/main/LoginController"
@@ -62,7 +63,6 @@ import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
-import type {Shortcut} from "../misc/KeyManager"
 
 assertMainOrNode()
 
@@ -86,7 +86,7 @@ export class MailView implements CurrentView {
 	selectedFolder: ?MailFolder;
 	mailViewer: ?MailViewer;
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 	_mailboxExpanders: {[mailGroupId: Id]: MailboxExpander}
 	_folderToUrl: {[folderId: Id]: string};
 	_multiMailViewer: MultiMailViewer;
@@ -399,7 +399,7 @@ export class MailView implements CurrentView {
 			keyManager.registerShortcuts(shortcuts)
 			this._countersStream = mailModel.mailboxCounters.map(m.redraw)
 		}
-		this.onbeforeremove = () => {
+		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
 			this._countersStream.end(true)
 		}
