@@ -11,9 +11,8 @@ import {asyncImport, neverNull} from "../api/common/utils/Utils"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {themeId} from "../gui/theme"
-import {keyManager} from "../misc/KeyManager"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {BootstrapFeatureType, Keys} from "../api/common/TutanotaConstants"
+import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {base64ToUint8Array, base64UrlToBase64, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -106,7 +105,7 @@ export class LoginView {
 
 		const optionsExpander = this._expanderButton()
 
-		this._setupShortcuts()
+		this._setupHooks()
 
 		let bottomMargin = 0
 		const keyboardListener = (keyboardSize) => {
@@ -133,7 +132,7 @@ export class LoginView {
 							width: client.isDesktopDevice() ? "360px" : null,
 						}
 					}, [
-						this._displayMode === DisplayMode.Credentials ? this.credentialsSelector() : this.loginForm(),
+						this._displayMode === DisplayMode.Credentials ? this.renderCredentialsSelector() : this.rengerLoginForm(),
 						(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
 							m(optionsExpander),
 						]) : null,
@@ -147,17 +146,8 @@ export class LoginView {
 		}
 	}
 
-	_setupShortcuts() {
-		let shortcuts = [
-			{
-				key: Keys.RETURN,
-				exec: () => this.login(),
-				help: "login_label"
-			},
-		]
-
+	_setupHooks() {
 		this.oncreate = () => {
-			keyManager.registerShortcuts(shortcuts)
 			// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 			// it only sends one input/change event for all fields so we didn't know if fields
 			// were updated. So we kindly ask our fields to update themselves with real DOM values.
@@ -170,7 +160,6 @@ export class LoginView {
 		}
 		this.onremove = () => {
 			this.password.value("")
-			keyManager.unregisterShortcuts(shortcuts)
 
 			if (this._formsUpdateStream) {
 				this._formsUpdateStream.end(true)
@@ -263,10 +252,12 @@ export class LoginView {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
-	loginForm() {
+	rengerLoginForm() {
 		return m("form", {
 			onsubmit: (e) => {
-				e.preventDefault() // do not post the form, the form is just here to enable browser auto-fill (FF and chrome do not work in dist mode otherwise)
+				// do not post the form, the form is just here to enable browser auto-fill
+				e.preventDefault()
+				this.login()
 			},
 		}, [
 			m(this.mailAddress),
@@ -298,7 +289,7 @@ export class LoginView {
 		])
 	}
 
-	credentialsSelector(): Children {
+	renderCredentialsSelector(): Children {
 		return this._knownCredentials.map(c => {
 			const credentialButtons = [];
 
