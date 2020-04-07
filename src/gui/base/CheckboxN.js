@@ -32,7 +32,7 @@ export class _Checkbox {
 		}, [
 			m(".wrapper.flex.items-center", {
 				oncreate: (vnode) => addFlash(vnode.dom),
-				onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				onremove: (vnode) => removeFlash(vnode.dom),
 			}, [
 				// the real checkbox is transparent and only used to allow keyboard focusing and selection
 				m("input[type=checkbox]", {

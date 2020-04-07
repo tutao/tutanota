@@ -49,7 +49,7 @@ export class ContactViewer {
 	addresses: TextField[];
 	socials: TextField[];
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 
 	constructor(contact: Contact) {
 		this.contact = contact
@@ -226,7 +226,7 @@ export class ContactViewer {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
 	delete() {

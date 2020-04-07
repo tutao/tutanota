@@ -120,7 +120,7 @@ export class CalendarView implements CurrentView {
 	_calendarInvitations: Array<ReceivedGroupInvitation>
 
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 
 	constructor() {
 		this._currentViewType = deviceConfig.getDefaultCalendarView(logins.getUserController().user._id) || CalendarViewType.MONTH
@@ -324,7 +324,7 @@ export class CalendarView implements CurrentView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
 	_viewPeriod(next: boolean) {

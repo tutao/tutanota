@@ -126,7 +126,7 @@ class _Button {
 					this._domButton = vnode.dom
 					a.oncreate && a.oncreate(vnode)
 				},
-				onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				onremove: (vnode) => removeFlash(vnode.dom),
 			}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 				class: this.getWrapperClasses(a).join(' '),
 				style: {
@@ -136,7 +136,8 @@ class _Button {
 					if (type !== ButtonType.Toggle) {
 						addFlash(vnode.dom)
 					}
-				}
+				},
+				onremove: (vnode) => removeFlash(vnode.dom),
 			}, [
 				this.getIcon(a),
 				this._getLabelElement(a),

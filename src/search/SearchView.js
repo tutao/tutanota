@@ -69,7 +69,7 @@ export class SearchView implements CurrentView {
 	_searchList: SearchListView;
 	view: Function;
 	oncreate: Function;
-	onbeforeremove: Function;
+	onremove: Function;
 
 	_mailFolder: NavButtonAttrs;
 	_contactFolder: NavButtonAttrs;
@@ -429,7 +429,7 @@ export class SearchView implements CurrentView {
 			keyManager.registerShortcuts(shortcuts)
 			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
 		}
-		this.onbeforeremove = () => {
+		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
 			neverNull(header.searchBar).setReturnListener(noOp)
 		}

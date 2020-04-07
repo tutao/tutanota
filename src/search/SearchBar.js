@@ -82,7 +82,6 @@ export class SearchBar implements Component {
 	skipNextBlur: Stream<boolean>;
 	_state: Stream<SearchBarState>
 	oncreate: Function;
-	onbeforeremove: Function;
 	busy: boolean;
 	_groupInfoRestrictionListId: ?Id;
 	lastSelectedGroupInfoResult: Stream<GroupInfo>;
