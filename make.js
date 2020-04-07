@@ -87,13 +87,13 @@ function startDesktop() {
 	if (options.desktop) {
 		console.log("Trying to start desktop client...")
 		const version = require('./package.json').version
-		const packageJSON = require('./buildSrc/electron-package-json-template.js')(
-			"-debug",
-			version,
-			"http://localhost:9000",
-			path.join(__dirname, "/resources/desktop-icons/logo-solo-red.png"),
-			false
-		)
+		const packageJSON = require('./buildSrc/electron-package-json-template.js')({
+			nameSuffix: "-debug",
+			version: version,
+			updateUrl: "http://localhost:9000",
+			iconPath: path.join(__dirname, "/resources/desktop-icons/logo-solo-red.png"),
+			sign: false
+		})
 		const content = JSON.stringify(packageJSON)
 		return fs.writeFileAsync("./build/package.json", content, 'utf-8')
 		         .then(() => {

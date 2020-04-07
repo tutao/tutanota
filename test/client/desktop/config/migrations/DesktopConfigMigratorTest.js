@@ -7,9 +7,14 @@ o.spec('desktop config migrator test', function () {
 	o("migrations result in correct default config, client", function () {
 		const migrator = n.subject('../../src/desktop/config/migrations/DesktopConfigMigrator.js').default
 		const configPath = "../../../../../../buildSrc/electron-package-json-template.js"
-		const oldConfig = require(configPath)(
-			"", "0.0.0", "", "", "", false, false
-		)["tutao-config"]["defaultDesktopConfig"]
+		const oldConfig = require(configPath)({
+			nameSuffix: "",
+			version: "0.0.0",
+			updateUrl: "",
+			iconPath: "",
+			sign: false,
+			notarize: false
+		})["tutao-config"]["defaultDesktopConfig"]
 		const requiredResult = {
 			"heartbeatTimeoutInSeconds": 30,
 			"defaultDownloadPath": null,
