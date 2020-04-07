@@ -36,6 +36,8 @@ export class ElectronUpdater {
 			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
 		}
 		autoUpdater.logger = null
+		// default behaviour is to just dl the update as soon as found, but we want to check the signature
+		// before doing telling the updater to get the file.
 		autoUpdater.autoDownload = false
 		autoUpdater.autoInstallOnAppQuit = false
 		autoUpdater.on('update-available', updateInfo => {

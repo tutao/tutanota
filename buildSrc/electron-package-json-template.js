@@ -6,7 +6,9 @@ const pj = require('../package.json')
  * 2. copied to app-desktop/build/dist from dist.js (DesktopBuilder)
  */
 
-module.exports = function (nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked) {
+module.exports = function (opts) {
+	const {nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked} = opts
+
 	return {
 		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",

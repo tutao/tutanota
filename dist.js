@@ -185,34 +185,66 @@ function buildWebapp() {
 function buildDesktopClient() {
 	if (options.desktop) {
 		const desktopBuilder = require('./buildSrc/DesktopBuilder.js')
-		if (options.stage === "release") {
-			const updateUrl = options.customDesktopRelease
+		const desktopBaseOpts = {
+			dirname: __dirname,
+			version: version,
+			targets: options.desktop,
+			updateUrl: options.customDesktopRelease
 				? ""
-				: "https://mail.tutanota.com/desktop"
-			const notarize = !!options.customDesktopRelease
+				: "https://mail.tutanota.com/desktop",
+			nameSuffix: "",
+			notarize: !!options.customDesktopRelease,
+			outDir: options.outDir,
+			unpacked: options.unpacked
+		}
+		if (options.stage === "release") {
 			const buildPromise = createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, version, options.desktop, updateUrl, "", notarize, options.outDir, options.unpacked))
+				.then(() => desktopBuilder.build(desktopBaseOpts))
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
+				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
+					updateUrl: "https://test.tutanota.com",
+					nameSuffix: "-test",
+					notarize: true
+				})
 				buildPromise.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
-				            .then(() => desktopBuilder.build(__dirname, version, options.desktop, "https://test.tutanota.com/desktop", "-test",  /*notarize*/true, options.outDir, options.unpacked))
+				            .then(() => desktopBuilder.build(desktopTestOpts))
 			}
 			return buildPromise
 		} else if (options.stage === "local") {
+			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
+				version: `${new Date().getTime()}.0.0`,
+				updateUrl: "http://localhost:9000",
+				nameSuffix: "-snapshot",
+				notarize: false
+			})
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://localhost:9000", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000", "-snapshot", options.outDir, options.unpacked))
+				.then(() => desktopBuilder.build(desktopLocalOpts))
 		} else if (options.stage === "test") {
+			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
+				version: `${new Date().getTime()}.0.0`,
+				updateUrl: "https://test.tutanota.com/desktop",
+				nameSuffix: "-test",
+				notarize: false
+			})
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "https://test.tutanota.com/desktop", "-test", options.outDir, options.unpacked))
+				.then(() => desktopBuilder.build(desktopTestOpts))
 		} else if (options.stage === "prod") {
+			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
+				version: `${new Date().getTime()}.0.0`,
+				updateUrl: "http://localhost:9000/desktop",
+				notarize: false
+			})
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop", "", options.outDir, options.unpacked))
+				.then(() => desktopBuilder.build(desktopProdOpts))
 		} else { // stage = host
+			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
+				version: `${new Date().getTime()}.0.0`,
+				updateUrl: "http://localhost:9000/desktop-snapshot",
+				nameSuffix: "-snapshot",
+				notarize: false
+			})
 			return createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), options.host, version, "Desktop", true), bundles)
-				.then(() => desktopBuilder.build(__dirname, `${new Date().getTime()}.0.0`,
-					options.desktop, "http://localhost:9000/desktop-snapshot", "-snapshot", options.outDir, options.unpacked))
+				.then(() => desktopBuilder.build(desktopHostOpts))
 		}
 	}
 }

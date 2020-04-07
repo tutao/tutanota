@@ -3,7 +3,17 @@ const babel = Promise.promisifyAll(require("babel-core"))
 const fs = Promise.promisifyAll(require("fs-extra"))
 const path = require("path")
 
-function build(dirname, version, targets, updateUrl, nameSuffix, notarize, outDir, unpacked) {
+function build(opts) {
+	let {
+		dirname, // directory this was called from
+		version, // application version that gets built
+		targets, // which desktop targets to build and how to package them
+		updateUrl, // where the client should pull its updates from, if any
+		nameSuffix, // suffix used to distinguish test-, prod- or snapshot builds on the same machine
+		notarize, // for the MacOs notarization feature
+		outDir, // where to copy the finished artifacts
+		unpacked // output desktop client without packing it into an installer
+	} = opts
 	const targetString = Object.keys(targets)
 	                           .filter(k => typeof targets[k] !== "undefined")
 	                           .join(" ")
@@ -17,15 +27,16 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize, outDi
 	                        .map(fn => path.join(dirname, './src/translations', fn))
 
 	console.log("Updating electron-builder config...")
-	const content = require('./electron-package-json-template')(
-		nameSuffix,
-		version,
-		updateUrl,
-		path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
-		nameSuffix !== '-snapshot' && updateUrl !== "", // don't sign if it's a test build or if we don't download updates
-		notarize,
-		unpacked
-	)
+	const content = require('./electron-package-json-template')({
+		nameSuffix: nameSuffix,
+		version: version,
+		updateUrl: updateUrl,
+		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
+		sign: nameSuffix !== '-snapshot' && updateUrl !== "",
+		nameSuffix: nameSuffix,
+		notarize: notarize,
+		unpacked: unpacked
+	})
 	let writeConfig = fs.writeFileAsync("./build/dist/package.json", JSON.stringify(content), 'utf-8')
 
 	//prepare files
@@ -53,17 +64,26 @@ function build(dirname, version, targets, updateUrl, nameSuffix, notarize, outDi
 		.then(() => {
 			const installerDir = path.join(distDir, 'installers')
 			console.log("Move artifacts to", outDir)
-			const unpackedFilter = file => file.endsWith("-unpacked") || file === "mac"
-			const packedFilter = file => file.startsWith(content.name) || file.endsWith('.yml')
+			const outFiles = fs.readdirSync(installerDir)
+			let filesToCopy
+			// the output of the builder is very inconsistently named and contains
+			// files that are irrelevant to us. these filters enable us to copy them
+			// without naming every possible file name explicitly
+			if (unpacked) {
+				// when the unpacked option is set, output is a directory for each platform, with
+				// the mac directory missing the "-unpacked" suffix.
+				filesToCopy = outFiles.filter(file => file.endsWith("-unpacked") || file === "mac")
+			} else {
+				// the installers start with the application name + suffix. the update manifests end in yml.
+				filesToCopy = outFiles.filter(file => file.startsWith(content.name) || file.endsWith('.yml'))
+			}
 
 			return Promise.all(
-				fs.readdirSync(installerDir)
-				  .filter(unpacked ? unpackedFilter : packedFilter)
-				  .map(file => fs.moveAsync(
-					  path.join(installerDir, file),
-					  path.join(outDir, file)
-					  )
-				  )
+				filesToCopy.map(file => fs.moveAsync(
+					path.join(installerDir, file),
+					path.join(outDir, file)
+					)
+				)
 			)
 		}).then(() => Promise.all([
 			fs.removeAsync(path.join(distDir, '/installers/')),
