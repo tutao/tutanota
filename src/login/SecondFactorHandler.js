@@ -205,20 +205,24 @@ export class SecondFactorHandler {
 							auth.u2f = u2fSignatureResponse
 							return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 						}).catch(e => {
-							if (e instanceof U2fError) {
-								Dialog.error("u2fUnexpectedError_msg")
-							} else if (e instanceof AccessBlockedError) {
+							// We cannot cancel u2f request but we can ignore the error if no one is listening already.
+							if (e instanceof AccessBlockedError && this._waitingForSecondFactorDialog
+								&& this._waitingForSecondFactorDialog.visible) {
 								Dialog.error("loginFailedOften_msg")
-							} else {
-								if (e instanceof U2fWrongDeviceError) {
-									Dialog.error("u2fAuthUnregisteredDevice_msg")
-								} else if (e instanceof NotAuthenticatedError) {
-									Dialog.error("loginFailed_msg")
-								}
-								if (this._waitingForSecondFactorDialog
-									&& this._waitingForSecondFactorDialog.visible) {
-									registerResumeOnError()
-								}
+								this.closeWaitingForSecondFactorDialog()
+							} else if (e instanceof U2fError && this._waitingForSecondFactorDialog
+								&& this._waitingForSecondFactorDialog.visible) {
+								Dialog.error("u2fUnexpectedError_msg")
+								this.closeWaitingForSecondFactorDialog()
+							}
+							if (e instanceof U2fWrongDeviceError) {
+								Dialog.error("u2fAuthUnregisteredDevice_msg")
+							} else if (e instanceof NotAuthenticatedError) {
+								Dialog.error("loginFailed_msg")
+							}
+							if (this._waitingForSecondFactorDialog
+								&& this._waitingForSecondFactorDialog.visible) {
+								registerResumeOnError()
 							}
 						})
 					}
