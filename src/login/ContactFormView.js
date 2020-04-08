@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import {Button} from "../gui/base/Button"
 import {assertMainOrNode} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {animations, opacity} from "../gui/animation/Animations"
@@ -85,7 +84,7 @@ class ContactFormView {
 						})),
 						m(".pt-l", m(ButtonN, {
 							label: "readResponse_action",
-							click: () => m.route.set("login"),
+							click: () => m.route.set("/login"),
 							type: ButtonType.Login,
 						})),
 						(this._helpHtml)
