@@ -4,7 +4,7 @@ import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientI
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import type {MailFolderTypeEnum, ReportedMailFieldTypeEnum} from "../api/common/TutanotaConstants"
+import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
@@ -38,7 +38,6 @@ import {endsWith} from "../api/common/utils/StringUtils"
 import {fileController} from "../file/FileController"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import type {InlineImages} from "./MailViewer"
-import murmurHash from "../api/worker/crypto/lib/murmurhash3_32"
 
 assertMainOrNode()
 

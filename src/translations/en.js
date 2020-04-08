@@ -1097,7 +1097,7 @@ module.exports = {
 		"light_label": "Light",
 		"yourMessage_label": "Your message",
 		// TODO: add to Phrase
-		"phisingReport_msg": "Contents of the message will be transmitted to the server in unencrypted form so that we can improve phishing protection. Are you sure you want to report this message?",
+		"phishingReport_msg": "Contents of the message will be transmitted to the server in unencrypted form so that we can improve phishing protection. Are you sure you want to report this message?",
 		"phishingMessage_label": "This message looks suspicious.",
 		"phishingMessageBody_msg": "It is similar to other messages reported for phishing.",
 		"reportPhishing_action": "Report phishing",

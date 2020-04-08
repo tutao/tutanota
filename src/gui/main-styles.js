@@ -1176,16 +1176,6 @@ styles.registerStyle('main', () => {
 			"animation": "move-stripes 2s linear infinite"
 		},
 
-		'.warning-stripes': {
-			'background-image': `repeating-linear-gradient(
-  -45deg,
-  yellow,
-  yellow 5px,
-  black 5px,
-  black 10px
-);`
-		},
-
 		'.transition-margin': {'transition': `margin-bottom 200ms ease-in-out`},
 
 		'.date-selected': {

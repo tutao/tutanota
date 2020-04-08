@@ -613,7 +613,7 @@ export class MailViewer {
 	}
 
 	_reportPhishing() {
-		Dialog.confirm("phisingReport_msg").then((confirmed) => {
+		Dialog.confirm("phishingReport_msg").then((confirmed) => {
 			if (confirmed) {
 				worker.resolveSessionKey(MailTypeModel, this.mail)
 				      .then((mailSessionKeyB64) => {
