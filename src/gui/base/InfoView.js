@@ -1,16 +1,16 @@
+//@flow
 import m from "mithril"
 import {px} from "../size"
 import {assertMainOrNodeBoot} from "../../api/Env"
-import {AriaLandmarks} from "../../api/common/TutanotaConstants"
-import {landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 
 assertMainOrNodeBoot()
 
 export class InfoView {
 	title: lazy<string>;
-	content: lazy<VirtualElement>;
+	content: lazy<Children>;
 
-	constructor(title, content) {
+	constructor(title: lazy<string>, content: lazy<Children>) {
 		this.title = title
 		this.content = content
 	}
