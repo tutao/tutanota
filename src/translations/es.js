@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2020-03-30T14:25:44Z",
+	"updated_at": "2020-04-06T12:59:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -272,6 +272,7 @@ module.exports = {
 		"customNotificationEmails_label": "Correos electrónicos de notificación personalizados",
 		"custom_label": "Personalizado",
 		"cut_action": "Cortar",
+		"dark_label": "Oscuro",
 		"dataExpired_msg": "La información cargada ha expirado y no está sincronizada con los datos de los servidores de Tutanota. Cierra sesión y vuelva a iniciarla para actualizar tu información.",
 		"dateFrom_label": "Desde",
 		"dateInvalidRange_msg": "Por favor defina un intervalo de fechas válido.",
@@ -562,6 +563,7 @@ module.exports = {
 		"lastAccess_label": "Último acceso",
 		"lastName_placeholder": "Apellido",
 		"laterInvoicingInfo_msg": "Información: Además, las funciones ordenadas no se facturarán directamente, sino al principio del próximo mes de suscripción.",
+		"light_label": "Claro",
 		"linkedin_label": "LinkedIn",
 		"loading_msg": "Cargando ...",
 		"localAdminGroupAssignedError_msg": "Aún hay usuarios o grupos asignados a este grupo de administración local. No puede ser desactivado.",

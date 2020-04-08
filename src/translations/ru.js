@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2020-03-28T15:22:27Z",
+	"updated_at": "2020-04-01T15:55:36Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -140,6 +140,7 @@ module.exports = {
 		"calendarShareCapabilityInvite_label": "Управление общим доступом",
 		"calendarShareCapabilityRead_label": "Только чтение",
 		"calendarShareCapabilityWrite_label": "Чтение и запись",
+		"calendarView_action": "Перейти в Календарь\n",
 		"calendar_label": "Календарь",
 		"callNumber_alt": "Позвоните по этому номеру",
 		"cameraUsageDescription_msg": "Сделайте снимок или видео, чтобы приложить его к сообщению.",
@@ -1063,6 +1064,9 @@ module.exports = {
 		"userEmailSignature_label": "Подпись",
 		"userSettings_label": "Настройки пользователя",
 		"validInputFormat_msg": "Формат верен.",
+		"viewNextPeriod_action": "Показать следующий период",
+		"viewPrevPeriod_action": "Показать предыдущий период",
+		"viewToday_action": "Показать текущий период",
 		"view_label": "Вид",
 		"waitingForApproval_msg": "Извините, но Вы пока не можете отправлять или получать письма. Это связано с тем, что Ваша учётная запись отмечена как требующая одобрения. Это сделано, чтобы предотвратить массовую регистрацию. Команда Tutanota одобрит Вашу учётную запись в течении 48 часов. Благодарим Вас за терпение!",
 		"wantToSendReport_msg": "Что-то неожиданно  пошло не так. Отправить отчет об ошибке? Вы можете добавить сообщение, чтобы помочь нам исправить эту ошибку. ",
