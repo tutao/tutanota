@@ -140,7 +140,7 @@ public class MainActivity extends ComponentActivity {
 				try {
 					startActivity(intent);
 				} catch (ActivityNotFoundException e) {
-					Toast.makeText(MainActivity.this, "Could not open link", Toast.LENGTH_SHORT)
+					Toast.makeText(MainActivity.this, "Could not open link: " + url, Toast.LENGTH_SHORT)
 							.show();
 				}
 				return true;
