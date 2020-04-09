@@ -81,7 +81,7 @@ export class PaymentMethodInput {
 			view: () => {
 				return m(".flex-center", m(MessageBoxN, {
 					style: {marginTop: px(16)},
-				}), this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg")
+				}, lang.get(this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg")))
 			}
 		}
 
