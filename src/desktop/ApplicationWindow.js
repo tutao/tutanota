@@ -1,6 +1,6 @@
 // @flow
-import type {ElectronPermission, FindInPageResult} from 'electron'
-import {BrowserWindow, Menu, shell, WebContents} from 'electron'
+import type {ElectronPermission, FindInPageResult, ContextMenuParams} from 'electron'
+import {BrowserWindow, Menu, shell, WebContents, app} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import u2f from '../misc/u2f-api.js'
@@ -169,9 +169,6 @@ export class ApplicationWindow {
 				    }).findInPage(searchTerm, options)
 			    }
 		    })
-		    .on('context-menu', (e, params) => {
-			    this.sendMessageToWebContents('open-context-menu', [{linkURL: params.linkURL}])
-		    })
 		    .on('did-fail-load', (evt, errorCode, errorDesc) => {
 			    console.log("failed to load resource: ", errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
@@ -189,14 +186,14 @@ export class ApplicationWindow {
 		    })
 
 		this._browserWindow.webContents.on('dom-ready', () => {
-			this.sendMessageToWebContents('setup-context-menu', [])
+			this.sendMessageToWebContents('initialize-ipc', [app.getVersion(), this.id])
 		})
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
-		this._reRegisterShorctus()
+		this._reRegisterShortcuts()
 	}
 
-	_reRegisterShorctus() {
+	_reRegisterShortcuts() {
 		localShortcut.unregisterAll(this._browserWindow)
 		this._shortcuts.forEach(s => {
 			// build the accelerator string localShortcut understands
@@ -237,6 +234,11 @@ export class ApplicationWindow {
 		return this._ipc.initialized(this.id).then(() =>
 			this._ipc.sendRequest(this.id, 'openCalendar', [info.userId])
 		).then(() => this.show())
+	}
+
+	setContextMenuHandler(handler: (ContextMenuParams, WebContents)=>void) {
+		const wc = this.browserWindow.webContents
+		wc.on('context-menu', (e, params) => handler(params, wc))
 	}
 
 	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {

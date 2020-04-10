@@ -25,11 +25,11 @@ o.spec("ApplicationWindow Test", function () {
 				isDestroyed: function () {
 					return this.destroyed
 				},
-				on: function (ev: string, cb: ()=>void) {
+				on: function (ev: string, cb: () => void) {
 					this.callbacks[ev] = cb
 					return this
 				},
-				once: function (ev: string, cb: ()=>void) {
+				once: function (ev: string, cb: () => void) {
 					this.callbacks[ev] = cb
 					return this
 				},
@@ -54,11 +54,11 @@ o.spec("ApplicationWindow Test", function () {
 								this.webContents.zoomFactor = val
 							}
 						},
-						on: (ev: string, cb: ()=>void) => {
+						on: (ev: string, cb: () => void) => {
 							this.webContents.callbacks[ev] = cb
 							return this.webContents
 						},
-						once: (ev: string, cb: ()=>void) => {
+						once: (ev: string, cb: () => void) => {
 							this.webContents.callbacks[ev] = cb
 							return this.webContents
 						},
@@ -151,6 +151,9 @@ o.spec("ApplicationWindow Test", function () {
 		Menu: {
 			setApplicationMenu: () => {
 			}
+		},
+		app: {
+			getVersion: () => "app version"
 		}
 	}
 	const electronLocalshortcut = {
@@ -262,7 +265,6 @@ o.spec("ApplicationWindow Test", function () {
 			'will-attach-webview',
 			'did-start-navigation',
 			'before-input-event',
-			'context-menu',
 			'did-fail-load',
 			'did-finish-load',
 			'dom-ready'
@@ -627,22 +629,29 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.webContents.send.args[1]).equals(args)
 	})
 
-	o("context-menu is passed to webContents", function () {
+	o("context-menu is passed to handler", function () {
 		const {electronMock, wmMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+		const handlerMock = n.spyify(() => {})
+		w.setContextMenuHandler(handlerMock)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		const e = {preventDefault: o.spy()}
-		bwInstance.webContents.callbacks['context-menu'](e, {linkURL: 'dies.ist.ne/url'})
+		bwInstance.webContents.callbacks['context-menu'](e, {linkURL: 'dies.ist.ne/url', editFlags: "someflags"})
 
-		o(bwInstance.webContents.send.callCount).equals(1)
-		o(bwInstance.webContents.send.args).deepEquals(['open-context-menu', [{linkURL: 'dies.ist.ne/url'}]])
+		o(bwInstance.webContents.send.callCount).equals(0)
 		o(e.preventDefault.callCount).equals(0)
+
+		o(handlerMock.callCount).equals(1)
+		o(handlerMock.args).deepEquals([
+			{linkURL: 'dies.ist.ne/url', editFlags: "someflags"},
+			bwInstance.webContents
+		])
 	})
 
-	o("dom-ready causes context menu setup", function (done) {
+	o("dom-ready causes ipc setup", function (done) {
 		const {electronMock, wmMock, langMock} = standardMocks()
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
@@ -652,8 +661,8 @@ o.spec("ApplicationWindow Test", function () {
 
 		setTimeout(() => {
 			o(bwInstance.webContents.send.callCount).equals(1)
-			o(bwInstance.webContents.send.args[0]).equals('setup-context-menu')
-			o(bwInstance.webContents.send.args[1]).deepEquals([])
+			o(bwInstance.webContents.send.args[0]).equals('initialize-ipc')
+			o(bwInstance.webContents.send.args[1]).deepEquals(['app version', w.id])
 			done()
 		}, 10)
 	})

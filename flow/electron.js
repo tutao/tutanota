@@ -12,6 +12,7 @@ declare module 'electron' {
 	declare export var remote: any;
 	declare export var screen: ElectronScreen;
 	declare export var webFrame: WebFrame;
+	declare export var clipboard: ClipBoard;
 	declare export var dialog: ElectronDialog;
 	declare export var globalShortcut: {
 		register(shortcut: string, cb: Function): void;
@@ -42,6 +43,21 @@ declare module 'electron' {
 		width: number,
 		height: number
 	|};
+
+	declare export type ClipBoard = {
+		writeText(string): void;
+	}
+
+	declare export type ContextMenuParams = {
+		linkURL: string,
+		editFlags: {
+			canCut: boolean,
+			canPaste: boolean,
+			canCopy: boolean,
+			canUndo: boolean,
+			canRedo: boolean
+		}
+	}
 
 	declare export type IncomingMessage = {
 		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
@@ -100,7 +116,7 @@ declare module 'electron' {
 		 * Will be called with `click(menuItem, browserWindow, event)` when the menu item
 		 * is clicked.
 		 */
-		click?: (menuItem: MenuItem, browserWindow: BrowserWindow, event: KeyboardEvent) => void;
+		+click?: (menuItem: MenuItem, browserWindow: BrowserWindow, event: KeyboardEvent) => void;
 		/**
 		 * Can be `undo`, `redo`, `cut`, `copy`, `paste`, `pasteAndMatchStyle`, `delete`,
 		 * `selectAll`, `reload`, `forceReload`, `toggleDevTools`, `resetZoom`, `zoomIn`,
@@ -364,6 +380,8 @@ declare module 'electron' {
 			beforeGroupContaining?: string,
 			afterGroupContaining?: string,
 		}): MenuItem;
+		click(): void;
+		enabled: boolean;
 	}
 
 	declare export class BrowserWindow {
@@ -466,6 +484,11 @@ declare module 'electron' {
 		executeJavaScript(code: string): Promise<any>;
 		findInPage(searchString: string, opts: {forward: boolean, matchCase: boolean}): void;
 		stopFindInPage(action: "clearSelection" | "keepSelection" | "activateSelection"): void;
+		copy(): void;
+		cut(): void;
+		paste(): void;
+		undo(): void;
+		redo(): void;
 	}
 
 	declare export class WebFrame {
@@ -502,7 +525,7 @@ declare module 'electron' {
 
 
 declare type ClientRequest = {
-	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage)=>void): ClientRequest,
+	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage) => void): ClientRequest,
 	end(): ClientRequest,
 	abort(): void,
 };
@@ -725,13 +748,13 @@ declare module 'request' {
 
 declare module 'https' {
 	declare module .exports: {
-		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+		request: (url: string, options: any, callback: ?() => void) => ClientRequest;
 	}
 }
 
 declare module 'http' {
 	declare module .exports: {
-		request: (url: string, options: any, callback: ?() => void)=> ClientRequest;
+		request: (url: string, options: any, callback: ?() => void) => ClientRequest;
 	}
 }
 

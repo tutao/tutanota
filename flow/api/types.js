@@ -215,9 +215,9 @@ type JsRequestType = 'createMailEditor'
 	| 'addShortcuts'
 
 type WebContentsMessage
-	= 'setup-context-menu'
-	| 'open-context-menu'
+	= 'initialize-ipc'
 	| 'set-zoom-factor'
+	| 'socket-message'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>
