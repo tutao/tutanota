@@ -14,7 +14,7 @@ o.spec("Desktop Window Manager Test", () => {
 	const electron = {
 		app: {
 			callbacks: [],
-			once: function (ev: string, cb: ()=>void) {
+			once: function (ev: string, cb: () => void) {
 				this.callbacks[ev] = cb
 				return n.spyify(electron.app)
 			},
@@ -46,11 +46,11 @@ o.spec("Desktop Window Manager Test", () => {
 				openMailbox: function (info: UserInfo, path: string) {
 
 				},
-				on: function (ev: string, cb: ()=>void) {
+				on: function (ev: string, cb: () => void) {
 					this.callbacks[ev] = cb
 					return this
 				},
-				once: function (ev: string, cb: ()=>void) {
+				once: function (ev: string, cb: () => void) {
 					this.callbacks[ev] = cb
 					return this
 				},
@@ -92,7 +92,8 @@ o.spec("Desktop Window Manager Test", () => {
 					return Promise.resolve()
 				},
 				showInactive: function () {
-				}
+				},
+				setContextMenuHandler: function(){}
 			},
 			statics: {
 				lastId: 0
@@ -103,7 +104,7 @@ o.spec("Desktop Window Manager Test", () => {
 	const dl = {}
 
 	const conf = {
-		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
+		removeListener: (key: string, cb: () => void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
 		getDesktopConfig: (key: string) => {
 			switch (key) {
@@ -153,23 +154,31 @@ o.spec("Desktop Window Manager Test", () => {
 
 	const ipc = {}
 
+	const contextMenu = {
+		DesktopContextMenu: n.classify({
+			prototype: {},
+			statics: {}
+		})
+	}
+
 	const standardMocks = () => {
 		const electronMock = n.mock('electron', electron).set()
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		const confMock = n.mock("__conf", conf).set()
 		const desktopTrayMock = n.mock("./tray/DesktopTray", desktopTray).set()
-		const notifierMock = n.mock("__notifier", notifier).set()
-		const ipcMock = n.mock("__ipc", ipc).set()
-
+		const confMock = n.mock('__conf', conf).set()
+		const notifierMock = n.mock('__notifier', notifier).set()
+		const ipcMock = n.mock('__ipc', ipc).set()
+		const contextMenuMock = n.mock("./DesktopContextMenu", contextMenu).set()
 		return {
 			electronMock,
 			applicationWindowMock,
 			dlMock,
-			confMock,
 			desktopTrayMock,
+			confMock,
 			notifierMock,
 			ipcMock,
+			contextMenuMock
 		}
 	}
 
@@ -191,7 +200,6 @@ o.spec("Desktop Window Manager Test", () => {
 	})
 
 	o("create one window with showWhenReady=false, no lastBounds", () => {
-		// node modules
 		const {
 			applicationWindowMock,
 			dlMock,
@@ -221,6 +229,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(win.center.callCount).equals(1)
 		o(win.setBounds.callCount).equals(0)
 		o(win.show.callCount).equals(0)
+		o(win.setContextMenuHandler.callCount).equals(1)
 		o(applicationWindowMock.ApplicationWindow.args).deepEquals([
 			wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html", undefined
 		])
@@ -236,6 +245,7 @@ o.spec("Desktop Window Manager Test", () => {
 			ipcMock
 		} = standardMocks()
 
+		// instances
 		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
 		const confMock = n.mock('__conf', conf)
 		                  .with({
@@ -249,6 +259,7 @@ o.spec("Desktop Window Manager Test", () => {
 			                  }
 		                  })
 		                  .set()
+
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -286,9 +297,9 @@ o.spec("Desktop Window Manager Test", () => {
 			applicationWindowMock,
 			dlMock,
 			confMock,
+			desktopTrayMock,
 			notifierMock,
-			ipcMock,
-			desktopTrayMock
+			ipcMock
 		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')

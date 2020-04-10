@@ -3,6 +3,8 @@
 import net from 'net'
 import {app} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
+import type {WindowManager} from "./DesktopWindowManager"
+import {isMailAddress} from "../misc/FormatValidator"
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
 
@@ -26,6 +28,15 @@ export class Socketeer {
 				if (this._server) {
 					this._server.close()
 				}
+			}
+		})
+	}
+
+	attachWindowManager(wm: WindowManager) {
+		this.startClient(msg => {
+			const mailAddress = JSON.parse(msg).mailAddress
+			if (typeof mailAddress === 'string' && isMailAddress(mailAddress, false)) {
+				wm.getLastFocused(true).sendMessageToWebContents('socket-message', {mailAddress})
 			}
 		})
 	}

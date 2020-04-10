@@ -136,8 +136,8 @@ export class IPC {
 				return this._dl.downloadNative(...args.slice(0, 3))
 			case 'saveBlob':
 				// args: [data.name, uint8ArrayToBase64(data.data)]
-				const filename : string = downcast(args[0])
-				const data : Uint8Array = base64ToUint8Array(downcast(args[1]))
+				const filename: string = downcast(args[0])
+				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
 				return this._dl.saveBlob(filename, data, this._wm.get(windowId))
 			case "aesDecryptFile":
 				// key, path
@@ -192,7 +192,6 @@ export class IPC {
 					)
 				]).return()
 			case 'initPushNotifications':
-				console.log("initPushNotifications")
 				this._sse.connect()
 				return Promise.resolve()
 			case 'closePushNotifications':

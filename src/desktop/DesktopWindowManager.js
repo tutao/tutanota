@@ -11,6 +11,7 @@ import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {IPC} from "./IPC"
+import {DesktopContextMenu} from "./DesktopContextMenu"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -24,6 +25,7 @@ export class WindowManager {
 	_conf: DesktopConfigHandler
 	_tray: DesktopTray
 	_notifier: DesktopNotifier
+	_contextMenu: DesktopContextMenu
 	ipc: IPC
 	dl: DesktopDownloadManager
 
@@ -32,6 +34,7 @@ export class WindowManager {
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
+		this._contextMenu = new DesktopContextMenu()
 	}
 
 	setIPC(ipc: IPC) {
@@ -76,6 +79,7 @@ export class WindowManager {
 			}
 		})
 
+		w.setContextMenuHandler((params, wc) => this._contextMenu.open(params, wc))
 
 		return w
 	}

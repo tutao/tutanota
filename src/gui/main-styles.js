@@ -38,6 +38,7 @@ styles.registerStyle('main', () => {
 		"#link-tt.reveal": isDesktop() ? {
 			"opacity": 1,
 			"transition": "opacity .1s linear",
+			"z-index": 100,
 		} : {},
 
 		"*:not(input):not(textarea)": isAdminClient() ? {} : {
