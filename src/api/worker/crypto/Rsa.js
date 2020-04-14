@@ -103,17 +103,25 @@ export function rsaEncryptSync(publicKey: PublicKey, bytes: Uint8Array, seed: Ui
 		let paddedBytes = oaepPad(bytes, publicKey.keyLength, seed)
 		let paddedHex = _bytesToHex(paddedBytes)
 
-		let bigInt = parseBigInt(paddedHex, 16)
-		let encrypted = rsa.doPublic(bigInt)
+		const bigInt = parseBigInt(paddedHex, 16)
+		const encrypted = rsa.doPublic(bigInt).toByteArray()
 
-		//FIXME remove hex conversion
+		// Pad the data up to the required length, required by some RSA implementations
+		const expectedLength = publicKey.keyLength / 8
+		const result = new Uint8Array(expectedLength)
 
-		let encryptedHex = encrypted.toString(16)
-		if ((encryptedHex.length % 2) === 1) {
-			encryptedHex = "0" + encryptedHex
+		let leadingZeroes = 0 // JSBN sometimes not only produces shorter arrays but also longer ones (at least with one leading zero)
+		for (let i = 0; i < encrypted.length; i++) {
+			if (encrypted[i] !== 0) {
+				leadingZeroes = i
+				break
+			}
 		}
+		const paddingLength = expectedLength - (encrypted.length - leadingZeroes)
+		result.fill(0, 0, paddingLength)
+		result.set(encrypted.slice(leadingZeroes), paddingLength)
 
-		return hexToUint8Array(encryptedHex)
+		return result
 	} catch (e) {
 		throw new CryptoError("failed RSA encryption", e)
 	}
@@ -168,7 +176,10 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
  * @param bytes
  * @return returns the signature.
  */
-export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
+export function sign(privateKey: PrivateKey, bytes: Uint8Array, salt: Uint8Array = random.generateRandomData(32)): Uint8Array {
+	if (salt.length !== 32) {
+		throw new Error("Invalid salt length: " + salt.length)
+	}
 	try {
 		let rsa = new RSAKey()
 		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
@@ -180,19 +191,26 @@ export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
 		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
 		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
 
-		var salt = random.generateRandomData(32);
-		let paddedBytes = encode(bytes, privateKey.keyLength, salt)
-		let paddedHex = _bytesToHex(paddedBytes)
+		const paddedBytes = encode(bytes, privateKey.keyLength, salt)
+		const paddedHex = _bytesToHex(paddedBytes)
 
-		let bigInt = parseBigInt(paddedHex, 16)
-		let signed = rsa.doPrivate(bigInt)
-
-		let signedHex = signed.toString(16)
-		if ((signedHex.length % 2) === 1) {
-			signedHex = "0" + signedHex
+		const bigInt = parseBigInt(paddedHex, 16)
+		const signed: Array<number> = rsa.doPrivate(bigInt).toByteArray()
+		// JSBN does not pad array (neither with toString() nor with toByteArray()) so we have to do it manually
+		const expectedLength = privateKey.keyLength / 8
+		const result = new Uint8Array(expectedLength)
+		let leadingZeroes = 0 // JSBN sometimes not only produces shorter arrays but also longer ones (at least with one leading zero)
+		for (let i = 0; i < signed.length; i++) {
+			if (signed[i] !== 0) {
+				leadingZeroes = i
+				break
+			}
 		}
-
-		return hexToUint8Array(signedHex)
+		const resultPaddingLength = expectedLength - (signed.length - leadingZeroes)
+		// Fill padding bytes with zeroes
+		result.fill(0, 0, resultPaddingLength)
+		result.set(signed, resultPaddingLength)
+		return result
 	} catch (e) {
 		throw new CryptoError("failed RSA sign", e)
 	}

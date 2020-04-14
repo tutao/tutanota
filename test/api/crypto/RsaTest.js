@@ -92,6 +92,121 @@ o.spec("rsa", function () {
 		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
 	})
 
+	o("rsa encrypt longer result", function () {
+		// This input makes JSBN produce leading zeroes in byte output and we need to take this into account
+		const keyPair = {
+			publicKey:
+				{
+					version: 0,
+					keyLength: 2048,
+					modulus:
+						'ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=',
+					publicExponent: 65537
+				},
+			privateKey:
+				{
+					version: 0,
+					keyLength: 2048,
+					modulus:
+						'ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=',
+					privateExponent:
+						'Nr4S+qiHDVvRLI8qc0Gp2jY59noiEqNABeKHx3ob9XUZaG3qyH6BvhoIJMQy6Qlvu7Ri8Mjq1nOmWjPczrPP+haUrHIkLpx/hLffGalIqrgOI06hPQrZTgvThfaRT+1+nO5JmhwQSYtsJ952/qNx99lYYU6OR9vX/g4u/LEuqXfvluYLS+low9RizepoYnv+k5u8WLwekHFi9eyO6BK1f5RizSFbA5+qqOWl9cyI8jLtAfskLF6+v1fkHg6ZbxqbtiddRGSMAK4Z+HEKrsuUKqsxtkL+tYSxe2QvZm2mhsiJTrXrq+dBOAzy6FbrAdGR2l5Mwfqb+SuO+Tb+HO5lgQ==',
+					primeP:
+						'AOcqBtOGECvIbtvcYApoS92KEXge28NhtNRa97356nY+j+ibn1gN4AyGJS8GufvOv7mFq9m+eQZpLHOgQ0xXlXU3UnJVLN2eYbwrNc6vVOii6xMEXXolImtYrD5YLkAmvsP8NNIJCU5ntakXuAm461xdpZOvgIDmlI+WIiLvobzJ',
+					primeQ:
+						'AMeX8XCw2W/zE2z8GB1r4GpKfBUjNAfO9nEiRUdq1mXEd5MlRvZDi+4hlCKPHHrRgo7SZsQtl1rbBdWiTZdhkdD2UbEt1hNZ6NtgWZssrs+SIDtnOBg0wHHWUUlwkoaTzYcL984qlz2hn468FDBBvO7eR/Z+S3sQ5wSPTkL7dnsZ',
+					primeExponentP:
+						'LBRugs1QrhilUxV91t42gUM/u4ke3O33vnquPTK3y954MKHkS7UxoRG/a20779Fn6+eacoYIq/lIObA4xQj6fgSTmyu0x3nZJzmSJBx483eFnfW6IX2NR6z8A1NrVl5NCDBCnj6M4L+T+2+Db48sikttNHFF7s6JS6wUTFcnn0k=',
+					primeExponentQ:
+						'AMHOm4YWY3yeJq27+FqRRp9PZj9MKJiwcYKXiXf4mOjGpml+V/KG0lhPyLzqA/iKeeDfEyTJNF/nrzmrWPZ2qpWiqN6HqIiv1Dk4zKmt8KzjsmKcLs7qYjfnqJTMN6tv17GbgGtz1dnll76MiHn3S1MTCgOizP5aAkjeMls+O+T5',
+					crtCoefficient:
+						'KtVWWNvEmo0ZjSBsQBq9YhghylphP/88BIO0X2C3gH+07+U9laZEO7HiEvD15bbYwf2LKr0xeWiK5vuPdMGcvKmo3tmb4HPP5exddJ+Kpo1XVvOGV1NxiOQlDkhQqSo2be/EeHuNreKM8275drvdCcOuEg8QOMsrae2PCMbqE0w='
+				}
+		}
+		const seed = new Uint8Array([
+			85,
+			187,
+			219,
+			138,
+			52,
+			2,
+			113,
+			97,
+			241,
+			224,
+			161,
+			107,
+			39,
+			121,
+			234,
+			31,
+			17,
+			93,
+			14,
+			185,
+			255,
+			173,
+			233,
+			244,
+			123,
+			159,
+			247,
+			166,
+			12,
+			49,
+			232,
+			214
+		])
+		const plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
+
+		const encrypted = rsaEncryptSync(keyPair.publicKey, plain, seed)
+		let plainAgain = rsaDecryptSync(keyPair.privateKey, encrypted)
+		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
+	})
+
+	o("rsa test shorter result", function () {
+		// This combination produces encrypted data with length of 254 and we pad have to pad it to 256
+		// We use fixed keypair and salt to reproduce this error each time
+		const keyPair = {
+			publicKey:
+				{
+					version: 0,
+					keyLength: 2048,
+					modulus:
+						'AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=',
+					publicExponent: 65537
+				},
+			privateKey:
+				{
+					version: 0,
+					keyLength: 2048,
+					modulus:
+						'AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=',
+					privateExponent:
+						'Vmx99n466qkJBRJGenV/SeJesYFkAPo+g/LKgRM8ZmAXjLFDMyNef1btiNYwpwPlEUdxxYY1V7M5H682+ifba+nhgBdijP6W8dPssasKrBUWMjtff6whOfxmusSCu0MUOJVZGKdFgc/lo0AKJdC+rUMZRganPx4tAqvYw0dA1beKnboCbxy3V8IA2jSHQoq96lJ2rWuTGp+mWsQLqyqNB/jAzTiFXqxGca1qRWAUvCR+a0aV6vS3BSKaveyuJTGUkW2KKU5pJw+7K4onXgWuvkhMKg3OLqVW1zF6dUOf0ur1AC9dO03lrVSvKdOHiEUQsru6zB0KaLNyJKuTy9KxwQ==',
+					primeP:
+						'AOucuvOtNk/tA3p5PaceGMfu1o2XgUeF3bloSLBU+y3Gf0Wsd1syKIvm5dCjIF9vwIDDi0Zd16gk3sPF9xfuUJiTI/nXPbVOjzaFREenp9eJKX2EhrUNVFfg3yScR3xNNwAxoZoDQsBFwtJ9OCWfurmjSf5xqX9fvjrxdFNbeaJj',
+					primeQ:
+						'ALblOQAt3YMaXCnvJUdZCdzTN5TappttbRiOpiWotcJ4B/1M9OEbYSLecO12ZuJlZvFYvzXeVidRz2ECty+8uXKcw7wCptdxY3Lpn6kcGqs/pVel3/0OqZgpo8Qi4aYvRAjw9tyD+aZq85OuCf9l8WkeuMpsLC2P7zsFWp1iy6GD',
+					primeExponentP:
+						'KBp2S9G4w+PwyqDmWJKr3yQNCu61x4nGkq9oZ/MfCcyWjzJq4m/oLN/xUBDkCrqHxqMCCskgUvNro2EHzN/4ge/RmM4FJ94mTD5kv9mOnQYwtLehAiIxr/+Lm7yqAkNWUEciXYeejgGRxqgfrW/BpaVgi9mm4xJV28yLY0DXtEc=',
+					primeExponentQ:
+						'AKhxOCwIEcia0GL2kzjAsiqkhL4dGfBvuVgymKZ6WNu/vGv3Iljn5HA+uXaZ42uCxGpmt8Oe/227FOldnOTkRU9fPY28S3iEP3kn3RncfltVhKvSYxYnGN7BCsiq73MkeN5bPqAdFCHGwooycZa8hrevybT0J0PXGhcbeTcWNECN',
+					crtCoefficient:
+						'ahQsS+g8tOsUglzDmPeEtzXZz4Nm/4V14UZkLB8UoQsGwxPYorcH4TBpvtcS2Pm7i9VePeDR1SaaORf5mumuEskURg/7OW28H4GusMAk+kOigxmGrIMqJMpk6hy0nsgenSCX+iJ49ph2rUtm2kJovI+e64Ytkvajzteufb27XN0='
+				}
+		}
+		const plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
+		const salt = new Uint8Array([
+			120, 151, 119, 228, 21, 98, 99, 49, 233, 69, 169, 58, 158, 95, 153, 22, 23, 127, 216, 77, 109, 199, 208, 245, 38, 133, 107, 86,
+			23, 149, 223, 40
+		])
+		const encrypted = rsaEncryptSync(keyPair.publicKey, plain, salt)
+		o(encrypted.length).equals(256)
+		const plainAgain = rsaDecryptSync(keyPair.privateKey, encrypted)
+		o(Array.from(plainAgain)).deepEquals(Array.from(plain))
+	})
+
 	o("test randomizer adapter", function (done) {
 		let a = []
 		a.length = 100
@@ -196,6 +311,36 @@ o.spec("rsa", function () {
 
 		var input = hexToUint8Array("b25371601025fcc214c4a6ac877d8db9")
 		let signature = sign(privateKey, input)
+		o(signature.length).equals(256) // bytes = 2048 bit
+
+		signature[0]++
+		try {
+			verifySignature(publicKey, input, signature)
+		} catch (e) {
+			// This is flaky for some reason
+			o(/^failed RSA verify sign> _verify/.test(e.message)
+				|| /^failed RSA verify sign> Error. rightmost octet of EM must be 188 \(0xbc\)/.test(e.message)) // first case is firefox, second chrome
+				.equals(true)("Error message doesn't match, got: " + e.message)
+			o(e instanceof CryptoError).equals(true)("Error should be CryptoError, got: ", e)
+			done()
+		}
+	})
+
+	o("test invalid modified signature, short data", function (done) {
+		const rsaPrivateHexKey = "02008bb1bbcb2c6915c182b0c7cc93e1d8210181ffee4be4ae81f7a98fdba2d6e37cea72e2124ebb6b05d330ab1ddfbc6d85c9d1c90fc3b65bd9634c3b722fe77ab98f33cc28af975d51609e1c308324501d615cbb82836c33c2a240e00826ddf09460cee7a975c0607579d4f7b707e19287a1c754ba485e04aab664e44cae8fcab770b9bb5c95a271786aa79d6fa11dd21bdb3a08b679bd5f29fc95ab573a3dabcbd8e70aaec0cc2a817eefbc886d3eafea96abd0d5e364b83ccf74f4d18b3546b014fa24b90134179ed952209971211c623a2743da0c3236abd512499920a75651482b43b27c18d477e8735935425933d8f09a12fbf1950cf8a381ef5f2400fcf90200816022249104e1f94e289b6284b36d8f63ee1a31806852965be0d632fc25389ac02795e88eb254f4181bc2def00f7affa5627d6bf43e37e2a56c3cc20c4bbe058cf2d3e9fa759d1f78f3f5f797fd5195644e95fad1ecac235e51e72aa59476f374952b486e9db4b818157d362e3e638ee9edca329c4336df43fd3cd327f8542d1add9798af1d6a9e8cf8f54dd0b6a6f9ed9c3f5d803c220716757871e1442ef407ffe5df44c364bf57a60551b681173747b8df8e4138101f1d048cc1941a5d4c1fd3eda5bc96496eb1892477d811b845a7c9b3333e700989a1134e8f65edbf3a8332baa7195eb6aa33591b6ab41ec8215c6487979df5cf1b9736fd4fea73eee102000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e7a2e7a5cc651614fd17eb10765ef63462e5767745fc849e97095319d42f8cbb1485aba0f590b33208e666e949db0465e483a122467f771a986da6855abb148d0b5c1eefb08636d0aeb36b8ec161497cc9a64704f0976aceb33d09af5408ded1aec771b534f9a27fd9dc3303146ce98872915ed730ed9661eec46b8c0d6b6d37020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a632cb2e0a17ee6e363e3e056e5170480a3790023e342cb221431be37d63e692ce572390a379cf470c8a9fa4251a0af84d746b79ff91f6dcf168417137150d93049098ef747a601825982cbbd1ac1c20b3f3ee97b25e1739c31b43e78fc1cd53134dc4e82ebf98c720c34852fbd2288370421b848575f4d054e1d1e66b47f4f02000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b09e8b48e56fd2859072135f4b129f62546228914b80fed239d1f756436f3a3c4faa98b2336bf0e6ded86771cc49beb1beab0b4b2a3bf8e20385e029e083b368d4579a9322a343da9ccadbe14edc527f5ef6754273fcd088e92c4a5d30934eeaccfcf05bbe17f66acc0055b92c72db229a50f3e2db40dda0b0c17e4b9cd3e3c30200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000088861ee6e7e1a7f8c1287a40ce56b3ae159b79caf7f166057fd35fd1984aead1d313eb982942d897088d4a52b606bd13b9632d7400112b0bcdcf596b9693e42ccb982acdb43a35c0abe63fd5af1a54312604fdbb365d5f2afefaad2b798d6869d6a3aa15fb8c75170f5b5fae4f72ef7089462c136c55673f12ebeab0119e97dd02000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d8538fe6ebe9514412692fc985f8fd62b237c51c160c3d49aeeafffa057f2feff8f29040a205895b61dfa3f6188851021dc9e50152f3ea69746f5eb491af4a6dde21db9fa2c6fa61198ea02d6b600ed4267c3871af686c8db12e4bcbaaaa552e157e66fda90d34fce11cfd0f5eea6fbb236818070fb3a13751ad408e4231f499"
+		const rsaPublicHexKey = "02008bb1bbcb2c6915c182b0c7cc93e1d8210181ffee4be4ae81f7a98fdba2d6e37cea72e2124ebb6b05d330ab1ddfbc6d85c9d1c90fc3b65bd9634c3b722fe77ab98f33cc28af975d51609e1c308324501d615cbb82836c33c2a240e00826ddf09460cee7a975c0607579d4f7b707e19287a1c754ba485e04aab664e44cae8fcab770b9bb5c95a271786aa79d6fa11dd21bdb3a08b679bd5f29fc95ab573a3dabcbd8e70aaec0cc2a817eefbc886d3eafea96abd0d5e364b83ccf74f4d18b3546b014fa24b90134179ed952209971211c623a2743da0c3236abd512499920a75651482b43b27c18d477e8735935425933d8f09a12fbf1950cf8a381ef5f2400fcf9"
+		const privateKey = hexToPrivateKey(rsaPrivateHexKey)
+		const publicKey = hexToPublicKey(rsaPublicHexKey)
+
+
+		const input = hexToUint8Array("b25371601025fcc214c4a6ac877d8db9")
+		// With this salt the data is shorter and needs to be padded
+		const salt = new Uint8Array([
+			133, 120, 178, 77, 71, 15, 60, 169, 188, 244, 97, 80, 161, 20, 190, 21, 236, 190, 152, 188, 166, 135, 189, 39, 170, 253, 75, 16,
+			35, 231, 170, 111
+		])
+
+		let signature = sign(privateKey, input, salt)
 		o(signature.length).equals(256) // bytes = 2048 bit
 
 		signature[0]++
