@@ -43,13 +43,14 @@ export class Banner implements MComponent<Attrs> {
 				paddingBottom: isVertical ? "16px" : "8px",
 			},
 		}, [
-			m(Icon, {icon: attrs.icon, style: {fill: colors.fg}, class: "icon-xl ml-m mr-m"}),
+			m(Icon, {icon: attrs.icon, style: {fill: colors.button}, class: "icon-xl ml-m mr-m"}),
 			m(".flex" + (isVertical ? ".col" : ".items-center"), [
-				m("span.b", attrs.title),
+				m("span" + (attrs.type === BannerType.Warning ? ".b" : ""), attrs.title),
+				isVertical ? null : m(".span", " "),
 				m("span", attrs.message),
 				m("button.border-radius" + (isVertical ? ".mt-s" : ".ml-s.mr-s"), {
 					style: {
-						border: `2px solid ${colors.fg}`,
+						border: `2px solid ${colors.button}`,
 						background: "transparent",
 						color: colors.fg,
 						width: "min-content",
@@ -63,16 +64,16 @@ export class Banner implements MComponent<Attrs> {
 				style: {"align-self": "end", background: "transparent"},
 				href: attrs.helpLink,
 				target: "_blank",
-			}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: colors.fg, display: "block"}}))
+			}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: colors.button, display: "block"}}))
 		]);
 	}
 }
 
 function getColors(type: BannerTypeEnum): Colors {
 	if (type === BannerType.Warning) {
-		return {bg: "#ca0606", fg: "white", border: "none"}
+		return {bg: "#ca0606", fg: "white", button: "white", border: "none"}
 	} else {
-		return {bg: "transparent", fg: theme.content_fg, border: `2px solid ${theme.content_border}`}
+		return {bg: "transparent", fg: theme.content_fg, button: theme.content_button, border: `2px solid ${theme.content_border}`}
 	}
 }
 
@@ -80,4 +81,5 @@ type Colors = {
 	bg: string,
 	fg: string,
 	border: string,
+	button: string,
 }
