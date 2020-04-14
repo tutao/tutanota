@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-04-06T13:34:25Z",
+	"updated_at": "2020-04-12T15:31:43Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -574,6 +574,7 @@ module.exports = {
 		"mailSettings_label": "E-mail indstillinger",
 		"mailView_action": "Gå til E-mails",
 		"makeLink_action": "Opret hyperlink",
+		"markAsNotPhishing_action": "Marker som ikke-phishing",
 		"markRead_action": "Marker som læst",
 		"markUnread_action": "Marker som ulæst",
 		"matchCase_alt": "Match tilfælde",
@@ -783,6 +784,7 @@ module.exports = {
 		"register_label": "Tilmeld dig",
 		"registrationHeadline_msg": "Tilmeld dig",
 		"releaseNotes_action": "Udgivelsesnoter",
+		"reloadPage_action": "Genindlæs side",
 		"reminderBeforeEvent_label": "Påmindelse før begivenhed",
 		"remindersUsageDescription_msg": "Viser beskeder når der kommer nye mails.",
 		"reminder_label": "Påmindelse",
@@ -798,6 +800,7 @@ module.exports = {
 		"replyAll_action": "Besvar alle",
 		"replyTo_label": "SvarTil",
 		"reply_action": "Svar",
+		"reportPhishing_action": "Rapporter phishing",
 		"requestApproval_msg": "Beklager, du har i øjeblikket ikke tilladelse til at sende eller modtage e-mails (undtagen til Tutanota-support), fordi din konto blev markeret til godkendelse for at undgå misbrug som spam-e-mails. Kontakt os på approval@tutao.de og beskriv hvad du vil bruge denne e-mail-konto til. Vær venlig at skrive på engelsk eller tysk, så vi kan forstå dig. Tak!",
 		"responsiblePersonsInfo_msg": "Begræns de brugere, som meddelelsen fra den modtagne mailkonto kan videresendes til. Der er ingen begrænsninger, hvis listen er tom.",
 		"responsiblePersons_label": "Ansvarshavende personer",

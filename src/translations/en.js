@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-04-08T15:55:27Z",
+	"updated_at": "2020-04-14T13:10:48Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -998,6 +998,7 @@ module.exports = {
 		"takeoverAccountInvalid_msg": "The email address specified as the take over target account does not belong to a Premium admin.",
 		"takeoverMailAddressInfo_msg": "Optional: Specify the target Premium account admin email address in order to re-use your email addresses in the target account.",
 		"takeoverMailAddress_label": "Take over email address",
+		"technicalSender_msg": "The technical sender is: {sender}",
 		"templateHelp_msg": "In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. The template body must contain a \"{link}\" placeholder which will be replaced with the actual link to the encrypted email. You can also include a \"{sender}\" placeholder in the mail body or in the subject which will be replaced with the sender name.",
 		"templateLanguageExists_msg": "Template for the selected language already exists.",
 		"templateMustContain_msg": "Template must contain placeholder {value}",
@@ -1103,7 +1104,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"technicalSender_msg": "Technical sender is: {sender}"
+		"yourMessage_label": "Your message"
 	}
 }

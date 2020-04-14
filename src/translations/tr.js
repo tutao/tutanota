@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2020-04-06T13:39:07Z",
+	"updated_at": "2020-04-10T08:24:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -767,7 +767,7 @@ module.exports = {
 		"pricing.comparisonSearchPremium_msg": "Sınırsız arama",
 		"pricing.comparisonSharingCalendar_msg": "Takvim paylaşma",
 		"pricing.comparisonStorage_msg": "{amount} GB depolama",
-		"pricing.comparisonSupportPremium_msg": "E-posta ile destek",
+		"pricing.comparisonSupportPremium_msg": "Eposta ile destek",
 		"pricing.comparisonSupportPro_msg": "Öncelikli destek",
 		"pricing.comparisonThemePro_msg": "Özel simge ve renkler",
 		"pricing.comparisonUsersFree_msg": "Tek kullanıcı",
