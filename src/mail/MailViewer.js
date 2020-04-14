@@ -288,7 +288,7 @@ export class MailViewer {
 									? m(Banner, {
 										type: BannerType.Info,
 										title: lang.get("mailAuthMissing_label"),
-										message: "",
+										message: mail.differentEnvelopeSender ? lang.get("technicalSender_msg", {"{sender}": mail.differentEnvelopeSender}) : "",
 										icon: Icons.Warning,
 										helpLink: "https://tutanota.com/faq#mail-auth",
 										buttonText: lang.get("close_alt"),

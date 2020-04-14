@@ -589,7 +589,7 @@ module.exports = {
 		"mailAddress_label": "Email address",
 		"mailAuthFailed_label": "Mail authentication failed",
 		"mailAuthFailed_msg": "Message might be faked. Don't trust contents of this message as sender address or mail contents might be faked!",
-		"mailAuthMissing_label": "We could not prove authenticy of this message",
+		"mailAuthMissing_label": "We could not prove that the content or sender of this message is valid.",
 		"mailBody_label": "Email body",
 		"mailbox_label": "Mailbox",
 		"mailFolder_label": "Email folder",
@@ -1103,6 +1103,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"technicalSender_msg": "Technical sender is: {sender}"
 	}
 }
