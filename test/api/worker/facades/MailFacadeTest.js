@@ -232,5 +232,21 @@ o.spec("MailFacade test", function () {
 
 			o(await facade.checkMailForPhishing(mail, ["https://example.com"], markers)).equals(true)
 		})
+
+		o("does not throw on invalid link", async function () {
+			const mail = createMail({
+				subject: "Test",
+				authStatus: MailAuthenticationStatus.AUTHENTICATED,
+				sender: createMailAddress({
+					name: "a",
+					address: "test@example.com"
+				})
+			})
+			const markers = new Set()
+			markers.add(phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"))
+			markers.add(phishingMarkerValue(ReportedMailFieldType.LINK_DOMAIN, "example.com"))
+
+			o(await facade.checkMailForPhishing(mail, ["/example1", "example2", "http:/"], markers)).equals(false)
+		})
 	})
 })

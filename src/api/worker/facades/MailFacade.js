@@ -328,9 +328,12 @@ export class MailFacade {
 			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK, link)) {
 				score += 6
 				break
-			} else if (this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK_DOMAIN, new URL(link).hostname)) {
-				score += 6
-				break
+			} else {
+				const domain = getUrlDomain(link)
+				if (domain && this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK_DOMAIN, domain)) {
+					score += 6
+					break
+				}
 			}
 		}
 		return Promise.resolve(7 < score)
@@ -506,3 +509,10 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 	})
 }
 
+function getUrlDomain(link: string): ?string {
+	try {
+		return new URL(link).hostname
+	} catch (e) {
+		return null
+	}
+}
