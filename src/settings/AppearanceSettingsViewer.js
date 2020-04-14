@@ -62,14 +62,17 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {weekday: "long"})
 		const calcDate = new Date()
-		incrementDate(calcDate, -calcDate.getDay()) // Sunday
-		const sundayName = weekdayFormat.format(calcDate)
-		incrementDate(calcDate, 1) // Monday
-		const mondayName = weekdayFormat.format(calcDate)
+		const sundayName = weekdayFormat.format(incrementDate(calcDate, -calcDate.getDay())) // Sunday as reference
+		const mondayName = weekdayFormat.format(incrementDate(calcDate, 1)) // Monday is one day later
+		const saturdayName = weekdayFormat.format(incrementDate(calcDate, 5)) // Saturday is five days later
 
 		const weekStartDropDownAttrs: DropDownSelectorAttrs<WeekStartEnum> = {
 			label: "weekStart_label",
-			items: [{name: mondayName, value: WeekStart.MONDAY}, {name: sundayName, value: WeekStart.SUNDAY}],
+			items: [
+				{name: mondayName, value: WeekStart.MONDAY}, 
+				{name: saturdayName, value: WeekStart.SATURDAY}, 
+				{name: sundayName, value: WeekStart.SUNDAY}
+			],
 			selectedValue: stream(downcast(userSettingsGroupRoot.startOfTheWeek)),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.startOfTheWeek = value

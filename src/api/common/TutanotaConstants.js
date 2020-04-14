@@ -465,6 +465,7 @@ export type TimeFormatEnum = $Values<typeof TimeFormat>
 export const WeekStart = Object.freeze({
 	MONDAY: '0',
 	SUNDAY: '1',
+	SATURDAY: '2'
 })
 
 export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStartEnum {

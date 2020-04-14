@@ -209,10 +209,10 @@ export type CalendarMonth = {
 
 /**
  * @param date
- * @param firstDayOfWeekFromSundayOffset
+ * @param firstDayOfWeekFromOffset
  * @return {{weeks: Array[], weekdays: Array}}
  */
-export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
+export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, weekdayNarrowFormat: boolean): CalendarMonth {
 	const weeks = [[]]
 	const calculationDate = getStartOfDay(date)
 	calculationDate.setDate(1)
@@ -222,10 +222,10 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: num
 	// getDay returns the day of the week (from 0 to 6) for the specified date (with first one being Sunday)
 
 	let firstDay
-	if (firstDayOfWeekFromSundayOffset > calculationDate.getDay()) {
-		firstDay = (calculationDate.getDay() + 7) - firstDayOfWeekFromSundayOffset
+	if (firstDayOfWeekFromOffset > calculationDate.getDay()) {
+		firstDay = (calculationDate.getDay() + 7) - firstDayOfWeekFromOffset
 	} else {
-		firstDay = calculationDate.getDay() - firstDayOfWeekFromSundayOffset
+		firstDay = calculationDate.getDay() - firstDayOfWeekFromOffset
 	}
 
 	let dayCount
@@ -276,7 +276,7 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromSundayOffset: num
 	}
 	const weekdays = []
 	const weekdaysDate = new Date()
-	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromSundayOffset)// get first day of week
+	incrementDate(weekdaysDate, -weekdaysDate.getDay() + firstDayOfWeekFromOffset)// get first day of week
 	for (let i = 0; i < 7; i++) {
 		weekdays.push(weekdayNarrowFormat ? lang.formats.weekdayNarrow.format(weekdaysDate) : lang.formats.weekdayShort.format(weekdaysDate))
 		incrementDate(weekdaysDate, 1)
@@ -421,12 +421,12 @@ export function getEventColor(event: CalendarEvent, groupColors: {[Id]: string})
 	return groupColors[neverNull(event._ownerGroup)] || defaultCalendarColor
 }
 
-export function getStartOfWeek(date: Date, firstDayOfWeekFromSundayOffset: number): Date {
+export function getStartOfWeek(date: Date, firstDayOfWeekFromOffset: number): Date {
 	let firstDay
-	if (firstDayOfWeekFromSundayOffset > date.getDay()) {
-		firstDay = (date.getDay() + 7) - firstDayOfWeekFromSundayOffset
+	if (firstDayOfWeekFromOffset > date.getDay()) {
+		firstDay = (date.getDay() + 7) - firstDayOfWeekFromOffset
 	} else {
-		firstDay = date.getDay() - firstDayOfWeekFromSundayOffset
+		firstDay = date.getDay() - firstDayOfWeekFromOffset
 	}
 	return incrementDate(getStartOfDay(date), -firstDay)
 }
@@ -445,6 +445,8 @@ export function getStartOfTheWeekOffset(weekStart: WeekStartEnum): number {
 	switch (weekStart) {
 		case WeekStart.SUNDAY:
 			return 0
+		case WeekStart.SATURDAY:
+			return 6
 		case WeekStart.MONDAY:
 		default:
 			return 1
