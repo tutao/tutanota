@@ -1,105 +1,91 @@
-// +----------------------------------------------------------------------+
-// | murmurHash3.js v2.1.2 (http://github.com/karanlyons/murmurHash.js)   |
-// | A javascript implementation of MurmurHash3's x86 hashing algorithms. |
-// |----------------------------------------------------------------------|
-// | Copyright (c) 2012 Karan Lyons                                       |
-// | Freely distributable under the MIT license.                          |
-// +----------------------------------------------------------------------+
+/*!
+ * +----------------------------------------------------------------------------------+
+ * | murmurHash3.js v3.0.0 (http://github.com/karanlyons/murmurHash3.js)              |
+ * | A TypeScript/JavaScript implementation of MurmurHash3's hashing algorithms.      |
+ * |----------------------------------------------------------------------------------|
+ * | Copyright (c) 2012-2020 Karan Lyons. Freely distributable under the MIT license. |
+ * +----------------------------------------------------------------------------------+
+ *
+ * tutao: heavily stripped down to only take x86hash32, removed types for now.
+ * This implementation should handle non-ascii characters.
+ */
 
+const {stringToUtf8Uint8Array} = require("../../../common/utils/Encoding")
 
-'use strict';
-
-// PRIVATE FUNCTIONS
-// -----------------
-
-function _x86Multiply(m, n) {
-	//
-	// Given two 32bit ints, returns the two multiplied together as a
-	// 32bit int.
-	//
-
-	return ((m & 0xffff) * n) + ((((m >>> 16) * n) & 0xffff) << 16);
-}
-
-
-function _x86Rotl(m, n) {
-	//
-	// Given a 32bit int and an int representing a number of bit positions,
-	// returns the 32bit int rotated left by that number of positions.
-	//
-
-	return (m << n) | (m >>> (32 - n));
-}
-
-
-function _x86Fmix(h) {
-	//
-	// Given a block, returns murmurHash3's final x86 mix of that block.
-	//
-
+function x86fmix32(h) {
 	h ^= h >>> 16;
-	h = _x86Multiply(h, 0x85ebca6b);
+	h = mul32(h, 0x85ebca6b);
 	h ^= h >>> 13;
-	h = _x86Multiply(h, 0xc2b2ae35);
+	h = mul32(h, 0xc2b2ae35);
 	h ^= h >>> 16;
 
 	return h;
 }
 
 
-// PUBLIC FUNCTIONS
-// ----------------
+const x86hash32c1 = 0xcc9e2d51;
+const x86hash32c2 = 0x1b873593;
 
-module.exports = function hash32(key) {
-	//
-	// Given a string and an optional seed as an int, returns a 32 bit hash
-	// using the x86 flavor of MurmurHash3, as an unsigned int.
-	//
-	const seed = 0
+function x86mix32(h, k) {
+	k = mul32(k, x86hash32c1);
+	k = rol32(k, 15);
+	k = mul32(k, x86hash32c2);
 
-	var remainder = key.length % 4;
-	var bytes = key.length - remainder;
+	h ^= k;
+	h = rol32(h, 13);
+	h = mul32(h, 5) + 0xe6546b64;
 
-	var h1 = seed;
+	return h;
+}
 
-	var k1 = 0;
 
-	var c1 = 0xcc9e2d51;
-	var c2 = 0x1b873593;
+function mul32(m, n) {
+	return ((m & 0xffff) * n) + ((((m >>> 16) * n) & 0xffff) << 16);
+}
 
-	for (var i = 0; i < bytes; i = i + 4) {
-		k1 = ((key.charCodeAt(i) & 0xff)) | ((key.charCodeAt(i + 1) & 0xff) << 8) | ((key.charCodeAt(i + 2) & 0xff) << 16)
-			| ((key.charCodeAt(i + 3) & 0xff) << 24);
+function rol32(n, r) {
+	return (n << r) | (n >>> (32 - r));
+}
 
-		k1 = _x86Multiply(k1, c1);
-		k1 = _x86Rotl(k1, 15);
-		k1 = _x86Multiply(k1, c2);
+module.exports = function x86hash32(value) {
+	let state = 0
+	const buf = stringToUtf8Uint8Array(value)
 
-		h1 ^= k1;
-		h1 = _x86Rotl(h1, 13);
-		h1 = _x86Multiply(h1, 5) + 0xe6546b64;
+	let h1;
+	let i;
+	let len;
+	h1 = state;
+	i = 0;
+	len = 0;
+
+	const dtv = new DataView(buf.buffer, buf.byteOffset);
+	const remainder = (buf.byteLength - i) % 4;
+	const bytes = buf.byteLength - i - remainder;
+	len += bytes;
+
+	for (; i < bytes; i += 4) {
+		h1 = x86mix32(h1, dtv.getUint32(i, true));
 	}
 
-	k1 = 0;
-
+	len += remainder;
+	let k1 = 0x0;
 	// noinspection FallThroughInSwitchStatementJS
 	switch (remainder) {
 		case 3:
-			k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
-		// fall through
+			k1 ^= buf[i + 2] << 16;
 		case 2:
-			k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
-		// fall through
+			k1 ^= buf[i + 1] << 8;
 		case 1:
-			k1 ^= (key.charCodeAt(i) & 0xff);
-			k1 = _x86Multiply(k1, c1);
-			k1 = _x86Rotl(k1, 15);
-			k1 = _x86Multiply(k1, c2);
+			k1 ^= buf[i];
+			k1 = mul32(k1, x86hash32c1);
+			k1 = rol32(k1, 15);
+			k1 = mul32(k1, x86hash32c2);
 			h1 ^= k1;
 	}
 
-	h1 ^= key.length;
-	h1 = _x86Fmix(h1);
+	h1 ^= len & 0xffffffff;
+	h1 = x86fmix32(h1);
 
 	return h1 >>> 0;
-};
+}
+

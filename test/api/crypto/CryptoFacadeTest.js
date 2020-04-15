@@ -658,12 +658,16 @@ o.spec("crypto facade", function () {
 		})
 	})
 
-	o("32bitHash", function () {
+	o.only("32bitHash", function () {
 		// o(murmurhash3_32_gc("hello")).equals(613153351)
 		o(murmurhash3_32_gc("External images")).equals(4063203704)
 		o(murmurhash3_32_gc("Matthias")).equals(194850999)
 		o(murmurhash3_32_gc("map-free@tutanota.de")).equals(3865241570)
 		o(murmurhash3_32_gc("Matthias Pfau")).equals(1016488926)
+		o(murmurhash3_32_gc("asdlkasdj")).equals(1988722598)
+		o(murmurhash3_32_gc("ö")).equals(108599527)
+		o(murmurhash3_32_gc("asdlkasdjö")).equals(436586817)
+		o(murmurhash3_32_gc("В чашах леса жил бы цитрус?")).equals(1081111591)
 	})
 
 })
