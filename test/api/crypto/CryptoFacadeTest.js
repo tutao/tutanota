@@ -658,7 +658,7 @@ o.spec("crypto facade", function () {
 		})
 	})
 
-	o.only("32bitHash", function () {
+	o("32bitHash", function () {
 		// o(murmurhash3_32_gc("hello")).equals(613153351)
 		o(murmurhash3_32_gc("External images")).equals(4063203704)
 		o(murmurhash3_32_gc("Matthias")).equals(194850999)
