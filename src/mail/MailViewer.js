@@ -371,7 +371,6 @@ export class MailViewer {
 						label: getDisplayText(this.mail.sender.name, this.mail.sender.address, false),
 						click: createAsyncDropdown(() =>
 							this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth),
-
 					}),
 					this._isEnvelopeSenderVisible()
 						? [
@@ -389,6 +388,8 @@ export class MailViewer {
 									label: getDisplayText(recipient.name, recipient.address, false),
 									click: createAsyncDropdown(() =>
 										this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), bubbleMenuWidth),
+									// To wrap text inside flex container, we need to allow element to shrink and pick own width
+									style: {flex: "0 1 auto"},
 								}))
 							),
 						]
@@ -400,6 +401,7 @@ export class MailViewer {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(() =>
 									this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), bubbleMenuWidth),
+								style: {flex: "0 1 auto"},
 							}))),
 						]
 						: null,
@@ -410,6 +412,7 @@ export class MailViewer {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(() =>
 									this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), bubbleMenuWidth),
+								style: {flex: "0 1 auto"},
 							}))),
 						]
 						: null,
@@ -420,6 +423,7 @@ export class MailViewer {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(() =>
 									this._createBubbleContextButtons(recipient, null), bubbleMenuWidth),
+								style: {flex: "0 1 auto"},
 							}))),
 						]
 						: null,
