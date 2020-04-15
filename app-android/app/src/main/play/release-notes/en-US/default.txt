@@ -1,16 +1,11 @@
 What's new
-* Improved support for screen readers
-* Sort aliases
-* Add calendar keyboard shortcuts
-* Tutanota desktop app as a default mail app
+* Phishing protection system - add ability to report mails for phishing, emails are not automatically checked for phishing
+* Improved UI against phishing - now all clients display full email address
+* Extended information about missing/failed mail authentication - new banners are shown when email is not authenticated
+* Improved spam detection - now instead of sending emails with missing authentication always to spam they will be sent to inbox with the information banner
+* Different technical sender is not shown if DMARC passes
 
 Bugfixes
-* Earlier events from the current day are visible in the agenda
-* BadRequestError when accepting an calendar invitation as a cancelled premium customer
-* Race condition when loading events
-* Long events are loaded multiple times when opening calendar
-* Misleading text when trying to send email and invoice is not paid
-* Sometimes lists in email editor adds additional list item marker
-* Alias cannot be moved from one user to another user if alias limit has been reached
-* System navbar buttons are not visible on some Android versions
-* Title field of new calendar entry jumps around
+* Fix message for unsupported webview versions
+* Fix dropdown filter
+* Fix navbar color on some Android versions
