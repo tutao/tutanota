@@ -154,15 +154,24 @@ export function rsaDecryptSync(privateKey: PrivateKey, bytes: Uint8Array): Uint8
 		let hex = _bytesToHex(bytes)
 		let bigInt = parseBigInt(hex, 16)
 		let paddedBigInt = rsa.doPrivate(bigInt)
-		let decryptedHex = paddedBigInt.toString(16)
-		// fill the hex string to have a padded block of exactly (keylength / 8 - 1 bytes) for the unpad function
+		const decryptedBytes = paddedBigInt.toByteArray()
+		// fill the hex string to have a padded block of exactly (keylength / 8 bytes) for the unpad function
 		// two possible reasons for smaller string:
 		// - one "0" of the byte might be missing because toString(16) does not consider this
 		// - the bigint value might be smaller than (keylength / 8 - 1) bytes
-		let expectedPaddedHexLength = (privateKey.keyLength / 8 - 1) * 2
-		let fill = Array(expectedPaddedHexLength - decryptedHex.length + 1).join("0") // creates the missing zeros
-		decryptedHex = fill + decryptedHex
-		let paddedBytes = hexToUint8Array(decryptedHex)
+		// We changed padding in encryption case but we might still need to decrypt older data
+		const expectedPaddedLength = privateKey.keyLength / 8
+		const paddedBytes = new Uint8Array(expectedPaddedLength)
+		let leadingZeroes = 0
+		for (let i = 0; i < decryptedBytes.length; i++) {
+			if (decryptedBytes[i] !== 0) {
+				leadingZeroes = i
+				break
+			}
+		}
+		const effectivePaddingLength = expectedPaddedLength - (decryptedBytes.length - leadingZeroes)
+		paddedBytes.fill(0, 0, effectivePaddingLength)
+		paddedBytes.set(decryptedBytes.slice(leadingZeroes), effectivePaddingLength)
 		return oaepUnpad(paddedBytes, privateKey.keyLength)
 	} catch (e) {
 		throw new CryptoError("failed RSA decryption", e)
@@ -297,9 +306,8 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
  */
 export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
 	let hashLength = 32 // bytes sha256
-	if (value.length !== keyLength / 8 - 1) {
-		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1)
-			+ " bytes!")
+	if (value.length !== keyLength / 8) {
+		throw new CryptoError("invalid value length: " + value.length + ". expected: " + (keyLength / 8) + " bytes!")
 	}
 
 	let seedMask = mgf1(value.slice(hashLength, value.length), hashLength)
