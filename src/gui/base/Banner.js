@@ -44,13 +44,13 @@ export class Banner implements MComponent<Attrs> {
 			},
 		}, [
 			m(Icon, {icon: attrs.icon, style: {fill: colors.button}, class: "icon-xl ml-m mr-m"}),
-			m(".flex" + (isVertical ? ".col" : ".items-center"), [
+			m(".flex.col", [
 				m("", [
 					m("span.text-break" + (attrs.type === BannerType.Warning ? ".b" : ""), attrs.title),
-					isVertical ? null : m("span", " "),
+					isVertical ? m("br") : m("span", " "),
 					m("span.text-break", attrs.message),
 				]),
-				m("button.border-radius" + (isVertical ? ".mt-s" : ".ml-s.mr-s"), {
+				m("button.border-radius.mt-s", {
 					style: {
 						border: `2px solid ${colors.button}`,
 						background: "transparent",
