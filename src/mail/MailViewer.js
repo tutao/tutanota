@@ -418,7 +418,7 @@ export class MailViewer {
 						: null,
 					mail.replyTos.length
 						? [
-							m(".small", lang.get("bcc_label")),
+							m(".small", lang.get("replyTo_label")),
 							m(".flex-start.flex-wrap", this.mail.replyTos.map(recipient => m(RecipientButton, {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(() =>

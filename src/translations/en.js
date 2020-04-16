@@ -848,7 +848,7 @@ module.exports = {
 		"rename_action": "Rename",
 		"repeatedPassword_label": "Repeat password",
 		"replyAll_action": "Reply all",
-		"replyTo_label": "ReplyTo",
+		"replyTo_label": "Reply to",
 		"reply_action": "Reply",
 		"reportPhishing_action": "Report phishing",
 		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de directly from your Tutanota account and describe what you would like to use this email account for. Please write in English or German, so we can understand you. Thanks!",
