@@ -35,7 +35,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createBookingsRef(values?: $Shape<$Exact<BookingsRef>>): BookingsRef {

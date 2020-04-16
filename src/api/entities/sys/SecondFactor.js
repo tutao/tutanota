@@ -88,7 +88,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createSecondFactor(values?: $Shape<$Exact<SecondFactor>>): SecondFactor {

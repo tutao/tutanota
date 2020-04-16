@@ -69,7 +69,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createRepeatRule(values?: $Shape<$Exact<RepeatRule>>): RepeatRule {

@@ -126,7 +126,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createVersionInfo(values?: $Shape<$Exact<VersionInfo>>): VersionInfo {

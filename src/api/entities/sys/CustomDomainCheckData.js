@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createCustomDomainCheckData(values?: $Shape<$Exact<CustomDomainCheckData>>): CustomDomainCheckData {

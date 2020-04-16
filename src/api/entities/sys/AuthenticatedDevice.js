@@ -51,7 +51,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "58"
+	"version": "59"
 }
 
 export function createAuthenticatedDevice(values?: $Shape<$Exact<AuthenticatedDevice>>): AuthenticatedDevice {
