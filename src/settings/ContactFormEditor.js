@@ -31,7 +31,7 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import stream from "mithril/stream/stream.js"
 import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
+import {getDefaultContactFormLanguage} from "../contacts/ContactFormUtils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -416,18 +416,18 @@ export function show(c: ?ContactForm, createNew: boolean, newContactFormIdReceiv
 				showProgressDialog("loading_msg", loadAll(GroupInfoTypeRef, customer.userGroups)
 					.filter(g => !g.deleted)
 					.then(userGroupInfos => {
-						let globalAdmin = logins.getUserController().isGlobalAdmin()
-						return getAdministratedGroupIds().then(adminGroupIds => {
-							// get and separate all enabled shared mail groups and shared team groups
-							return loadAll(GroupInfoTypeRef, customer.teamGroups)
-								.filter(g => !g.deleted)
-								.filter(teamGroupInfo => teamGroupInfo.groupType === GroupType.Mail)
-								.then(sharedMailGroupInfos => {
-									let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos, whitelabelDomain.domain)
-									editor.dialog.show()
-								})
-						})
+						// get and separate all enabled shared mail groups and shared team groups
+						return loadAll(GroupInfoTypeRef, customer.teamGroups)
+							.then((groupInfos) => {
+								const sharedMailGroupInfos = groupInfos.filter(g => !g.deleted && g.groupType === GroupType.Mail)
+								return {userGroupInfos, sharedMailGroupInfos}
+							})
 					}))
+					.then(({userGroupInfos, sharedMailGroupInfos}) => {
+						let editor = new ContactFormEditor(c, createNew, newContactFormIdReceiver, userGroupInfos, sharedMailGroupInfos,
+							whitelabelDomain.domain)
+						editor.dialog.show()
+					})
 			} else {
 				Dialog.error("whitelabelDomainNeeded_msg")
 			}
