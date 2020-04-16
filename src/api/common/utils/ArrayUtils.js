@@ -199,7 +199,7 @@ export function flat<T>(arrays: Array<Array<T>>): Array<T> {
 }
 
 /**
- * Inserts element into the sorted array. Will fine <b>the last</b> matching position.
+ * Inserts element into the sorted array. Will find <b>the last</b> matching position.
  * Might add or replace element based on {@param replaceIf} identity check.
  * Equality per {@param comparator} is precondition for replacement.
  * @param element to place
