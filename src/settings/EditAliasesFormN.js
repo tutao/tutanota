@@ -73,46 +73,49 @@ class _EditAliasesForm {
 	}
 
 	_getAliasLineAttrs(groupInfo: GroupInfo): Array<TableLineAttrs> {
-		return groupInfo.mailAddressAliases.sort((a, b) => (a.mailAddress > b.mailAddress) ? 1 : -1).map(alias => {
-			const actionButtonAttrs: ButtonAttrs = attachDropdown(
-				{
-					label: "edit_action",
-					icon: () => Icons.Edit,
-					click: noOp
-				},
-				() => [
-					{
-						label: "activate_action",
-						click: () => {
-							if (!alias.enabled) {
-								this._switchStatus(alias, groupInfo)
-							}
-						},
-						type: ButtonType.Dropdown,
-						isSelected: () => alias.enabled
-					},
-					{
-						label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
-						click: () => {
-							if (alias.enabled) {
-								this._switchStatus(alias, groupInfo)
-							}
-						},
-						type: ButtonType.Dropdown,
-						isSelected: () => !alias.enabled
-					}
-				], () => true, 250)
+		return groupInfo.mailAddressAliases
+		                .slice()
+		                .sort((a, b) => (a.mailAddress > b.mailAddress) ? 1 : -1)
+		                .map(alias => {
+			                const actionButtonAttrs: ButtonAttrs = attachDropdown(
+				                {
+					                label: "edit_action",
+					                icon: () => Icons.Edit,
+					                click: noOp
+				                },
+				                () => [
+					                {
+						                label: "activate_action",
+						                click: () => {
+							                if (!alias.enabled) {
+								                this._switchStatus(alias, groupInfo)
+							                }
+						                },
+						                type: ButtonType.Dropdown,
+						                isSelected: () => alias.enabled
+					                },
+					                {
+						                label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
+						                click: () => {
+							                if (alias.enabled) {
+								                this._switchStatus(alias, groupInfo)
+							                }
+						                },
+						                type: ButtonType.Dropdown,
+						                isSelected: () => !alias.enabled
+					                }
+				                ], () => true, 250)
 
-			return {
-				cells: [
-					alias.mailAddress,
-					alias.enabled
-						? lang.get("activated_label")
-						: lang.get("deactivated_label")
-				],
-				actionButtonAttrs: actionButtonAttrs
-			}
-		})
+			                return {
+				                cells: [
+					                alias.mailAddress,
+					                alias.enabled
+						                ? lang.get("activated_label")
+						                : lang.get("deactivated_label")
+				                ],
+				                actionButtonAttrs: actionButtonAttrs
+			                }
+		                })
 	}
 
 	_showAddAliasDialog(groupInfo: GroupInfo) {
