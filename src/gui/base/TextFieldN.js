@@ -169,7 +169,7 @@ export class _TextField {
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 							this._domInput.value = a.value()
-							if(a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
+							if (a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
 								this.animate(true)
 							}
 						}
@@ -233,6 +233,14 @@ export class _TextField {
 					this._domInput.style.height = '0px'
 					this._domInput.style.height = px(this._domInput.scrollHeight)
 					a.value(this._domInput.value) // update the input on each change
+				},
+				onupdate: () => {
+					if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+						this._domInput.value = a.value()
+						if(a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
+							this.animate(true)
+						}
+					}
 				},
 				style: {
 					marginTop: px(inputMarginTop),
