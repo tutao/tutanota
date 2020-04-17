@@ -59,18 +59,6 @@ export class _TextField {
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
 		this.webkitAutofill = false
-		if (typeof vnode.attrs.value.map === "function") {
-			vnode.attrs.value.map(value => {
-				if (this._domInput) {
-					if (value && !this.active) {
-						this.animate(true)
-					}
-					if (value !== this._domInput.value) {
-						this._domInput.value = value
-					}
-				}
-			})
-		}
 	}
 
 	view(vnode: Vnode<TextFieldAttrs>) {
@@ -179,7 +167,12 @@ export class _TextField {
 					},
 					onupdate: () => {
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
-						this._domInput.value = a.value()
+						if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+							this._domInput.value = a.value()
+							if(a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
+								this.animate(true)
+							}
+						}
 					},
 					oninput: () => {
 						if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
