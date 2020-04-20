@@ -85,8 +85,11 @@ export class BubbleTextField<T> {
 		this.bubbles = []
 
 		this.textField._injectionsLeft = () => this.bubbles.map((b, i) => {
-			return m("", [
-				m(ButtonN, b.buttonAttrs),
+			// We need overflow: hidden on both so that ellipsis on button works works.
+			// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.
+			return m(".flex.overflow-hidden.items-end", [
+				m(".flex-no-grow-shrink-auto.overflow-hidden", m(ButtonN, b.buttonAttrs)),
+				// Comma is shown when there's another recipient afterwards or if the field is active
 				(this.textField.isActive() || i < this.bubbles.length - 1) ? m("span.pr", ",") : null
 			])
 		})
