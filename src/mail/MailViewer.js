@@ -104,6 +104,7 @@ import {_TypeModel as MailTypeModel} from "../api/entities/tutanota/Mail"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
 import {RecipientButton} from "../gui/base/RecipientButton"
 import {Banner, BannerType} from "../gui/base/Banner"
+import {copyToClipboard} from "../misc/ClipboardUtils"
 
 assertMainOrNode()
 
@@ -868,11 +869,6 @@ export class MailViewer {
 		}
 		const child = this._domBodyDeferred.promise.value()
 		const containerWidth = child.offsetWidth
-		// console.log("child clientWidth", child.clientWidth, "scrollWidth", child.scrollWidth, "offsetWidth", child.offsetWidth )
-		// if(this._domMailViewer){
-		// 	const domContainer = this._domMailViewer
-		// 	console.log("container clientWidth", domContainer.clientWidth, "scrollWidth", domContainer.scrollWidth, "offsetWidth", domContainer.offsetWidth )
-		// }
 
 		if (!this._isScaling || containerWidth > child.scrollWidth) {
 			child.style.transform = ''
@@ -971,7 +967,13 @@ export class MailViewer {
 
 	_createBubbleContextButtons(address: MailAddress | EncryptedMailAddress, defaultInboxRuleField: ?InboxRuleTypeEnum): Promise<Array<ButtonAttrs>> {
 		if (logins.getUserController().isInternalUser()) {
-			const buttons = []
+			const buttons = [
+				{
+					label: "copy_action",
+					type: ButtonType.Secondary,
+					click: () => copyToClipboard(address.address),
+				}
+			]
 			let contactsPromise = Promise.resolve()
 			if (!logins.isEnabled(FeatureType.DisableContacts)) {
 				contactsPromise = searchForContactByMailAddress(address.address).then(contact => {
