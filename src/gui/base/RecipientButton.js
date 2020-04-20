@@ -11,7 +11,7 @@ export type Attrs = {
 
 export class RecipientButton implements MComponent<Attrs> {
 	view({attrs}: Vnode<Attrs>): Children {
-		return m("button.mr-button.secondary", {
+		return m("button.mr-button.secondary.print", {
 			style: Object.assign({
 				"white-space": "normal",
 				"word-break": "break-all",
