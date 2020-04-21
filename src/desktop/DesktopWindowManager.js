@@ -54,6 +54,7 @@ export class WindowManager {
 		}).on('focus', ev => {
 			windows.splice(windows.indexOf(w), 1)
 			windows.push(w)
+			this._tray.clearBadge()
 			this._notifier.resolveGroupedNotification(w.getUserId())
 		}).on('page-title-updated', ev => {
 			if (w.getTitle() === LOGIN_TITLE) {
