@@ -147,25 +147,41 @@ o.spec("Desktop Window Manager Test", () => {
 		DesktopTray: {
 			getIcon: () => "this is a static icon"
 		},
-		update: () => {}
+		update: () => {},
+		clearBadge: ()=>{}
 	}
 
 	const ipc = {}
 
-	o("construction", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
+	const standardMocks = () => {
+		const electronMock = n.mock('electron', electron).set()
 		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
 		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
+		const confMock = n.mock("__conf", conf).set()
+		const desktopTrayMock = n.mock("./tray/DesktopTray", desktopTray).set()
+		const notifierMock = n.mock("__notifier", notifier).set()
+		const ipcMock = n.mock("__ipc", ipc).set()
 
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {getIcon: () => "this is an icon"}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
+		return {
+			electronMock,
+			applicationWindowMock,
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock,
+		}
+	}
+
+	o("construction", () => {
+		const {
+			applicationWindowMock,
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -176,18 +192,14 @@ o.spec("Desktop Window Manager Test", () => {
 
 	o("create one window with showWhenReady=false, no lastBounds", () => {
 		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', desktopTray).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
+		const {
+			applicationWindowMock,
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -208,15 +220,14 @@ o.spec("Desktop Window Manager Test", () => {
 	})
 
 	o("create one window with showWhenReady=true, with lastBounds", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
+		const {
+			applicationWindowMock,
+			dlMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
 		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
 		const confMock = n.mock('__conf', conf)
 		                  .with({
@@ -230,12 +241,6 @@ o.spec("Desktop Window Manager Test", () => {
 			                  }
 		                  })
 		                  .set()
-		const desktopTrayMock = n.mock('__tray', {
-			getIcon: () => "this is an icon", update: () => {
-			}
-		}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -254,28 +259,21 @@ o.spec("Desktop Window Manager Test", () => {
 		o(win.setBounds.args).deepEquals([testBounds])
 		o(win.setZoomFactor.callCount).equals(0)
 		o(win.show.callCount).equals(1)
+		o(desktopTrayMock.clearBadge.callCount).equals(1)
 		o(wm.get(1)).equals(win)
 
 		o(desktopTrayMock.update.callCount).equals(1)
 	})
 
 	o("create window with noAutoLogin", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {
-			getIcon: () => "this is an icon", update: () => {
-			}
-		}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
+		const {
+			applicationWindowMock,
+			dlMock,
+			confMock,
+			notifierMock,
+			ipcMock,
+			desktopTrayMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -295,22 +293,13 @@ o.spec("Desktop Window Manager Test", () => {
 	})
 
 	o("getLastFocused returns the last focused window", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {
-			getIcon: () => "this is an icon", update: () => {
-			}
-		}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
+		const {
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -337,22 +326,13 @@ o.spec("Desktop Window Manager Test", () => {
 	})
 
 	o("wm is saving bounds to file when closing window", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		const dlMock = n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', {
-			getIcon: () => "this is an icon", update: () => {
-			}
-		}).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
+		const {
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
@@ -371,20 +351,15 @@ o.spec("Desktop Window Manager Test", () => {
 	})
 
 	o("hide() hides all windows", () => {
-		// node modules
-		const electronMock = n.mock("electron", electron).set()
-
-		// our modules
-		const applicationWindowMock = n.mock("./ApplicationWindow", applicationWindow).set()
-		n.mock("__dl", dl).set()
-		n.mock("./tray/DesktopTray", desktopTray).set()
-
-		// instances
-		const confMock = n.mock('__conf', conf).set()
-		const desktopTrayMock = n.mock('__tray', desktopTray).set()
-		const notifierMock = n.mock('__notifier', notifier).set()
-		const ipcMock = n.mock('__ipc', ipc).set()
-		const dlMock = n.mock("__dl", dl).set()
+		const {
+			electronMock,
+			applicationWindowMock,
+			dlMock,
+			confMock,
+			desktopTrayMock,
+			notifierMock,
+			ipcMock
+		} = standardMocks()
 
 		const {WindowManager} = n.subject('../../src/desktop/DesktopWindowManager.js')
 		const wm = new WindowManager(confMock, desktopTrayMock, notifierMock, dlMock)
