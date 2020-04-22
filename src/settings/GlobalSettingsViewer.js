@@ -112,7 +112,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 			const customDomainTableAttrs = {
 				columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
-				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
+				columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 				showActionButtonColumn: true,
 				addButtonAttrs: {
 					label: "addCustomDomain_action",

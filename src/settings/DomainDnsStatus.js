@@ -50,10 +50,13 @@ export class DomainDnsStatus {
 					&& !result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_SPF)
 				let dkimOk = !result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
 					&& !result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_DKIM)
+				let mtaStsOk = !result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
+					&& !result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_CNAME_MTA_STS)
 				let dmarcWarn = result.missingRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				let dmarcBad = result.invalidRecords.find(r => r.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC)
 				return "MX " + (mxOk ? ok : bad)
 					+ ", SPF " + (spfOk ? ok : bad)
+					+ ", MTA-STS " + (mtaStsOk ? ok : bad)
 					+ ", DKIM " + (dkimOk ? ok : bad)
 					+ ", DMARC " + (dmarcBad ? bad : (dmarcWarn ? warn : ok));
 			} else if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_DNS_LOOKUP_FAILED) {
