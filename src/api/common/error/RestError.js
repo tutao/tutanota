@@ -60,6 +60,14 @@ export class PreconditionFailedError extends TutanotaError {
 	}
 }
 
+export class LockedError extends TutanotaError {
+	static CODE = 423
+
+	constructor(msg: string) {
+		super("LockedError", msg)
+	}
+}
+
 export class TooManyRequestsError extends TutanotaError {
 	static CODE = 429
 
@@ -182,6 +190,8 @@ export function handleRestError(errorCode: number, path: string, errorId: ?strin
 			return new MethodNotAllowedError(message);
 		case PreconditionFailedError.CODE:
 			return new PreconditionFailedError(message, precondition);
+		case LockedError.CODE:
+			return new LockedError(message);
 		case TooManyRequestsError.CODE:
 			return new TooManyRequestsError(message);
 		case SessionExpiredError.CODE:

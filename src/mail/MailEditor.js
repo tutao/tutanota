@@ -27,6 +27,7 @@ import {isExternal, recipientInfoType} from "../api/common/RecipientInfo"
 import {
 	AccessBlockedError,
 	ConnectionError,
+	LockedError,
 	NotAuthorizedError,
 	NotFoundError,
 	PreconditionFailedError,
@@ -896,6 +897,14 @@ export class MailEditor {
 										           .then(() => this._updatePreviousMail())
 										           .then(() => this._updateExternalLanguage())
 										           .then(() => this._close())
+										           .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
+										           .catch(PreconditionFailedError, e => {
+											           if (e.data === "lock.locked") {
+												           Dialog.error("operationStillActive_msg")
+											           } else {
+												           throw e;
+											           }
+										           });
 									}
 								})
 							}

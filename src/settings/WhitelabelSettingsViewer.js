@@ -61,7 +61,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
 import {BrandingDomainGetReturnTypeRef} from "../api/entities/sys/BrandingDomainGetReturn"
-import {PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -226,6 +226,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 								Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
 									if (ok) {
 										showProgressDialog("pleaseWait_msg", worker.deleteCertificate(neverNull(whitelabelDomainInfo).domain))
+											.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 											.catch(PreconditionFailedError, e => {
 												if (e.data === "lock.locked") {
 													Dialog.error("operationStillActive_msg")

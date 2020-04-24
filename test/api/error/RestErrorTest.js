@@ -7,6 +7,7 @@ import {
 	NotFoundError,
 	MethodNotAllowedError,
 	PreconditionFailedError,
+	LockedError,
 	TooManyRequestsError,
 	AccessDeactivatedError,
 	AccessExpiredError,
@@ -31,6 +32,7 @@ o.spec("RestErrorTest", function () {
 		o(handleRestError(404) instanceof NotFoundError).equals(true)
 		o(handleRestError(405) instanceof MethodNotAllowedError).equals(true)
 		o(handleRestError(412) instanceof PreconditionFailedError).equals(true)
+		o(handleRestError(423) instanceof LockedError).equals(true)
 		o(handleRestError(429) instanceof TooManyRequestsError).equals(true)
 		o(handleRestError(440) instanceof SessionExpiredError).equals(true)
 		o(handleRestError(470) instanceof AccessDeactivatedError).equals(true)
@@ -75,8 +77,9 @@ o.spec("RestErrorTest", function () {
 	createErrorTest(NotAuthorizedError, "NotAuthorizedError", 403)
 	createErrorTest(MethodNotAllowedError, "MethodNotAllowedError", 405)
 	createErrorTest(NotFoundError, "NotFoundError", 404)
-	createErrorTest(TooManyRequestsError, "TooManyRequestsError", 429)
 	createErrorTest(PreconditionFailedError, "PreconditionFailedError", 412)
+	createErrorTest(LockedError, "LockedError", 423)
+	createErrorTest(TooManyRequestsError, "TooManyRequestsError", 429)
 	createErrorTest(SessionExpiredError, "SessionExpiredError", 440)
 	createErrorTest(AccessDeactivatedError, "AccessDeactivatedError", 470)
 	createErrorTest(AccessExpiredError, "AccessExpiredError", 471)

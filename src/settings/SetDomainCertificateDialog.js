@@ -8,7 +8,7 @@ import {Button} from "../gui/base/Button"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
-import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
+import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {isDomainName} from "../misc/FormatValidator"
@@ -32,6 +32,7 @@ function registerDomain(domain: string, certChainFile: ?DataFile, privKeyFile: ?
 		      .catch(InvalidDataError, e => {
 			      Dialog.error("certificateError_msg")
 		      })
+		      .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 		      .catch(PreconditionFailedError, e => {
 			      switch (e.data) {
 				      case "lock.locked":
