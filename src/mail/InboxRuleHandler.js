@@ -4,7 +4,7 @@ import {load, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../misc/FormatValidator"
-import {HttpMethod, isSameId, getElementId} from "../api/common/EntityFunctions"
+import {getElementId, HttpMethod, isSameId} from "../api/common/EntityFunctions"
 import {getMailHeaders, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
@@ -12,7 +12,7 @@ import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {logins} from "../api/main/LoginController"
 import {getInboxFolder} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
-import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -50,9 +50,13 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
 				moveMailData.targetFolder = inboxRule.targetFolder
 				moveMailData.mails.push(mail._id)
 				// execute move mail in parallel
-				serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData).catch(PreconditionFailedError, e => {
-					// move mail operation may have been locked by other process
-				})
+				serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+					.catch(LockedError, e => {
+						// move mail operation may have been locked by other process
+					})
+					.catch(PreconditionFailedError, e => {
+						// move mail operation may have been locked by other process
+					})
 				return [targetFolder.mails, getElementId(mail)]
 			} else {
 				return null

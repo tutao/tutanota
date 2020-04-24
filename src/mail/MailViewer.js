@@ -74,7 +74,7 @@ import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {mailModel} from "./MailModel"
 import {theme} from "../gui/theme"
@@ -445,6 +445,10 @@ export class MailViewer {
 						})
 						return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData)
 							.return(true)
+							.catch(LockedError, e => {
+								Dialog.error("operationStillActive_msg")
+								return false
+							})
 					})
 				} else {
 					return false
@@ -631,13 +635,6 @@ export class MailViewer {
 					      this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 					      return update(this.mail)
 						      .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-						      .catch(PreconditionFailedError, e => {
-							      if (e.data === "lock.locked") {
-								      Dialog.error("operationStillActive_msg")
-							      } else {
-								      throw e;
-							      }
-						      })
 						      .catch(NotFoundError, e => {
 							      console.log("mail already moved")
 						      })
@@ -668,17 +665,8 @@ export class MailViewer {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 					update(mail)
-						.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-						.catch(PreconditionFailedError, e => {
-							if (e.data === "lock.locked") {
-								console.log("could not update mail phishing status as mail is locked")
-							} else {
-								throw e;
-							}
-						})
-						.catch(NotFoundError, e => {
-							console.log("mail already moved")
-						})
+						.catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
+						.catch(NotFoundError, e => console.log("mail already moved"))
 					m.redraw()
 				}
 			})
@@ -1075,14 +1063,7 @@ export class MailViewer {
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
 		update(this.mail)
-			.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-			.catch(PreconditionFailedError, e => {
-				if (e.data === "lock.locked") {
-					console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))
-				} else {
-					throw e;
-				}
-			})
+			.catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
 			.catch(NotFoundError, noOp)
 	}
 

@@ -784,6 +784,7 @@ export class MailEditor {
 		if (draft != null) {
 			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(),
 				senderName, to, cc, bcc, attachments, this._isConfidential(), draft)
+			                .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 			                .catch(NotFoundError, e => {
 				                console.log("draft has been deleted, creating new one")
 				                return createMailDraft()
@@ -898,13 +899,6 @@ export class MailEditor {
 										           .then(() => this._updateExternalLanguage())
 										           .then(() => this._close())
 										           .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-										           .catch(PreconditionFailedError, e => {
-											           if (e.data === "lock.locked") {
-												           Dialog.error("operationStillActive_msg")
-											           } else {
-												           throw e;
-											           }
-										           });
 									}
 								})
 							}

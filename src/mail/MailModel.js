@@ -6,7 +6,7 @@ import {createMoveMailData} from "../api/entities/tutanota/MoveMailData"
 import {load, loadAll, serviceRequestVoid} from "../api/main/Entity"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {elementIdPart, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
-import {PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {getTrashFolder, isFinalDelete} from "./MailUtils"
@@ -170,6 +170,7 @@ export class MailModel {
 			moveMailData.targetFolder = target._id
 			moveMailData.mails.push(...mails.map(m => m._id))
 			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+				.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 		}
 		return Promise.resolve()

@@ -17,7 +17,7 @@ import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
-import {BadGatewayError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
+import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
 import {SysService} from "../api/entities/sys/Services"
@@ -277,6 +277,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							this._postings.unshift(newPosting)
 							m.redraw()
 						})
+						.catch(LockedError, e => "operationStillActive_msg")
 						.catch(PreconditionFailedError, error => {
 							return getPreconditionFailedPaymentMsg(error)
 						}).catch(BadGatewayError, error => {
