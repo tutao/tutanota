@@ -56,6 +56,8 @@ export class WindowManager {
 			windows.push(w)
 			this._tray.clearBadge()
 			this._notifier.resolveGroupedNotification(w.getUserId())
+		}).on('did-start-navigation', ()=>{
+			this._tray.clearBadge()
 		}).on('page-title-updated', ev => {
 			if (w.getTitle() === LOGIN_TITLE) {
 				w.setUserInfo(null)

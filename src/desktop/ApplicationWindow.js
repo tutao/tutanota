@@ -152,6 +152,7 @@ export class ApplicationWindow {
 		    })
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
+		    	this._browserWindow.emit('did-start-navigation')
 			    const newURL = this._rewriteURL(url, isInPlace)
 			    if (newURL !== url) {
 				    e.preventDefault()
