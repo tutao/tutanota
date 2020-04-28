@@ -371,6 +371,7 @@ declare module 'electron' {
 		constructor(any): BrowserWindow;
 		on(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
 		once(BrowserWindowEvent, (Event, ...Array<any>) => void): BrowserWindow;
+		emit(BrowserWindowEvent): void;
 		focus(): void;
 		hide(): void;
 		close(): void;
@@ -649,6 +650,7 @@ export type BrowserWindowEvent
 	| 'sheet-begin'
 	| 'sheet-end'
 	| 'new-window-for-tab'
+	| 'did-start-navigation' // passed through from webContents
 
 // https://github.com/electron/electron/blob/master/docs/api/web-contents.md#instance-events
 export type WebContentsEvent

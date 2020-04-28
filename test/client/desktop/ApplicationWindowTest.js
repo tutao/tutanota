@@ -33,6 +33,9 @@ o.spec("ApplicationWindow Test", function () {
 					this.callbacks[ev] = cb
 					return this
 				},
+				emit: function (ev: string) {
+					this.callbacks[ev]()
+				},
 				constructor: function (opts) {
 					this.opts = opts
 					this.id = electron.BrowserWindow.lastId
@@ -493,10 +496,13 @@ o.spec("ApplicationWindow Test", function () {
 
 		const {ApplicationWindow} = n.subject('../../src/desktop/ApplicationWindow.js')
 		const w = new ApplicationWindow(wmMock, 'preloadjs', 'desktophtml')
+		w.on('did-start-navigation', ()=>{})
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
 		const e = {preventDefault: o.spy()}
 		bwInstance.webContents.callbacks['did-start-navigation'](e, "evil.com", true)
+		o(bwInstance.emit.callCount).equals(1)
+		o(bwInstance.emit.args).deepEquals(["did-start-navigation"])
 		o(e.preventDefault.callCount).equals(1)
 		o(bwInstance.loadURL.callCount).equals(2) // initial + navigation
 		o(bwInstance.loadURL.args[0]).equals("desktophtml")
