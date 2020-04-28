@@ -631,3 +631,9 @@ export const MailAuthenticationStatus = Object.freeze({
 	MISSING_MAIL_FROM: "4",
 })
 export type MailAuthenticationStatusEnum = $Values<typeof MailAuthenticationStatus>
+
+export const MailReportType = Object.freeze({
+	PHISHING: "0",
+	SPAM: "1",
+})
+export type MailReportTypeEnum = $Values<typeof MailReportType>
