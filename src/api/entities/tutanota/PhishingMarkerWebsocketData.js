@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "40"
+	"version": "41"
 }
 
 export function createPhishingMarkerWebsocketData(values?: $Shape<$Exact<PhishingMarkerWebsocketData>>): PhishingMarkerWebsocketData {

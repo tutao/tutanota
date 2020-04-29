@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "40"
+	"version": "41"
 }
 
 export function createMailboxServerProperties(values?: $Shape<$Exact<MailboxServerProperties>>): MailboxServerProperties {

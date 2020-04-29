@@ -84,6 +84,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
+		"birthdayIso": {
+			"name": "birthdayIso",
+			"id": 1082,
+			"since": 41,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": true
+		},
 		"comment": {
 			"name": "comment",
 			"id": 77,
@@ -129,8 +138,8 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": true
 		},
-		"oldBirthday": {
-			"name": "oldBirthday",
+		"oldBirthdayDate": {
+			"name": "oldBirthdayDate",
 			"id": 76,
 			"since": 1,
 			"type": "Date",
@@ -176,15 +185,6 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactAddress",
 			"final": false
 		},
-		"birthday": {
-			"name": "birthday",
-			"id": 851,
-			"since": 23,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"refType": "Birthday",
-			"final": false
-		},
 		"mailAddresses": {
 			"name": "mailAddresses",
 			"id": 80,
@@ -192,6 +192,15 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "ContactMailAddress",
+			"final": false
+		},
+		"oldBirthdayAggregate": {
+			"name": "oldBirthdayAggregate",
+			"id": 851,
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "Birthday",
 			"final": false
 		},
 		"phoneNumbers": {
@@ -224,7 +233,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "40"
+	"version": "41"
 }
 
 export function createContact(values?: $Shape<$Exact<Contact>>): Contact {

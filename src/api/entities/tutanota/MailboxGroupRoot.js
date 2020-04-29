@@ -112,7 +112,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "40"
+	"version": "41"
 }
 
 export function createMailboxGroupRoot(values?: $Shape<$Exact<MailboxGroupRoot>>): MailboxGroupRoot {

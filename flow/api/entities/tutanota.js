@@ -119,19 +119,20 @@ type Contact = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	autoTransmitPassword: string;
+	birthdayIso: ?string;
 	comment: string;
 	company: string;
 	firstName: string;
 	lastName: string;
 	nickname: ?string;
-	oldBirthday: ?Date;
+	oldBirthdayDate: ?Date;
 	presharedPassword: ?string;
 	role: string;
 	title: ?string;
 
 	addresses: ContactAddress[];
-	birthday: ?Birthday;
 	mailAddresses: ContactMailAddress[];
+	oldBirthdayAggregate: ?Birthday;
 	phoneNumbers: ContactPhoneNumber[];
 	socialIds: ContactSocialId[];
 	photo: ?IdTuple;
