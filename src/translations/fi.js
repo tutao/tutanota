@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -472,7 +472,6 @@ module.exports = {
 		"invited_label": "Kutsutut",
 		"invite_alt": "Kutsu",
 		"invoiceAddressInfoBusiness_msg": "Kirjoita laskutusosoitteesi (enintään 5 riviä).",
-		"invoiceAddressInput_msg": "Enintään viisi riviä",
 		"invoiceAddress_label": "Laskutusosoite",
 		"invoiceCountryInfoBusiness_msg": "Valitse asuinmaasi.",
 		"invoiceCountryInfoConsumer_msg": "Tämä tarvitaan arvonlisäveron laskemiseksi.",

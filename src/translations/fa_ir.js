@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -478,7 +478,6 @@ module.exports = {
 		"invited_label": "دعوت شده",
 		"invite_alt": "دعوت",
 		"invoiceAddressInfoBusiness_msg": "لطفاً نشانی صورتحساب‌تان را وارد کنید (حداکثر ۵ سطر).",
-		"invoiceAddressInput_msg": "حداکثر ۵ سطر",
 		"invoiceAddress_label": "نشانی صورت‌حساب",
 		"invoiceCountryInfoBusiness_msg": "لطفا کشور محل اقامت خود را انتخاب نمایید.",
 		"invoiceCountryInfoConsumer_msg": "این برای محاسبهٔ مالیات بر ارزش افزوده نیاز است.",

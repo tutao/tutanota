@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "Aby uzyskać dostęp, musisz zmodyfikować uprawnien
 TutaoCancelAction = "Anuluj";
 TutaoSettingsAction = "Ustawienia";
 TutaoCalendarAlarmTitle = "Przypomnienie";
+TutaoScheduleAlarmError = "Nie można było ustawić alarmu. Zaktualizuj proszę aplikację.";

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2020-03-20T14:50:59Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": null,
 	"keys": {
 		"action_label": "Darbība",
@@ -294,7 +294,6 @@ module.exports = {
 		"invitationMailBody_msg": "Labdien!<br><br>Šī ir mana jaunā e-pasta adrese. Ar Tutanota visas mūsu e-vēstules tiek automātiski šifrētas un neviens nevar tās izlasīt. Visi dati, kuri atrodas  serveros arī tiek šifrēti, profilēšana nav iespējama.<br><br>Pievienojies Tutanota tūlīt:<br>{registrationLink}<br><br><br>Ar sveicienu,<br>{username}<br><br>PS: Tutanota ir bezmaksas ar iekļautu 1 GB datu glabātuvi. Bez tam, tai ir atvērtais pirmkods: {githubLink}",
 		"invite_alt": "Uzaicināt",
 		"invoiceAddressInfoBusiness_msg": "Lūdzu, ievadīti rēķina saņemšanas adresi (maksimāli 5 rindas). ",
-		"invoiceAddressInput_msg": "Maks. 5 rindas",
 		"invoiceAddress_label": "Adrese rēķinā",
 		"invoiceCountryInfoBusiness_msg": "Lūdzu izvēlieties savu dzīvesvietas valsti.",
 		"invoiceCountry_label": "Valsts",

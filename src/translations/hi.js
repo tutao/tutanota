@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2020-03-24T16:54:38Z",
+	"updated_at": "2020-04-29T21:24:34Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -471,7 +471,6 @@ module.exports = {
 		"invited_label": "आमंत्रित",
 		"invite_alt": "आमंत्रण",
 		"invoiceAddressInfoBusiness_msg": "कृपया अपनी रसीद काटने का पता दर्ज़ करें (अधिकतम 5 पंक्तियाँ)। ",
-		"invoiceAddressInput_msg": "अधिकतम 5 पंक्तियाँ",
 		"invoiceAddress_label": "क्रय  पता",
 		"invoiceCountryInfoBusiness_msg": "कृपया अपने देश के निवास का चयन करें",
 		"invoiceCountryInfoConsumer_msg": "इसकी वैट की गणना के लिए जरूरत है। ",

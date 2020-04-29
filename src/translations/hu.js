@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2020-03-20T14:50:59Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Kérjük fogadja el az adatvédelmi szabályzatot.",
@@ -401,7 +401,6 @@ module.exports = {
 		"invitationMailSubject_msg": "Az új e-mail címem - csatlakozzon a Tutanotához így visszavehetjük a privát szféránkhoz való jogot",
 		"invite_alt": "Meghívás",
 		"invoiceAddressInfoBusiness_msg": "Kérjük add meg a számlázási címedet (max. 5 sor).",
-		"invoiceAddressInput_msg": "Max. 5 sor",
 		"invoiceAddress_label": "Számlázási cím",
 		"invoiceCountryInfoBusiness_msg": "Válassza ki tartózkodási helye szerinti országát.",
 		"invoiceCountryInfoConsumer_msg": "Erre szükség van annak eldöntése érdekében, hogy az általános forgalmi adót fel kell-e tüntetni a számlákon.",

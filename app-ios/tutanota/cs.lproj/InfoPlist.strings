@@ -11,3 +11,4 @@ TutaoChangePermissionMsg = "K umožnění přístupu musíte upravit povolení p
 TutaoCancelAction = "Zrušit";
 TutaoSettingsAction = "Nastavení";
 TutaoCalendarAlarmTitle = "Připomenutí";
+TutaoScheduleAlarmError = "Nepodařilo se nastavit alarm. Aktualizujte prosím aplikaci.";

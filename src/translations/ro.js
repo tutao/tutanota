@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -389,7 +389,6 @@ module.exports = {
 		"invitationMailSubject_msg": "Noua mea adresă de e-mail - m-am alăturat comunitații Tutanota pentru o comunicare privată",
 		"invite_alt": "Invitare",
 		"invoiceAddressInfoBusiness_msg": "Introduceți adresa de facturare (maximum 5 rânduri).",
-		"invoiceAddressInput_msg": "Maxim 5 rânduri",
 		"invoiceAddress_label": "Adresă de facturare",
 		"invoiceCountryInfoBusiness_msg": "Va rugăm alegeți țara de reședință. ",
 		"invoiceCountryInfoConsumer_msg": "Acest lucru este necesar pentru a calcula taxa pe valoare adăugată (TVA).",

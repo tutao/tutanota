@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2020-04-14T13:04:47Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -487,7 +487,6 @@ module.exports = {
 		"invited_label": "Convidado",
 		"invite_alt": "Convidar",
 		"invoiceAddressInfoBusiness_msg": "Indique o endereço de faturação (máx. 5 linhas).",
-		"invoiceAddressInput_msg": "Máx. 5 linhas",
 		"invoiceAddress_label": "Endereço fatura",
 		"invoiceCountryInfoBusiness_msg": "Por favor, escolha o país onde reside.",
 		"invoiceCountryInfoConsumer_msg": "Isto é necessário para calcular valor acrescentado pelo imposto.",
@@ -851,7 +850,7 @@ module.exports = {
 		"rename_action": "Renomear",
 		"repeatedPassword_label": "Repetir a palavra-passe",
 		"replyAll_action": "Responder a todos",
-		"replyTo_label": "ResponderA",
+		"replyTo_label": "Responder a",
 		"reply_action": "Responder",
 		"reportPhishing_action": "Reportar phishing",
 		"requestApproval_msg": "Desculpe, de momento não está autorizado a enviar ou receber correio eletrónico (excepto do apoio Tutanota) porque a sua conta foi assinalada para comprovar que não era usada como emissor de correio indesejado. Por favor contacte-nos em approval@tutao.de, a partir da sua conta Tutanota, e descreva de que forma pretende usar esta conta de email. Por favor redija a sua mensagem em Inglês ou Alemão para que o possamos entender. Obrigado!",
@@ -1001,6 +1000,7 @@ module.exports = {
 		"takeoverAccountInvalid_msg": "A conta de email de destino a utilizar não pertence a um admin Premium.",
 		"takeoverMailAddressInfo_msg": "Opcional: Indique o endereço de email do admin de conta Premium para reutilizar os seus endereços de email nessa conta.",
 		"takeoverMailAddress_label": "Endereço de email a utilizar",
+		"technicalSender_msg": "Quem envia técnicamente é: {sender}",
 		"templateHelp_msg": "No formulário abaixo pode configurar o modelo para notificação de correio electrónico que contém a hiperligação para a mensagem encriptada. O corpo do modelo deve conter o \"{link}\"  espaço reservado que será substituído pela hiperligação real para o correio encriptado. Pode também incluir um \"{sender}\" espaço reservado no corpo principal ou no campo do assunto que será substituído com o nome do emissor da mensagem.",
 		"templateLanguageExists_msg": "O modelo para a língua seleccionada já existe.",
 		"templateMustContain_msg": "O modelo deve ter um espaço reservado {value}",

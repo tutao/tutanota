@@ -50,7 +50,7 @@ export class InvoiceDataInput {
 
 		this.view = () => [
 			m(".pt", m(this._invoiceAddressComponent)),
-			m(".small", lang.get("invoiceAddressInput_msg")),
+			m(".small", lang.get(this._subscriptionOptions.businessUse() ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 			m(countryInput),
 			this._isVatIdFieldVisible() ? m(this._vatNumberField) : null
 		]
@@ -101,7 +101,8 @@ export class InvoiceDataInput {
 		return {
 			invoiceAddress: address,
 			country: selectedCountry,
-			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU && this._subscriptionOptions.businessUse()) ? this._vatNumberField.value() : ""
+			vatNumber: (selectedCountry && selectedCountry.t === CountryType.EU
+				&& this._subscriptionOptions.businessUse()) ? this._vatNumberField.value() : ""
 		}
 	}
 

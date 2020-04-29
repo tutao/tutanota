@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2020-03-20T14:50:58Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -434,7 +434,6 @@ module.exports = {
 		"invitationMailSubject_msg": "Η νέα μου διεύθυνση ηλεκτρονικού ταχυδρομείου - Εγγράψου στο Tutanota για μια απόρρητη επικοινωνία.",
 		"invite_alt": "Πρόσκληση",
 		"invoiceAddressInfoBusiness_msg": "Παρακαλώ εισάγετε μια διεύθυνση σας πρός έκδοση των αποδεικτικών τιμολογίων σας.",
-		"invoiceAddressInput_msg": "Μέγιστο 5 γραμμές",
 		"invoiceAddress_label": "Διεύθυνση τιμολόγησης ",
 		"invoiceCountryInfoBusiness_msg": "Παρακαλώ επιλέξτε χώρα διαμονής.",
 		"invoiceCountryInfoConsumer_msg": "Απαιτείται για τον υπολογισμό του φόροu προστιθέμενης αξίας  Φ.Π.Α.",

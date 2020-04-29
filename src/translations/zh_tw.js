@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2020-03-20T14:50:59Z",
+	"updated_at": "2020-04-29T21:24:33Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -391,7 +391,6 @@ module.exports = {
 		"invitationMailSubject_msg": "這是我新的地址 - 加入 Tutanota 以享有私密電子郵件通訊",
 		"invite_alt": "邀請",
 		"invoiceAddressInfoBusiness_msg": "請輸入您的帳單地址（至多 5 行）。",
-		"invoiceAddressInput_msg": "5 行以內",
 		"invoiceAddress_label": "帳單地址",
 		"invoiceCountryInfoBusiness_msg": "請選擇您居住的國家所在地。",
 		"invoiceCountryInfoConsumer_msg": "用於計算發票中消費營業稅。",

@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2020-03-21T11:01:57Z",
+	"updated_at": "2020-04-29T21:24:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -484,7 +484,6 @@ module.exports = {
 		"invited_label": "Convidado",
 		"invite_alt": "Convidar",
 		"invoiceAddressInfoBusiness_msg": "Por favor, introduza o enderezo de facturación (máx. 5 liñas).",
-		"invoiceAddressInput_msg": "Máx. 5 liñas",
 		"invoiceAddress_label": "Enderezo de facturación",
 		"invoiceCountryInfoBusiness_msg": "Escolla o seu país de residencia.",
 		"invoiceCountryInfoConsumer_msg": "Esto é preciso para calcular o imposto de valor engadido.",

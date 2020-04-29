@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2020-03-17T08:07:39Z",
+	"updated_at": "2020-04-29T21:24:34Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -450,7 +450,6 @@ module.exports = {
 		"invited_label": "Позван",
 		"invite_alt": "Позивница",
 		"invoiceAddressInfoBusiness_msg": "Молимо вас унесите вашу адресу са рачуна (макс. 5 редова)",
-		"invoiceAddressInput_msg": "Максимум 5 редова",
 		"invoiceAddress_label": "Адреса",
 		"invoiceCountryInfoBusiness_msg": "Молимо изаберите државу боравка.",
 		"invoiceCountryInfoConsumer_msg": "Ово је потребно да би се израчунао порез на додатну вредност (ПДВ).",

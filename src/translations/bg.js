@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2020-03-21T11:21:15Z",
+	"updated_at": "2020-04-29T21:24:34Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -481,7 +481,6 @@ module.exports = {
 		"invited_label": "Поканен",
 		"invite_alt": "Покани",
 		"invoiceAddressInfoBusiness_msg": "Моля, въведи адреса си за фактуриране (макс. 5 реда).",
-		"invoiceAddressInput_msg": "Най-много 5 реда",
 		"invoiceAddress_label": "Адрес за фактуриране",
 		"invoiceCountryInfoBusiness_msg": "Моля, изберете държавата, в която пребивавате.",
 		"invoiceCountryInfoConsumer_msg": "Това е необходимо за изчисляване на данъка върху добавената стойност (ДДС).",

@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-04-05T13:24:52Z",
+	"updated_at": "2020-04-29T21:24:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -487,7 +487,6 @@ module.exports = {
 		"invited_label": "Pozvan",
 		"invite_alt": "Pozivnica",
 		"invoiceAddressInfoBusiness_msg": "Unesite adresu računa (najviše 5 redaka).",
-		"invoiceAddressInput_msg": "Maksimalno 5 redaka",
 		"invoiceAddress_label": "Adresa za naplatu",
 		"invoiceCountryInfoBusiness_msg": "Molimo odaberite svoju državu prebivališta.",
 		"invoiceCountryInfoConsumer_msg": "Ovo je potrebno kako bi se utvrdilo da li porez na dodanu vrijednost mora biti prijavljen na Vašem računu.",
