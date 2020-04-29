@@ -262,7 +262,7 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 		if (b1.day === b2.day && b1.month === b2.month) {
 			if (b1.year === b2.year) {
 				return ContactComparisonResult.Equal
-			} else if (b1.year && b2.year && b1.year !== b2.year) {
+			} else if (b1.year && b2.year && b1.year !== b2.year) { // if we detect that one birthday has more information (year) we use that date
 				return ContactComparisonResult.Unique
 			} else {
 				return ContactComparisonResult.Similar

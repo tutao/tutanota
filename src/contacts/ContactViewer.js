@@ -4,7 +4,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
 import {
-	formatBirthdayOfContact,
+	formatBirthdayWithMonthName,
 	getContactAddressTypeLabel,
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel
@@ -22,6 +22,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType, getContactSocialType, Keys} from "../api/common/TutanotaConstants"
 import {mailModel} from "../mail/MailModel"
 import {getEmailSignature} from "../mail/MailUtils"
+import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
 
 assertMainOrNode()
 
@@ -243,7 +244,11 @@ export class ContactViewer {
 	}
 
 	_formatBirthday(): string {
-		return formatBirthdayOfContact(this.contact)
+		if (this._hasBirthday()) {
+			return formatBirthdayWithMonthName(isoDateToBirthday(this.contact.birthdayIso))
+		} else {
+			return ""
+		}
 	}
 
 	_hasBirthday(): boolean {

@@ -10,6 +10,7 @@ import {
 	utf8Uint8ArrayToString
 } from "../../../src/api/common/utils/Encoding"
 import {
+	applyMigrationsForInstance,
 	decryptAndMapToInstance,
 	decryptKey,
 	decryptRsaKey,
@@ -25,8 +26,10 @@ import {Cardinality, ValueType} from "../../../src/api/common/EntityConstants"
 import {BucketPermissionType, PermissionType} from "../../../src/api/common/TutanotaConstants"
 import {hexToPrivateKey, hexToPublicKey, rsaEncrypt} from "../../../src/api/worker/crypto/Rsa"
 import * as Mail from "../../../src/api/entities/tutanota/Mail"
-import {isSameTypeRef} from "../../../src/api/common/EntityFunctions"
+import type {HttpMethodEnum} from "../../../src/api/common/EntityFunctions"
+import {HttpMethod, isSameTypeRef} from "../../../src/api/common/EntityFunctions"
 import * as Contact from "../../../src/api/entities/tutanota/Contact"
+import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import * as UserIdReturn from "../../../src/api/entities/sys/UserIdReturn"
 import {createUserIdReturn} from "../../../src/api/entities/sys/UserIdReturn"
 import {createPermission} from "../../../src/api/entities/sys/Permission"
@@ -44,6 +47,8 @@ import {bitArrayToUint8Array} from "../../../src/api/worker/crypto/CryptoUtils"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import {LoginFacade} from "../../../src/api/worker/facades/LoginFacade"
 import murmurhash3_32_gc from "../../../src/api/worker/crypto/lib/murmurhash3_32"
+import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
+import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 
 o.spec("crypto facade", function () {
@@ -668,6 +673,123 @@ o.spec("crypto facade", function () {
 		o(murmurhash3_32_gc("ö")).equals(108599527)
 		o(murmurhash3_32_gc("asdlkasdjö")).equals(436586817)
 		o(murmurhash3_32_gc("В чашах леса жил бы цитрус?")).equals(1081111591)
+	})
+
+
+	o.spec("instance migrations", function () {
+		var mock
+		o.beforeEach(function () {
+			const entityRequestMock = (typeRef, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity) => {
+				if (method !== HttpMethod.PUT) {
+					return Promise.reject("invalid entity request")
+				}
+				return Promise.resolve()
+			}
+			locator.cache = new EntityRestClient(() => {return {}})
+			mock = mockAttribute(locator.cache, locator.cache.entityRequest, entityRequestMock)
+		})
+
+		o.afterEach(function () {
+			unmockAttribute(mock)
+		})
+
+		o("contact migration without birthday", function () {
+			const contact = createContact()
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(0)
+			})
+		})
+		o("contact migration without existing birthday", function () {
+			const contact = createContact()
+			contact.birthdayIso = "2019-05-01"
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("2019-05-01")
+				o(locator.cache.entityRequest.callCount).equals(0)
+			})
+		})
+
+		o("contact migration without existing birthday", function () {
+			const contact = createContact()
+			contact.birthdayIso = "2019-05-01"
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("2019-05-01")
+				o(locator.cache.entityRequest.callCount).equals(0)
+			})
+		})
+
+		o("contact migration without existing birthday and oldBirthdayDate", function () {
+			const contact = createContact()
+			contact.birthdayIso = "2019-05-01"
+			contact.oldBirthdayDate = new Date(2000, 4, 1)
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("2019-05-01")
+				o(locator.cache.entityRequest.callCount).equals(0)
+			})
+		})
+
+		o("contact migration with existing birthday and oldBirthdayAggregate", function () {
+			const contact = createContact()
+			contact.birthdayIso = "2019-05-01"
+			contact.oldBirthdayAggregate = createBirthday()
+			contact.oldBirthdayAggregate.day = "01"
+			contact.oldBirthdayAggregate.month = "05"
+			contact.oldBirthdayAggregate.year = "2000"
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("2019-05-01")
+				o(locator.cache.entityRequest.callCount).equals(0)
+			})
+		})
+
+		o("contact migration from oldBirthdayAggregate", function () {
+			const contact = createContact()
+			contact._id = ["listid", "id"]
+			contact.birthdayIso = null
+			contact.oldBirthdayAggregate = createBirthday()
+			contact.oldBirthdayAggregate.day = "01"
+			contact.oldBirthdayAggregate.month = "05"
+			contact.oldBirthdayAggregate.year = "2000"
+			contact.oldBirthdayDate = new Date(1800, 4, 1)
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("2000-05-01")
+				o(migratedContact.oldBirthdayAggregate).equals(null)
+				o(migratedContact.oldBirthdayDate).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(1)
+			})
+		})
+
+		o("contact migration from oldBirthdayDate", function () {
+			const contact = createContact()
+			contact._id = ["listid", "id"]
+			contact.birthdayIso = null
+			contact.oldBirthdayAggregate = null
+			contact.oldBirthdayDate = new Date(1800, 4, 1)
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("1800-05-01")
+				o(migratedContact.oldBirthdayAggregate).equals(null)
+				o(migratedContact.oldBirthdayDate).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(1)
+			})
+		})
+
+		o("contact migration from oldBirthdayAggregate without year", function () {
+			const contact = createContact()
+			contact._id = ["listid", "id"]
+			contact.birthdayIso = null
+			contact.oldBirthdayAggregate = createBirthday()
+			contact.oldBirthdayAggregate.day = "01"
+			contact.oldBirthdayAggregate.month = "05"
+			contact.oldBirthdayAggregate.year = null
+			contact.oldBirthdayDate = null
+			return applyMigrationsForInstance(contact).then(migratedContact => {
+				o(migratedContact.birthdayIso).equals("--05-01")
+				o(migratedContact.oldBirthdayAggregate).equals(null)
+				o(migratedContact.oldBirthdayDate).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(1)
+			})
+		})
+
+
 	})
 
 })
