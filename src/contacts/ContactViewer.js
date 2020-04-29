@@ -4,7 +4,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
 import {
-	formatBirthdayWithMonthName,
+	formatBirthdayOfContact,
 	getContactAddressTypeLabel,
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel
@@ -16,7 +16,6 @@ import {assertMainOrNode} from "../api/Env"
 import {keyManager} from "../misc/KeyManager"
 import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {formatDateWithMonth} from "../misc/Formatter"
 import {NotFoundError} from "../api/common/error/RestError"
 import {MailEditor} from "../mail/MailEditor"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -244,18 +243,10 @@ export class ContactViewer {
 	}
 
 	_formatBirthday(): string {
-		if (this.contact.birthday) {
-			return formatBirthdayWithMonthName(this.contact.birthday)
-		} else {
-			if (this.contact.oldBirthday) {
-				return formatDateWithMonth((this.contact.oldBirthday))
-			} else {
-				return ""
-			}
-		}
+		return formatBirthdayOfContact(this.contact)
 	}
 
 	_hasBirthday(): boolean {
-		return (!!this.contact.birthday) || (!!this.contact.oldBirthday)
+		return (!!this.contact.birthdayIso)
 	}
 }

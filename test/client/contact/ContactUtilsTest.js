@@ -1,3 +1,4 @@
+//@flow
 import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {compareContacts, formatBirthdayNumeric} from "../../../src/contacts/ContactUtils"
@@ -100,6 +101,5 @@ o.spec("ContactUtilsTest", function () {
 		bday.month = "10"
 		bday.year = "2009"
 	})
-
 })
 

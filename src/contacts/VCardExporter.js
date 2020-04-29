@@ -9,8 +9,6 @@ import {Dialog} from "../gui/base/Dialog"
 import {createFile} from "../api/entities/tutanota/File"
 import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 import {fileController} from "../file/FileController"
-import {neverNull} from "../api/common/utils/Utils"
-import {formatSortableDate} from "../misc/Formatter"
 import {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
@@ -81,15 +79,12 @@ export function _contactToVCard(contact: Contact): string {
 	contactToVCardString += contact.nickname ? _getFoldedString("NICKNAME:" + _getVCardEscaped(contact.nickname))
 		+ "\n" : ""
 	//adds oldBirthday converted into a string if present else if available new birthday format is added to contactToVCardString
-	if (contact.birthday) {
-		let day = Number(neverNull(contact.birthday).day)
-		let month = Number(neverNull(contact.birthday).month)
+	if (contact.birthdayIso) {
+		const bday = contact.birthdayIso
 		// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
-		let year = neverNull(contact.birthday).year ? Number(neverNull(neverNull(contact.birthday).year)) : 1111
-		//month -1 because new birthday format is number string not a date. if month 09 is wanted input has to be 08.
-		contactToVCardString += "BDAY:" + formatSortableDate(new Date(year, month - 1, day)) + "\n"
-	} else if (contact.oldBirthday) {
-		contactToVCardString += "BDAY:" + formatSortableDate(contact.oldBirthday) + "\n"
+		// vcard 4.0 supports iso date without year
+		const bdayExported = bday.startsWith("--") ? bday.replace("--", "1111-") : bday
+		contactToVCardString += "BDAY:" + bdayExported + "\n"
 	}
 	contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.addresses), "ADR")
 	contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.mailAddresses), "EMAIL")
@@ -107,7 +102,7 @@ export function _contactToVCard(contact: Contact): string {
  * Works for mail addresses the same as for addresses
  * Returns all mail-addresses/addresses and their types in an object array
  */
-export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): { KIND: string, CONTENT: string }[] {
+export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): {KIND: string, CONTENT: string}[] {
 	return addresses.map(ad => {
 		let kind = ""
 		switch (ad.type) {
@@ -127,7 +122,7 @@ export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | Con
  * export for testing
  * Returns all phone numbers and their types in an object array
  */
-export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): { KIND: string, CONTENT: string }[] {
+export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): {KIND: string, CONTENT: string}[] {
 	return numbers.map(num => {
 		let kind = ""
 		switch (num.type) {
@@ -154,7 +149,7 @@ export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]):
  *  Returns all socialIds as a vCard Url in an object array
  *  Type is not defined here. URL tag has no fitting type implementation
  */
-export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): { KIND: string, CONTENT: string }[] {
+export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {KIND: string, CONTENT: string}[] {
 	return socialIds.map(sId => {
 		//IN VCARD 3.0 is no type for URLS
 		return {KIND: "", CONTENT: sId.socialId}
@@ -165,7 +160,7 @@ export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): { KIN
  * export for testing
  * Returns a multiple line string from the before created object arrays of addresses, mail addresses and socialIds
  */
-export function _vCardFormatArrayToString(typeAndContentArray: { KIND: string, CONTENT: string }[], tagContent: string): string {
+export function _vCardFormatArrayToString(typeAndContentArray: {KIND: string, CONTENT: string}[], tagContent: string): string {
 	return typeAndContentArray.reduce((result, elem) => {
 		if (elem.KIND) {
 			return result + _getFoldedString(tagContent + ";TYPE=" + elem.KIND + ":" + _getVCardEscaped(elem.CONTENT))

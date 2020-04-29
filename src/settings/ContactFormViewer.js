@@ -26,8 +26,7 @@ import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/util
 import {createFile} from "../api/entities/tutanota/File"
 import {createDataFile} from "../api/common/DataFile"
 import {fileController} from "../file/FileController"
-import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
-import {formatSortableDate} from "../misc/Formatter"
+import {DAY_IN_MILLIS, formatSortableDate} from "../api/common/utils/DateUtils"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 
 assertMainOrNode()

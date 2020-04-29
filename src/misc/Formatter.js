@@ -84,25 +84,6 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 	return lang.formats.dateWithWeekdayWoMonth.format(date)
 }
 
-/**
- * Formats as yyyy-mm-dd
- */
-export function formatSortableDate(date: Date): string {
-	const month = ("0" + (date.getMonth() + 1)).slice(-2)
-	const day = ("0" + date.getDate()).slice(-2)
-	return `${date.getFullYear()}-${month}-${day}`
-}
-
-/**
- * Formats as yyyy-mm-dd <hh>h-<mm>m-<ss>s
- */
-export function formatSortableDateTime(date: Date): string {
-	const hours = ("0" + date.getHours()).slice(-2)
-	const minutes = ("0" + date.getMinutes()).slice(-2)
-	const seconds = ("0" + date.getSeconds()).slice(-2)
-	return `${formatSortableDate(date)} ${hours}h${minutes}m${seconds}s`
-}
-
 const referenceDate = new Date(2017, 5, 23)
 
 /**

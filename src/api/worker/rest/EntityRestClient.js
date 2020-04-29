@@ -1,6 +1,13 @@
 //@flow
 import {restClient} from "./RestClient"
-import {applyMigrations, decryptAndMapToInstance, encryptAndMapToLiteral, resolveSessionKey, setNewOwnerEncSessionKey} from "../crypto/CryptoFacade"
+import {
+	applyMigrations,
+	applyMigrationsForInstance,
+	decryptAndMapToInstance,
+	encryptAndMapToLiteral,
+	resolveSessionKey,
+	setNewOwnerEncSessionKey
+} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {HttpMethod, isSameTypeRef, MediaType, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
@@ -80,7 +87,8 @@ export class EntityRestClient implements EntityRestInterface {
 											console.log("could not resolve session key", e)
 											return null // will result in _errors being set on the instance
 										})
-										.then(sk => decryptAndMapToInstance(model, instance, sk)),
+										.then(sk => decryptAndMapToInstance(model, instance, sk))
+										.then(decryptedInstance => applyMigrationsForInstance(decryptedInstance)),
 								{concurrency: 5})
 						})
 					} else {
@@ -90,6 +98,8 @@ export class EntityRestClient implements EntityRestInterface {
 								return null // will result in _errors being set on the instance
 							}).then(sk => {
 								return decryptAndMapToInstance(model, data, sk)
+							}).then(instance => {
+								return applyMigrationsForInstance(instance)
 							})
 						})
 					}

@@ -8,9 +8,9 @@ import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
-import {formatSortableDateTime} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
+import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 
 assertMainOrNode()
 

@@ -12,10 +12,10 @@ import {
 	ContactPhoneNumberTypeToLabel,
 	ContactSocialTypeToLabel,
 	formatBirthdayNumeric,
+	formatBirthdayOfContact,
 	getContactAddressTypeLabel,
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel,
-	migrateToNewBirthday
 } from "./ContactUtils"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
 import {animations, DefaultAnimationTime, height, opacity} from "../gui/animation/Animations"
@@ -36,6 +36,7 @@ import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
+import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
 
 
 assertMainOrNode()
@@ -63,8 +64,6 @@ export class ContactEditor {
 	 */
 	constructor(contact: ?Contact, listId: ?Id, newContactIdReceiver: ?Function) {
 		this.contact = contact ? clone(contact) : createContact()
-		migrateToNewBirthday(this.contact)
-
 		this._newContactIdReceiver = newContactIdReceiver
 		if (contact == null && listId == null) {
 			throw new Error("must provide contact to edit or listId for the new contact")
@@ -93,16 +92,20 @@ export class ContactEditor {
 				: ""
 		}
 		this.birthday = new TextField('birthday_alt', birthdayHelpText)
-			.setValue(this.contact.birthday ? formatBirthdayNumeric(this.contact.birthday) : "")
+			.setValue(formatBirthdayOfContact(this.contact))
 			.onUpdate(value => {
 				if (value.trim().length === 0) {
-					this.contact.birthday = null
+					this.contact.birthdayIso = null
 					this.invalidBirthday = false
 				} else {
 					let birthday = parseBirthday(value)
 					if (birthday) {
-						this.contact.birthday = birthday
-						this.invalidBirthday = false
+						try {
+							this.contact.birthdayIso = birthdayToIsoDate(birthday)
+							this.invalidBirthday = false
+						} catch (e) {
+							this.invalidBirthday = true
+						}
 					} else {
 						this.invalidBirthday = true
 					}

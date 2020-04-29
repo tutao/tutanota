@@ -86,3 +86,23 @@ export function isSameDayOfDate(date1: ?Date, date2: ?Date): boolean {
 		&& date1.getMonth() === date2.getMonth()
 		&& date1.getDate() === date2.getDate()
 }
+
+
+/**
+ * Formats as yyyy-mm-dd
+ */
+export function formatSortableDate(date: Date): string {
+	const month = ("0" + (date.getMonth() + 1)).slice(-2)
+	const day = ("0" + date.getDate()).slice(-2)
+	return `${date.getFullYear()}-${month}-${day}`
+}
+
+/**
+ * Formats as yyyy-mm-dd <hh>h-<mm>m-<ss>
+ */
+export function formatSortableDateTime(date: Date): string {
+	const hours = ("0" + date.getHours()).slice(-2)
+	const minutes = ("0" + date.getMinutes()).slice(-2)
+	const seconds = ("0" + date.getSeconds()).slice(-2)
+	return `${formatSortableDate(date)} ${hours}h${minutes}m${seconds}s`
+}

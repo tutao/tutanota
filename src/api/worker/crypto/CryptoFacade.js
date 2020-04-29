@@ -13,7 +13,7 @@ import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {assertWorkerOrNode} from "../../Env"
-import {neverNull} from "../../common/utils/Utils"
+import {downcast, neverNull} from "../../common/utils/Utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
@@ -27,6 +27,7 @@ import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {CryptoError} from "../../common/error/CryptoError"
 import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {decryptAndMapToInstance, decryptValue, encryptAndMapToLiteral, encryptBytes, encryptString, encryptValue} from "./InstanceMapper.js"
+import {update} from "./../EntityWorker"
 
 import {
 	aes256DecryptKey,
@@ -38,6 +39,8 @@ import {
 	encryptKey,
 	encryptRsaKey
 } from "./KeyCryptoUtils.js"
+import {ContactTypeRef} from "../../entities/tutanota/Contact"
+import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 
 assertWorkerOrNode()
 
@@ -82,6 +85,24 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 			.return(data)
 	}
 	return Promise.resolve(data)
+}
+
+export function applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
+	const instanceType = downcast(decryptedInstance)._type
+	if (isSameTypeRef(instanceType, ContactTypeRef)) {
+		const contact: Contact = downcast(decryptedInstance)
+		if (!contact.birthdayIso && contact.oldBirthdayAggregate) {
+			contact.birthdayIso = birthdayToIsoDate(contact.oldBirthdayAggregate)
+			contact.oldBirthdayAggregate = null
+			contact.oldBirthdayDate = null
+			return update(contact).return(decryptedInstance)
+		} else if (!contact.birthdayIso && contact.oldBirthdayDate) {
+			contact.birthdayIso = birthdayToIsoDate(oldBirthdayToBirthday(contact.oldBirthdayDate))
+			contact.oldBirthdayDate = null
+			return update(contact).return(decryptedInstance)
+		}
+	}
+	return Promise.resolve(decryptedInstance)
 }
 
 interface ResolveSessionKeyLoaders {

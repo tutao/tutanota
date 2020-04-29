@@ -8,10 +8,8 @@ import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
-import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 
 o.spec("VCardImporterTest", function () {
-	let date = new Date()
 
 	o.before(function () {
 		window.whitelabelCustomizations = null
@@ -40,7 +38,8 @@ END:VCARD
 
 `
 
-		let expected = [`VERSION:3.0
+		let expected = [
+			`VERSION:3.0
 FN:proto type
 N:type;proto;;;
 ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\nBerlin;;12345;Deutschland`,
@@ -52,7 +51,8 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`]
+ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`
+		]
 		//prepares for further usage --> removes Begin and End tag and pushes the content between those tags into an array
 		o(vCardFileToVCards(str)).deepEquals(expected)
 
@@ -80,7 +80,8 @@ TEL;TYPE=VOICE,HOME:789456123
 ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;
 END:VCARD`
 
-		let expected = [`VERSION:3.0
+		let expected = [
+			`VERSION:3.0
 FN:proto type
 N:type;proto;;;
 ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\nBerlin;;12345;Deutschland`,
@@ -92,7 +93,8 @@ BDAY:2001-01-01
 EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
-ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`]
+ADR;TYPE=WORK:;;Strasse 30\, 67890 hamburg ;;;;`
+		]
 		//Unfolding lines for content lines longer than 75 characters
 		o(vCardFileToVCards(str)).deepEquals(expected)
 
@@ -120,7 +122,8 @@ END:VCARD
 
 `
 
-		let expected = [`VERSION:3.0
+		let expected = [
+			`VERSION:3.0
 FN:proto type
 N:type;proto;;;
 ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
@@ -133,7 +136,8 @@ EMAIL;TYPE=WORK:k1576147@mvrht.net
 TEL;TYPE=CELL,WORK:123456789
 TEL;TYPE=VOICE,HOME:789456123
 ADR;TYPE=WORK:;;Strasse 30\\, 67890 hamburg ;;;;
-NOTE:BEGIN:VCARD\\n i Love VCARDS;`]
+NOTE:BEGIN:VCARD\\n i Love VCARDS;`
+		]
 
 		o(vCardFileToVCards(str)).deepEquals(expected)
 
@@ -141,7 +145,8 @@ NOTE:BEGIN:VCARD\\n i Love VCARDS;`]
 	o("windowsLinebreaks", function () {
 		let str = "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:proto type\r\nN:type;proto;;;\r\nADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland\r\nEND:VCARD\r\n"
 
-		let expected = [`VERSION:3.0
+		let expected = [
+			`VERSION:3.0
 FN:proto type
 N:type;proto;;;
 ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
@@ -156,7 +161,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
-		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -168,16 +172,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = null
 		b.comment = "Hello World\nHier ist ein Umbruch"
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
 		b.nickname = neverNull(null)
-		bday.day = "09"
-		bday.month = "09"
-		bday.year = "2016"
-		b.birthday = bday
+		b.birthdayIso = "2016-09-09"
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
@@ -187,7 +187,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
-		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -199,16 +198,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = null
 		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
 		b.nickname = neverNull(null)
-		bday.day = "09"
-		bday.month = "09"
-		bday.year = "2016"
-		b.birthday = bday
+		b.birthdayIso = "2016-09-09"
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 
@@ -220,7 +215,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		let contacts = vCardListToContacts(a, "")
 
 		let b = createContact()
-		let bday = createBirthday()
 		b._owner = ""
 		b._ownerGroup = ""
 		b.addresses[0] = {
@@ -232,16 +226,12 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		}
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
-		b.oldBirthday = null
 		b.comment = ""
 		b.company = ""
 		b.role = ""
 		b.title = "Mr."
 		b.nickname = neverNull(null)
-		bday.day = "09"
-		bday.month = "09"
-		bday.year = "2016"
-		b.birthday = bday
+		b.birthdayIso = "2016-09-09"
 
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
@@ -293,14 +283,8 @@ BDAY:--0626
 END:VCARD`
 
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
-
-		o(neverNull(contacts[0].birthday).day).equals("31")
-		o(neverNull(contacts[0].birthday).month).equals("03")
-		o(neverNull(contacts[0].birthday).year).equals("1954")
-
-		o(neverNull(contacts[1].birthday).day).equals("26")
-		o(neverNull(contacts[1].birthday).month).equals("06")
-		o(neverNull(contacts[1].birthday).year).equals(null)
+		o(neverNull(contacts[0].birthdayIso)).equals("1954-03-31")
+		o(neverNull(contacts[1].birthdayIso)).equals("--06-26")
 	})
 
 	o("test import without year", function () {
@@ -312,16 +296,9 @@ BEGIN:VCARD
 VERSION:3.0
 BDAY:11110331
 END:VCARD`
-
 		let contacts = vCardListToContacts(neverNull(vCardFileToVCards(vcards)), "")
-
-		o(neverNull(contacts[0].birthday).day).equals("31")
-		o(neverNull(contacts[0].birthday).month).equals("03")
-		o(neverNull(contacts[0].birthday).year).equals(null)
-
-		o(neverNull(contacts[1].birthday).day).equals("31")
-		o(neverNull(contacts[1].birthday).month).equals("03")
-		o(neverNull(contacts[1].birthday).year).equals(null)
+		o(neverNull(contacts[0].birthdayIso)).equals("--03-31")
+		o(neverNull(contacts[1].birthdayIso)).equals("--03-31")
 	})
 })
 

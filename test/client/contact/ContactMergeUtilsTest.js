@@ -2,30 +2,29 @@
 import o from "ospec/ospec.js"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import {
-	_compareMailAddresses,
-	_compareFullName,
 	_areResidualContactFieldsEqual,
+	_compareBirthdays,
 	_compareContactsForMerge,
-	getMergeableContacts,
+	_compareFullName,
+	_compareMailAddresses,
 	_comparePhoneNumbers,
-	mergeContacts,
+	_getMergedAddresses,
+	_getMergedEmailAddresses,
 	_getMergedNameField,
 	_getMergedOtherField,
-	_getMergedEmailAddresses,
 	_getMergedPhoneNumbers,
-	_getMergedAddresses,
 	_getMergedSocialIds,
-	birthdayToOldBirthday,
-	_compareBirthdays
+	getMergeableContacts,
+	mergeContacts
 } from "../../../src/contacts/ContactMergeUtils"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
 import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
 import {
 	ContactAddressType,
 	ContactComparisonResult,
-	IndifferentContactComparisonResult,
+	ContactPhoneNumberType,
 	ContactSocialType,
-	ContactPhoneNumberType
+	IndifferentContactComparisonResult
 } from "../../../src/api/common/TutanotaConstants"
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {createContactSocialId} from "../../../src/api/entities/tutanota/ContactSocialId"
@@ -33,12 +32,12 @@ import {createFilledContact} from "./VCardExporterTest"
 import {neverNull} from "../../../src/api/common/utils/Utils"
 import {_contactToVCard} from "../../../src/contacts/VCardExporter"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
-import {oldBirthdayToBirthday, migrateToNewBirthday} from "../../../src/contacts/ContactUtils"
+import {birthdayToIsoDate} from "../../../src/api/common/utils/BirthdayUtils"
+
 
 o.spec("ContactMergeUtilsTest", function () {
 // tests are made for the validation of the comparison functions to find mergable contacts
 // tests all ContactMergeUtils functions
-
 
 	o("GetMergableContactsTest", function () {
 		let c1 = createEmailPhoneContact("A", "B", ["a@b.de"])
@@ -232,6 +231,7 @@ o.spec("ContactMergeUtilsTest", function () {
 
 
 	})
+
 	function createFilledContactPhoneNumbers(phoneNumbers: string[]) {
 		return phoneNumbers.map(n => {
 			let a = createContactPhoneNumber()
@@ -292,290 +292,346 @@ o.spec("ContactMergeUtilsTest", function () {
 		return c
 	}
 
-	o("testCompareContactsForMerge", function () {
 
-		let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
-		let c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+	o.spec("testCompareContactsForMerge", function () {
+		o("contacts are equal", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
+		o("empty contacts", function () {
+			const c1 = createEmailPhoneContact("", "", [], [])
+			const c2 = createEmailPhoneContact("", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], [])
-		c2 = createEmailPhoneContact("", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		o("contacts are equal - phone numer matches", function () {
+			const c1 = createEmailPhoneContact("", "", [], ["123456"])
+			const c2 = createEmailPhoneContact("", "", [], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are equal - mail address matches", function () {
+			const c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			const c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
+		o("contacts are equal", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", [], [])
+			const c2 = createEmailPhoneContact("anton", "schmidt", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - additional email addresses", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - case insensitive email addresses", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - name different", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", [], [])
+			const c2 = createEmailPhoneContact("", "schmidt", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "Bob", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar - different email addresses", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], [])
+			const c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("bob", "schmidt", [""], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar - different phone numbers ", function () {
+			const c1 = createEmailPhoneContact("anton", "schmidt", [], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", [], ["1234567890"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
 
-		c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("", "schmidt", [""], [""])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - last name matches", function () {
+			const c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - last name matches", function () {
+			const c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("", "schmidt", [""], [""])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar - case insensitive name check", function () {
+			const c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar - mail addess matches, name is empty", function () {
+			const c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			const c2 = createEmailPhoneContact("a", "tom", ["a@b.de"], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", ["anton@mail.de"], ["1234567"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar - phone number matches, name and email empty", function () {
+			const c1 = createEmailPhoneContact("", "", [], ["123456"])
+			const c2 = createEmailPhoneContact("a", "tom", [], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], [])
-		c2 = createEmailPhoneContact("a", "tom", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are unique - firstname matches", function () {
+			const c1 = createEmailPhoneContact("anton", "Bob", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		c2 = createEmailPhoneContact("a", "tom", ["a@b.de"], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are unique - last name matches, first name is different but no email addresses", function () {
+			const c1 = createEmailPhoneContact("bob", "schmidt", [], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "schmidt", [], ["123456"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], ["123456"])
-		c2 = createEmailPhoneContact("a", "tom", [], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are unique - mail address matches but last name is different", function () {
+			const c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			const c2 = createEmailPhoneContact("anton", "tom", ["anton@mail.de"], ["1234567"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], ["123456"])
-		c2 = createEmailPhoneContact("", "", [], ["123456"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		o("contacts are unique - one contact is empty", function () {
+			const c1 = createEmailPhoneContact("", "", [], [])
+			const c2 = createEmailPhoneContact("a", "tom", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+
 		//________________________________Birthday test cases for merge________________________________________<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12), 12, 8, 1991)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12), 12, 8, 1991)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12))
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 9, 12))
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [],)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [],)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, null)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], new Date(1991, 7, 12), 12, 8, 1991)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 7, 12), 12, 8, null)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1991)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1991, 7, 12), 12, 8, null)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1991)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, null)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1992)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(1993, 7, 12))
-		 c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null, 12, 8, 1993)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(12,7,1992))
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], new Date(12,7,1992))
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(13,8,1991))
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null,12,8,1991)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], new Date(13,8,1991))
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
-		c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["bent@bent.de"], ["123123123", "321321321"], [], [], null,12,8,1991)
-		c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de", "bent@bent.de"], ["123123123", "321321321"], [], [], null,13,8,1992)
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are equal - all is equal", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-12-8")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-12-8")
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
+		o("contacts are equal - all is equal birthday without year", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--12-8")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--12-8")
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
 
-//_________________More test cases for full contact simulation here --added other contact fields ___________________
-		c1 = createEmailPhoneContact("", "", [], [])
-		c2 = createEmailPhoneContact("", "", [], [])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		o("contacts are similar - birthday with and without year", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], "--08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", ["ant@ant.de"], [], [], [], "1991-08-12")
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de"], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar - on birthday without year", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], null)
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
+		o("contacts are similar - one birthday with year", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], null)
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "--08-12")
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "A", [], [])
-		c2 = addFilledContactOtherFields(c2, "", "", "b", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are unique - different birthdays", function () {
+			const c1 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1992-08-12")
+			const c2 = createFilledContact("ant", "bent", "hello", "tuta", "Mr.", "Bob", [], [], [], [], "1991-09-13")
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "b", "A", [], [])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "b", "A", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		//_________________More test cases for full contact simulation here --added other contact fields ___________________
+		o("contacts are equal - other contact fields", function () {
+			let c1 = createEmailPhoneContact("anton", "schmidt", [], [])
+			let c2 = createEmailPhoneContact("anton", "schmidt", [], [])
+			c1 = addFilledContactOtherFields(c1, "A", "B", "C", "D", ["E"], ["F"])
+			c2 = addFilledContactOtherFields(c2, "A", "B", "C", "D", ["E"], ["F"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Equal)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Equal)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "A", ["Facebook sucks in privacy", "Google also does"], ["Address 123", "Berlin 1234", "Hannover"])
-		c2 = addFilledContactOtherFields(c2, "", "", "b", "", [], ["Hannover"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("anton", "schmidt", [], [])
+			let c2 = createEmailPhoneContact("anton", "schmidt", [], [])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "A", [], [])
+			c2 = addFilledContactOtherFields(c2, "", "", "b", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "TUTA@io.de"], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "b", "A", [], [])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "b", "A", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "A", ["Facebook sucks in privacy", "Google also does"], [
+				"Address 123", "Berlin 1234", "Hannover"
+			])
+			c2 = addFilledContactOtherFields(c2, "", "", "b", "", [], ["Hannover"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("anton", "Bob", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("anton", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("bob", "schmidt", [""], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", ["", "", ""], ["", "", ""])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("anton", "Bob", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", ["b@mail.de", "c@io.de"], ["1234567890"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
-		c2 = addFilledContactOtherFields(c2, "b", "c", "d", "e", ["f", "g", "h"], ["q", "w", "j"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("bob", "schmidt", [""], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			c2 = addFilledContactOtherFields(c2, "", "", "", "", ["", "", ""], ["", "", ""])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("", "schmidt", [""], [""])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", ["A", "B", "C"], ["A", "B", "C"])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A", "B", "C"], ["A", "B", "C"])
+			c2 = addFilledContactOtherFields(c2, "b", "c", "d", "e", ["f", "g", "h"], ["q", "w", "j"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["A"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("", "schmidt", [""], [""])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "", ["A", "B", "C"], ["A", "B", "C"])
+			c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["A"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "schmidt", [""], ["123"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["A"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
-		c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["B"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["A"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
-		c2 = createEmailPhoneContact("anton", "tom", ["anton@mail.de"], ["1234567"])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "tom", [""], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "A", "A", "A", ["A"], ["A"])
+			c2 = addFilledContactOtherFields(c2, "A", "A", "A", "A", ["A"], ["B"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], [])
-		c2 = createEmailPhoneContact("a", "tom", [], [])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("Anton", "Schmidt", ["anton@mail.de", "tuta@io.de"], ["123456"])
+			let c2 = createEmailPhoneContact("anton", "tom", ["anton@mail.de"], ["1234567"])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
+			c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		c2 = createEmailPhoneContact("a", "tom", ["a@b.de"], [])
-		c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "", [], [])
+			let c2 = createEmailPhoneContact("a", "tom", [], [])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "", [], [])
+			c2 = addFilledContactOtherFields(c2, "", "", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Unique)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Unique)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], ["123456"])
-		c2 = createEmailPhoneContact("a", "tom", [], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "", "", "", "", ["Diaspora my be better than Facebook"], ["Hannover"])
-		c2 = addFilledContactOtherFields(c2, "", "", "", "", [], ["Hannover"])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			let c2 = createEmailPhoneContact("a", "tom", ["a@b.de"], [])
+			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
+			c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("", "", [], ["123456"])
-		c2 = createEmailPhoneContact("", "", [], ["123456"])
-		c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "", [], ["123456"])
+			let c2 = createEmailPhoneContact("a", "tom", [], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "", "", "", "", ["Diaspora my be better than Facebook"], ["Hannover"])
+			c2 = addFilledContactOtherFields(c2, "", "", "", "", [], ["Hannover"])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
-		c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
-		c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
-		c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
-		o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
-		o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "", [], ["123456"])
+			let c2 = createEmailPhoneContact("", "", [], ["123456"])
+			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
+			c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
+
+		o("contacts are similar", function () {
+			let c1 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			let c2 = createEmailPhoneContact("", "", ["a@b.de"], [])
+			c1 = addFilledContactOtherFields(c1, "A", "", "", "", [], [])
+			c2 = addFilledContactOtherFields(c2, "A", "B", "", "", [], [])
+			o(_compareContactsForMerge(c1, c2)).equals(ContactComparisonResult.Similar)
+			o(_compareContactsForMerge(c2, c1)).equals(ContactComparisonResult.Similar)
+		})
 
 
 	})
@@ -646,53 +702,23 @@ o.spec("ContactMergeUtilsTest", function () {
 	})
 
 	o("getMergedBirthdaysTest", function () {
-		_testMerge(_createBirthdayContact(new Date(2000, 0, 1), null, null, null), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000))
-		_testMerge(_createBirthdayContact(null, 1, 1, 2000), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000), _createBirthdayContact(new Date(2000, 0, 1), 1, 1, 2000))
-		_testMerge(_createBirthdayContact(new Date(2000, 0, 1), 1, 1, 2000), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000), _createBirthdayContact(new Date(2000, 0, 1), 1, 1, 2000))
-		_testMerge(_createBirthdayContact(null, null, null, null), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000))
-		_testMerge(_createBirthdayContact(null, null, null, null), _createBirthdayContact(null, 2, 1, 2000), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000))
-		_testMerge(_createBirthdayContact(null, null, null, null), _createBirthdayContact(new Date(2000, 0, 2), null, null, null), _createBirthdayContact(new Date(2000, 0, 2), 2, 1, 2000))
+		_testMerge(_createBirthdayContact("2000-01-01"), _createBirthdayContact("2000-01-02"), _createBirthdayContact("2000-01-01"))
+		_testMerge(_createBirthdayContact(null), _createBirthdayContact("2000-01-02"), _createBirthdayContact("2000-01-02"))
+		_testMerge(_createBirthdayContact("2000-01-01"), _createBirthdayContact(null), _createBirthdayContact("2000-01-01"))
+		_testMerge(_createBirthdayContact(null), _createBirthdayContact("--01-02"), _createBirthdayContact("--01-02"))
+		_testMerge(_createBirthdayContact("2000-01-01"), _createBirthdayContact("--01-02"), _createBirthdayContact("2000-01-01")) // more specific bday
+		_testMerge(_createBirthdayContact("--01-01"), _createBirthdayContact("2000-01-02"), _createBirthdayContact("2000-01-02")) // more specific bday
 	})
 
-	o("birthdayFormatterTest", function () {
-		let bday = createBirthday()
-		bday.day = "14"
-		bday.month = "2"
-		bday.year = "2000"
-		let bday2 = oldBirthdayToBirthday(birthdayToOldBirthday(bday))
-		o(bday.day).equals(bday2.day)
-		o(bday.month).equals(bday2.month)
-		o(bday.year).equals(bday2.year)
-
-		bday = createBirthday()
-		bday.day = "2"
-		bday.month = "3"
-		bday.year = "2001"
-		bday2 = oldBirthdayToBirthday(birthdayToOldBirthday(bday))
-		o(bday.day).equals(bday2.day)
-		o(bday.month).equals(bday2.month)
-		o(bday.year).equals(bday2.year)
-	})
-
-	function _createBirthdayContact(oldBirthday: ?Date, newBirthdayDay: ?number, newBirthdayMonth: ?number, newBirthdayYear: ?number): Contact {
-		return createFilledContact("A", "B", "", "", "", "", null, null, null, null, oldBirthday, newBirthdayDay, newBirthdayMonth, newBirthdayYear)
+	function _createBirthdayContact(birthdayIso: ?string): Contact {
+		return createFilledContact("A", "B", "", "", "", "", null, null, null, null, birthdayIso)
 	}
 
 	function _testMerge(c1: Contact, c2: Contact, merged: Contact) {
 		mergeContacts(c1, c2)
-		o(JSON.stringify(c1.oldBirthday)).equals(JSON.stringify(null))
-		if (!c1.oldBirthday && !c1.birthday) {
-			o(JSON.stringify(c2.oldBirthday)).equals(JSON.stringify(merged.oldBirthday))
-		}
-		if (c1.birthday && c1.birthday.year && neverNull(merged.birthday).year) {
-			o(neverNull(c1.birthday).day).equals(neverNull(merged.birthday).day)
-			o(neverNull(c1.birthday).month).equals(neverNull(merged.birthday).month)
-			o(neverNull(c1.birthday).year).equals(neverNull(merged.birthday).year)
-		} else if (c2.birthday && c2.birthday.year && neverNull(merged.birthday).year) {
-			o(neverNull(c2.birthday).day).equals(neverNull(merged.birthday).day)
-			o(neverNull(c2.birthday).month).equals(neverNull(merged.birthday).month)
-			o(neverNull(c2.birthday).year).equals(neverNull(merged.birthday).year)
-		}
+		delete c1._id
+		delete merged._id
+		o(c1).deepEquals(merged)
 	}
 
 	o("getMergedNameFieldTest", function () {
@@ -1118,8 +1144,12 @@ o.spec("ContactMergeUtilsTest", function () {
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
 
 		keptContact = createFilledContact("", "", "Tests are great ... noooot", "", "", "", [], [], [], [])
-		eliminatedContact = createFilledContact("Ant", "Ste", "Hello World!", "Tutao", "Mr.", "Buffalo", ["antste@antste.de", "bentste@bentste.de"], ["123123123", "321321321"], ["diaspora.de"], ["Housestreet 123\nTown 123\nState 123\nCountry 123"])
-		compareContact = createFilledContact("Ant", "Ste", "Tests are great ... noooot\n\nHello World!", "Tutao", "Mr.", "Buffalo", ["antste@antste.de", "bentste@bentste.de"], ["123123123", "321321321"], ["diaspora.de"], ["Housestreet 123\nTown 123\nState 123\nCountry 123"])
+		eliminatedContact = createFilledContact("Ant", "Ste", "Hello World!", "Tutao", "Mr.", "Buffalo", [
+			"antste@antste.de", "bentste@bentste.de"
+		], ["123123123", "321321321"], ["diaspora.de"], ["Housestreet 123\nTown 123\nState 123\nCountry 123"])
+		compareContact = createFilledContact("Ant", "Ste", "Tests are great ... noooot\n\nHello World!", "Tutao", "Mr.", "Buffalo", [
+			"antste@antste.de", "bentste@bentste.de"
+		], ["123123123", "321321321"], ["diaspora.de"], ["Housestreet 123\nTown 123\nState 123\nCountry 123"])
 		mergeContacts(keptContact, eliminatedContact)
 		o(_contactToVCard(keptContact)).equals(_contactToVCard(compareContact))
 	})
@@ -1127,65 +1157,44 @@ o.spec("ContactMergeUtilsTest", function () {
 	o("_compareBirthdaysForComparisonResultTest", function () {
 		let c1 = createContact()
 		let c2 = createContact()
-		c1.birthday = fillBirthday("14", "11", "1999", true)
-		c2.birthday = fillBirthday("14", "11", "1999", true)
+		c1.birthdayIso = fillBirthday("14", "11", "1999")
+		c2.birthdayIso = fillBirthday("14", "11", "1999")
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
-		c1.birthday = fillBirthday("14", "11", null, true)
-		c2.birthday = fillBirthday("14", "11", null, true)
+		c1.birthdayIso = fillBirthday("14", "11", null)
+		c2.birthdayIso = fillBirthday("14", "11", null)
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
-		c1 = createContact()
-		c2 = createContact()
-		c1.oldBirthday = new Date(2000, 10, 14)
-		migrateToNewBirthday(c1)
-		c2.birthday = fillBirthday("14", "11", "2000", true)
-		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Equal)
-		c1.birthday = fillBirthday("14", "11", "1999", false)
-		c2.birthday = fillBirthday("14", "11", "1999", false)
+		c1.birthdayIso = null
+		c2.birthdayIso = null
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.BothEmpty)
-		c1.birthday = fillBirthday("14", "11", "1999", true)
-		c2.birthday = fillBirthday("14", "11", "1999", false)
+		c1.birthdayIso = fillBirthday("14", "11", "1999")
+		c2.birthdayIso = null
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
 		c1 = createContact()
-		c2.birthday = fillBirthday("14", "11", "1999", true)
-		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
-		c1 = createContact()
-		c2 = createContact()
-		c1.oldBirthday = null
-		migrateToNewBirthday(c1)
-		c2.birthday = fillBirthday("14", "11", null, true)
+		c2.birthdayIso = fillBirthday("14", "11", "1999")
 		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
 		c1 = createContact()
 		c2 = createContact()
-		c1.oldBirthday = new Date(2000, 10, 14)
-		migrateToNewBirthday(c1)
-		c2.birthday = fillBirthday("14", "11", null, true)
+		c2.birthdayIso = fillBirthday("14", "11", null)
+		o(_compareBirthdays(c1, c2)).equals(IndifferentContactComparisonResult.OneEmpty)
+		c1.birthdayIso = fillBirthday("14", "11", "2000")
+		c2.birthdayIso = fillBirthday("14", "11", null)
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
 		c1 = createContact()
 		c2 = createContact()
-		c1.oldBirthday = new Date(1991, 7, 12)
-		c1.birthday = fillBirthday("12", "8", "1991", true)
-		migrateToNewBirthday(c1)
-		c2.oldBirthday = new Date(1991, 7, 12)
-		c2.birthday = fillBirthday("12", "8", null, true)
-		migrateToNewBirthday(c2)
+		c1.birthdayIso = fillBirthday("12", "8", null)
+		c2.birthdayIso = fillBirthday("12", "8", "1999")
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Similar)
-		c1.birthday = fillBirthday("14", "11", "1999", true)
-		c2.birthday = fillBirthday("14", "11", "2000", true)
+		c1.birthdayIso = fillBirthday("14", "11", "1999")
+		c2.birthdayIso = fillBirthday("14", "11", "2000")
 		o(_compareBirthdays(c1, c2)).equals(ContactComparisonResult.Unique)
-
-
 	})
 })
 
 
-function fillBirthday(day: NumberString, month: NumberString, year: ?NumberString, toFill: boolean) {
-	if (toFill) {
-		let bday = createBirthday()
-		bday.day = day
-		bday.month = month
-		bday.year = year
-		return bday
-	} else {
-		return null
-	}
+function fillBirthday(day: NumberString, month: NumberString, year: ?NumberString): ?string {
+	let bday = createBirthday()
+	bday.day = day
+	bday.month = month
+	bday.year = year
+	return birthdayToIsoDate(bday)
 }

@@ -8,6 +8,7 @@ import {createContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNum
 import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {assertMainOrNode} from "../api/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
+import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
 
 assertMainOrNode()
 
@@ -132,7 +133,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
 						bDayDetails.year = null
 					}
-					contact.birthday = bDayDetails
+					contact.birthdayIso = bDayDetails ? birthdayToIsoDate(bDayDetails) : null
 					break
 				case "ORG":
 					let orgDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))

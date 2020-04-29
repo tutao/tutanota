@@ -2,7 +2,8 @@
 import type {ContactComparisonResultEnum, IndifferentContactComparisonResultEnum} from "../api/common/TutanotaConstants"
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
-import {oldBirthdayToBirthday, migrateToNewBirthday} from "./ContactUtils"
+import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
+
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -70,9 +71,7 @@ export function mergeContacts(keptContact: Contact, eliminatedContact: Contact):
 	keptContact.company = neverNull(_getMergedOtherField(keptContact.company, eliminatedContact.company, ", "))
 	keptContact.nickname = _getMergedOtherField(keptContact.nickname, eliminatedContact.nickname, ", ")
 	keptContact.role = neverNull(_getMergedOtherField(keptContact.role, eliminatedContact.role, ", "))
-	let birthdays = _getMergedBirthdays(keptContact.oldBirthday, eliminatedContact.oldBirthday, keptContact.birthday, eliminatedContact.birthday)
-	keptContact.oldBirthday = birthdays.oldBDay
-	keptContact.birthday = birthdays.newBDay
+	keptContact.birthdayIso = _getMergedBirthdays(keptContact.birthdayIso, eliminatedContact.birthdayIso)
 	keptContact.mailAddresses = _getMergedEmailAddresses(keptContact.mailAddresses, eliminatedContact.mailAddresses)
 	keptContact.phoneNumbers = _getMergedPhoneNumbers(keptContact.phoneNumbers, eliminatedContact.phoneNumbers)
 	keptContact.socialIds = _getMergedSocialIds(keptContact.socialIds, eliminatedContact.socialIds)
@@ -256,14 +255,14 @@ export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: Co
  * Export for testing
  */
 export function _compareBirthdays(contact1: Contact, contact2: Contact): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
-	migrateToNewBirthday(contact1)
-	migrateToNewBirthday(contact2)
-	if (contact1.birthday && contact2.birthday) {
-		if (contact1.birthday.day === contact2.birthday.day && contact1.birthday.month === contact2.birthday.month) {
-			if (contact1.birthday.year === contact2.birthday.year) {
+
+	const b1 = _convertIsoBirthday(contact1.birthdayIso)
+	const b2 = _convertIsoBirthday(contact2.birthdayIso)
+	if (b1 && b2) {
+		if (b1.day === b2.day && b1.month === b2.month) {
+			if (b1.year === b2.year) {
 				return ContactComparisonResult.Equal
-			} else if (contact1.birthday.year && contact2.birthday.year
-				&& contact1.birthday.year !== contact2.birthday.year) {
+			} else if (b1.year && b2.year && b1.year !== b2.year) {
 				return ContactComparisonResult.Unique
 			} else {
 				return ContactComparisonResult.Similar
@@ -271,11 +270,25 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 		} else {
 			return ContactComparisonResult.Unique
 		}
-	} else if ((contact1.birthday && !contact2.birthday) || (!contact1.birthday && contact2.birthday)) {
+	} else if ((contact1.birthdayIso && !contact2.birthdayIso) || (!contact1.birthdayIso && contact2.birthdayIso)) {
 		return IndifferentContactComparisonResult.OneEmpty
 	} else {
 		return IndifferentContactComparisonResult.BothEmpty
 	}
+}
+
+function _convertIsoBirthday(isoBirthday: ?string): ?Birthday {
+	if (isoBirthday) {
+		try {
+			return isoDateToBirthday(isoBirthday)
+		} catch (e) {
+			console.log("failed to parse birthday", e)
+			return null
+		}
+	} else {
+		return null
+	}
+
 }
 
 function _compareValues(values1: string[], values2: string[]): ContactComparisonResultEnum | IndifferentContactComparisonResultEnum {
@@ -330,32 +343,24 @@ export function _getMergedOtherField(otherAttribute1: ?string, otherAttribute2: 
 /**
  * Export for testing
  */
-export function birthdayToOldBirthday(newBirthday: Birthday): Date {
-	return new Date(Number(newBirthday.year), Number(newBirthday.month) - 1, Number(newBirthday.day))
-}
-
-/**
- * Export for testing
- */
-export function _getMergedBirthdays(oldBirthday1: ?Date, oldBirthday2: ?Date, newBirthday1: ?Birthday,
-                                    newBirthday2: ?Birthday): {oldBDay: ?Date, newBDay: ?Birthday} {
-	if (newBirthday1 && newBirthday2) {
-		if (newBirthday1.year) {
-			return {oldBDay: null, newBDay: newBirthday1}
-		} else if (newBirthday2.year) {
-			return {oldBDay: null, newBDay: newBirthday2}
+export function _getMergedBirthdays(birthday1: ?string, birthday2: ?string): ?string {
+	const b1 = _convertIsoBirthday(birthday1)
+	const b2 = _convertIsoBirthday(birthday2)
+	if (b1 && b2) {
+		if (b1.year) {
+			return birthday1
+		} else if (b2.year) {
+			return birthday2
 		} else {
-			return {oldBDay: null, newBDay: newBirthday1}
+			return birthday1
 		}
-	} else if (newBirthday1) {
-		return {oldBDay: null, newBDay: newBirthday1}
-	} else if (newBirthday2) {
-		return {oldBDay: null, newBDay: newBirthday2}
-	} else if (oldBirthday1) {
-		return {oldBDay: null, newBDay: oldBirthdayToBirthday(oldBirthday1)}
-	} else if (oldBirthday2) {
-		return {oldBDay: null, newBDay: oldBirthdayToBirthday(oldBirthday2)}
+	} else if (birthday1) {
+		return birthday1
+	} else if (birthday2) {
+		return birthday2
 	} else {
-		return {oldBDay: null, newBDay: null}
+		return null
 	}
 }
+
+
