@@ -86,7 +86,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"birthdayIso": {
 			"name": "birthdayIso",
-			"id": 1082,
+			"id": 1083,
 			"since": 41,
 			"type": "String",
 			"cardinality": "ZeroOrOne",

@@ -1162,6 +1162,7 @@ type ReportPhishingPostData = {
 	_type: TypeRef<ReportPhishingPostData>;
 	_format: NumberString;
 	mailSessionKey: Uint8Array;
+	reportType: NumberString;
 
 	mailId: IdTuple;
 }
