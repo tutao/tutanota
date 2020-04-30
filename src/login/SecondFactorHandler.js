@@ -215,8 +215,8 @@ export class SecondFactorHandler {
 								&& this._waitingForSecondFactorDialog.visible) {
 								Dialog.error("u2fUnexpectedError_msg")
 								this.closeWaitingForSecondFactorDialog()
-							}
-							if (e instanceof U2fWrongDeviceError) {
+							} else if (e instanceof U2fWrongDeviceError && this._waitingForSecondFactorDialog
+								&& this._waitingForSecondFactorDialog.visible) {
 								Dialog.error("u2fAuthUnregisteredDevice_msg")
 							} else if (e instanceof NotAuthenticatedError) {
 								Dialog.error("loginFailed_msg")
