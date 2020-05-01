@@ -72,7 +72,8 @@ public final class PushNotificationService extends LifecycleJobService {
 			public void onConnectionEstablished() {
 				removeBackgroundServiceNotification();
 				// After establishing connection we finish in some time.
-				scheduleJobFinish();
+				// Wakelock is not needed
+				//scheduleJobFinish();
 			}
 
 			@Override
@@ -133,7 +134,7 @@ public final class PushNotificationService extends LifecycleJobService {
 	public boolean onStartJob(JobParameters params) {
 		Log.d(TAG, "onStartJob");
 		jobParameters = params;
-		return true;
+		return false; // Wakelock is not needed
 	}
 
 	@Override
