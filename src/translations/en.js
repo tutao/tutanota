@@ -1107,6 +1107,7 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"createUserFailed_msg": "Could not create the user. Please contact support."
 	}
 }

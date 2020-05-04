@@ -16,6 +16,7 @@ import {getCustomMailDomains, neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "../subscription/BuyDialog"
 import {worker} from "../api/main/WorkerClient"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/base/ProgressDialog"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 
 assertMainOrNode()
@@ -43,7 +44,9 @@ export function show(): Promise<void> {
 						showWorkerProgressDialog(() => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
-						}), p).then(dialog.close())
+						}), p)
+							.catch(PreconditionFailedError, e => Dialog.error("createUserFailed_msg"))
+							.then(dialog.close())
 					}
 				})
 		}

@@ -9,6 +9,7 @@ import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {CSV_USER_FORMAT} from "./UserViewer"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {show as showBuyDialog} from "../subscription/BuyDialog"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 const delayTime = 900
 
@@ -126,15 +127,17 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 						notAvailableUsers.push(user)
 					}
 				})
-			})).then(() => {
-				let p = Promise.resolve()
-				if (notAvailableUsers.length > 0) {
-					p = Dialog.error(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map(u => u.mailAddress).join(", "))
-				}
-				p.then(() => {
-					Dialog.error(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
-				})
-			})
+			})).catch(PreconditionFailedError, e => Dialog.error("createUserFailed_msg"))
+			   .then(() => {
+				   let p = Promise.resolve()
+				   if (notAvailableUsers.length > 0) {
+					   p = Dialog.error(() => lang.get("addressesAlreadyInUse_msg") + " "
+						   + notAvailableUsers.map(u => u.mailAddress).join(", "))
+				   }
+				   p.then(() => {
+					   Dialog.error(() => lang.get("createdUsersCount_msg", {"{1}": nbrOfCreatedUsers}))
+				   })
+			   })
 		}
 	})
 }
