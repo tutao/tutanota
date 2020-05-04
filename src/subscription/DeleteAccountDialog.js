@@ -2,7 +2,7 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
+import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import {getCleanedMailAddress} from "../misc/Formatter"
@@ -45,6 +45,7 @@ function deleteAccount(reason: string, takeover: string, password: string) {
 				      worker.deleteAccount(password, reason, neverNull(cleanedTakeover))
 				            .catch(PreconditionFailedError, e => Dialog.error("passwordWrongInvalid_msg"))
 				            .catch(InvalidDataError, e => Dialog.error("takeoverAccountInvalid_msg"))
+				            .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 			      }
 		      })
 	}
