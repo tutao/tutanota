@@ -373,19 +373,20 @@ export class MailViewer {
 
 	_createDetailsExpander(bubbleMenuWidth: number, mail: Mail, expanderStyle: {}) {
 		return new ExpanderButton("showMore_action", new ExpanderPanel({
-			view: () =>
-				m("", [
+			view: () => {
+				const envelopeSender = this.mail.differentEnvelopeSender
+				return m("", [
 					m(RecipientButton, {
 						label: getDisplayText(this.mail.sender.name, this.mail.sender.address, false),
 						click: createAsyncDropdown(() =>
 							this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth),
 					}),
-					this._isEnvelopeSenderVisible()
+					envelopeSender
 						? [
 							m(".small", lang.get("sender_label")),
 							m(RecipientButton, {
-								label: getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false),
-								click: () => Dialog.error("envelopeSenderInfo_msg", neverNull(this.mail.differentEnvelopeSender)),
+								label: getDisplayText("", envelopeSender, false),
+								click: () => this._showEnvelopeSenderDialog(envelopeSender),
 							})
 						]
 						: null,
@@ -436,7 +437,35 @@ export class MailViewer {
 						]
 						: null,
 				])
+			}
 		}), false, expanderStyle)
+	}
+
+	_showEnvelopeSenderDialog(envelopeSender: string): Dialog {
+		const dialog = Dialog.showActionDialog({
+			title: "",
+			child: () => [
+				m(".mt.mb", lang.get("envelopeSenderInfo_msg")),
+				envelopeSender,
+				m(".flex-wrap.flex-end", [
+					m(ButtonN, {
+						label: "copy_action",
+						click: () => copyToClipboard(envelopeSender),
+						type: ButtonType.Secondary,
+					}),
+					m(ButtonN, {
+						label: "addSpamRule_action",
+						click: () => {
+							dialog.close()
+							this._addSpamRule(InboxRuleType.FROM_EQUALS, envelopeSender)
+						},
+						type: ButtonType.Secondary,
+					}),
+				])
+			],
+			okAction: null,
+		})
+		return dialog
 	}
 
 	_unsubscribe() {
@@ -656,7 +685,7 @@ export class MailViewer {
 			}, [
 				m("div", lang.get("phishingReport_msg")),
 				m("a.mt-s", {href: "https://tutanota.com/faq#phishing", target: "_blank"}, lang.get("whatIsPhishing_msg")),
-				m(".flex-wrap.flex-space-around.mt-s", [
+				m(".flex-wrap.flex-end", [
 					m(ButtonN, {
 						label: "reportPhishing_action",
 						click: () => {
@@ -1052,7 +1081,7 @@ export class MailViewer {
 					if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
 						buttons.push({
 							label: "addSpamRule_action",
-							click: () => this._addSpamRule(defaultInboxRuleField, address),
+							click: () => this._addSpamRule(defaultInboxRuleField, address.address),
 							type: ButtonType.Secondary,
 						})
 					}
@@ -1064,7 +1093,7 @@ export class MailViewer {
 		}
 	}
 
-	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: EncryptedMailAddress | MailAddress) {
+	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: string) {
 		const folder = mailModel.getMailFolder(getListId(this.mail))
 		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
 			? SpamRuleType.WHITELIST
@@ -1085,7 +1114,7 @@ export class MailViewer {
 				break
 		}
 		AddSpamRuleDialog.show(createEmailSenderListElement({
-			value: address.address.trim().toLowerCase(),
+			value: address.trim().toLowerCase(),
 			type: spamRuleType,
 			field: spamRuleField,
 		}))
