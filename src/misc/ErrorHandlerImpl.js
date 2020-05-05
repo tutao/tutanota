@@ -391,13 +391,16 @@ function showErrorDialogNotLoggedIn(e) {
 			style: {marginTop: "-16px"},
 		}, [
 			m("div", {style: {marginRight: px(-3)}}, m(ExpanderButtonN, {expanded, label: "showMore_action"})),
-			m(ButtonN, {
-				label: "copy_action",
-				click: () => copyToClipboard(message),
-				type: ButtonType.Secondary,
-			}),
 		]),
-		m(ExpanderPanelN, {expanded}, m(".plr.selectable.pb", message))
+		m(ExpanderPanelN, {expanded}, [
+			m(".flex-end.plr", m(ButtonN, {
+					label: "copy_action",
+					click: () => copyToClipboard(message),
+					type: ButtonType.Secondary,
+				}),
+			),
+			m(".plr.selectable.pb.scroll.text-pre", {style: {height: px(200)}}, message)
+		])
 	]
 	Dialog.error("unknownError_msg", info).then(() => {
 		unknownErrorDialogActive = false
