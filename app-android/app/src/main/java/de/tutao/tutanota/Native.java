@@ -266,6 +266,9 @@ public final class Native {
 //					new AlarmNotificationsManager(new AndroidKeyStoreFacade(activity), sseStorage, new Crypto(activity), new SystemAlarmFacade(activity))
 //							.unscheduleAlarms(args.getString(0));
 //					return Utils.resolvedDeferred(null);
+				case "changeLanguage":
+					promise.resolve(null);
+					break;
 				default:
 					throw new Exception("unsupported method: " + method);
 			}

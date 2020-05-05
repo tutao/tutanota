@@ -1,6 +1,7 @@
 //@flow
 import m from "mithril"
 import {getLanguage, lang, languageCodeToTag, languages} from "../misc/LanguageViewModel"
+import {styles} from "../gui/styles"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
@@ -14,6 +15,7 @@ import {load, update} from "../api/main/Entity"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {incrementDate} from "../api/common/utils/DateUtils"
+import {changeSystemLanguage} from "../native/SystemApp"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -27,11 +29,13 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: stream(deviceConfig.getLanguage() || null),
 			selectionChangedHandler: (value) => {
 				deviceConfig.setLanguage(value)
-				if (value) {
-					lang.setLanguage({code: value, languageTag: languageCodeToTag(value)}).then(m.redraw)
-				} else {
-					lang.setLanguage(getLanguage()).then(m.redraw)
-				}
+				const newLanguage = value
+					? {code: value, languageTag: languageCodeToTag(value)}
+					: getLanguage()
+				lang.setLanguage(newLanguage)
+				    .then(() => changeSystemLanguage(newLanguage))
+				    .then(() => styles.updateStyle("main"))
+				    .then(m.redraw)
 			}
 		}
 

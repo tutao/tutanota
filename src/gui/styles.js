@@ -49,6 +49,15 @@ class Styles {
 		}
 	}
 
+	updateStyle(id: string) {
+		if (!this.initialized || !this.styles.has(id)) {
+			throw new Error("cannot update nonexistent style " + id)
+		}
+		const creator = neverNull(this.styles.get(id))
+		log(Cat.css, "update style", id, creator(theme))
+		this._updateDomStyle(id, creator)
+	}
+
 	_updateDomStyles() {
 		let time = timer(Cat.css)
 		Array.from(this.styles.entries()).map((entry) => {

@@ -10,6 +10,8 @@ import url from "url"
 import {capitalizeFirstLetter} from "../api/common/utils/StringUtils.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Shortcut} from "../misc/KeyManager"
+import {DesktopConfigHandler} from "./config/DesktopConfigHandler"
+import path from "path"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -22,8 +24,6 @@ export class ApplicationWindow {
 	_ipc: IPC;
 	_startFile: string;
 	_browserWindow: BrowserWindow;
-	_preloadjs: string;
-	_desktophtml: string;
 
 	_userInfo: ?UserInfo;
 	_setBoundsTimeout: TimeoutID;
@@ -33,12 +33,10 @@ export class ApplicationWindow {
 	_shortcuts: Array<Shortcut>;
 	id: number;
 
-	constructor(wm: WindowManager, preloadjs: string, desktophtml: string, noAutoLogin?: boolean) {
+	constructor(wm: WindowManager, conf: DesktopConfigHandler, noAutoLogin?: boolean) {
 		this._userInfo = null
 		this._ipc = wm.ipc
-		this._preloadjs = preloadjs
-		this._desktophtml = desktophtml
-		this._startFile = DesktopUtils.pathToFileURL(this._desktophtml)
+		this._startFile = DesktopUtils.pathToFileURL(path.join(app.getAppPath(), conf.get("desktophtml")),)
 
 		const isMac = process.platform === 'darwin';
 		this._shortcuts = [
@@ -57,7 +55,8 @@ export class ApplicationWindow {
 			])
 
 		console.log("startFile: ", this._startFile)
-		this._createBrowserWindow(wm)
+		const preloadPath = path.join(app.getAppPath(), conf.get("preloadjs"))
+		this._createBrowserWindow(wm, preloadPath)
 		this._browserWindow.loadURL(
 			noAutoLogin
 				? this._startFile + "?noAutoLogin=true"
@@ -107,7 +106,7 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(wm: WindowManager) {
+	_createBrowserWindow(wm: WindowManager, preloadPath: string) {
 		this._browserWindow = new BrowserWindow({
 			icon: wm.getIcon(),
 			show: false,
@@ -123,7 +122,7 @@ export class ApplicationWindow {
 				// the preload script changes to the web app
 				contextIsolation: false,
 				webSecurity: true,
-				preload: this._preloadjs
+				preload: preloadPath
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)

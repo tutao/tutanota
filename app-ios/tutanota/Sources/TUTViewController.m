@@ -183,6 +183,8 @@ alarmManager:(TUTAlarmManager *)alarmManager
 		[_fileChooser openWithAnchorRect:rect completion: sendResponseBlock];
 	} else if ([@"getName" isEqualToString:type]) {
 		[_fileUtil getNameForPath:arguments[0] completion:sendResponseBlock];
+	} else if ([@"changeLanguage" isEqualToString:type]) {
+		sendResponseBlock(NSNull.null, nil);
 	} else if ([@"getSize" isEqualToString:type]) {
 		[_fileUtil getSizeForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"getMimeType" isEqualToString:type]) {

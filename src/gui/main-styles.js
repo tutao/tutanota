@@ -2,6 +2,7 @@
 import {styles} from "./styles"
 import {px, size} from "./size"
 import {client} from "../misc/ClientDetector"
+import {lang} from "../misc/LanguageViewModel"
 import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/Env"
 import {theme} from "./theme.js"
@@ -12,6 +13,13 @@ assertMainOrNodeBoot()
 
 export function requiresStatusBarHack() {
 	return isApp() && client.device === "iPhone" && client.browserVersion < 11
+}
+
+function getFonts(): string {
+	const fonts: Array<string> = ['-apple-system', 'BlinkMacSystemFont', 'Helvetica', 'Arial', 'sans-serif']
+	if (env.platformId === 'win32' && lang.code === 'ja') fonts.push('SimHei', "黑体")
+	fonts.push("Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol")
+	return fonts.join(', ')
 }
 
 styles.registerStyle('main', () => {
@@ -109,7 +117,7 @@ styles.registerStyle('main', () => {
 		'body, button': { // Yes we have to tell buttons separately because browser button styles override general body ones
 			overflow: 'hidden',
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
-			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+			'font-family': getFonts(),
 			'font-size': px(size.font_size_base),
 			'line-height': size.line_height,
 			color: theme.content_fg,

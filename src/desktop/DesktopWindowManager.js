@@ -2,7 +2,6 @@
 
 import type {NativeImage, Rectangle} from "electron"
 import {app, screen} from "electron"
-import path from 'path'
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
@@ -44,8 +43,7 @@ export class WindowManager {
 	newWindow(showWhenReady: boolean, noAutoLogin?: boolean): ApplicationWindow {
 		const w = new ApplicationWindow(
 			this,
-			path.join(app.getAppPath(), this._conf.get("preloadjs")),
-			path.join(app.getAppPath(), this._conf.get("desktophtml")),
+			this._conf,
 			noAutoLogin
 		)
 		windows.unshift(w)

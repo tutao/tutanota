@@ -1,5 +1,6 @@
 // @flow
 import {app, dialog, ipcMain} from 'electron'
+import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager.js"
 import {err} from './DesktopErrorHandler.js'
 import {defer} from '../api/common/utils/Utils.js'
@@ -209,6 +210,8 @@ export class IPC {
 				this.removeWindow(windowId)
 				this.addWindow(windowId)
 				return Promise.resolve()
+			case 'changeLanguage':
+				return lang.setLanguage(args[0])
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}

@@ -231,7 +231,7 @@ o.spec("Desktop Window Manager Test", () => {
 		o(win.show.callCount).equals(0)
 		o(win.setContextMenuHandler.callCount).equals(1)
 		o(applicationWindowMock.ApplicationWindow.args).deepEquals([
-			wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html", undefined
+			wm, confMock, undefined
 		])
 		o(wm.get(0)).equals(win)
 	})
@@ -269,7 +269,7 @@ o.spec("Desktop Window Manager Test", () => {
 
 		o(applicationWindowMock.ApplicationWindow.mockedInstances.length).equals(1)
 		o(applicationWindowMock.ApplicationWindow.args).deepEquals([
-			wm, "/app/path/src/desktop/preload.js", "/app/path/desktop.html", undefined
+			wm, confMock, undefined
 		])
 		const win = applicationWindowMock.ApplicationWindow.mockedInstances[0]
 		o(Object.keys(win.callbacks)).deepEquals([
@@ -308,15 +308,15 @@ o.spec("Desktop Window Manager Test", () => {
 
 		wm.newWindow(true, true)
 		o(applicationWindowMock.ApplicationWindow.callCount).equals(1)
-		o(applicationWindowMock.ApplicationWindow.args[3]).equals(true)
+		o(applicationWindowMock.ApplicationWindow.args[2]).equals(true)
 
 		wm.newWindow(true, false)
 		o(applicationWindowMock.ApplicationWindow.callCount).equals(2)
-		o(applicationWindowMock.ApplicationWindow.args[3]).equals(false)
+		o(applicationWindowMock.ApplicationWindow.args[2]).equals(false)
 
 		wm.newWindow(true)
 		o(applicationWindowMock.ApplicationWindow.callCount).equals(3)
-		o(applicationWindowMock.ApplicationWindow.args[3]).equals(undefined)
+		o(applicationWindowMock.ApplicationWindow.args[2]).equals(undefined)
 	})
 
 	o("getLastFocused returns the last focused window", () => {

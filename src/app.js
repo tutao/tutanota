@@ -25,6 +25,7 @@ import {styles} from "./gui/styles.js"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {ButtonType} from "./gui/base/ButtonN"
+import {changeSystemLanguage} from "./native/SystemApp"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -121,7 +122,9 @@ let initialized = lang.init(en).then(() => {
 
 	const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 	if (userLanguage) {
-		lang.setLanguage({code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)})
+		const language = {code: userLanguage.code, languageTag: languageCodeToTag(userLanguage.code)}
+		lang.setLanguage(language)
+		    .then(() => changeSystemLanguage(language))
 	}
 
 	function createViewResolver(getView: lazy<Promise<View>>, requireLogin: boolean = true,

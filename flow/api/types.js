@@ -198,6 +198,7 @@ type NativeRequestType = 'init'
 	| 'setSearchOverlayState'
 	| 'closeApp'
 	| 'unload' // desktop
+	| 'changeLanguage'
 
 
 type JsRequestType = 'createMailEditor'
