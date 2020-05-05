@@ -55,7 +55,7 @@ function sendDeviceLogs() {
 	mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 		const editor = new MailEditor(mailboxDetails)
 		const timestamp = new Date()
-		let {message, type, client} = clientInfoString(timestamp)
+		let {message, type, client} = clientInfoString(timestamp, true)
 		message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
 		editor.initWithTemplate({}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
 		const global = downcast(window)

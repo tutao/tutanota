@@ -255,7 +255,7 @@ export class Dialog {
 	backgroundClick(e: MouseEvent) {
 	}
 
-	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string): Promise<void> {
+	static error(messageIdOrMessageFunction: TranslationKey | lazy<string>, infoToAppend?: string | () => Children): Promise<void> {
 		return new Promise(resolve => {
 			let dialog: Dialog
 			const closeAction = () => {
@@ -263,7 +263,7 @@ export class Dialog {
 				setTimeout(() => resolve(), DefaultAnimationTime)
 			}
 			let lines = lang.getMaybeLazy(messageIdOrMessageFunction).split("\n")
-			if (infoToAppend) {
+			if (typeof infoToAppend === "string") {
 				lines.push(infoToAppend)
 			}
 			const buttonAttrs: ButtonAttrs = {
@@ -276,8 +276,8 @@ export class Dialog {
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
 					lines.map(line => m(".dialog-contentButtonsBottom.text-break.selectable", line))
-					     .concat(m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs))
-					     )
+					     .concat(typeof infoToAppend == "function" ? infoToAppend() : null)
+					     .concat(m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs)))
 			}).setCloseHandler(closeAction)
 			  .addShortcut({
 				  key: Keys.RETURN,

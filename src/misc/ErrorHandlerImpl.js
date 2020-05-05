@@ -32,11 +32,13 @@ import {windowFacade} from "./WindowFacade"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {locator} from "../api/main/MainLocator"
 import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
+import {copyToClipboard} from "./ClipboardUtils"
+import {px} from "../gui/size"
 
 assertMainOrNode()
 
@@ -156,9 +158,7 @@ export function handleUncaughtError(e: Error) {
 				promptForFeedbackAndSend(e)
 			} else {
 				console.log("Unknown error", e)
-				Dialog.error("unknownError_msg").then(() => {
-					unknownErrorDialogActive = false
-				})
+				showErrorDialogNotLoggedIn(e)
 			}
 		}
 	}
@@ -169,8 +169,9 @@ function ignoredError(e: Error): boolean {
 }
 
 export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
+	const loggedIn = logins.isUserLoggedIn()
 	return new Promise(resolve => {
-		const preparedContent = prepareFeedbackContent(e)
+		const preparedContent = prepareFeedbackContent(e, loggedIn)
 		const detailsExpanded = stream(false)
 
 		let textField = new TextField("yourMessage_label", () => lang.get("feedbackOnErrorInfo_msg"))
@@ -234,11 +235,10 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 								)
 							),
 							m(ExpanderPanelN, {expanded: detailsExpanded},
-								[
-									m("", preparedContent.subject),
-								].concat(preparedContent.message.split("\n")
-								                        .map(l => l.trim() === "" ? m(".pb-m", "") : m("", l)))
-							)
+								m(".selectable", [
+									m(".selectable", preparedContent.subject),
+									preparedContent.message.split("\n").map(l => l.trim() === "" ? m(".pb-m", "") : m("", l))
+								]))
 						]
 					}
 				},
@@ -256,9 +256,9 @@ export function promptForFeedbackAndSend(e: Error): Promise<?FeedbackContent> {
 	})
 }
 
-function prepareFeedbackContent(error: Error): FeedbackContent {
+function prepareFeedbackContent(error: Error, loggedIn: bool): FeedbackContent {
 	const timestamp = new Date()
-	let {message, client, type} = clientInfoString(timestamp)
+	let {message, client, type} = clientInfoString(timestamp, loggedIn)
 	if (error) {
 		message += errorToString(error)
 	}
@@ -269,9 +269,11 @@ function prepareFeedbackContent(error: Error): FeedbackContent {
 	}
 }
 
-export function clientInfoString(timestamp: Date): {message: string, client: string, type: string} {
-	const type = neverNull(Object.keys(AccountType)
-	                             .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
+export function clientInfoString(timestamp: Date, loggedIn: bool): {message: string, client: string, type: string} {
+	const type = loggedIn
+		? neverNull(Object.keys(AccountType)
+		                  .find(typeName => (AccountType[typeName] === logins.getUserController().user.accountType)))
+		: "UNKNOWN"
 	const client = (() => {
 		let client = env.platformId
 		switch (env.mode) {
@@ -378,6 +380,28 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 export function loggingOut() {
 	isLoggingOut = true
 	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
+}
+
+function showErrorDialogNotLoggedIn(e) {
+	const content = prepareFeedbackContent(e, false)
+	const expanded = stream(false)
+	const message = content.subject + "\n\n" + content.message
+	const info = () => [
+		m(".flex.col.items-end.plr", {
+			style: {marginTop: "-16px"},
+		}, [
+			m("div", {style: {marginRight: px(-3)}}, m(ExpanderButtonN, {expanded, label: "showMore_action"})),
+			m(ButtonN, {
+				label: "copy_action",
+				click: () => copyToClipboard(message),
+				type: ButtonType.Secondary,
+			}),
+		]),
+		m(ExpanderPanelN, {expanded}, m(".plr.selectable.pb", message))
+	]
+	Dialog.error("unknownError_msg", info).then(() => {
+		unknownErrorDialogActive = false
+	})
 }
 
 if (typeof window !== "undefined") {
