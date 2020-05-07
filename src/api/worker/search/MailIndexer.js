@@ -433,12 +433,18 @@ export class MailIndexer {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
 		const bodies = indexLoader.loadMailBodies(mails)
 		const files = indexLoader.loadAttachments(mails)
-		return promises.all(mails, bodies, files)
-		               .then(([mails, bodies, files]) => mails.map(mail => ({
-			               mail: mail,
-			               body: bodies.find(b => isSameId(b._id, mail.body)),
-			               files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id)))
-		               })))
+		return promises.all(bodies, files)
+		               .then(([bodies, files]) => mails
+			               .map(mail => {
+				               const body = bodies.find(b => isSameId(b._id, mail.body))
+				               if (body == null) return null
+				               return {
+					               mail: mail,
+					               body,
+					               files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id)))
+				               }
+			               })
+			               .filter(Boolean))
 		               .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
 			               mailWithBodyAndFiles.forEach(element => {
 				               let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
