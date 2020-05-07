@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createCreateCustomerServerPropertiesData(values?: $Shape<$Exact<CreateCustomerServerPropertiesData>>): CreateCustomerServerPropertiesData {

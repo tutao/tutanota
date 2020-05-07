@@ -27,6 +27,7 @@ import {RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
 
 const ValueType = EC.ValueType
 
@@ -94,7 +95,7 @@ export class EntityRestCache implements EntityRestInterface {
 		this._listEntities = {}
 		this._ignoredTypes = [
 			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef
+			StatisticLogEntryTypeRef, SecondFactorTypeRef, RecoverCodeTypeRef, RejectedSenderTypeRef
 		]
 	}
 

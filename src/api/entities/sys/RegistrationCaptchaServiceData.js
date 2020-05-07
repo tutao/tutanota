@@ -43,7 +43,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createRegistrationCaptchaServiceData(values?: $Shape<$Exact<RegistrationCaptchaServiceData>>): RegistrationCaptchaServiceData {

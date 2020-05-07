@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createResetFactorsDeleteData(values?: $Shape<$Exact<ResetFactorsDeleteData>>): ResetFactorsDeleteData {

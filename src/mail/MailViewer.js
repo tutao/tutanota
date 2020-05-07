@@ -68,7 +68,7 @@ import type {KeyPress} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import * as AddInboxRuleDialog from "../settings/AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "../settings/AddInboxRuleDialog"
-import * as AddSpamRuleDialog from "../settings/AddSpamRuleDialog"
+import {showAddSpamRuleDialog} from "../settings/AddSpamRuleDialog"
 import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
 import {Icon, progressIcon} from "../gui/base/Icon"
@@ -1113,7 +1113,7 @@ export class MailViewer {
 				spamRuleField = SparmRuleType.FROM
 				break
 		}
-		AddSpamRuleDialog.show(createEmailSenderListElement({
+		showAddSpamRuleDialog(createEmailSenderListElement({
 			value: address.trim().toLowerCase(),
 			type: spamRuleType,
 			field: spamRuleField,

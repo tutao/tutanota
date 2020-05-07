@@ -3,9 +3,9 @@ import {lang} from "./LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {getByAbbreviation} from "../api/common/CountryList"
 import {neverNull} from "../api/common/utils/Utils"
+import type {Birthday} from "../api/entities/tutanota/Birthday"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {isMailAddress} from "./FormatValidator"
-import type {Birthday} from "../api/entities/tutanota/Birthday"
 
 assertMainOrNode()
 
@@ -254,6 +254,21 @@ export function getCleanedMailAddress(mailAddress: string): ?string {
 		return cleanedMailAddress
 	}
 	return null
+}
+
+
+export function getDomainPart(mailAddress: string): ?string {
+	const cleanedMailAddress = getCleanedMailAddress(mailAddress)
+	if (cleanedMailAddress) {
+		const parts = mailAddress.split("@");
+		if (parts.length === 2) {
+			return parts[1]
+		} else {
+			null
+		}
+	} else {
+		return null;
+	}
 }
 
 /**

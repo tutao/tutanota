@@ -22,7 +22,7 @@ import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListEl
 
 assertMainOrNode()
 
-export function show(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
+export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: ?EmailSenderListElement) {
 	let existingSpamRules: ?EmailSenderListElement[] = null
 	let customDomains: ?string[]
 	worker.loadCustomerServerProperties().then(props => {

@@ -109,7 +109,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createOrderProcessingAgreement(values?: $Shape<$Exact<OrderProcessingAgreement>>): OrderProcessingAgreement {

@@ -64,7 +64,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createDomainInfo(values?: $Shape<$Exact<DomainInfo>>): DomainInfo {

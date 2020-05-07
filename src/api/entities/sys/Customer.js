@@ -5,6 +5,7 @@ import {create, TypeRef} from "../../common/EntityFunctions"
 import type {AuditLogRef} from "./AuditLogRef"
 import type {UserAreaGroups} from "./UserAreaGroups"
 import type {Feature} from "./Feature"
+import type {RejectedSendersRef} from "./RejectedSendersRef"
 import type {WhitelabelChildrenRef} from "./WhitelabelChildrenRef"
 import type {WhitelabelParent} from "./WhitelabelParent"
 
@@ -127,6 +128,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"refType": "Feature",
 			"final": false
+		},
+		"rejectedSenders": {
+			"name": "rejectedSenders",
+			"id": 1750,
+			"since": 60,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "RejectedSendersRef",
+			"final": true
 		},
 		"userAreaGroups": {
 			"name": "userAreaGroups",
@@ -257,7 +267,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "59"
+	"version": "60"
 }
 
 export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {
@@ -280,6 +290,7 @@ export type Customer = {
 	contactFormUserAreaGroups: ?UserAreaGroups;
 	contactFormUserGroups: ?UserAreaGroups;
 	customizations: Feature[];
+	rejectedSenders: ?RejectedSendersRef;
 	userAreaGroups: ?UserAreaGroups;
 	whitelabelChildren: ?WhitelabelChildrenRef;
 	whitelabelParent: ?WhitelabelParent;
