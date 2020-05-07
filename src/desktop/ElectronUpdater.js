@@ -97,7 +97,10 @@ export class ElectronUpdater {
 
 	start() {
 		try {
-			const appUpdateYmlPath = path.join(path.dirname(app.getPath('exe')), 'resources', 'app-update.yml')
+			const basepath = process.platform === "darwin"
+				? path.join(path.dirname(app.getPath('exe')), "..")
+				: path.dirname(app.getPath('exe'))
+			const appUpdateYmlPath = path.join(basepath, 'resources', 'app-update.yml')
 			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
 		} catch (e) {
 			console.log("no update info on disk, disabling updater.")
