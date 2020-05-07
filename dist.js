@@ -202,7 +202,7 @@ function buildDesktopClient() {
 				.then(() => desktopBuilder.build(desktopBaseOpts))
 			if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-					updateUrl: "https://test.tutanota.com",
+					updateUrl: "https://test.tutanota.com/desktop",
 					nameSuffix: "-test",
 					notarize: true
 				})
@@ -213,7 +213,7 @@ function buildDesktopClient() {
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
 				version: `${new Date().getTime()}.0.0`,
-				updateUrl: "http://localhost:9000",
+				updateUrl: "http://localhost:9000/desktop",
 				nameSuffix: "-snapshot",
 				notarize: false
 			})
