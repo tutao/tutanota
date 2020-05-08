@@ -575,12 +575,6 @@ export class MailViewer {
 							type: ButtonType.Dropdown,
 						})
 					}
-					moreButtons.push({
-						label: "forward_action",
-						click: () => this._forward(),
-						icon: () => Icons.Forward,
-						type: ButtonType.Dropdown,
-					})
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
