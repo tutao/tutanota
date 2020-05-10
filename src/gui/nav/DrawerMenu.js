@@ -14,6 +14,10 @@ import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import { attachDropdown } from "../base/DropdownN"
+import { noOp } from "../../api/common/utils/Utils"
+import { keyManager } from "../../misc/KeyManager"
+import { Keys } from "../../api/common/TutanotaConstants"
 
 type Attrs = void
 
@@ -43,15 +47,39 @@ export class DrawerMenu implements MComponent<Attrs> {
 					colors: ButtonColors.DrawerNav
 				})
 				: null,
-			logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()
-				? m(ButtonN, {
+			m(ButtonN, attachDropdown(
+				{
+					label: "supportMenu_label" ,
 					icon: () => BootIcons.Help,
-					label: "supportMenu_label",
-					click: () => showSupportDialog(),
 					type: ButtonType.ActionLarge,
+					click: noOp,
+					noBubble: true,
 					colors: ButtonColors.DrawerNav,
-				})
-				: null,
+				},
+				() => [
+					{
+						label: "supportMenu_label",
+						click: () => writeSupportMail(),
+						type: ButtonType.Dropdown,
+						colors: ButtonColors.DrawerNav,
+					},
+					{
+						label: "keyboardShortcuts_title",
+						click: () => keyManager.raiseEvent(Keys.F1.code),
+						type: ButtonType.Dropdown,
+						colors: ButtonColors.DrawerNav,
+					}
+				],
+				() => {
+					// if the account is premium let the user choice, otherwise open the F1-Help
+					if (logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()) {
+						return true;
+					} else {
+						keyManager.raiseEvent(Keys.F1.code);
+						return false;
+					}
+				}
+			)),
 			isNewMailActionAvailable()
 				? m(ButtonN, {
 					icon: () => BootIcons.Share,

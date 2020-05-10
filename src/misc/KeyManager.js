@@ -138,9 +138,8 @@ class KeyManager {
 		}
 
 		window.document.addEventListener("keydown", e => {
-			let keyCode = e.which
-			let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut
-			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)]
+			let keyCode = e.which;
+			let shortcut = this._getShortcut(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec({
 					keyCode,
@@ -156,6 +155,11 @@ class KeyManager {
 
 	}
 
+	_getShortcut(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): Shortcut {
+		let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut;
+		return keysToShortcuts[this._createKeyIdentifier(keycode, ctrl, alt, shift, meta)];
+	}
+
 	_getShortcutName(shortcut: Shortcut): string {
 		return ((shortcut.meta) ? Keys.META.name + " + " : "")
 			+ ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
@@ -166,6 +170,19 @@ class KeyManager {
 
 	_createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): string {
 		return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
+	}
+
+	raiseEvent(keyCode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): ?boolean {
+		let shortcut = this._getShortcut(keyCode, ctrl, alt, shift, meta);
+		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
+			return shortcut.exec({
+				keyCode,
+				ctrl: ctrl || false,
+				alt: alt || false,
+				shift: shift || false,
+				meta: meta || false
+			});
+		}
 	}
 
 	registerShortcuts(shortcuts: Shortcut[]) {
