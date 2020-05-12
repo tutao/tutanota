@@ -380,18 +380,12 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		// after the error
 		setTimeout(() => {
-			o(notifierMock.showOneShot.callCount).equals(1)
-			o(notifierMock.showOneShot.args[0]).deepEquals({
-				title: "errorReport_label",
-				body: "errorDuringUpdate_msg",
-				icon: 'this is an icon'
-			})
 			o(autoUpdaterMock.downloadUpdate.callCount).equals(0)
 		}, 20)
 
 		//after the download
 		setTimeout(() => {
-			o(notifierMock.showOneShot.callCount).equals(2)
+			o(notifierMock.showOneShot.callCount).equals(1)
 			o(notifierMock.showOneShot.args[0]).deepEquals({
 				title: "updateAvailable_label",
 				body: "clickToUpdate_msg",
@@ -402,8 +396,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		}, 150)
 	})
 
-	o("shut down autoUpdater after 5 errors", done => {
-		const RETRY_INTERVAL = 150
+	o("shut down autoUpdater after  errors", done => {
+		const RETRY_INTERVAL = 15
 		const MAX_NUM_ERRORS = 5
 		let threw = false
 		//mock node modules
@@ -446,7 +440,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			o(autoUpdaterMock.removeAllListeners.callCount).equals(4)
 			o(threw).equals(true)
 			done()
-		}, RETRY_INTERVAL * (MAX_NUM_ERRORS * 2))
+		}, RETRY_INTERVAL * Math.pow(2, MAX_NUM_ERRORS + 1) * 2)
 	})
 
 	o("works if second key is right one", done => {

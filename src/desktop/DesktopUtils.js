@@ -7,6 +7,7 @@ import fs from "fs-extra"
 import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {noOp} from "../api/common/utils/Utils"
 
 export default class DesktopUtils {
 
@@ -142,6 +143,70 @@ export default class DesktopUtils {
 				return Promise.reject(new Error(`invalid platform: ${process.platform}`))
 		}
 	}
+
+	/**
+	 * reads the lockfile and then writes the own version into the lockfile
+	 * @returns {Promise<boolean>} whether the lock was overridden by another version
+	 */
+	static singleInstanceLockOverridden(): Promise<boolean> {
+		const lockfilePath = getLockFilePath()
+		return fs.readFile(lockfilePath, 'utf8')
+		         .then(version => {
+			         return fs.writeFile(lockfilePath, app.getVersion(), 'utf8')
+			                  .then(() => version !== app.getVersion())
+		         })
+		         .catch(() => false)
+	}
+
+	/**
+	 * checks that there's only one instance running while
+	 * allowing different versions to steal the single instance lock
+	 * from each other.
+	 *
+	 * should the lock file be unwritable/unreadable, behaves as if all
+	 * running instances have the same version, effectively restoring the
+	 * default single instance lock behaviour.
+	 *
+	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
+	 */
+	static makeSingleInstance(): Promise<boolean> {
+		const lockfilePath = getLockFilePath()
+		// first, put down a file in temp that contains our version.
+		// will overwrite if it already exists.
+		// errors are ignored and we fall back to a version agnostic single instance lock.
+		return fs.writeFile(lockfilePath, app.getVersion(), 'utf8').catch(noOp)
+		         .then(() => {
+			         // try to get the lock, if there's already an instance running,
+			         // give the other instance time to see if it wants to release the lock.
+			         // if it changes the version back, it was a different version and
+			         // will terminate itself.
+			         return app.requestSingleInstanceLock()
+				         ? Promise.resolve(true)
+				         : Promise.delay(1500)
+				                  .then(() => DesktopUtils.singleInstanceLockOverridden())
+				                  .then(canStay => {
+					                  if (canStay) {
+						                  app.requestSingleInstanceLock()
+					                  } else {
+						                  app.quit()
+					                  }
+					                  return canStay
+				                  })
+		         })
+	}
+
+	/**
+	 * calls the callback if the ready event was already fired,
+	 * registers it as an event listener otherwise
+	 * @param callback listener to call
+	 */
+	static callWhenReady(callback: ()=>void): void {
+		if (app.isReady()) {
+			callback()
+		} else {
+			app.once('ready', callback)
+		}
+	}
 }
 
 /**
@@ -156,6 +221,10 @@ function checkForAdminStatus(): Promise<boolean> {
 	} else {
 		return Promise.reject(new Error(`No NET SESSION on ${process.platform}`))
 	}
+}
+
+function getLockFilePath() {
+	return path.join(app.getPath('temp'), 'tutanota_desktop_lockfile')
 }
 
 /**
