@@ -68,11 +68,11 @@ export class ElectronUpdater {
 				autoUpdater.removeAllListeners('update-downloaded')
 				autoUpdater.removeAllListeners('checking-for-update')
 				autoUpdater.removeAllListeners('error')
+				this._notifyUpdateError()
 				throw new UpdateError(`Update failed multiple times. Last error:\n${messageEvent.message}`)
 			} else {
 				this._logger.error(`Auto Update Error ${this._errorCount}, continuing polling:\n${messageEvent.message}`)
-				this._notifyUpdateError()
-				setTimeout(() => this._startPolling(), this._fallbackPollInterval)
+				this._startPolling()
 			}
 		})
 
@@ -127,6 +127,9 @@ export class ElectronUpdater {
 
 		this._checkUpdateSignature = this._conf.get('checkUpdateSignature')
 		this._startPolling()
+		// the first check is immediate, all others are done with a delay
+		// and random exponential backoff
+		this._checkUpdate()
 	}
 
 	_verifySignature(pubKey: string, updateInfo: UpdateInfo): Promise<void> {
@@ -151,9 +154,11 @@ export class ElectronUpdater {
 
 	_startPolling() {
 		if (!this._updatePollInterval) {
-			this._updatePollInterval = setInterval(() => this._checkUpdate(), this._conf.get("pollingInterval")
-				|| this._fallbackPollInterval)
-			this._checkUpdate()
+			// sets the poll interval at a random multiple of (base value)
+			// between (base value) and (base value) * 2^(errorCount)
+			const multiplier = Math.floor(Math.random() * Math.pow(2, this._errorCount)) + 1
+			const interval = (this._conf.get("pollingInterval") || this._fallbackPollInterval)
+			this._updatePollInterval = setInterval(() => this._checkUpdate(), interval * multiplier)
 		}
 	}
 
@@ -167,7 +172,6 @@ export class ElectronUpdater {
 			.checkForUpdates()
 			.catch((e: Error) => {
 				this._logger.error("Update check failed,", e.message)
-				this._notifyUpdateError()
 			})
 	}
 
@@ -176,7 +180,6 @@ export class ElectronUpdater {
 			.downloadUpdate()
 			.catch(e => {
 				this._logger.error("Update Download failed,", e.message)
-				this._notifyUpdateError()
 			})
 	}
 

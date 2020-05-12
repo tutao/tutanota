@@ -44,7 +44,6 @@ const wm = new WindowManager(conf, tray, notifier, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
-sse.start()
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, alarmScheduler)
 wm.setIPC(ipc)
 
@@ -71,33 +70,37 @@ if (process.argv.indexOf("-r") !== -1) {
 	            .then(() => app.exit(0))
 	            .catch(() => app.exit(1))
 } else {
-	if (!app.requestSingleInstanceLock()) {
-		app.quit()
-	} else {
-		app.on('second-instance', (ev, args, cwd) => {
-			console.log("2nd instance args:", args)
-			if (wm.getAll().length === 0) {
-				wm.newWindow(true)
-			} else {
-				wm.getAll().forEach(w => w.show())
-			}
-			handleArgv(args)
+	DesktopUtils.makeSingleInstance().then(willStay => {
+		if (!willStay) return
+		sse.start()
+		app.on('second-instance', (ev, args) => {
+			DesktopUtils.singleInstanceLockOverridden().then(overridden => {
+				if (overridden) {
+					app.quit()
+				} else {
+					console.log("2nd instance args:", args)
+					if (wm.getAll().length === 0) {
+						wm.newWindow(true)
+					} else {
+						wm.getAll().forEach(w => w.show())
+					}
+					handleArgv(args)
+				}
+			})
 		}).on('open-url', (e, url) => {
 			// MacOS mailto handling
 			e.preventDefault()
 			if (!url.startsWith('mailto:')) {
 				// do nothing if this is not a mailto: url
-			} else if (app.isReady()) {
-				// we can open a window now
-				handleMailto(url)
 			} else {
-				// wait until opening windows is possible, then handle.
-				app.once('ready', () => handleMailto(url))
+				DesktopUtils.callWhenReady(() => handleMailto(url))
 			}
 		})
-	}
 
-	app.on('ready', onAppReady)
+		// it takes a short while to get here,
+		// the event may already have fired
+		DesktopUtils.callWhenReady(onAppReady)
+	})
 }
 
 function onAppReady() {
