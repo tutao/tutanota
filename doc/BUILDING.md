@@ -5,7 +5,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
-* An up-to-date version of Node.js is installed
+* A version of Node.js LTS 10.x is installed
 
 #### Build steps:
 
@@ -25,7 +25,7 @@ If you prefer the auto-update feature, download the app from the Google Play Sto
 
 #### Pre-requisites:
 * An up-to-date version of Git is installed
-* An up-to-date version of Node.js is installed
+* A version of Node.js LTS 10.x is installed
 * An up-to-date version of the Android SDK is installed
 
 #### Build steps:
@@ -44,7 +44,7 @@ Keep in mind that your own build of Tutanota Desktop will not update automatical
 
 ### Pre-requisites:
 * An up-to-date version of Git is installed.
-* An up-to-date version of Node.js is installed
+* A version of Node.js LTS 10.x is installed
 
 ### Preparations:
 0. Open a terminal.
