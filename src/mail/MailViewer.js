@@ -200,7 +200,7 @@ export class MailViewer {
 		this.mailHeaderInfo = ""
 		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
 			view: () => {
-				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
+				return m(".white-space-pre-wrap-break-word.pt.pb.selectable", this.mailHeaderInfo)
 			}
 		}).addShortcut({
 			key: Keys.ESC,

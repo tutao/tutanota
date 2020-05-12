@@ -158,6 +158,10 @@ styles.registerStyle('main', () => {
 		".border": {border: `1px solid ${theme.content_border}`},
 
 		".white-space-pre": {'white-space': "pre"},
+		".white-space-pre-wrap-break-word": {
+			'white-space': "pre-wrap",
+			'word-break': 'break-word'
+		},
 
 		// margins
 		'.m-0': {margin: 0},
