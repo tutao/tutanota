@@ -678,20 +678,15 @@ styles.registerStyle('main', () => {
 			padding: 0,
 			'border-bottom': `1px solid ${theme.list_border}`
 		},
-		'.list-alternate-background': {
-			'background': `repeating-linear-gradient(to bottom, ${theme.list_bg}, ${theme.list_bg} ${px(size.list_row_height)},  ${theme.list_alternate_bg} ${px(size.list_row_height)}, ${theme.list_alternate_bg} ${px(size.list_row_height
-				* 2)})`
-		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
-			'background-color': theme.list_alternate_bg,
+			'background-color': theme.list_bg,
 			height: px(size.list_row_height),
-			'border-left': px(size.border_selection) + " solid transparent"
+			'border-left': px(size.border_selection) + " solid transparent",
+			'border-bottom': `1px solid ${theme.list_border}`,
+			'border-top': `1px solid ${theme.list_border}`
 		},
 		'.list-row > div': {'margin-left': px(-size.border_selection)},
-		'.odd-row': {
-			'background-color': theme.list_bg,
-		},
 		'.list-loading': {bottom: 0},
 
 		// mail list

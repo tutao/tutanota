@@ -185,7 +185,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 									width: px(this._width),
 								}
 							}, this._config.swipe.renderRightSpacer()),
-							m("ul.list.list-alternate-background.fill-absolute.click", {
+							m("ul.list.fill-absolute.click", {
 									oncreate: (vnode) => this._setDomList(vnode.dom),
 									style: {height: this._calculateListHeight()},
 									className: this._config.className
@@ -206,8 +206,8 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 											}, virtualRow.render()
 										)
 									}),
-									// odd-row is switched directly on the dom element when the number of elements changes
-									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center.odd-row", {
+									// No more odd row styling is done here
+									m("li#spinnerinlist.list-loading.list-row.flex-center.items-center", {
 										oncreate: (vnode) => {
 											this._domLoadingRow = vnode.dom
 											this._domLoadingRow.style.display = this._displayingProgress ? '' : 'none'
@@ -762,11 +762,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 			this._updateVirtualRow(row, entity, (pos % 2: any))
 
 		}
-		if (this._loadedEntities.length % 2 === 0) {
-			this._domLoadingRow.classList.add("odd-row")
-		} else {
-			this._domLoadingRow.classList.remove("odd-row")
-		}
 
 		log(Cat.debug, "repositioned list")
 		this.updateLater = false
@@ -779,11 +774,6 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	_updateVirtualRow(row: VirtualRow<T>, entity: ?T, odd: boolean) {
 		row.entity = entity
 		if (row.domElement) {
-			if (odd) {
-				row.domElement.classList.remove('odd-row')
-			} else {
-				row.domElement.classList.add('odd-row')
-			}
 			if (entity) {
 				row.domElement.style.display = 'list-item'
 				row.update(entity, this.isEntitySelected(getLetId(entity)[1]))
@@ -1148,4 +1138,3 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		return Promise.resolve()
 	}
 }
-
