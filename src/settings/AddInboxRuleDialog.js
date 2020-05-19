@@ -26,7 +26,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
-		let targetFolders = mailBoxDetails.folders.filter(folder => folder !== getInboxFolder(mailBoxDetails.folders))
+		let targetFolders = mailBoxDetails.folders
 		                                  .map(folder => {
 			                                  return {name: getFolderName(folder), value: folder}
 		                                  })
