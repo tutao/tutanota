@@ -1,5 +1,8 @@
 // @flow
 import chalk from "chalk"
+import fs from 'fs-extra'
+import path from 'path'
+import {app} from 'electron'
 import {execSync} from 'child_process'
 import {last} from '../../src/api/common/utils/ArrayUtils'
 import {neverNull} from "../api/common/utils/Utils"
@@ -7,6 +10,18 @@ import {Logger, replaceNativeLogger} from "../api/common/Logger"
 
 const logger = new Logger()
 replaceNativeLogger(global, logger, true)
+process.on('exit', () => {
+	const logDir = path.join(app.getPath('userData'), 'logs')
+	const logFilePath = path.join(logDir, "tutanota_desktop.log")
+	const oldLogFilePath = path.join(logDir, "tutanota_desktop_old.log")
+	const entries = logger.getEntries()
+	fs.mkdirp(logDir)
+	  .then(() => fs.renameSync(logFilePath, oldLogFilePath))
+	  .catch(e => {if (e.code !== "ENOENT") throw e})
+	  .then(() => fs.writeFileSync(logFilePath, entries.join('\n')))
+	  .then(() => console.log("wrote log file to", logFilePath))
+	  .catch(e => console.error("could not write log file: ", e.message))
+})
 
 global.env = {rootPathPrefix: "../../", adminTypes: []}
 global.System = {'import': (...args) => Promise.resolve(require(...args))}
