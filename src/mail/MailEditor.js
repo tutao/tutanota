@@ -713,15 +713,21 @@ export class MailEditor {
 					label: "download_action",
 					type: ButtonType.Secondary,
 					click: () => {
+						let promise = Promise.resolve()
 						if (file._type === 'FileReference') {
-							return fileApp.open(downcast(file))
-							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							promise = fileApp.open(downcast(file))
 						} else if (file._type === "DataFile") {
-							return fileController.open(downcast(file))
+							promise = fileController.open(downcast(file))
 						} else {
-							fileController.downloadAndOpen(((file: any): TutanotaFile), true)
-							              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							promise = fileController.downloadAndOpen(((file: any): TutanotaFile), true)
 						}
+						promise
+							.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+							.catch(e => {
+								const msg = e || "unknown error"
+								console.logError("could not open file:", msg)
+								return Dialog.error("errorDuringFileOpen_msg")
+							})
 					},
 				})
 

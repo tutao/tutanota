@@ -1111,6 +1111,7 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"errorDuringFileOpen_msg": "Fehler beim Öffnen des Anhangs."
 	}
 }

@@ -1108,6 +1108,7 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"createUserFailed_msg": "Could not create the user. Please contact support."
+		"createUserFailed_msg": "Could not create the user. Please contact support.",
+		"errorDuringFileOpen_msg": "Failed to open Attachment."
 	}
 }
