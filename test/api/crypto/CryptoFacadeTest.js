@@ -720,16 +720,20 @@ o.spec("crypto facade", function () {
 
 		o("contact migration without existing birthday and oldBirthdayDate", function () {
 			const contact = createContact()
+			contact._id = ["listid", "id"]
 			contact.birthdayIso = "2019-05-01"
 			contact.oldBirthdayDate = new Date(2000, 4, 1)
 			return applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2019-05-01")
-				o(locator.cache.entityRequest.callCount).equals(0)
+				o(migratedContact.oldBirthdayAggregate).equals(null)
+				o(migratedContact.oldBirthdayDate).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(1)
 			})
 		})
 
 		o("contact migration with existing birthday and oldBirthdayAggregate", function () {
 			const contact = createContact()
+			contact._id = ["listid", "id"]
 			contact.birthdayIso = "2019-05-01"
 			contact.oldBirthdayAggregate = createBirthday()
 			contact.oldBirthdayAggregate.day = "01"
@@ -737,7 +741,9 @@ o.spec("crypto facade", function () {
 			contact.oldBirthdayAggregate.year = "2000"
 			return applyMigrationsForInstance(contact).then(migratedContact => {
 				o(migratedContact.birthdayIso).equals("2019-05-01")
-				o(locator.cache.entityRequest.callCount).equals(0)
+				o(migratedContact.oldBirthdayAggregate).equals(null)
+				o(migratedContact.oldBirthdayDate).equals(null)
+				o(locator.cache.entityRequest.callCount).equals(1)
 			})
 		})
 
