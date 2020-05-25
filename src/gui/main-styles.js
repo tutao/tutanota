@@ -260,7 +260,7 @@ styles.registerStyle('main', () => {
 		'.height-100p': {height: "100%"},
 
 
-		'.view-columns': {'overflow-x': 'hidden'},
+		'.view-columns': {'overflow': 'hidden'},
 
 		'.view-column': {'will-change': 'transform'},
 
