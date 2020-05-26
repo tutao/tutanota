@@ -682,7 +682,7 @@ o.spec("DesktopSseClient Test", function () {
 			alarmStorageMock, langMock, timeoutSpy)
 		sse.start()
 		timeoutMock.next()
-		await Promise.delay(1)
+		await Promise.delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
 		o(confMock.setDesktopConfig.calls.map(c => c.args)).deepEquals([
