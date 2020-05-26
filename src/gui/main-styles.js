@@ -16,7 +16,11 @@ export function requiresStatusBarHack() {
 }
 
 function getFonts(): string {
-	const fonts: Array<string> = ['-apple-system', 'BlinkMacSystemFont', 'Helvetica', 'Arial', 'sans-serif']
+	// see https://bitsofco.de/the-new-system-font-stack/
+	const fonts: Array<string> = [
+		'-apple-system', 'system-ui', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'
+	]
+	// workaround for incorrect Japanese font see https://github.com/tutao/tutanota/issues/1909
 	if (env.platformId === 'win32' && lang.code === 'ja') fonts.push('SimHei', "黑体")
 	fonts.push("Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol")
 	return fonts.join(', ')
