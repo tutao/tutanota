@@ -329,11 +329,12 @@ export class MailEditor {
 						oncreate: vnode => this.animate(vnode.dom, true),
 						onbeforeremove: vnode => this.animate(vnode.dom, false)
 					}, this._allRecipients()
-					       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise) // only show passwords for resolved contacts, otherwise we might not get the password
-					       .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
-						       oncreate: vnode => this.animate(vnode.dom, true),
-						       onbeforeremove: vnode => this.animate(vnode.dom, false)
-					       }))))
+						// only show passwords for resolved contacts, otherwise we might not get the password
+						   .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise)
+						   .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
+							   oncreate: vnode => this.animate(vnode.dom, true),
+							   onbeforeremove: vnode => this.animate(vnode.dom, false)
+						   }))))
 					: null,
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._getAttachmentButtons().map((a) => m(ButtonN, a))),
@@ -725,7 +726,7 @@ export class MailEditor {
 							.catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 							.catch(e => {
 								const msg = e || "unknown error"
-								console.logError("could not open file:", msg)
+								console.error("could not open file:", msg)
 								return Dialog.error("errorDuringFileOpen_msg")
 							})
 					},

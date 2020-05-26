@@ -1109,6 +1109,6 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"createUserFailed_msg": "Could not create the user. Please contact support.",
-		"errorDuringFileOpen_msg": "Failed to open Attachment."
+		"errorDuringFileOpen_msg": "Failed to open attachment."
 	}
 }

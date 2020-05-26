@@ -1381,7 +1381,7 @@ export class MailViewer {
 		              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
 		              .catch(e => {
 			              const msg = e || "unknown error"
-			              console.logError("could not open file:", msg)
+			              console.error("could not open file:", msg)
 			              return Dialog.error("errorDuringFileOpen_msg")
 		              })
 	}
