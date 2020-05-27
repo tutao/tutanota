@@ -2,7 +2,7 @@
 import {assertWorkerOrNode} from "../../Env"
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
-import {load, serviceRequestVoid} from "../EntityWorker"
+import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {decryptKey, encryptBytes, encryptKey, encryptString} from "../crypto/CryptoFacade"
 import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
@@ -33,6 +33,7 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
 import type {CalendarGroupData} from "../../entities/tutanota/CalendarGroupData"
 import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
+import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 
 assertWorkerOrNode()
 
@@ -71,33 +72,42 @@ export class UserManagementFacade {
 		let adminGroupKey = this._login.getGroupKey(adminGroupId)
 		return load(GroupTypeRef, user.userGroup.group).then(userGroup => {
 			let userGroupKey = decryptKey(adminGroupKey, neverNull(userGroup.adminGroupEncGKey))
-			return this._getAccountGroupMembership().then(accountGroupMembership => { // accountGroupMembership is the membership in a premium, starter or free group
+			return this._getAccountKeyData().then(keyData => {
 				if (admin) {
 					return this._groupManagement.addUserToGroup(user, adminGroupId).then(() => {
 						// we can not use addUserToGroup here because the admin is not admin of the account group
 						let addAccountGroup = createMembershipAddData()
 						addAccountGroup.user = user._id
-						addAccountGroup.group = accountGroupMembership.group
-						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), accountGroupMembership.symEncGKey))
+						addAccountGroup.group = keyData.group
+						addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), keyData.symEncGKey))
 						return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
 					})
 				} else {
 					return this._groupManagement.removeUserFromGroup(user._id, adminGroupId).then(() => {
-						return this._groupManagement.removeUserFromGroup(user._id, accountGroupMembership.group)
+						return this._groupManagement.removeUserFromGroup(user._id, keyData.group)
 					})
 				}
 			})
 		})
 	}
 
-	_getAccountGroupMembership(): Promise<GroupMembership> {
-		let mailAddress = (this._login.getLoggedInUser().accountType === AccountType.PREMIUM) ? "premium@tutanota.de" : "starter@tutanota.de"
-		return asyncFind(this._login.getLoggedInUser().memberships, membership => {
-			return load(GroupInfoTypeRef, membership.groupInfo).then(groupInfo => {
-				return (groupInfo.mailAddress === mailAddress)
-			})
-		}).then(membership => {
-			return neverNull(membership)
+	/**
+	 * Get key and id of premium or starter group.
+	 * @throws Error if account type is not premium or starter
+	 *
+	 * @private
+	 */
+	_getAccountKeyData(): Promise<{group: Id, symEncGKey: Uint8Array}> {
+		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then((keysReturn) => {
+			const user = this._login.getLoggedInUser()
+			if (user.accountType === AccountType.PREMIUM) {
+				return {group: neverNull(keysReturn.premiumGroup), symEncGKey: keysReturn.premiumGroupKey}
+			} else if (user.accountType === AccountType.STARTER) {
+				// We don't have starterGroup on SystemKeyReturn so we hardcode it for now.
+				return {group: "JDpWrwG----0", symEncGKey: keysReturn.starterGroupKey}
+			} else {
+				throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
+			}
 		})
 	}
 
