@@ -16,7 +16,7 @@ import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {getMailBodyText, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -78,6 +78,7 @@ export class MultiMailViewer {
 				mail.unread = unread
 				return update(mail)
 					.catch(NotFoundError, noOp)
+					.catch(LockedError, noOp)
 			} else {
 				return Promise.resolve()
 			}

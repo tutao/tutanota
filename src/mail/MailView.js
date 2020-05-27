@@ -31,7 +31,7 @@ import {logins} from "../api/main/LoginController"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
-import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
 	archiveMails,
@@ -745,6 +745,7 @@ export class MailView implements CurrentView {
 				update(mails[0])
 					.catch(NotFoundError,
 						e => console.log("could not set read flag as mail has been moved/deleted already", e))
+					.catch(LockedError, noOp)
 			}
 			if (elementClicked) {
 				this.mailList.list._loading.then(() => {

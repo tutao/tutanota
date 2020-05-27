@@ -197,7 +197,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.emailSenderList,
-						updateInstance: () => update(props)
+						updateInstance: () => update(props).catch(LockedError, noOp)
 					}, rule, index, [
 						{
 							label: "edit_action",

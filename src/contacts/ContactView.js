@@ -7,6 +7,7 @@ import type {CurrentView} from "../gui/base/Header"
 import {Button, createDropDownButton} from "../gui/base/Button"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {ContactEditor} from "./ContactEditor"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {isSameId} from "../api/common/EntityFunctions"
@@ -15,6 +16,7 @@ import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Util
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
+import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
@@ -22,7 +24,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {fileController} from "../file/FileController"
 import {logins} from "../api/main/LoginController"
 import {vCardFileToVCards, vCardListToContacts} from "./VCardImporter"
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {MultiContactViewer} from "./MultiContactViewer"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
@@ -41,8 +43,6 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import type {Shortcut} from "../misc/KeyManager"
-import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 
@@ -409,9 +409,9 @@ export class ContactView implements CurrentView {
 		return Dialog.confirm("deleteContacts_msg").then(confirmed => {
 			if (confirmed) {
 				this._contactList.list.getSelectedEntities().forEach(contact => {
-					erase(contact).catch(NotFoundError, e => {
-						// ignore because the delete key shortcut may be executed again while the contact is already deleted
-					})
+					erase(contact)
+						.catch(NotFoundError, noOp)
+						.catch(LockedError, noOp)
 				})
 			}
 		})

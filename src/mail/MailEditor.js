@@ -38,7 +38,7 @@ import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundErr
 import {assertMainOrNode, isApp, Mode} from "../api/Env"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
-import {debounce, downcast, neverNull} from "../api/common/utils/Utils"
+import {debounce, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {
 	createNewContact,
 	createRecipientInfo,
@@ -952,7 +952,7 @@ export class MailEditor {
 		let props = logins.getUserController().props
 		if (props.notificationMailLanguage !== this._selectedNotificationLanguage()) {
 			props.notificationMailLanguage = this._selectedNotificationLanguage()
-			update(props)
+			update(props).catch(LockedError, noOp)
 		}
 	}
 

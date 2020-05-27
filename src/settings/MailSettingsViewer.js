@@ -6,7 +6,7 @@ import {isSameId} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
 import {FeatureType, InboxRuleType, OperationType} from "../api/common/TutanotaConstants"
 import {load, update} from "../api/main/Entity"
-import {getEnabledMailAddressesForGroupInfo, neverNull} from "../api/common/utils/Utils"
+import {getEnabledMailAddressesForGroupInfo, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
 import * as EditSignatureDialog from "./EditSignatureDialog"
@@ -38,6 +38,7 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
+import {LockedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -257,7 +258,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					cells: [getInboxRuleTypeName(rule.type), rule.value, this._getTextForTarget(mailboxDetails, rule.targetFolder)],
 					actionButtonAttrs: createRowActions({
 						getArray: () => props.inboxRules,
-						updateInstance: () => update(props)
+						updateInstance: () => update(props).catch(LockedError, noOp)
 					}, rule, index, [
 						{
 							label: "edit_action",

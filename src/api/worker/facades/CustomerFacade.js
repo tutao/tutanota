@@ -11,7 +11,7 @@ import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListEl
 import {stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "../../common/utils/Encoding"
 import {hash} from "../crypto/Sha256"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
-import {getWhitelabelDomain, neverNull} from "../../common/utils/Utils"
+import {getWhitelabelDomain, neverNull, noOp} from "../../common/utils/Utils"
 import {aes128RandomKey} from "../crypto/Aes"
 import {encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
@@ -52,6 +52,7 @@ import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListEle
 import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactFormAccountReturn"
 import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
 import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
+import {LockedError} from "../../common/error/RestError"
 
 assertWorkerOrNode()
 
@@ -197,6 +198,7 @@ export class CustomerFacade {
 			})
 			props.emailSenderList.push(newListEntry)
 			return update(props)
+				.catch(LockedError, noOp)
 		})
 	}
 
@@ -210,6 +212,7 @@ export class CustomerFacade {
 			}
 			props.emailSenderList[index] = spamRule
 			return update(props)
+				.catch(LockedError, noOp)
 		})
 	}
 

@@ -16,13 +16,13 @@ import {GroupTypeRef} from "../../entities/sys/Group"
 import type {Permission} from "../../entities/sys/Permission"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {assertWorkerOrNode} from "../../Env"
-import {downcast, neverNull} from "../../common/utils/Utils"
+import {downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
 import {uint8ArrayToBitArray} from "./CryptoUtils"
-import {NotFoundError} from "../../common/error/RestError"
+import {LockedError, NotFoundError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
@@ -41,10 +41,10 @@ import {
 	encryptKey,
 	encryptRsaKey
 } from "./KeyCryptoUtils.js"
+import type {Contact} from "../../entities/tutanota/Contact"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import type {Contact} from "../../entities/tutanota/Contact"
 
 assertWorkerOrNode()
 
@@ -99,11 +99,11 @@ export function applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> 
 			contact.birthdayIso = birthdayToIsoDate(contact.oldBirthdayAggregate)
 			contact.oldBirthdayAggregate = null
 			contact.oldBirthdayDate = null
-			return update(contact).return(decryptedInstance)
+			return update(contact).catch(LockedError, noOp).return(decryptedInstance)
 		} else if (!contact.birthdayIso && contact.oldBirthdayDate) {
 			contact.birthdayIso = birthdayToIsoDate(oldBirthdayToBirthday(contact.oldBirthdayDate))
 			contact.oldBirthdayDate = null
-			return update(contact).return(decryptedInstance)
+			return update(contact).catch(LockedError, noOp).return(decryptedInstance)
 		}
 	}
 	return Promise.resolve(decryptedInstance)

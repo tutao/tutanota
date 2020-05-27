@@ -3,7 +3,7 @@ import m from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {update} from "../api/main/Entity"
 import {MailViewer} from "../mail/MailViewer"
 import {ContactViewer} from "../contacts/ContactViewer"
@@ -16,6 +16,7 @@ import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import type {Contact} from "../api/entities/tutanota/Contact"
+import {noOp} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -58,6 +59,7 @@ export class SearchResultDetailsViewer {
 				mail.unread = false
 				update(mail)
 					.catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
+					.catch(LockedError, noOp)
 			}
 			m.redraw()
 		}

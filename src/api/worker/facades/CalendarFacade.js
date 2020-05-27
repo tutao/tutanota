@@ -25,7 +25,7 @@ import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
 import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {LockedError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarPostReturnTypeRef} from "../../entities/tutanota/CalendarPostReturn"
 import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
@@ -57,7 +57,9 @@ export class CalendarFacade {
 		let p = Promise.resolve()
 		// delete old calendar event
 		if (oldEvent) {
-			p = erase(oldEvent).catch(NotFoundError, noOp)
+			p = erase(oldEvent)
+				.catch(NotFoundError, noOp)
+				.catch(LockedError, noOp)
 		}
 
 		return p.then(() => this._createAlarms(user, event, alarmInfos))

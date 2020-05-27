@@ -5,7 +5,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
-	ConnectionError,
+	ConnectionError, LockedError,
 	NotAuthenticatedError,
 	NotFoundError,
 	TooManyRequestsError
@@ -14,7 +14,7 @@ import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
 import {CloseEventBusOption, Const, TimeFormat} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {lang} from "../misc/LanguageViewModel"
 import {checkApprovalStatus} from "../misc/ErrorHandlerImpl"
@@ -247,7 +247,7 @@ export class LoginViewController implements ILoginViewController {
 								}
 							}).then(function () {
 								properties.lastUpgradeReminder = new Date()
-								update(properties)
+								update(properties).catch(LockedError, noOp)
 							})
 						}
 					})

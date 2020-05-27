@@ -15,9 +15,10 @@ import type {MailboxDetail} from "../mail/MailModel"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {isSameId} from "../api/common/EntityFunctions"
 import type {InboxRule} from "../api/entities/tutanota/InboxRule"
+import {LockedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -68,7 +69,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			} else {
 				props.inboxRules = props.inboxRules.map(inboxRule => isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule)
 			}
-			update(props)
+			update(props).catch(LockedError, noOp)
 			dialog.close()
 		}
 

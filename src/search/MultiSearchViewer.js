@@ -10,7 +10,7 @@ import {SearchListView} from "./SearchListView"
 import {erase, load, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {mailModel} from "../mail/MailModel"
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {getListId, isSameTypeRef} from "../api/common/EntityFunctions"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
@@ -211,6 +211,7 @@ export class MultiSearchViewer {
 				mail.unread = unread
 				return update(mail)
 					.catch(NotFoundError, noOp)
+					.catch(LockedError, noOp)
 			} else {
 				return Promise.resolve()
 			}
