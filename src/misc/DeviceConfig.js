@@ -47,6 +47,7 @@ class DeviceConfig {
 			this._signupToken = loadedSignupToken
 		} else {
 			let bytes = new Uint8Array(6);
+			let crypto = window.crypto || window.msCrypto;
 			crypto.getRandomValues(bytes)
 			this._signupToken = uint8ArrayToBase64(bytes)
 			this._store()
