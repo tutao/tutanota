@@ -193,7 +193,7 @@ function buildDesktopClient() {
 				? ""
 				: "https://mail.tutanota.com/desktop",
 			nameSuffix: "",
-			notarize: !!options.customDesktopRelease,
+			notarize: !options.customDesktopRelease,
 			outDir: options.outDir,
 			unpacked: options.unpacked
 		}
@@ -204,7 +204,8 @@ function buildDesktopClient() {
 				const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 					updateUrl: "https://test.tutanota.com/desktop",
 					nameSuffix: "-test",
-					notarize: true
+					// Do not notarize test build
+					notarize: false
 				})
 				buildPromise.then(() => createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Desktop", true), bundles))
 				            .then(() => desktopBuilder.build(desktopTestOpts))
