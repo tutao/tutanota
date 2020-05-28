@@ -39,11 +39,12 @@ global.atob = function (b64Encoded) {
 let crypto = require('crypto')
 
 global.crypto = {
-	getRandomValues: function (bytes) {
-		let randomBytes = crypto.randomBytes(bytes.length)
-		bytes.set(randomBytes)
+	getRandomValues(bytes) {
+		crypto.randomFillSync(bytes)
+		return bytes
 	}
 }
+global.window.crypto = global.crypto
 
 global.XMLHttpRequest = require('xhr2')
 
