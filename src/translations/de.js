@@ -1112,6 +1112,12 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"errorDuringFileOpen_msg": "Fehler beim Öffnen des Anhangs."
+		"errorDuringFileOpen_msg": "Fehler beim Öffnen des Anhangs.",
+		"rejectedSenders_label": "Abgelehnte E-Mail-Absender",
+		"rejectedSenderListInfo_msg": "Liste der E-Mail-Zustellversuche zu allen Mailboxen deines Accounts, die Aufgrund der Absender-Einschränkungen abgelehnt wurden. Um die Zustellung zu erlauben kannst du eine Spam-Regel für die Absender-E-Mail-Adresse oder Domain anlegen.",
+		"mailServer_label": "E-Mail-Server",
+		"rejectReason_label": "Ablehnungsgrund",
+		"emailRecipient_label": "E-Mail-Empfänger",
+		"showRejectReason_action": "Ablehnungsgrund anzeigen",
 	}
 }

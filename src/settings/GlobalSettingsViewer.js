@@ -52,7 +52,7 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 
 assertMainOrNode()
 
-const REJECTED_SENDERS_TO_LOAD_MS = 7 * DAY_IN_MILLIS
+const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;

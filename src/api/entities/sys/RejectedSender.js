@@ -55,7 +55,7 @@ export const _TypeModel: TypeModel = {
 			"since": 60,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"recipientMailAddress": {
@@ -64,7 +64,7 @@ export const _TypeModel: TypeModel = {
 			"since": 60,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"senderHostname": {
@@ -73,7 +73,7 @@ export const _TypeModel: TypeModel = {
 			"since": 60,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"senderIp": {
@@ -82,7 +82,7 @@ export const _TypeModel: TypeModel = {
 			"since": 60,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"senderMailAddress": {
@@ -91,7 +91,7 @@ export const _TypeModel: TypeModel = {
 			"since": 60,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		}
 	},
