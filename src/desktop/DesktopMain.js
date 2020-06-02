@@ -50,7 +50,7 @@ wm.setIPC(ipc)
 PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
 app.allowRendererProcessReuse = false
-ßconsole.log("version:  ", app.getVersion())
+console.log("version:  ", app.getVersion())
 
 let wasAutolaunched = process.platform !== 'darwin'
 	? process.argv.indexOf("-a") !== -1
