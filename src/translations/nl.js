@@ -843,7 +843,7 @@ module.exports = {
 		"register_label": "Registreren",
 		"registrationHeadline_msg": "Inschrijven",
 		"rejectedSenderListInfo_msg": "Lijst met pogingen tot e-mailbezorging naar alle postbussen in uw account die zijn afgewezen vanwege de afzenderbeperkingen. Om bezorging mogelijk te maken, kunt u een spamregel maken voor het e-mailadres of domein van de afzender.",
-		"rejectedSenders_label": "Afgewezen afzenders van e-mail",
+		"rejectedEmails_label": "Afgewezen afzenders van e-mail",
 		"rejectReason_label": "Reden van afwijzing",
 		"releaseNotes_action": "Release notes",
 		"reloadPage_action": "Pagina herladen",

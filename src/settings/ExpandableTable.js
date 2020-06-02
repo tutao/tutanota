@@ -10,13 +10,13 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import stream from "mithril/stream/stream.js"
 
 
-type ExpandableTableAttrs = {
+type ExpandableTableAttrs = {|
 	title: TranslationKey | lazy<string>,
 	table: TableAttrs,
 	infoMsg: TranslationKey | lazy<string>,
 	infoLinkId?: string,
 	onExpand?: () => void
-}
+|}
 
 export class ExpandableTable implements MComponent<ExpandableTableAttrs> {
 	_expanded: Stream<boolean>

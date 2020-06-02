@@ -842,7 +842,7 @@ module.exports = {
 		"register_label": "Registrati",
 		"registrationHeadline_msg": "Iscriviti",
 		"rejectedSenderListInfo_msg": "Elenco dei tentativi di recapito dell'email a tutte le mailbox del tuo account che sono state rifiutate dalle nostre restrizioni del mittente. Per autorizzare un mittente email è possibile aggiungere una regola spam per l'indirizzo email o il dominio del mittente.",
-		"rejectedSenders_label": "Mittenti di posta elettronica rifiutati",
+		"rejectedEmails_label": "Mittenti di posta elettronica rifiutati",
 		"rejectReason_label": "Motivo rifiuto",
 		"releaseNotes_action": "Note di rilascio",
 		"reloadPage_action": "Ricarica pagina",

@@ -166,10 +166,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						title: "adminSpam_action",
 						table: spamRuleTableAttrs,
 						infoMsg: "adminSpamRuleInfo_msg",
-						infoId: "spamRules_link"
+						infoLinkId: "spamRules_link"
 					}),
 					m(ExpandableTable, {
-						title: "rejectedSenders_label",
+						title: "rejectedEmails_label",
 						table: rejectedSenderTableAttrs,
 						infoMsg: "rejectedSenderListInfo_msg",
 						onExpand: () => this._updateRejectedSenderTable()
@@ -178,7 +178,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						title: "customEmailDomains_label",
 						table: customDomainTableAttrs,
 						infoMsg: "moreInfo_msg",
-						infoId: "domainInfo_link"
+						infoLinkId: "domainInfo_link"
 					}),
 					m(".mt-l", [
 						m(".h4", lang.get('security_title')),
