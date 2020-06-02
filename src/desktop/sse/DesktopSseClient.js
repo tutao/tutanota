@@ -71,7 +71,6 @@ export class DesktopSseClient {
 		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
 		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
 		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
-		console.log("_connectedSseInfo", this._connectedSseInfo)
 		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
 		if (typeof this._readTimeoutInSeconds !== 'number' || Number.isNaN(this._readTimeoutInSeconds)) {
 			this._readTimeoutInSeconds = 30
@@ -232,7 +231,7 @@ export class DesktopSseClient {
 	 */
 	hasNotificationTTLExpired(): boolean {
 		const lastMissedNotificationCheckTime = this._conf.getDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime)
-		console.log({lastMissedNotificationCheckTime})
+		console.log("last missed notification check:", {lastMissedNotificationCheckTime})
 		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
 	}
 

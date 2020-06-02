@@ -50,8 +50,7 @@ wm.setIPC(ipc)
 PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
 app.allowRendererProcessReuse = false
-console.log("argv: ", process.argv)
-console.log("version:  ", app.getVersion())
+ßconsole.log("version:  ", app.getVersion())
 
 let wasAutolaunched = process.platform !== 'darwin'
 	? process.argv.indexOf("-a") !== -1
@@ -78,7 +77,6 @@ if (process.argv.indexOf("-r") !== -1) {
 				if (overridden) {
 					app.quit()
 				} else {
-					console.log("2nd instance args:", args)
 					if (wm.getAll().length === 0) {
 						wm.newWindow(true)
 					} else {
