@@ -1051,7 +1051,6 @@ module.exports = {
 		"type_label": "Type",
 		"u2fAuthUnregisteredDevice_msg": "This security key has not been registered with your account. Please use a valid one.",
 		"u2fSecurityKey_label": "Security Key (U2F)",
-		"u2fUnexpectedError_msg": "An unexpected error occurred with your security key.",
 		"undo_action": "Undo",
 		"unknownError_msg": "An unexpected error occurred. Please try again later.",
 		"unlimited_label": "Unlimited",
@@ -1117,6 +1116,8 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"couldNotAuthU2f_msg": "Could not authenticate with security key.",
+		"waitingForU2f_msg": "Waiting for security key…"
 	}
 }

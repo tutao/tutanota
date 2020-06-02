@@ -376,7 +376,7 @@ styles.registerStyle('main', () => {
 		'.flex-space-around': {display: 'flex', 'justify-content': 'space-around'},
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
 		'.flex-fixed': {flex: "0 0 auto"},
-		'.flex-center': {display: 'flex', 'justify-content': 'center'}, // TODO: migrate to .flex.center-horizontal
+		'.flex-center': {display: 'flex', 'justify-content': 'center'},
 		'.flex-end': {display: 'flex', 'justify-content': 'flex-end'},
 		'.flex-start': {display: 'flex', 'justify-content': 'flex-start'},
 		'.flex-v-center': {display: 'flex', 'flex-direction': "column", 'justify-content': 'center'},

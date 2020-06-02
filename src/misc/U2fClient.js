@@ -48,10 +48,7 @@ export class U2fClient {
 			.resolve(
 				// Explicitly disable old Edge and apps so that they don'tt try to open Store for extension URL
 				!isApp() && client.browser !== BrowserType.EDGE
-				&& (
-					window.u2f && window.u2f.register
-					|| this.checkVersionWithTimeout()
-				)
+				&& !!(window.u2f && window.u2f.register || this.checkVersionWithTimeout())
 			)
 			.catch(() => false)
 	}

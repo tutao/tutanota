@@ -1119,6 +1119,8 @@ module.exports = {
 		"yes_label": "Ja",
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"couldNotAuthU2f_msg": "Es konnte nicht mit dem Sicherheitsschlüssel authentifiziert werden.",
+		"waitingForU2f_msg": "Warten auf den Sicherheitsschlüssel…"
 	}
 }
