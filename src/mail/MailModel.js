@@ -280,7 +280,7 @@ export class MailModel {
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
-		return worker.checkMailForPhishing(mail, links, this._eventController.phishingMarkers())
+		return worker.checkMailForPhishing(mail, links)
 	}
 }
 

@@ -414,9 +414,5 @@ export class WorkerImpl {
 	infoMessage(message: InfoMessage) {
 		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
-
-	phishingMarkers(markersData: PhishingMarkerWebsocketData) {
-		return this._queue.postMessage(new Request("phishingMarkers", [markersData]))
-	}
 }
 

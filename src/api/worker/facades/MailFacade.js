@@ -5,15 +5,24 @@ import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorke
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
 import type {ConversationTypeEnum, ReportedMailFieldTypeEnum} from "../../common/TutanotaConstants"
-import {GroupType, MailAuthenticationStatus as MailAuthStatus, OperationType, ReportedMailFieldType} from "../../common/TutanotaConstants"
+import {
+	GroupType,
+	MailAuthenticationStatus as MailAuthStatus,
+	OperationType,
+	PhishingMarkerStatus,
+	ReportedMailFieldType
+} from "../../common/TutanotaConstants"
 import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
 import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
 import {createDraftData} from "../../entities/tutanota/DraftData"
 import {DraftCreateReturnTypeRef} from "../../entities/tutanota/DraftCreateReturn"
+import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel, MailTypeRef} from "../../entities/tutanota/Mail"
+import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
 import {createDraftRecipient} from "../../entities/tutanota/DraftRecipient"
 import {createDraftUpdateData} from "../../entities/tutanota/DraftUpdateData"
 import {DraftUpdateReturnTypeRef} from "../../entities/tutanota/DraftUpdateReturn"
+import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
 import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
 import {isExternalSecureRecipient, recipientInfoType} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
@@ -25,6 +34,7 @@ import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
 import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {addressDomain, defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
+import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {random} from "../crypto/Randomizer"
@@ -32,8 +42,10 @@ import {createExternalUserData} from "../../entities/tutanota/ExternalUserData"
 import {createCreateExternalUserGroupData} from "../../entities/tutanota/CreateExternalUserGroupData"
 import {createSecureExternalRecipientKeyData} from "../../entities/tutanota/SecureExternalRecipientKeyData"
 import {hash} from "../crypto/Sha256"
+import type {DraftAttachment} from "../../entities/tutanota/DraftAttachment"
 import {createDraftAttachment} from "../../entities/tutanota/DraftAttachment"
 import {createNewDraftAttachment} from "../../entities/tutanota/NewDraftAttachment"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {_TypeModel as FileTypeModel, FileTypeRef} from "../../entities/tutanota/File"
 import type {FileFacade} from "./FileFacade"
 import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData"
@@ -45,25 +57,22 @@ import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailA
 import {fileApp} from "../../../native/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 import murmurHash from "../crypto/lib/murmurhash3_32"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
-import type {Mail} from "../../entities/tutanota/Mail"
-import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
-import type {DraftAttachment} from "../../entities/tutanota/DraftAttachment"
-import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {User} from "../../entities/sys/User"
+import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 
 assertWorkerOrNode()
 
 export class MailFacade {
 	_login: LoginFacade;
 	_file: FileFacade;
+	_phishingMarkers: Set<string>;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
 
 	constructor(login: LoginFacade, fileFacade: FileFacade) {
 		this._login = login
 		this._file = fileFacade
+		this._phishingMarkers = new Set()
 		this._deferredDraftId = null
 		this._deferredDraftUpdate = null
 	}
@@ -303,41 +312,41 @@ export class MailFacade {
 			})
 	}
 
-	checkMailForPhishing(mail: Mail, links: Array<string>, markers: Set<string>): Promise<boolean> {
+	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
 		let score = 0
 		const senderAddress = mail.sender.address
 		const senderAuthenticated = mail.authStatus === MailAuthStatus.AUTHENTICATED
 
 		if (senderAuthenticated) {
-			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {
+			if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {
 				score += 6
 			} else {
 				const senderDomain = addressDomain(senderAddress)
-				if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_DOMAIN, senderDomain)) {
+				if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_DOMAIN, senderDomain)) {
 					score += 6
 				}
 			}
 		} else {
-			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_ADDRESS_NON_AUTH, senderAddress)) {
+			if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_ADDRESS_NON_AUTH, senderAddress)) {
 				score += 6
 			} else {
 				const senderDomain = addressDomain(senderAddress)
-				if (this._checkFieldForPhishing(markers, ReportedMailFieldType.FROM_DOMAIN_NON_AUTH, senderDomain)) {
+				if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_DOMAIN_NON_AUTH, senderDomain)) {
 					score += 6
 				}
 			}
 		}
 
-		if (this._checkFieldForPhishing(markers, ReportedMailFieldType.SUBJECT, mail.subject)) {
+		if (this._checkFieldForPhishing(ReportedMailFieldType.SUBJECT, mail.subject)) {
 			score += 3
 		}
 		for (const link of links) {
-			if (this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK, link)) {
+			if (this._checkFieldForPhishing(ReportedMailFieldType.LINK, link)) {
 				score += 6
 				break
 			} else {
 				const domain = getUrlDomain(link)
-				if (domain && this._checkFieldForPhishing(markers, ReportedMailFieldType.LINK_DOMAIN, domain)) {
+				if (domain && this._checkFieldForPhishing(ReportedMailFieldType.LINK_DOMAIN, domain)) {
 					score += 6
 					break
 				}
@@ -346,9 +355,9 @@ export class MailFacade {
 		return Promise.resolve(7 < score)
 	}
 
-	_checkFieldForPhishing(markers: Set<string>, type: ReportedMailFieldTypeEnum, value: string): boolean {
+	_checkFieldForPhishing(type: ReportedMailFieldTypeEnum, value: string): boolean {
 		const hash = phishingMarkerValue(type, value)
-		return markers.has(hash)
+		return this._phishingMarkers.has(hash)
 	}
 
 	_addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipientInfos: RecipientInfo[], senderMailGroupId: Id): Promise<void> {
@@ -484,7 +493,15 @@ export class MailFacade {
 		}).return()
 	}
 
-
+	phishingMarkersUpdateReceived(markers: Array<PhishingMarker>) {
+		markers.forEach((marker) => {
+			if (marker.status === PhishingMarkerStatus.INACTIVE) {
+				this._phishingMarkers.delete(marker.marker)
+			} else {
+				this._phishingMarkers.add(marker.marker)
+			}
+		})
+	}
 }
 
 export function phishingMarkerValue(type: ReportedMailFieldTypeEnum, value: string) {

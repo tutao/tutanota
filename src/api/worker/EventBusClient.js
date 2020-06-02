@@ -24,10 +24,10 @@ import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
+import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
 import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
-import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 
 assertWorkerOrNode()
@@ -253,7 +253,7 @@ export class EventBusClient {
 			return decryptAndMapToInstance(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null)
 				.then((data) => {
 					this._lastAntiphishingMarkersId = data.lastId
-					this._worker.phishingMarkers(data)
+					this._mail.phishingMarkersUpdateReceived(data.markers)
 				})
 		} else {
 			console.log("ws message with unknown type", type)
