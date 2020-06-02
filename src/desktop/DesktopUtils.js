@@ -235,7 +235,6 @@ function getLockFilePath() {
  */
 function _writeToDisk(contents: string): string {
 	const filename = DesktopCryptoFacade.randomHexString(12)
-	console.log("Wrote file to ", filename)
 	const filePath = path.join(path.dirname(process.execPath), filename)
 	fs.writeFileSync(filePath, contents, {encoding: 'utf-8', mode: 0o400})
 	return filePath
