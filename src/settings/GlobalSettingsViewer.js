@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
-import {load, loadAll, loadRange, update} from "../api/main/Entity"
+import {load, loadRange, update} from "../api/main/Entity"
 import {showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import type {SpamRuleFieldTypeEnum, SpamRuleTypeEnum} from "../api/common/TutanotaConstants"
 import {getSparmRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
@@ -10,7 +10,7 @@ import {getCustomMailDomains, getUserGroupMemberships, neverNull, noOp, objectEn
 import type {CustomerServerProperties} from "../api/entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, getElementId} from "../api/common/EntityFunctions"
+import {GENERATED_MAX_ID, getElementId, sortCompareByReverseId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
@@ -52,7 +52,10 @@ import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListE
 
 assertMainOrNode()
 
+// Number of days for that we load rejected senders
 const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
+// Max number of rejected sender entries that we display in the ui
+const REJECTED_SENDERS_MAX_NUMBER = 100
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	view: Function;
@@ -235,10 +238,24 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	_updateRejectedSenderTable(): void {
 		const customer = this._customer()
 		if (customer && customer.rejectedSenders) {
+			// Rejected senders are written with TTL for seven days.
+			// We have to avoid that we load too many (already deleted) rejected senders form the past.
+			// First we load REJECTED_SENDERS_MAX_NUMBER items starting from the past timestamp into the future. If there are
+			// more entries available we can safely load REJECTED_SENDERS_MAX_NUMBER from GENERATED_MAX_ID in reverse order.
+			// Otherwise we will just use what has been returned in the first request.
 			const senderListId = customer.rejectedSenders.items
 			const startId = timestampToGeneratedId(Date.now() - REJECTED_SENDERS_TO_LOAD_MS)
-
-			const loadingPromise = loadAll(RejectedSenderTypeRef, senderListId, startId)
+			const loadingPromise = loadRange(RejectedSenderTypeRef, senderListId, startId, REJECTED_SENDERS_MAX_NUMBER, false)
+				.then(rejectedSenders => {
+					if (REJECTED_SENDERS_MAX_NUMBER === rejectedSenders.length) {
+						// There are more entries available, we need to load from GENERATED_MAX_ID.
+						// we don't need to sort here because we load in reverse direction
+						return loadRange(RejectedSenderTypeRef, senderListId, GENERATED_MAX_ID, REJECTED_SENDERS_MAX_NUMBER, true)
+					} else {
+						// ensure that rejected senders are sorted in descending order
+						return rejectedSenders.sort(sortCompareByReverseId)
+					}
+				})
 				.then(rejectedSenders => {
 					const tableEntries = rejectedSenders.map(rejectedSender => {
 						const rejectDate = formatDateTime(new Date(generatedIdToTimestamp(getElementId(rejectedSender))))
