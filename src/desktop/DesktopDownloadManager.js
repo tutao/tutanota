@@ -45,7 +45,8 @@ export class DesktopDownloadManager {
 					}))
 				})
 			}).on('error', e => {
-				fs.unlink(encryptedFileUri)
+				// remove file if it was already created
+				fs.unlink(encryptedFileUri).catch(noOp)
 				reject(e)
 			}).end()
 		})
