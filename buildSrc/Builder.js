@@ -94,7 +94,7 @@ class Builder {
 
 	_translate(srcFile, targetFile) {
 		// only js files that are no libs are compiled. All other files are just copied as resources.
-		if (path.extname(srcFile) === '.js' && srcFile.indexOf("/lib/") === -1) {
+		if (path.extname(srcFile) === '.js' && srcFile.indexOf(this.baseDir + "/lib/") === -1) {
 			return fs.readFileAsync(srcFile, 'utf-8').then(src => {
 				if (src.trim().length === 0) {
 					console.log(`Source file ${srcFile} is currently empty, re-scheduling transform!`)

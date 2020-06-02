@@ -10,7 +10,7 @@
  * This implementation should handle non-ascii characters.
  */
 
-const {stringToUtf8Uint8Array} = require("../../../common/utils/Encoding")
+import {stringToUtf8Uint8Array} from "../../../common/utils/Encoding"
 
 function x86fmix32(h) {
 	h ^= h >>> 16;
