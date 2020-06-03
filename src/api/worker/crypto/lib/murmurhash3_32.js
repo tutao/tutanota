@@ -47,7 +47,7 @@ function rol32(n, r) {
 	return (n << r) | (n >>> (32 - r));
 }
 
-module.exports = function x86hash32(value) {
+export default function x86hash32(value) {
 	let state = 0
 	const buf = stringToUtf8Uint8Array(value)
 
