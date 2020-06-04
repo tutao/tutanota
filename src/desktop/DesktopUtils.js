@@ -33,18 +33,18 @@ export default class DesktopUtils {
 	}
 
 	/**
-	 * find the first filename not already contained in directory
-	 * ATTENTION: doesn't take concurrent access into account
-	 * there are tests for this function.
+	 * compares a filename to a list of filenames and finds the first number-suffixed
+	 * filename not already contained in the list.
 	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
-	static nonClobberingFilename(files: Array<string>, fileName: string): string {
-		const clashingFile = files.find(f => f === fileName)
-		if (typeof clashingFile !== "string") { // all is well
-			return fileName
-		} else { // there are clashing file names
-			const ext = path.extname(fileName)
-			const basename = path.basename(fileName, ext)
+	static nonClobberingFilename(files: Array<string>, filename: string): string {
+		filename = _sanitizeFilename(filename)
+		const clashingFile = files.find(f => f === filename)
+		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
+			return filename
+		} else { // there are clashing file names or the file name is reserved
+			const ext = path.extname(filename)
+			const basename = path.basename(filename, ext)
 			const clashNumbers = files
 				.filter(f => f.startsWith(`${basename}-`))
 				.map(f => f.slice(0, f.length - ext.length))
@@ -55,7 +55,8 @@ export default class DesktopUtils {
 			clashNumbersSet.add(0)
 
 			// if a number is bigger than its index, there is room somewhere before that number
-			const firstGap = [...clashNumbersSet]
+			const firstGap = Array
+				.from(clashNumbersSet)
 				.sort((a, b) => a - b)
 				.find((n, i, a) => a[i + 1] > i + 1) + 1
 
@@ -299,4 +300,38 @@ function _unregisterOnWin(): Promise<void> {
 	app.removeAsDefaultProtocolClient('mailto')
 	const tmpRegScript = require('./reg-templater.js').unregisterKeys()
 	return _executeRegistryScript(tmpRegScript)
+}
+
+/**
+ * removes invalid characters from the given filename
+ * by replacing them with underscores
+ */
+function _sanitizeFilename(filename: string): string {
+	// / ? < > \ : * | "
+	const illegalRe = /[\/\?<>\\:\*\|"]/g
+	// unicode control codes
+	const controlRe = /[\x00-\x1f\x80-\x9f]/g
+	// trailing period in windows file names
+	const windowsTrailingRe = /[\. ]+$/
+
+	const sanitized = filename.replace(illegalRe, "_").replace(controlRe, "_")
+
+	return process.platform === "win32"
+		? sanitized.replace(windowsTrailingRe, "_")
+		: sanitized
+}
+
+/**
+ * checks if the given filename is a reserved filename on the current platform
+ * @param filename
+ * @returns {boolean}
+ * @private
+ */
+function _isReservedFilename(filename: string): boolean {
+	// CON, CON.txt, COM0 etc. (windows device files)
+	const winReservedRe = /^(CON|PRN|LPT[0-9]|COM[0-9]|AUX|NUL)($|\..*$)/i
+	// .. and .
+	const reservedRe = /^\.{1,2}$/
+
+	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
