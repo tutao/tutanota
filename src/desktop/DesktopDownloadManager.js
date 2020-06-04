@@ -34,8 +34,14 @@ export class DesktopDownloadManager {
 		this._topLevelDownloadDir = "tutanota"
 	}
 
-	manageDownloadsForSession(session: ElectronSession) {
-		session.removeAllListeners('will-download').on('will-download', (ev, item) => this._handleDownloadItem(item))
+	manageDownloadsForSession(session: ElectronSession, dictUrl: string) {
+		dictUrl = dictUrl + '/dictionaries/'
+		log.debug('getting dictionaries from:', dictUrl)
+		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
+		session.removeAllListeners('spellcheck-dictionary-download-failure')
+		       .on('spellcheck-dictionary-download-failure', (ev, lcode) => log.debug("failed to dl dict for lang", lcode))
+		session.removeAllListeners('will-download')
+		       .on('will-download', (ev, item) => this._handleDownloadItem(item))
 	}
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {

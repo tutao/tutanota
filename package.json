@@ -63,6 +63,7 @@
 		"rollup-plugin-terser": "7.0.2",
 		"rollup-plugin-visualizer": "4.2.0",
 		"winreg": "1.2.4",
-		"xhr2": "0.2.0"
+		"xhr2": "0.2.0",
+		"jszip": "3.5.0"
 	}
 }

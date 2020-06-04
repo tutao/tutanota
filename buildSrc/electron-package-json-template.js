@@ -59,6 +59,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
 			"configMigrationFunction": "migrateClient",
+			updateUrl,
 			"defaultDesktopConfig": {
 				/**
 				 * do not change defaultDesktopConfig

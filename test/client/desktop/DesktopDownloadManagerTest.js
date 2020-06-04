@@ -54,6 +54,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				this.callbacks = {}
 				return this
 			},
+			setSpellCheckerDictionaryDownloadURL: () => {},
 			on: function (ev, cb) {
 				this.callbacks[ev] = cb
 				return this
@@ -180,10 +181,10 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
-		dl.manageDownloadsForSession(sessionMock)
-		o(sessionMock.removeAllListeners.callCount).equals(1)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
+		o(sessionMock.removeAllListeners.callCount).equals(2)
 		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
-		o(sessionMock.on.callCount).equals(1)
+		o(sessionMock.on.callCount).equals(2)
 		o(sessionMock.on.args[0]).equals("will-download")
 		const itemMock = n.spyify({on: () => {}})
 		await sessionMock.callbacks["will-download"](undefined, itemMock)
@@ -197,7 +198,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
 		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 
@@ -217,10 +218,10 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
-		dl.manageDownloadsForSession(sessionMock)
-		o(sessionMock.removeAllListeners.callCount).equals(1)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
+		o(sessionMock.removeAllListeners.callCount).equals(2)
 		o(sessionMock.removeAllListeners.args[0]).equals("will-download")
-		o(sessionMock.on.callCount).equals(1)
+		o(sessionMock.on.callCount).equals(2)
 		o(sessionMock.on.args[0]).equals("will-download")
 		const itemMock = n.spyify({on: () => {}})
 		sessionMock.callbacks["will-download"](undefined, itemMock)
@@ -233,7 +234,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
 
 		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
@@ -260,7 +261,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
 		const itemMock2 = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
 		await sessionMock.callbacks["will-download"]({}, itemMock)
 		await sessionMock.callbacks["will-download"]({}, itemMock2)
 		itemMock.callbacks["done"]({}, 'completed')
@@ -278,7 +279,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		const dl = makeMockedDownloadManager(mocks)
 		const sessionMock = n.mock("__session", session).set()
 		const itemMock = n.mock("__item", item).set()
-		dl.manageDownloadsForSession(sessionMock)
+		dl.manageDownloadsForSession(sessionMock, "dictUrl")
 		await sessionMock.callbacks["will-download"]({}, itemMock)
 		o(itemMock.savePath).equals("/a/download/path/a-file_.name")
 

@@ -153,7 +153,7 @@ async function buildAndStartDesktop(log, version) {
 	const packageJSON = (await import('./electron-package-json-template.js')).default({
 		nameSuffix: "-debug",
 		version,
-		updateUrl: "http://localhost:9000",
+		updateUrl: "http://localhost:9000/client/build",
 		iconPath: path.join(desktopIconsPath, "logo-solo-red.png"),
 		sign: false
 	})

@@ -13,7 +13,8 @@ export const DesktopConfigKey = Object.freeze({
 	lastProcessedNotificationId: 'lastProcessedNotificationId',
 	lastMissedNotificationCheckTime: 'lastMissedNotificationCheckTime',
 	desktopConfigVersion: "desktopConfigVersion",
-	mailExportMode: "mailExportMode"
+	mailExportMode: "mailExportMode",
+	spellcheck: "spellcheck"
 })
 export const DesktopConfigKeyValues: $ReadOnlySet<DesktopConfigKeyEnum> = new Set(typedValues(DesktopConfigKey))
 export type DesktopConfigKeyEnum = $Values<typeof DesktopConfigKey>
@@ -36,5 +37,6 @@ export const BuildConfigKey = Object.freeze({
 	iconName: "iconName",
 	fileManagerTimeout: "fileManagerTimeout",
 	pubKeys: "pubKeys",
+	updateUrl: "updateUrl"
 })
 export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>

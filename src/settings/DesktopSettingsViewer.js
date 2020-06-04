@@ -34,6 +34,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_defaultDownloadPath: Stream<string>;
 	_runAsTrayApp: Stream<?boolean>;
 	_runOnStartup: Stream<?boolean>;
+	_checkSpelling: Stream<?boolean>;
 	_isIntegrated: Stream<?boolean>;
 	_isAutoUpdateEnabled: Stream<?boolean>;
 	_showAutoUpdateOption: boolean;
@@ -48,6 +49,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isDefaultMailtoHandler = stream(false)
 		this._runAsTrayApp = stream(true)
 		this._runOnStartup = stream(false)
+		this._checkSpelling = stream(true)
 		this._isIntegrated = stream(false)
 		this._isAutoUpdateEnabled = stream(false)
 		this._showAutoUpdateOption = true
@@ -111,6 +113,20 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 						this._runOnStartup(v)
 						m.redraw()
 					})
+			}
+		}
+
+		const setSpellCheckingAttrs: DropDownSelectorAttrs<boolean> = {
+			label: "checkSpelling_action",
+			helpLabel: () => lang.get("requiresNewWindow_msg"),
+			items: [
+				{name: lang.get("yes_label"), value: true},
+				{name: lang.get("no_label"), value: false}
+			],
+			selectedValue: this._checkSpelling,
+			selectionChangedHandler: v => {
+				this._checkSpelling(v)
+				this.updateConfigBoolean('spellcheck', v)
 			}
 		}
 
@@ -192,6 +208,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get('desktopSettings_label')),
+				m(DropDownSelectorN, setSpellCheckingAttrs),
 				env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
 				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
