@@ -17,6 +17,7 @@ import {renderHtml} from "./buildSrc/LaunchHtml.js"
 import {spawn, spawnSync} from "child_process"
 import {sign} from "./buildSrc/installerSigner.js"
 import path, {dirname} from "path"
+import {fetchDictionaries} from './buildSrc/DictionaryFetcher.js'
 import os from "os"
 import {rollup} from "rollup"
 import {getChunkName, babelPlugins, bundleDependencyCheckPlugin, resolveLibs} from "./buildSrc/RollupConfig.js"
@@ -26,6 +27,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import visualizer from "rollup-plugin-visualizer"
+import glob from "glob"
 
 const {babel} = pluginBabel
 let start = Date.now()
@@ -48,6 +50,7 @@ options
 	.option('--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
 	.option('--disable-minify', "disable minification")
 	.option('--unpacked', "don't pack the app into an installer")
+	.option('--get-dicts', "download the current spellcheck dictionaries from github to the build dir.")
 	.option('--out-dir <outDir>', "where to copy the client",)
 	.action((stage, host) => {
 		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
@@ -66,15 +69,19 @@ options
 			mac: options.mac ? [] : undefined
 		}
 
-		options.desktop = Object.values(options.desktop).some(Boolean)
-			? options.desktop
-			: !!options.customDesktopRelease // no platform flags given, build desktop for current platform if customDesktopBuild flag is set.
-				? {
+		if (!Object.values(options.desktop).some(Boolean)) {
+			if (!!options.customDesktopRelease) {
+				// no platform flags given, but build desktop for
+				// current platform if customDesktopBuild flag is set.
+				options.desktop = {
 					win: process.platform === "win32" ? [] : undefined,
 					linux: process.platform === "linux" ? [] : undefined,
 					mac: process.platform === "darwin" ? [] : undefined
 				}
-				: undefined
+			} else {
+				options.desktop = undefined
+			}
+		}
 	})
 	.parse(process.argv)
 
@@ -97,11 +104,12 @@ async function doBuild() {
 	}
 	try {
 
-		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
+		const {version, devDependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		await buildWebapp(version)
 		await buildDesktopClient(version)
 		await signDesktopClients()
-		await packageDeb(version)
+		await getDictionaries(devDependencies.electron)
+		await packageDeb(version, devDependencies.electron)
 		await publish(version)
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
@@ -317,6 +325,15 @@ async function buildDesktopClient(version) {
 	}
 }
 
+async function getDictionaries(electronVersion) {
+	if(!options.getDicts) return
+	const baseTarget = path.join((options.outDir || 'build/dist'), '..')
+	const targets = options.deb
+		? [baseTarget]
+		: glob.sync(path.join(baseTarget, 'desktop*'))
+	return fetchDictionaries(electronVersion, targets.map(d => path.join(d, "dictionaries")))
+}
+
 async function bundleServiceWorker(bundles, version) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
@@ -408,11 +425,15 @@ function signDesktopClients() {
 	}
 }
 
+function packageDeb(version, electronVersion) {
+	const webAppDebName = `tutanota_${version}_amd64.deb`
+	const desktopDebName = `tutanota-desktop_${version}_amd64.deb`
+	const desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
+	// the dicts are bound to an electron release, so we use that version number.
+	const dictDebName = `tutanota-desktop-dicts-${electronVersion}_amd64.deb`
+	// overwrite output, source=dir target=deb, set owner
+	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
 
-function packageDeb(version) {
-	let webAppDebName = `tutanota_${version}_amd64.deb`
-	let desktopDebName = `tutanota-desktop_${version}_amd64.deb`
-	let desktopTestDebName = `tutanota-desktop-test_${version}_amd64.deb`
 	if (options.deb) {
 		const target = `/opt/tutanota`
 		exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
@@ -421,14 +442,14 @@ function packageDeb(version) {
 		}))
 
 		console.log("create " + webAppDebName)
-		exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
+		exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
 			cwd: __dirname + '/build',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
 		if (options.stage === "release" || options.stage === "prod") {
 			console.log("create " + desktopDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
+			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
 				cwd: __dirname + '/build',
 				stdio: [process.stdin, process.stdout, process.stderr]
 			}))
@@ -436,8 +457,16 @@ function packageDeb(version) {
 
 		if (options.stage === "release" || options.stage === "test") {
 			console.log("create " + desktopTestDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
+			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
 				cwd: __dirname + '/build',
+				stdio: [process.stdin, process.stdout, process.stderr]
+			}))
+		}
+
+		if (["release", "test", "prod"].includes(options.stage)) {
+			console.log("create " + dictDebName)
+			exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
+				cwd: __dirname + "/build",
 				stdio: [process.stdin, process.stdout, process.stderr]
 			}))
 		}

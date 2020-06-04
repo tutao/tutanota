@@ -7,6 +7,7 @@ import * as migration0000 from "./migration-0000"
 import * as migration0001 from "./migration-0001"
 import * as migration0002 from "./migration-0002"
 import * as migration0003 from "./migration-0003"
+import * as migration0004 from "./migration-0004"
 
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
@@ -38,6 +39,8 @@ export class DesktopConfigMigrator {
 				await applyMigration((config) =>
 					migration0003[migrationFunction](config, this.crypto, this._deviceKeyProvider), oldConfig)
 			case 3:
+				await applyMigration(migration0004[migrationFunction], oldConfig)
+			case 4:
 				log.debug("config up to date")
 				/* add new migrations as needed */
 				break

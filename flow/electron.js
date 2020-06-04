@@ -57,6 +57,8 @@ declare module 'electron' {
 
 	declare export type ContextMenuParams = {
 		linkURL: string,
+		misspelledWord: string,
+		dictionarySuggestions: Array<string>,
 		editFlags: {
 			canCut: boolean,
 			canPaste: boolean,
@@ -524,6 +526,10 @@ declare module 'electron' {
 		setPermissionRequestHandler: (PermissionRequestHandler | null) => void;
 		on: (event: ElectronSessionEvent, (ev: Event, item: DownloadItem, webContents: WebContents) => mixed) => void;
 		removeAllListeners: (event: ElectronSessionEvent) => ElectronSession;
+		setSpellCheckerDictionaryDownloadURL: (string) => void;
+		setSpellCheckerLanguages: (Array<string>) => void;
+		getSpellCheckerLanguages: () => Array<string>;
+		availableSpellCheckerLanguages: Array<string>;
 	}
 
 	declare export class DownloadItem extends EventEmitter {
@@ -544,7 +550,8 @@ declare module 'electron' {
 		| 'fullscreen'
 		| 'openExternal';
 	declare export type ElectronSessionEvent
-		= 'will-download';
+		= 'will-download'
+		| 'spellcheck-dictionary-download-failure';
 }
 
 

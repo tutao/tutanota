@@ -17,7 +17,7 @@ import {getExportDirectoryPath} from "./DesktopFileExport"
 import path from "path"
 import {fileExists} from "./PathUtils"
 import type {MailExportMode} from "../mail/export/Exporter"
-import {BuildConfigKey, DesktopConfigEncKey} from "./config/ConfigKeys"
+import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/ConfigKeys"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
 import {downcast} from "../api/common/utils/Utils"
@@ -34,7 +34,8 @@ export class WindowManager {
 	+_conf: DesktopConfig
 	+_tray: DesktopTray
 	+_notifier: DesktopNotifier
-	+_contextMenu: DesktopContextMenu
+	_contextMenu: DesktopContextMenu
+	+_electron: $Exports<"electron">
 	ipc: IPC
 	+dl: DesktopDownloadManager
 	+_newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
@@ -47,7 +48,7 @@ export class WindowManager {
 		this._tray = tray
 		this._notifier = notifier
 		this.dl = dl
-		this._contextMenu = new DesktopContextMenu(electron)
+		this._electron = electron
 		this._newWindowFactory = (noAutoLogin) => this._newWindow(electron, localShortcut, noAutoLogin)
 		this._dragIcons = {
 			"eml": this._tray.getIconByName("eml.png"),
@@ -66,6 +67,7 @@ export class WindowManager {
 	 */
 	setIPC(ipc: IPC) {
 		this.ipc = ipc
+		this._contextMenu = new DesktopContextMenu(this._electron, ipc)
 	}
 
 	async newWindow(showWhenReady: boolean, noAutoLogin?: boolean): Promise<ApplicationWindow> {
@@ -223,6 +225,12 @@ export class WindowManager {
 
 	async _newWindow(electron: $Exports<"electron">, localShortcut: LocalShortcutManager, noAutoLogin: ?boolean): Promise<ApplicationWindow> {
 		const desktopHtml = await this._conf.getConst(BuildConfigKey.desktophtml)
+		const spellcheck = await this._conf.getVar(DesktopConfigKey.spellcheck)
+		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
+		const dictUrl = updateUrl && updateUrl !== ""
+			? updateUrl
+			: "https://mail.tutanota.com/desktop/" // custom builds get the dicts from us as well
+
 		const icon = await this.getIcon()
 		return new ApplicationWindow(
 			this,
@@ -230,7 +238,9 @@ export class WindowManager {
 			icon,
 			electron,
 			localShortcut,
-			noAutoLogin
+			spellcheck,
+			dictUrl,
+			noAutoLogin,
 		)
 	}
 

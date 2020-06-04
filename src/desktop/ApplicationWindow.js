@@ -58,8 +58,10 @@ export class ApplicationWindow {
 	_electron: $Exports<"electron">;
 	_localShortcut: LocalShortcutManager;
 
-	constructor(wm: WindowManager, desktophtml: string, icon: NativeImage, electron: $Exports<"electron">, localShortcutManager: LocalShortcutManager,
-	            noAutoLogin?: ?boolean) {
+	constructor(wm: WindowManager, desktophtml: string, icon: NativeImage, electron: $Exports<"electron">,
+	            localShortcutManager: LocalShortcutManager, spellcheck: boolean, dictUrl: string,
+	            noAutoLogin?: ?boolean
+	) {
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._electron = electron
@@ -89,7 +91,12 @@ export class ApplicationWindow {
 
 		log.debug("startFile: ", this._startFileURLString)
 		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
-		this._createBrowserWindow(wm, preloadPath, icon)
+		this._createBrowserWindow(wm, {
+			preloadPath,
+			icon,
+			spellcheck,
+			dictUrl
+		})
 		this._browserWindow.loadURL(
 			noAutoLogin
 				? this._startFileURLString + "?noAutoLogin=true"
@@ -136,7 +143,8 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(wm: WindowManager, preloadPath: string, icon: NativeImage) {
+	_createBrowserWindow(wm: WindowManager, opts: {preloadPath: string, icon: NativeImage, spellcheck: ?boolean, dictUrl: string}) {
+		const {preloadPath, spellcheck, dictUrl, icon} = opts
 		this._browserWindow = new this._electron.BrowserWindow({
 			icon,
 			show: false,
@@ -151,7 +159,6 @@ export class ApplicationWindow {
 				enableRemoteModule: false,
 				allowRunningInsecureContent: false,
 				preload: preloadPath,
-				spellcheck: false,
 				webgl: false,
 				plugins: false,
 				experimentalFeatures: false,
@@ -160,6 +167,7 @@ export class ApplicationWindow {
 				navigateOnDragDrop: false,
 				autoplayPolicy: "user-gesture-required",
 				enableWebSQL: false,
+				spellcheck
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
@@ -169,7 +177,7 @@ export class ApplicationWindow {
 		this._ipc.addWindow(this.id)
 
 		this._browserWindow.webContents.session.setPermissionRequestHandler(this._permissionRequestHandler)
-		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session)
+		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
 
 
 		this._browserWindow
