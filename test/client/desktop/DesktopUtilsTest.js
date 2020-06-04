@@ -161,6 +161,61 @@ o.spec("nonClobberingFileName Test", function () {
 			'hello.ext',
 		], '')).equals('')
 	})
+
+	o('invalid/reserved filenames', function () {
+		o(DesktopUtils.nonClobberingFilename([], "\x00-\x1f\x80-\x9f.exe"))
+			.equals('_-__-_.exe')
+
+		n.setPlatform("win32")
+		o(DesktopUtils.nonClobberingFilename(["CON-1.exe"], "CON.exe"))
+			.equals('CON-2.exe')
+
+		o(DesktopUtils.nonClobberingFilename([], "."))
+			.equals("_")
+
+		o(DesktopUtils.nonClobberingFilename(["_"], ".."))
+			.equals("_-1")
+
+		o(DesktopUtils.nonClobberingFilename([], "<>|?/\\.mp3"))
+			.equals("______.mp3")
+
+		o(DesktopUtils.nonClobberingFilename([], "CON<>|?/\\CON.mp3"))
+			.equals("CON______CON.mp3")
+
+		o(DesktopUtils.nonClobberingFilename([], "PRN.<p2."))
+			.equals("PRN-1._p2_")
+
+		o(DesktopUtils.nonClobberingFilename([], "LPT0"))
+			.equals("LPT0-1")
+
+		o(DesktopUtils.nonClobberingFilename([], "COM9"))
+			.equals("COM9-1")
+
+		o(DesktopUtils.nonClobberingFilename([], "AUX.AUX"))
+			.equals("AUX-1.AUX")
+
+		o(DesktopUtils.nonClobberingFilename([], "NUL"))
+			.equals("NUL-1")
+
+		o(DesktopUtils.nonClobberingFilename([], "nul"))
+			.equals("nul-1")
+
+		o(DesktopUtils.nonClobberingFilename([], "NULNUL"))
+			.equals("NULNUL")
+
+		o(DesktopUtils.nonClobberingFilename([], ".NUL"))
+			.equals(".NUL")
+
+		o(DesktopUtils.nonClobberingFilename([], "<>|?/\\CON."))
+			.equals("______CON_")
+
+		n.setPlatform("linux")
+		o(DesktopUtils.nonClobberingFilename([], "nul"))
+			.equals("nul")
+
+		o(DesktopUtils.nonClobberingFilename([], ".."))
+			.equals("..-1")
+	})
 })
 
 o.spec("touch test", function () {
