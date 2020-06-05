@@ -482,10 +482,6 @@ export class MailViewer {
 						})
 						return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData)
 							.return(true)
-							.catch(LockedError, e => {
-								Dialog.error("operationStillActive_msg")
-								return false
-							})
 					})
 				} else {
 					return false
@@ -494,6 +490,8 @@ export class MailViewer {
 				if (success) {
 					return Dialog.error("unsubscribeSuccessful_msg")
 				}
+			}).catch(LockedError, e => {
+				return Dialog.error("operationStillActive_msg")
 			}).catch(e => {
 				return Dialog.error("unsubscribeFailed_msg")
 			})
