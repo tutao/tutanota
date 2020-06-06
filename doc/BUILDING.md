@@ -15,8 +15,8 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 4. run `npm install` to install dependencies.
 5. Build the web part: `node dist prod`
 6. Switch into the build directory: `cd build/dist`
-7. Run local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
-8. Open the `` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
+7. Run the local server. Either use `node server` or `python -m SimpleHTTPServer 9000`.
+8. Open `localhost:9000` with your favorite browser (tested: Firefox, Chrome/Chromium, Safari).
 
 ## Building and running your own Tutanota Android app
 
