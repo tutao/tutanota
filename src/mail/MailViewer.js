@@ -269,9 +269,9 @@ export class MailViewer {
 											this._isAnnouncement() || !styles.isUsingBottomNavigation() ? null : m(detailsExpander)),
 									]),
 								]),
-								styles.isUsingBottomNavigation() ? null : this.actionButtons(false),
+								styles.isUsingBottomNavigation() ? null : this.actionButtons(),
 							]),
-							styles.isUsingBottomNavigation() ? this.actionButtons(false) : null,
+							styles.isUsingBottomNavigation() ? this.actionButtons() : null,
 							this._suspicious
 								? m(Banner, {
 									type: BannerType.Warning,
@@ -498,7 +498,7 @@ export class MailViewer {
 		}
 	}
 
-	actionButtons(mobile: boolean): Children {
+	actionButtons(): Children {
 		const mail = this.mail
 		const actions = []
 		const colors = ButtonColors.Content
@@ -532,14 +532,12 @@ export class MailViewer {
 					}))
 				}
 				if (userController.isInternalUser() && !restrictedParticipants) {
-					if (!mobile) { // put forward in "more" menu only
-						actions.push(m(ButtonN, {
-							label: "forward_action",
-							click: () => this._forward(),
-							icon: () => Icons.Forward,
-							colors,
-						}))
-					}
+					actions.push(m(ButtonN, {
+						label: "forward_action",
+						click: () => this._forward(),
+						icon: () => Icons.Forward,
+						colors,
+					}))
 				} else if (userController.isInternalUser()
 					&& restrictedParticipants
 					&& userController.getUserMailGroupMembership().group !== this.mail._ownerGroup) {
