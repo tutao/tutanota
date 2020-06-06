@@ -19,13 +19,12 @@ import {
 } from "./CalendarUtils"
 import {CalendarDayEventsView, calendarDayTimes} from "./CalendarDayEventsView"
 import {neverNull} from "../api/common/utils/Utils"
-import {getFromMap} from "../api/common/utils/MapUtils"
 import {isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
@@ -33,6 +32,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {PageView} from "../gui/base/PageView"
 import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import {logins} from "../api/main/LoginController"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -93,6 +93,8 @@ export class CalendarWeekView implements MComponent<Attrs> {
 
 		const marginForWeekEvents = mainWeek.eventsForWeek.size === 0 ? 0 : 6
 
+		const {startOfTheWeek} = logins.getUserController().userSettingsGroupRoot
+
 		return m(".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr", {
 			oncreate: () => {
 				this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)
@@ -115,7 +117,12 @@ export class CalendarWeekView implements MComponent<Attrs> {
 						onclick: () => attrs.onChangeWeek(true),
 					}, m(Icon, {icon: Icons.ArrowDropRight, class: "icon-large switch-month-button"})),
 					m("h1", title),
-					m(".ml-m.content-message-bg.small", {style: {padding: "2px 4px"}}, lang.get("weekNumber_label", {"{week}": String(getWeekNumber(firstDate))}))
+					// According to ISO 8601, weeks always start on Monday. Week numbering systems for
+					// weeks that do not start on Monday are not strictly defined, so we only display
+					// a week number if the user's client is configured to start weeks on Monday
+					startOfTheWeek === WeekStart.MONDAY
+						? m(".ml-m.content-message-bg.small", {style: {padding: "2px 4px"}}, lang.get("weekNumber_label", {"{week}": String(getWeekNumber(firstDate))}))
+						: null
 				]),
 				m(".flex", {
 					style: {
