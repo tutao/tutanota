@@ -4,7 +4,7 @@
 import m from "mithril"
 import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {
@@ -175,7 +175,12 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			},
 			[
 				m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
-				weekDayNumber === 0 ? m(".calendar-month-week-number.abs", getWeekNumber(d.date)) : null,
+				// According to ISO 8601, weeks always start on Monday. Week numbering systems for
+				// weeks that do not start on Monday are not strictly defined, so we only display
+				// a week number if the user's client is configured to start weeks on Monday
+				(weekDayNumber === 0) && (attrs.startOfTheWeek === WeekStart.MONDAY)
+					? m(".calendar-month-week-number.abs", getWeekNumber(d.date))
+					: null
 			]
 		)
 	}
