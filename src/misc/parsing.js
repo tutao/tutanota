@@ -28,7 +28,9 @@ export function makeCharacterParser(character: string): Parser<string> {
 			iterator.next()
 			return value
 		}
-		throw new ParserError("expected character " + character)
+		const sliceStart = Math.max(iterator.position - 10, 0)
+		const sliceEnd = Math.min(iterator.position + 10, iterator.iteratee.length - 1)
+		throw new ParserError(`expected character ${character} got ${value} near ${iterator.iteratee.slice(sliceStart, sliceEnd)}`)
 	}
 }
 
@@ -112,7 +114,9 @@ function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
 	}
 }
 
-export const numberParser: Parser<number> = mapParser(makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
+export const numberParser: Parser<number> = mapParser(makeOneOrMoreParser(makeOneOfCharactersParser([
+		"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+	])),
 	(values) => parseInt(values.join(""), 10))
 
 export class StringIterator {
