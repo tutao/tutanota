@@ -4,7 +4,7 @@ import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
 	AccessBlockedError,
-	AccessDeactivatedError,
+	AccessDeactivatedError, BadRequestError,
 	ConnectionError, LockedError,
 	NotAuthenticatedError,
 	NotFoundError,
@@ -141,6 +141,12 @@ export class LoginViewController implements ILoginViewController {
 		            })
 		            .catch(AccessBlockedError, e => {
 			            this.view.helpText = lang.get('loginFailedOften_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(BadRequestError, e => {
+			            this.view.helpText = lang.get('loginFailed_msg')
+			            this.view.invalidCredentials = true
 			            m.redraw()
 			            return errorAction()
 		            })
