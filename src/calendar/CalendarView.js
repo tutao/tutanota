@@ -12,7 +12,9 @@ import {keyManager} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {DAY_IN_MILLIS, getHourOfDay, getStartOfDay, isSameDay} from "../api/common/utils/DateUtils"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../api/entities/tutanota/CalendarEvent"
+import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {logins} from "../api/main/LoginController"
 import {_loadReverseRangeBetween, getListId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
@@ -50,8 +52,10 @@ import {DateTime} from "luxon"
 import {NotFoundError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CalendarAgendaView} from "./CalendarAgendaView"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
+import type {GroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -63,8 +67,11 @@ import {exportCalendar, showCalendarImportDialog} from "./CalendarImporter"
 import {Dialog} from "../gui/base/Dialog"
 import {isApp} from "../api/Env"
 import {showCalendarSharingDialog} from "./CalendarSharingDialog"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/ReceivedGroupInvitation"
+import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {getDisplayText} from "../mail/MailUtils"
 import {UserGroupRootTypeRef} from "../api/entities/sys/UserGroupRoot"
@@ -77,13 +84,6 @@ import {SysService} from "../api/entities/sys/Services"
 import {createMembershipRemoveData} from "../api/entities/sys/MembershipRemoveData"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
-import type {GroupSettings} from "../api/entities/tutanota/GroupSettings"
-import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
-import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {Group} from "../api/entities/sys/Group"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6
@@ -335,22 +335,33 @@ export class CalendarView implements CurrentView {
 	}
 
 	_viewPeriod(next: boolean) {
-		let newDate = new Date(this.selectedDate().getTime())
-
 		switch (this._currentViewType) {
-			case CalendarViewType.MONTH:
-				newDate.setMonth(newDate.getMonth() + (next ? +1 : -1))
+			case CalendarViewType.MONTH: {
+				const dateTime = DateTime.fromJSDate(this.selectedDate())
+				let newDate
+				if (next) {
+					newDate = dateTime.plus({month: 1}).toJSDate()
+				} else {
+					newDate = dateTime.minus({month: 1}).toJSDate()
+				}
 				this.selectedDate(newDate)
 				m.redraw()
 				this._setUrl(CalendarViewType.MONTH, newDate)
 				break;
-
-			case CalendarViewType.WEEK:
-				newDate.setDate(newDate.getDate() + (next ? 7 : -7))
+			}
+			case CalendarViewType.WEEK: {
+				const dateTime = DateTime.fromJSDate(this.selectedDate())
+				let newDate
+				if (next) {
+					newDate = dateTime.plus({week: 1}).toJSDate()
+				} else {
+					newDate = dateTime.minus({week: 1}).toJSDate()
+				}
 				this.selectedDate(newDate)
 				m.redraw()
 				this._setUrl(CalendarViewType.WEEK, newDate)
 				break;
+			}
 		}
 	}
 
