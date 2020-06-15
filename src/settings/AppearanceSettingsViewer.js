@@ -16,6 +16,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import {changeSystemLanguage} from "../native/SystemApp"
+import {getHourCycle} from "../misc/Formatter"
 
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
@@ -69,8 +70,8 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		const weekStartDropDownAttrs: DropDownSelectorAttrs<WeekStartEnum> = {
 			label: "weekStart_label",
 			items: [
-				{name: mondayName, value: WeekStart.MONDAY}, 
-				{name: saturdayName, value: WeekStart.SATURDAY}, 
+				{name: mondayName, value: WeekStart.MONDAY},
+				{name: saturdayName, value: WeekStart.SATURDAY},
 				{name: sundayName, value: WeekStart.SUNDAY}
 			],
 			selectedValue: stream(downcast(userSettingsGroupRoot.startOfTheWeek)),
@@ -95,7 +96,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				load(UserSettingsGroupRootTypeRef, update.instanceId)
 					.then((settings) => {
-						lang.updateFormats({hour12: settings.timeFormat === TimeFormat.TWELVE_HOURS})
+						lang.updateFormats({hourCycle: getHourCycle(settings)})
 						m.redraw()
 					})
 			}

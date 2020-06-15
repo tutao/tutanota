@@ -4,15 +4,17 @@ import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
 	AccessBlockedError,
-	AccessDeactivatedError, BadRequestError,
-	ConnectionError, LockedError,
+	AccessDeactivatedError,
+	BadRequestError,
+	ConnectionError,
+	LockedError,
 	NotAuthenticatedError,
 	NotFoundError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
 import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/Env"
-import {CloseEventBusOption, Const, TimeFormat} from "../api/common/TutanotaConstants"
+import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -40,6 +42,7 @@ import {HttpMethod} from "../api/common/EntityFunctions"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {calendarModel} from "../calendar/CalendarModel"
+import {getHourCycle} from "../misc/Formatter"
 
 assertMainOrNode()
 
@@ -232,10 +235,13 @@ export class LoginViewController implements ILoginViewController {
 				let receiveInfoData = createReceiveInfoServiceData()
 				return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
 			}
-		}).then(() => calendarModel.scheduleAlarmsLocally())
-		                         .then(() => lang.updateFormats({
-			                         hour12: logins.getUserController().userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
-		                         }))
+		}).then(() => {
+			return calendarModel.scheduleAlarmsLocally()
+		}).then(() => {
+			lang.updateFormats({
+				hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
+			})
+		})
 	}
 
 	_showUpgradeReminder(): Promise<void> {

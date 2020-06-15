@@ -11,6 +11,10 @@ assertMainOrNodeBoot()
 
 export type Language = {code: string, textId: TranslationKey}
 
+export type DateTimeFormatOptions = {
+	hourCycle?: string
+}
+
 export const languages: Language[] = [
 	{code: 'ar', textId: 'languageArabic_label'},
 	{code: 'bg', textId: 'languageBulgarian_label'},
@@ -169,7 +173,7 @@ class LanguageViewModel {
 		this.updateFormats({})
 	}
 
-	updateFormats(options: Intl$DateTimeFormatOptions) {
+	updateFormats(options: DateTimeFormatOptions) {
 		const tag = this.languageTag
 		if (client.dateFormat()) {
 			this.formats = {

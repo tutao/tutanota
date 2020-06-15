@@ -6,6 +6,8 @@ import {neverNull} from "../api/common/utils/Utils"
 import type {Birthday} from "../api/entities/tutanota/Birthday"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {isMailAddress} from "./FormatValidator"
+import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
+import {TimeFormat} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -358,4 +360,8 @@ export function formatNameAndAddress(name: string, address: string, countryCode:
 		result += neverNull(getByAbbreviation(countryCode)).n
 	}
 	return result
+}
+
+export function getHourCycle(userSettings: UserSettingsGroupRoot): string {
+	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
