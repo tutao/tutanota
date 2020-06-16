@@ -4,7 +4,7 @@ import java.net.HttpURLConnection;
 
 public class NetworkUtils {
 
-	private static final int SYS_MODEL_VERSION = 55;
+	private static final int SYS_MODEL_VERSION = 60;
 
 	public static void addCommonHeaders(HttpURLConnection urlConnection) {
 		urlConnection.setRequestProperty("v", Integer.toString(SYS_MODEL_VERSION));
