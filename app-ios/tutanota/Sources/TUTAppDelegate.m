@@ -18,7 +18,6 @@
 @interface TUTAppDelegate ()
 @property TUTViewController *viewController;
 @property void (^ _Nonnull pushTokenCallback)(NSString *token, NSError *error);
-@property NSURLSession *urlSession;
 @end
 
 @implementation TUTAppDelegate

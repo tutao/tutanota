@@ -12,6 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface TUTUtils : NSObject
 + (NSString *)translate:(NSString *)key default:(NSString*)defaultValue;
++ (void)addSystemModelHeadersTo:(NSMutableDictionary<NSString *, NSString *> *)target;
 @end
 
 NS_ASSUME_NONNULL_END
