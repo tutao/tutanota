@@ -81,6 +81,7 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         }
         
         NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
+        [TUTUtils addSystemModelHeadersTo:additionalHeaders];
         if (sseInfo.userIds.count == 0) {
             TUTLog(@"No users to download missed notification with");
             [strongSelf unscheduleAllAlarmsForUserId:nil];
@@ -98,9 +99,9 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         
         let urlSession = [NSURLSession sessionWithConfiguration:configuration];
         let urlString = [strongSelf missedNotificationUrl:sseInfo.sseOrigin pushIdentifier:sseInfo.pushIdentifier];
-      
+
         TUTLog(@"Downloading missed notification with userId %@", userId);
-      
+
         [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
             let httpResponse = (NSHTTPURLResponse *) response;
             TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
