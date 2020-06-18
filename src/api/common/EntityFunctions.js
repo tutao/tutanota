@@ -227,13 +227,36 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
+export function firstCustomIdIsBigger(left: string, right: string) {
+	return firstBiggerThanSecond(customIdToString(left), customIdToString(right))
+}
+
+/**
+ * Return appropriate id sorting function for typeModel.
+ *
+ * For generated IDs we use base64ext which is sortable. For custom IDs we use base64url which is not sortable.
+ *
+ * Important: works only with custom IDs which are derived from strings.
+ *
+ * @param typeModel
+ * @return {(function(string, string): boolean)}
+ */
+export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((string, string) => boolean) {
+	if (typeModel.values["_id"].type === "CustomId") {
+		return firstCustomIdIsBigger
+	} else {
+		return firstBiggerThanSecond
+	}
+}
+
 export function _loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, target: EntityRestInterface,
                                                          rangeItemLimit: number, extraHeaders?: Params): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		return _loadEntityRange(typeRef, listId, start, rangeItemLimit, true, target, extraHeaders)
 			.then(loadedEntities => {
-				const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getLetId(entity)[1], end))
+				const comparator = getFirstIdIsBiggerFnForType(typeModel)
+				const filteredEntities = loadedEntities.filter(entity => comparator(getElementId(entity), end))
 				if (filteredEntities.length === rangeItemLimit) {
 					const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
 					return _loadReverseRangeBetween(typeRef, listId, lastElementId, end, target, rangeItemLimit, extraHeaders)

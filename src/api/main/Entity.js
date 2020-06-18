@@ -6,7 +6,8 @@ import {
 	_eraseEntity,
 	_loadEntity,
 	_loadEntityRange,
-	_loadMultipleEntities, _loadReverseRangeBetween,
+	_loadMultipleEntities,
+	_loadReverseRangeBetween,
 	_setupEntity,
 	_updateEntity,
 	_verifyType,
@@ -14,6 +15,7 @@ import {
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getEtId,
+	getFirstIdIsBiggerFnForType,
 	getLetId,
 	HttpMethod,
 	RANGE_ITEM_LIMIT,
@@ -21,13 +23,13 @@ import {
 	TypeRef
 } from "../common/EntityFunctions"
 import {createVersionData} from "../entities/sys/VersionData"
+import type {RootInstance} from "../entities/sys/RootInstance"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
+import type {VersionReturn} from "../entities/sys/VersionReturn"
 import {VersionReturnTypeRef} from "../entities/sys/VersionReturn"
 import {assertMainOrNode} from "../Env"
 import EC from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
-import type {VersionReturn} from "../entities/sys/VersionReturn"
-import type {RootInstance} from "../entities/sys/RootInstance"
 
 const Type = EC.Type
 const ValueType = EC.ValueType
@@ -75,23 +77,27 @@ export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: 
 }
 
 function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
-	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
-		if (elements.length === 0) return Promise.resolve(elements)
-		let lastElementId = getLetId(elements[elements.length - 1])[1]
-		if (elements.length === RANGE_ITEM_LIMIT && (end == null || firstBiggerThanSecond(end, lastElementId[1]))) {
-			return _loadAll(typeRef, listId, lastElementId, end).then(nextElements => {
-				return elements.concat(nextElements)
-			})
-		} else {
-			return Promise.resolve(elements.filter(e => {
-				if (end == null) {
-					return true // no end element specified return full list
+	return resolveTypeReference(typeRef)
+		.then(getFirstIdIsBiggerFnForType)
+		.then((isFirstIdBigger) => {
+			return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
+				if (elements.length === 0) return Promise.resolve(elements)
+				let lastElementId = getLetId(elements[elements.length - 1])[1]
+				if (elements.length === RANGE_ITEM_LIMIT && (end == null || isFirstIdBigger(end, lastElementId[1]))) {
+					return _loadAll(typeRef, listId, lastElementId, end).then(nextElements => {
+						return elements.concat(nextElements)
+					})
 				} else {
-					return firstBiggerThanSecond(end, getLetId(e)[1]) || end === getLetId(e)[1]
+					return Promise.resolve(elements.filter(e => {
+						if (end == null) {
+							return true // no end element specified return full list
+						} else {
+							return isFirstIdBigger(end, getLetId(e)[1]) || end === getLetId(e)[1]
+						}
+					}))
 				}
-			}))
-		}
-	})
+			})
+		})
 }
 
 export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
