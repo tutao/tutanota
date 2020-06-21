@@ -93,35 +93,7 @@ class KeyManager {
 	constructor() {
 		let helpShortcut = {
 			key: Keys.F1,
-			exec: () => {
-				asyncImport(typeof module
-				!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
-					.then(module => {
-						if (this._helpDialog && this._helpDialog.visible) {
-							return
-						}
-						let shortcuts = ((this._modalShortcuts.length
-							> 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
-						let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
-						                          .map(shortcut => {
-							                          return new TextField(() => this._getShortcutName(shortcut))
-								                          .setValue(lang.get(shortcut.help))
-								                          .setDisabled()
-						                          })
-						this._helpDialog = module.Dialog.largeDialog({
-							right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
-							middle: () => lang.get("keyboardShortcuts_title")
-						}, {
-							view: () => {
-								return m("div.pb", textFields.map(t => m(t)))
-							}
-						}).addShortcut({
-							key: Keys.ESC,
-							exec: () => neverNull(this._helpDialog).close(),
-							help: "close_alt"
-						}).show()
-					})
-			},
+			exec: () => this.openF1Help(),
 			help: "showHelp_action"
 		}
 		let helpId = this._createKeyIdentifier(helpShortcut.key.code)
@@ -138,8 +110,9 @@ class KeyManager {
 		}
 
 		window.document.addEventListener("keydown", e => {
-			let keyCode = e.which;
-			let shortcut = this._getShortcut(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey);
+			let keyCode = e.which
+			let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut
+			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)]
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec({
 					keyCode,
@@ -155,11 +128,6 @@ class KeyManager {
 
 	}
 
-	_getShortcut(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): Shortcut {
-		let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut;
-		return keysToShortcuts[this._createKeyIdentifier(keycode, ctrl, alt, shift, meta)];
-	}
-
 	_getShortcutName(shortcut: Shortcut): string {
 		return ((shortcut.meta) ? Keys.META.name + " + " : "")
 			+ ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "")
@@ -172,17 +140,34 @@ class KeyManager {
 		return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 	}
 
-	raiseEvent(keyCode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): ?boolean {
-		let shortcut = this._getShortcut(keyCode, ctrl, alt, shift, meta);
-		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
-			return shortcut.exec({
-				keyCode,
-				ctrl: ctrl || false,
-				alt: alt || false,
-				shift: shift || false,
-				meta: meta || false
-			});
-		}
+	openF1Help() {
+		asyncImport(typeof module
+			!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/Dialog.js`)
+				.then(module => {
+					if (this._helpDialog && this._helpDialog.visible) {
+						return
+					}
+					let shortcuts = ((this._modalShortcuts.length
+						> 1) ? this._modalShortcuts : this._shortcuts).concat(this._desktopShortcuts) // we do not want to show a dialog with the shortcuts of the help dialog
+					let textFields = shortcuts.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
+											  .map(shortcut => {
+												  return new TextField(() => this._getShortcutName(shortcut))
+													  .setValue(lang.get(shortcut.help))
+													  .setDisabled()
+											  })
+					this._helpDialog = module.Dialog.largeDialog({
+						right: [{label: 'close_alt', click: () => neverNull(this._helpDialog).close(), type: ButtonType.Secondary}],
+						middle: () => lang.get("keyboardShortcuts_title")
+					}, {
+						view: () => {
+							return m("div.pb", textFields.map(t => m(t)))
+						}
+					}).addShortcut({
+						key: Keys.ESC,
+						exec: () => neverNull(this._helpDialog).close(),
+						help: "close_alt"
+					}).show()
+				})
 	}
 
 	registerShortcuts(shortcuts: Shortcut[]) {

@@ -65,7 +65,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					},
 					{
 						label: "keyboardShortcuts_title",
-						click: () => keyManager.raiseEvent(Keys.F1.code),
+						click: () => keyManager.openF1Help(),
 						type: ButtonType.Dropdown,
 						colors: ButtonColors.DrawerNav,
 					}
@@ -75,7 +75,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 					if (logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()) {
 						return true;
 					} else {
-						keyManager.raiseEvent(Keys.F1.code);
+						keyManager.openF1Help();
 						return false;
 					}
 				}
