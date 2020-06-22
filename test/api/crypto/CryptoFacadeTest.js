@@ -700,14 +700,6 @@ o.spec("crypto facade", function () {
 				o(locator.cache.entityRequest.callCount).equals(0)
 			})
 		})
-		o("contact migration without existing birthday", function () {
-			const contact = createContact()
-			contact.birthdayIso = "2019-05-01"
-			return applyMigrationsForInstance(contact).then(migratedContact => {
-				o(migratedContact.birthdayIso).equals("2019-05-01")
-				o(locator.cache.entityRequest.callCount).equals(0)
-			})
-		})
 
 		o("contact migration without existing birthday", function () {
 			const contact = createContact()
