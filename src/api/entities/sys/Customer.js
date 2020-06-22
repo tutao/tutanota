@@ -64,6 +64,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"businessUse": {
+			"name": "businessUse",
+			"id": 1754,
+			"since": 61,
+			"type": "Boolean",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"canceledPremiumAccount": {
 			"name": "canceledPremiumAccount",
 			"id": 902,
@@ -267,7 +276,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "60"
+	"version": "61"
 }
 
 export function createCustomer(values?: $Shape<$Exact<Customer>>): Customer {
@@ -282,6 +291,7 @@ export type Customer = {
 	_ownerGroup: ?Id;
 	_permissions: Id;
 	approvalStatus: NumberString;
+	businessUse: ?boolean;
 	canceledPremiumAccount: boolean;
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;

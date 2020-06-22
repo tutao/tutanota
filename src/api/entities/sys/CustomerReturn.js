@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "60"
+	"version": "61"
 }
 
 export function createCustomerReturn(values?: $Shape<$Exact<CustomerReturn>>): CustomerReturn {

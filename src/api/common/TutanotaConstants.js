@@ -174,13 +174,18 @@ export const MailState = Object.freeze({
 })
 export type MailStateEnum = $Values<typeof MailState>;
 
-export const ApprovalState = Object.freeze({
+export const ApprovalStatus = Object.freeze({
 	REGISTRATION_APPROVED: "0",
 	REGISTRATION_APPROVAL_NEEDED: "1",
 	SEND_MAILS_APPROVED: "2",
 	INVOICE_NOT_PAID: "3",
+	SPAM_SENDER: "4",
+	DELAYED: "5",
+	DELAYED_AND_INITIALLY_ACCESSED: "6",
+	REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED: "7",
+	PAID_SUBSCRIPTION_NEEDED: "8"
 })
-export type ApprovalStateEnum = $Values<typeof ApprovalState>;
+export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 
 
 export const InboxRuleType = Object.freeze({

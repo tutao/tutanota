@@ -30,6 +30,7 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {deviceConfig} from "../misc/DeviceConfig"
+import {SubscriptionType} from "./SubscriptionUtils"
 
 export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 	view: Function;
@@ -198,6 +199,8 @@ export class SignupPage implements WizardPage<UpgradeSubscriptionData> {
 		data.token = campaignToken
 		data.mailAddress = mailAddress
 		data.signupToken = deviceConfig.getSignupToken()
+		data.businessUseSelected = this._upgradeData.options.businessUse()
+		data.paidSubscriptionSelected = this._upgradeData.type !== SubscriptionType.Free
 		return serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, data, RegistrationCaptchaServiceReturnTypeRef)
 			.then(captchaReturn => {
 				let regDataId = captchaReturn.token

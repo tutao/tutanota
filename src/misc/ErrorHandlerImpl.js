@@ -16,7 +16,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, getHttpOrigin, isIOSApp, Mode} from "../api/Env"
-import {AccountType, ConversationType} from "../api/common/TutanotaConstants"
+import {AccountType, ApprovalStatus, ConversationType} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
@@ -329,15 +329,19 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 	}
 	return logins.getUserController().loadCustomer().then(customer => {
 		let status = (customer.approvalStatus === "0" && defaultStatus) ? defaultStatus : customer.approvalStatus
-		if (["1", "5", "7"].indexOf(status) !== -1) {
+		if ([
+			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED,
+			ApprovalStatus.DELAYED,
+			ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
+		].indexOf(status) !== -1) {
 			return Dialog.error("waitingForApproval_msg").return(false)
-		} else if (status === "6") {
+		} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
 			if ((new Date().getTime() - generatedIdToTimestamp(customer._id)) > (2 * 24 * 60 * 60 * 1000)) {
 				return Dialog.error("requestApproval_msg").return(true)
 			} else {
 				return Dialog.error("waitingForApproval_msg").return(false)
 			}
-		} else if (status === "3") {
+		} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 			if (logins.getUserController().isGlobalAdmin()) {
 				if (includeInvoiceNotPaidForAdmin) {
 					return Dialog.error(() => {
@@ -353,9 +357,20 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			} else {
 				return Dialog.error("invoiceNotPaidUser_msg").return(false)
 			}
-		} else if (status === "4") {
+		} else if (status === ApprovalStatus.SPAM_SENDER) {
 			Dialog.error("loginAbuseDetected_msg") // do not logout to avoid that we try to reload with mail editor open
 			return false
+		} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
+			let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
+			return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
+			             .then(confirmed => {
+				             if (confirmed) {
+					             showUpgradeWizard()
+					             return false
+				             } else {
+					             return true
+				             }
+			             })
 		} else {
 			return true
 		}

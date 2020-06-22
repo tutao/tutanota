@@ -22,11 +22,29 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"businessUseSelected": {
+			"name": "businessUseSelected",
+			"id": 1752,
+			"since": 61,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"mailAddress": {
 			"name": "mailAddress",
 			"id": 1482,
 			"since": 40,
 			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"paidSubscriptionSelected": {
+			"name": "paidSubscriptionSelected",
+			"id": 1751,
+			"since": 61,
+			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -52,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "60"
+	"version": "61"
 }
 
 export function createRegistrationCaptchaServiceGetData(values?: $Shape<$Exact<RegistrationCaptchaServiceGetData>>): RegistrationCaptchaServiceGetData {
@@ -63,7 +81,9 @@ export type RegistrationCaptchaServiceGetData = {
 	_type: TypeRef<RegistrationCaptchaServiceGetData>;
 
 	_format: NumberString;
+	businessUseSelected: boolean;
 	mailAddress: string;
+	paidSubscriptionSelected: boolean;
 	signupToken: ?string;
 	token: ?string;
 }
