@@ -268,7 +268,8 @@ export class ViewSlider implements IViewSlider {
 			this.focusedColumn = viewColumn
 			if (viewColumn.columnType === ColumnType.Background && this._visibleBackgroundColumns.length === 1
 				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
-				this._busy = this._slideBackgroundColumns(viewColumn, this.getOffset(this._visibleBackgroundColumns[0]), this.getOffset(viewColumn))
+				const currentOffset = this._domSlidingPart.getBoundingClientRect().left
+				this._busy = this._slideBackgroundColumns(viewColumn, currentOffset, this.getOffset(viewColumn))
 			} else if (viewColumn.columnType === ColumnType.Foreground
 				&& this._visibleBackgroundColumns.indexOf(viewColumn) < 0) {
 				this._busy = this._slideForegroundColumn(viewColumn, true)
@@ -401,18 +402,31 @@ export class ViewSlider implements IViewSlider {
 					this._isModalBackgroundVisible = false
 				}
 
-				// Gesture was with enough velocity to show the menu
-				if (velocity > 0.8) {
-					show()
-					// Gesture was with enough velocity to hide the menu and we're not scrolling vertically
-				} else if (velocity < -0.8 && directionLock !== VERTICAL) {
-					hide()
-				} else {
-					// Finger was released without much velocity so if it's further than some distance from edge, open menu. Otherwise, close it.
-					if (touch.pageX > mainColRect.left + 100) {
+				// Gesture for the side column
+				if (this.focusedColumn === this._mainColumn || this.focusedColumn.isInForeground) {
+					// Gesture was with enough velocity to show the menu
+					if (velocity > 0.8) {
 						show()
-					} else if (directionLock !== VERTICAL) {
+						// Gesture was with enough velocity to hide the menu and we're not scrolling vertically
+					} else if (velocity < -0.8 && directionLock !== VERTICAL) {
 						hide()
+					} else {
+						// Finger was released without much velocity so if it's further than some distance from edge, open menu. Otherwise, close it.
+						if (touch.pageX > mainColRect.left + 100) {
+							show()
+						} else if (directionLock !== VERTICAL) {
+							hide()
+						}
+					}
+				} else {
+					// Gesture for sliding other columns
+					if ((lastGestureInfo.x > window.innerWidth / 3 || velocity > 0.8) && directionLock !== VERTICAL) {
+						this.focusPreviousColumn()
+					} else {
+						const colRect = this._domSlidingPart.getBoundingClientRect()
+						// Re-focus the column to reset offset changed by the gesture
+						this._busy = this._slideBackgroundColumns(this.focusedColumn, colRect.left, -this.focusedColumn.offset)
+						this.focus(this.focusedColumn)
 					}
 				}
 
@@ -440,9 +454,8 @@ export class ViewSlider implements IViewSlider {
 					lastGestureInfo = null
 					return
 				}
-				const colRect = mainCol.getBoundingClientRect()
 				if (event.touches.length === 1
-					&& (this.columns[0].isInForeground || event.touches[0].pageX < colRect.left + 40)) {
+					&& (this.columns[0].isInForeground || event.touches[0].pageX < 40)) {
 					// Only stop propogation while the menu is not yet fully visible
 					if (!this.columns[0].isInForeground) {
 						event.stopPropagation()
@@ -467,9 +480,18 @@ export class ViewSlider implements IViewSlider {
 					if (directionLock === HORIZONTAL || directionLock !== VERTICAL && Math.abs(lastGestureInfo.x - initialGestureInfo.x)
 						> 30) {
 						directionLock = HORIZONTAL
-						const newTranslate = Math.min(sideColRect.left - (gestureInfo.x - newTouchPos), 0)
-						sideCol.style.transform = `translateX(${newTranslate}px)`
-						event.preventDefault()
+						// Gesture for side column
+						if (this.focusedColumn === this._mainColumn || this.focusedColumn.isInForeground) {
+							const newTranslate = Math.min(sideColRect.left - (gestureInfo.x - newTouchPos), 0)
+							sideCol.style.transform = `translateX(${newTranslate}px)`
+						} else { // Gesture for background column
+							const slidingDomRect = this._domSlidingPart.getBoundingClientRect()
+							// Do not allow to move column to the left
+							const newTranslate = Math.max(slidingDomRect.left - (gestureInfo.x - newTouchPos), -this.focusedColumn.offset)
+							this._domSlidingPart.style.transform = `translateX(${newTranslate}px)`
+						}
+						// Scroll events are not cancellable and browsees complain a lot
+						if (event.cancelable !== false) event.preventDefault()
 						// If we don't have a vertical lock but we would like to acquire one, get it
 					} else if (directionLock !== VERTICAL && Math.abs(lastGestureInfo.y - initialGestureInfo.y) > 30) {
 						directionLock = VERTICAL
