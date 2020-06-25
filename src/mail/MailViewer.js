@@ -1459,16 +1459,9 @@ export class MailViewer {
 	}
 
 	_downloadAll() {
-		this._inlineFileIds.then((inilneFileIds) => {
-			const nonInlineFiles = this._attachments.filter(a => !inilneFileIds.includes(a.cid))
-			if (client.needsDownloadBatches() && nonInlineFiles.length > 10) {
-				fileController.downloadBatched(nonInlineFiles, 10, 1000)
-			} else if (!client.canDownloadMultipleFiles()) {
-				fileController.downloadBatched(nonInlineFiles, 1, 10)
-			} else {
-				fileController.downloadAll(nonInlineFiles)
-			}
-		})
+		this._inlineFileIds
+		    .then(inlineFileIds => this._attachments.filter(a => !inlineFileIds.includes(a.cid)))
+		    .then(nonInlineFiles => showProgressDialog("pleaseWait_msg", fileController.downloadAll(nonInlineFiles)))
 	}
 
 	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
