@@ -4,14 +4,13 @@ import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/Env"
 import {fileApp, putFileIntoDownloadsFolder} from "../native/FileApp"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {asyncImport, downcast, neverNull} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
-import {splitInChunks} from "../api/common/utils/ArrayUtils"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 
 assertMainOrNode()
@@ -229,6 +228,28 @@ export class FileController {
 			fileApp.deleteFile(filePath)
 			       .catch((e) => console.log("failed to delete file", filePath, e))
 		}
+	}
+
+	/**
+	 * takes a list of DataFiles and creates one DataFile from them that represents a zip
+	 * containing the the other files
+	 *
+	 * currently waits on all DataFiles being available before starting to add them to the zip.
+	 * It may be even faster to create the zip asap and adding the datafiles as they resolve.
+	 *
+	 * duplicate file names lead to the second file added overwriting the first one.
+	 *
+	 * @param dataFilesPromises Promise resolving to an array of DataFiles
+	 * @param name the name of the new zip file
+	 */
+	zipDataFiles(dataFilesPromises: Promise<DataFile[]>, name: string): Promise<DataFile> {
+		const file = new File([], name, {type: "application/zip"})
+		const zipPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}libs/jszip.js`)
+		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, JSZip) => {
+			const zip = JSZip()
+			dataFiles.forEach(df => zip.file(df.name, df.data, {binary: true}))
+			return zip.generateAsync({type: 'uint8array'})
+		}).then(zf => createDataFile(file, zf))
 	}
 }
 
