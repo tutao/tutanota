@@ -22,6 +22,7 @@ const dependencyMap = {
 	"dompurify": "./libs/purify.js",
 	"autolinker": "./libs/Autolinker.js",
 	"qrcode": "./libs/qrcode.js",
+	"jszip": "./libs/jszip.js",
 	"luxon": "./libs/luxon.js",
 	"@hot": "@empty", // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
 	"util": "@empty" // used by ospec to provide debug output in node
