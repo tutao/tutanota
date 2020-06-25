@@ -16,14 +16,14 @@ import {
 	MailState,
 	MAX_BASE64_IMAGE_SIZE
 } from "../api/common/TutanotaConstants"
-import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName, getMailBodyText, neverNull, noOp} from "../api/common/utils/Utils"
 import {assertMainOrNode, isApp, isDesktop} from "../api/Env"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
-import {serviceRequest} from "../api/main/Entity"
+import {load, serviceRequest, update} from "../api/main/Entity"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
-import {NotFoundError} from "../api/common/error/RestError"
+import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {logins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -43,6 +43,8 @@ import type {InlineImages} from "./MailViewer"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
+import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
+import {exportAsEml} from "./Exporter"
 
 assertMainOrNode()
 
@@ -554,4 +556,24 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 	} else {
 		return Promise.resolve()
 	}
+}
+
+export function exportMails(mails: Mail[]): Promise<void> {
+	return Promise.map(mails, mail =>
+			load(MailBodyTypeRef, mail.body)
+				.then(body => exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)),
+		{concurrency: 5}).return()
+}
+
+export function markMails(mails: Mail[], unread: boolean): Promise<void> {
+	return Promise.all(mails.map(mail => {
+		if (mail.unread !== unread) {
+			mail.unread = unread
+			return update(mail)
+				.catch(NotFoundError, noOp)
+				.catch(LockedError, noOp)
+		} else {
+			return Promise.resolve()
+		}
+	})).return()
 }

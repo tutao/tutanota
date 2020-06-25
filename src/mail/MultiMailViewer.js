@@ -4,25 +4,27 @@ import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/ba
 import {MailView} from "./MailView"
 import {assertMainOrNode, Mode} from "../api/Env"
 import {ActionBar} from "../gui/base/ActionBar"
-import {load, update} from "../api/main/Entity"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {exportAsEml} from "./Exporter"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, showDeleteConfirmationDialog} from "./MailUtils"
+import {
+	exportMails,
+	getFolderIcon,
+	getFolderName,
+	getSortedCustomFolders,
+	getSortedSystemFolders,
+	markMails,
+	showDeleteConfirmationDialog
+} from "./MailUtils"
 import type {MailboxDetail} from "./MailModel"
 import {mailModel} from "./MailModel"
 import {logins} from "../api/main/LoginController";
 import {FeatureType} from "../api/common/TutanotaConstants";
-import {LockedError, NotFoundError} from "../api/common/error/RestError"
-import {getMailBodyText, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
-import type {PosRect} from "../gui/base/Dropdown"
 import type {Mail} from "../api/entities/tutanota/Mail"
+import type {PosRect} from "../gui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -40,9 +42,9 @@ export class MultiMailViewer {
 		this.view = () => {
 			return [
 				m(".fill-absolute.mt-xs.plr-l", {
-					oncreate: (vnode) => {
-						this._domMailViewer = vnode.dom
-					},
+						oncreate: (vnode) => {
+							this._domMailViewer = vnode.dom
+						},
 					},
 					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0)
 						? [
@@ -63,27 +65,6 @@ export class MultiMailViewer {
 
 	getBounds(): ?PosRect {
 		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
-	}
-
-	_exportAll(mails: Mail[]): Promise<void> {
-		return Promise.map(mails, mail =>
-				load(MailBodyTypeRef, mail.body)
-					.then(body => exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)),
-			{concurrency: 5}).return()
-	}
-
-	_markAll(mails: Mail[], unread: boolean): Promise<void> {
-		return Promise.all(mails.map(mail => {
-			if (mail.unread !== unread) {
-				mail.unread = unread
-				return update(mail)
-					.catch(NotFoundError, noOp)
-					.catch(LockedError, noOp)
-			} else {
-				return Promise.resolve()
-			}
-		})).return()
-
 	}
 
 	_getMailSelectionMessage(mailView: MailView) {
@@ -140,10 +121,10 @@ export class MultiMailViewer {
 		))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
-			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => this._markAll(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
-			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => this._markAll(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
+			moreButtons.push(new Button("markUnread_action", this._actionBarAction((mails) => markMails(mails, true)), () => Icons.NoEye).setType(ButtonType.Dropdown))
+			moreButtons.push(new Button("markRead_action", this._actionBarAction((mails) => markMails(mails, false)), () => Icons.Eye).setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
-				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => this._exportAll(mails)), () => Icons.Export).setType(ButtonType.Dropdown))
+				moreButtons.push(new Button("export_action", this._actionBarAction((mails) => exportMails(mails)), () => Icons.Export).setType(ButtonType.Dropdown))
 			}
 			return moreButtons
 		}))
