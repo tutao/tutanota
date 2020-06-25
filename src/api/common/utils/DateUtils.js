@@ -98,11 +98,11 @@ export function formatSortableDate(date: Date): string {
 }
 
 /**
- * Formats as yyyy-mm-dd <hh>h-<mm>m-<ss>
+ * Formats as yyyy-mm-dd-<hh>h-<mm>m-<ss>
  */
 export function formatSortableDateTime(date: Date): string {
 	const hours = ("0" + date.getHours()).slice(-2)
 	const minutes = ("0" + date.getMinutes()).slice(-2)
 	const seconds = ("0" + date.getSeconds()).slice(-2)
-	return `${formatSortableDate(date)} ${hours}h${minutes}m${seconds}s`
+	return `${formatSortableDate(date)}-${hours}h${minutes}m${seconds}s`
 }
