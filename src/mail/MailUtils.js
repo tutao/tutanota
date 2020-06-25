@@ -44,7 +44,9 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {exportAsEml} from "./Exporter"
+import {mailToEmlFile} from "./Exporter"
+import {sortableTimestamp} from "../api/common/utils/DateUtils"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -559,10 +561,12 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 }
 
 export function exportMails(mails: Mail[]): Promise<void> {
-	return Promise.map(mails, mail =>
-			load(MailBodyTypeRef, mail.body)
-				.then(body => exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)),
-		{concurrency: 5}).return()
+	const mapper = mail => load(MailBodyTypeRef, mail.body)
+		.then(body => mailToEmlFile(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
+	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
+	const zipName = `${sortableTimestamp()}-mail-export.zip`
+	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))
+		.then(zip => fileController.open(zip))
 }
 
 export function markMails(mails: Mail[], unread: boolean): Promise<void> {

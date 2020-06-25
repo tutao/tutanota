@@ -7,33 +7,29 @@ import {worker} from "../api/main/WorkerClient"
 import {createDataFile, getCleanedMimeType} from "../api/common/DataFile"
 import {getMailHeaders, neverNull} from "../api/common/utils/Utils"
 import {assertMainOrNode} from "../api/Env"
-import {fileController} from "../file/FileController"
-import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {formatSortableDateTime} from "../api/common/utils/DateUtils"
 import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 
-export function exportAsEml(mail: Mail, sanitizedHtmlBody: string) {
-	return showProgressDialog("pleaseWait_msg",
-		toEml(mail, sanitizedHtmlBody).then(emlString => {
-			let data = stringToUtf8Uint8Array(emlString)
-			let tmpFile = createFile()
-			let filename = [...formatSortableDateTime(mail.sentDate).split(' '), mail.subject].join('-')
-			filename = filename.trim()
-			if (filename.length === 0) {
-				filename = "unnamed"
-			} else if (filename.length > 96) {
-				// windows MAX_PATH is 260, this should be fairly safe.
-				filename = filename.substring(0, 95) + '_'
-			}
-			tmpFile.name = filename + ".eml"
-			tmpFile.mimeType = "message/rfc822"
-			tmpFile.size = String(data.byteLength)
-			return fileController.open(createDataFile(tmpFile, data))
-		})
-	)
+export function mailToEmlFile(mail: Mail, sanitizedHtmlBody: string): Promise<DataFile> {
+	return toEml(mail, sanitizedHtmlBody).then(emlString => {
+		let data = stringToUtf8Uint8Array(emlString)
+		let tmpFile = createFile()
+		let filename = [...formatSortableDateTime(mail.sentDate).split(' '), mail.subject].join('-')
+		filename = filename.trim()
+		if (filename.length === 0) {
+			filename = "unnamed"
+		} else if (filename.length > 96) {
+			// windows MAX_PATH is 260, this should be fairly safe.
+			filename = filename.substring(0, 95) + '_'
+		}
+		tmpFile.name = filename + ".eml"
+		tmpFile.mimeType = "message/rfc822"
+		tmpFile.size = String(data.byteLength)
+		return createDataFile(tmpFile, data)
+	})
 }
 
 /**

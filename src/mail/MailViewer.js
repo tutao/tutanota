@@ -88,7 +88,7 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {getListId, HttpMethod} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
-import {exportAsEml} from "./Exporter"
+import {mailToEmlFile} from "./Exporter"
 import {client} from "../misc/ClientDetector"
 import type {PosRect} from "../gui/base/Dropdown"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
@@ -603,7 +603,7 @@ export class MailViewer {
 					if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
 						moreButtons.push({
 							label: "export_action",
-							click: () => exportAsEml(this.mail, this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""),
+							click: () => this._exportMail(),
 							icon: () => Icons.Export,
 							type: ButtonType.Dropdown,
 						})
@@ -702,6 +702,14 @@ export class MailViewer {
 			]),
 			okAction: null,
 		})
+	}
+
+	_exportMail() {
+		const exportPromise = mailToEmlFile(
+			this.mail,
+			this._mailBody ? htmlSanitizer.sanitize(this._getMailBody(), false).text : ""
+		)
+		showProgressDialog("pleaseWait_msg", exportPromise).then(df => fileController.open(df))
 	}
 
 	_markAsNotPhishing() {
@@ -900,8 +908,8 @@ export class MailViewer {
 	}
 
 	_renderDownloadAllButton(): Children {
-		return !isIOSApp() && this._attachmentButtons.length > 2 ?
-			m(".limit-width", m(ButtonN, {
+		return !isIOSApp() && this._attachmentButtons.length > 2
+			? m(".limit-width", m(ButtonN, {
 				label: "saveAll_action",
 				type: ButtonType.Secondary,
 				click: () => this._downloadAll()
