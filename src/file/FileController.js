@@ -12,6 +12,7 @@ import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
+import {sortableTimestamp} from "../api/common/utils/DateUtils"
 
 assertMainOrNode()
 
@@ -53,33 +54,35 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
-		return Promise
-			.map(tutanotaFiles, (tutanotaFile) => {
-				return (isApp() ? worker.downloadFileContentNative(tutanotaFile) : worker.downloadFileContent(tutanotaFile))
-				// We're returning dialogs here so they don't overlap each other
-				// We're returning null to say that this file is not present.
-				// (it's void by default and doesn't satisfy type checker)
-					.catch(CryptoError, e => {
-						return Dialog.error(() => lang.get("corrupted_msg") + " " + tutanotaFile.name)
-						             .return(null)
-					})
-					.catch(ConnectionError, e => {
-						return Dialog.error(() => lang.get("couldNotAttachFile_msg") + " " + tutanotaFile.name)
-						             .return(null)
-					})
-			}, {concurrency: (isAndroidApp() ? 1 : 5)})
-			.then((files) => files.filter(Boolean)) // filter out failed files
-			.then((files) => {
-				return Promise.each(files, (file) =>
-					(isAndroidApp() ? putFileIntoDownloadsFolder(file.location) : fileController.open(file))
-						.finally(() => this._deleteFile(file.location)))
-			}).return()
-	}
+		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).return(null)
+		let downloadContent, concurrency, save
+		if (isAndroidApp()) {
+			downloadContent = f => worker.downloadFileContentNative(f)
+			concurrency = {concurrency: 1}
+			save = p => p.then(files => files.forEach(file => putFileIntoDownloadsFolder(file.location)))
+		} else if (isApp()) {
+			downloadContent = f => worker.downloadFileContentNative(f)
+			concurrency = {concurrency: 5}
+			save = p => p.then(files => files.forEach(file => this.openFileReference(file).finally(() => this._deleteFile(file.location))))
+		} else {
+			downloadContent = f => worker.downloadFileContent(f)
+			concurrency = {concurrency: 5}
+			save = p => this.zipDataFiles(p, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip))
+		}
 
-	downloadBatched(attachments: TutanotaFile[], batchSize: number, delay: number) {
-		return splitInChunks(batchSize, attachments).reduce((p, chunk) => {
-			return p.then(() => this.downloadAll(chunk)).delay(delay)
-		}, Promise.resolve())
+		// We're returning dialogs here so they don't overlap each other
+		// We're returning null to say that this file is not present.
+		// (it's void by default and doesn't satisfy type checker)
+		const p = Promise
+			.map(tutanotaFiles,
+				tutanotaFile => downloadContent(tutanotaFile)
+					.catch(CryptoError, () => showErr("corrupted_msg", tutanotaFile.name))
+					.catch(ConnectionError, () => showErr("couldNotAttachFile_msg", tutanotaFile.name)),
+				concurrency)
+			.filter(Boolean) // filter out failed files
+		// in apps, p is a  Promise<FileReference[]> that have location props.
+		// otherwise, it's a Promise<DataFile[]> and can be handled by zipDataFiles
+		return save(downcast(p)).return()
 	}
 
 	/**
@@ -149,77 +152,83 @@ export class FileController {
 		})
 	}
 
+	openFileReference(file: FileReference): Promise<void> {
+		return fileApp.open(file)
+	}
+
+	openDataFile(dataFile: DataFile): Promise<void> {
+		if (isApp() || isDesktop()) {
+			return fileApp.saveBlob(dataFile)
+			              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
+		}
+		let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
+			|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
+			|| (navigator: any).mozSaveBlob || (navigator: any).webkitSaveBlob
+		if (saveFunction) {
+			let blob = new Blob([dataFile.data], {"type": dataFile.mimeType})
+			try {
+				const navAny = (navigator: any)
+				// in IE the save function must be called directly, otherwise an error is thrown
+				if (navAny.msSaveOrOpenBlob) {
+					navAny.msSaveOrOpenBlob(blob, dataFile.name)
+				} else if (navAny.msSaveBlob) {
+					navAny.msSaveBlob(blob, dataFile.name)
+				} else {
+					saveFunction(blob, dataFile.name)
+				}
+				return Promise.resolve()
+			} catch (e) {
+				console.log(e)
+				return Dialog.error("saveDownloadNotPossibleIe_msg")
+			}
+		} else {
+			try {
+				let URL = window.URL || window.webkitURL || window.mozURL || window.msURL
+				let blob = new Blob([dataFile.data], {type: dataFile.mimeType})
+				let url = URL.createObjectURL(blob)
+				let a = document.createElement("a")
+				if (typeof a.download !== "undefined") {
+					a.href = url
+					a.download = dataFile.name
+					a.style.display = "none"
+					a.target = "_blank"
+					const body = neverNull(document.body)
+					body.appendChild(a)
+					a.click()
+					body.removeChild(a)
+					// Do not revoke object URL right away so that the browser has a chance to open it
+					setTimeout(() => {
+						window.URL.revokeObjectURL(url)
+					}, 2000)
+				} else {
+					if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === 'function') {
+						var reader = new FileReader()
+						reader.onloadend = function () {
+							let url = (reader.result: any)
+							return Dialog.legacyDownload(dataFile.name, url)
+						}
+						reader.readAsDataURL(blob)
+					} else {
+						// if the download attribute is not supported try to open the link in a new tab.
+						return Dialog.legacyDownload(dataFile.name, url)
+					}
+				}
+				return Promise.resolve()
+			} catch (e) {
+				console.log(e)
+				return Dialog.error("canNotOpenFileOnDevice_msg")
+			}
+		}
+	}
+
 	/**
 	 * Does not delete temporary file in app.
 	 */
 	open(file: DataFile | FileReference): Promise<void> {
-		const _file = file
-		if (_file._type === 'FileReference') {
-			return fileApp.open(_file)
+		if (file._type === 'FileReference') {
+			return this.openFileReference(file)
 		} else {
-			let dataFile: DataFile = _file
-			if (isApp() || isDesktop()) {
-				return fileApp.saveBlob(dataFile)
-				              .catch(err => Dialog.error("canNotOpenFileOnDevice_msg")).return()
-			}
-			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs
-				|| (navigator: any).saveBlob || (navigator: any).msSaveOrOpenBlob || (navigator: any).msSaveBlob
-				|| (navigator: any).mozSaveBlob || (navigator: any).webkitSaveBlob
-			if (saveFunction) {
-				let blob = new Blob([dataFile.data], {"type": dataFile.mimeType})
-				try {
-					const navAny = (navigator: any)
-					// in IE the save function must be called directly, otherwise an error is thrown
-					if (navAny.msSaveOrOpenBlob) {
-						navAny.msSaveOrOpenBlob(blob, dataFile.name)
-					} else if (navAny.msSaveBlob) {
-						navAny.msSaveBlob(blob, dataFile.name)
-					} else {
-						saveFunction(blob, dataFile.name)
-					}
-					return Promise.resolve()
-				} catch (e) {
-					console.log(e)
-					return Dialog.error("saveDownloadNotPossibleIe_msg")
-				}
-			} else {
-				try {
-					let URL = window.URL || window.webkitURL || window.mozURL || window.msURL
-					let blob = new Blob([dataFile.data], {type: dataFile.mimeType})
-					let url = URL.createObjectURL(blob)
-					let a = document.createElement("a")
-					if (typeof a.download !== "undefined") {
-						a.href = url
-						a.download = dataFile.name
-						a.style.display = "none"
-						a.target = "_blank"
-						const body = neverNull(document.body)
-						body.appendChild(a)
-						a.click()
-						body.removeChild(a)
-						// Do not revoke object URL right away so that the browser has a chance to open it
-						setTimeout(() => {
-							window.URL.revokeObjectURL(url)
-						}, 2000)
-					} else {
-						if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === 'function') {
-							var reader = new FileReader()
-							reader.onloadend = function () {
-								let url = (reader.result: any)
-								return Dialog.legacyDownload(dataFile.name, url)
-							}
-							reader.readAsDataURL(blob)
-						} else {
-							// if the download attribute is not supported try to open the link in a new tab.
-							return Dialog.legacyDownload(dataFile.name, url)
-						}
-					}
-					return Promise.resolve()
-				} catch (e) {
-					console.log(e)
-					return Dialog.error("canNotOpenFileOnDevice_msg")
-				}
-			}
+			return this.openDataFile(file)
 		}
 	}
 
