@@ -99,3 +99,7 @@ Reference: http://plugins.cordova.io/#/package/org.apache.cordova.statusbar
 Cordova org.apache.cordova.vibration plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-vibration.git
 License: Apache 2
 Reference: http://plugins.cordova.io/#/package/org.apache.cordova.vibration
+
+JSZip - https://stuk.github.io/jszip/
+License: MIT
+Reference: https://github.com/Stuk/jszip/blob/master/LICENSE.markdown

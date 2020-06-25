@@ -34,7 +34,7 @@ function getAsyncImports(file) {
 		asyncImports.push(match[1])
 		match = regExp.exec(appSrc)
 	}
-	//console.log(`async imports for ${file}: ${asyncImports.join(" + ")}`)
+	//console.log(`async imports for ${file}: ${asyncImports.join("\n")}`)
 	return asyncImports
 }
 
@@ -154,6 +154,7 @@ function buildWebapp() {
 	              })
 	              .then(() => console.log("creating language bundles"))
 	              .then(() => createLanguageBundles(bundles))
+	              .then(() => createExtraLibBundle(bundles))
 	              .then(() => {
 		              let restUrl
 		              if (options.stage === 'test') {
@@ -338,6 +339,20 @@ function createLanguageBundles(bundles) {
 			console.log(`  > bundled ${bundle}`);
 		})
 	})).then(() => bundles)
+}
+
+function createExtraLibBundle(bundles) {
+	return builder.bundle('libs/jszip.js', {
+		minify: false,
+		mangle: false,
+		runtime: false,
+		sourceMaps: false
+	}).then(function (output) {
+		const bundle = `${DistDir}/extra-libs.js`
+		bundles["extra-libs.js"] = output.modules.sort()
+		fs.writeFileSync(bundle, output.source, 'utf-8')
+		console.log(`  > bundled ${bundle}`);
+	}).then(() => bundles)
 }
 
 function _writeFile(targetFile, content) {
