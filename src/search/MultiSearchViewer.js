@@ -7,30 +7,27 @@ import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/ba
 import {lang} from "../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
-import {erase, load, update} from "../api/main/Entity"
+import {erase, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {mailModel} from "../mail/MailModel"
-import {LockedError, NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError} from "../api/common/error/RestError"
 import {getListId, isSameTypeRef} from "../api/common/EntityFunctions"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../mail/MailUtils"
+import {exportMails, getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../mail/MailUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
 import {FeatureType} from "../api/common/TutanotaConstants"
-import {exportAsEml} from "../mail/Exporter"
-import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
-import {getMailBodyText, lazyMemoized, noOp} from "../api/common/utils/Utils"
+import {lazyMemoized, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 
@@ -181,42 +178,22 @@ export class MultiSearchViewer {
 			//select non is needed for mobile
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action",
-				this.getSelectedMails((mails) => this._markAll(mails, true).then(this._searchListView.selectNone())),
+				this.getSelectedMails(mails => markMails(mails, true).then(this._searchListView.selectNone())),
 				() => Icons.NoEye)
 				.setType(ButtonType.Dropdown))
 			moreButtons.push(new Button("markRead_action",
-				this.getSelectedMails((mails) => this._markAll(mails, false).then(this._searchListView.selectNone())),
+				this.getSelectedMails(mails => markMails(mails, false).then(this._searchListView.selectNone())),
 				() => Icons.Eye)
 				.setType(ButtonType.Dropdown))
 			if (env.mode !== Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)) {
 				moreButtons.push(new Button("export_action",
-					this.getSelectedMails((mails) => this._exportAll(mails).then(this._searchListView.selectNone())),
+					this.getSelectedMails(mails => exportMails(mails)),
 					() => Icons.Export)
 					.setType(ButtonType.Dropdown))
 			}
 			return moreButtons
 		}))
 		return actionBar
-	}
-
-	_exportAll(mails: Mail[]): Promise<void> {
-		return Promise.map(mails, mail => load(MailBodyTypeRef, mail.body).then(body => {
-			return exportAsEml(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text)
-		}), {concurrency: 5}).return()
-	}
-
-	_markAll(mails: Mail[], unread: boolean): Promise<void> {
-		return Promise.all(mails.map(mail => {
-			if (mail.unread !== unread) {
-				mail.unread = unread
-				return update(mail)
-					.catch(NotFoundError, noOp)
-					.catch(LockedError, noOp)
-			} else {
-				return Promise.resolve()
-			}
-		})).return()
-
 	}
 
 	mergeSelected(): Promise<void> {
