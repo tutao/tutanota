@@ -106,3 +106,10 @@ export function formatSortableDateTime(date: Date): string {
 	const seconds = ("0" + date.getSeconds()).slice(-2)
 	return `${formatSortableDate(date)}-${hours}h${minutes}m${seconds}s`
 }
+
+/**
+ * @returns {string} sortableDateTime of the current time
+ */
+export function sortableTimestamp(): string {
+	return formatSortableDateTime(new Date())
+}
