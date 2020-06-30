@@ -40,6 +40,7 @@ node(() => {
 	require("./desktop/SocketeerTest.js")
 	require("./desktop/integration/DesktopIntegratorTest.js")
 	require("./desktop/DesktopCryptoFacadeTest.js")
+	require("./desktop/DesktopContextMenuTest.js")
 })()
 
 o.run()

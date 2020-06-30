@@ -1,13 +1,13 @@
 // @flow
 
+import type {ContextMenuParams} from "electron"
 import {clipboard, Menu, MenuItem} from 'electron'
 import {lang} from "../misc/LanguageViewModel"
-import type {WebContents, ContextMenuParams} from "electron"
 
 export class DesktopContextMenu {
 	_menu: Menu;
 	_pasteItem: MenuItem;
-	_copyItem : MenuItem;
+	_copyItem: MenuItem;
 	_cutItem: MenuItem;
 	_copyLinkItem: MenuItem;
 	_undoItem: MenuItem;
@@ -16,19 +16,35 @@ export class DesktopContextMenu {
 
 	constructor() {
 		this._menu = new Menu()
-		this._pasteItem = new MenuItem({label: lang.get("paste_action"), accelerator: "CmdOrCtrl+V", click:(mi, bw) => bw.webContents.paste()})
-		this._copyItem = new MenuItem({label: lang.get("copy_action"), accelerator: "CmdOrCtrl+C", click: (mi, bw) => bw.webContents.copy()})
-		this._cutItem = new MenuItem({label: lang.get("cut_action"), accelerator: "CmdOrCtrl+X", click: (mi, bw) => bw.webContents.cut()})
-		this._copyLinkItem = new MenuItem({label: lang.get("copyLink_action"), click: () => clipboard.writeText(this._link)})
+		this._link = ""
+		this._pasteItem = new MenuItem({
+			label: lang.get("paste_action"),
+			accelerator: "CmdOrCtrl+V",
+			click: (mi, bw) => bw && bw.webContents && bw.webContents.paste()
+		})
+		this._copyItem = new MenuItem({
+			label: lang.get("copy_action"),
+			accelerator: "CmdOrCtrl+C",
+			click: (mi, bw) => bw && bw.webContents && bw.webContents.copy()
+		})
+		this._cutItem = new MenuItem({
+			label: lang.get("cut_action"),
+			accelerator: "CmdOrCtrl+X",
+			click: (mi, bw) => bw && bw.webContents && bw.webContents.cut()
+		})
+		this._copyLinkItem = new MenuItem({
+			label: lang.get("copyLink_action"),
+			click: () => !!this._link && clipboard.writeText(this._link)
+		})
 		this._undoItem = new MenuItem({
 			label: lang.get("undo_action"),
 			accelerator: "CmdOrCtrl+Z",
-			click:(mi, bw) => bw.webContents.undo()
+			click: (mi, bw) => bw && bw.webContents && bw.webContents.undo()
 		})
 		this._redoItem = new MenuItem({
 			label: lang.get("redo_action"),
 			accelerator: "CmdOrCtrl+Shift+Z",
-			click:(mi, bw) => bw.webContents.redo()
+			click: (mi, bw) => bw && bw.webContents && bw.webContents.redo()
 		})
 
 		this._menu.append(this._copyItem)
@@ -40,7 +56,7 @@ export class DesktopContextMenu {
 		this._menu.append(this._redoItem)
 	}
 
-	open(params: ContextMenuParams, wc: WebContents) {
+	open(params: ContextMenuParams) {
 		this._link = params.linkURL
 		this._copyLinkItem.enabled = !!params.linkURL
 		this._cutItem.enabled = params.editFlags.canCut

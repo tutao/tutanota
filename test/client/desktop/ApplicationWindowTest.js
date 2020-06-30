@@ -661,10 +661,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(e.preventDefault.callCount).equals(0)
 
 		o(handlerMock.callCount).equals(1)
-		o(handlerMock.args).deepEquals([
-			{linkURL: 'dies.ist.ne/url', editFlags: "someflags"},
-			bwInstance.webContents
-		])
+		o(handlerMock.args).deepEquals([{linkURL: 'dies.ist.ne/url', editFlags: "someflags"}])
 	})
 
 	o("dom-ready causes ipc setup", function (done) {

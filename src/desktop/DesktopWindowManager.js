@@ -77,7 +77,7 @@ export class WindowManager {
 			}
 		})
 
-		w.setContextMenuHandler((params, wc) => this._contextMenu.open(params, wc))
+		w.setContextMenuHandler((params) => this._contextMenu.open(params))
 
 		return w
 	}
