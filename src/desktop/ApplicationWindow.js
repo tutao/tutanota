@@ -235,9 +235,9 @@ export class ApplicationWindow {
 		).then(() => this.show())
 	}
 
-	setContextMenuHandler(handler: (ContextMenuParams, WebContents)=>void) {
+	setContextMenuHandler(handler: (ContextMenuParams)=>void) {
 		const wc = this.browserWindow.webContents
-		wc.on('context-menu', (e, params) => handler(params, wc))
+		wc.on('context-menu', (e, params) => handler(params))
 	}
 
 	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
