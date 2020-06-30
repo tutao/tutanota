@@ -105,7 +105,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 				},
 				setEncoding: function (enc) {
 				},
-				destroy: function () {},
+				destroy: function (e) {this.callbacks['error'](e)},
 				pipe: function () {}
 			},
 			statics: {}
@@ -129,8 +129,15 @@ o.spec("DesktopDownloadManagerTest", () => {
 				this.callbacks[ev] = cb
 				return this
 			},
-			close: function (cb) {
-				cb()
+			close: function () {
+				this.callbacks['close']()
+			},
+			removeAllListeners: function (ev) {
+				this.callbacks[ev] = () => {}
+				return this
+			},
+			end: function () {
+				this.callbacks['finish']()
 			}
 		}, statics: {}
 	})
@@ -145,6 +152,9 @@ o.spec("DesktopDownloadManagerTest", () => {
 		writeFile: () => Promise.resolve(),
 		createWriteStream: () => new WriteStream(),
 		existsSync: (path) => path === DEFAULT_DOWNLOAD_PATH,
+		unlink: () => {
+			return Promise.resolve()
+		}
 	}
 
 	const lang = {
@@ -300,7 +310,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(electronMock.dialog.showMessageBox.callCount).equals(1)
 	})
 
-	o("downloadNative", done => {
+	o("downloadNative, no error", done => {
 		const {electronMock, desktopUtilsMock, confMock, netMock, fsMock} = standardMocks()
 		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
 		const dl = new DesktopDownloadManager(confMock, netMock)
@@ -320,12 +330,32 @@ o.spec("DesktopDownloadManagerTest", () => {
 			})
 			o(netMock.ClientRequest.mockedInstances.length).equals(1)
 			o(fsMock.createWriteStream.callCount).equals(1)
-			o(fsMock.createWriteStream.args.length).equals(1)
+			o(fsMock.createWriteStream.args.length).equals(2)
 			o(fsMock.createWriteStream.args[0]).equals('/some/path/tuta/nativelyDownloadedFile')
+			o(fsMock.createWriteStream.args[1]).deepEquals({emitClose: true})
 
 			o(res.pipe.callCount).equals(1)
 			o(res.pipe.args[0]).deepEquals(ws)
 
+		}).then(() => done())
+	})
+
+	o("downloadNative, error gets cleaned up", done => {
+		const {confMock, netMock, fsMock} = standardMocks()
+		const {DesktopDownloadManager} = n.subject('../../src/desktop/DesktopDownloadManager.js')
+		const dl = new DesktopDownloadManager(confMock, netMock)
+		const res = new netMock.Response(404)
+		const dlPromise = dl.downloadNative("some://url/file", "nativelyDownloadedFile", {header1: "foo", header2: "bar"})
+		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		const ws = WriteStream.mockedInstances[0]
+		ws.callbacks['finish']()
+		dlPromise.then(() => o("").equals(3)).catch(e => {
+			o(e).equals(404)
+			o(fsMock.createWriteStream.callCount).equals(1)
+			o(ws.on.callCount).equals(2)
+			o(ws.removeAllListeners.callCount).equals(2)
+			o(ws.removeAllListeners.args[0]).equals('close')
+			o(fsMock.unlink.callCount).equals(1)
 		}).then(() => done())
 	})
 

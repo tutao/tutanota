@@ -30,25 +30,33 @@ export class DesktopDownloadManager {
 		return new Promise((resolve, reject) => {
 			fs.mkdirp(app.getPath('temp') + '/tuta/')
 			const encryptedFileUri = path.join(app.getPath('temp'), '/tuta/', fileName)
-			this._net.request(sourceUrl, {
-				method: "GET",
-				headers,
-				timeout: 20000
-			}).on('response', res => {
-				let fileStream = fs.createWriteStream(encryptedFileUri)
-				res.pipe(fileStream)
-				fileStream.on('finish', () => {
-					fileStream.close(() => resolve({
-						statusCode: res.statusCode,
-						statusMessage: res.statusMessage,
-						encryptedFileUri
-					}))
-				})
-			}).on('error', e => {
-				// remove file if it was already created
-				fs.unlink(encryptedFileUri).catch(noOp)
-				reject(e)
-			}).end()
+			const fileStream = fs
+				.createWriteStream(encryptedFileUri, {emitClose: true})
+				.on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
+			let cleanup = e => {
+				cleanup = noOp
+				fileStream.removeAllListeners('close').on('close', () => { // file descriptor was released
+					fileStream.removeAllListeners('close')
+					// remove file if it was already created
+					fs.unlink(encryptedFileUri).catch(noOp).then(() => reject(e))
+				}).end() // {end: true} doesn't work when response errors
+			}
+			this._net.request(sourceUrl, {method: "GET", timeout: 20000, headers})
+			    .on('response', response => {
+				    response.on('error', cleanup)
+				    if (response.statusCode !== 200) {
+					    // causes 'error' event
+					    response.destroy(response.statusCode)
+					    return
+				    }
+				    response.pipe(fileStream, {end: true}) // automatically .end() fileStream when dl is done
+				    const result = {
+					    statusCode: response.statusCode,
+					    statusMessage: response.statusMessage,
+					    encryptedFileUri
+				    }
+				    fileStream.on('close', () => resolve(result))
+			    }).on('error', cleanup).end()
 		})
 	}
 
