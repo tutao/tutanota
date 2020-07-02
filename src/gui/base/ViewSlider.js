@@ -403,7 +403,7 @@ export class ViewSlider implements IViewSlider {
 				}
 
 				// Gesture for the side column
-				if (this.focusedColumn === this._mainColumn || this.focusedColumn.isInForeground) {
+				if (this.getBackgroundColumns()[0].visible || this.focusedColumn.isInForeground) {
 					// Gesture was with enough velocity to show the menu
 					if (velocity > 0.8) {
 						show()
@@ -481,7 +481,7 @@ export class ViewSlider implements IViewSlider {
 						> 30) {
 						directionLock = HORIZONTAL
 						// Gesture for side column
-						if (this.focusedColumn === this._mainColumn || this.focusedColumn.isInForeground) {
+						if (this.getBackgroundColumns()[0].visible || this.focusedColumn.isInForeground) {
 							const newTranslate = Math.min(sideColRect.left - (gestureInfo.x - newTouchPos), 0)
 							sideCol.style.transform = `translateX(${newTranslate}px)`
 						} else { // Gesture for background column
