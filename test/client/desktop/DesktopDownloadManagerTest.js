@@ -54,7 +54,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 			showMessageBox: () => Promise.resolve({response: 1}),
 		},
 		shell: {
-			openItem: (path) => path !== "invalid"
+			openPath: (path) => Promise.resolve(path !== "invalid" ? "" : 'invalid path')
 		},
 		app: {
 			getPath: () => "/some/path/"
@@ -207,8 +207,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 		itemMock.callbacks["done"]({}, 'completed')
-		o(electronMock.shell.openItem.callCount).equals(1)
-		o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+		o(electronMock.shell.openPath.callCount).equals(1)
+		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
@@ -245,8 +245,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 		itemMock.callbacks["done"]({}, 'completed')
-		o(electronMock.shell.openItem.callCount).equals(1)
-		o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+		o(electronMock.shell.openPath.callCount).equals(1)
+		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		setTimeout(() => {
 			sessionMock.callbacks["will-download"]({}, itemMock)
@@ -254,8 +254,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 			o(itemMock.savePath).equals("/a/download/path/nonClobbering")
 
 			itemMock.callbacks["done"]({}, 'completed')
-			o(electronMock.shell.openItem.callCount).equals(2)
-			o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+			o(electronMock.shell.openPath.callCount).equals(2)
+			o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 			// make sure nothing failed
 			o(electronMock.dialog.showMessageBox.callCount).equals(0)
@@ -276,8 +276,8 @@ o.spec("DesktopDownloadManagerTest", () => {
 		itemMock.callbacks["done"]({}, 'completed')
 		itemMock2.callbacks["done"]({}, 'completed')
 
-		o(electronMock.shell.openItem.callCount).equals(1)
-		o(electronMock.shell.openItem.args[0]).equals("/a/download/path")
+		o(electronMock.shell.openPath.callCount).equals(1)
+		o(electronMock.shell.openPath.args[0]).equals("/a/download/path")
 
 		// make sure nothing failed
 		o(electronMock.dialog.showMessageBox.callCount).equals(0)
@@ -296,7 +296,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 		itemMock.callbacks["done"]({}, 'interrupted')
 
-		o(electronMock.shell.openItem.callCount).equals(0)
+		o(electronMock.shell.openPath.callCount).equals(0)
 		o(electronMock.dialog.showMessageBox.callCount).equals(1)
 	})
 
@@ -336,16 +336,16 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 		dl.open("/some/folder/file").then(() => {
 
-			o(electronMock.shell.openItem.callCount).equals(1)
-			o(electronMock.shell.openItem.args.length).equals(1)
-			o(electronMock.shell.openItem.args[0]).equals("/some/folder/file")
+			o(electronMock.shell.openPath.callCount).equals(1)
+			o(electronMock.shell.openPath.args.length).equals(1)
+			o(electronMock.shell.openPath.args[0]).equals("/some/folder/file")
 		})
 		  .then(() => dl.open("invalid"))
 		  .then(() => o(false).equals(true))
 		  .catch(() => {
-			  o(electronMock.shell.openItem.callCount).equals(2)
-			  o(electronMock.shell.openItem.args.length).equals(1)
-			  o(electronMock.shell.openItem.args[0]).equals("invalid")
+			  o(electronMock.shell.openPath.callCount).equals(2)
+			  o(electronMock.shell.openPath.args.length).equals(1)
+			  o(electronMock.shell.openPath.args[0]).equals("invalid")
 		  })
 		  .then(() => done())
 	})
@@ -358,7 +358,7 @@ o.spec("DesktopDownloadManagerTest", () => {
 
 		dl.open("exec").then(() => {
 			o(electronMock.dialog.showMessageBox.callCount).equals(1)
-			o(electronMock.shell.openItem.callCount).equals(0)
+			o(electronMock.shell.openPath.callCount).equals(0)
 			done()
 		})
 	})

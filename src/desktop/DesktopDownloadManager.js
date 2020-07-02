@@ -53,13 +53,13 @@ export class DesktopDownloadManager {
 	}
 
 	open(itemPath: string): Promise<void> {
-		const tryOpen = () => {
-			if (shell.openItem(itemPath)) {
-				return Promise.resolve()
-			} else {
-				return Promise.reject(new FileOpenError("Could not open " + itemPath))
-			}
-		}
+		const tryOpen = () => shell
+			.openPath(itemPath) // may resolve with "" or an error message
+			.catch(() => 'failed to open path.')
+			.then(errMsg => errMsg === ''
+				? Promise.resolve()
+				: Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))
+			)
 		if (DesktopUtils.looksExecutable(itemPath)) {
 			return dialog.showMessageBox(null, {
 				type: "warning",
@@ -117,10 +117,12 @@ export class DesktopDownloadManager {
 
 				if (this._fileManagersOpen === 0) {
 					this._fileManagersOpen = this._fileManagersOpen + 1
-					fileManagerLock = () => {
-						shell.openItem(path.dirname(savePath))
-						setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.get("fileManagerTimeout"))
-					}
+					fileManagerLock = () => shell
+						.openPath(path.dirname(savePath))
+						.then(() => {
+							setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.get("fileManagerTimeout"))
+						}).catch(noOp)
+
 				}
 			} catch (e) {
 				console.error("error while downloading", e)

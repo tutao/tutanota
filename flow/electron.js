@@ -32,7 +32,7 @@ declare module 'electron' {
 		openExternal(url: string): void;
 		showItemInFolder(fullPath: string): void;
 		// Open the given file in the desktop's default manner.
-		openItem(fullPath: string): boolean;
+		openPath(fullPath: string): Promise<string>;
 	};
 
 	declare export type NativeImage = {};
