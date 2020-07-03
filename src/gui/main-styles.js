@@ -608,6 +608,11 @@ styles.registerStyle('main', () => {
 			padding: px(size.hpad_large),
 			width: `calc(100% - ${2 * size.hpad}px)`
 		},
+		'.faq-items img': {
+			"max-width": "100%",
+			"height": "auto"
+		},
+
 		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
 		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
 		'.dialog-img': {width: px(150), height: "auto"},
@@ -822,13 +827,12 @@ styles.registerStyle('main', () => {
 		'.primary': {color: theme.content_accent, 'font-weight': 'bold'},
 		'.secondary': {color: theme.content_accent},
 		'.textBubble': {color: theme.content_accent, 'padding-top': px(size.text_bubble_tpad)},
-		'.bubble, .toggle': {
+		'.bubble': {
+			'margin': px(size.vpad_small / 2),
+			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
 			'max-width': "300px",
-			// make the visible button smaller by 7px without changing the actual click area
-			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
-			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
+			'border-radius': px(size.border_radius),
 			'background-color': theme.button_bubble_bg,
-			color: theme.button_bubble_fg,
 		},
 		'.on': {
 			'background-color': theme.content_button_selected

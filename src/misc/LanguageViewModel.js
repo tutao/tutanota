@@ -97,7 +97,7 @@ const infoLinks = {
  *
  * @constructor
  */
-class LanguageViewModel {
+export class LanguageViewModel {
 	translations: Object;
 	fallback: Object;
 	code: string;
@@ -150,6 +150,13 @@ class LanguageViewModel {
 	addStaticTranslation(key: string, text: string) {
 		this.staticTranslations[key] = text
 	}
+
+	initWithTranslations(code: string, languageTag: string, fallBackTranslations: Object, translations: Object) {
+		this.translations = translations
+		this.fallback = fallBackTranslations
+		this.code = code
+	}
+
 
 	setLanguage(lang: {code: string, languageTag: string}): Promise<void> {
 		this._setLanguageTag(lang.languageTag)

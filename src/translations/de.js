@@ -1123,6 +1123,10 @@ module.exports = {
 		"couldNotAuthU2f_msg": "Es konnte nicht mit dem Sicherheitsschlüssel authentifiziert werden.",
 		"waitingForU2f_msg": "Warten auf den Sicherheitsschlüssel…",
 		"businessUseUpgradeNeeded_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Support unter sales@tutao.de), da du einen Geschäftskunden-Account verwendest, der nur mit einem bezahlten Abo erlaubt ist. Bitte buche jetzt ein Abo.",
-		"upgradeNeeded_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Support unter sales@tutao.de), da du zuerst ein bezahltes Abo buchen musst."
+		"upgradeNeeded_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Support unter sales@tutao.de), da du zuerst ein bezahltes Abo buchen musst.",
+		"howCanWeHelp_title": "Wie können wir helfen?",
+		"describeProblem_msg": "Bitte gib deine Frage ein",
+		"noSolution_msg": "Du hast keine Lösung zu deinem Problem gefunden?",
+		"contactSupport_action": "Support kontaktieren"
 	}
 }

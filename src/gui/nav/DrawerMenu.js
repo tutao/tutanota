@@ -4,7 +4,7 @@ import m from "mithril"
 import {ButtonColors, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../base/Header"
-import {showUpgradeDialog, writeInviteMail, writeSupportMail} from "./NavFunctions"
+import {showSupportDialog, showUpgradeDialog, writeInviteMail} from "./NavFunctions"
 import {isDesktop, isIOSApp} from "../../api/Env"
 import {logins} from "../../api/main/LoginController"
 import {navButtonRoutes} from "../../misc/RouteChange"
@@ -47,7 +47,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				? m(ButtonN, {
 					icon: () => BootIcons.Help,
 					label: "supportMenu_label",
-					click: () => writeSupportMail(),
+					click: () => showSupportDialog(),
 					type: ButtonType.ActionLarge,
 					colors: ButtonColors.DrawerNav,
 				})

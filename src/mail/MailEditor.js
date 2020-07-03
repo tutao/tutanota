@@ -329,12 +329,12 @@ export class MailEditor {
 						oncreate: vnode => this.animate(vnode.dom, true),
 						onbeforeremove: vnode => this.animate(vnode.dom, false)
 					}, this._allRecipients()
-						// only show passwords for resolved contacts, otherwise we might not get the password
-						   .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise)
-						   .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
-							   oncreate: vnode => this.animate(vnode.dom, true),
-							   onbeforeremove: vnode => this.animate(vnode.dom, false)
-						   }))))
+					       // only show passwords for resolved contacts, otherwise we might not get the password
+					       .filter(r => r.type === recipientInfoType.external && !r.resolveContactPromise)
+					       .map(r => m(TextFieldN, Object.assign({}, this.getPasswordField(r), {
+						       oncreate: vnode => this.animate(vnode.dom, true),
+						       onbeforeremove: vnode => this.animate(vnode.dom, false)
+					       }))))
 					: null,
 				m(".row", m(this.subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble", this._getAttachmentButtons().map((a) => m(ButtonN, a))),
@@ -1206,7 +1206,7 @@ export class MailEditor {
 			.observe(this._editor.getDOM(), {attributes: false, childList: true, subtree: true})
 	}
 
-	static writeSupportMail() {
+	static writeSupportMail(subject: string = "") {
 		mailModel.init().then(() => {
 			if (!logins.getUserController().isPremiumAccount()) {
 				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
@@ -1225,7 +1225,7 @@ export class MailEditor {
 				signature += "<br>Tutanota version: " + env.versionNumber
 				signature += "<br>Time zone: " + getTimeZone()
 				signature += "<br>User agent:<br>" + navigator.userAgent
-				editor.initWithTemplate({to: [{name: null, address: "premium@tutao.de"}]}, "", signature, true).then(() => {
+				editor.initWithTemplate({to: [{name: null, address: "premium@tutao.de"}]}, subject, signature, true).then(() => {
 					editor.show()
 				})
 			})
