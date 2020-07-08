@@ -47,7 +47,8 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
 	}
 	return _findMatchingRule(mail).then(inboxRule => {
 		if (inboxRule) {
-			let targetFolder = mailboxDetail.folders.find(folder => isSameId(folder._id, neverNull(inboxRule).targetFolder));
+			let targetFolder = mailboxDetail.folders.filter(folder => folder !== getInboxFolder(mailboxDetail.folders))
+			                                        .find(folder => isSameId(folder._id, neverNull(inboxRule).targetFolder))
 			if (targetFolder) {
 				let moveMailData = createMoveMailData()
 				moveMailData.targetFolder = inboxRule.targetFolder
