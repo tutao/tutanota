@@ -14,28 +14,45 @@ import {assertMainOrNode} from "../api/Env"
 import {faq} from "./FaqModel"
 import {MailEditor} from "../mail/MailEditor"
 import {Keys} from "../api/common/TutanotaConstants"
+import {debounce} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
 export function showSupportDialog() {
 
+	const searchValue = stream("")
+	const searchResult = stream([])
+	var searchExecuted = false
+
 	const closeButton: ButtonAttrs = {
 		label: "close_alt",
 		type: ButtonType.Secondary,
 		click: () => {
-			searchValue("")
-			faq.searchResult = []
-			dialog.close()
+			closeAction()
 		}
 	}
+	const closeAction = () => {
+		searchValue("")
+		searchResult([])
+		dialog.close()
+	}
+
+	const debounceSearch = debounce(200, (value: string) => {
+		searchResult(faq.search(value))
+		searchExecuted = value.trim() !== ""
+		m.redraw()
+	})
+
+	searchValue.map(newValue => {
+		debounceSearch(newValue)
+	})
 
 	const contactSupport: ButtonAttrs = {
 		label: "contactSupport_action",
 		type: ButtonType.Secondary,
 		click: () => {
-			MailEditor.writeSupportMail(searchValue())
-			dialog.close()
-			faq.searchResult = []
+			MailEditor.writeSupportMail(searchValue().trim())
+			closeAction()
 		}
 	}
 
@@ -45,13 +62,9 @@ export function showSupportDialog() {
 		middle: () => lang.get("supportMenu_label")
 	}
 
-	const searchValue = stream("")
 
 	const searchInputField: TextFieldAttrs = {
 		label: () => lang.get("describeProblem_msg"),
-		oninput: (value, inputElement) => {
-			faq.search(searchValue().trim())
-		},
 		value: searchValue
 	}
 
@@ -61,7 +74,7 @@ export function showSupportDialog() {
 				m(".pt"),
 				m(".h1 .text-center", lang.get("howCanWeHelp_title")),
 				m(TextFieldN, searchInputField),
-				m(".pt", faq.searchResult.map((value) => {
+				m(".pt", searchResult().map((value) => {
 					return m(".pb.faq-items", [
 						// we can trust the faq entry here because it is sanitized in update-translations.js from the website project
 						// trust is required because the search results are marked with <mark> tag and the faq entries contain html elements.
@@ -71,7 +84,7 @@ export function showSupportDialog() {
 						m(".list-header", m.trust(value.text))
 					])
 				})),
-				searchValue().trim()
+				searchExecuted
 					? m(".pb", [
 						m(".b", lang.get("noSolution_msg")),
 						m(ButtonN, contactSupport),
@@ -90,7 +103,9 @@ export function showSupportDialog() {
 		child
 	).addShortcut({
 		key: Keys.ESC,
-		exec: () => {dialog.close()},
+		exec: () => {
+			closeAction()
+		},
 		help: "close_alt"
 	})
 	dialog.show()

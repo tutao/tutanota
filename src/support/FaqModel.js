@@ -3,7 +3,6 @@ import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
 import {downcast} from "../api/common/utils/Utils"
 import {search} from "../search/Search"
-import stream from "mithril/stream/stream.js"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 
 export type FaqEntry = {
@@ -22,20 +21,17 @@ const MARKDOWN_SUFFIX = "_markdown"
 
 /**
  * Loads FAQ entries from tutanota.com for different languages and allows searching
+ *
+ *
  */
-class FaqModel {
+// visibility only for testing
+export class FaqModel {
 	_list: Array<FaqEntry>;
-	searchQuery: Stream<string>;
-	searchResult: FaqEntry[];
 	_currentLanguageCode: string;
 	_faqLanguages: LanguageViewModelType;
 	_lazyLoaded: LazyLoaded<void>;
 
 	constructor() {
-		this.searchQuery = stream("")
-		this.searchQuery.map(query => {
-			this.search(query)
-		})
 		this._lazyLoaded = new LazyLoaded(() => {
 			return Promise.all([
 				this.fetchFAQ("en"),
@@ -62,7 +58,7 @@ class FaqModel {
 				return translations.json()
 			}).catch(error => {
 					console.log("Failed to fetch FAQ entries", error)
-					return null
+					return {keys: {}, code: langCode}
 				}
 			)
 	}
@@ -81,11 +77,12 @@ class FaqModel {
 		return this._list
 	}
 
-	search(query: string) {
-		if (query.trim() === "") {
-			this.searchResult = []
+	search(query: string): Array<FaqEntry> {
+		const cleanQuery = query.trim()
+		if (cleanQuery === "") {
+			return []
 		} else {
-			this.searchResult = search(query, this.getList(), ['tags', 'title', 'text'], true);
+			return search(cleanQuery, this.getList(), ['tags', 'title', 'text'], true)
 		}
 	}
 

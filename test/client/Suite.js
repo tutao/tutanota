@@ -20,7 +20,7 @@ import "./calendar/CalendarModelTest"
 import "./calendar/CalendarUtilsTest"
 import "./calendar/CalendarParsertest"
 import "./calendar/CalendarImporterTest"
-
+import "./support/FaqModelTest"
 import o from "ospec/ospec.js"
 
 node(() => {
