@@ -13,6 +13,7 @@ import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {faq} from "./FaqModel"
 import {MailEditor} from "../mail/MailEditor"
+import {Keys} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -87,6 +88,10 @@ export function showSupportDialog() {
 	const dialog = Dialog.largeDialog(
 		header,
 		child
-	)
+	).addShortcut({
+		key: Keys.ESC,
+		exec: () => {dialog.close()},
+		help: "close_alt"
+	})
 	dialog.show()
 }
