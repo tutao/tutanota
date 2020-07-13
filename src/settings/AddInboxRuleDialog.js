@@ -64,12 +64,14 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			rule.value = _getCleanedValue(inboxRuleType(), inboxRuleValue())
 			rule.targetFolder = inboxRuleTarget()._id
 			const props = logins.getUserController().props
-			if (isNewRule) {
-				props.inboxRules.push(rule)
-			} else {
-				props.inboxRules = props.inboxRules.map(inboxRule => isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule)
-			}
-			update(props).catch(LockedError, noOp)
+			const inboxRules = props.inboxRules
+			props.inboxRules = isNewRule ? [...inboxRules, rule] : inboxRules.map(inboxRule => isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule)
+			update(props)
+				.catch(error => {
+					props.inboxRules = inboxRules
+					throw error
+				})
+				.catch(LockedError, noOp)
 			dialog.close()
 		}
 
