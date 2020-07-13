@@ -227,7 +227,7 @@ export function _loadEntityRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, 
 	})
 }
 
-export function firstCustomIdIsBigger(left: string, right: string) {
+export function firstCustomIdIsBigger(left: Id, right: Id) {
 	return firstBiggerThanSecond(customIdToString(left), customIdToString(right))
 }
 
@@ -241,8 +241,8 @@ export function firstCustomIdIsBigger(left: string, right: string) {
  * @param typeModel
  * @return {(function(string, string): boolean)}
  */
-export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((string, string) => boolean) {
-	if (typeModel.values["_id"].type === "CustomId") {
+export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): ((Id, Id) => boolean) {
+	if (typeModel.values["_id"].type === ValueType.CustomId) {
 		return firstCustomIdIsBigger
 	} else {
 		return firstBiggerThanSecond
