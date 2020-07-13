@@ -87,6 +87,7 @@ import {EntityClient} from "../../common/EntityClient"
 import {createTakeOverDeletedAddressData} from "../../entities/sys/TakeOverDeletedAddressData"
 import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
+import {createEntropyData} from "../../entities/tutanota/EntropyData"
 
 assertWorkerOrNode()
 
@@ -551,15 +552,17 @@ export class LoginFacade {
 	storeEntropy(): Promise<void> {
 		// We only store entropy to the server if we are the leader
 		if (!this._accessToken || !this.isLeader()) return Promise.resolve()
-		return this._entity.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
-			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
-			return update(tutanotaProperties)
-				.catch(LockedError, noOp)
-		}).catch(ConnectionError, e => {
-			console.log("could not store entropy", e)
-		}).catch(ServiceUnavailableError, e => {
-			console.log("could not store entropy", e)
+		const userGroupKey = this.getUserGroupKey()
+		const entropyData = createEntropyData({
+			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32))
 		})
+		return serviceRequestVoid(TutanotaService.EntropyService, HttpMethod.PUT, entropyData)
+			.catch(ConnectionError, e => {
+				console.log("could not store entropy", e)
+			})
+			.catch(ServiceUnavailableError, e => {
+				console.log("could not store entropy", e)
+			})
 	}
 
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
