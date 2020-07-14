@@ -1,22 +1,25 @@
 //@flow
 
-import type {IndexName, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
+import type {DbKey, ObjectStoreName} from "../../../../src/api/worker/search/DbFacade"
 import {
 	DbTransaction,
+	osName
+} from "../../../../src/api/worker/search/DbFacade"
+import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import {
 	ElementDataOS,
 	GroupDataOS,
 	indexName,
-	osName,
 	SearchIndexMetaDataOS,
 	SearchIndexOS,
 	SearchIndexWordsIndex
-} from "../../../../src/api/worker/search/DbFacade"
-import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+} from "../../../../src/api/worker/search/Indexer";
+import type {IndexName} from "../../../../src/api/worker/search/Indexer";
 
 export type Index = {[indexName: string]: string}
 
 export type TableStub = {
-	content: {[key: string | number]: any},
+	content: {[key: DbKey]: any},
 	autoIncrement: boolean,
 	indexes: Index,
 	keyPath: ?string,
@@ -68,7 +71,7 @@ export class DbStubTransaction implements DbTransaction {
 		this.aborted = false
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<{key: DbKey, value: any}[]> {
 		const entries = Object.entries(this._dbStub.getObjectStore(objectStore).content)
 		                      .map(([key, value]) => {
 			                      return {key, value}
@@ -76,11 +79,11 @@ export class DbStubTransaction implements DbTransaction {
 		return Promise.resolve(entries)
 	}
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T> {
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
 		return Promise.try(() => this.getSync(objectStore, key, indexName))
 	}
 
-	getSync<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): T {
+	getSync<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): T {
 		if (indexName) {
 			const table = this._dbStub.getObjectStore(objectStore)
 			const indexField = table.indexes[indexName]
@@ -94,12 +97,12 @@ export class DbStubTransaction implements DbTransaction {
 		}
 	}
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
 		           .then(result => result || [])
 	}
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any> {
 		const table = this._dbStub.getObjectStore(objectStore)
 		if (table.keyPath) {
 			key = value[table.keyPath]
@@ -123,9 +126,8 @@ export class DbStubTransaction implements DbTransaction {
 		}
 	}
 
-
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void> {
-		delete this._dbStub.getObjectStore(objectStore)[key]
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
+		delete this._dbStub.getObjectStore(objectStore).content[key]
 		return Promise.resolve()
 	}
 

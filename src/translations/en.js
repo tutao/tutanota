@@ -1369,6 +1369,11 @@ export default {
 		"you_label": "You",
 		"tutanotaAddressDoesNotExist_msg": "The following Tutanota email addresses do not exist.",
 		"featureTutanotaOnly_msg": "You may only use this feature with other Tutanota users.",
+		"allowExternalContentSender_action": "Always trust sender",
+		"showImages_action": "Show images",
+		"disallowExternalContent_action": "Block external content",
+		"mailAuthMissingWithTechnicalSender_msg": "We could not prove that the content or sender of this message is valid. The technical sender is: {sender}.",
+		"featureTutanotaOnly_msg": "You may only use this feature with other Tutanota users.",
 		"configureCustomNotificationEmail_label": "Configure your own notification email"
 	}
 }

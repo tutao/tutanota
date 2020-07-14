@@ -8,9 +8,11 @@ import {px, size} from "../size"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
 
 export type ButtonParams = {
-	text: string,
+	text: TranslationKey | lazy<string>,
 	click: () => mixed,
 }
 
@@ -22,9 +24,9 @@ export type BannerTypeEnum = $Values<typeof BannerType>
 
 export type BannerAttrs = {
 	icon: AllIconsEnum,
-	title: string,
-	message: string,
-	helpLink?: ?string,
+	title: TranslationKey | lazy<string>,
+	message: TranslationKey | lazy<string>,
+	helpLink?: ?InfoLink,
 	buttons: $ReadOnlyArray<ButtonParams>,
 	type: BannerTypeEnum
 }
@@ -53,9 +55,9 @@ export class Banner implements MComponent<BannerAttrs> {
 				: null,
 			m(".flex.col", [
 				m("", [
-					m("span.text-break" + (attrs.type === BannerType.Warning ? ".b" : ""), attrs.title),
+					m("span.text-break" + (attrs.type === BannerType.Warning ? ".b" : ""), lang.getMaybeLazy(attrs.title)),
 					isVertical ? m("br") : m("span", " "),
-					m("span.text-break", attrs.message),
+					m("span.text-break", lang.getMaybeLazy(attrs.message)),
 				]),
 				m(".flex", attrs.buttons.map((b) => m("button.border-radius.mt-s.mr-s.center", {
 					style: {
@@ -67,22 +69,35 @@ export class Banner implements MComponent<BannerAttrs> {
 						minWidth: "60px",
 					},
 					onclick: b.click,
-				}, b.text))),
+				}, lang.getMaybeLazy(b.text)))),
 
 			]),
 			m(".flex-grow"),
 			attrs.helpLink
-				? m("a", {
-					style: {"align-self": "end", background: "transparent"},
-					href: attrs.helpLink,
-					target: "_blank",
-				}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: colors.button, display: "block"}}))
+				? m(BannerHelpLink, {link: attrs.helpLink, color: colors.button, align: "end"})
 				: null
 		]);
 	}
 }
 
-function getColors(type: BannerTypeEnum): Colors {
+export type BannerHelpLinkAttrs = {
+	link: InfoLink,
+	color: string,
+	align: string // passed to css "align-self"
+}
+
+export class BannerHelpLink implements MComponent<BannerHelpLinkAttrs> {
+	view(vnode: Vnode<BannerHelpLinkAttrs>): Children {
+		const a = vnode.attrs
+		return m("a.ml-s.bg-transparent", {
+			style: {"align-self": a.align},
+			href: lang.getInfoLink(a.link),
+			target: "_blank",
+		}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: a.color, display: "block"}}))
+	}
+}
+
+function getColors(type: BannerTypeEnum): BannerColors {
 	if (type === BannerType.Warning) {
 		return {bg: "#ca0606", fg: "white", button: "white", border: "none"}
 	} else {
@@ -90,18 +105,18 @@ function getColors(type: BannerTypeEnum): Colors {
 	}
 }
 
-type Colors = {
+export type BannerColors = {
 	bg: string,
 	fg: string,
 	border: string,
 	button: string,
 }
 
-type BannerButtonAttrs = {
+export type BannerButtonAttrs = {
 	borderColor: string,
 	color: string,
 	click: () => mixed,
-	text: string
+	text: TranslationKey | lazy<string>
 }
 
 export class BannerButton implements MComponent<BannerButtonAttrs> {
@@ -116,6 +131,6 @@ export class BannerButton implements MComponent<BannerButtonAttrs> {
 				minWidth: "60px",
 			},
 			onclick: attrs.click,
-		}, attrs.text)
+		}, lang.getMaybeLazy(attrs.text))
 	}
 }

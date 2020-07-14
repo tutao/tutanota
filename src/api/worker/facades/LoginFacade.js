@@ -384,7 +384,7 @@ export class LoginFacade {
 				throw e
 			})
 	}
-	
+
 	_initIndexer(): Promise<void> {
 		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
 		           .catch(ServiceUnavailableError, e => {
@@ -521,7 +521,6 @@ export class LoginFacade {
 	getGroupIds(groupType: GroupTypeEnum): Id[] {
 		return this.getLoggedInUser().memberships.filter(m => m.groupType === groupType).map(gm => gm.group)
 	}
-
 
 	isLoggedIn(): boolean {
 		return this._user != null

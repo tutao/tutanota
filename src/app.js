@@ -258,6 +258,12 @@ function setupExceptionHandling() {
 			evt.preventDefault()
 		}
 	})
+
+	// Handle unhandled native JS Promise rejections
+	window.addEventListener('unhandledrejection', function (evt) {
+		handleUncaughtError(evt.reason)
+		evt.preventDefault()
+	})
 }
 
 env.dist && isTutanotaDomain() && setTimeout(() => {

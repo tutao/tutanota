@@ -169,7 +169,7 @@ export const languages: $ReadOnlyArray<{code: LanguageCode, textId: TranslationK
 })
 
 
-const infoLinks = {
+const infoLinks = Object.freeze({
 	"homePage_link": "https://tutanota.com",
 	"about_link": "https://tutanota.com/imprint",
 	//terms
@@ -186,10 +186,13 @@ const infoLinks = {
 	"phishing_link": "https://tutanota.com/faq#phishing",
 	"mailAuth_link": "https://tutanota.com/faq#mail-auth",
 	"runInBackground_link": "https://tutanota.com/faq#tray",
+	"loadImages_link": "https://tutanota.com/faq#load-images",
 	"giftCardsTerms_link": "https://tutanota.com/faq#gift-cards-terms",
 	//blog
 	"premiumProBusiness_link": "https://tutanota.com/blog/posts/premium-pro-business"
-}
+})
+
+export type InfoLink = $Keys<typeof infoLinks>
 
 /**
  * Provides all localizations of strings on our gui.
@@ -421,10 +424,9 @@ export class LanguageViewModel {
 		return typeof value === "function" ? value() : lang.get(value)
 	}
 
-	getInfoLink(id: string): string {
+	getInfoLink(id: InfoLink): string {
 		return infoLinks[id]
 	}
-
 }
 
 /**

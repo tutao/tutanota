@@ -1,6 +1,5 @@
 //@flow
 import type {DbTransaction} from "./DbFacade"
-import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
 import type {DeferredObject} from "../../common/utils/Utils"
@@ -57,6 +56,7 @@ import {random} from "../crypto/Randomizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {elementIdPart, firstBiggerThanSecond, listIdPart} from "../../common/utils/EntityUtils";
 import {TypeRef} from "../../common/utils/TypeRef";
+import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./Indexer"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

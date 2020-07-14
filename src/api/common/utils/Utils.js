@@ -507,3 +507,12 @@ const ErrorNameToType = {
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureTypeEnum): boolean {
 	return !!customer.customizations.find(customization => customization.feature === feature)
 }
+
+/**
+ * If val is non null, returns the result of val passed to action, else null
+ */
+export function mapNullable<T, U>(val: ?T, action: T => U): U | null {
+	return val != null
+		? action(val)
+		: null
+}

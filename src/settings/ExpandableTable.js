@@ -2,7 +2,7 @@
 
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import type {TranslationKey} from "../misc/LanguageViewModel"
+import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import type {TableAttrs} from "../gui/base/TableN"
 import {TableN} from "../gui/base/TableN"
 import {SettingsExpander} from "./SettingsExpander"
@@ -11,7 +11,7 @@ type ExpandableTableAttrs = {|
 	title: TranslationKey | lazy<string>,
 	table: TableAttrs,
 	infoMsg: TranslationKey | lazy<string>,
-	infoLinkId?: string,
+	infoLinkId?: InfoLink,
 	// ExpandableTable uses internal state whenever this isn't passed in
 	expanded?: Stream<boolean>,
 	onExpand?: () => void,

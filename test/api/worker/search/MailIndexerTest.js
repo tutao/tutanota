@@ -3,7 +3,6 @@ import o from "ospec"
 import {NotAuthorizedError} from "../../../../src/api/common/error/RestError"
 import type {Db, ElementDataDbRow, IndexUpdate} from "../../../../src/api/worker/search/SearchTypes"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
-import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {MailStateEnum, OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {
 	FULL_INDEXED_TIMESTAMP,
@@ -46,6 +45,7 @@ import {EntityRestClientMock} from "../EntityRestClientMock"
 import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
 import {getElementId, getListId} from "../../../../src/api/common/utils/EntityUtils";
+import {ElementDataOS, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
 
 class FixedDateProvider implements DateProvider {
 	now: number;

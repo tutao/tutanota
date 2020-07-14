@@ -60,19 +60,19 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 		m(".pt", lang.get("invitedToEvent_msg")),
 		m(".flex.items-center.mt", [
 			m(BannerButton, {
-				text: lang.get("yes_label"),
+				text: "yes_label",
 				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.ACCEPTED, previousMail),
 				borderColor: theme.content_button,
 				color: theme.content_fg
 			}),
 			m(BannerButton, {
-				text: lang.get("maybe_label"),
+				text: "maybe_label",
 				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.TENTATIVE, previousMail),
 				borderColor: theme.content_button,
 				color: theme.content_fg
 			}),
 			m(BannerButton, {
-				text: lang.get("no_label"),
+				text: "no_label",
 				click: () => sendResponse(event, recipient, CalendarAttendeeStatus.DECLINED, previousMail),
 				borderColor: theme.content_button,
 				color: theme.content_fg

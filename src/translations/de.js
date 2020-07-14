@@ -1062,7 +1062,6 @@ export default {
 		"reportPhishing_action": "Als Phishing melden",
 		"reportSpam_action": "Als Spam melden",
 		"requestApproval_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da dein Account erst freigegeben werden muss, um Missbrauch wie Spam zu verhindern. Bitte schreibe uns an approval@tutao.de direkt von deinem Tutanota-Account und beschreibe, wozu du diesen E-Mail-Account verwenden möchtest.",
-		"requestTooLarge_msg": "Die Datenmenge ist zu groß. Bitte kürze den Text.",
 		"requiresNewWindow_msg": "Änderung wird in neuen Fenstern aktiv.",
 		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
 		"responsiblePersonsInfo_msg": "Schränkt die Benutzer ein, an die die Nachricht von der empfangenden Mailbox weitergeleitet werden können. Wenn die Liste keine Benutzer enthält, gibt es keine Einschränkungen.",
@@ -1234,7 +1233,6 @@ export default {
 		"takeoverMailAddress_label": "Adresse des Ziel-Accounts",
 		"takeoverSuccess_msg": "Du kannst jetzt deine E-Mail-Adresse in dem angegebenen Account als E-Mail-Alias oder zusätzlicher Benutzer wiederverwenden.",
 		"takeOverUnusedAddress_msg": "Du kannst die E-Mail-Adresse deines gelöschten Accounts in einen anderen bezahlten Account übernehmen und dort weiterverwenden. Dafür gib bitte die E-Mail-Adresse des Administrators des Ziel-Accounts an. Bitte beachte Sie auch: Wenn du einen zweiten Faktor für die Authentifizierung eingerichtet hattest, musst du jetzt stattdessen deinen Wiederherstellungs-Code angeben, da die Zwei-Faktor-Authentifizierung für einen gelöschten Account nicht möglich ist.",
-		"targetAddress_label": "Adresse des Ziel-Accounts",
 		"technicalSender_msg": "Der technische Absender ist: {sender}",
 		"templateGroupDefaultName_label": "Meine Vorlagen",
 		"templateGroupHasMember_msg": "Entferne bitte alle Mitglieder, wenn du die Gruppe löschen möchtest.",
@@ -1242,6 +1240,7 @@ export default {
 		"templateGroupName_label": "Name der Vorlagenliste",
 		"templateGroupParticipants_label": "Nutzer der Vorlagenliste \"{groupname}\"",
 		"templateGroup_label": "Vorlage",
+		"targetAddress_label": "Ziel-Adresse des Accounts",
 		"templateHelp_msg": "In diesem Formular kann die Benachrichtigungs-E-Mail angepasst werden, mit der der Link zur verschlüsselten Mailbox versendet wird. Die Nachricht muss den Platzhalter \"{link}\" enthalten, welcher mit dem tatsächlichen Link ersetzt wird. Zusätzlich kann im Betreff und in der Nachricht der Platzhalter \"{sender}\" verwenden werden, welcher durch den Namen des Absenders ersetzt wird.",
 		"templateLanguageExists_msg": "Eine Vorlage for die ausgewählte Sprache existiert bereits.",
 		"templateMustContain_msg": "Die Nachricht muss den Platzhalter {value} enthalten",
@@ -1370,6 +1369,11 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
+		"requestTooLarge_msg": "Deine Anfrage war zu groß für den Server",
+		"allowExternalContentSender_action": "Absender immer vertrauen",
+		"showImages_action": "Bilder anzeigen",
+		"disallowExternalContent_action": "Bilder blockieren",
+		"mailAuthMissingWithTechnicalSender_label": "Wir konnten nicht prüfen, ob der Absender und der Inhalt dieser Nachricht gültig sind. Der technische Absender ist: {sender}",
 		"you_label": "Du"
 	}
 }

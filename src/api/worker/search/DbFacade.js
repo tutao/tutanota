@@ -3,36 +3,32 @@ import {DbError} from "../../common/error/DbError"
 import {LazyLoaded} from "../../common/utils/LazyLoaded"
 import {IndexingNotSupportedError} from "../../common/error/IndexingNotSupportedError"
 import {QuotaExceededError} from "../../common/error/QuotaExceededError"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {hash} from "../crypto/Sha256"
+import type {User} from "../../entities/sys/User"
+import {getEtId} from "../../common/utils/EntityUtils"
+import type {IndexName} from "./Indexer"
 
 
 export type ObjectStoreName = string
-export const SearchIndexOS: ObjectStoreName = "SearchIndex"
-export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
-export const ElementDataOS: ObjectStoreName = "ElementData"
-export const MetaDataOS: ObjectStoreName = "MetaData"
-export const GroupDataOS: ObjectStoreName = "GroupMetaData"
-export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 
-export type IndexName = string
-export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
-export const indexName = (indexName: IndexName): string => indexName
+export type DbKey = string | number | Uint8Array
 
-const DB_VERSION = 3
-
+export type DatabaseEntry = {key: DbKey, value: any}
 
 export interface DbTransaction {
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]>;
+	getAll(objectStore: ObjectStoreName): Promise<Array<DatabaseEntry>>;
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T>;
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T>;
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]>;
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]>;
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any>;
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any>;
 
 
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void>;
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void>;
 
 	abort(): void;
 
@@ -54,11 +50,10 @@ export class DbFacade {
 	_id: string;
 	_db: LazyLoaded<IDBDatabase>;
 	_activeTransactions: number;
-	indexingSupported: boolean;
+	indexingSupported: boolean = true;
 
-	constructor(supported: boolean, onupgrade?: () => void) {
+	constructor(version: number, onupgrade: (event: any, db: IDBDatabase) => void) {
 		this._activeTransactions = 0
-		this.indexingSupported = supported
 		this._db = new LazyLoaded(() => {
 			// If indexedDB is disabled in Firefox, the browser crashes when accessing indexedDB in worker process
 			// ask the main thread if indexedDB is supported.
@@ -69,7 +64,7 @@ export class DbFacade {
 					let DBOpenRequest
 					try {
 
-						DBOpenRequest = self.indexedDB.open(this._id, DB_VERSION)
+						DBOpenRequest = self.indexedDB.open(this._id, version)
 						DBOpenRequest.onerror = (event) => {
 							// Copy all the keys from the error, including inheritent ones so we can get some info
 
@@ -91,30 +86,10 @@ export class DbFacade {
 
 						DBOpenRequest.onupgradeneeded = (event) => {
 							//console.log("upgrade db", event)
-							let db = event.target.result
-							if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
-								if (onupgrade) onupgrade()
-
-								this._deleteObjectStores(db,
-									SearchIndexOS,
-									ElementDataOS,
-									MetaDataOS,
-									GroupDataOS,
-									SearchTermSuggestionsOS,
-									SearchIndexMetaDataOS
-								)
-							}
-
 							try {
-								db.createObjectStore(SearchIndexOS, {autoIncrement: true})
-								const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
-								db.createObjectStore(ElementDataOS)
-								db.createObjectStore(MetaDataOS)
-								db.createObjectStore(GroupDataOS)
-								db.createObjectStore(SearchTermSuggestionsOS)
-								metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
+								onupgrade(event, event.target.result)
 							} catch (e) {
-								callback(new DbError("could not create object store searchindex", e))
+								callback(new DbError("could not create object store for DB " + this._id, e))
 							}
 						}
 
@@ -137,19 +112,9 @@ export class DbFacade {
 		})
 	}
 
-	_deleteObjectStores(db: IDBDatabase, ...oss: string[]) {
-		for (let os of oss) {
-			try {
-				db.deleteObjectStore(os)
-			} catch (e) {
-				console.log("Error while deleting old os", os, "ignoring", e)
-			}
-		}
-	}
-
-	open(id: string): Promise<void> {
+	open(id: string): Promise<*> {
 		this._id = id
-		return this._db.getAsync().return()
+		return this._db.getAsync()
 	}
 
 	/**
@@ -240,7 +205,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAll(objectStore: ObjectStoreName): Promise<{key: string | number, value: any}[]> {
+	getAll(objectStore: ObjectStoreName): Promise<Array<DatabaseEntry>> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let keys = []
@@ -263,7 +228,7 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	get<T>(objectStore: ObjectStoreName, key: (string | number), indexName?: IndexName): Promise<?T> {
+	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<?T> {
 		return Promise.fromCallback((callback) => {
 			try {
 				const os = this._transaction.objectStore(objectStore)
@@ -285,12 +250,12 @@ export class IndexedDbTransaction implements DbTransaction {
 		})
 	}
 
-	getAsList<T>(objectStore: ObjectStoreName, key: string | number, indexName?: IndexName): Promise<T[]> {
+	getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {
 		return this.get(objectStore, key, indexName)
 		           .then(result => result || [])
 	}
 
-	put(objectStore: ObjectStoreName, key: ?(string | number), value: any): Promise<any> {
+	put(objectStore: ObjectStoreName, key: ?DbKey, value: any): Promise<any> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = key
@@ -309,7 +274,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 
-	delete(objectStore: ObjectStoreName, key: string | number): Promise<void> {
+	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
 		return Promise.fromCallback((callback) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
@@ -368,4 +333,8 @@ export class IndexedDbTransaction implements DbTransaction {
 			}
 		}
 	}
+}
+
+export function b64UserIdHash(user: User): string {
+	return uint8ArrayToBase64(hash(stringToUtf8Uint8Array(getEtId(user))))
 }

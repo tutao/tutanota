@@ -5,7 +5,6 @@ import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanot
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
 import {neverNull} from "../../common/utils/Utils"
-import {GroupDataOS, MetaDataOS} from "./DbFacade"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import type {ContactList} from "../../entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
@@ -14,6 +13,7 @@ import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
+import {GroupDataOS, MetaDataOS} from "./Indexer";
 
 export class ContactIndexer {
 	_core: IndexerCore;

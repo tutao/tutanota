@@ -591,6 +591,18 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("checkMailForPhishing", [mail, links]))
 	}
 
+	addAllowedExternalSender(address: string): Promise<void> {
+		return this._queue.postMessage(new Request("addAllowedExternalSender", [address]))
+	}
+
+	removeAllowedExternalSender(address: string): Promise<void> {
+		return this._queue.postMessage(new Request("removeAllowedExternalSender", [address]))
+	}
+
+	isAllowedExternalSender(address: string): Promise<boolean> {
+		return this._queue.postMessage(new Request("isAllowedExternalSender", [address]))
+	}
+
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
 		return this._queue.postMessage(new Request("getEventByUid", [uid]))
 	}

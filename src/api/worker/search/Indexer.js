@@ -3,12 +3,11 @@ import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
-import type {DbTransaction} from "./DbFacade"
-import {DbFacade, GroupDataOS, MetaDataOS} from "./DbFacade"
+import type {DbKey, DbTransaction, DatabaseEntry, ObjectStoreName} from "./DbFacade"
+import {b64UserIdHash, DbFacade} from "./DbFacade"
 import type {DeferredObject} from "../../common/utils/Utils"
 import {defer, downcast, neverNull, noOp} from "../../common/utils/Utils"
-import {hash} from "../crypto/Sha256"
-import {generatedIdToTimestamp, stringToUtf8Uint8Array, timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
+import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/Encoding"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {decrypt256Key, encrypt256Key} from "../crypto/CryptoFacade"
 import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
@@ -42,13 +41,10 @@ import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
-import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	getElementId,
-	isSameId
-} from "../../common/utils/EntityUtils";
+import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import {deleteObjectStores} from "../utils/DbUtils"
+import {promiseMap} from "../../common/utils/PromiseUtils"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -60,6 +56,43 @@ export const Metadata = {
 export type InitParams = {
 	user: User;
 	groupKey: Aes128Key;
+}
+
+export type IndexName = string
+export const indexName = (indexName: IndexName): string => indexName
+
+export const SearchIndexOS: ObjectStoreName = "SearchIndex"
+export const SearchIndexMetaDataOS: ObjectStoreName = "SearchIndexMeta"
+export const ElementDataOS: ObjectStoreName = "ElementData"
+export const MetaDataOS: ObjectStoreName = "MetaData"
+export const GroupDataOS: ObjectStoreName = "GroupMetaData"
+export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
+export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
+
+const DB_VERSION: number = 3
+
+export function newSearchIndexDB(): DbFacade {
+	return new DbFacade(DB_VERSION, (event, db) => {
+		if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
+
+			deleteObjectStores(db,
+				SearchIndexOS,
+				ElementDataOS,
+				MetaDataOS,
+				GroupDataOS,
+				SearchTermSuggestionsOS,
+				SearchIndexMetaDataOS
+			)
+		}
+
+		db.createObjectStore(SearchIndexOS, {autoIncrement: true})
+		const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {autoIncrement: true, keyPath: "id"})
+		db.createObjectStore(ElementDataOS)
+		db.createObjectStore(MetaDataOS)
+		db.createObjectStore(GroupDataOS)
+		db.createObjectStore(SearchTermSuggestionsOS)
+		metaOS.createIndex(SearchIndexWordsIndex, "word", {unique: true})
+	})
 }
 
 export class Indexer {
@@ -92,9 +125,7 @@ export class Indexer {
 		let deferred = defer()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
-			dbFacade: new DbFacade(browserData.indexedDbSupported, () => {
-				worker.infoMessage({translationKey: "indexDeleted_msg", args: {}})
-			}),
+			dbFacade: newSearchIndexDB(),
 			key: neverNull(null),
 			iv: neverNull(null),
 			initialized: deferred.promise
@@ -128,7 +159,7 @@ export class Indexer {
 			user,
 			groupKey: userGroupKey,
 		}
-		return this.db.dbFacade.open(uint8ArrayToBase64(hash(stringToUtf8Uint8Array(user._id)))).then(() => {
+		return this.db.dbFacade.open(b64UserIdHash(user)).then(() => {
 			let dbInit = (): Promise<void> => {
 				return this.db.dbFacade.createTransaction(true, [MetaDataOS]).then(t => {
 					return t.get(MetaDataOS, Metadata.userEncDbKey).then(userEncDbKey => {
@@ -297,12 +328,12 @@ export class Indexer {
 
 	async _updateIndexedGroups(): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		const indexedGroupIds = (await t.getAll(GroupDataOS))
-			.map((groupDataEntry: {key: string | number, value: GroupData}) => downcast<Id>(groupDataEntry.key))
+		const indexedGroupIds = await promiseMap(t.getAll(GroupDataOS),
+			(groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
 		if (indexedGroupIds.length === 0) {
 			// tried to index twice, this is probably not our fault
 			console.log("no group ids in database, disabling indexer")
-				           this.disableMailIndexing("no group ids were found in the database")
+			this.disableMailIndexing("no group ids were found in the database")
 		}
 		this._indexedGroupIds = indexedGroupIds
 	}
@@ -313,7 +344,7 @@ export class Indexer {
 			return {id: m.group, type: getMembershipGroupType(m)}
 		})
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-			return t.getAll(GroupDataOS).then((loadedGroups: {key: Id | number, value: GroupData}[]) => {
+			return t.getAll(GroupDataOS).then((loadedGroups: {key: DbKey, value: GroupData}[]) => {
 				let oldGroups = loadedGroups.map((group) => {
 					const id: Id = downcast(group.key)
 					return {id, type: group.value.groupType}
@@ -426,7 +457,7 @@ export class Indexer {
 							           // Bad scenario happened.
 							           // None of the events we want to process were processed before, we're too far away, stop the process and delete
 							           // the index.
-						           throw new OutOfSyncError()
+							           throw new OutOfSyncError()
 						           }
 						           batchesOfAllGroups.push(...batchesToQueue)
 					           })
