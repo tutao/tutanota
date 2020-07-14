@@ -827,12 +827,26 @@ styles.registerStyle('main', () => {
 		'.primary': {color: theme.content_accent, 'font-weight': 'bold'},
 		'.secondary': {color: theme.content_accent},
 		'.textBubble': {color: theme.content_accent, 'padding-top': px(size.text_bubble_tpad)},
-		'.bubble': {
-			'margin': px(size.vpad_small / 2),
-			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
+		'.bubble, .toggle': {
+			'max-width': "300px",
+			// make the visible button smaller by 7px without changing the actual click area
+			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
+			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
+			'background-color': theme.button_bubble_bg,
+			color: theme.button_bubble_fg,
+		},
+		'.bubbleTag': {
 			'max-width': "300px",
 			'border-radius': px(size.border_radius),
+			'margin': px(size.vpad_small / 2),
 			'background-color': theme.button_bubble_bg,
+			'padding': `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
+		},
+		'mark': {
+			// 'background-color': theme.content_button,
+			// 'color': theme.content_button_icon,
+			'background-color': theme.content_accent,
+			'color': theme.content_button_icon_selected,
 		},
 		'.on': {
 			'background-color': theme.content_button_selected

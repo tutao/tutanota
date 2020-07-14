@@ -49,7 +49,7 @@ export function showSupportDialog() {
 
 	const contactSupport: ButtonAttrs = {
 		label: "contactSupport_action",
-		type: ButtonType.Secondary,
+		type: ButtonType.Login,
 		click: () => {
 			MailEditor.writeSupportMail(searchValue().trim())
 			closeAction()
@@ -80,14 +80,14 @@ export function showSupportDialog() {
 						// trust is required because the search results are marked with <mark> tag and the faq entries contain html elements.
 						m(".b", m.trust(value.title)),
 						m(".flex-start.ml-negative-bubble.flex-wrap", value.tags.split(",").filter((tag => tag
-							!== "")).map(tag => m(".bubble.plr-button", m.trust(tag.trim())))),
+							!== "")).map(tag => m(".bubbleTag.plr-button", m.trust(tag.trim())))),
 						m(".list-header", m.trust(value.text))
 					])
 				})),
 				searchExecuted
 					? m(".pb", [
-						m(".b", lang.get("noSolution_msg")),
-						m(ButtonN, contactSupport),
+						m(".h1 .text-center", lang.get("noSolution_msg")),
+						m(".flex.center-horizontally.pt", m(".flex-grow-shrink-auto.max-width-200", m(ButtonN, contactSupport))),
 					])
 					: null
 			]
