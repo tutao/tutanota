@@ -49,7 +49,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				: null,
 			m(ButtonN, attachDropdown(
 				{
-					label: "supportMenu_label" ,
+					label: "showHelp_action" ,
 					icon: () => BootIcons.Help,
 					type: ButtonType.ActionLarge,
 					click: noOp,
@@ -78,7 +78,8 @@ export class DrawerMenu implements MComponent<Attrs> {
 						keyManager.openF1Help();
 						return false;
 					}
-				}
+				},
+				300
 			)),
 			isNewMailActionAvailable()
 				? m(ButtonN, {
