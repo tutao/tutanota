@@ -25,7 +25,7 @@ const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 type SanitizeConfig = SanitizeConfigExtra & SanitizeConfigBase
 
 type Link = HTMLElement
-type SanitizedHTML = {
+export type SanitizedHTML = {
 	html: DocumentFragment,
 	externalContent: Array<string>,
 	inlineImageCids: Array<string>,

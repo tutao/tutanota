@@ -1,5 +1,5 @@
 // @flow
-import type {TranslationKey} from "../misc/LanguageViewModel"
+import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m from "mithril"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
@@ -9,7 +9,7 @@ export type SettingsExpanderAttrs = {|
 	title: TranslationKey | lazy<string>,
 	buttonText?: TranslationKey | lazy<string>,
 	infoMsg?: TranslationKey | lazy<string>,
-	infoLinkId?: string,
+	infoLinkId?: InfoLink,
 	onExpand?: () => void,
 	expanded: Stream<boolean>
 |}

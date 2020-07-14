@@ -3,7 +3,6 @@ import o from "ospec"
 import {_TypeModel as GroupInfoModel, createGroupInfo, GroupInfoTypeRef} from "../../../../src/api/entities/sys/GroupInfo"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db} from "../../../../src/api/worker/search/SearchTypes"
-import {GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
@@ -19,6 +18,7 @@ import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {browserDataStub} from "../../TestUtils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
+import {GroupDataOS} from "../../../../src/api/worker/search/Indexer";
 
 
 const dbMock: any = {iv: fixedIv}

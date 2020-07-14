@@ -1369,6 +1369,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
+		"mailAuthMissingWithTechnicalSender_label": "Wir konnten nicht prüfen, ob der Absender und der Inhalt dieser Nachricht gültig sind. Der technische Absender ist: {sender}",
 		"you_label": "Sie"
 	}
 }

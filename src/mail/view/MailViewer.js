@@ -84,7 +84,7 @@ import {showProgressDialog} from "../../gui/ProgressDialog"
 import Badge from "../../gui/base/Badge"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import type {ButtonAttrs, ButtonColorEnum} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {styles} from "../../gui/styles"
 import {worker} from "../../api/main/WorkerClient"
@@ -112,10 +112,12 @@ import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/Entit
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {locator} from "../../api/main/MainLocator"
-import {makeMailBundle} from "../export/Bundler"
 import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
 import {exportMails} from "../export/Exporter"
+import {InfoBanner} from "../../gui/base/InfoBanner"
 import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
+import {ActionBanner} from "../../gui/base/icons/ActionBanner"
+import type {SanitizedHTML} from "../../misc/HtmlSanitizer"
 
 assertMainOrNode()
 
@@ -128,6 +130,13 @@ type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
 const DOUBLE_TAP_TIME_MS = 350
 const SCROLL_FACTOR = 4 / 5
 
+export const ContentBlockingStatus = Object.freeze({
+	Block: "0",
+	Show: "1",
+	AlwaysShow: "2",
+	NoExternalContent: "3"
+})
+export type ExternalContentBlockingStatusEnum = $Values<typeof ContentBlockingStatus>;
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
@@ -141,7 +150,7 @@ export class MailViewer {
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
-	_contentBlocked: boolean;
+	_contentBlockingStatus: ExternalContentBlockingStatusEnum;
 	_domMailViewer: ?HTMLElement;
 	_bodyLineHeight: number;
 	_errorOccurred: boolean;
@@ -193,7 +202,8 @@ export class MailViewer {
 		this._attachmentButtons = []
 		this._htmlBody = ""
 		this._contrastFixNeeded = false
-		this._contentBlocked = false
+		// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
+		this._contentBlockingStatus = ContentBlockingStatus.NoExternalContent
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
 		this._domMailViewer = null
@@ -295,37 +305,31 @@ export class MailViewer {
 							this._suspicious
 								? m(Banner, {
 									type: BannerType.Warning,
-									title: lang.get("phishingMessage_label"),
-									message: lang.get("phishingMessageBody_msg"),
+									title: "phishingMessage_label",
+									message: "phishingMessageBody_msg",
 									icon: Icons.Warning,
-									helpLink: lang.getInfoLink("phishing_link"),
-									buttons: [{text: lang.get("markAsNotPhishing_action"), click: () => this._markAsNotPhishing()}]
+									helpLink: "phishing_link",
+									buttons: [{text: "markAsNotPhishing_action", click: () => this._markAsNotPhishing()}]
 								})
 								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL
 								? m(Banner, {
 									type: BannerType.Warning,
-									title: lang.get("mailAuthFailed_label"),
-									message: lang.get("mailAuthFailed_msg"),
+									title: "mailAuthFailed_label",
+									message: "mailAuthFailed_msg",
 									icon: Icons.Warning,
-									helpLink: lang.getInfoLink("mailAuth_link"),
-									buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
-								})
-								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL
-									? m(Banner, {
-										type: BannerType.Info,
-										title: lang.get("mailAuthMissing_label"),
-										message: mail.differentEnvelopeSender ? lang.get("technicalSender_msg", {"{sender}": mail.differentEnvelopeSender}) : "",
-										icon: Icons.Warning,
-										helpLink: lang.getInfoLink("mailAuth_link"),
-										buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
-									})
-									: null,
+									helpLink: "mailAuth_link",
+									buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+								}) : null,
 							this._renderEventBanner(),
 							this._renderAttachments(),
-							m("hr.hr.mb.mt-s"),
+							// We will only show one banner at a time, with priority given to the mail auth soft fail banner
+							// and fall back to just a separator
+							this._renderSoftAuthenticationFailWarning(mail)
+							|| this._renderExternalContentBanner()
+							|| m("hr.hr.mt-s")
 						]),
 
-						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating"
+						m(".rel.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt"
 							+ (client.isMobileDevice() ? "" : ".scroll-no-overlay")
 							+ (this._contrastFixNeeded ? ".bg-white.content-black" : " "), {
 								ontouchstart: (event) => {
@@ -529,7 +533,6 @@ export class MailViewer {
 		const actions = []
 		const colors = ButtonColors.Content
 
-		actions.push(this._createLoadExternalContentButton(mail, colors))
 		if (mail.state === MailState.DRAFT) {
 			actions.push(m(ButtonN, {
 				label: "edit_action",
@@ -605,7 +608,7 @@ export class MailViewer {
 				icon: () => Icons.More,
 				colors,
 				click: createDropdown(() => {
-					const moreButtons = []
+					const moreButtons: Array<ButtonAttrs> = []
 					if (this.mail.unread) {
 						moreButtons.push({
 							label: "markRead_action",
@@ -663,12 +666,27 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
+					if (this._isShowingExternalContent()) {
+						moreButtons.push({
+							label: "disallowExternalContent_action",
+							click: () => {
+								this._setContentBlockingStatus(ContentBlockingStatus.Block)
+							},
+							icon: () => Icons.Picture,
+							type: ButtonType.Dropdown
+						})
+					}
 					return moreButtons
-				}, /*width=*/300)
+				}, 300)
 			}))
 		}
 
 		return m(".action-bar.flex-end.items-center.mr-negative-s", actions)
+	}
+
+	_isShowingExternalContent(): boolean {
+		return this._contentBlockingStatus === ContentBlockingStatus.Show
+			|| this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow
 	}
 
 	_reportMail() {
@@ -789,36 +807,6 @@ export class MailViewer {
 		return createAsyncDropDownButton('forward_action', () => Icons.Forward, makeButtons, 250)
 	}
 
-	_createLoadExternalContentButton(mail: Mail, colors: ButtonColorEnum): Children {
-		return this._contentBlocked
-			? m(ButtonN, {
-				label: "contentBlocked_msg",
-				icon: () => Icons.Picture,
-				colors,
-				click: () => {
-					if (this._mailBody) {
-						Dialog.confirm("contentBlocked_msg", "showBlockedContent_action").then((confirmed) => {
-							if (confirmed) {
-								Promise.all([import("../../misc/Urlifier"), import("../../misc/HtmlSanitizer")])
-								       .then(([{urlify}, {htmlSanitizer}]) => {
-									       this._htmlBody = urlify(stringifyFragment(htmlSanitizer.sanitizeFragment(this._getMailBody(), {
-										       blockExternalContent: false,
-										       allowRelativeLinks: isTutanotaTeamMail(mail)
-									       }).html))
-									       this._contentBlocked = false
-									       this._domBodyDeferred = defer()
-									       this._replaceInlineImages()
-									       m.redraw()
-								       })
-							}
-						})
-					}
-				}
-			})
-			: null
-	}
-
-
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
@@ -844,43 +832,54 @@ export class MailViewer {
 	}
 
 	/** @return list of inline referenced cid */
-	_loadMailBody(mail: Mail): Promise<Array<string>> {
-		return this._entityClient.load(MailBodyTypeRef, mail.body).then(body => {
-			this._mailBody = body
-			return Promise.all([import("../../misc/HtmlSanitizer"), import("../../misc/Urlifier")]).then(([{htmlSanitizer}, {urlify}]) => {
-				let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), {allowRelativeLinks: isTutanotaTeamMail(mail)})
-				this._checkMailForPhishing(mail, sanitizeResult.links)
+	async _loadMailBody(mail: Mail): Promise<Array<string>> {
 
-				/**
+		try {
+			this._mailBody = await this._entityClient.load(MailBodyTypeRef, mail.body)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("could load mail body as it has been moved/deleted already", e)
+				this._errorOccurred = true
+				return []
+			}
+			if (e instanceof NotAuthorizedError) {
+				console.log("could load mail body as the permission is missing", e)
+				this._errorOccurred = true
+				return []
+			}
+			throw e
+		}
+
+		const isAllowedAndAuthenticatedExternalSender = (await worker.isAllowedExternalSender(mail.sender.address))
+			&& mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+
+		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
+
+		this._checkMailForPhishing(mail, sanitizeResult.links)
+
+		/**
 				 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
 				 * the html body of the mail
 				 *  * any tag with a style attribute that has the color property set (besides "inherit")
 				 *  * any tag with a style attribute that has the background-color set (besides "inherit")
 				 *  * any font tag with the color attribute set
-				 */
-				this._contrastFixNeeded = (
+		 */
+		this._contrastFixNeeded = (
 					'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style).find(s =>
 						(s.color !== "" && s.color !== "inherit" && typeof s.color !== 'undefined') ||
 						(s.backgroundColor !== "" && s.backgroundColor !== "inherit" && typeof s.backgroundColor !== 'undefined')
 					)
-					|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
-				)
+			|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
+		)
 
-				this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
+		this._contentBlockingStatus = isAllowedAndAuthenticatedExternalSender
+			? ContentBlockingStatus.AlwaysShow
+			: sanitizeResult.externalContent.length > 0
+				? ContentBlockingStatus.Block
+				: ContentBlockingStatus.NoExternalContent
 
-				this._contentBlocked = sanitizeResult.externalContent.length > 0
-				m.redraw()
-				return sanitizeResult.inlineImageCids
-			})
-		}).catch(NotFoundError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as it has been moved/deleted already", e)
-			return []
-		}).catch(NotAuthorizedError, e => {
-			this._errorOccurred = true
-			console.log("could load mail body as the permission is missing", e)
-			return []
-		})
+		m.redraw()
+		return sanitizeResult.inlineImageCids
 	}
 
 	_loadAttachments(mail: Mail): Promise<InlineImages> {
@@ -946,8 +945,7 @@ export class MailViewer {
 			])
 		} else {
 			const spoilerLimit = this._attachmentsSpoilerLimit()
-			return m(".flex.ml-negative-bubble.flex-wrap",
-				[
+			return m(".flex.ml-negative-bubble.flex-wrap", [
 					this._attachmentButtons.length > spoilerLimit
 						? [
 							this._attachmentButtons.slice(0, spoilerLimit).map(m),
@@ -1217,11 +1215,16 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return Promise.all([this._mailModel.getMailboxDetailsForMail(this.mail), import("../editor/MailEditor")])
-				              .then(([mailboxDetails, {newMailEditorFromDraft}]) => newMailEditorFromDraft(this.mail, this._attachments,
-					              this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails))
+				              .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
+					              return newMailEditorFromDraft(this.mail,
+						              this._attachments,
+						              this._getMailBody(),
+						              this._contentBlockingStatus === ContentBlockingStatus.Block,
+						              this._inlineImages,
+						              mailboxDetails)
+				              })
 				              .then(editorDialog => editorDialog.show())
 				              .catch(UserError, showUserError)
-
 			}
 		})
 	}
@@ -1283,10 +1286,10 @@ export class MailViewer {
 							              subject,
 							              bodyText: prependEmailSignature(body, logins),
 							              replyTos: [],
-						              }, this._contentBlocked, this._inlineImages, mailboxDetails)
-					              }).then(editor => {
-							editor.show()
-						}).catch(UserError, showUserError)
+						              }, this._contentBlockingStatus === ContentBlockingStatus.Block, this._inlineImages, mailboxDetails)
+					              })
+					              .then(editor => editor.show())
+					              .catch(UserError, showUserError)
 
 				})
 			}
@@ -1307,10 +1310,13 @@ export class MailViewer {
 				return this._createResponseMailArgsForForwarding([], [], true).then(args => {
 					return Promise.all([this._getMailboxDetails(), import("../editor/MailEditor")])
 					              .then(([mailboxDetails, {newMailEditorAsResponse}]) => {
-						              newMailEditorAsResponse(args, this._contentBlocked, this._inlineImages, mailboxDetails)
-							              .then(editor => editor.show())
-							              .catch(UserError, showUserError)
+						              return newMailEditorAsResponse(args,
+							              this._contentBlockingStatus === ContentBlockingStatus.Block,
+							              this._inlineImages,
+							              mailboxDetails)
 					              })
+					              .then(editor => editor.show())
+					              .catch(UserError, showUserError)
 				})
 			}
 		})
@@ -1569,5 +1575,124 @@ export class MailViewer {
 			}, DOUBLE_TAP_TIME_MS)
 		}
 		this._lastBodyTouchEndTime = now
+	}
+
+	_renderSoftAuthenticationFailWarning(mail: Mail): Children {
+		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+			const message = () => mail.differentEnvelopeSender
+				? lang.get("mailAuthMissingWithTechnicalSender_msg", {"{sender}": mail.differentEnvelopeSender})
+				: lang.get("mailAuthMissing_label")
+
+			const dismissBanner = () => this._warningDismissed = true
+			const icon = Icons.Warning
+			const helpLink = "mailAuth_link"
+			return styles.isDesktopLayout()
+				? m(InfoBanner, {
+					message,
+					icon,
+					helpLink,
+					buttons: [
+						{
+							text: "ok_action",
+							click: dismissBanner
+						}
+					]
+				})
+				: m(ActionBanner, {
+					text: message,
+					action: dismissBanner,
+					icon,
+					helpLink
+				})
+		} else {
+			return null
+		}
+	}
+
+	_renderExternalContentBanner(): Children {
+		return styles.isDesktopLayout()
+			? this._renderExternalContentBannerDesktop()
+			: this._renderExternalContentBannerMobile()
+	}
+
+	_renderExternalContentBannerDesktop(): Children {
+		return this._contentBlockingStatus === ContentBlockingStatus.Block
+			? m(InfoBanner, {
+				message: "contentBlocked_msg",
+				icon: Icons.Picture,
+				helpLink: "loadImages_link",
+				buttons: [
+					{
+						text: "showBlockedContent_action",
+						click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
+					},
+					{
+						text: "allowExternalContentSender_action",
+						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+					}
+				]
+			})
+			: null
+	}
+
+	_renderExternalContentBannerMobile(): Children {
+		const icon = Icons.Picture
+		const helpLink = "loadImages_link"
+		if (this._contentBlockingStatus === ContentBlockingStatus.Block) {
+			return m(ActionBanner, {
+				text: "showImages_action",
+				icon,
+				helpLink,
+				action: () => this._setContentBlockingStatus(ContentBlockingStatus.Show)
+			})
+		} else if (this._contentBlockingStatus === ContentBlockingStatus.Show) {
+			return m(ActionBanner, {
+				text: "allowExternalContentSender_action",
+				icon,
+				helpLink,
+				action: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow)
+			})
+		} else {
+			return null
+		}
+	}
+
+	async _setContentBlockingStatus(status: ExternalContentBlockingStatusEnum): Promise<void> {
+		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
+		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
+		if (status === ContentBlockingStatus.NoExternalContent
+			|| this._contentBlockingStatus === ContentBlockingStatus.NoExternalContent
+			|| this._contentBlockingStatus === status) {
+			return
+		}
+
+		const previousContentBlockingStatus = this._contentBlockingStatus
+		this._contentBlockingStatus = status
+
+		if (this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
+			worker.addAllowedExternalSender(this.mail.sender.address)
+		} else if (previousContentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
+			// if we're going from allow to something else it means we're revoking the whitelisting of the given sender
+			worker.removeAllowedExternalSender(this.mail.sender.address)
+		}
+
+		// We don't check mail authentication status here because the user has manually called this
+		await this.setSanitizedMailBodyFromMail(this.mail, status === ContentBlockingStatus.Block)
+		this._domBodyDeferred = defer()
+		this._replaceInlineImages()
+	}
+
+	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<SanitizedHTML> {
+
+		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
+		const {urlify} = await import("../../misc/Urlifier")
+
+		const sanitizedFragment = htmlSanitizer.sanitizeFragment(this._getMailBody(), {
+			blockExternalContent,
+			allowRelativeLinks: isTutanotaTeamMail(mail)
+		})
+
+		this._htmlBody = urlify(stringifyFragment(sanitizedFragment.html))
+		return sanitizedFragment
 	}
 }

@@ -208,9 +208,12 @@ styles.registerStyle('main', () => {
 		'.mr-l': {'margin-right': px(size.hpad_large)},
 		'.mlr-s': {'margin-left': px(size.hpad_small), 'margin-right': px(size.hpad_small)},
 		'.mtb-0': {'margin-top': px(0), 'margin-bottom': px(0)},
+		'.mr': {'margin-right': px(size.hpad)},
+		'.ml': {'margin-left': px(size.hpad)},
 
 
 		// paddings
+		'.p0': {padding: '0'},
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
 		'.pt': {'padding-top': px(size.vpad)},
 		'.pt-0': {'padding-top': 0},
@@ -238,6 +241,8 @@ styles.registerStyle('main', () => {
 		'.pr': {'padding-right': px(size.hpad)},
 		'.pr-s': {'padding-right': px(size.hpad_small)},
 		'.pr-m': {'padding-right': px(size.vpad)},
+		'.plr-s': {'padding-left': px(size.hpad_small), 'padding-right': px(size.hpad_small),},
+		'.plr-m': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 
 		// p-l will be overwritten in media query mobile
 		'.plr-l': {'padding-left': px(size.hpad_large), 'padding-right': px(size.hpad_large)},
@@ -289,7 +294,10 @@ styles.registerStyle('main', () => {
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 
+		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
+		'.border-bottom': {'border-bottom': `1px solid ${theme.content_border}`},
+		'.border-left': {'border-left': `1px solid ${theme.content_border}`},
 
 
 		// colors
@@ -1249,7 +1257,9 @@ styles.registerStyle('main', () => {
 		'.sticky': {
 			position: 'sticky'
 		},
-
+		'.text-fade': {
+			color: theme.content_button
+		},
 
 		// media query for small devices where elements should be arranged in one column
 		// also adaptions for table column widths

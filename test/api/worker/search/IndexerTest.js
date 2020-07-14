@@ -2,7 +2,7 @@
 import o from "ospec"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {DbTransaction, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
 import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
@@ -25,6 +25,7 @@ import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/Whitelabe
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/utils/EntityUtils";
 import {TypeRef} from "../../../../src/api/common/utils/TypeRef";
+import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/Indexer";
 
 const restClientMock: EntityRestClient = downcast({})
 
