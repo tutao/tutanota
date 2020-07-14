@@ -23,6 +23,7 @@ import {Icon, progressIcon} from "../gui/base/Icon"
 import type {Challenge} from "../api/entities/sys/Challenge"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {theme} from "../gui/theme"
+import {createSecondFactorAuthDeleteData} from "../api/entities/sys/SecondFactorAuthDeleteData"
 
 assertMainOrNode()
 
@@ -114,6 +115,13 @@ export class SecondFactorHandler {
 								}
 							})
 							.catch(NotFoundError, (e) => console.log("Failed to load session", e))
+					} else if (update.operation === OperationType.DELETE && this._otherLoginSessionId
+						&& isSameId(this._otherLoginSessionId, sessionId)) {
+						if (this._otherLoginDialog) {
+							this._otherLoginDialog.close()
+							this._otherLoginSessionId = null
+							this._otherLoginDialog = null
+						}
 					}
 				}
 			})
@@ -167,8 +175,11 @@ export class SecondFactorHandler {
 					? appIdToLoginDomain(otherDomainAppIds[0])
 					: null
 				const cancelAction = () => {
-					worker.cancelCreateSession()
-					this.closeWaitingForSecondFactorDialog()
+					let auth = createSecondFactorAuthDeleteData()
+					auth.session = sessionId
+					return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, auth)
+						.then(() => worker.cancelCreateSession())
+						.then(() => this.closeWaitingForSecondFactorDialog())
 				}
 				this._waitingForSecondFactorDialog = Dialog.showActionDialog({
 					title: "",
