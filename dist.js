@@ -131,8 +131,8 @@ function buildWebapp() {
 			              builder.trace('src/app.js + src/system-resolve.js'),
 			              builder.trace('src/gui/theme.js - libs/stream.js'),
 			              builder.trace(getAsyncImports('src/app.js')
-				              .concat(getAsyncImports('src/native/NativeWrapper.js'))
 				              .concat(getAsyncImports('src/native/NativeWrapperCommands.js'))
+				              .concat(getAsyncImports('src/gui/nav/NavFunctions.js'))
 				              .concat([
 					              "src/login/LoginViewController.js",
 					              "src/gui/base/icons/Icons.js",

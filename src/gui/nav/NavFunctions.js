@@ -3,10 +3,8 @@
 import {asyncImport} from "../../api/common/utils/Utils"
 import type {SubscriptionTypeEnum} from "../../subscription/SubscriptionUtils"
 
-
 export function showUpgradeDialog() {
-	asyncImport(typeof module !== "undefined" ?
-		module.id : __moduleName, `${env.rootPathPrefix}src/subscription/UpgradeSubscriptionWizard.js`)
+	_asyncImport("src/subscription/UpgradeSubscriptionWizard.js")
 		.then(upgradeWizard => {
 				// To not import constant
 				let subscriptionType: SubscriptionTypeEnum = 'Free'
@@ -16,13 +14,15 @@ export function showUpgradeDialog() {
 }
 
 export function showSupportDialog() {
-	asyncImport(typeof module !== "undefined" ?
-		module.id : __moduleName, `${env.rootPathPrefix}src/support/SupportDialog.js`)
+	_asyncImport("src/support/SupportDialog.js")
 		.then(supportModule => supportModule.showSupportDialog())
 }
 
 export function writeInviteMail() {
-	asyncImport(typeof module !== "undefined" ?
-		module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`)
+	_asyncImport("src/mail/MailEditor.js")
 		.then(mailEditorModule => mailEditorModule.MailEditor.writeInviteMail())
+}
+
+function _asyncImport(path: string) {
+	return asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}${path}`)
 }
