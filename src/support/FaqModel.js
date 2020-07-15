@@ -52,7 +52,7 @@ export class FaqModel {
 	}
 
 	fetchFAQ(langCode: string): Promise<Translation> {
-		const faqPath = `https://www.tutanota.com/faq-entries/${langCode}.json`
+		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
 		return fetch(faqPath)
 			.then(translations => {
 				return translations.json()
