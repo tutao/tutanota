@@ -81,7 +81,7 @@ export function showSupportDialog() {
 						m(".b", m.trust(value.title)),
 						m(".flex-start.ml-negative-bubble.flex-wrap", value.tags.split(",").filter((tag => tag
 							!== "")).map(tag => m(".bubbleTag.plr-button", m.trust(tag.trim())))),
-						m(".list-header", m.trust(value.text))
+						m(".list-header.pb", m.trust(value.text))
 					])
 				})),
 				searchExecuted
