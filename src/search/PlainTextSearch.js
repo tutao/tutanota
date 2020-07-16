@@ -106,7 +106,8 @@ type FindResult = {
 	matchedQueryWords: string[];
 }
 
-function _findMatches(splittedValue: Array<string>, regExp: RegExp, markHits: boolean): FindResult {
+//export for testing only
+export function _findMatches(splittedValue: Array<string>, regExp: RegExp, markHits: boolean): FindResult {
 	return splittedValue.reduce((sum, value, index) => {
 		if (value.trim().length === 0 || value.startsWith("<")) {
 			return sum

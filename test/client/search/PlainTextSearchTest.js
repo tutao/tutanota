@@ -1,6 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
-import {_search, search} from "../../../src/search/PlainTextSearch"
+import {_findMatches, _search, search} from "../../../src/search/PlainTextSearch"
 
 o.spec("PlainTextSearchTest", function () {
 
@@ -129,6 +129,91 @@ o.spec("PlainTextSearchTest", function () {
 			)
 		})
 
+	})
+
+	o.spec("old test cases from website (modified)", function () {
+
+		o("sort by match quality", function () {
+			o(search("lost password", [
+				{title: "password"}, {title: "lost my password"}, {title: "lost password"}
+			], ["title"]))
+				.deepEquals([{title: "lost password"}, {title: "lost my password"}, {title: "password"}])
+
+		})
+
+		o("simple find", function () {
+			o(search("test", [{title: "test"}], ["title"])).deepEquals([{title: "test"}])
+			o(search("test", [{title: "test"}], [])).deepEquals([])
+			o(search("testing", [{title: "test"}], ["title"])).deepEquals([])
+			o(search("test", [{title: "test", text: "dummy"}], ["text"])).deepEquals([])
+			o(search("Test", [{title: "test"}], ["title"])).deepEquals([{title: "test"}])
+			o(search("test", [{title: "Test"}], ["title"])).deepEquals([{title: "Test"}])
+			o(search("mein ball", [{title: "mein neuer ball"}], ["title"])).deepEquals([{title: "mein neuer ball"}])
+			o(search("mein stuhl", [{title: "mein neuer ball"}], ["title"])).deepEquals([{title: "mein neuer ball"}])
+			o(search("dein ball", [{title: "mein neuer ball"}], ["title"])).deepEquals([{title: "mein neuer ball"}])
+		})
+
+		//should not mark less than 3 character hits
+		o("mark search hits", function () {
+			o(search("test", [{title: "test"}], ["title"], true)).deepEquals([{title: "<mark>test</mark>"}])
+			o(search("test", [{title: "my test."}], ["title"], true)).deepEquals([{title: "my <mark>test</mark>."}])
+			o(search("hr", [{title: "<a href=\"hr-test.com\">your hr department</a>"}], ["title"], true))
+				.deepEquals([{title: "<a href=\"hr-test.com\">your hr department</a>"}])
+		})
+
+		o("do not modify original structure", function () {
+			let original = [{title: "test"}]
+			o(search("test", original, ["title"], true)).deepEquals([{title: "<mark>test</mark>"}])
+			o(original).deepEquals([{title: "test"}])
+		})
+
+		o("find matches", function () {
+			let splittedValue = [
+				"my", "<a href='test'>", "link", "</a>", "to other interesting pages with Links."
+			]
+			o(_findMatches(splittedValue, new RegExp("link|to", "gi"), false))
+				.deepEquals({hits: 3, matchedQueryWords: ['link', 'to']})
+			o(splittedValue).deepEquals([
+				"my", "<a href='test'>", "link", "</a>", "to other interesting pages with Links."
+			])
+		})
+
+		//should not mark less than 3 characters hits
+		o("find matches and mark", function () {
+			let splittedValue = [
+				"my", "<a href='testlink'>", "link", "</a>", "to other interesting pages with Links."
+			]
+			o(_findMatches(splittedValue, new RegExp("link|to", "gi"), true))
+				.deepEquals({hits: 3, matchedQueryWords: ['link', 'to']})
+			o(splittedValue).deepEquals([
+				"my", "<a href='testlink'>", "<mark>link</mark>", "</a>",
+				"to other interesting pages with <mark>Link</mark>s."
+			])
+		})
+
+		o("full matches", function () {
+			let instance = {
+				id: 32,
+				title: "I have received an abusive email (spam, phishing) from one of your domains. What should I do?",
+				text: "<p>If you would like to inform us about abusive us…contact addresses at abuse.net.</p>↵",
+				tags: "fraud, stalker, threat, abuse, abusive, phishing",
+				category: "other"
+			}
+			let result = _search("abuse", [instance], ["tags", "title", "text"], true)
+			o(result[0].fullWordMatches).equals(2)
+		})
+
+		o("full matches 2", function () {
+			let instance = {
+				id: 39,
+				title: "Are there email limits to protect Tutanota from being abused by spammers?",
+				text: `<p>Yes, Tutanota uses different variables to calculate email limits for individual accounts. This is necessary to protect our free and anonymous email service from spammers who try to abuse Tutanota. If spammers were able to abuse Tutanota, it would harm all Tutanota users - ie Tutanota domains could end up on email blacklists, which we have to prevent under all circumstances.</p>↵<p>If you receive the following message in your Tutanota account &quot;It looks like you exceeded the number of allowed emails. Please try again later.&quot;, the anti-spam protection method has stopped your account temporarily from sending new emails. Please wait a day or two to send new emails again.</p>↵<p>If you need to send more emails immediately, please upgrade to our affordable Premium version (1 Euro per month) as limits for Premium users are much higher. Simply click on &#39;Premium&#39; in your top menu bar of Tutanota. </p>↵<p>Please note that Tutanota is not meant for sending out mass mailings such as newsletters. Please read our Terms &amp; Conditions for details: <a href="https://tutanota.com/terms">https://tutanota.com/terms</a></p>`,
+				tags: "",
+				category: "other",
+			}
+			let result = _search("abuse", [instance], ["tags", "title", "text"], true)
+			o(result[0].fullWordMatches).equals(2)
+		})
 	})
 
 })
