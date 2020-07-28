@@ -343,7 +343,8 @@ export function getArchiveFolder(folders: MailFolder[]): MailFolder {
 
 
 export function getFolder(folders: MailFolder[], type: MailFolderTypeEnum): MailFolder {
-	return (folders.find(f => f.folderType === type): any)
+	const folder = folders.find(f => f.folderType === type)
+	return neverNull(folder)
 }
 
 

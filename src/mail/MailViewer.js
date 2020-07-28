@@ -50,7 +50,7 @@ import {
 	getArchiveFolder,
 	getDefaultSender,
 	getDisplayText,
-	getEnabledMailAddresses,
+	getEnabledMailAddresses, getFolder,
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
@@ -681,10 +681,15 @@ export class MailViewer {
 				      if (reportType === MailReportType.PHISHING) {
 					      this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
 					      return update(this.mail)
-						      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
-						      .catch(NotFoundError, () => console.log("mail already moved"))
 				      }
 			      })
+			      .then(() => mailModel.getMailboxDetailsForMail(this.mail))
+			      .then((mailboxDetails) => {
+				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
+				      return mailModel.moveMails([this.mail], spamFolder)
+			      })
+			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
+			      .catch(NotFoundError, () => console.log("mail already moved"))
 			      .then(m.redraw)
 
 		}
