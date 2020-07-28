@@ -1127,6 +1127,7 @@ module.exports = {
 		"howCanWeHelp_title": "Wie können wir helfen?",
 		"describeProblem_msg": "Bitte gib deine Frage ein",
 		"noSolution_msg": "Du hast keine Lösung zu deinem Problem gefunden?",
-		"contactSupport_action": "Support kontaktieren"
+		"contactSupport_action": "Support kontaktieren",
+		"creditCardDeclined_msg": "Leider wurde deine Kreditkarte abgelehnt. Bitte kontaktiere deine Bank um dies zu beheben oder wähle eine andere Zahlungsmethode.",
 	}
 }

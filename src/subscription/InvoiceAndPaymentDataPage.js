@@ -159,7 +159,7 @@ export function updatePaymentData(subscriptionOptions: SubscriptionOptions, invo
 					             Dialog.error(() => lang.get("invalidVatIdNumber_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_DECLINED) {
-					             Dialog.error(() => lang.get("creditCardNumberInvalid_msg") + ((isSignup) ? " "
+					             Dialog.error(() => lang.get("creditCardDeclined_msg") + ((isSignup) ? " "
 						             + lang.get("accountWasStillCreated_msg") : ""))
 				             } else if (statusCode === PaymentDataResultType.CREDIT_CARD_CVV_INVALID) {
 					             Dialog.error("creditCardCVVInvalid_msg");

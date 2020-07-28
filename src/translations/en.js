@@ -1125,6 +1125,7 @@ module.exports = {
 		"howCanWeHelp_title": "How can we help you?",
 		"describeProblem_msg": "Please enter your question",
 		"noSolution_msg": "Have not found a solution to your problem?",
-		"contactSupport_action": "Contact support"
+		"contactSupport_action": "Contact support",
+		"creditCardDeclined_msg": "Unfortunately, your credit card was declined. Please get in contact with your bank to solve this or select a different payment method.",
 	}
 }
