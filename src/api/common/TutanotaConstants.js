@@ -183,7 +183,8 @@ export const ApprovalStatus = Object.freeze({
 	DELAYED: "5",
 	DELAYED_AND_INITIALLY_ACCESSED: "6",
 	REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED: "7",
-	PAID_SUBSCRIPTION_NEEDED: "8"
+	PAID_SUBSCRIPTION_NEEDED: "8",
+	INITIAL_PAYMENT_PENDING: "9"
 })
 export type ApprovalStatusEnum = $Values<typeof ApprovalStatus>;
 
