@@ -348,7 +348,8 @@ export class MailFacade {
 			}
 		}
 
-		if (this._checkFieldForPhishing(ReportedMailFieldType.SUBJECT, mail.subject)) {
+		// We check that subject exists because when there's an encryption error it will be missing
+		if (mail.subject && this._checkFieldForPhishing(ReportedMailFieldType.SUBJECT, mail.subject)) {
 			score += 3
 		}
 		for (const link of links) {
