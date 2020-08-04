@@ -122,6 +122,7 @@ export class ApplicationWindow {
 				// the preload script changes to the web app
 				contextIsolation: false,
 				webSecurity: true,
+				enableRemoteModule: false,
 				preload: preloadPath
 			}
 		})

@@ -262,6 +262,7 @@ o.spec("ApplicationWindow Test", function () {
 				sandbox: true,
 				contextIsolation: false,
 				webSecurity: true,
+				enableRemoteModule: false,
 				preload: '/path/to/app/preloadjs'
 			}
 		})
