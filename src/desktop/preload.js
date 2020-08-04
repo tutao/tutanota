@@ -20,6 +20,23 @@ function initializeIPC(e, params) {
 		invoke: (msg: string) => ipcRenderer.send(`${windowId}`, msg),
 		getVersion: () => version
 	}
+
+	/* this event listener doesn't get fired
+	 * if it's registered during the initial preload.js
+	 * execution
+	 */
+	window.addEventListener('wheel', e => {
+		if (!e.ctrlKey) {
+			return
+		}
+		let newFactor = ((webFrame.getZoomFactor() * 100) + (e.deltaY > 0 ? -10 : 10)) / 100
+		if (newFactor > 3) {
+			newFactor = 3
+		} else if (newFactor < 0.5) {
+			newFactor = 0.5
+		}
+		webFrame.setZoomFactor(newFactor)
+	})
 }
 
 function setZoomFactor(ev, newFactor) {
@@ -89,19 +106,6 @@ window.addEventListener('keydown', e => {
 		window.history.back()
 	} else if (e.key === 'ArrowRight') window.history.forward()
 })
-
-window.onmousewheel = (e) => {
-	if (!e.ctrlKey) {
-		return
-	}
-	let newFactor = ((webFrame.getZoomFactor() * 100) + (e.deltaY > 0 ? -10 : 10)) / 100
-	if (newFactor > 3) {
-		newFactor = 3
-	} else if (newFactor < 0.5) {
-		newFactor = 0.5
-	}
-	webFrame.setZoomFactor(newFactor)
-}
 
 // window.focus() doesn't seem to be working right now, so we're replacing it
 // https://github.com/electron/electron/issues/8969#issuecomment-288024536

@@ -1,6 +1,6 @@
 // @flow
-import type {ElectronPermission, FindInPageResult, ContextMenuParams} from 'electron'
-import {BrowserWindow, Menu, shell, WebContents, app} from 'electron'
+import type {ContextMenuParams, ElectronPermission, FindInPageResult} from 'electron'
+import {app, BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
 import u2f from '../misc/u2f-api.js'
@@ -151,7 +151,7 @@ export class ApplicationWindow {
 		    })
 		    .on('will-attach-webview', e => e.preventDefault())
 		    .on('did-start-navigation', (e, url, isInPlace) => {
-		    	this._browserWindow.emit('did-start-navigation')
+			    this._browserWindow.emit('did-start-navigation')
 			    const newURL = this._rewriteURL(url, isInPlace)
 			    if (newURL !== url) {
 				    e.preventDefault()
