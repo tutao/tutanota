@@ -238,6 +238,8 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 											              console.log("w> could not find instance to update permission")
 										              })
 										              .then(() => sk)
+								              } else {
+									              return sk
 								              }
 							              })
 						              })
