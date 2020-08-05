@@ -227,16 +227,18 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 								              }
 								              let sk = decryptKey(bucketKey, bucketEncSessionKey)
 
-								              let bucketPermissionOwnerGroupKey = locator
-									              .login.getGroupKey(neverNull(bucketPermission._ownerGroup))
-								              let bucketPermissionGroupKey = locator.login.getGroupKey(bucketPermission.group)
-								              return _updateWithSymPermissionKey(typeModel, instance, permission,
-									              bucketPermission, bucketPermissionOwnerGroupKey,
-									              bucketPermissionGroupKey, sk)
-									              .catch(NotFoundError, e => {
-										              console.log("w> could not find instance to update permission")
-									              })
-									              .then(() => sk)
+								              if (bucketPermission._ownerGroup) { // is not defined for some old AccountingInfos
+									              let bucketPermissionOwnerGroupKey = locator
+										              .login.getGroupKey(neverNull(bucketPermission._ownerGroup))
+									              let bucketPermissionGroupKey = locator.login.getGroupKey(bucketPermission.group)
+									              return _updateWithSymPermissionKey(typeModel, instance, permission,
+										              bucketPermission, bucketPermissionOwnerGroupKey,
+										              bucketPermissionGroupKey, sk)
+										              .catch(NotFoundError, e => {
+											              console.log("w> could not find instance to update permission")
+										              })
+										              .then(() => sk)
+								              }
 							              })
 						              })
 					              }
