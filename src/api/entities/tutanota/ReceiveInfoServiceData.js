@@ -21,6 +21,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
+		},
+		"language": {
+			"name": "language",
+			"id": 1121,
+			"since": 42,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
 		}
 	},
 	"associations": {},
@@ -36,4 +45,5 @@ export type ReceiveInfoServiceData = {
 	_type: TypeRef<ReceiveInfoServiceData>;
 
 	_format: NumberString;
+	language: string;
 }
