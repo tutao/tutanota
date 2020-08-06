@@ -1336,9 +1336,17 @@ styles.registerStyle('main', () => {
 			},
 		},
 
+		//We us this class to hide contents that should just be visible for printing
+		".noscreen": {
+			"display": "none",
+		},
+
 		"@media print": {
 			".noprint": {
 				"display": "none",
+			},
+			".noscreen": {
+				"display": "initial",
 			},
 			".print": {
 				"color": "black",

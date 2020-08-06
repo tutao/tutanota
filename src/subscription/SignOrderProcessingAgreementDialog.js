@@ -95,6 +95,7 @@ function printElementContent(elem: ?HTMLElement) {
 		root.className = classes.join(' ')
 	}
 	printDiv.innerHTML = elem.innerHTML
+	printDiv.classList.add("noscreen")
 	window.print()
 }
 
