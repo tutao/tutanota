@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-07-22T12:42:44Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -286,7 +286,6 @@ module.exports = {
 		"deleteCredentials_action": "Slet oplysninger",
 		"deleteDnsRecords_msg": "Slet eller reparer venligst følgende DNS-optegnelser:",
 		"deleteEmails_action": "Slet de valgte beskeder",
-		"deleteRepeatingEventConfirmation_msg": "Er du sikker på, du vil slette denne genkommende begivenhed?",
 		"delete_action": "Slet",
 		"description_label": "Beskrivelse",
 		"desktopIntegration_label": "Skrivebords integration",

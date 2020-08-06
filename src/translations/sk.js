@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2020-08-01T10:58:27Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -311,7 +311,6 @@ module.exports = {
 		"deleteCredentials_action": "Odstrániť prihlasovacie údaje",
 		"deleteDnsRecords_msg": "Odstráň alebo oprav tieto DNS záznamy:",
 		"deleteEmails_action": "Odstrániť vybrané e-maily",
-		"deleteRepeatingEventConfirmation_msg": "Si si istý/á, že chceš odstrániť túto opakovanú udalosť?",
 		"deleteSharedCalendarConfirm_msg": "Kalendár \"{calendar}\" sa zdieľa s ostatnými používateľmi.",
 		"delete_action": "Odstrániť",
 		"describeProblem_msg": "Prosím, zadaj otázku",

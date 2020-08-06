@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-07-23T12:59:27Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -303,7 +303,6 @@ module.exports = {
 		"deleteCredentials_action": "删除证书",
 		"deleteDnsRecords_msg": "请删除或修复以下 DNS 记录：",
 		"deleteEmails_action": "删除选中邮件",
-		"deleteRepeatingEventConfirmation_msg": "您确定要删除这个重复事件吗？",
 		"deleteSharedCalendarConfirm_msg": "日历“ {calendar}”已与其他用户共享。",
 		"delete_action": "删除",
 		"description_label": "内容描述",

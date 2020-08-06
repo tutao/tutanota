@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -304,7 +304,6 @@ module.exports = {
 		"deleteCredentials_action": "Изтрий удостоверенията",
 		"deleteDnsRecords_msg": "Моля изтрийте или оправете следните DNS записи:",
 		"deleteEmails_action": "Изтрии избраните писма",
-		"deleteRepeatingEventConfirmation_msg": "Сигурни ли сте, че искате да изтриете повтарящото се събитие?",
 		"deleteSharedCalendarConfirm_msg": "Календарът \"{calendar}\" е споделен с други потребители.",
 		"delete_action": "Изтрий",
 		"description_label": "Описание",

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2020-08-02T18:53:17Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Giới thiệu",
@@ -309,7 +309,6 @@ module.exports = {
 		"deleteCredentials_action": "Xoá tài khoản đã lưu",
 		"deleteDnsRecords_msg": "Vui lòng xóa hoặc sửa các bản ghi DNS sau:",
 		"deleteEmails_action": "Xóa các email đã chọn",
-		"deleteRepeatingEventConfirmation_msg": "Bạn có chắc chắn muốn xóa bỏ sự kiện lặp lại này không?",
 		"deleteSharedCalendarConfirm_msg": "Lịch \"{calendar}\" đã được chia sẻ với những người dùng khác.",
 		"delete_action": "Xoá",
 		"describeProblem_msg": "Vui lòng nhập câu hỏi của bạn",

@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-07-23T12:59:27Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -308,7 +308,6 @@ module.exports = {
 		"deleteCredentials_action": "Izbriši podatke za prijavu",
 		"deleteDnsRecords_msg": "Izbrišite ili popravite sljedeće DNS zapise:",
 		"deleteEmails_action": "Izbriši označene emailove",
-		"deleteRepeatingEventConfirmation_msg": "Jeste li sigurni da želite izbrisati taj ponavljajući događaj?",
 		"deleteSharedCalendarConfirm_msg": "Kalendar \"{calendar}\" dijeli se s drugim korisnicima.",
 		"delete_action": "Izbriši",
 		"description_label": "Opis",

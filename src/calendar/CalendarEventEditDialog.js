@@ -561,7 +561,7 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 		{name: lang.get("yes_label"), value: CalendarAttendeeStatus.ACCEPTED},
 		{name: lang.get("maybe_label"), value: CalendarAttendeeStatus.TENTATIVE},
 		{name: lang.get("no_label"), value: CalendarAttendeeStatus.DECLINED},
-		{name: lang.get("awaiting_label"), value: CalendarAttendeeStatus.NEEDS_ACTION, selectable: false}
+		{name: lang.get("pending_label"), value: CalendarAttendeeStatus.NEEDS_ACTION, selectable: false}
 	]
 	return m(".flex", {
 		style: {

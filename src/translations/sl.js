@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-08-04T09:40:34Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -39,7 +39,6 @@ module.exports = {
 		"actor_label": "Vršitelj",
 		"addCalendar_action": "Dodaj koledar",
 		"addCustomDomainAddresses_title": "Dodajanje poštnih naslovov za domeno po meri",
-		"addCustomDomainUsers_title": "Uporabniki",
 		"addCustomDomainValidationRecord_msg": "Prosimo, dodajte zapis TXT za vašo domeno, da dokaže svoje lastništvo, kot je prikazano spodaj:",
 		"addCustomDomain_action": "Dodaj lastno domeno",
 		"addDNSValue_label": "Dodaj vrednost",
@@ -316,7 +315,6 @@ module.exports = {
 		"deleteCredentials_action": "Izbriši poverilnice",
 		"deleteDnsRecords_msg": "Prosimo, izbrišite ali popravite te DNS zapise:",
 		"deleteEmails_action": "Izbriši izbrana sporočila",
-		"deleteRepeatingEventConfirmation_msg": "Ali ste prepričani, da želite izbrisati ta ponavljajoči se dogodek?",
 		"deleteSharedCalendarConfirm_msg": "Koledar \"{calendar}\" je v skupni rabi z drugimi uporabniki.",
 		"delete_action": "Izbriši",
 		"describeProblem_msg": "Prosimo, vpišite vprašanje",

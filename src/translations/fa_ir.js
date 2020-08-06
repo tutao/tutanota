@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -299,7 +299,6 @@ module.exports = {
 		"deleteCredentials_action": "اطلاعات کاربر را حذف کن",
 		"deleteDnsRecords_msg": "لطفا رکوردهای DNS زیر را حذف یا تصحیح کنید:",
 		"deleteEmails_action": "حذف ایمیل‌های انتخاب شده",
-		"deleteRepeatingEventConfirmation_msg": "مطمئنید می‌خواهید این برنامه مکرر را پاک کنید؟",
 		"deleteSharedCalendarConfirm_msg": "تقویم \"{calendar}\" با سایر کاربران به اشتراک گذاشته می شود.",
 		"delete_action": "حذف کردن",
 		"description_label": "مشخصات",

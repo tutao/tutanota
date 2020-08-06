@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2020-08-01T11:27:31Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
@@ -195,7 +195,6 @@ module.exports = {
 		"deleteContact_msg": "Apakah Anda yakin ingin menghapus kontak ini?",
 		"deleteCredentials_action": "Hapus kredensial",
 		"deleteEmails_action": "Hapus surel yang dipilih",
-		"deleteRepeatingEventConfirmation_msg": "Apakah Anda yakin ingin menghapus acara / event yang berulang ini?",
 		"deleteSharedCalendarConfirm_msg": "Kalender _ dibagikan dengan pengguna-pengguna lainnya.",
 		"delete_action": "Hapus",
 		"desktop_label": "Desktop",

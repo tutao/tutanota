@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2020-07-23T12:59:27Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -276,7 +276,6 @@ module.exports = {
 		"deleteContact_msg": "Επιβεβαιώνετε τη διαγραφή αυτής της επαφής;",
 		"deleteCredentials_action": "Διαγραφή διαπιστευτηρίων",
 		"deleteEmails_action": "Διαγραφή των επιλεγμένων μυνημάτων",
-		"deleteRepeatingEventConfirmation_msg": "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το επαναλαμβανόμενο συμβάν;",
 		"delete_action": "Διαγραφή",
 		"description_label": "Περιγραφή",
 		"desktopSettings_label": "Ρυθμίσεις επιφάνειας εργασίας ",

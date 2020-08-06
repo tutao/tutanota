@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -276,7 +276,6 @@ module.exports = {
 		"deleteCredentials_action": "Bejelentkezési adatok törlése",
 		"deleteDnsRecords_msg": "Kérjük, törölje vagy javítsa a következő DNS beállításokat:",
 		"deleteEmails_action": "A kijelölt e-mailek törlése",
-		"deleteRepeatingEventConfirmation_msg": "Biztosan törölni szeretné ezt az ismétlődő eseményt?",
 		"deleteSharedCalendarConfirm_msg": "A naptár \"{calendar}\" megosztásra került másokkal.",
 		"delete_action": "Törlés",
 		"desktopIntegration_label": "Asztali integráció",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2020-07-23T12:59:27Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -308,7 +308,6 @@ module.exports = {
 		"deleteCredentials_action": "Supprimer les identifiants",
 		"deleteDnsRecords_msg": "Veuillez supprimer ou corriger les enregistrements DNS suivants :",
 		"deleteEmails_action": "Supprimer les emails sélectionnés",
-		"deleteRepeatingEventConfirmation_msg": "Êtes-vous certain de vouloir supprimer cet évènement récurrent ?",
 		"deleteSharedCalendarConfirm_msg": "Le calendrier \"{calendar}\" est partagé avec d'autres utilisateurs.",
 		"delete_action": "Supprimer",
 		"description_label": "Description",

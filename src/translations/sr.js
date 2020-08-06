@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2020-07-24T19:56:36Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -292,7 +292,6 @@ module.exports = {
 		"deleteContact_msg": "Заиста желите да обришете овај контакт?",
 		"deleteCredentials_action": "Обриши акредитиве",
 		"deleteEmails_action": "Обриши означену пошту",
-		"deleteRepeatingEventConfirmation_msg": "Заиста желите да обришете овај понављајући догађај?",
 		"deleteSharedCalendarConfirm_msg": "Календар \"{calendar}\" се тренутно дели са другим корисницима.",
 		"delete_action": "Обриши",
 		"description_label": "Опис",

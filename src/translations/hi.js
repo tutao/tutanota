@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -292,7 +292,6 @@ module.exports = {
 		"deleteCredentials_action": "प्रत्यक्ष्यपत्रों को मिटाएं",
 		"deleteDnsRecords_msg": "कृपया निम्न DNS रिकॉर्ड हटाएं या ठीक करें:",
 		"deleteEmails_action": "चयनित ईमेल मिटाएं",
-		"deleteRepeatingEventConfirmation_msg": "क्या आप वाकई इस दोहराई गई घटना को हटाना चाहते हैं?",
 		"deleteSharedCalendarConfirm_msg": "कैलेंडर {calendar} अन्य उपयोगकर्ताओं के साथ साझा किया जाता है।",
 		"delete_action": "मिटाएँ",
 		"description_label": "विवरण",

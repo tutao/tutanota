@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -309,7 +309,6 @@ module.exports = {
 		"deleteCredentials_action": "Slett personlig informasjon",
 		"deleteDnsRecords_msg": "Slett eller korriger de følgende DNS-oppføringene:",
 		"deleteEmails_action": "Slett de valgte e-postene",
-		"deleteRepeatingEventConfirmation_msg": "Er du sikker på at du vil slette denne gjentatte hendelsen?",
 		"deleteSharedCalendarConfirm_msg": "Kalenderen \"{calendar}\" deles med andre brukere.",
 		"delete_action": "Slett",
 		"describeProblem_msg": "Skriv inn spørsmålet ditt",

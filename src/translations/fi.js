@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-07-23T12:59:27Z",
+	"updated_at": "2020-08-06T07:32:29Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -304,7 +304,6 @@ module.exports = {
 		"deleteCredentials_action": "Poista kirjautumistiedot",
 		"deleteDnsRecords_msg": "Tuhoa tai korjaa seuraavat DNS-tietueet:",
 		"deleteEmails_action": "Poista valitut sähköpostit",
-		"deleteRepeatingEventConfirmation_msg": "Haluatko varmasti tuhota tämän toistuvan tapahtuman?",
 		"deleteSharedCalendarConfirm_msg": "Kalenteri \"{calendar}\" on jaettu muiden käyttäjien kanssa.",
 		"delete_action": "Poista",
 		"description_label": "Kuvaus",

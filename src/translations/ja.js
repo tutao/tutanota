@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2020-08-02T04:56:20Z",
+	"updated_at": "2020-08-06T07:32:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -309,7 +309,6 @@ module.exports = {
 		"deleteCredentials_action": "資格情報の削除",
 		"deleteDnsRecords_msg": "次のDNSレコードを削除または修正してください。",
 		"deleteEmails_action": "選択したメールを削除",
-		"deleteRepeatingEventConfirmation_msg": "この定期的なイベントを削除してよろしいですか？",
 		"deleteSharedCalendarConfirm_msg": "カレンダー「{calendar}」は他のユーザーに共有されます。",
 		"delete_action": "削除",
 		"describeProblem_msg": "質問を入力してください",
