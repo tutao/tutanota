@@ -137,7 +137,8 @@ function buildWebapp() {
 					              "src/login/LoginViewController.js",
 					              "src/gui/base/icons/Icons.js",
 					              "src/search/SearchBar.js",
-					              "src/subscription/terms.js"
+					              "src/subscription/terms.js",
+					              "src/api/main/UserController.js"
 				              ]).join(" + "))
 		              ])
 	              })
