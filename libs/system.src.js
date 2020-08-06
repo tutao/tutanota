@@ -3464,12 +3464,7 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
       return source;
     }
 
-    if (metadata.load.format !== 'esm' && (metadata.load.format || !source.match(esmRegEx))) {
       return source;
-    }
-
-    metadata.load.format = 'esm';
-    return transpile(loader, source, key, metadata, processAnonRegister);
   })
 
   // instantiate
