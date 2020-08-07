@@ -255,7 +255,9 @@ export class LoginViewController implements ILoginViewController {
 				}
 			})
 			.then(() => {
-				return calendarModel.init()
+				if (!isAdminClient()) {
+					return calendarModel.init()
+				}
 			}).then(() => {
 			lang.updateFormats({
 				hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
