@@ -306,12 +306,12 @@ function serializeParticipants(event: CalendarEvent): Array<string> {
 	const lines = []
 	if (organizer) {
 		const namePart = organizer.name ? `;CN=${organizer.name}` : ""
-		lines.push(`ORGANIZER${namePart}:mailto:${organizer.address}`)
+		lines.push(`ORGANIZER${namePart};EMAIL=${organizer.address}:mailto:${organizer.address}`)
 	}
 	const attendeesProperties = attendees.map(({address, status}) => {
 		const namePart = address.name ? `;CN=${address.name}` : ""
 		return `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=${calendarAttendeeStatusToParstat[status]}`
-			+ `;RSVP=TRUE${namePart}:mailto:${address.address}`
+			+ `;RSVP=TRUE${namePart};EMAIL=${address.address}:mailto:${address.address}`
 	})
 	return lines.concat(attendeesProperties)
 }
