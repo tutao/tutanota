@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-08-06T07:32:28Z",
+	"updated_at": "2020-08-07T12:02:51Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -39,6 +39,7 @@ module.exports = {
 		"actor_label": "Vršitelj",
 		"addCalendar_action": "Dodaj koledar",
 		"addCustomDomainAddresses_title": "Dodajanje poštnih naslovov za domeno po meri",
+		"addCustomDomainAdresses_msg": "Domena je bila dodeljena vašemu računu. Če želite uporabljati domeno po meri, dodajte trenutnemu uporabniku vsaj en poštni vzdevek. Lahko pa dodate tudi nove uporabnike s poštnim naslovom domene po meri.",
 		"addCustomDomainValidationRecord_msg": "Prosimo, dodajte zapis TXT za vašo domeno, da dokaže svoje lastništvo, kot je prikazano spodaj:",
 		"addCustomDomain_action": "Dodaj lastno domeno",
 		"addDNSValue_label": "Dodaj vrednost",
@@ -371,6 +372,7 @@ module.exports = {
 		"enforcePasswordUpdate_title": "Uveljavi posodobitev gesla",
 		"enterAsCSV_msg": "Vnesite svoje uporabniške podatke kot CSV.",
 		"enterCustomDomain_title": "Vnesite domeno po meri",
+		"enterDomainIntroduction_msg": "S Tutanoto lahko uporabite poštno domeno po meri v samo nekaj korakih.",
 		"enterMissingPassword_msg": "Geslo ni zaznano. Prosimo, vnesite geslo.",
 		"enterName_msg": "Prosimo, vnesite ime.",
 		"enterPaymentDataFirst_msg": "Prosimo, vnesite podatke o plačilu, preden naročite dodatne pakete.",
@@ -639,7 +641,7 @@ module.exports = {
 		"modified_label": "Sprememba",
 		"month_label": "Mesec",
 		"moreInformation_action": "Več informacij",
-		"moreInfo_msg": "Več informacij:",
+		"moreInfo_msg": "Več informacij: ",
 		"moreResultsFound_msg": "Najdenih še {1} rezultatov.",
 		"more_label": "Več",
 		"moveDown_action": "Premakni dol",

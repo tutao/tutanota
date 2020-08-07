@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2020-07-23T12:59:28Z",
+	"updated_at": "2020-08-07T12:02:51Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",

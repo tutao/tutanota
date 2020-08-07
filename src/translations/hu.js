@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2020-08-06T07:32:29Z",
+	"updated_at": "2020-08-07T12:02:51Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",

@@ -55,9 +55,7 @@ export class DomainDnsStatus {
 					+ ", SPF " + (spfOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD)
 					+ ", MTA-STS " + (mtaStsOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD)
 					+ ", DKIM " + (dkimOk ? DnsRecordValidation.OK : DnsRecordValidation.BAD)
-					+ ", DMARC " + (dmarcBad ? DnsRecordValidation.BAD : (dmarcWarn ? DnsRecordValidation.WARN : DnsRecordValidation.OK));
-			} else if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_DNS_LOOKUP_FAILED) {
-				return "DNS " + DnsRecordValidation.WARN
+					+ ", DMARC " + (dmarcBad || dmarcWarn ? DnsRecordValidation.BAD : DnsRecordValidation.OK)
 			} else {
 				return "DNS " + DnsRecordValidation.BAD
 			}

@@ -12,6 +12,7 @@ import {emitWizardEvent, WizardEventType, WizardPageN} from "../../gui/base/Wiza
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {DnsRecord} from "../../api/entities/sys/DnsRecord"
+import {BootIcons} from "../../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -26,13 +27,22 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 		return [
 			m("h4.mt-l.text-center", lang.get("verifyDNSRecords_title")),
 			m("p", lang.get("verifyDNSRecords_msg")),
-			a.data.domainStatus.status.isLoaded() ? m("", _renderCheckResult(a.data, a.data.domainStatus.status.getLoaded())) : m("", lang.get("loadingDNSRecords_msg")),
-			m(".flex-center.full-width.pt-l.mb-l", m("", {style: {width: "260px"}}, m(ButtonN, {
-				type: ButtonType.Login,
-				label: "finish_action",
-				// We check if all DNS records are set correctly and let the user confirm before leaving if not
-				click: () => this._finishDialog(a.data, vnode.dom)
-			})))
+			a.data.domainStatus.status.isLoaded() ? m("", [
+				_renderCheckResult(a.data, a.data.domainStatus.status.getLoaded()),
+				m(".flex-center.full-width.pt-l.mb-l", m("", {style: {width: "260px"}}, m(ButtonN, {
+					type: ButtonType.Login,
+					label: "finish_action",
+					// We check if all DNS records are set correctly and let the user confirm before leaving if not
+					click: () => this._finishDialog(a.data, vnode.dom)
+				})))
+			]) : m("", [
+				lang.get("loadingDNSRecords_msg"),
+				m(".flex-center.full-width.pt-l.mb-l", m(ButtonN, {
+					type: ButtonType.Secondary,
+					label: "refresh_action",
+					click: () => _updateDnsStatus(a.data)
+				}))
+			])
 		]
 	}
 
@@ -61,7 +71,6 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 			}
 		})
 	}
-
 }
 
 function _updateDnsStatus(wizardData: AddDomainData): Promise<void> {
@@ -81,7 +90,7 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 			missingRecords.forEach((missingRecord) => {
 				validatedRecord.record = record
 				if (record.type === DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC) {
-					helpInfo.push(`${DnsRecordValidation.WARN} ${lang.get("recommendedDNSValue_label")}: ${record.value}`)
+					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("recommendedDNSValue_label")}: ${record.value}`)
 				} else {
 					helpInfo.push(`${DnsRecordValidation.BAD} ${lang.get("addDNSValue_label")}: ${record.value}`)
 				}
@@ -99,7 +108,11 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 			return validatedRecord
 		})
 		array.push(m(".mt-m.mb-s", lang.get("setDnsRecords_msg")))
-		array.push(createDnsRecordTableN(validatedRecords))
+		array.push(createDnsRecordTableN(validatedRecords, {
+			label: "refresh_action",
+			icon: () => BootIcons.Progress,
+			click: () => _updateDnsStatus(wizardData)
+		}))
 		array.push(m("span.small.mt-m", lang.get("moreInfo_msg") + " "))
 		array.push(m("span.small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link"))))
 

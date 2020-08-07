@@ -650,7 +650,6 @@ export const MailReportType = Object.freeze({
 export const DnsRecordValidation = Object.freeze({
 	OK: "✓",
 	BAD: "✗",
-	WARN: "⚠"
 })
 export type DnsRecordValidationTypeEnum = $Values<typeof DnsRecordValidation>;
 

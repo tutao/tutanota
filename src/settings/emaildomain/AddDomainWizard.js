@@ -18,6 +18,7 @@ import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPa
 import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecordsPage"
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import {assertMainOrNode} from "../../api/Env"
+import type {ButtonAttrs} from "../../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -88,15 +89,16 @@ export type ValidatedDnSRecord =
 		helpInfo: string[]
 	}
 
-export function createDnsRecordTableN(records: ValidatedDnSRecord[]) {
+export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs) {
 
 	return m(TableN, {
 		columnHeading: [
 			"type_label", "dnsRecordHostOrName_label",
 			"dnsRecordValueOrPointsTo_label"
 		],
+		addButtonAttrs: refreshButtonAttrs,
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
-		showActionButtonColumn: false,
+		showActionButtonColumn: true,
 		lines: records.map(r => {
 			return {
 				cells: () => [

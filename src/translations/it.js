@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2020-08-06T08:37:39Z",
+	"updated_at": "2020-08-07T12:02:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -402,6 +402,7 @@ module.exports = {
 		"eventCancelled_msg": "Cancellato: {event}",
 		"eventCopy_msg": "Questo evento è stato inviato da un altro calendario. Le modifiche all'evento saranno visibili solo nel tuo calendario.",
 		"eventInviteMail_msg": "Invito: {evento}",
+		"eventNotificationUpdated_msg": "L'evento è stato aggiornato nel tuo calendario.",
 		"eventUpdated_msg": "Aggiornato: {event}",
 		"executableOpen_label": "Allegato Eseguibile",
 		"executableOpen_msg": "Questo file sembra un programma. Sei sicuro di volerlo eseguire ora?",
