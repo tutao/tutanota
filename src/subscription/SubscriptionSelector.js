@@ -3,10 +3,9 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
-import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement, BOX_MARGIN} from "./BuyOptionBox"
+import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
-import {size} from "../gui/size"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 
@@ -38,7 +37,8 @@ class _SubscriptionSelector {
 			buyBoxesViewPlacement = [
 				m(BuyOptionBox, this._createPremiumUpgradeBoxAttr(vnode.attrs)),
 				m(BuyOptionBox, this._createTeamsUpgradeBoxAttr(vnode.attrs)),
-				m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs))
+				m(BuyOptionBox, this._createProUpgradeBoxAttr(vnode.attrs)),
+				m(".smaller.mb", lang.get("downgradeToPrivateNotAllowed_msg")) //only displayed when business options are shown
 			]
 		} else {
 			// Add BuyOptionBox margin twice to the boxWidth received
@@ -66,12 +66,12 @@ class _SubscriptionSelector {
 			vnode.attrs.campaignInfoTextId
 			&& lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
 			m(".flex.center-horizontally.wrap", {
-				oncreate: (vnode) => {
-					this._containerDOM = vnode.dom;
-					m.redraw();
+					oncreate: (vnode) => {
+						this._containerDOM = vnode.dom;
+						m.redraw();
+					},
 				},
-			},
-			buyBoxesViewPlacement)
+				buyBoxesViewPlacement)
 		]
 	}
 
