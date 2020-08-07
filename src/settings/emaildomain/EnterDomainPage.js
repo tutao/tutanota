@@ -4,6 +4,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {isDomainName} from "../../misc/FormatValidator"
 import {Dialog} from "../../gui/base/Dialog"
 import type {AddDomainData} from "./AddDomainWizard"
+import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
@@ -20,11 +21,20 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
 			m(".mt", lang.get("enterDomainIntroduction_msg")),
 			m(".mt", lang.get("enterDomainGetReady_msg")),
-			m(".mt", lang.get("enterDomain_msg")),
 			m(TextFieldN, {
 					label: "customDomain_label",
 					value: vnode.attrs.data.domain,
-					helpLabel: () => lang.get("enterDomainFieldHelp_label")
+					helpLabel: () => {
+						const domain = vnode.attrs.data.domain()
+						const errorMsg = validateDomain(domain)
+						if (errorMsg) {
+							return lang.get(errorMsg)
+						} else {
+							return lang.get("enterDomainFieldHelp_label", {
+								"{domain}": domain.toLocaleLowerCase().trim(),
+							})
+						}
+					}
 				}
 			),
 			m(".flex-center.full-width.pt-l.mb-l", m("", {style: {width: "260px"}}, m(ButtonN, {
@@ -33,6 +43,18 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 				click: () => emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
 			})))
 		])
+	}
+}
+
+function validateDomain(domain: string): ?TranslationKey {
+	let cleanDomainName = domain.toLocaleLowerCase().trim()
+	if (!cleanDomainName.length) {
+		return "customDomainNeutral_msg"
+	}
+	if (!isDomainName(cleanDomainName)) {
+		return "customDomainInvalid_msg"
+	} else {
+		return null
 	}
 }
 
@@ -49,9 +71,9 @@ export class EnterDomainPageAttrs implements WizardPageAttrs<AddDomainData> {
 	}
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		let cleanDomainName = this.data.domain().toLocaleLowerCase().trim()
-		if (!isDomainName(cleanDomainName)) {
-			return showErrorDialog ? Dialog.error("customDomainNeutral_msg").then(() => false) : Promise.resolve(false)
+		const errorMsg = validateDomain(this.data.domain())
+		if (errorMsg) {
+			return showErrorDialog ? Dialog.error(errorMsg).then(() => false) : Promise.resolve(false)
 		} else {
 			return Promise.resolve(true)
 		}
