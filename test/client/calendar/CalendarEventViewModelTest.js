@@ -1218,22 +1218,110 @@ o.spec("CalendarEventViewModel", function () {
 			o(viewModel.canModifyOrganizer()).equals(false)
 		})
 	})
+
+	o.spec("getAvailableCalendars", function () {
+		const ownCalendar = makeCalendarInfo("own", calendarGroupId)
+		const userController = makeUserController()
+		const roCalendarId = "roId"
+		const roCalendar = makeCalendarInfo("shared", roCalendarId)
+		addCapability(userController.user, roCalendarId, ShareCapability.Read)
+
+		const rwCalendarId = "rwId"
+		const rwCalendar = makeCalendarInfo("shared", rwCalendarId)
+		addCapability(userController.user, rwCalendarId, ShareCapability.Write)
+
+		const calendars = new Map([
+			[calendarGroupId, ownCalendar],
+			[roCalendarId, roCalendar],
+			[rwCalendarId, rwCalendar]
+		])
+
+		o("own calendar, new event", function () {
+			const viewModel = init({userController, calendars, existingEvent: null})
+			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar, rwCalendar])
+		})
+
+		o("own calendar, existing event no guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: calendarGroupId,
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar, rwCalendar])
+		})
+
+		o("rw calendar, existing event with no guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: rwCalendarId,
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar, rwCalendar])
+		})
+
+		o.only("new invite", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: null,
+				organizer: createEncryptedMailAddress({address: "organizer@example.com"}),
+				attendees: [makeAttendee(mailAddress.address)]
+			})
+
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar])
+		})
+
+		o("ro calendar, existing event with no guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: roCalendarId,
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([roCalendar])
+		})
+
+		o("own calendar, existing event with guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: calendarGroupId,
+				attendees: [makeAttendee()]
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar])
+		})
+
+		o("rw calendar, existing event with guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: rwCalendarId,
+				attendees: [makeAttendee()]
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([rwCalendar])
+		})
+
+		o("ro calendar, existing event with guests", function () {
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: roCalendarId,
+				attendees: [makeAttendee()]
+			})
+			const viewModel = init({userController, calendars, existingEvent})
+			o(viewModel.getAvailableCalendars()).deepEquals([roCalendar])
+		})
+	})
 })
 
-
-function makeCalendars(type: "own" | "shared"): Map<string, CalendarInfo> {
-	const calendarInfo = {
+function makeCalendarInfo(type: "own" | "shared", id: string): CalendarInfo {
+	return {
 		groupRoot: downcast({}),
 		longEvents: new LazyLoaded(() => Promise.resolve([])),
 		groupInfo: downcast({}),
 		group: createGroup({
-			_id: calendarGroupId,
+			_id: id,
 			type: GroupType.Calendar,
 			user: type === "own" ? userId : "anotherUserId",
 		}),
 		shared: type === "shared"
 	}
-	return new Map([[calendarGroupId, calendarInfo]])
+}
+
+function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Map<string, CalendarInfo> {
+	const calendarInfo = makeCalendarInfo(type, id)
+	return new Map([[id, calendarInfo]])
 }
 
 function makeUserController(aliases: Array<string> = []): IUserController {

@@ -811,8 +811,9 @@ export class CalendarEventViewModel {
 		if (this.isReadOnlyEvent()) {
 			return this.calendars
 			           .filter((calendarInfo) => calendarInfo.group._id === assertNotNull(this.existingEvent)._ownerGroup)
-		} else if (this.attendees().length && this._eventType !== EventType.INVITE) {
+		} else if (this.attendees().length || this._eventType === EventType.INVITE) {
 			// We don't allow inviting in a shared calendar. If we have attendees, we cannot select a shared calendar
+			// We also don't allow accepting invites into shared calendars.
 			return this.calendars
 			           .filter((calendarInfo) => !calendarInfo.shared)
 		} else {
