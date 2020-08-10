@@ -10,8 +10,7 @@ import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEvent
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
 import {CalendarMethod, getAsEnumValue} from "../api/common/TutanotaConstants"
 import {assertNotNull, clone} from "../api/common/utils/Utils"
-import {findPrivateCalendar, getTimeZone, incrementSequence} from "./CalendarUtils"
-import type {CalendarInfo} from "./CalendarView"
+import {filterInt, findPrivateCalendar, getTimeZone} from "./CalendarUtils"
 import {logins} from "../api/main/LoginController"
 import {SendMailModel} from "../mail/SendMailModel"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -61,8 +60,14 @@ export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 	if (uid) {
 		return worker.getEventByUid(uid).then((existingEvent) => {
 			if (existingEvent) {
-				// It should be the latest version eventually via CalendarEventUpdates
-				return existingEvent
+				// If the file we are opening is newer than the one which we have on the server, update server version.
+				// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
+				// the invite. Then accepting first invite and then opening update should give us updated version.
+				if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
+					return calendarModel.updateEventWithExternal(existingEvent, event)
+				} else {
+					return existingEvent
+				}
 			} else {
 				return event
 			}
@@ -84,7 +89,6 @@ export function replyToEventInvitation(
 	const eventClone = clone(event)
 	const foundAttendee = assertNotNull(eventClone.attendees.find((a) => a.address.address === attendee.address.address))
 	foundAttendee.status = decision
-	eventClone.sequence = incrementSequence(eventClone.sequence)
 
 	return Promise.all([
 		calendarModel.loadOrCreateCalendarInfo().then(findPrivateCalendar),

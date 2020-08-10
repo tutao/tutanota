@@ -1,7 +1,7 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
-	assignEventId, findPrivateCalendar,
+	assignEventId, filterInt, findPrivateCalendar,
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
 	getDiffInDays,
@@ -308,6 +308,11 @@ export interface CalendarModel {
 	loadCalendarInfos(): Promise<Map<Id, CalendarInfo>>;
 
 	loadOrCreateCalendarInfo(): Promise<Map<Id, CalendarInfo>>;
+
+	/**
+	 * Update {@param dbEvent} stored on the server with {@param event} from the ics file.
+	 */
+	updateEventWithExternal(dbEvent: CalendarEvent, event: CalendarEvent): Promise<CalendarEvent>;
 }
 
 export class CalendarModelImpl implements CalendarModel {
@@ -497,18 +502,9 @@ export class CalendarModelImpl implements CalendarModel {
 						console.log("REQUEST sent not by organizer, ignoring")
 						return
 					}
-					const newEvent = clone(dbEvent)
-					newEvent.startTime = event.startTime
-					newEvent.endTime = event.endTime
-					newEvent.attendees = event.attendees
-					newEvent.summary = event.summary
-					newEvent.sequence = event.sequence
-					newEvent.location = event.location
-					newEvent.description = event.description
-					newEvent.organizer = event.organizer
-					newEvent.repeatRule = event.repeatRule
-					//console.log("Updating event", dbEvent.uid, dbEvent._id)
-					return this._updateEvent(dbEvent, newEvent)
+					if (filterInt(dbEvent.sequence) < filterInt(event.sequence)) {
+						return this.updateEventWithExternal(dbEvent, event).return()
+					}
 				}
 			})
 		} else if (calendarData.method === CalendarMethod.CANCEL) {
@@ -525,6 +521,20 @@ export class CalendarModelImpl implements CalendarModel {
 		} else {
 			return Promise.resolve()
 		}
+	}
+
+	updateEventWithExternal(dbEvent: CalendarEvent, event: CalendarEvent): Promise<CalendarEvent> {
+		const newEvent = clone(dbEvent)
+		newEvent.startTime = event.startTime
+		newEvent.endTime = event.endTime
+		newEvent.attendees = event.attendees
+		newEvent.summary = event.summary
+		newEvent.sequence = event.sequence
+		newEvent.location = event.location
+		newEvent.description = event.description
+		newEvent.organizer = event.organizer
+		newEvent.repeatRule = event.repeatRule
+		return this._updateEvent(dbEvent, newEvent).return(newEvent)
 	}
 
 	_updateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<void> {

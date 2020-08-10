@@ -841,6 +841,7 @@ export class CalendarEventViewModel {
 		// Using clone feels hacky but otherwise we need to save all attributes of the existing event somewhere and if dialog is
 		// cancelled we also don't want to modify passed event
 		const newEvent = this.existingEvent ? clone(this.existingEvent) : createCalendarEvent()
+		newEvent.sequence = incrementSequence(newEvent.sequence)
 
 		let startDate = new Date(this.startDate)
 		let endDate = new Date(this.endDate)
