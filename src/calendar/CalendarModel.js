@@ -441,8 +441,8 @@ export class CalendarModelImpl implements CalendarModel {
 			.then((file) => this._worker.downloadFileContent(file))
 			.then((dataFile: DataFile) => parseCalendarFile(dataFile))
 			.then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
-			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
 			.then(() => erase(update))
+			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
 			.catch(LockedError, noOp)
 	}
 
