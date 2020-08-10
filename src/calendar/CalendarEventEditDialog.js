@@ -13,7 +13,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {downcast, memoized, noOp} from "../api/common/utils/Utils"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../api/common/utils/ArrayUtils"
@@ -109,6 +109,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			isSelected: () => editorOptions.enabled,
 			noBubble: true,
 			type: ButtonType.Toggle,
+			colors: ButtonColors.Elevated,
 		})
 	)
 		.setMinHeight(400)

@@ -44,7 +44,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	view(vnode: Vnode<any>) {
-		return m(".abs.content-bg.plr.border-radius.dropdown-shadow", {
+		return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
 				style: {
 					width: px(Math.min(window.innerWidth, 400)),
 					opacity: "0", // see hack description below
