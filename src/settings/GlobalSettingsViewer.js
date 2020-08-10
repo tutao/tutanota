@@ -148,7 +148,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						if (logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog(true)
 						} else {
-							this._customerInfo.getAsync().then(customerInfo => showAddDomainWizard("", customerInfo))
+							this._customerInfo.getAsync().then(customerInfo => {
+								showAddDomainWizard("", customerInfo).then(() => {
+									this._updateDomains()
+								})
+							})
 						}
 					},
 					icon: () => Icons.Add
@@ -440,7 +444,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									type: ButtonType.Dropdown,
 									label: "resumeSetup_label",
 									click: () => {
-										showAddDomainWizard(domainDnsStatus.domain, customerInfo)
+										showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
+											domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+										})
 									}
 								}
 							] : []).concat([

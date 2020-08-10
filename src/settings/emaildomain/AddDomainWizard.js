@@ -32,7 +32,7 @@ export type AddDomainData = {
 }
 
 
-export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo): void {
+export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo): Promise<void> {
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
@@ -64,23 +64,28 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo):
 		},
 	]
 
-	const wizardBuilder = createWizardDialog(domainData, wizardPages)
-	const wizard = wizardBuilder.dialog
-	const wizardAttrs = wizardBuilder.attrs
+	return new Promise((resolve) => {
+		const wizardBuilder = createWizardDialog(domainData, wizardPages, () => {
+			resolve()
+			return Promise.resolve()
+		})
+		const wizard = wizardBuilder.dialog
+		const wizardAttrs = wizardBuilder.attrs
 
-	wizard.show()
-	// we can skip the next two pages because we assume that the domain is already assigned if it was passed to the wizard
-	if (domain.length) {
-		wizardAttrs.goToNextPageOrCloseWizard()
-		wizardAttrs.goToNextPageOrCloseWizard()
-		if (wizardAttrs.currentPage) {
-			// skip add email address page if an email address has been assigned
-			wizardAttrs.currentPage.attrs.nextAction(false)
-			           .then(ready => {
-				           if (ready) wizardAttrs.goToNextPageOrCloseWizard()
-			           })
+		wizard.show()
+		// we can skip the next two pages because we assume that the domain is already assigned if it was passed to the wizard
+		if (domain.length) {
+			wizardAttrs.goToNextPageOrCloseWizard()
+			wizardAttrs.goToNextPageOrCloseWizard()
+			if (wizardAttrs.currentPage) {
+				// skip add email address page if an email address has been assigned
+				wizardAttrs.currentPage.attrs.nextAction(false)
+				           .then(ready => {
+					           if (ready) wizardAttrs.goToNextPageOrCloseWizard()
+				           })
+			}
 		}
-	}
+	})
 }
 
 export type ValidatedDnSRecord =
