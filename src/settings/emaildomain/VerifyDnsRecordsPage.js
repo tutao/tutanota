@@ -62,9 +62,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 			}
 		}
 		return _updateDnsStatus(data).then(() => {
-			const result = data.domainStatus.status.getLoaded()
-			if (result.checkResult === CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK && !result.invalidRecords.length
-				&& !result.missingRecords.filter(r => r.type !== DnsRecordType.DNS_RECORD_TYPE_TXT_DMARC).length) {
+			if (recordsAreFine(data.domainStatus.status.getLoaded())) {
 				emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE) // The wizard will close the dialog as this is the last page
 			} else {
 				Dialog.showActionDialog(leaveUnfinishedDialogAttrs)
@@ -128,6 +126,13 @@ function _renderCheckResult(wizardData: AddDomainData, result: CustomDomainCheck
 
 function findDnsRecordInList(record: DnsRecord, recordList: Array<DnsRecord>): Array<DnsRecord> {
 	return recordList.filter(r => r.type === record.type && r.subdomain === record.subdomain)
+}
+
+function recordsAreFine(result: CustomDomainCheckReturn): boolean {
+	if (result.checkResult !== CustomDomainCheckResult.CUSTOM_DOMAIN_CHECK_RESULT_OK) return false
+	const requiredCorrectTypes = [DnsRecordType.DNS_RECORD_TYPE_MX, DnsRecordType.DNS_RECORD_TYPE_TXT_SPF]
+	const requiredMissingRecords = result.missingRecords.filter(r => requiredCorrectTypes.includes(r.type))
+	return !requiredMissingRecords.length
 }
 
 export class VerifyDnsRecordsPageAttrs implements WizardPageAttrs<AddDomainData> {
