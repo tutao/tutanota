@@ -1257,7 +1257,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(viewModel.getAvailableCalendars()).deepEquals([ownCalendar, rwCalendar])
 		})
 
-		o.only("new invite", function () {
+		o("new invite", function () {
 			const existingEvent = createCalendarEvent({
 				_ownerGroup: null,
 				organizer: createEncryptedMailAddress({address: "organizer@example.com"}),
