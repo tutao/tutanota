@@ -65,6 +65,31 @@ o.spec("CalendarImporterTest", function () {
 			])
 		})
 
+		o("all day west of UTC", function () {
+			// Event though we try to set it to New York, it's not really possible to check without changing system time because of how
+			// js Date works.
+			const zone = "America/New_York"
+			o(serializeEvent(createCalendarEvent({
+					_id: ["123", "456"],
+					_ownerGroup: "ownerId",
+					summary: "s",
+					startTime: getAllDayDateUTC(DateTime.fromObject({year: 2020, month: 7, day: 31}).toJSDate()),
+					endTime: getAllDayDateUTC(DateTime.fromObject({year: 2020, month: 8, day: 1}).toJSDate()),
+					description: "d"
+				}), [], now, zone)
+			).deepEquals([
+				"BEGIN:VEVENT",
+				`DTSTART;VALUE=DATE:20200731`,
+				`DTEND;VALUE=DATE:20200801`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:ownerId${now.getTime()}@tutanota.com`,
+				"SEQUENCE:0",
+				"SUMMARY:s",
+				"DESCRIPTION:d",
+				"END:VEVENT"
+			])
+		})
+
 		o("with alarms", function () {
 			const alarmOne = createUserAlarmInfo({
 				alarmInfo: createAlarmInfo({

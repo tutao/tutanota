@@ -5,7 +5,7 @@ import {AlarmInterval, CalendarAttendeeStatus, EndType, reverse, SECOND_MS} from
 import {fileController} from "../file/FileController"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {iCalReplacements, parseCalendarEvents, parseICalendar, tutaToIcalFrequency} from "./CalendarParser"
-import {generateEventElementId, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
+import {generateEventElementId, getAllDayDateLocal, isAllDayEvent} from "../api/common/utils/CommonCalendarUtils"
 import {worker} from "../api/main/WorkerClient"
 import {assignEventId, CALENDAR_MIME_TYPE, generateUid, getTimeZone} from "./CalendarUtils"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -269,10 +269,13 @@ function serializeAlarm(event: CalendarEvent, alarm: UserAlarmInfo): Array<strin
 export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
+	const localZone = getTimeZone()
 	let dateStart, dateEnd
 	if (isAllDay) {
-		dateStart = `DTSTART;VALUE=DATE:${formatDate(event.startTime, timeZone)}`
-		dateEnd = `DTEND;VALUE=DATE:${formatDate(event.endTime, timeZone)}`
+		// We use local zone because we convert UTC time to local first so to convert it back we need to use the right one.
+		// It will not affect times in case of all-day event anyway
+		dateStart = `DTSTART;VALUE=DATE:${formatDate(getAllDayDateLocal(event.startTime), localZone)}`
+		dateEnd = `DTEND;VALUE=DATE:${formatDate(getAllDayDateLocal(event.endTime), localZone)}`
 	} else if (repeatRule) {
 		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime, repeatRule.timeZone)}`
 		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime, repeatRule.timeZone)}`
