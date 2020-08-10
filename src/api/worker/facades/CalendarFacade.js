@@ -265,6 +265,7 @@ export class CalendarFacade {
 							uint8arrayToCustomId(hashUid(uid))
 						]))
 					.catch(NotFoundError, () => null)
+					.catch(NotAuthorizedError, () => null)
 			}, null)
 			.then((indexEntry) => {
 				if (indexEntry) {

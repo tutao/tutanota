@@ -15,7 +15,7 @@ import {
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {assertNotNull, clone, defer, downcast} from "../api/common/utils/Utils"
+import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -36,7 +36,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {isApp} from "../api/Env"
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
-import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
@@ -441,7 +441,9 @@ export class CalendarModelImpl implements CalendarModel {
 			.then((file) => this._worker.downloadFileContent(file))
 			.then((dataFile: DataFile) => parseCalendarFile(dataFile))
 			.then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
+			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
 			.then(() => erase(update))
+			.catch(LockedError, noOp)
 	}
 
 	/**
