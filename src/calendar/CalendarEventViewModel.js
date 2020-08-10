@@ -610,15 +610,6 @@ export class CalendarEventViewModel {
 		return this._distributor.sendCancellation(updatedEvent, this._cancelModel)
 	}
 
-	_checkPasswords(): void {
-		const needsPassword = this.attendees().some((a) => a.type === RecipientInfoType.EXTERNAL
-			&& (a.password == null || a.password === ""))
-		if (needsPassword) {
-			throw new UserError("noPreSharedPassword_msg")
-		}
-	}
-
-
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {
 		if (this._user.accountType === AccountType.EXTERNAL) {
 			return Promise.resolve()

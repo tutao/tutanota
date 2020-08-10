@@ -165,7 +165,8 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 		}
 
 		function showProgress(p: Promise<mixed>) {
-			return showProgressDialog("pleaseWait_msg", p)
+			// We get all errors in main promise, we don't need to handle them here
+			return showProgressDialog("pleaseWait_msg", p).catch(noOp)
 		}
 
 		Promise.resolve().then(() => {
