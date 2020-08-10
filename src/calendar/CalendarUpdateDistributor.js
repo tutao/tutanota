@@ -6,15 +6,15 @@ import {CalendarMethod, ConversationType, getAttendeeStatus, MailMethod, mailMet
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "../api/common/utils/Encoding"
-import {theme} from "../gui/theme"
+import {defaultTheme} from "../gui/theme"
 import {assertNotNull, noOp} from "../api/common/utils/Utils"
 import {SendMailModel} from "../mail/SendMailModel"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {windowFacade} from "../misc/WindowFacade"
-import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
+import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
@@ -37,45 +37,48 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 
 	sendInvite(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const message = lang.get("eventInviteMail_msg", {"{event}": event.summary})
+		const sender = assertOrganizer(event).address
 		return this._sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(event, message),
+			body: makeInviteEmailBody(sender, event, message),
 			event,
-			sender: assertOrganizer(event).address
+			sender
 		})
 	}
 
 	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const message = lang.get("eventUpdated_msg", {"{event}": event.summary})
+		const sender = assertOrganizer(event).address
 		return this._sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(event, message),
+			body: makeInviteEmailBody(sender, event, message),
 			event,
-			sender: assertOrganizer(event).address
+			sender
 		})
 	}
 
 	sendCancellation(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const message = lang.get("eventCancelled_msg", {"{event}": event.summary})
+		const sender = assertOrganizer(event).address
 		return this._sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
 			subject: message,
-			body: makeInviteEmailBody(event, message),
+			body: makeInviteEmailBody(sender, event, message),
 			event,
-			sender: assertOrganizer(event).address
+			sender
 		})
 	}
 
 	sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, sendAs: string, responseTo: ?Mail, status: CalendarAttendeeStatusEnum
 	): Promise<void> {
 		const message = lang.get("repliedToEventInvite_msg", {"{sender}": sendAs, "{event}": event.summary})
-		const body = makeInviteEmailBody(event, message)
 		const organizer = assertOrganizer(event)
+		const body = makeInviteEmailBody(organizer.address, event, message)
 		if (responseTo) {
 			return Promise.resolve()
 			              .then(() => {
@@ -181,7 +184,15 @@ function descriptionLine(event: CalendarEvent): string {
 	return event.description ? newLine(lang.get("description_label"), `<div>${event.description}</div>`) : ""
 }
 
-function makeInviteEmailBody(event: CalendarEvent, message: string) {
+function makeInviteEmailBody(sender: string, event: CalendarEvent, message: string) {
+	// Take whitelabel logo if set otherwise take default theme logo
+	const logo = isTutanotaMailAddress(sender)
+		? `
+  <img style="width: 200px; max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
+  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(defaultTheme.logo))}"
+  alt="logo"/>
+`
+		: ""
 	return `<div style="max-width: 685px; margin: 0 auto">
   <h2 style="text-align: center">${message}</h2>
   <div style="margin: 0 auto">
@@ -192,9 +203,7 @@ function makeInviteEmailBody(event: CalendarEvent, message: string) {
     ${descriptionLine(event)}
   </div>
   <hr style="border: 0; height: 1px; background-color: #ddd">
-  <img style="max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
-  		src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(theme.logo))}"
-  		alt="logo"/>
+${logo}  
 </div>`
 }
 
