@@ -251,7 +251,7 @@ export function createWizardDialog<T>(data: T, pages: Array<WizardPageWrapper<T>
 		key: Keys.ESC,
 		exec: () => wizardDialogAttrs.closeAction(),
 		help: "close_alt"
-	}).setCloseHandler(wizardDialogAttrs.goToPreviousPageOrClose())
+	}).setCloseHandler(() => wizardDialogAttrs.goToPreviousPageOrClose())
 	return {
 		dialog: wizardDialog,
 		attrs: wizardDialogAttrs
