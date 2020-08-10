@@ -368,7 +368,41 @@ o.spec("CalendarEventViewModel", function () {
 				organizer: mailAddress,
 				attendees: [attendee],
 			})
+			const viewModel = init({calendars, existingEvent, calendarModel, distributor, userController})
+			await viewModel.deleteEvent()
+			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
+			o(distributor.sendCancellation.calls).deepEquals([])
+		})
+
+		o("in own calendar, without attendees", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const calendarModel = makeCalendarModel()
+			const existingEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: mailAddress,
+				attendees: [],
+			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
+			await viewModel.deleteEvent()
+			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
+			o(distributor.sendCancellation.calls).deepEquals([])
+		})
+
+		o("in own calendar, self is only attendee", async function () {
+			const calendars = makeCalendars("own")
+			const userController = makeUserController()
+			const distributor = makeDistributor()
+			const calendarModel = makeCalendarModel()
+			const attendee = makeAttendee(mailAddress.address)
+			const existingEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: mailAddress,
+				attendees: [attendee],
+			})
+			const viewModel = init({calendars, existingEvent, calendarModel, distributor, userController})
 			await viewModel.deleteEvent()
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 			o(distributor.sendCancellation.calls).deepEquals([])

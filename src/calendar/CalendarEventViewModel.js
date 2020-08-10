@@ -555,7 +555,8 @@ export class CalendarEventViewModel {
 	deleteEvent(): Promise<void> {
 		const event = this.existingEvent
 		if (event) {
-			const awaitCancellation = this._eventType === EventType.OWN && event.attendees.length
+			// We must always be in attendees so we just check that there's more than one attendee
+			const awaitCancellation = this._eventType === EventType.OWN && event.attendees.length > 1
 				? this._sendCancellation(event)
 				: Promise.resolve()
 			return awaitCancellation.then(() => this._calendarModel.deleteEvent(event)).catch(NotFoundError, noOp)
