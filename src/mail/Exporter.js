@@ -95,7 +95,7 @@ export function toEml(mail: Mail, sanitizedBodyText: string): Promise<string> {
 					const fileContent = uint8ArrayToBase64(dataFile.data)
 					const lines = [
 						"--------------79Bu5A16qPEYcVIZL@tutanota",
-						"Content-Type: " + getCleanedMimeType(attachment.mimeType),
+						"Content-Type: " + getCleanedMimeType(attachment.mimeType) + ";",
 						" name=" + base64Filename + "",
 						"Content-Transfer-Encoding: base64",
 						"Content-Disposition: attachment;",
