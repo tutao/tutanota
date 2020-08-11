@@ -106,6 +106,7 @@ export function replyToEventInvitation(
 						                    .then((alarms) => {
 								                    const alarmInfos = alarms.map((a) => a.alarmInfo)
 								                    return calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
+								                                        .return()
 							                    }
 						                    )
 					} else {

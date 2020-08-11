@@ -298,7 +298,7 @@ export interface CalendarModel {
 	/** Update existing event when time did not change */
 	updateEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot,
 	            existingEvent: CalendarEvent
-	): Promise<void>;
+	): Promise<CalendarEvent>;
 
 	deleteEvent(event: CalendarEvent): Promise<void>;
 
@@ -346,17 +346,22 @@ export class CalendarModelImpl implements CalendarModel {
 	 * */
 	updateEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>, zone: string, groupRoot: CalendarGroupRoot,
 	            existingEvent: CalendarEvent
-	): Promise<void> {
+	): Promise<CalendarEvent> {
 		if (existingEvent._id == null) {
 			throw new Error("Invalid existing event: no id")
 		}
 		if (existingEvent._ownerGroup !== groupRoot._id || newEvent.startTime.getTime() !== existingEvent.startTime.getTime()
 			|| !repeatRulesEqual(newEvent.repeatRule, existingEvent.repeatRule)
 		) {
+			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return this._doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+				.then(() => load(CalendarEventTypeRef, newEvent._id))
 		} else {
 			newEvent._ownerGroup = groupRoot._id
+			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
+			// version
 			return this._worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+				.return(newEvent)
 		}
 	}
 
@@ -448,6 +453,7 @@ export class CalendarModelImpl implements CalendarModel {
 			.then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
 			.then(() => erase(update))
 			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
+			.catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
 			.catch(LockedError, noOp)
 	}
 
@@ -492,7 +498,7 @@ export class CalendarModelImpl implements CalendarModel {
 					return
 				}
 				dbAttendee.status = replyAttendee.status
-				return this._updateEvent(dbEvent, newEvent)
+				return this._updateEvent(dbEvent, newEvent).return()
 			})
 		} else if (calendarData.method === CalendarMethod.REQUEST) { // Either initial invite or update
 			return this._worker.getEventByUid(uid).then((dbEvent) => {
@@ -534,17 +540,16 @@ export class CalendarModelImpl implements CalendarModel {
 		newEvent.description = event.description
 		newEvent.organizer = event.organizer
 		newEvent.repeatRule = event.repeatRule
-		return this._updateEvent(dbEvent, newEvent).return(newEvent)
+		return this._updateEvent(dbEvent, newEvent)
 	}
 
-	_updateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<void> {
+	_updateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
 		return Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this._logins.getUserController().user),
 			_loadEntity(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup), null, this._worker)
 		]).then(([alarms, groupRoot]) => {
 			const alarmInfos = alarms.map((a) => a.alarmInfo)
 			return this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
-			           .catch(PreconditionFailedError, () => console.log("Precondition error when processing calendar update"))
 		})
 	}
 

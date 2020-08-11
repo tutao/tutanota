@@ -629,6 +629,7 @@ export class CalendarEventViewModel {
 			return this._calendarModel.createEvent(newEvent, newAlarms, this._zone, groupRoot)
 		} else {
 			return this._calendarModel.updateEvent(newEvent, newAlarms, this._zone, groupRoot, this.existingEvent)
+			           .return()
 		}
 	}
 
