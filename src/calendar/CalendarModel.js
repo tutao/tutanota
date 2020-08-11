@@ -355,13 +355,13 @@ export class CalendarModelImpl implements CalendarModel {
 		) {
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return this._doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
-				.then(() => load(CalendarEventTypeRef, newEvent._id))
+			           .then(() => _loadEntity(CalendarEventTypeRef, newEvent._id, null, this._worker))
 		} else {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
 			return this._worker.updateCalendarEvent(newEvent, newAlarms, existingEvent)
-				.return(newEvent)
+			           .return(newEvent)
 		}
 	}
 

@@ -704,7 +704,9 @@ o.spec("CalendarModel", function () {
 
 		o.beforeEach(function () {
 			groupRoot = createCalendarGroupRoot({
-				_id: "groupRootId"
+				_id: "groupRootId",
+				longEvents: "longEvents",
+				shortEvents: "shortEvents",
 			})
 			workerMock = new WorkerMock()
 			workerMock.addElementInstances(groupRoot)
@@ -1037,7 +1039,10 @@ function createEvent(startTime: Date, endTime: Date): CalendarEvent {
 class WorkerMock extends EntityRestClientMock {
 	eventByUid: Map<string, CalendarEvent> = new Map();
 
-	createCalendarEvent = o.spy(() => Promise.resolve())
+	createCalendarEvent = o.spy((event) => {
+		this.addListInstances(event)
+		return Promise.resolve()
+	})
 	updateCalendarEvent = o.spy(() => Promise.resolve())
 
 	getEventByUid(loadUid) {
