@@ -41,6 +41,7 @@ import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 export const iconForAttendeeStatus = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -496,7 +497,11 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel): BubbleTextField
 			const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
 			// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a seperate list.
 			Promise.resolve().then(() => {
-				viewModel.addAttendee(bubble.entity.mailAddress, bubble.entity.contact)
+				if (viewModel.shouldShowInviteUnavailble()) {
+					showNotAvailableForFreeDialog(true)
+				} else {
+					viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
+				}
 				remove(invitePeopleValueTextField.bubbles, bubble)
 			})
 			return bubble
@@ -533,26 +538,6 @@ function showOrganizerDropdown(viewModel: CalendarEventViewModel, e: MouseEvent)
 		}
 	})
 	createDropdown(makeButtons, 300)(e, (e.target: any))
-}
-
-function showOwnAttendanceButton(viewModel: CalendarEventViewModel, e: MouseEvent) {
-	const selectors: SelectorItemList<CalendarAttendeeStatusEnum> = [
-		{name: lang.get("yes_label"), value: CalendarAttendeeStatus.ACCEPTED},
-		{name: lang.get("maybe_label"), value: CalendarAttendeeStatus.TENTATIVE},
-		{name: lang.get("no_label"), value: CalendarAttendeeStatus.DECLINED},
-	]
-	const makeButtons = () => {
-		return selectors.map(selector => {
-			const checkedIcon = selector.icon
-			return {
-				label: () => selector.name,
-				click: () => viewModel.selectGoing(selector.value),
-				type: ButtonType.Dropdown,
-				icon: checkedIcon ? () => checkedIcon : null
-			}
-		})
-	}
-	createDropdown(makeButtons)(e, (e.target: any))
 }
 
 function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewModel, ownAttendee: ?Guest): Children {
@@ -599,7 +584,14 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 					items: attendingItems,
 					selectedValue: stream(guest.status),
 					class: "",
-					selectionChangedHandler: (value) => value != null && viewModel.selectGoing(value),
+					selectionChangedHandler: (value) => {
+						if (value == null) return
+						if (viewModel.shouldShowInviteUnavailble()) {
+							showNotAvailableForFreeDialog(true)
+						} else {
+							viewModel.selectGoing(value)
+						}
+					},
 				}))
 				: viewModel.canModifyGuests()
 				? m(".mr-negative-s", m(ButtonN, {

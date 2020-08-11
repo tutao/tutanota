@@ -12,6 +12,8 @@ import {theme} from "../gui/theme"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {Dialog} from "../gui/base/Dialog"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
+import {logins} from "../api/main/LoginController"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 export type Attrs = {
 	event: CalendarEvent,
@@ -48,7 +50,13 @@ export class EventBanner implements MComponent<Attrs> {
 				m(".ml-negative-s.limit-width.align-self-start", m(ButtonN, {
 					label: "viewEvent_action",
 					type: ButtonType.Secondary,
-					click: () => showEventDetails(event, mail),
+					click: () => {
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(true)
+						} else {
+							showEventDetails(event, mail)
+						}
+					},
 				})),
 			],
 		)
@@ -82,26 +90,18 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 }
 
 function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatusEnum, previousMail: Mail) {
-	getLatestEvent(event).then(latestEvent => {
-		const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
-		if (ownAttendee == null) {
-			Dialog.error("attendeeNotFound_msg")
-			return
-		}
-		replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
-			.then(() => ownAttendee.status = status)
-			.then(m.redraw)
-	})
-}
-
-function decisionString(status) {
-	if (status === CalendarAttendeeStatus.ACCEPTED) {
-		return lang.get("yes_label")
-	} else if (status === CalendarAttendeeStatus.TENTATIVE) {
-		return lang.get("maybe_label")
-	} else if (status === CalendarAttendeeStatus.DECLINED) {
-		return lang.get("no_label")
+	if (logins.getUserController().isFreeAccount()) {
+		showNotAvailableForFreeDialog(true)
 	} else {
-		return ""
+		getLatestEvent(event).then(latestEvent => {
+			const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
+			if (ownAttendee == null) {
+				Dialog.error("attendeeNotFound_msg")
+				return
+			}
+			replyToEventInvitation(latestEvent, ownAttendee, status, previousMail)
+				.then(() => ownAttendee.status = status)
+				.then(m.redraw)
+		})
 	}
 }

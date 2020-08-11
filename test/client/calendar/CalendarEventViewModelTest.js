@@ -2,15 +2,22 @@
 import o from "ospec/ospec.js"
 import type {Guest} from "../../../src/calendar/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../../../src/calendar/CalendarEventViewModel"
-import {downcast, noOp} from "../../../src/api/common/utils/Utils"
+import {clone, downcast, noOp} from "../../../src/api/common/utils/Utils"
 import {LazyLoaded} from "../../../src/api/common/utils/LazyLoaded"
 import type {MailboxDetail} from "../../../src/mail/MailModel"
 import {MailModel} from "../../../src/mail/MailModel"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
-import type {ShareCapabilityEnum} from "../../../src/api/common/TutanotaConstants"
-import {AlarmInterval, CalendarAttendeeStatus, GroupType, ShareCapability, TimeFormat} from "../../../src/api/common/TutanotaConstants"
+import type {AccountTypeEnum, ShareCapabilityEnum} from "../../../src/api/common/TutanotaConstants"
+import {
+	AccountType,
+	AlarmInterval,
+	CalendarAttendeeStatus,
+	GroupType,
+	ShareCapability,
+	TimeFormat
+} from "../../../src/api/common/TutanotaConstants"
 import type {CalendarInfo} from "../../../src/calendar/CalendarView"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import type {User} from "../../../src/api/entities/sys/User"
@@ -35,6 +42,7 @@ import {lang} from "../../../src/misc/LanguageViewModel"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail} from "../../../src/api/entities/tutanota/Mail"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
+import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
@@ -438,7 +446,7 @@ o.spec("CalendarEventViewModel", function () {
 			const viewModel = init({calendars, existingEvent: null, calendarModel, distributor})
 			const newGuest = "new-attendee@example.com"
 
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).deepEquals(true)
 
@@ -516,7 +524,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
@@ -596,7 +604,7 @@ o.spec("CalendarEventViewModel", function () {
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 			askInsecurePassword = o.spy(() => false)
 
-			viewModel.addAttendee(newGuest, null)
+			viewModel.addGuest(newGuest, null)
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(false)
 
@@ -638,7 +646,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("no"))
 
@@ -682,7 +690,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 			viewModel.removeAttendee(toRemoveGuest)
 			askForUpdates = o.spy(() => Promise.resolve("cancel"))
 
@@ -797,8 +805,8 @@ o.spec("CalendarEventViewModel", function () {
 			const distributor = makeDistributor()
 			const viewModel = init({calendars, existingEvent: null, calendarModel, distributor})
 			const newGuest = "new-attendee@example.com"
-			viewModel.addAttendee(newGuest)
-			viewModel.addAttendee(mailAddress.address)
+			viewModel.addGuest(newGuest)
+			viewModel.addGuest(mailAddress.address)
 
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
@@ -859,7 +867,7 @@ o.spec("CalendarEventViewModel", function () {
 			const viewModel = init({calendars, distributor, userController, existingEvent})
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
 
-			viewModel.addAttendee(mailAddress.address)
+			viewModel.addGuest(mailAddress.address)
 			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
 
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
@@ -994,13 +1002,22 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 
-	o.spec("addAttendee", function () {
+	o.spec("addGuest", function () {
+		o("as a free user", async function () {
+			const calendars = makeCalendars("own")
+			const userController = makeUserController([], AccountType.FREE)
+			const viewModel = init({calendars, userController, existingEvent: null})
+
+			o(() => viewModel.addGuest("new-attendee@example.com")).throws(ProgrammingError)
+			o(viewModel.attendees()).deepEquals([])
+		})
+
 		o("to new event", async function () {
 			const calendars = makeCalendars("own")
 			const viewModel = init({calendars, existingEvent: null})
 			const newGuest = "new-attendee@example.com"
 
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 
 			o(viewModel.attendees()).deepEquals([
 				{
@@ -1026,7 +1043,7 @@ o.spec("CalendarEventViewModel", function () {
 			const viewModel = init({calendars, existingEvent})
 			const newGuest = "new-attendee@example.com"
 
-			viewModel.addAttendee(newGuest)
+			viewModel.addGuest(newGuest)
 
 			o(viewModel.attendees()).deepEquals([
 				{
@@ -1052,7 +1069,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const viewModel = init({calendars, existingEvent})
 
-			viewModel.addAttendee(guest)
+			viewModel.addGuest(guest)
 
 			// Organizer is not added because new attendee was not added
 			o(viewModel.attendees()).deepEquals([
@@ -1068,6 +1085,29 @@ o.spec("CalendarEventViewModel", function () {
 	})
 
 	o.spec("selectGoing", function () {
+		o("as a free user", async function () {
+			const calendars = makeCalendars("own")
+			const userController = makeUserController([], AccountType.FREE)
+			const ownAttendee = createCalendarEventAttendee({
+				address: mailAddress,
+			})
+			const existingEvent = createCalendarEvent({
+				attendees: [clone(ownAttendee)],
+				organizer: wrapIntoMailAddress("some-organizer@example.com"),
+			})
+			const viewModel = init({calendars, userController, existingEvent})
+
+			o(() => viewModel.selectGoing(CalendarAttendeeStatus.ACCEPTED)).throws(ProgrammingError)
+			o(viewModel.attendees()).deepEquals([
+				{
+					address: ownAttendee.address,
+					status: ownAttendee.status,
+					type: RecipientInfoType.INTERNAL,
+					password: null,
+				}
+			])
+		})
+
 		o("status of own attendee is changed selected in own event", async function () {
 			const calendars = makeCalendars("own")
 			const attendee = createCalendarEventAttendee({
@@ -1142,7 +1182,7 @@ o.spec("CalendarEventViewModel", function () {
 		o("can modify when when new own event and added guests", function () {
 			const calendars = makeCalendars("own")
 			const viewModel = init({calendars, existingEvent: null})
-			viewModel.addAttendee("guest@example.com")
+			viewModel.addGuest("guest@example.com")
 			o(viewModel.canModifyOrganizer()).equals(true)
 		})
 
@@ -1168,7 +1208,7 @@ o.spec("CalendarEventViewModel", function () {
 				})
 			})
 
-			viewModel.addAttendee("guest@tutanota.de")
+			viewModel.addGuest("guest@tutanota.de")
 
 			o(viewModel.canModifyOrganizer()).equals(true)
 		})
@@ -1337,6 +1377,26 @@ o.spec("CalendarEventViewModel", function () {
 			o(viewModel.getAvailableCalendars()).deepEquals([roCalendar])
 		})
 	})
+
+	o.spec("shouldShowInviteUnavailble", function () {
+		o("not available for free users", function () {
+			const userController = makeUserController([], AccountType.FREE)
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
+			o(viewModel.shouldShowInviteUnavailble()).equals(true)
+		})
+
+		o("available for premium users", function () {
+			const userController = makeUserController([], AccountType.PREMIUM)
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
+			o(viewModel.shouldShowInviteUnavailble()).equals(false)
+		})
+
+		o("available for external users", function () {
+			const userController = makeUserController([], AccountType.EXTERNAL)
+			const viewModel = init({userController, calendars: makeCalendars("own"), existingEvent: null})
+			o(viewModel.shouldShowInviteUnavailble()).equals(false)
+		})
+	})
 })
 
 function makeCalendarInfo(type: "own" | "shared", id: string): CalendarInfo {
@@ -1358,11 +1418,12 @@ function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Ma
 	return new Map([[id, calendarInfo]])
 }
 
-function makeUserController(aliases: Array<string> = []): IUserController {
+function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM): IUserController {
 	return downcast({
 		user: createUser({
 			_id: userId,
 			memberships: [createGroupMembership({groupType: GroupType.Mail}), createGroupMembership({groupType: GroupType.Contact})],
+			accountType,
 		}),
 		props: {
 			defaultSender: mailAddress,

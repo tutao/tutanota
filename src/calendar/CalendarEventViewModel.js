@@ -44,7 +44,6 @@ import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {NotFoundError} from "../api/common/error/RestError"
-import type {User} from "../api/entities/sys/User"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
@@ -60,6 +59,7 @@ import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -117,7 +117,9 @@ export class CalendarEventViewModel {
 	+_zone: string;
 	// We keep alarms read-only so that view can diff just array and not all elements
 	alarms: $ReadOnlyArray<AlarmInfo>;
-	_user: User;
+	// UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
+	// important updates like premium upgrade
+	+_userController: IUserController;
 	+_eventType: EventTypeEnum;
 	+_distributor: CalendarUpdateDistributor;
 	+_calendarModel: CalendarModel;
@@ -171,7 +173,7 @@ export class CalendarEventViewModel {
 		this.existingEvent = existingEvent
 		this._zone = zone
 		this.alarms = []
-		this._user = userController.user
+		this._userController = userController
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
 		if (existingEvent) {
@@ -241,7 +243,7 @@ export class CalendarEventViewModel {
 		this.location(existingEvent.location)
 		this.note = existingEvent.description
 
-		this._calendarModel.loadAlarms(existingEvent.alarmInfos, this._user).then((alarms) => {
+		this._calendarModel.loadAlarms(existingEvent.alarmInfos, this._userController.user).then((alarms) => {
 			alarms.forEach((alarm) => this.addAlarm(downcast(alarm.alarmInfo.trigger)))
 		})
 	}
@@ -274,7 +276,7 @@ export class CalendarEventViewModel {
 			const calendarInfoForEvent = existingEvent._ownerGroup && calendars.get(existingEvent._ownerGroup)
 			if (calendarInfoForEvent) {
 				if (calendarInfoForEvent.shared) {
-					return hasCapabilityOnGroup(this._user, calendarInfoForEvent.group, ShareCapability.Write)
+					return hasCapabilityOnGroup(this._userController.user, calendarInfoForEvent.group, ShareCapability.Write)
 						? EventType.SHARED_RW
 						: EventType.SHARED_RO
 				} else {
@@ -366,7 +368,10 @@ export class CalendarEventViewModel {
 		this.endTime = value
 	}
 
-	addAttendee(mailAddress: string, contact: ?Contact) {
+	addGuest(mailAddress: string, contact: ?Contact) {
+		if (this.shouldShowInviteUnavailble()) {
+			throw new ProgrammingError("Not available for free account")
+		}
 		if (this.attendees().find((a) => a.address.address === mailAddress)) {
 			return
 		}
@@ -502,6 +507,10 @@ export class CalendarEventViewModel {
 		return selectedCalendar != null && !selectedCalendar.shared && this._eventType !== EventType.INVITE
 	}
 
+	shouldShowInviteUnavailble(): boolean {
+		return this._userController.user.accountType === AccountType.FREE
+	}
+
 	removeAttendee(guest: Guest) {
 		const existingRecipient = this.existingEvent
 			&& this.existingEvent.attendees.find((a) => a.address.address === guest.address.address)
@@ -612,7 +621,7 @@ export class CalendarEventViewModel {
 	}
 
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {
-		if (this._user.accountType === AccountType.EXTERNAL) {
+		if (this._userController.user.accountType === AccountType.EXTERNAL) {
 			return Promise.resolve()
 		}
 		const groupRoot = assertNotNull(this.selectedCalendar()).groupRoot
@@ -701,14 +710,18 @@ export class CalendarEventViewModel {
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {
-		if (this.canModifyOwnAttendance()) {
-			const ownAttendee = this._ownAttendee()
-			if (ownAttendee) {
-				this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
-			} else if (this._eventType === EventType.OWN) {
-				const newOwnAttendee = createEncryptedMailAddress({address: firstThrow(this._mailAddresses)})
-				this._ownAttendee(newOwnAttendee)
-				this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
+		if (this.shouldShowInviteUnavailble()) {
+			throw new ProgrammingError("Cannot select attendance")
+		} else {
+			if (this.canModifyOwnAttendance()) {
+				const ownAttendee = this._ownAttendee()
+				if (ownAttendee) {
+					this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
+				} else if (this._eventType === EventType.OWN) {
+					const newOwnAttendee = createEncryptedMailAddress({address: firstThrow(this._mailAddresses)})
+					this._ownAttendee(newOwnAttendee)
+					this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
+				}
 			}
 		}
 	}
@@ -810,7 +823,7 @@ export class CalendarEventViewModel {
 			           .filter((calendarInfo) => !calendarInfo.shared)
 		} else {
 			return this.calendars
-			           .filter((calendarInfo) => hasCapabilityOnGroup(this._user, calendarInfo.group, ShareCapability.Write))
+			           .filter((calendarInfo) => hasCapabilityOnGroup(this._userController.user, calendarInfo.group, ShareCapability.Write))
 		}
 	}
 
