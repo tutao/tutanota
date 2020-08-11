@@ -46,7 +46,7 @@ export class CalendarEventPopup implements ModalComponent {
 	view(vnode: Vnode<any>) {
 		return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
 				style: {
-					width: px(Math.min(window.innerWidth - 2, 400)), // 2 for margin, need to apply it now to not overflow later
+					width: px(Math.min(window.innerWidth - 8, 400)), // minus margin, need to apply it now to not overflow later
 					opacity: "0", // see hack description below
 					margin: "1px" // because calendar event bubles have 1px border, we want to align
 				},
