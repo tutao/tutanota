@@ -14,7 +14,7 @@ import type {CalendarInfo} from "./CalendarView"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
 import type {MailboxDetail} from "../mail/MailModel"
 import {UserError} from "../api/common/error/UserError"
-import {showDropdown} from "../gui/base/DropdownN"
+import {DROPDOWN_MARGIN, showDropdown} from "../gui/base/DropdownN"
 
 export class CalendarEventPopup implements ModalComponent {
 	_calendarEvent: CalendarEvent;
@@ -46,7 +46,7 @@ export class CalendarEventPopup implements ModalComponent {
 	view(vnode: Vnode<any>) {
 		return m(".abs.elevated-bg.plr.border-radius.dropdown-shadow", {
 				style: {
-					width: px(Math.min(window.innerWidth - 8, 400)), // minus margin, need to apply it now to not overflow later
+					width: px(Math.min(window.innerWidth - DROPDOWN_MARGIN * 2, 400)), // minus margin, need to apply it now to not overflow later
 					opacity: "0", // see hack description below
 					margin: "1px" // because calendar event bubles have 1px border, we want to align
 				},

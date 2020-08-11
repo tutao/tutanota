@@ -351,6 +351,8 @@ export function attachDropdown(
 	})
 }
 
+export const DROPDOWN_MARGIN = 4
+
 export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentHeight: number, contentWidth: number) {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
@@ -399,7 +401,6 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 		maxHeight = Math.min(contentHeight, upperSpace)
 	}
 	let width = contentWidth
-	const margin = 4
 	if (leftSpace < rightSpace) {
 		// element is in the left part of the screen, dropdown should extend to the right from the element
 		transformOrigin += " left"
@@ -407,11 +408,11 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 		let leftEdgeOfDropdown = leftEdgeOfElement
 		if (availableSpaceForDropdown < contentWidth) {
 			// If the dropdown does not fit, we shift it by the required amount. If it still does not fit, we reduce the width.
-			const shiftForDropdown = contentWidth - availableSpaceForDropdown + margin
+			const shiftForDropdown = contentWidth - availableSpaceForDropdown + DROPDOWN_MARGIN
 			leftEdgeOfDropdown = leftEdgeOfElement - shiftForDropdown
-			width = Math.min(width, window.innerWidth - margin * 2)
+			width = Math.min(width, window.innerWidth - DROPDOWN_MARGIN * 2)
 		}
-		domDropdown.style.left = px(Math.max(margin, leftEdgeOfDropdown))
+		domDropdown.style.left = px(Math.max(DROPDOWN_MARGIN, leftEdgeOfDropdown))
 		domDropdown.style.right = ''
 	} else {
 		// element is in the right part of the screen, dropdown should extend to the left from the element
@@ -420,14 +421,14 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 		let rightEdgeOfDropdown = rightEdgeOfElement
 		if (availableSpaceForDropdown < contentWidth) {
 			// If the dropdown does not fit, we shift it by the required amount. If it still does not fit, we reduce the width.
-			const shiftForDropdown = contentWidth - availableSpaceForDropdown + margin
+			const shiftForDropdown = contentWidth - availableSpaceForDropdown + DROPDOWN_MARGIN
 			rightEdgeOfDropdown = rightEdgeOfElement + shiftForDropdown
-			width = Math.min(width, window.innerWidth - (margin * 2))
+			width = Math.min(width, window.innerWidth - (DROPDOWN_MARGIN * 2))
 		}
 		domDropdown.style.left = ''
 		// position right is defined from the right edge of the screen
 		// and not like the viewport origin which starts at top/left
-		domDropdown.style.right = px(Math.max(margin, window.innerWidth - rightEdgeOfDropdown))
+		domDropdown.style.right = px(Math.max(DROPDOWN_MARGIN, window.innerWidth - rightEdgeOfDropdown))
 	}
 
 	domDropdown.style.width = px(width)

@@ -269,7 +269,7 @@ o.spec("CalendarImporterTest", function () {
 				})
 		})
 
-		o.only("with attendee", function () {
+		o("with attendee", function () {
 			const parsedEvent = parseCalendarStringData([
 				"BEGIN:VCALENDAR",
 				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
@@ -312,7 +312,7 @@ o.spec("CalendarImporterTest", function () {
 				})
 		})
 
-		o.only("with attendee uppercase mailto", function () {
+		o("with attendee uppercase mailto", function () {
 			// GMX does this
 
 			const parsedEvent = parseCalendarStringData([
