@@ -5,10 +5,12 @@ import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEv
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
 import {createUserAlarmInfo} from "../../../src/api/entities/sys/UserAlarmInfo"
-import {AlarmInterval, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {getAllDayDateUTCFromZone} from "../../../src/calendar/CalendarUtils"
+import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
+import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
 
 const zone = "Europe/Berlin"
 const now = new Date(1565704860630)
@@ -263,6 +265,94 @@ o.spec("CalendarImporterTest", function () {
 							alarms: []
 						},
 
+					]
+				})
+		})
+
+		o.only("with attendee", function () {
+			const parsedEvent = parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:test@tutanota.com`,
+				"SEQUENCE:0",
+				"SUMMARY:s",
+				"ORGANIZER:mailto:organizer@tutanota.com",
+				"ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:test@example.com",
+				"END:VEVENT",
+				"END:VCALENDAR"
+			].join("\r\n"), zone)
+			o(parsedEvent).deepEquals(
+				{
+					method: "PUBLISH",
+					contents: [
+						{
+							event: createCalendarEvent({
+								summary: "s",
+								startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								uid: "test@tutanota.com",
+								organizer: createEncryptedMailAddress({name: "", address: "organizer@tutanota.com"}),
+								attendees: [
+									createCalendarEventAttendee({
+										address: createEncryptedMailAddress({name: "", address: "test@example.com"}),
+										status: CalendarAttendeeStatus.NEEDS_ACTION,
+									})
+								]
+							}),
+							alarms: []
+						},
+					]
+				})
+		})
+
+		o.only("with attendee uppercase mailto", function () {
+			// GMX does this
+
+			const parsedEvent = parseCalendarStringData([
+				"BEGIN:VCALENDAR",
+				"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+				"VERSION:2.0",
+				"CALSCALE:GREGORIAN",
+				"METHOD:PUBLISH",
+				"BEGIN:VEVENT",
+				`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
+				`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
+				`DTSTAMP:20190813T140100Z`,
+				`UID:test@tutanota.com`,
+				"SEQUENCE:0",
+				"SUMMARY:s",
+				"ORGANIZER:MAILTO:organizer@tutanota.com",
+				"ATTENDEE;PARTSTAT=NEEDS-ACTION:MAILTO:test@example.com",
+				"END:VEVENT",
+				"END:VCALENDAR"
+			].join("\r\n"), zone)
+			o(parsedEvent).deepEquals(
+				{
+					method: "PUBLISH",
+					contents: [
+						{
+							event: createCalendarEvent({
+								summary: "s",
+								startTime: DateTime.fromObject({year: 2019, month: 8, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								endTime: DateTime.fromObject({year: 2019, month: 9, day: 13, hour: 5, minute: 6, zone}).toJSDate(),
+								uid: "test@tutanota.com",
+								organizer: createEncryptedMailAddress({name: "", address: "organizer@tutanota.com"}),
+								attendees: [
+									createCalendarEventAttendee({
+										address: createEncryptedMailAddress({name: "", address: "test@example.com",}),
+										status: CalendarAttendeeStatus.NEEDS_ACTION,
+									})
+								]
+							}),
+							alarms: []
+						},
 					]
 				})
 		})

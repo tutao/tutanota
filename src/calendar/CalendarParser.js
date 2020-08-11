@@ -361,7 +361,13 @@ function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: ?string, zone
 	               .toJSDate()
 }
 
-const MAILTO_PREFIX = "mailto:"
+const MAILTO_PREFIX_REGEX = /^mailto:(.*)/i
+
+function parseMailtoValue(value: string) {
+	const match = value.match(MAILTO_PREFIX_REGEX)
+	return match && match[1]
+}
+
 
 export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
 	const methodProp = icalObject.properties.find((prop) => prop.name === "METHOD")
@@ -441,14 +447,15 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		let attendees = []
 		eventObj.properties.forEach((property) => {
 			if (property.name === "ATTENDEE") {
-				if (!property.value.startsWith(MAILTO_PREFIX)) return
+				const attendeeAddress = parseMailtoValue(property.value)
+				if (!attendeeAddress) return
 				const status = parstatToCalendarAttendeeStatus[property.params["PARTSTAT"]]
 				if (!status) return
 
 				attendees.push(createCalendarEventAttendee({
 					address: createEncryptedMailAddress({
-						address: property.value.substring(MAILTO_PREFIX.length),
-						name: property.params["CN"],
+						address: attendeeAddress,
+						name: property.params["CN"] || "",
 					}),
 					status,
 				}))
@@ -456,11 +463,14 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		})
 		event.attendees = attendees
 		const organizerProp = eventObj.properties.find(p => p.name === "ORGANIZER")
-		if (organizerProp && organizerProp.value.startsWith(MAILTO_PREFIX)) {
-			event.organizer = createEncryptedMailAddress({
-				address: organizerProp.value.substring(MAILTO_PREFIX.length),
-				name: organizerProp.params["name"],
-			})
+		if (organizerProp) {
+			const organizerAddress = parseMailtoValue(organizerProp.value)
+			if (organizerAddress) {
+				event.organizer = createEncryptedMailAddress({
+					address: organizerAddress,
+					name: organizerProp.params["name"] || "",
+				})
+			}
 		}
 
 		event.uid = getPropStringValue(eventObj, "UID")
