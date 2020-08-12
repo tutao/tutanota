@@ -214,6 +214,7 @@ type JsRequestType = 'createMailEditor'
 	| 'invalidateAlarms'
 	| 'applySearchResultToOverlay'
 	| 'addShortcuts'
+	| 'openCustomer' // only for admin clients
 
 type WebContentsMessage
 	= 'initialize-ipc'
@@ -294,7 +295,6 @@ type Credentials = {
 declare function browser(f: Function): Function
 
 declare function node(f: Function): Function
-
 
 
 type DataFile = {
