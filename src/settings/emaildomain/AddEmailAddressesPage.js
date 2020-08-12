@@ -2,7 +2,7 @@
 import {SelectMailAddressForm} from "../SelectMailAddressForm"
 import {logins} from "../../api/main/LoginController"
 import m from "mithril"
-import {addAlias, getAliasLineAttrs, updateNbrOfAliases} from "../EditAliasesFormN"
+import {getAliasLineAttrs, updateNbrOfAliases} from "../EditAliasesFormN"
 import type {AddDomainData} from "./AddDomainWizard"
 import type {EntityEventsListener} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
@@ -10,7 +10,7 @@ import {load, loadAll} from "../../api/main/Entity"
 import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {isSameId} from "../../api/common/EntityFunctions"
-import {downcast, neverNull} from "../../api/common/utils/Utils"
+import {neverNull} from "../../api/common/utils/Utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
@@ -23,6 +23,9 @@ import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/Env"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {showProgressDialog} from "../../gui/base/ProgressDialog"
+import {worker} from "../../api/main/WorkerClient"
+import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -49,15 +52,7 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 		const addAliasButtonAttrs = {
 			label: "addEmailAlias_label",
 			icon: () => Icons.Checkmark,
-			click: () => {
-				const error = wizardAttrs.data.emailAliasInput.getErrorMessageId()
-				if (error) {
-					Dialog.error(error)
-				} else {
-					addAlias(wizardAttrs.data.editAliasFormAttrs, wizardAttrs.data.emailAliasInput.getCleanMailAddress())
-						.then(() => wizardAttrs.data.emailAliasInput._username(""))
-				}
-			},
+			click: () => addAliasFromInput(wizardAttrs.data),
 		}
 		wizardAttrs.data.emailAliasInput = new SelectMailAddressForm([wizardAttrs.data.domain()], addAliasButtonAttrs)
 		updateNbrOfAliases(wizardAttrs.data.editAliasFormAttrs)
@@ -133,6 +128,23 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 	}
 }
 
+//Try to add an alias from input field and return true if it succeeded
+function addAliasFromInput(data: AddDomainData): Promise<boolean> {
+	const error = data.emailAliasInput.getErrorMessageId()
+	if (error) {
+		return Dialog.error(error).then(() => false)
+	} else {
+		return showProgressDialog("pleaseWait_msg", worker.addMailAlias(data.editAliasFormAttrs.userGroupInfo.group, data.emailAliasInput.getCleanMailAddress()))
+			.then(() => {
+				data.emailAliasInput._username("")
+				return true
+			})
+			.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg").then(() => false))
+			.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg").then(() => false))
+			.finally((result) => updateNbrOfAliases(data.editAliasFormAttrs).then(() => result))
+	}
+}
+
 export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData> {
 
 	data: AddDomainData
@@ -146,25 +158,32 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		let aliases = logins.getUserController().userGroupInfo.mailAddressAliases.filter((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
-		if (aliases.length) {
-			return Promise.resolve(true)
-		} else {
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-				return loadAll(GroupInfoTypeRef, customer.userGroups).then((allUserGroupInfos) => {
-					if (allUserGroupInfos.filter(u => downcast(u.mailAddress).endsWith("@" + this.data.domain())
-						|| u.mailAddressAliases.filter((a) => downcast(a.mailAddress).endsWith("@"
-							+ this.data.domain())).length).length) {
-						return true
-					} else if (showErrorDialog) {
-						const message = "enforceAliasSetup_msg"
-						return showErrorDialog ? Dialog.error(message).then(() => false) : false
-					} else {
-						return false
-					}
-				})
-			})
+		//We try to add an alias from the input field, if it is not empty and error dialogs are allowed
+		if (showErrorDialog && this.data.emailAliasInput.getErrorMessageId() !== "mailAddressNeutral_msg") {
+			//We already showed one error dialog if failing to add an alias from the input field.
+			//The user has to clean the input field up before proceeding to the next page (even if there is already an alias)
+			//We are done if we succeeded to add the alias
+			return addAliasFromInput(this.data)
 		}
+		//Otherwise we check that there is either an alias or a user (or an alias for some other user) defined for the custom domain regardless of activation status
+		const checkMailAddresses = Promise.resolve().then(() => {
+			let aliases = logins.getUserController().userGroupInfo.mailAddressAliases.filter((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
+			if (aliases.length) {
+				return true
+			} else {
+				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
+					return loadAll(GroupInfoTypeRef, customer.userGroups).then((allUserGroupInfos) => {
+						return !!allUserGroupInfos.filter(u => neverNull(u.mailAddress).endsWith("@" + this.data.domain())
+							|| u.mailAddressAliases.filter((a) => neverNull(a.mailAddress).endsWith("@"
+								+ this.data.domain())).length).length;
+					})
+				})
+			}
+		})
+		return showProgressDialog("pleaseWait_msg", checkMailAddresses).then((nextAllowed) => {
+			if (showErrorDialog && !nextAllowed) Dialog.error("enforceAliasSetup_msg")
+			return nextAllowed
+		})
 	}
 
 	isSkipAvailable(): boolean {return true}
