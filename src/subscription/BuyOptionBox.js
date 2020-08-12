@@ -62,7 +62,14 @@ class _BuyOptionBox {
 				(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
 					? m(".ribbon-vertical", m(".text-center.b.h4", {style: {'padding-top': px(22)}}, "%"))
 					: null,
-				m(".h4.text-center.dialog-header.dialog-header-line-height", vnode.attrs.heading),
+				m(".h4.text-center.dialog-header.dialog-header-line-height.flex.col.center-horizontally", {
+					style: {
+						// we need some margin for the discount banner for longer translations shown on the website
+						"margin-right": px(30),
+						"margin-left": px(30),
+						"line-height": 1,
+					}
+				}, vnode.attrs.heading),
 				m(".text-center.pt.flex.center-vertically.center-horizontally", [
 					m("span.h1", vnode.attrs.price),
 					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
@@ -93,17 +100,12 @@ class _BuyOptionBox {
 						right: px(10)
 					}
 				}, m(neverNull(vnode.attrs.actionButton))) : null
-			]), m("div.mt-m.pl", vnode.attrs.features().map(f => m(".flex",
+			]), m("div.mt.pl", vnode.attrs.features().map(f => m(".flex",
 				[
 					m(Icon, {
-						icon: Icons.Checkmark,
-						style: {
-							'padding-top': '5px'
-						}
+						icon: Icons.Checkmark
 					}),
-					m(".align-self-center.pt-xs.pb-xs.pl-xs" + (window.innerWidth > 809 ? ".text-ellipsis" : ""), {
-						title: window.innerWidth > 809 ? f : ""
-					}, f)
+					m(".smaller.left.align-self-center.pl-xs", {style: {height: px(40)}}, f)
 				]
 			)))
 		])
