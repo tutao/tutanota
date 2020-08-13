@@ -1,6 +1,6 @@
 //@flow
 
-import {downcast} from "../utils/Utils"
+// import {downcast} from "../utils/Utils"
 
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
@@ -15,7 +15,7 @@ function ExtendableError<T: Error>(): Class<T> {
 	ExtendableError.prototype = Object.create(Error.prototype);
 	//Object.setPrototypeOf(ExtendableError, cls);
 
-	return downcast(ExtendableError);
+	return (ExtendableError:any);
 }
 
 export class TutanotaError extends ExtendableError() {
