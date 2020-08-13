@@ -103,9 +103,17 @@ class _BuyOptionBox {
 			]), m("div.mt.pl", vnode.attrs.features().map(f => m(".flex",
 				[
 					m(Icon, {
-						icon: Icons.Checkmark
+						icon: Icons.Checkmark,
+						style: {
+							'padding-top': '1px'
+						}
 					}),
-					m(".smaller.left.align-self-center.pl-xs", {style: {height: px(40)}}, f)
+					m(".smaller.left.align-self-center.pl-xs", {
+						style: {
+							height: px(40),
+							lineHeight: px(18)
+						}
+					}, f)
 				]
 			)))
 		])
