@@ -19,7 +19,6 @@ import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
-import PreloadImports from "./PreloadImports"
 
 mp()
 
@@ -44,10 +43,9 @@ const wm = new WindowManager(conf, tray, notifier, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, alarmScheduler)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl)
 wm.setIPC(ipc)
 
-PreloadImports.keep(sock)
 app.setAppUserModelId(conf.get("appUserModelId"))
 app.allowRendererProcessReuse = false
 console.log("version:  ", app.getVersion())
