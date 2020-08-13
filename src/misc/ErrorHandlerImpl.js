@@ -363,7 +363,7 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			return false
 		} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
 			let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
-			return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
+			return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
 			             .then(confirmed => {
 				             if (confirmed) {
 					             showUpgradeWizard()
@@ -384,7 +384,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean) {
 	} else {
 		let message = lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") + " "
 			+ lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
-		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, "https://tutanota.com/blog/posts/premium-pro-business")
+		Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link"))
 		      .then(confirmed => {
 			      if (confirmed) {
 				      showUpgradeWizard()

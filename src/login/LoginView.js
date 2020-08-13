@@ -451,12 +451,12 @@ export function getWhitelabelRegistrationDomains(): string[] {
 
 export function getImprintLink(): ?string {
 	return (whitelabelCustomizations) ?
-		whitelabelCustomizations.imprintUrl : "https://tutanota.com/about"
+		whitelabelCustomizations.imprintUrl : lang.getInfoLink("about_link")
 }
 
 export function getPrivacyStatementLink(): ?string {
 	return (whitelabelCustomizations) ?
-		whitelabelCustomizations.privacyStatementUrl : "https://tutanota.com/privacy"
+		whitelabelCustomizations.privacyStatementUrl : lang.getInfoLink("privacy_link")
 }
 
 

@@ -157,7 +157,7 @@ const HTML_PTAG_END = "</p>"
 
 function getDefaultNotificationMail(): string {
 	return HTML_PTAG_START + lang.get("externalNotificationMailBody1_msg") + HTML_PTAG_END
-		+ HTML_PTAG_START + lang.get("externalNotificationMailBody2_msg", {"{1}": "https://tutanota.com"}) + HTML_PTAG_END
+		+ HTML_PTAG_START + lang.get("externalNotificationMailBody2_msg", {"{1}": lang.getInfoLink("homePage_link")}) + HTML_PTAG_END
 		+ HTML_PTAG_START + "<a href='{link}'>" + lang.get("externalNotificationMailBody3_msg") + "</a>" + HTML_PTAG_END
 		+ HTML_PTAG_START + lang.get("externalNotificationMailBody4_msg") + "<br>" + "{link}" + "<br>" + HTML_PTAG_END
 		+ HTML_PTAG_START + lang.get("externalNotificationMailBody5_msg") + HTML_PTAG_END

@@ -12,6 +12,7 @@ import {downcast} from "../api/common/utils/Utils"
 import {clientInfoString} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {isColorLight} from "../gui/Color"
+import {lang} from "../misc/LanguageViewModel"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -19,7 +20,7 @@ export class AboutDialog implements MComponent<void> {
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(isColorLight(theme.content_bg.slice(1)) ? LogoSvg.Red : LogoSvg.Cyan)),
 			m(".flex.justify-center.mt-l.flex-wrap", [
-				aboutLink("https://tutanota.com", "Website"),
+				aboutLink(lang.getInfoLink("homePage_link"), "Website"),
 				aboutLink('https://github.com/tutao/tutanota/releases', 'Releases'),
 			]),
 			m(".flex.justify-center.flex-wrap", [

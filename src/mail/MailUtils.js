@@ -204,7 +204,7 @@ export function getDefaultSenderFromUser({props, userGroupInfo}: IUserController
 
 export function getDefaultSignature() {
 	return "<br><br>"
-		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
+		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": lang.getInfoLink("homePage_link")}), true).text;
 }
 
 

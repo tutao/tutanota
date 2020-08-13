@@ -50,7 +50,8 @@ import {
 	getArchiveFolder,
 	getDefaultSender,
 	getDisplayText,
-	getEnabledMailAddresses, getFolder,
+	getEnabledMailAddresses,
+	getFolder,
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
@@ -285,7 +286,7 @@ export class MailViewer {
 									title: lang.get("phishingMessage_label"),
 									message: lang.get("phishingMessageBody_msg"),
 									icon: Icons.Warning,
-									helpLink: "https://tutanota.com/faq#phishing",
+									helpLink: lang.getInfoLink("phishing_link"),
 									buttons: [{text: lang.get("markAsNotPhishing_action"), click: () => this._markAsNotPhishing()}]
 								})
 								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL
@@ -294,7 +295,7 @@ export class MailViewer {
 									title: lang.get("mailAuthFailed_label"),
 									message: lang.get("mailAuthFailed_msg"),
 									icon: Icons.Warning,
-									helpLink: "https://tutanota.com/faq#mail-auth",
+									helpLink: lang.getInfoLink("mailAuth_link"),
 									buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
 								})
 								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL
@@ -303,7 +304,7 @@ export class MailViewer {
 										title: lang.get("mailAuthMissing_label"),
 										message: mail.differentEnvelopeSender ? lang.get("technicalSender_msg", {"{sender}": mail.differentEnvelopeSender}) : "",
 										icon: Icons.Warning,
-										helpLink: "https://tutanota.com/faq#mail-auth",
+										helpLink: lang.getInfoLink("mailAuth_link"),
 										buttons: [{text: lang.get("close_alt"), click: () => this._warningDismissed = true}]
 									})
 									: null,
@@ -701,7 +702,7 @@ export class MailViewer {
 				style: {marginBottom: "-10px"},
 			}, [
 				m("div", lang.get("phishingReport_msg")),
-				m("a.mt-s", {href: "https://tutanota.com/faq#phishing", target: "_blank"}, lang.get("whatIsPhishing_msg")),
+				m("a.mt-s", {href: lang.getInfoLink("phishing_link"), target: "_blank"}, lang.get("whatIsPhishing_msg")),
 				m(".flex-wrap.flex-end", [
 					m(ButtonN, {
 						label: "reportPhishing_action",

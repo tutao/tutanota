@@ -1216,7 +1216,7 @@ export class MailEditor {
 			if (!logins.getUserController().isPremiumAccount()) {
 				const message = lang.get("premiumOffer_msg", {"{1}": formatPrice(1, true)})
 				const title = lang.get("upgradeReminderTitle_msg")
-				Dialog.reminder(title, message, "https://tutanota.com/blog/posts/premium-pro-business").then(confirm => {
+				Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link")).then(confirm => {
 					if (confirm) {
 						showUpgradeWizard()
 					}
