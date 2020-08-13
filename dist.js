@@ -163,7 +163,7 @@ function buildWebapp() {
 		              } else if (options.stage === 'prod') {
 			              restUrl = 'https://mail.tutanota.com'
 		              } else if (options.stage === 'local') {
-			              restUrl = "http://" + os.hostname().split(".")[0] + ":9000"
+			              restUrl = "http://" + os.hostname() + ":9000"
 		              } else if (options.stage === 'release') {
 			              restUrl = undefined
 		              } else { // host
