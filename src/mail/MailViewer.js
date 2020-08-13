@@ -683,10 +683,10 @@ export class MailViewer {
 					      return update(this.mail)
 				      }
 			      })
-			      .then(() => mailModel.getMailboxDetailsForMail(this.mail))
+			      .then(() => locator.mailModel.getMailboxDetailsForMail(this.mail))
 			      .then((mailboxDetails) => {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-				      return mailModel.moveMails([this.mail], spamFolder)
+				      return locator.mailModel.moveMails([this.mail], spamFolder)
 			      })
 			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
 			      .catch(NotFoundError, () => console.log("mail already moved"))
