@@ -24,7 +24,6 @@ import type {Socketeer} from "./Socketeer"
 import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
-import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
 
@@ -43,7 +42,6 @@ export class IPC {
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
-	_alarmScheduler: DesktopAlarmScheduler;
 
 	constructor(
 		conf: DesktopConfigHandler,
@@ -54,7 +52,6 @@ export class IPC {
 		alarmStorage: DesktopAlarmStorage,
 		desktopCryptoFacade: DesktopCryptoFacade,
 		dl: DesktopDownloadManager,
-		alarmScheduler: DesktopAlarmScheduler
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -64,7 +61,6 @@ export class IPC {
 		this._alarmStorage = alarmStorage
 		this._crypto = desktopCryptoFacade
 		this._dl = dl
-		this._alarmScheduler = alarmScheduler
 
 		this._initialized = []
 		this._queue = {}
