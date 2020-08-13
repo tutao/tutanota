@@ -214,12 +214,11 @@ type JsRequestType = 'createMailEditor'
 	| 'invalidateAlarms'
 	| 'applySearchResultToOverlay'
 	| 'addShortcuts'
-	| 'openCustomer' // only for admin clients
 
 type WebContentsMessage
 	= 'initialize-ipc'
 	| 'set-zoom-factor'
-	| 'socket-message'
+	| 'open-customer'
 
 type Callback<T> = (err: ?Error, data?: T) => void
 type Command = (msg: Request) => Promise<any>
