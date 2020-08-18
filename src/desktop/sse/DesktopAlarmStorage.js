@@ -3,8 +3,8 @@ import * as keytar from 'keytar'
 import type {DeferredObject} from "../../api/common/utils/Utils"
 import {defer, downcast} from "../../api/common/utils/Utils"
 import {CryptoError} from '../../api/common/error/CryptoError'
-import type {DesktopConfigHandler} from "../config/DesktopConfigHandler"
-import {DesktopConfigKey} from "../config/DesktopConfigHandler"
+import type {DesktopConfig} from "../config/DesktopConfig"
+import {DesktopConfigKey} from "../config/DesktopConfig"
 import type {TimeoutData} from "./DesktopAlarmScheduler"
 import {elementIdPart} from "../../api/common/EntityFunctions"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
@@ -20,11 +20,11 @@ const ACCOUNT_NAME = 'tuta'
  */
 export class DesktopAlarmStorage {
 	_initialized: DeferredObject<BitArray>;
-	_conf: DesktopConfigHandler;
+	_conf: DesktopConfig;
 	_crypto: DesktopCryptoFacade
 	_sessionKeysB64: {[pushIdentifierId: string]: string};
 
-	constructor(conf: DesktopConfigHandler, desktopCryptoFacade: DesktopCryptoFacade) {
+	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade) {
 		this._conf = conf
 		this._crypto = desktopCryptoFacade
 		this._initialized = defer()
@@ -64,20 +64,20 @@ export class DesktopAlarmStorage {
 	 * @returns {*}
 	 */
 	storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
-		const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
+		const keys = this._conf.getVar('pushEncSessionKeys') || {}
 		if (!keys[pushIdentifierId]) {
 			this._sessionKeysB64[pushIdentifierId] = pushIdentifierSessionKeyB64
 			return this._initialized.promise
 			           .then(pw => {
 				           keys[pushIdentifierId] = this._crypto.aes256EncryptKeyToB64(pw, pushIdentifierSessionKeyB64)
-				           return this._conf.setDesktopConfig('pushEncSessionKeys', keys)
+				           return this._conf.setVar('pushEncSessionKeys', keys)
 			           })
 		}
 		return Promise.resolve()
 	}
 
 	removePushIdentifierKeys(): Promise<void> {
-		return this._conf.setDesktopConfig(DesktopConfigKey.pushEncSessionKeys, null)
+		return this._conf.setVar(DesktopConfigKey.pushEncSessionKeys, null)
 	}
 
 	/**
@@ -86,7 +86,7 @@ export class DesktopAlarmStorage {
 	 */
 	resolvePushIdentifierSessionKey(sessionKeys: Array<{pushIdentifierSessionEncSessionKey: string, pushIdentifier: IdTuple}>): Promise<{piSkEncSk: string, piSk: string}> {
 		return this._initialized.promise.then(pw => {
-			const keys = this._conf.getDesktopConfig('pushEncSessionKeys') || {}
+			const keys = this._conf.getVar('pushEncSessionKeys') || {}
 			let ret = null
 			// find a working sessionkey and delete all the others
 			for (let i = sessionKeys.length - 1; i >= 0; i--) {
@@ -125,10 +125,10 @@ export class DesktopAlarmStorage {
 	}
 
 	storeScheduledAlarms(scheduledNotifications: {[string]: {timeouts: Array<TimeoutData>, an: AlarmNotification}}): Promise<void> {
-		return this._conf.setDesktopConfig('scheduledAlarms', Object.values(scheduledNotifications).map(val => downcast(val).an))
+		return this._conf.setVar('scheduledAlarms', Object.values(scheduledNotifications).map(val => downcast(val).an))
 	}
 
 	getScheduledAlarms(): Array<AlarmNotification> {
-		return this._conf.getDesktopConfig('scheduledAlarms') || []
+		return this._conf.getVar('scheduledAlarms') || []
 	}
 }

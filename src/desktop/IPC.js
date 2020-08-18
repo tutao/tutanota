@@ -8,8 +8,8 @@ import type {DeferredObject} from "../api/common/utils/Utils"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {errorToObj, objToError} from "../api/common/WorkerProtocol"
 import DesktopUtils from "../desktop/DesktopUtils"
-import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
-import {DesktopConfigKey} from "./config/DesktopConfigHandler"
+import type {DesktopConfig} from "./config/DesktopConfig"
+import {DesktopConfigKey} from "./config/DesktopConfig"
 import {
 	disableAutoLaunch,
 	enableAutoLaunch,
@@ -31,7 +31,7 @@ import {base64ToUint8Array} from "../api/common/utils/Encoding"
  * node-side endpoint for communication between the renderer thread and the node thread
  */
 export class IPC {
-	_conf: DesktopConfigHandler;
+	_conf: DesktopConfig;
 	_sse: DesktopSseClient;
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
@@ -44,7 +44,7 @@ export class IPC {
 	_queue: {[string]: Function};
 
 	constructor(
-		conf: DesktopConfigHandler,
+		conf: DesktopConfig,
 		notifier: DesktopNotifier,
 		sse: DesktopSseClient,
 		wm: WindowManager,
@@ -112,7 +112,7 @@ export class IPC {
 					isAutoLaunchEnabled(),
 					isIntegrated(),
 					(isMailtoHandler, autoLaunchEnabled, isIntegrated) => {
-						const config = this._conf.getDesktopConfig()
+						const config = this._conf.getVar()
 						config.isMailtoHandler = isMailtoHandler
 						config.runOnStartup = autoLaunchEnabled
 						config.isIntegrated = isIntegrated
@@ -140,7 +140,7 @@ export class IPC {
 				// key, path
 				return this._crypto.aesDecryptFile(...args.slice(0, 2))
 			case 'updateDesktopConfig':
-				return this._conf.setDesktopConfig('any', args[0])
+				return this._conf.setVar('any', args[0])
 			case 'openNewWindow':
 				this._wm.newWindow(true)
 				return Promise.resolve()

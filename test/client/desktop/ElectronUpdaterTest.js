@@ -123,18 +123,18 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
-		setDesktopConfig: (key, value) => {},
-		getDesktopConfig: (key: string) => {
+		setVar: (key, value) => {},
+		getVar: (key: string) => {
 			switch (key) {
 				case 'enableAutoUpdate':
 					return true
 				case 'showAutoUpdateOption':
 					return true
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		get: (key: string) => {
+		getConst: (key: string) => {
 			switch (key) {
 				case 'checkUpdateSignature':
 					return true
@@ -145,7 +145,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				case 'iconName':
 					return 'iconName.name'
 				default:
-					throw new Error(`unexpected get key ${key}`)
+					throw new Error(`unexpected getConst key ${key}`)
 			}
 		}
 	}
@@ -173,8 +173,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		upd.start()
 
-		o(confMock.setDesktopConfig.callCount).equals(1)
-		o(confMock.setDesktopConfig.args).deepEquals(['showAutoUpdateOption', true])
+		o(confMock.setVar.callCount).equals(1)
+		o(confMock.setVar.args).deepEquals(['showAutoUpdateOption', true])
 
 		// there is only one enableAutoUpdate listener
 		o(confMock.removeListener.callCount).equals(1)
@@ -280,14 +280,14 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 				                  }
 				                  return confMock
 			                  },
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'enableAutoUpdate':
 						                  return enabled
 					                  case 'showAutoUpdateOption':
 						                  return true
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  }
 		                  })
@@ -533,8 +533,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 			upd.start()
 
-			o(confMock.setDesktopConfig.callCount).equals(1)
-			o(confMock.setDesktopConfig.args).deepEquals(['showAutoUpdateOption', false])
+			o(confMock.setVar.callCount).equals(1)
+			o(confMock.setVar.args).deepEquals(['showAutoUpdateOption', false])
 			o(confMock.removeListener.callCount).equals(0)
 		}
 	)

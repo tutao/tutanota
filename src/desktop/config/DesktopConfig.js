@@ -41,7 +41,7 @@ export type BuildConfigKeyEnum = $Values<typeof BuildConfigKey>
 /**
  * manages build and user config
  */
-export class DesktopConfigHandler {
+export class DesktopConfig {
 	_buildConfig: any;
 	_desktopConfig: any; // user preferences as set for this installation
 	_desktopConfigPath: string;
@@ -85,13 +85,13 @@ export class DesktopConfigHandler {
 		}
 	}
 
-	get(key?: BuildConfigKeyEnum): any {
+	getConst(key?: BuildConfigKeyEnum): any {
 		return key
 			? this._buildConfig[key]
 			: this._buildConfig
 	}
 
-	getDesktopConfig(key?: DesktopConfigKeyEnum): any {
+	getVar(key?: DesktopConfigKeyEnum): any {
 		return key && key !== 'any'
 			? this._desktopConfig[key]
 			: this._desktopConfig
@@ -103,7 +103,7 @@ export class DesktopConfigHandler {
 	 * @param value the new value
 	 * @returns {never|Promise<any>|Promise<void>|*}
 	 */
-	setDesktopConfig(key: DesktopConfigKeyEnum, value: any): Promise<void> {
+	setVar(key: DesktopConfigKeyEnum, value: any): Promise<void> {
 		let oldVal
 		if (key !== 'any') {
 			oldVal = this._desktopConfig[key]
@@ -122,16 +122,16 @@ export class DesktopConfigHandler {
 	 * @param key the value you want to listen for. a key of "any" will be called with the complete config for any changes to the config.
 	 * @param cb a function that's called when the config changes. argument is the new value or the entire config object in case of the "any" event.
 	 * @param sendInitial {boolean} whether cb should be notified of current value right away. Default false.
-	 * @returns {DesktopConfigHandler}
+	 * @returns {DesktopConfig}
 	 */
-	on(key: DesktopConfigKeyEnum, cb: (val: any) => void, sendInitial: boolean = false): DesktopConfigHandler {
+	on(key: DesktopConfigKeyEnum, cb: (val: any) => void, sendInitial: boolean = false): DesktopConfig {
 		if (!this._onValueSetListeners[key]) {
 			this._onValueSetListeners[key] = [cb]
 		} else {
 			this._onValueSetListeners[key].push(cb)
 		}
 		if (sendInitial) {
-			cb(this.getDesktopConfig(key))
+			cb(this.getVar(key))
 		}
 		return this
 	}

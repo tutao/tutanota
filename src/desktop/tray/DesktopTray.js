@@ -1,7 +1,7 @@
 // @flow
 import type {NativeImage} from 'electron'
 import {app, Menu, MenuItem, nativeImage, Tray} from 'electron'
-import type {DesktopConfigHandler} from '../config/DesktopConfigHandler.js'
+import type {DesktopConfig} from '../config/DesktopConfig.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopNotifier} from "../DesktopNotifier.js"
 import {lang} from "../../misc/LanguageViewModel"
@@ -23,13 +23,13 @@ export type PlatformTray = {
 
 
 export class DesktopTray {
-	_conf: DesktopConfigHandler;
+	_conf: DesktopConfig;
 	_wm: WindowManager;
 	_notifier: DesktopNotifier;
 
 	_tray: ?Tray;
 
-	constructor(config: DesktopConfigHandler, notifier: DesktopNotifier) {
+	constructor(config: DesktopConfig, notifier: DesktopNotifier) {
 		this._conf = config
 		this._notifier = notifier
 		this.getIcon()
@@ -45,7 +45,7 @@ export class DesktopTray {
 	}
 
 	update(): void {
-		if (!this._conf.getDesktopConfig("runAsTrayApp")) return
+		if (!this._conf.getVar("runAsTrayApp")) return
 		const m = new Menu()
 		m.append(new MenuItem({
 			label: lang.get("openNewWindow_action"), click: () => {
@@ -80,7 +80,7 @@ export class DesktopTray {
 	}
 
 	getIcon(): NativeImage {
-		return DesktopTray.getIcon(this._conf.get('iconName'))
+		return DesktopTray.getIcon(this._conf.getConst('iconName'))
 	}
 
 	static getIcon(iconName: string): NativeImage {
