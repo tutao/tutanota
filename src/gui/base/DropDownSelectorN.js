@@ -25,7 +25,7 @@ export type DropDownSelectorAttrs<T> = {
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
 	 */
 	selectionChangedHandler?: handler<T>,
-	helpLabel?: lazy<string>,
+	helpLabel?: lazy<string | Vnode<any>>,
 	dropdownWidth?: number,
 	icon?: AllIconsEnum,
 	disabled?: boolean,

@@ -43,7 +43,7 @@ const wm = new WindowManager(conf, tray, notifier, dl)
 const alarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, crypto)
 tray.setWindowManager(wm)
 const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, crypto, alarmStorage, lang)
-const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl)
+const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, updater)
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))

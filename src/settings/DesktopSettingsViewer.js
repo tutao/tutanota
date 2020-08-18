@@ -17,6 +17,8 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
+import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
+import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 
 assertMainOrNode()
 
@@ -33,6 +35,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_isIntegrated: Stream<?boolean>;
 	_isAutoUpdateEnabled: Stream<?boolean>;
 	_showAutoUpdateOption: Stream<?boolean>;
+	_updateAvailable: Stream<boolean>;
 	_isPathDialogOpen: boolean;
 
 	constructor() {
@@ -42,6 +45,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._isIntegrated = stream(false)
 		this._isAutoUpdateEnabled = stream(false)
 		this._showAutoUpdateOption = stream(true)
+		this._updateAvailable = stream(false)
 		this._requestDesktopConfig()
 	}
 
@@ -113,8 +117,13 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
+		const updateHelpLabelAttrs: UpdateHelpLabelAttrs = {
+			updateAvailable: this._updateAvailable
+		}
+
 		const setAutoUpdateAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "autoUpdate_label",
+			helpLabel: () => m(DesktopUpdateHelpLabel, updateHelpLabelAttrs),
 			items: [
 				{name: lang.get("activated_label"), value: true},
 				{name: lang.get("deactivated_label"), value: false}
@@ -194,6 +203,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._isIntegrated(desktopConfig.isIntegrated)
 			         this._showAutoUpdateOption(desktopConfig.showAutoUpdateOption)
 			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
+			         this._updateAvailable(desktopConfig.updateAvailable)
 			         m.redraw()
 		         })
 	}
@@ -224,6 +234,11 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			       this._isPathDialogOpen = false
 			       m.redraw()
 		       })
+	}
+
+	appUpdate(): void {
+		this._updateAvailable(true)
+		m.redraw()
 	}
 
 	// this is all local for now
