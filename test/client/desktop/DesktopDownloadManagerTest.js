@@ -29,22 +29,22 @@ o.spec("DesktopDownloadManagerTest", () => {
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
-		getDesktopConfig: (key: string) => {
+		getVar: (key: string) => {
 			switch (key) {
 				case "defaultDownloadPath":
 					return DEFAULT_DOWNLOAD_PATH
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		setDesktopConfig: (key: string, val: any) => {
+		setVar: (key: string, val: any) => {
 		},
-		get: (key: string) => {
+		getConst: (key: string) => {
 			switch (key) {
 				case "fileManagerTimeout":
 					return 30
 				default:
-					throw new Error(`unexpected get key ${key}`)
+					throw new Error(`unexpected getConst key ${key}`)
 			}
 		}
 	}
@@ -182,12 +182,12 @@ o.spec("DesktopDownloadManagerTest", () => {
 	o("no default download path => don't assign save path", () => {
 		const {electronMock, netMock} = standardMocks()
 		const confMock = n.mock("__conf", conf).with({
-			getDesktopConfig: (key) => {
+			getVar: (key) => {
 				switch (key) {
 					case "defaultDownloadPath":
 						return null
 					default:
-						throw new Error(`unexpected getDesktopConfig key ${key}`)
+						throw new Error(`unexpected getVar key ${key}`)
 				}
 			}
 		}).set()

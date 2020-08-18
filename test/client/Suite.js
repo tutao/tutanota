@@ -30,7 +30,7 @@ import o from "ospec/ospec.js"
 
 node(() => {
 	require("./desktop/DesktopUtilsTest.js")
-	require("./desktop/DesktopConfigHandlerTest")
+	require("./desktop/DesktopConfigTest")
 	require("./desktop/config/migrations/DesktopConfigMigratorTest")
 	require("./desktop/ElectronUpdaterTest")
 	require("./desktop/DesktopNotifierTest")

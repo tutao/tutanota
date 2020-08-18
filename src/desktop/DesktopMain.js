@@ -1,7 +1,7 @@
 // @flow
 import {mp} from './DesktopMonkeyPatch.js'
 import {err} from './DesktopErrorHandler.js'
-import {DesktopConfigHandler} from './config/DesktopConfigHandler'
+import {DesktopConfig} from './config/DesktopConfig'
 import {app} from 'electron'
 import DesktopUtils from './DesktopUtils.js'
 import {IPC} from './IPC.js'
@@ -23,7 +23,7 @@ import {DesktopTray} from "./tray/DesktopTray"
 mp()
 
 lang.init(en)
-const conf = new DesktopConfigHandler()
+const conf = new DesktopConfig()
 const net = new DesktopNetworkClient()
 const crypto = new DesktopCryptoFacade()
 const sock = new Socketeer()
@@ -46,7 +46,7 @@ const sse = new DesktopSseClient(app, conf, notifier, wm, alarmScheduler, net, c
 const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl)
 wm.setIPC(ipc)
 
-app.setAppUserModelId(conf.get("appUserModelId"))
+app.setAppUserModelId(conf.getConst("appUserModelId"))
 app.allowRendererProcessReuse = false
 console.log("version:  ", app.getVersion())
 
@@ -102,7 +102,7 @@ if (process.argv.indexOf("-r") !== -1) {
 function onAppReady() {
 
 	app.on('window-all-closed', () => {
-		if (!conf.getDesktopConfig('runAsTrayApp')) {
+		if (!conf.getVar('runAsTrayApp')) {
 			app.quit()
 		}
 	})
@@ -110,7 +110,7 @@ function onAppReady() {
 	err.init(wm, ipc)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
-	const w = wm.getLastFocused(!(conf.getDesktopConfig('runAsTrayApp') && wasAutolaunched))
+	const w = wm.getLastFocused(!(conf.getVar('runAsTrayApp') && wasAutolaunched))
 	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
 	   .then(main)

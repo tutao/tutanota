@@ -277,7 +277,7 @@ function bundleServiceWorker(bundles) {
 			.concat(Object.keys(bundles).filter(b => !b.startsWith("translations")))
 			.concat(["images/logo-favicon.png", "images/logo-favicon-152.png", "images/logo-favicon-196.png", "images/ionicons.ttf"])
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
-		// of "delcare var"
+		// of "declare var"
 		const customDomainFileExclusions = ["index.html", "index.js"]
 		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
 			+ "\n function version() { return \"" + version + "\"}"

@@ -6,7 +6,7 @@ import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
 import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
 import * as url from "url"
 import * as querystring from "querystring"
-import {DesktopConfigKey} from "../../../../src/desktop/config/DesktopConfigHandler"
+import {DesktopConfigKey} from "../../../../src/desktop/config/DesktopConfig"
 import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
 import {makeTimeoutMock} from "../../../api/TestUtils"
 import type {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
@@ -21,7 +21,7 @@ o.spec("DesktopSseClient Test", function () {
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
-		getDesktopConfig: (key: string) => {
+		getVar: (key: string) => {
 			switch (key) {
 				case 'pushIdentifier':
 					return {
@@ -38,19 +38,19 @@ o.spec("DesktopSseClient Test", function () {
 				case 'lastProcessedNotificationId':
 					return null
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		setDesktopConfig: (key: string, val: any) => {
+		setVar: (key: string, val: any) => {
 		},
-		get: (key: string) => {
+		getConst: (key: string) => {
 			switch (key) {
 				case 'initialSseConnectTimeoutInSeconds':
 					return 1
 				case 'maxSseConnectTimeoutInSeconds':
 					return 10
 				default:
-					throw new Error(`unexpected get key ${key}`)
+					throw new Error(`unexpected getConst key ${key}`)
 			}
 		}
 	}
@@ -269,7 +269,7 @@ o.spec("DesktopSseClient Test", function () {
 
 		//store new timeout value
 		res.callbacks['data']("data: heartbeatTimeout:42\n")
-		o(confMock.setDesktopConfig.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 42])
+		o(confMock.setVar.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 42])
 
 		//check for reschedule on heartbeat
 		let oldTimeout = sse._nextReconnect
@@ -320,9 +320,9 @@ o.spec("DesktopSseClient Test", function () {
 		await Promise.resolve()
 		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
 		await Promise.resolve()
-		o(confMock.setDesktopConfig.callCount).equals(1)
-		o(confMock.setDesktopConfig.args[0]).equals("pushIdentifier")
-		o(confMock.setDesktopConfig.args[1]).equals(null)
+		o(confMock.setVar.callCount).equals(1)
+		o(confMock.setVar.args[0]).equals("pushIdentifier")
+		o(confMock.setVar.args[1]).equals(null)
 
 		// done
 		res.callbacks['data']("data: heartbeatTimeout:1\n")
@@ -393,14 +393,14 @@ o.spec("DesktopSseClient Test", function () {
 	o("retry connection later if there is no sseInfo", async function () {
 		const confMock = n.mock("__conf", conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'pushIdentifier':
 						                  return null
 					                  case 'heartbeatTimeoutInSeconds':
 						                  return 30
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  },
 		                  }).set()
@@ -418,7 +418,7 @@ o.spec("DesktopSseClient Test", function () {
 	o("send notification for incoming pm", async function () {
 		const confMock = n.mock("__conf", conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'pushIdentifier':
 						                  return {
@@ -433,7 +433,7 @@ o.spec("DesktopSseClient Test", function () {
 					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
 						                  return null
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  },
 		                  }).set()
@@ -450,7 +450,7 @@ o.spec("DesktopSseClient Test", function () {
 		sseConnectRequest.callbacks['response'](sseConnectResponse)
 		sseConnectResponse.callbacks['data']("data: heartbeatTimeout:3\n")
 		sseConnectResponse.callbacks['data'](`data: notification\n`)
-		o(confMock.setDesktopConfig.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 3])
+		o(confMock.setVar.calls[1].args).deepEquals([DesktopConfigKey.heartbeatTimeoutInSeconds, 3])
 
 		await Promise.resolve()
 		const missedNotificationRequest = netMock.ClientRequest.mockedInstances[1]
@@ -475,7 +475,7 @@ o.spec("DesktopSseClient Test", function () {
 		sseConnectResponse.callbacks['data'](`data: notification\n`)
 
 		await Promise.resolve()
-		o(confMock.setDesktopConfig.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
+		o(confMock.setVar.calls[2].args).deepEquals([DesktopConfigKey.lastProcessedNotificationId, '1'])
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args[0]).equals("pushNewMail_msg")
 		o(notifierMock.submitGroupedNotification.args[1]).equals("me@here.com (2)")
@@ -664,7 +664,7 @@ o.spec("DesktopSseClient Test", function () {
 		const sseInfo = {identifier, userIds, origin: 'origin'}
 		const confMock = n.mock("__conf", conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'pushIdentifier':
 						                  return sseInfo
@@ -673,7 +673,7 @@ o.spec("DesktopSseClient Test", function () {
 					                  case DesktopConfigKey.lastMissedNotificationCheckTime:
 						                  return String(lastNotificationCheckTime)
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  },
 		                  }).set()
@@ -685,7 +685,7 @@ o.spec("DesktopSseClient Test", function () {
 		await Promise.delay(10)
 
 		o(alarmSchedulerMock.unscheduleAllAlarms.callCount).equals(1)
-		o(confMock.setDesktopConfig.calls.map(c => c.args)).deepEquals([
+		o(confMock.setVar.calls.map(c => c.args)).deepEquals([
 			[DesktopConfigKey.lastMissedNotificationCheckTime, null],
 			[DesktopConfigKey.pushIdentifier, {identifier, userIds: [], origin: sseInfo.origin}]
 		])

@@ -106,19 +106,19 @@ o.spec("Desktop Window Manager Test", () => {
 	const conf = {
 		removeListener: (key: string, cb: () => void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
-		getDesktopConfig: (key: string) => {
+		getVar: (key: string) => {
 			switch (key) {
 				case 'lastBounds':
 					return undefined
 				case 'runAsTrayApp':
 					return true
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		setDesktopConfig: (key: string) => {
+		setVar: (key: string) => {
 		},
-		get: (key: string) => {
+		getConst: (key: string) => {
 			switch (key) {
 				case 'checkUpdateSignature':
 					return true
@@ -133,7 +133,7 @@ o.spec("Desktop Window Manager Test", () => {
 				case 'iconName':
 					return 'iconName.name'
 				default:
-					throw new Error(`unexpected get key ${key}`)
+					throw new Error(`unexpected getConst key ${key}`)
 			}
 		}
 	}
@@ -249,12 +249,12 @@ o.spec("Desktop Window Manager Test", () => {
 		const testBounds = {rect: {height: 10, width: 10, x: 10, y: 10}, fullscreen: false, scale: 1}
 		const confMock = n.mock('__conf', conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'lastBounds':
 						                  return testBounds
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  }
 		                  })
@@ -369,9 +369,9 @@ o.spec("Desktop Window Manager Test", () => {
 		w.callbacks['ready-to-show']()
 		w.callbacks['close']({preventDefault: noOp})
 
-		o(confMock.setDesktopConfig.callCount).equals(1)
-		o(confMock.setDesktopConfig.args[0]).equals("lastBounds")
-		o(confMock.setDesktopConfig.args[1]).deepEquals({
+		o(confMock.setVar.callCount).equals(1)
+		o(confMock.setVar.args[0]).equals("lastBounds")
+		o(confMock.setVar.args[1]).deepEquals({
 			rect: {x: 0, y: 0, width: 0, height: 0},
 			fullscreen: false
 		})

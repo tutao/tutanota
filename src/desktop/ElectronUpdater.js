@@ -5,7 +5,7 @@ import forge from 'node-forge'
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
-import type {DesktopConfigHandler} from './config/DesktopConfigHandler'
+import type {DesktopConfig} from './config/DesktopConfig'
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
@@ -13,7 +13,7 @@ import fs from 'fs-extra'
 import path from 'path'
 
 export class ElectronUpdater {
-	_conf: DesktopConfigHandler;
+	_conf: DesktopConfig;
 	_notifier: DesktopNotifier;
 	_updatePollInterval: ?IntervalID;
 	_checkUpdateSignature: boolean;
@@ -22,7 +22,7 @@ export class ElectronUpdater {
 	_installOnQuit = false;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void}
 
-	constructor(conf: DesktopConfigHandler, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
+	constructor(conf: DesktopConfig, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0
@@ -44,7 +44,7 @@ export class ElectronUpdater {
 			this._logger.info("update-available")
 			this._stopPolling()
 			Promise
-				.any(this._conf.get("pubKeys").map(pk => this._verifySignature(pk, downcast(updateInfo))))
+				.any(this._conf.getConst("pubKeys").map(pk => this._verifySignature(pk, downcast(updateInfo))))
 				.then(() => this._downloadUpdate())
 				.catch(UpdateError, e => {
 					this._logger.warn("invalid signature, could not update", e)
@@ -105,19 +105,19 @@ export class ElectronUpdater {
 			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
 		} catch (e) {
 			console.log("no update info on disk, disabling updater.")
-			this._conf.setDesktopConfig('showAutoUpdateOption', false)
+			this._conf.setVar('showAutoUpdateOption', false)
 			return
 		}
 
 		// if we got here, we could theoretically download updates.
 		// show the option in the settings menu
-		this._conf.setDesktopConfig('showAutoUpdateOption', true)
+		this._conf.setVar('showAutoUpdateOption', true)
 
 		// if user changes auto update setting, we want to know
 		this._conf.removeListener('enableAutoUpdate', this._enableAutoUpdateListener)
 		    .on('enableAutoUpdate', this._enableAutoUpdateListener)
 
-		if (!this._conf.getDesktopConfig("enableAutoUpdate")) {
+		if (!this._conf.getVar("enableAutoUpdate")) {
 			this._stopPolling()
 			return
 		}
@@ -126,7 +126,7 @@ export class ElectronUpdater {
 			return
 		}
 
-		this._checkUpdateSignature = this._conf.get('checkUpdateSignature')
+		this._checkUpdateSignature = this._conf.getConst('checkUpdateSignature')
 		this._startPolling()
 		// the first check is immediate, all others are done with a delay
 		// and random exponential backoff
@@ -158,7 +158,7 @@ export class ElectronUpdater {
 			// sets the poll interval at a random multiple of (base value)
 			// between (base value) and (base value) * 2^(errorCount)
 			const multiplier = Math.floor(Math.random() * Math.pow(2, this._errorCount)) + 1
-			const interval = (this._conf.get("pollingInterval") || this._fallbackPollInterval)
+			const interval = (this._conf.getConst("pollingInterval") || this._fallbackPollInterval)
 			this._updatePollInterval = setInterval(() => this._checkUpdate(), interval * multiplier)
 		}
 	}
@@ -189,7 +189,7 @@ export class ElectronUpdater {
 		    .showOneShot({
 			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
 			    body: lang.get('clickToUpdate_msg'),
-			    icon: DesktopTray.getIcon(this._conf.get('iconName'))
+			    icon: DesktopTray.getIcon(this._conf.getConst('iconName'))
 		    })
 		    .then((res) => {
 			    if (res === NotificationResult.Click) {
@@ -208,7 +208,7 @@ export class ElectronUpdater {
 		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
-			icon: DesktopTray.getIcon(this._conf.get('iconName'))
-		}).catch(e => this._logger.error("Notification failed,", e.message))
+			icon: DesktopTray.getIcon(this._conf.getConst('iconName'))
+		}).catch(e => this._logger.error("Error Notification failed,", e.message))
 	}
 }

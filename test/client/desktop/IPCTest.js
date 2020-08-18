@@ -3,7 +3,7 @@ import n from "../nodemocker"
 import o from "ospec/ospec.js"
 import chalk from 'chalk'
 import {defer} from "../../../src/api/common/utils/Utils"
-import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfigHandler"
+import {DesktopConfigKey} from "../../../src/desktop/config/DesktopConfig"
 
 o.spec("IPC tests", () => {
 	const CALLBACK_ID = "42"
@@ -49,12 +49,12 @@ o.spec("IPC tests", () => {
 		}
 	}
 	const conf = {
-		getDesktopConfig: () => {
+		getVar: () => {
 			return {
 				dummy: "value"
 			}
 		},
-		setDesktopConfig: () => Promise.resolve(),
+		setVar: () => Promise.resolve(),
 		listeners: {},
 		on: function (key, listener) {
 			this.listeners[key] = this.listeners[key] || []
@@ -502,9 +502,9 @@ o.spec("IPC tests", () => {
 			args: [{more: "stuff"}]
 		}))
 
-		o(confMock.setDesktopConfig.callCount).equals(1)
-		o(confMock.setDesktopConfig.args[0]).equals("any")
-		o(confMock.setDesktopConfig.args[1]).deepEquals({
+		o(confMock.setVar.callCount).equals(1)
+		o(confMock.setVar.args[0]).equals("any")
+		o(confMock.setVar.args[1]).deepEquals({
 			more: "stuff"
 		})
 

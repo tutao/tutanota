@@ -63,8 +63,8 @@ o.spec('desktop config handler test', function () {
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
 		o(migratorMock.callCount).equals(1)
 		o(migratorMock.args.length).equals(3)
@@ -103,8 +103,8 @@ o.spec('desktop config handler test', function () {
 		                     .set()
 
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig.js')
+		const conf = new DesktopConfig()
 
 		// check if there is a user conf already (no)
 		o(fsExtraMock.existsSync.callCount).equals(1)
@@ -134,8 +134,8 @@ o.spec('desktop config handler test', function () {
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig.js')
+		const conf = new DesktopConfig()
 
 		// exit program
 		o(electronMock.app.once.callCount).equals(1)
@@ -157,12 +157,12 @@ o.spec('desktop config handler test', function () {
 			(f, conf, def) => conf
 		).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
-		o(conf.get("pollingInterval")).equals(10000)
-		o(conf.getDesktopConfig("heartbeatTimeoutInSeconds")).equals(240)
-		o(conf.get()).deepEquals({
+		o(conf.getConst("pollingInterval")).equals(10000)
+		o(conf.getVar("heartbeatTimeoutInSeconds")).equals(240)
+		o(conf.getConst()).deepEquals({
 			"pubKeyUrl": "https://raw.githubusercontent.com/tutao/tutanota/master/tutao-pub.pem",
 			"pollingInterval": 10000,
 			"preloadjs": "./src/desktop/preload.js",
@@ -178,7 +178,7 @@ o.spec('desktop config handler test', function () {
 				"runAsTrayApp": true,
 			}
 		})
-		o(conf.getDesktopConfig()).deepEquals({
+		o(conf.getVar()).deepEquals({
 			"heartbeatTimeoutInSeconds": 240,
 			"defaultDownloadPath": "/mock-Downloads/",
 			"enableAutoUpdate": true,
@@ -192,10 +192,10 @@ o.spec('desktop config handler test', function () {
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
-		conf.setDesktopConfig("enableAutoUpdate", false).then(() => {
+		conf.setVar("enableAutoUpdate", false).then(() => {
 			const expectedConfig = {
 				"heartbeatTimeoutInSeconds": 240,
 				"defaultDownloadPath": "/mock-Downloads/",
@@ -219,8 +219,8 @@ o.spec('desktop config handler test', function () {
 		const electronMock = n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig.js')
+		const conf = new DesktopConfig()
 
 		const expectedConfig = {
 			"heartbeatTimeoutInSeconds": 30,
@@ -229,7 +229,7 @@ o.spec('desktop config handler test', function () {
 			"runAsTrayApp": false,
 		}
 
-		conf.setDesktopConfig("any", expectedConfig).then(() => {
+		conf.setVar("any", expectedConfig).then(() => {
 			// value was changed in memory
 			o(conf._desktopConfig).deepEquals(expectedConfig)
 
@@ -247,8 +247,8 @@ o.spec('desktop config handler test', function () {
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
 		const downloadPathListener = o.spy(v => {})
 		const heartbeatListener = o.spy(v => {})
@@ -258,7 +258,7 @@ o.spec('desktop config handler test', function () {
 		conf.on("heartbeatTimeoutInSeconds", heartbeatListener)
 		conf.on("any", anyListener)
 
-		conf.setDesktopConfig("defaultDownloadPath", "/mock-downloads/").then(() => {
+		conf.setVar("defaultDownloadPath", "/mock-downloads/").then(() => {
 			o(downloadPathListener.callCount).equals(1)
 			o(downloadPathListener.args[0]).equals("/mock-downloads/")
 
@@ -273,7 +273,7 @@ o.spec('desktop config handler test', function () {
 				"enableAutoUpdate": true,
 				"runAsTrayApp": true,
 			})
-		}).then(() => conf.setDesktopConfig("any", {
+		}).then(() => conf.setVar("any", {
 				"heartbeatTimeoutInSeconds": 42,
 				"defaultDownloadPath": "/mock-downloads/",
 				"enableAutoUpdate": true,
@@ -294,8 +294,8 @@ o.spec('desktop config handler test', function () {
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
 		const listener1 = o.spy(v => {})
 		const listener2 = o.spy(v => {})
@@ -309,7 +309,7 @@ o.spec('desktop config handler test', function () {
 
 		conf.removeListener("defaultDownloadPath", listener3)
 
-		conf.setDesktopConfig("defaultDownloadPath", "/mock-downloads/").then(() => {
+		conf.setVar("defaultDownloadPath", "/mock-downloads/").then(() => {
 			o(listener1.callCount).equals(1)
 			o(listener2.callCount).equals(1)
 			o(listener3.callCount).equals(0)
@@ -324,8 +324,8 @@ o.spec('desktop config handler test', function () {
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig')
+		const conf = new DesktopConfig()
 
 		const listener1 = o.spy(v => {})
 		const listener2 = o.spy(v => {})
@@ -337,7 +337,7 @@ o.spec('desktop config handler test', function () {
 		conf.on("defaultDownloadPath", listener2)
 		conf.on("defaultDownloadPath", listener3)
 
-		conf.setDesktopConfig("defaultDownloadPath", "/mock-downloads/").then(() => {
+		conf.setVar("defaultDownloadPath", "/mock-downloads/").then(() => {
 			o(listener1.callCount).equals(0)
 
 			o(listener2.callCount).equals(1)
@@ -354,8 +354,8 @@ o.spec('desktop config handler test', function () {
 		n.mock('electron', electron).set()
 		const migratorMock = n.mock('./migrations/DesktopConfigMigrator', configMigrator).set()
 
-		const {DesktopConfigHandler} = n.subject('../../src/desktop/config/DesktopConfigHandler.js')
-		const conf = new DesktopConfigHandler()
+		const {DesktopConfig} = n.subject('../../src/desktop/config/DesktopConfig.js')
+		const conf = new DesktopConfig()
 
 		const listener1 = o.spy(v => {})
 		const listener2 = o.spy(v => {})
@@ -366,7 +366,7 @@ o.spec('desktop config handler test', function () {
 		conf.on("defaultDownloadPath", listener3)
 		conf.removeAllListeners()
 
-		conf.setDesktopConfig("defaultDownloadPath", "/mock-downloads/").then(() => {
+		conf.setVar("defaultDownloadPath", "/mock-downloads/").then(() => {
 			o(listener1.callCount).equals(0)
 			o(listener2.callCount).equals(0)
 			o(listener3.callCount).equals(0)

@@ -5,8 +5,8 @@ import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../
 import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
-import type {DesktopConfigHandler} from "../config/DesktopConfigHandler"
-import {DesktopConfigKey} from "../config/DesktopConfigHandler"
+import type {DesktopConfig} from "../config/DesktopConfig"
+import {DesktopConfigKey} from "../config/DesktopConfig"
 import {NotificationResult} from "../DesktopConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
@@ -31,7 +31,7 @@ const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 export class DesktopSseClient {
 	_app: App;
-	_conf: DesktopConfigHandler
+	_conf: DesktopConfig
 	_wm: WindowManager
 	_notifier: DesktopNotifier
 	_alarmScheduler: DesktopAlarmScheduler;
@@ -53,7 +53,7 @@ export class DesktopSseClient {
 	_handlingPushMessage: Promise<*>;
 
 
-	constructor(app: App, conf: DesktopConfigHandler, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
+	constructor(app: App, conf: DesktopConfig, notifier: DesktopNotifier, wm: WindowManager, alarmScheduler: DesktopAlarmScheduler,
 	            net: DesktopNetworkClient, desktopCrypto: DesktopCryptoFacade, alarmStorage: DesktopAlarmStorage,
 	            lang: LanguageViewModelType, delayHandler: typeof setTimeout = setTimeout) {
 		this._app = app
@@ -68,13 +68,13 @@ export class DesktopSseClient {
 		this._delayHandler = delayHandler
 
 
-		INITIAL_CONNECT_TIMEOUT = this._conf.get("initialSseConnectTimeoutInSeconds")
-		MAX_CONNECT_TIMEOUT = this._conf.get("maxSseConnectTimeoutInSeconds")
-		this._connectedSseInfo = conf.getDesktopConfig('pushIdentifier')
-		this._readTimeoutInSeconds = conf.getDesktopConfig('heartbeatTimeoutInSeconds')
+		INITIAL_CONNECT_TIMEOUT = this._conf.getConst("initialSseConnectTimeoutInSeconds")
+		MAX_CONNECT_TIMEOUT = this._conf.getConst("maxSseConnectTimeoutInSeconds")
+		this._connectedSseInfo = conf.getVar('pushIdentifier')
+		this._readTimeoutInSeconds = conf.getVar('heartbeatTimeoutInSeconds')
 		if (typeof this._readTimeoutInSeconds !== 'number' || Number.isNaN(this._readTimeoutInSeconds)) {
 			this._readTimeoutInSeconds = 30
-			conf.setDesktopConfig('heartbeatTimeoutInSeconds', 30)
+			conf.setVar('heartbeatTimeoutInSeconds', 30)
 		}
 		this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 		this._tryToReconnect = false
@@ -106,7 +106,7 @@ export class DesktopSseClient {
 			}
 		}
 		const sseInfo = {identifier, sseOrigin, userIds}
-		return this._conf.setDesktopConfig('pushIdentifier', sseInfo)
+		return this._conf.setVar('pushIdentifier', sseInfo)
 		           .then(() => {
 			           this._connectedSseInfo = sseInfo
 			           if (this._connection) {
@@ -117,7 +117,7 @@ export class DesktopSseClient {
 	}
 
 	getPushIdentifier(): ?SseInfo {
-		return this._conf.getDesktopConfig(DesktopConfigKey.pushIdentifier)
+		return this._conf.getVar(DesktopConfigKey.pushIdentifier)
 	}
 
 	connect() {
@@ -158,12 +158,12 @@ export class DesktopSseClient {
 			if (res.statusCode === 403) { // invalid userids
 				console.log('sse: got 403, deleting identifier')
 				this._connectedSseInfo = null
-				this._conf.setDesktopConfig('pushIdentifier', null)
+				this._conf.setVar('pushIdentifier', null)
 				this._disconnect()
-			} else if (this._conf.getDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime) == null) {
+			} else if (this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime) == null) {
 				// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
 				// MISSED_NOTIFICATION_TTL has passed and notifications has expired.
-				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
+				this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			}
 
 			res.setEncoding('utf8')
@@ -204,7 +204,7 @@ export class DesktopSseClient {
 			const newTimeout = Number(data.split(':')[1])
 			if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
 				this._readTimeoutInSeconds = newTimeout
-				this._conf.setDesktopConfig('heartbeatTimeoutInSeconds', newTimeout)
+				this._conf.setVar('heartbeatTimeoutInSeconds', newTimeout)
 			} else {
 				console.error("got invalid heartbeat timeout from server")
 			}
@@ -230,7 +230,7 @@ export class DesktopSseClient {
 	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
 	 */
 	hasNotificationTTLExpired(): boolean {
-		const lastMissedNotificationCheckTime = this._conf.getDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime)
+		const lastMissedNotificationCheckTime = this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
 		console.log("last missed notification check:", {lastMissedNotificationCheckTime})
 		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
 	}
@@ -243,14 +243,14 @@ export class DesktopSseClient {
 		return Promise
 			.all([
 				this._alarmScheduler.unscheduleAllAlarms(),
-				this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, null),
+				this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, null),
 			])
 			.then(() => this._alarmStorage.removePushIdentifierKeys())
 			.then(() => {
 				const connectedSseInfo = this._connectedSseInfo
 				if (connectedSseInfo) {
 					connectedSseInfo.userIds = []
-					return this._conf.setDesktopConfig(DesktopConfigKey.pushIdentifier, connectedSseInfo)
+					return this._conf.setVar(DesktopConfigKey.pushIdentifier, connectedSseInfo)
 				}
 			})
 			.then(() => {
@@ -262,8 +262,8 @@ export class DesktopSseClient {
 	_handlePushMessage(): Promise<void> {
 		const process = () => this._downloadMissedNotification()
 		                          .then(mn => {
-			                          this._conf.setDesktopConfig(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotificationId)
-			                          this._conf.setDesktopConfig(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
+			                          this._conf.setVar(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotificationId)
+			                          this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			                          if (mn.notificationInfos && mn.notificationInfos.length === 0
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
 				                          console.log("MissedNotification is empty")
@@ -313,8 +313,8 @@ export class DesktopSseClient {
 				v: MissedNotificationTypeModel.version,
 				cv: this._app.getVersion(),
 			}
-			if (this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)) {
-				headers["lastProcessedNotificationId"] = this._conf.getDesktopConfig(DesktopConfigKey.lastProcessedNotificationId)
+			if (this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)) {
+				headers["lastProcessedNotificationId"] = this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)
 			}
 			const req = this._net.request(url, {
 					method: "GET",

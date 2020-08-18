@@ -1,7 +1,7 @@
 // @ flow
 import type {ElectronSession} from 'electron'
 import {app, dialog, shell} from "electron"
-import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
+import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import DesktopUtils from "./DesktopUtils"
 import fs from "fs-extra"
@@ -12,11 +12,11 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {EventEmitter} from 'events'
 
 export class DesktopDownloadManager {
-	_conf: DesktopConfigHandler;
+	_conf: DesktopConfig;
 	_net: DesktopNetworkClient;
 	_fileManagersOpen: number;
 
-	constructor(conf: DesktopConfigHandler, net: DesktopNetworkClient) {
+	constructor(conf: DesktopConfig, net: DesktopNetworkClient) {
 		this._conf = conf
 		this._net = net
 		this._fileManagersOpen = 0
@@ -106,7 +106,7 @@ export class DesktopDownloadManager {
 
 
 	_handleDownloadItem(ev: Event, item: DownloadItem): void {
-		const defaultDownloadPath = this._conf.getDesktopConfig('defaultDownloadPath')
+		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
 		// if the last dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
 		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
@@ -128,7 +128,7 @@ export class DesktopDownloadManager {
 					fileManagerLock = () => shell
 						.openPath(path.dirname(savePath))
 						.then(() => {
-							setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.get("fileManagerTimeout"))
+							setTimeout(() => this._fileManagersOpen = this._fileManagersOpen - 1, this._conf.getConst("fileManagerTimeout"))
 						}).catch(noOp)
 
 				}

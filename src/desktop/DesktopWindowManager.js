@@ -4,7 +4,7 @@ import type {NativeImage, Rectangle} from "electron"
 import {app, screen} from "electron"
 import type {UserInfo} from "./ApplicationWindow"
 import {ApplicationWindow} from "./ApplicationWindow"
-import type {DesktopConfigHandler} from "./config/DesktopConfigHandler"
+import type {DesktopConfig} from "./config/DesktopConfig"
 import {DesktopTray} from "./tray/DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier.js"
 import {LOGIN_TITLE} from "../api/Env"
@@ -21,14 +21,14 @@ export type WindowBounds = {|
 const windows: ApplicationWindow[] = []
 
 export class WindowManager {
-	_conf: DesktopConfigHandler
+	_conf: DesktopConfig
 	_tray: DesktopTray
 	_notifier: DesktopNotifier
 	_contextMenu: DesktopContextMenu
 	ipc: IPC
 	dl: DesktopDownloadManager
 
-	constructor(conf: DesktopConfigHandler, tray: DesktopTray, notifier: DesktopNotifier, dl: DesktopDownloadManager) {
+	constructor(conf: DesktopConfig, tray: DesktopTray, notifier: DesktopNotifier, dl: DesktopDownloadManager) {
 		this._conf = conf
 		this._tray = tray
 		this._notifier = notifier
@@ -95,7 +95,7 @@ export class WindowManager {
 	}
 
 	getIcon(): NativeImage {
-		return DesktopTray.getIcon(this._conf.get('iconName'))
+		return DesktopTray.getIcon(this._conf.getConst('iconName'))
 	}
 
 	get(id: number): ?ApplicationWindow {
@@ -137,12 +137,12 @@ export class WindowManager {
 		const lastBounds = w.getBounds()
 		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
 			console.log("saving bounds:", lastBounds)
-			this._conf.setDesktopConfig('lastBounds', lastBounds)
+			this._conf.setVar('lastBounds', lastBounds)
 		}
 	}
 
 	getStartingBounds(): ?WindowBounds {
-		const lastBounds: WindowBounds = this._conf.getDesktopConfig("lastBounds")
+		const lastBounds: WindowBounds = this._conf.getVar("lastBounds")
 		if (!lastBounds || !this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
 			return null
 		} else {

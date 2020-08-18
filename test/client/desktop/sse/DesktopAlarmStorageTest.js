@@ -44,7 +44,7 @@ o.spec("DesktopAlarmStorageTest", () => {
 		uint8ArrayToBitArray
 	}
 	const conf = {
-		getDesktopConfig: (key: string) => {
+		getVar: (key: string) => {
 			switch (key) {
 				case "pushEncSessionKeys":
 					return {
@@ -54,10 +54,10 @@ o.spec("DesktopAlarmStorageTest", () => {
 						"fourId": "user4pw=",
 					}
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		setDesktopConfig: () => {}
+		setVar: () => {}
 	}
 	const aes = {}
 
@@ -113,7 +113,7 @@ o.spec("DesktopAlarmStorageTest", () => {
 	o("resolvePushIdentifierSessionKey with cached sessionKey", done => {
 		const {cryptoMock} = standardMocks()
 		const confMock = n.mock("__conf", conf).with({
-			getDesktopConfig: key => {}
+			getVar: key => {}
 		}).set()
 
 		const {DesktopAlarmStorage} = n.subject('../../src/desktop/sse/DesktopAlarmStorage.js')
@@ -126,10 +126,10 @@ o.spec("DesktopAlarmStorageTest", () => {
 			])
 		).then(() => {
 			o(cryptoMock.aes256DecryptKeyToB64.callCount).equals(0)
-			o(confMock.setDesktopConfig.callCount).equals(1)
-			o(confMock.setDesktopConfig.args.length).equals(2)
-			o(confMock.setDesktopConfig.args[0]).equals("pushEncSessionKeys")
-			o(confMock.setDesktopConfig.args[1]).deepEquals({fourId: "password"})
+			o(confMock.setVar.callCount).equals(1)
+			o(confMock.setVar.args.length).equals(2)
+			o(confMock.setVar.args[0]).equals("pushEncSessionKeys")
+			o(confMock.setVar.args[1]).deepEquals({fourId: "password"})
 		}).then(() => done())
 	})
 })

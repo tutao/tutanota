@@ -198,17 +198,17 @@ o.spec("ApplicationWindow Test", function () {
 	}
 
 	const conf = {
-		get: key => {
+		getConst: key => {
 			switch (key) {
 				case 'preloadjs':
 				case 'desktophtml':
 					return key
 				default:
-					throw new Error("unknown conf.get key: " + key)
+					throw new Error("unknown conf.getConst key: " + key)
 			}
 		},
-		getDesktopConfig: key => {
-			throw new Error("unknown conf.getDesktopConfig key: " + key)
+		getVar: key => {
+			throw new Error("unknown conf.getVar key: " + key)
 		}
 	}
 

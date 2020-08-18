@@ -70,22 +70,22 @@ o.spec("DesktopTrayTest", () => {
 	const conf = {
 		removeListener: (key: string, cb: ()=>void) => n.spyify(conf),
 		on: (key: string) => n.spyify(conf),
-		getDesktopConfig: (key: string) => {
+		getVar: (key: string) => {
 			switch (key) {
 				case 'runAsTrayApp':
 					return false
 				default:
-					throw new Error(`unexpected getDesktopConfig key ${key}`)
+					throw new Error(`unexpected getVar key ${key}`)
 			}
 		},
-		setDesktopConfig: (key: string) => {
+		setVar: (key: string) => {
 		},
-		get: (key: string) => {
+		getConst: (key: string) => {
 			switch (key) {
 				case 'iconName':
 					return 'iconName.name'
 				default:
-					throw new Error(`unexpected get key ${key}`)
+					throw new Error(`unexpected getConst key ${key}`)
 			}
 		}
 	}
@@ -134,8 +134,8 @@ o.spec("DesktopTrayTest", () => {
 		electronMock.app.callbacks["ready"]()
 
 		tray.update()
-		o(confMock.getDesktopConfig.callCount).equals(1)
-		o(confMock.getDesktopConfig.args[0]).equals('runAsTrayApp')
+		o(confMock.getVar.callCount).equals(1)
+		o(confMock.getVar.args[0]).equals('runAsTrayApp')
 	})
 
 	o("update with tray, mac, 3 windows", done => {
@@ -149,12 +149,12 @@ o.spec("DesktopTrayTest", () => {
 		// instances
 		const confMock = n.mock('__conf', conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'runAsTrayApp':
 						                  return true
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  }
 		                  })
@@ -192,12 +192,12 @@ o.spec("DesktopTrayTest", () => {
 		// instances
 		const confMock = n.mock('__conf', conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'runAsTrayApp':
 						                  return true
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  }
 		                  })
@@ -230,12 +230,12 @@ o.spec("DesktopTrayTest", () => {
 		// instances
 		const confMock = n.mock('__conf', conf)
 		                  .with({
-			                  getDesktopConfig: (key: string) => {
+			                  getVar: (key: string) => {
 				                  switch (key) {
 					                  case 'runAsTrayApp':
 						                  return true
 					                  default:
-						                  throw new Error(`unexpected getDesktopConfig key ${key}`)
+						                  throw new Error(`unexpected getVar key ${key}`)
 				                  }
 			                  }
 		                  })
