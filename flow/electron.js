@@ -1,4 +1,5 @@
 import {IncomingMessage} from "electron"
+import {ElectronHttpExecutor} from "electron-updater/out/electronHttpExecutor"
 
 /**
  * this file is highly inaccurate, check the docs at electronjs.org
@@ -546,9 +547,16 @@ declare module 'electron-localshortcut' {
 ;
 }
 
+// https://electronjs.org/docs/api/structures/notification-action
+export type NotificationAction = {|
+	type: string,
+	text?: string
+|}
 
 declare class AutoUpdater {
-	on: (AutoUpdaterEvent, (Event, ...Array<any>) => void) => AutoUpdater;
+	on: (AutoUpdaterEvent, (...Array<any>) => void) => AutoUpdater;
+	once: (AutoUpdaterEvent, (...Array<any>) => void) => AutoUpdater;
+	removeListener: (AutoUpdaterEvent, (...Array<any>) => void) => void;
 	removeAllListeners: (AutoUpdaterEvent) => AutoUpdater;
 	logger: ?{
 		info: (string) => void,
@@ -560,25 +568,59 @@ declare class AutoUpdater {
 	};
 	checkForUpdatesAndNotify(): Promise<any>;
 	checkForUpdates(): Promise<UpdateCheckResult>;
-	getUpdateInfo(): Promise<UpdateInfo>;
-	downloadUpdate(): Promise<any>;
+	downloadUpdate(): Promise<Array<String>>; // paths of the dl'd assets
 	quitAndInstall(isSilent?: boolean, isForceRunAfter?: boolean): void;
 	autoInstallOnAppQuit: boolean;
-	downloadedUpdateHelper: any;
+	allowDowngrade: boolean;
+	allowPrerelease: boolean;
+	fullChangelog: boolean;
+	updateInfoAndProvider: UpdateAndProviderInfo;
+	checkForUpdatesPromise: Promise<UpdateCheckResult>;
+	downloadedUpdateHelper: DownloadedUpdateHelper;
 	currentVersion: SemVer;
 	autoDownload: boolean;
+	httpExecutor: ElectronHttpExecutor;
 }
 
-// https://electronjs.org/docs/api/structures/notification-action
-export type NotificationAction = {|
-	type: string,
-	text?: string
-|}
+export type DownloadedUpdateHelper = {
+	cacheDir: string; // absolute path
+	versionInfo: UpdateInfo;
+	fileInfo: {
+		url: URL;
+		info: UpdateFileInfo;
+	};
+}
+
+export type UpdateAndProviderInfo = {
+	info: UpdateInfo;
+	configuration: UpdateConfig;
+	provider: GenericProvider;
+	executor: ElectronHttpExecutor;
+	baseUrl: URL;
+}
+
+export type GenericProvider = {
+	runtimeOptions: {
+		isUseMultipleRangeRequest: boolean;
+		platform: 'linux' | 'win32' | 'darwin';
+		executor: ElectronHttpExecutor
+	};
+	requestHeaders: {[string]: string}
+}
+
+export type UpdateConfig = {
+	provider: string,
+	url: string,
+	channel: string,
+	publishAutoUpdate: boolean,
+	updaterCacheDirName: string,
+}
 
 export type UpdateCheckResult = {
+	versionInfo: UpdateInfo,
 	updateInfo: UpdateInfo,
-	downloadPromise: Promise<Array<string>>,
-	cancellationToken: CancellationToken
+	cancellationToken?: CancellationToken;
+	downloadPromise?: Promise<any>;
 }
 
 export type UpdateInfo = {
@@ -586,11 +628,8 @@ export type UpdateInfo = {
 	files: Array<UpdateFileInfo>,
 	path: string,
 	sha512: string,
-	releaseName: string,
-	releaseNotes: string,
 	releaseDate: string,
-	stagingPercentage: number,
-	signature: string
+	signature: string,
 }
 
 export type SemVer = {
@@ -598,7 +637,17 @@ export type SemVer = {
 	major: number,
 	minor: number,
 	patch: number,
-	version: string
+	version: string,
+	loose: boolean,
+	includePrerelease: boolean,
+}
+
+export type DownloadProgressInfo = {
+	total: number,
+	delta: number,
+	transferred: number,
+	percent: number,
+	bytesPerSecond: number
 }
 
 export type CancellationToken = {
@@ -607,7 +656,10 @@ export type CancellationToken = {
 }
 
 export type UpdateFileInfo = {
-	url: string
+	url: string;
+	sha512: string;
+	size: number;
+	blockMapSize: number;
 }
 
 // https://github.com/electron/electron/blob/master/docs/api/app.md#events

@@ -13,6 +13,7 @@ import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
+import type {User} from "../api/entities/sys/User"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {isSameId} from "../api/common/EntityFunctions"
 import {load} from "../api/main/Entity"
@@ -43,7 +44,7 @@ import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import type {User} from "../api/entities/sys/User"
+import {nativeApp} from "../native/NativeWrapper"
 
 assertMainOrNode()
 
@@ -69,7 +70,11 @@ export class SettingsView implements CurrentView {
 		]
 
 		if (isDesktop()) {
-			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => new DesktopSettingsViewer()))
+			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => {
+				const desktopSettingsViewer = new DesktopSettingsViewer()
+				nativeApp.setAppUpdateListener(() => desktopSettingsViewer.appUpdate())
+				return desktopSettingsViewer
+			}))
 		}
 
 		this._adminFolders = []

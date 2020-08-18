@@ -216,7 +216,7 @@ function buildDesktopClient() {
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
 				version: `${new Date().getTime()}.0.0`,
-				updateUrl: "http://localhost:9000/desktop-snapshot",
+				updateUrl: "http://localhost:9000/client/build/desktop-snapshot",
 				nameSuffix: "-snapshot",
 				notarize: false
 			})

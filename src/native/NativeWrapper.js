@@ -14,6 +14,7 @@ import {appCommands, desktopCommands} from './NativeWrapperCommands.js'
 class NativeWrapper {
 
 	_initialized: DeferredObject<void> = defer();
+	_appUpdateListener: () => void;
 
 	_workerQueue: ?Queue;
 	_nativeQueue: ?Queue;
@@ -37,6 +38,21 @@ class NativeWrapper {
 				    this._initialized.resolve()
 			    })
 		}
+	}
+
+	/**
+	 * saves a listener method to be called when an
+	 * app update has been downloaded on the native side
+	 */
+	setAppUpdateListener(listener: ()=>void): void {
+		this._appUpdateListener = listener
+	}
+
+	/**
+	 * call the update listener if set
+	 */
+	handleUpdateDownload(): void {
+		this._appUpdateListener && this._appUpdateListener()
 	}
 
 	invokeNative(msg: Request): Promise<any> {

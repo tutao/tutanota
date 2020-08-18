@@ -46,43 +46,44 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 	const autoUpdater = {
 		autoUpdater: {
-			callbacks: {
-				'update-available': (any) => {
-					throw new Error('checkForUpdates called before setting listener')
-				},
-				'update-not-available': (any) => {
-					throw new Error('checkForUpdates called before setting listener')
-				},
-				'update-downloaded': (any) => {
-					throw new Error('downloadUpdates called before setting listener')
-				},
-				'error': (any) => {
-					throw new Error('error called before setting  error listener')
-				},
-				'checking-for-update': () => {
-					throw new Error('checking-for-updates called before setting listener')
-				}
-			},
+			callbacks: {},
 			logger: undefined,
 			on: function (ev: string, cb: (any)=>void) {
-				this.callbacks[ev] = o.spy(cb)
+				if (!this.callbacks[ev]) this.callbacks[ev] = []
+				this.callbacks[ev].push({fn: o.spy(cb), once: false})
 				return this
+			},
+			once: function (ev: string, cb: (any) => void) {
+				if (!this.callbacks[ev]) this.callbacks[ev] = []
+				this.callbacks[ev].push({fn: o.spy(cb), once: true})
+				return this
+			},
+			removeListener: function (ev: string, cb: (any) => void) {
+				if (!this.callbacks[ev]) return
+				this.callbacks[ev] = this.callbacks[ev].filter(entry => entry.fn !== cb)
 			},
 			removeAllListeners: function (ev: string) {
-				this.callbacks[ev] = null
+				this.callbacks[ev] = []
 				return this
 			},
+			emit: function (ev: string, args: any) {
+				const entries = this.callbacks[ev]
+				entries.forEach(entry => {
+					setTimeout(() => entry.fn(args), 10)
+				})
+				this.callbacks[ev] = entries.filter(entry => !entry.once)
+			},
 			checkForUpdates: function () {
-				setTimeout(() => this.callbacks['update-available']({
+				this.emit('update-available', {
 					sha512: 'sha512',
 					signature: 'signature',
-				}), 90)
+				})
 				return Promise.resolve()
 			},
 			downloadUpdate: function () {
-				setImmediate(() => this.callbacks['update-downloaded']({
+				this.emit('update-downloaded', {
 					version: '4.5.0',
-				}))
+				})
 				return Promise.resolve()
 			},
 			quitAndInstall: (isSilent: boolean, isForceRunAfter: boolean) => {
@@ -168,8 +169,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
 		const upd = new ElectronUpdater(confMock, notifierMock)
 
-		o(autoUpdaterMock.on.callCount).equals(5)
-		o(autoUpdaterMock.logger).equals(null)
+		o(autoUpdaterMock.on.callCount).equals(6)
 
 		upd.start()
 
@@ -338,32 +338,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const fsMock = n.mock('fs-extra', fs).set()
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater)
-		                         .with({
-			                         autoUpdater: {
-				                         checkForUpdates: function () {
-					                         setTimeout(() => this.callbacks['update-available']({
-						                         sha512: 'sha512',
-						                         signature: 'signature',
-					                         }), 90)
-					                         return Promise.resolve()
-				                         },
-				                         downloadUpdate: function () {
-					                         setTimeout(() => this.callbacks['update-downloaded']({
-						                         version: '4.5.0',
-					                         }), 30)
-					                         return Promise.resolve()
-				                         },
-				                         on: function (ev: string, cb: (e: {message: string})=>void) {
-					                         this.callbacks[ev] = cb
-					                         if (ev === "error") {
-						                         setTimeout(() => cb({message: "this is an autoUpdater error"}), 20)
-					                         }
-					                         return this
-				                         }
-			                         }
-		                         })
-		                         .set().autoUpdater
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
 
 		//mock our modules
 		n.mock('./tray/DesktopTray', desktopTray).set()
@@ -378,10 +353,12 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 
 		upd.start()
 
+		autoUpdaterMock.emit('error', {message: "this is an autoUpdater error"})
+
 		// after the error
 		setTimeout(() => {
 			o(autoUpdaterMock.downloadUpdate.callCount).equals(0)
-		}, 20)
+		}, 10)
 
 		//after the download
 		setTimeout(() => {
@@ -396,10 +373,9 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		}, 150)
 	})
 
-	o("shut down autoUpdater after  errors", done => {
+	o("shut down autoUpdater after errors", done => {
 		const RETRY_INTERVAL = 15
 		const MAX_NUM_ERRORS = 5
-		let threw = false
 		//mock node modules
 		const fsMock = n.mock('fs-extra', fs).set()
 		const forgeMock = n.mock('node-forge', nodeForge).set()
@@ -408,14 +384,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		                         .with({
 			                         autoUpdater: {
 				                         downloadUpdate: function () {
-					                         setImmediate(() => {
-						                         try {
-							                         autoUpdaterMock.callbacks['error']({message: "this is an autoUpdater error"})
-						                         } catch (e) { // prevent escalation from killing the test suite
-							                         console.log("caught")
-							                         threw = true
-						                         }
-					                         })
+					                         autoUpdaterMock.emit('error', {message: "this is an autoUpdater error"})
 					                         return Promise.resolve()
 				                         }
 			                         }
@@ -438,7 +407,8 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		setTimeout(() => {
 			upd._stopPolling()
 			o(autoUpdaterMock.removeAllListeners.callCount).equals(4)
-			o(threw).equals(true)
+			o(notifierMock.showOneShot.callCount).equals(1)
+			o(notifierMock.showOneShot.args[0].title).equals("errorReport_label")
 			done()
 		}, RETRY_INTERVAL * Math.pow(2, MAX_NUM_ERRORS + 1) * 2)
 	})
@@ -464,8 +434,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
 		const upd = new ElectronUpdater(confMock, notifierMock)
 
-		o(autoUpdaterMock.on.callCount).equals(5)
-		o(autoUpdaterMock.logger).equals(null)
+		o(autoUpdaterMock.on.callCount).equals(6)
 
 		upd.start()
 
@@ -528,8 +497,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			const {ElectronUpdater} = n.subject('../../src/desktop/ElectronUpdater.js')
 			const upd = new ElectronUpdater(confMock, notifierMock)
 
-			o(autoUpdaterMock.on.callCount).equals(5)
-			o(autoUpdaterMock.logger).equals(null)
+			o(autoUpdaterMock.on.callCount).equals(6)
 
 			upd.start()
 

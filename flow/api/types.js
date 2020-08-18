@@ -199,6 +199,7 @@ type NativeRequestType = 'init'
 	| 'closeApp'
 	| 'unload' // desktop
 	| 'changeLanguage'
+	| 'manualUpdate'
 
 
 type JsRequestType = 'createMailEditor'
@@ -214,6 +215,8 @@ type JsRequestType = 'createMailEditor'
 	| 'invalidateAlarms'
 	| 'applySearchResultToOverlay'
 	| 'addShortcuts'
+	| 'appUpdateDownloaded'
+	| 'openCustomer' // only for admin clients
 
 type WebContentsMessage
 	= 'initialize-ipc'

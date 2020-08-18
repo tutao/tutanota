@@ -126,6 +126,11 @@ o.spec("IPC tests", () => {
 		defer: defer,
 	}
 
+	const autoUpdater = {
+		updateIsReady: false,
+		setUpdateDownloadedListener: () => {}
+	}
+
 	const standardMocks = () => {
 		windowMock = n.mock("__window", {
 			id: 42,
@@ -161,15 +166,16 @@ o.spec("IPC tests", () => {
 			alarmStorageMock: n.mock("__alarmStorage", alarmStorage).set(),
 			cryptoMock: n.mock("./DesktopCryptoFacade", crypto).set(),
 			dlMock: n.mock("__dl", dl).set(),
-			utilsMock: n.mock("../api/common/utils/Utils", utils).set()
+			utilsMock: n.mock("../api/common/utils/Utils", utils).set(),
+			autoUpdaterMock: n.mock("__updater", autoUpdater).set()
 		}
 	}
 
 	const setUpWithWindowAndInit = () => {
 		const sm = standardMocks()
-		const {electronMock, confMock, notifierMock, sockMock, sseMock, wmMock, alarmStorageMock, cryptoMock, dlMock} = sm
+		const {electronMock, confMock, notifierMock, sockMock, sseMock, wmMock, alarmStorageMock, cryptoMock, dlMock, autoUpdaterMock} = sm
 		const {IPC} = n.subject('../../src/desktop/IPC.js')
-		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock, cryptoMock, dlMock)
+		const ipc = new IPC(confMock, notifierMock, sseMock, wmMock, sockMock, alarmStorageMock, cryptoMock, dlMock, autoUpdaterMock)
 
 		ipc.addWindow(42)
 		o(electronMock.ipcMain.on.callCount).equals(1)
@@ -444,6 +450,7 @@ o.spec("IPC tests", () => {
 					isMailtoHandler: "yesItIs",
 					runOnStartup: "noDoNot",
 					isIntegrated: true,
+					updateAvailable: false,
 				}
 			})
 			done()

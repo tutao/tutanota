@@ -4,6 +4,7 @@ import {getMimeType, getName, getSize} from "./FileApp"
 import {asyncImport} from "../api/common/utils/Utils"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
 import type {MailEditor} from "../mail/MailEditor"
+import {nativeApp} from "./NativeWrapper"
 
 const createMailEditor = (msg: Request) => {
 	return Promise.all([
@@ -152,6 +153,11 @@ function invalidateAlarms(msg: Request): Promise<void> {
 	})
 }
 
+function appUpdateDownloaded(msg: Request): Promise<void> {
+	nativeApp.handleUpdateDownload()
+	return Promise.resolve()
+}
+
 export const appCommands = {
 	createMailEditor,
 	showAlertDialog,
@@ -173,5 +179,6 @@ export const desktopCommands = {
 	openFindInPage,
 	applySearchResultToOverlay,
 	reportError,
-	addShortcuts
+	addShortcuts,
+	appUpdateDownloaded
 }
