@@ -95,7 +95,8 @@ module.exports = function (opts) {
 					"provider": "generic",
 					"url": updateUrl,
 					"channel": "latest",
-					"publishAutoUpdate": true
+					"publishAutoUpdate": true,
+					"useMultipleRangeRequest": false
 				}
 				: undefined,
 			"directories": {
