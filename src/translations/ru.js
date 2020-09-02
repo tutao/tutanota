@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:34:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -42,7 +42,6 @@ module.exports = {
 		"active_label": "Активно",
 		"actor_label": "Деятель",
 		"addCalendar_action": "Добавить календарь",
-		"addCustomDomainValidationRecord_msg": "Пожалуйста, добавьте TXT  запись для вашего домена, чтобы подтвердить своё право собственности, как показано ниже:",
 		"addCustomDomain_action": "Добавить домен",
 		"addEmailAlias_label": "Добавить псевдоним",
 		"addEnumValue_action": "Добавить список значений",
@@ -263,7 +262,6 @@ module.exports = {
 		"customColors_label": "Собственные цвета",
 		"customDomainDeletePreconditionFailed_msg": "Пожалуйста отключите всех пользователей и псевдоними электронной почты содержащие домен: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Пожалуйста деактивируйте всех пользователей и псевдонимы электронной почты, содержащие домен {domainName} и удалите домен в качестве домена регистрации.",
-		"customDomainDomainAssigned_msg": "Этот домен уже прикреплён к вашему аккаунту.",
 		"customDomainErrorDnsLookupFailure_msg": "Найти DNS не удалось.",
 		"customDomainErrorDomainNotAvailable_msg": "Домен недоступен.",
 		"customDomainErrorDomainNotFound_msg": "Мы не смогли найти этот домен в DNS. Пожалуйста, проверьте правописание.",

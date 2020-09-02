@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2020-08-07T14:00:22Z",
+	"updated_at": "2020-08-10T08:35:37Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -44,7 +44,6 @@ module.exports = {
 		"addCustomDomainAdresses_msg": "Die Domain wurde für Ihre Konto registriert. Um sie benutzen zu können, fügen Sie Ihrem aktuellen Benutzer bitte mindestens einen Alias hinzu. Alternativ können Sie neue Benutzer für die Domain anlegen.",
 		"addCustomDomainAliases_msg": "Fügen Sie dem aktuellen Postfach einen E-Mail-Alias hinzu, wenn Sie eine weitere E-Mail-Adresse für sich selbst benötigen.",
 		"addCustomDomainUsers_msg": "Erstellen Sie neue Benutzer oder neue E-Mail-Aliasse für bestehende Benutzer, wenn Sie E-Mail-Adressen für andere Personen benötigen.",
-		"addCustomDomainValidationRecord_msg": "Bitte erstellen Sie einen TXT-Eintrag für Ihre Domain wie unten angezeigt:",
 		"addCustomDomain_action": "Eigene Domain hinzufügen",
 		"addDNSValue_label": "Wert hinzufügen",
 		"addEmailAlias_label": "Alias anlegen",
@@ -273,7 +272,6 @@ module.exports = {
 		"customColors_label": "Eigene Farben",
 		"customDomainDeletePreconditionFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Aliasse mit der Domain: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Bitte deaktivieren Sie zunächst alle Benutzer und alle E-Mail-Aliasse mit der Domain: {domainName} und entfernen Sie die Domain als Registrierungs-Domain.",
-		"customDomainDomainAssigned_msg": "Diese Domain wurde bereits hinzugefügt.",
 		"customDomainErrorDnsLookupFailure_msg": "Fehler beim Abfragen der DNS-Informationen.",
 		"customDomainErrorDomainNotAvailable_msg": "Diese Domain ist nicht verfügbar.",
 		"customDomainErrorDomainNotFound_msg": "Wir können diese Domain im DNS nicht finden. Bitte prüfen Sie den Domain-Namen.",
@@ -391,7 +389,6 @@ module.exports = {
 		"enterDomainFieldHelp_label": "Mit dieser eigenen E-Mail-Domain können Sie E-Mail-Adressen wie hello@{domain} erstellen.",
 		"enterDomainGetReady_msg": "Sie werden Änderungen an Ihren DNS Einstellungen vornehmen müssen. Bitte öffnen Sie ein neues Browserfenster und melden Sie sich in der Verwaltungsplattform Ihres Domainanbieters an. Der Einrichtungsassistent wird Ihnen bei jedem Schritt anzeigen, welche Änderungen nötig sind.",
 		"enterDomainIntroduction_msg": "Mit Tutanota können Sie Ihre eigene Domain in nur wenigen Schritten einrichten.",
-		"enterDomain_msg": "Beginnen Sie die Einrichtung, indem Sie Ihre eigene E-Mail-Domain eingeben.",
 		"enterMissingPassword_msg": "Es wurde kein Passwort gefunden, bitte ein Passwort angeben.",
 		"enterName_msg": "Bitte geben Sie einen Namen an.",
 		"enterPaymentDataFirst_msg": "Bitte geben Sie zuerst Ihre Zahlungsdaten ein, bevor Sie weitere Pakete buchen.",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:34:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -40,7 +40,6 @@ module.exports = {
 		"active_label": "Actif",
 		"actor_label": "Acteur",
 		"addCalendar_action": "Ajouter un calendrier",
-		"addCustomDomainValidationRecord_msg": "Veuillez ajouter un enregistrement TXT pour votre domaine tel que présenté ci-dessous pour prouver votre propriété :",
 		"addCustomDomain_action": "Ajouter un domaine personnalisé",
 		"addEmailAlias_label": "Ajouter un alias",
 		"addEnumValue_action": "Ajouter une valeur enum",
@@ -256,7 +255,6 @@ module.exports = {
 		"customColors_label": "Couleurs personnalisées",
 		"customDomainDeletePreconditionFailed_msg": "Veuillez désactiver tous les utilisateurs et tous les alias d'email contenant le domaine : {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Veuillez désactiver tous les utilisateurs et les alias d'email contenant le domaine : {domainName} et supprimer le domaine en tant que domaine enregistré d'email.",
-		"customDomainDomainAssigned_msg": "Ce domaine est déjà associé à votre compte.",
 		"customDomainErrorDnsLookupFailure_msg": "Échec de la vérification DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Domaine non disponible.",
 		"customDomainErrorDomainNotFound_msg": "Nous ne parvenons pas à trouver ce domaine dans le DNS. Veuillez vérifier l'orthographe.",

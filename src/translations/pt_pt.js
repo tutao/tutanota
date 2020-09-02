@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:34:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -40,7 +40,6 @@ module.exports = {
 		"active_label": "Ativo",
 		"actor_label": "Ator",
 		"addCalendar_action": "Adicionar calendário",
-		"addCustomDomainValidationRecord_msg": "Por favor, adicione o registo TXT do seu domínio e prove a propriedade como demonstrado abaixo:",
 		"addCustomDomain_action": "Adicionar domínio personalizado",
 		"addEmailAlias_label": "Adicionar pseudónimo de email",
 		"addEnumValue_action": "Adicionar valor enum",
@@ -261,7 +260,6 @@ module.exports = {
 		"customColors_label": "Cores personalizadas ",
 		"customDomainDeletePreconditionFailed_msg": "Por favor, desative todos os utilizadores e pseudónimos de email que contenham o domínio: {domainName} .",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Por favor desative todos os utilizadores e aliases de email que contenham o domínio: {domainName} e remova o domínio como domínio de registo de email.",
-		"customDomainDomainAssigned_msg": "O domínio já se encontra associado à sua conta.",
 		"customDomainErrorDnsLookupFailure_msg": "Pesquisa de DNS falhou.",
 		"customDomainErrorDomainNotAvailable_msg": "Domínio indisponível.",
 		"customDomainErrorDomainNotFound_msg": "Não conseguimos encontrar este domínio no DNS. Por favor, verifique a ortografia.",

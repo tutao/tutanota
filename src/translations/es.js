@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2020-08-07T12:19:09Z",
+	"updated_at": "2020-08-10T08:35:36Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -44,7 +44,6 @@ module.exports = {
 		"addCustomDomainAdresses_msg": "El dominio se asignó a tu cuenta. Para utilizar tu dominio personalizado, agrega al menos un alias de correo electrónico a tu usuario actual. Alternativamente, puedes agregar nuevos usuarios con una dirección de correo electrónico de dominio personalizada",
 		"addCustomDomainAliases_msg": "Añade un alias de correo electrónico para tu buzón actual si necesitas otra dirección de correo electrónico para ti mismo.",
 		"addCustomDomainUsers_msg": "Agrega nuevos usuarios o edita alias para los usuarios existentes si necesitas agregar direcciones de correo electrónico para otras personas.",
-		"addCustomDomainValidationRecord_msg": "Por favor, agrega un registro TXT en tu dominio para probar tu propiedad como se muestra a continuación:",
 		"addCustomDomain_action": "Agregar dominio personalizado",
 		"addDNSValue_label": "Añadir valor",
 		"addEmailAlias_label": "Agregar un alias de correo",
@@ -273,7 +272,6 @@ module.exports = {
 		"customColors_label": "Colores personalizados",
 		"customDomainDeletePreconditionFailed_msg": "Por favor desactiva todos los usuarios y alias de correo para el dominio: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Por favor desactiva todos los usuarios y alias que contenga el dominio: {domainName} y elimina el dominio del registro de correos con dominio.",
-		"customDomainDomainAssigned_msg": "El dominio ya está asignado a tu cuenta.",
 		"customDomainErrorDnsLookupFailure_msg": "Falló la búsqueda de DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Dominio no está disponible.",
 		"customDomainErrorDomainNotFound_msg": "No hemos podido encontrar este dominio en el DNS. Por favor, comprueba que esté bien deletreado.",
@@ -391,7 +389,6 @@ module.exports = {
 		"enterDomainFieldHelp_label": "Con este dominio de correo electrónico personalizado puedes crear direcciones de correo electrónico como hola@{domain}.",
 		"enterDomainGetReady_msg": "Deberás realizar cambios en la configuración de DNS. Abre una nueva ventana del navegador e inicia sesión en el panel de administración de tu proveedor de dominio para aplicar los cambios cuando sea necesario. Te mostraremos qué registros DNS son necesarios en cada paso.",
 		"enterDomainIntroduction_msg": "Con Tutanota puedes usar tu dominio de correo electrónico personalizado con tan solo unos pasos.",
-		"enterDomain_msg": "Comienza introduciendo tu dominio de correo electrónico personalizado.",
 		"enterMissingPassword_msg": "No se ha detectado contraseña. Por favor entra una contraseña.",
 		"enterName_msg": "Por favor introduzca un nombre.",
 		"enterPaymentDataFirst_msg": "Por favor ingresa tus datos de pago antes de solicitar nuevos paquetes.",

@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2020-08-07T14:23:30Z",
+	"updated_at": "2020-08-10T08:35:37Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -43,7 +43,6 @@ module.exports = {
 		"addCustomDomainAdresses_msg": "Asignouse o dominio á túa conta. Para poder usar o dominio personalizado engade polo menos un alias de email á túa usuaria actual. De xeito alternativo, podes engadir novas usuarias con enderezos de email personalizados.",
 		"addCustomDomainAliases_msg": "Engade un alias de email á túa caixa de correo actual se precisas ou enderezo para ti mesma.",
 		"addCustomDomainUsers_msg": "Engade novas usuarias ou edita os alias actuais para as existentes se precisas enderezos para outras persoas.",
-		"addCustomDomainValidationRecord_msg": "Por favor, engada un rexistro TXT ao seu dominio para comprobar a propiedade tal como se indica abaixo:\n",
 		"addCustomDomain_action": "Engadir dominio personalizado",
 		"addDNSValue_label": "Engadir valor",
 		"addEmailAlias_label": "Engadir alias de correo",
@@ -272,7 +271,6 @@ module.exports = {
 		"customColors_label": "Cores personalizadas",
 		"customDomainDeletePreconditionFailed_msg": "Por favor desactiva todas as usuarias e alias de correo que conteñen o dominio: {domainName}",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Por favor desactiva todos as usuarias e alias de correo que conteñen o dominio: {domainName} e elimina o dominio como dominio de rexistro de correo.",
-		"customDomainDomainAssigned_msg": "Este dominio xa está asignado a súa conta.",
 		"customDomainErrorDnsLookupFailure_msg": "Fallo o descubrimento DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "O dominio non está dispoñible",
 		"customDomainErrorDomainNotFound_msg": "Non podemos atopar este domino no DNS. Comproba a escritura.",
@@ -390,7 +388,6 @@ module.exports = {
 		"enterDomainFieldHelp_label": "Con este dominio de email personalizado podes crear enderezos tipo ola@{domain}hello@{domain}.",
 		"enterDomainGetReady_msg": "Tes que facer cambios na configuración DNS. Abre unha nova lapela no navegador, vaite ó panel de administración do teu provedor de dominio para aplicar os cambios necesarios. Este asistente ensinarache os rexistros DNS precisos en cada paso.",
 		"enterDomainIntroduction_msg": "Con Tutanota podes usar o teu dominio personalizado cuns sinxelos pasos.",
-		"enterDomain_msg": "Para comezar escribe o teu dominio personalizado.",
 		"enterMissingPassword_msg": "Sen contrasinal. Por favor, escriba un contrasinal.",
 		"enterName_msg": "Por favor, introduza un nome.",
 		"enterPaymentDataFirst_msg": "Por favor, primeiro introduza os datos de pago antes de pedir paquetes adicionais.",

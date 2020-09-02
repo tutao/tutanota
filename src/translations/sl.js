@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -40,7 +40,6 @@ module.exports = {
 		"addCalendar_action": "Dodaj koledar",
 		"addCustomDomainAddresses_title": "Dodajanje poštnih naslovov za domeno po meri",
 		"addCustomDomainAdresses_msg": "Domena je bila dodeljena vašemu računu. Če želite uporabljati domeno po meri, dodajte trenutnemu uporabniku vsaj en poštni vzdevek. Lahko pa dodate tudi nove uporabnike s poštnim naslovom domene po meri.",
-		"addCustomDomainValidationRecord_msg": "Prosimo, dodajte zapis TXT za vašo domeno, da dokaže svoje lastništvo, kot je prikazano spodaj:",
 		"addCustomDomain_action": "Dodaj lastno domeno",
 		"addDNSValue_label": "Dodaj vrednost",
 		"addEmailAlias_label": "Dodaj e-poštni vzdevek",
@@ -264,7 +263,6 @@ module.exports = {
 		"customColors_label": "Lastne barve",
 		"customDomainDeletePreconditionFailed_msg": "Onemogočite vse uporabnike in vzdevke e-pošte, ki vsebujejo domeno: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Onemogočite vse uporabnike in vzdevke e-pošte, ki vsebujejo domeno: {domainName} in domeno odstranite kot domeno e-poštnega naslova za registracijo.",
-		"customDomainDomainAssigned_msg": "Domena je že dodeljena vašemu računu.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS preslikava neuspešna.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena ni na voljo",
 		"customDomainErrorDomainNotFound_msg": "Te domene nismo mogli najti v DNSju. Prosimo, preverite črkovanje.",

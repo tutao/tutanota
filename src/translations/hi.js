@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -30,7 +30,6 @@ module.exports = {
 		"active_label": "सक्रिय",
 		"actor_label": "अभिनेता",
 		"addCalendar_action": "कैलेंडर जोड़ें",
-		"addCustomDomainValidationRecord_msg": "अपना स्वामित्व साबित करने के लिए कृपया अपने डोमेन के लिए एक TXT रिकॉर्ड जोड़ें जैसे नीचे दिखाया गया है:",
 		"addCustomDomain_action": "कस्टम डोमेन जोड़ें",
 		"addEmailAlias_label": "ईमेल उपनाम जोड़ें",
 		"addEnumValue_action": "ईनुम० मूल्य जोड़ें",
@@ -241,7 +240,6 @@ module.exports = {
 		"customColors_label": "रिवाज रंग",
 		"customDomainDeletePreconditionFailed_msg": "कृपया सभी उपयोगकर्ताओं और ईमेल उपनामों को डोमेन से निष्क्रिय करें:",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "कृपया सभी उपयोगकर्ताओं और ईमेल उपनामों को डोमेन से निष्क्रिय करें:\n{domainName} और पंजीकरण ईमेल डोमेन के रूप में डोमेन को हटा दें.",
-		"customDomainDomainAssigned_msg": "डोमेन पहले से ही आपके खाते को सौंपा गया है।",
 		"customDomainErrorDnsLookupFailure_msg": "DNS लुकअप विफल",
 		"customDomainErrorDomainNotAvailable_msg": "डोमेन उपलब्ध नहीं है",
 		"customDomainErrorDomainNotFound_msg": "हमें DNS में यह डोमेन नहीं मिला। कृपया वर्तनी की जाँच करें।",

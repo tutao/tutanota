@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:34:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -39,7 +39,6 @@ module.exports = {
 		"active_label": "激活",
 		"actor_label": "参与者",
 		"addCalendar_action": "添加日历",
-		"addCustomDomainValidationRecord_msg": "为了证明您是域名的拥有者，请在域名中添加如下内容的 TXT 记录：",
 		"addCustomDomain_action": "添加自定义域名",
 		"addEmailAlias_label": "添加邮件别名",
 		"addEnumValue_action": "添加枚举值",
@@ -251,7 +250,6 @@ module.exports = {
 		"customColors_label": "自定义颜色",
 		"customDomainDeletePreconditionFailed_msg": "请停用所有包含 {domainName} 域名的用户和邮件别名。",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "请取消激活所有使用{domainName}域名得用户和别名并移除以此域名注册得邮件域名",
-		"customDomainDomainAssigned_msg": "该域名已指定到您的账户。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS查询失败。",
 		"customDomainErrorDomainNotAvailable_msg": "域名不可用。",
 		"customDomainErrorDomainNotFound_msg": "在DNS中无法找到这个域名。请检查拼写。",

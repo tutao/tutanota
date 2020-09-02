@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:35:36Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -40,7 +40,6 @@ module.exports = {
 		"addCustomDomainAdresses_msg": "The domain was assigned to your account. In order to use your custom domain please add at least one email alias to your current user. Alternatively, you may add new users with a custom domain email address",
 		"addCustomDomainAliases_msg": "Add an email alias for your current mailbox if you need another email address for yourself.",
 		"addCustomDomainUsers_msg": "Add new users or edit email aliases for existing users if you need email addresses for other persons.",
-		"addCustomDomainValidationRecord_msg": "Please add a TXT record for your domain to prove your ownership like shown below:",
 		"addCustomDomain_action": "Add custom domain",
 		"addDNSValue_label": "Add value",
 		"addEmailAlias_label": "Add email alias",
@@ -269,7 +268,6 @@ module.exports = {
 		"customColors_label": "Custom colors",
 		"customDomainDeletePreconditionFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Please deactivate all users and email aliases containing the domain: {domainName} and remove the domain as registration email domain.\n",
-		"customDomainDomainAssigned_msg": "The domain is already assigned to your account.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS lookup failed.",
 		"customDomainErrorDomainNotAvailable_msg": "Domain is not available.",
 		"customDomainErrorDomainNotFound_msg": "We could not find this domain in the DNS. Please check the spelling.",
@@ -387,7 +385,6 @@ module.exports = {
 		"enterDomainFieldHelp_label": "With this custom email domain you can create email addresses like hello@{domain}.",
 		"enterDomainGetReady_msg": "You will need to make changes to your DNS configuration. Please open a new browser window and log in to the administration panel of your domain provider to apply changes when necessary. This setup wizard will show you which DNS records are required for each step.",
 		"enterDomainIntroduction_msg": "With Tutanota you can use your custom email domain in just a few steps.",
-		"enterDomain_msg": "Get started by entering your custom email domain.",
 		"enterMissingPassword_msg": "No password detected. Please enter a password.",
 		"enterName_msg": "Please enter a name.",
 		"enterPaymentDataFirst_msg": "Please first enter your payment data before ordering additional packages.",

@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2020-08-07T12:02:50Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -42,7 +42,6 @@ module.exports = {
 		"active_label": "Aktywne",
 		"actor_label": "Administrator",
 		"addCalendar_action": "Dodaj kalendarz",
-		"addCustomDomainValidationRecord_msg": "Dodaj proszę zapis TXT do Twojej domeny, aby udowodnić Twoją własność, jako pokazano poniżej:",
 		"addCustomDomain_action": "Dodaj własną domenę",
 		"addEmailAlias_label": "Dodaj alias e-mail",
 		"addEnumValue_action": "Dodaj wartość liczbową",
@@ -258,7 +257,6 @@ module.exports = {
 		"customColors_label": "Niestandardowe kolory",
 		"customDomainDeletePreconditionFailed_msg": "Proszę zdezaktywować wszystkich użytkowników i adresy e-mail należące do domeny: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Dezaktywuj wszystkich użytkowników i aliasy e-mail zawierające domenę: {domainName} oraz usuń domenę jako domenę rejestracji e-mail.",
-		"customDomainDomainAssigned_msg": "Domena została wcześniej przyłączona do Twojego konta.",
 		"customDomainErrorDnsLookupFailure_msg": "Wyszukiwanie DNS nie powiodło się.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena nie jest dostępna.",
 		"customDomainErrorDomainNotFound_msg": "Nie można znaleźć tej domeny w DNS. Sprawdź proszę pisownię.",

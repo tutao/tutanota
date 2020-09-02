@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -32,7 +32,6 @@ module.exports = {
 		"active_label": "Ενεργό",
 		"actor_label": "Εντολέας",
 		"addCalendar_action": "Προσθήκη στο ημερολόγιο",
-		"addCustomDomainValidationRecord_msg": "Παρακαλούμε προσθέστε μια καταγραφή TXT για το domain σας για να αποδείξετε την ιδιοκτησία του, όπως φαίνεται παρακάτω: ",
 		"addCustomDomain_action": "Προσθέστε προσαρμοσμένο όνομα χώρου",
 		"addEmailAlias_label": "Προσθήκη ψευδώνυμο",
 		"addEnumValue_action": "Συμπληρώστε",
@@ -232,7 +231,6 @@ module.exports = {
 		"customColors_label": "Το χρώμα μου",
 		"customDomainDeletePreconditionFailed_msg": "Παρακαλώ απενεργοποιήστε όλους τους χρήστες και τα ψευδώνυμα ηλεκτρονικού ταχυδρομείου που περιέχουν το όνομα τομέα: {domainName}",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Παρακαλώ απενεργοποιήστε τα ψευδώνυμα όλων των χρηστών και των  ηλεκτρονικών διευθύνσεών των, που περιέχουν το Ονομα Χώρου {domainName} και αφαιρέστε την ιδιότητα που το χαρακτηρίζει , ως το Ονομα Χώρου στο οποίο δημιουργήθηκε το  email εγγραφής.",
-		"customDomainDomainAssigned_msg": "Αυτό το domain έχει ήδη ανατεθεί στον λογαριασμό σας.",
 		"customDomainErrorDnsLookupFailure_msg": "Απέτυχε η αναζήτηση DNS",
 		"customDomainErrorDomainNotAvailable_msg": "Ο ιστότοπος δεν είναι διαθέσιμος.",
 		"customDomainErrorOtherTxtRecords_msg": "Ωστόσο, βρήκαμε αυτές τις καταχωρίσεις ΤΧΤ:",

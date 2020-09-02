@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -41,7 +41,6 @@ module.exports = {
 		"active_label": "Aktivno",
 		"actor_label": "Učesnik",
 		"addCalendar_action": "Dodaj kalendar",
-		"addCustomDomainValidationRecord_msg": "Dodajte TXT zapis za svoju domenu da biste dokazali svoje vlasništvo kao što je prikazano u nastavku:",
 		"addCustomDomain_action": "Dodajte prilagođenu domenu",
 		"addEmailAlias_label": "Dodaj email alias",
 		"addEnumValue_action": "Dodaj predefiniranu vrijednost",
@@ -256,7 +255,6 @@ module.exports = {
 		"customColors_label": "Prilagođene boje",
 		"customDomainDeletePreconditionFailed_msg": "Deaktivirajte sve korisnike i pseudonime e-pošte koje sadrže domenu: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Deaktivirajte sve korisnike i pseudonime e-pošte s domenom: {domainName} i uklonite domenu kao domenu e-pošte za registraciju.",
-		"customDomainDomainAssigned_msg": "Domena je već povezana s vašim računom.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS pretraživanje neuspješno.",
 		"customDomainErrorDomainNotAvailable_msg": "Domena nije dostupna.",
 		"customDomainErrorDomainNotFound_msg": "Nismo mogli pronaći ovu domenu u DNS-u. Provjerite pravopis.",

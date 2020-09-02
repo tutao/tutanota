@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -37,7 +37,6 @@ module.exports = {
 		"active_label": "Aktívny",
 		"actor_label": "Účastník",
 		"addCalendar_action": "Pridať kalendár",
-		"addCustomDomainValidationRecord_msg": "Pridaj TXT záznam pre tvoju doménu na účely preukázania vlastníctva tak, ako je uvedené nižšie:",
 		"addCustomDomain_action": "Pridaj vlastnú doménu",
 		"addEmailAlias_label": "Pridať e-mailový alias",
 		"addEnumValue_action": "Pridaj hodnotu enumerácie",
@@ -259,7 +258,6 @@ module.exports = {
 		"customColors_label": "Vlastné farby",
 		"customDomainDeletePreconditionFailed_msg": "Prosím, deaktivuj všetkých používateľov a e-mailové aliasy obsahujúce túto doménu: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Prosím, deaktivuj všetkých používateľov a e-mailové aliasy obsahujúce doménu: {domainName} a odstráň doménu ako doménu registračného e-mailu.",
-		"customDomainDomainAssigned_msg": "Doména je už priradená k tvojmu účtu.",
 		"customDomainErrorDnsLookupFailure_msg": "Vyhľadávanie DNS zlyhalo.",
 		"customDomainErrorDomainNotAvailable_msg": "Doména nie je dostupná.",
 		"customDomainErrorDomainNotFound_msg": "Nepodarilo sa nám nájsť túto doménu v DNS. Prosím, skontroluj pravopis.",

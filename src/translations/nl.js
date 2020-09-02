@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2020-08-07T13:31:52Z",
+	"updated_at": "2020-08-10T08:35:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -44,7 +44,6 @@ module.exports = {
 		"addCustomDomainAdresses_msg": "Het domein is geregistreerd voor uw account. Om ze te gebruiken, voegt u ten minste één alias toe aan uw huidige gebruiker. Als alternatief kunt u nieuwe gebruikers voor het domein maken.",
 		"addCustomDomainAliases_msg": "Voeg een e-mailalias toe aan de huidige mailbox als u zelf een ander e-mailadres nodig heeft.",
 		"addCustomDomainUsers_msg": "Maak nieuwe gebruikers of nieuwe e-mailaliassen voor bestaande gebruikers als u e-mailadressen voor andere mensen nodig heeft.",
-		"addCustomDomainValidationRecord_msg": "Graag  een TXT record toevoegen voor uw domein om uw aanspraak hierop te bewijzen zoals onder getoond:",
 		"addCustomDomain_action": "Aangepast domein toevoegen",
 		"addDNSValue_label": "Waarde toevoegen",
 		"addEmailAlias_label": "Alias toevoegen",
@@ -273,7 +272,6 @@ module.exports = {
 		"customColors_label": "Aangepaste kleuren",
 		"customDomainDeletePreconditionFailed_msg": "Graag alle gebruikers en e-mailaliassen deactiveren voor het domain {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Graag alle gebruikers en e-mailaliassen deactiveren voor domein: {domainName} en verwijder het domein als e-mailregistratiedomein.",
-		"customDomainDomainAssigned_msg": "Dit domein is al gekoppeld aan uw account",
 		"customDomainErrorDnsLookupFailure_msg": "Fout bij het opvragen van de DNS-gegevens.",
 		"customDomainErrorDomainNotAvailable_msg": "Domein niet beschikbaar.",
 		"customDomainErrorDomainNotFound_msg": "We konden dit domein niet vinden in de DNS. Graag de spelling controleren.",
@@ -391,7 +389,6 @@ module.exports = {
 		"enterDomainFieldHelp_label": "Met uw eigen e-maildomein kunt u e-mailadressen zoals hallo@{domain} maken.",
 		"enterDomainGetReady_msg": "U moet uw DNS-instellingen wijzigen. Open een nieuw browservenster en log in op het beheerplatform van uw domeinprovider. De configuratie-wizard laat u zien welke wijzigingen bij elke stap nodig zijn.",
 		"enterDomainIntroduction_msg": "Met Tutanota kunt u in een paar stappen uw eigen domein opzetten.",
-		"enterDomain_msg": "Start de configuratie door uw eigen e-maildomein in te voeren.",
 		"enterMissingPassword_msg": "Geen wachtwoord gevonden. Graag een wachtwoord invullen.",
 		"enterName_msg": "Graag een naam invullen.",
 		"enterPaymentDataFirst_msg": "Graag eerst uw betalingsgegevens toevoegen voordat u extra pakketten besteld.",

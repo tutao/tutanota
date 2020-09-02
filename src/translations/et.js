@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -174,7 +174,6 @@ module.exports = {
 		"customColorsInfo_msg": "Kui Te jätate tühja välja võetaks värv vaikimisi heledalt kujunduselt.",
 		"customColors_label": "Kohandatud värvid",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Palun deaktiveerige kõik kasutajad ja e-maili aliased, mis sisaldavad domeeni: {domainName} ning eemaldage domeen registreeritava e-maili domeenina.",
-		"customDomainDomainAssigned_msg": "See domeen on juba teie kontole määratud.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS otsing ebaõnnestus.",
 		"customDomainNeutral_msg": "Palun sisestage oma domeen.",
 		"customEmailDomains_label": "Kohandatud e-posti domeenid",

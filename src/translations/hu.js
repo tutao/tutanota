@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Rólunk",
@@ -233,7 +233,6 @@ module.exports = {
 		"customColors_label": "Egyéni színek",
 		"customDomainDeletePreconditionFailed_msg": "Kérem töröljön minden olyan felhasználót és e-mail álnevet, melyek a következő domain nevet tartalmazzák: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Kérjük, inaktiváljon minden felhasználót és e-mail álnevet, amely a {domainName} domaint tartalmazza, és törölje a domaint regisztrálási e-maildomainként.",
-		"customDomainDomainAssigned_msg": "A domain már hozzá lett rendelve a fiókjához.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-keresés sikertelen.",
 		"customDomainErrorDomainNotAvailable_msg": "A domain nem hozzáférhető.",
 		"customDomainNeutral_msg": "Kérem adja meg a domaint.",

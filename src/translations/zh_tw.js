@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2020-08-07T12:02:52Z",
+	"updated_at": "2020-08-10T08:34:25Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -195,7 +195,6 @@ module.exports = {
 		"customColors_label": "客製化色彩",
 		"customDomainDeletePreconditionFailed_msg": "請停用所有包含 {domainName} 網域的使用者與電子郵件別名。",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "請將此網域：{domainName}內所包含的全部使用者與電子郵件別名停用並移除此已註冊之郵件網域。",
-		"customDomainDomainAssigned_msg": "此網域已被指派至您的帳戶。",
 		"customDomainErrorDnsLookupFailure_msg": "DNS 查找失敗。",
 		"customDomainErrorDomainNotAvailable_msg": "網域不可用。",
 		"customDomainNeutral_msg": "請輸入您的網域。",

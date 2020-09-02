@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:25Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -149,7 +149,6 @@ module.exports = {
 		"creditCardNumberInvalid_msg": "Mokėjimo kortelės numeris yra neteisingas.",
 		"currentlyBooked_label": "Užsakymo apžvalga",
 		"customDomainDeletePreconditionFailed_msg": "Prašome deaktyvuoti visus vartotojus ir e-pašto slapyvardžius esančius domene: {domainName}",
-		"customDomainDomainAssigned_msg": "Šis domenas jau yra priskirtas jūsų pašto paskyrai.",
 		"customDomainErrorDnsLookupFailure_msg": "Nepavyko nuskaityti DNS.",
 		"customDomainErrorDomainNotAvailable_msg": "Domenas negalimas",
 		"customDomainNeutral_msg": "Prašome įvesti savo domeną.",

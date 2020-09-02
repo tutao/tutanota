@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-08-07T12:02:51Z",
+	"updated_at": "2020-08-10T08:34:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -36,7 +36,6 @@ module.exports = {
 		"active_label": "Aktiivinen",
 		"actor_label": "Toimija",
 		"addCalendar_action": "Lisää kalenteri",
-		"addCustomDomainValidationRecord_msg": "Lisää TXT-tietue verkkotunnuksellesi todistaaksesi olevasi sen omistaja kuten tässä:",
 		"addCustomDomain_action": "Lisää mukautettu verkkotunnus",
 		"addEmailAlias_label": "Lisää alias-osoite",
 		"addEnumValue_action": "Lisää arvojoukon arvo",
@@ -252,7 +251,6 @@ module.exports = {
 		"customColors_label": "Oma väriteema",
 		"customDomainDeletePreconditionFailed_msg": "Poista käytöstä kaikki käyttäjät ja aliakset toimialueella: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Poista käytöstä kaikki käyttäjät ja aliakset verkkotunnukselta {domainName} ja poista verkkotunnus rekisteröidyistä tunnuksista.",
-		"customDomainDomainAssigned_msg": "Verkkotunnus on jo liitetty tilillesi.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS-haku epäonnistui.",
 		"customDomainErrorDomainNotAvailable_msg": "Verkkotunnus ei ole käytettävissä.",
 		"customDomainErrorDomainNotFound_msg": "Tätä verkkotunnusta ei löytynyt DNS:stä. Tarkista, että olet kirjoittanut sen oikein.",

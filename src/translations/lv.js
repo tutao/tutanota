@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2020-08-07T12:02:52Z",
+	"updated_at": "2020-08-10T08:34:25Z",
 	"source_locale": null,
 	"keys": {
 		"action_label": "Darbība",
@@ -143,7 +143,6 @@ module.exports = {
 		"customColors_label": "Izvēles krāsu tēma",
 		"customDomainDeletePreconditionFailed_msg": "Lūdzu deaktivizējat visus lietotājus un e-pastu aizstājvārdus domēnam: {domainName}.",
 		"customDomainDeletePreconditionWhitelabelFailed_msg": "Lūdzu, deaktivizējiet visus lietotājus un papildus vārdus domēna vārdam: {domainName} un nodzēsiet domēna vārdu kā reģistrācijas e-pasta domēnu.",
-		"customDomainDomainAssigned_msg": "Domēns jau ir piešķirts jūsu kontam.",
 		"customDomainErrorDnsLookupFailure_msg": "DNS meklēšana neveiksmīga.",
 		"customDomainErrorDomainNotAvailable_msg": "Domēns nav pieejams.",
 		"customDomainNeutral_msg": "Lūdzu ievadiet savu domēnu.",
