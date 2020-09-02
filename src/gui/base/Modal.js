@@ -150,7 +150,7 @@ class Modal {
 			this._uniqueComponent = null
 		}
 		m.redraw()
-		if (componentIsLastComponent) {
+		if (this.components.length > 0 && componentIsLastComponent) {
 			// the removed component was the last component, so we can now register the shortcuts of the now last component
 			keyManager.registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
