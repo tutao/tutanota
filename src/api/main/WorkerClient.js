@@ -112,7 +112,7 @@ export class WorkerClient implements EntityRestInterface {
 			infoMessage: (message: Message) => {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
-			}
+			},
 		})
 	}
 

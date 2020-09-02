@@ -3,12 +3,12 @@ import o from "ospec/ospec.js"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
-
+import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 
 
 o.spec("rest client", function () {
 	env.staticUrl = "http://localhost:3000"
-	let rc = new RestClient()
+	let rc = new RestClient(new SuspensionHandler())
 
 	o.spec("integration tests", node(function () {
 
@@ -75,7 +75,7 @@ o.spec("rest client", function () {
 			})
 			rc.request("/get/binary", HttpMethod.GET, {}, {}, null, MediaType.Binary).then(res => {
 				o(res instanceof Uint8Array).equals(true)
-				o(Array.from((res:any))).deepEquals(Array.from(response))
+				o(Array.from((res: any))).deepEquals(Array.from(response))
 				done()
 			})
 		})
@@ -83,6 +83,7 @@ o.spec("rest client", function () {
 		o("POST json", testJson('POST'))
 		o("PUT json", testJson('PUT'))
 		o("DELETE json", testJson('DELETE'))
+
 		function testJson(method) {
 			return function (done, timeout) {
 				timeout(200)
@@ -115,6 +116,7 @@ o.spec("rest client", function () {
 		o("POST binary", testBinary('POST'))
 		o("PUT binary", testBinary('PUT'))
 		o("DELETE binary", testBinary('DELETE'))
+
 		function testBinary(method) {
 			return function (done, timeout) {
 				timeout(200)
@@ -138,7 +140,7 @@ o.spec("rest client", function () {
 				})
 				rc.request(url, method, {}, {}, new Uint8Array(request), MediaType.Binary).then(res => {
 					o(res instanceof Uint8Array).equals(true)
-					o(Array.from((res:any))).deepEquals(Array.from(response))
+					o(Array.from((res: any))).deepEquals(Array.from(response))
 					done()
 				})
 			}
@@ -148,6 +150,7 @@ o.spec("rest client", function () {
 		o("POST empty body", testEmptyBody('POST'))
 		o("PUT empty body", testEmptyBody('PUT'))
 		o("DELETE empty body", testEmptyBody('DELETE'))
+
 		function testEmptyBody(method) {
 			return function (done, timeout) {
 				timeout(200)
@@ -172,6 +175,7 @@ o.spec("rest client", function () {
 		o("POST empty body error", testError('POST'))
 		o("PUT empty body error", testError('PUT'))
 		o("DELETE empty body error", testError('DELETE'))
+
 		function testError(method) {
 			return function (done, timeout) {
 				timeout(200)

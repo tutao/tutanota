@@ -20,6 +20,8 @@ import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
 import {ShareFacade} from "./facades/ShareFacade"
+import {RestClient} from "./rest/RestClient"
+import {SuspensionHandler} from "./SuspensionHandler"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -40,6 +42,7 @@ type WorkerLocatorType = {
 	_browserData: BrowserData;
 	Const: Object;
 	share: ShareFacade;
+	restClient: RestClient;
 }
 
 export const locator: WorkerLocatorType = ({}: any)
@@ -47,13 +50,18 @@ export const locator: WorkerLocatorType = ({}: any)
 export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 
 	const getAuthHeaders = () => locator.login.createAuthHeaders()
-	const restClient = new EntityRestClient(getAuthHeaders)
+
+	const suspensionHandler = new SuspensionHandler(worker)
+
+	locator.restClient = new RestClient(suspensionHandler)
+
+	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient)
 
 	locator._browserData = browserData
-	let cache = new EntityRestCache(restClient)
-	locator.cache = isAdminClient() ? restClient : cache // we don't wont to cache within the admin area
-	locator.indexer = new Indexer(restClient, worker, browserData, locator.cache)
-	locator.login = new LoginFacade(worker)
+	let cache = new EntityRestCache(entityRestClient)
+	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
+	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
+	locator.login = new LoginFacade(worker, locator.restClient)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
 		locator.indexer._groupInfo.suggestionFacade,
@@ -64,7 +72,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.groupManagement = new GroupManagementFacade(locator.login, locator.counters)
 	locator.userManagement = new UserManagementFacade(worker, locator.login, locator.groupManagement, locator.counters)
 	locator.customer = new CustomerFacade(worker, locator.login, locator.groupManagement, locator.userManagement, locator.counters)
-	locator.file = new FileFacade(locator.login)
+	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler)
 	locator.mail = new MailFacade(locator.login, locator.file)
 	locator.calendar = new CalendarFacade(locator.login, locator.userManagement, cache)
 	locator.mailAddress = new MailAddressFacade(locator.login)

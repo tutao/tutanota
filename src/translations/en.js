@@ -1182,6 +1182,7 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
+		"clientSuspensionWait_label": "The server is processing your request, please be patient.",
 		"noUpdateAvailable_msg": "No Update found.",
 		"installNow_action": "Install now.",
 		"checkingForUpdate_action": "Checking for Update…",

@@ -98,7 +98,7 @@ function saveBlob(data: DataFile): Promise<void> {
  * Uploads the binary data of a file to tutadb
  */
 function upload(fileUrl: string, targetUrl: string,
-                headers: Object): Promise<{statusCode: number, errorId: ?string, precondition: ?string, uri: ?string}> {
+                headers: Object): Promise<{statusCode: number, errorId: ?string, precondition: ?string, uri: ?string, suspensionTime: ?string}> {
 	return nativeApp.invokeNative(new Request("upload", [fileUrl, targetUrl, headers]))
 }
 
@@ -106,7 +106,7 @@ function upload(fileUrl: string, targetUrl: string,
  * Downloads the binary data of a file from tutadb and stores it in the internal memory.
  * @returns Resolves to the URI of the downloaded file
  */
-function download(sourceUrl: string, filename: string, headers: Object): Promise<{statusCode: number, encryptedFileUri: ?string, errorId: ?string, precondition: ?string}> {
+function download(sourceUrl: string, filename: string, headers: Object): Promise<{statusCode: number, encryptedFileUri: ?string, errorId: ?string, precondition: ?string, suspensionTime: ?string}> {
 	return nativeApp.invokeNative(new Request("download", [sourceUrl, filename, headers]))
 }
 

@@ -18,7 +18,6 @@ import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {assertWorkerOrNode} from "../../Env"
 import {downcast, neverNull, noOp} from "../../common/utils/Utils"
 import {typeRefToPath} from "../rest/EntityRestClient"
-import {restClient} from "../rest/RestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
 import {uint8ArrayToBitArray} from "./CryptoUtils"
@@ -321,7 +320,7 @@ function _updateOwnerEncSessionKey(typeModel: TypeModel, instance: Object, owner
 
 	let headers = locator.login.createAuthHeaders()
 	headers["v"] = typeModel.version
-	return restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+	return locator.restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
 }
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {

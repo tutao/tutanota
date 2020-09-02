@@ -1,5 +1,4 @@
 //@flow
-import {restClient} from "./RestClient"
 import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral, resolveServiceSessionKey} from "../crypto/CryptoFacade"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
@@ -30,17 +29,17 @@ export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | Moni
 				p = Promise.resolve(null)
 			}
 			return p.then(encryptedEntity => {
-				return restClient.request(path, method, queryParams, neverNull(headers), encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json)
-				                 .then(data => {
-					                 if (responseTypeRef) {
-						                 return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
-							                 let instance = JSON.parse(((data: any): string))
-							                 return resolveServiceSessionKey(responseTypeModel, instance).then(resolvedSessionKey => {
-								                 return decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ? resolvedSessionKey : sk)
-							                 })
-						                 })
-					                 }
-				                 })
+				return locator.restClient.request(path, method, queryParams, neverNull(headers), encryptedEntity ? JSON.stringify(encryptedEntity) : null, MediaType.Json)
+				              .then(data => {
+					              if (responseTypeRef) {
+						              return resolveTypeReference(responseTypeRef).then(responseTypeModel => {
+							              let instance = JSON.parse(((data: any): string))
+							              return resolveServiceSessionKey(responseTypeModel, instance).then(resolvedSessionKey => {
+								              return decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ? resolvedSessionKey : sk)
+							              })
+						              })
+					              }
+				              })
 			})
 		})
 }

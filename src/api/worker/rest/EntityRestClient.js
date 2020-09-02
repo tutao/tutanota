@@ -1,5 +1,5 @@
 //@flow
-import {restClient} from "./RestClient"
+import type {RestClient} from "./RestClient"
 import {
 	applyMigrations,
 	applyMigrationsForInstance,
@@ -60,9 +60,11 @@ export interface EntityRestInterface {
  */
 export class EntityRestClient implements EntityRestInterface {
 	_authHeadersProvider: AuthHeadersProvider;
+	_restClient: RestClient;
 
-	constructor(authHeadersProvider: AuthHeadersProvider) {
+	constructor(authHeadersProvider: AuthHeadersProvider, restClient: RestClient) {
 		this._authHeadersProvider = authHeadersProvider
+		this._restClient = restClient
 	}
 
 
@@ -86,17 +88,17 @@ export class EntityRestClient implements EntityRestInterface {
 				let sk = setNewOwnerEncSessionKey(model, (entity: any))
 				return encryptAndMapToLiteral(model, entity, sk).then(encryptedEntity => {
 					// we do not make use of the PersistencePostReturn anymore but receive all updates via PUSH only
-					return restClient.request(path, method, queryParams, headers, JSON.stringify(encryptedEntity), MediaType.Json)
-					                 .then(persistencePostReturn => {
-						                 return JSON.parse(persistencePostReturn).generatedId
-					                 })
+					return this._restClient.request(path, method, queryParams, headers, JSON.stringify(encryptedEntity), MediaType.Json)
+					           .then(persistencePostReturn => {
+						           return JSON.parse(persistencePostReturn).generatedId
+					           })
 				})
 			} else if (method === HttpMethod.PUT) {
 				return resolveSessionKey(model, (entity: any))
 					.then(sk => encryptAndMapToLiteral(model, entity, sk))
-					.then(encryptedEntity => restClient.request(path, method, (queryParams: any), headers, JSON.stringify(encryptedEntity), MediaType.Json))
+					.then(encryptedEntity => this._restClient.request(path, method, (queryParams: any), headers, JSON.stringify(encryptedEntity), MediaType.Json))
 			} else if (method === HttpMethod.GET) {
-				return restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
+				return this._restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
 					let data = JSON.parse((json: string))
 					if (data instanceof Array) {
 						let p = Promise.resolve()
@@ -130,7 +132,7 @@ export class EntityRestClient implements EntityRestInterface {
 					}
 				})
 			} else if (method === HttpMethod.DELETE) {
-				return restClient.request(path, method, queryParams, headers)
+				return this._restClient.request(path, method, queryParams, headers)
 			} else {
 				return Promise.reject("Illegal method: " + method)
 			}

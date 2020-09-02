@@ -15,6 +15,7 @@ import {
 	TypeRef
 } from "../../../src/api/common/EntityFunctions"
 import {NotFoundError} from "../../../src/api/common/error/RestError"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 export class EntityRestClientMock extends EntityRestClient {
 
@@ -22,12 +23,11 @@ export class EntityRestClientMock extends EntityRestClient {
 	_listEntities: {[listId: Id]: {[id: Id]: Object}} = {}
 	_lastIdTimestamp: number
 
-
 	//_listEntities: {[key: string]: {[key: Id]: {allRange: Id[], lowerRangeId: Id, upperRangeId: Id, elements: {[key: Id]: Object}}}};
 	constructor() {
 		super(() => {
 			return {} // empty auth headers
-		})
+		}, downcast({}))
 		this._lastIdTimestamp = Date.now()
 	}
 

@@ -1189,5 +1189,6 @@ module.exports = {
 		"noUpdateAvailable_msg": "Keine neue Version verfügbar.",
 		"installNow_action": "Jetzt installieren.",
 		"checkingForUpdate_action": "Suche nach Aktualisierung…",
+		"clientSuspensionWait_label": "Die Anfrage wird vom Server verarbeitet, bitte habe etwas Geduld."
 	}
 }
