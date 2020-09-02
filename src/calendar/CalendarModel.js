@@ -58,6 +58,7 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {module as replaced} from "@hot"
+import {ParserError} from "../misc/parsing"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -451,6 +452,8 @@ export class CalendarModelImpl implements CalendarModel {
 			.then((file) => this._worker.downloadFileContent(file))
 			.then((dataFile: DataFile) => parseCalendarFile(dataFile))
 			.then((parsedCalendarData) => this.processCalendarUpdate(update.sender, parsedCalendarData))
+			.catch((e) => e instanceof ParserError || e instanceof NotFoundError,
+				(e) => console.warn("Error while parsing calendar update", e))
 			.then(() => erase(update))
 			.catch(NotAuthorizedError, (e) => console.warn("Error during processing of calendar update", e))
 			.catch(PreconditionFailedError, (e) => console.warn("Precondition error when processing calendar update", e))
