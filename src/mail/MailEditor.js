@@ -522,6 +522,8 @@ export class MailEditor {
 	}
 
 	initWithTemplate(recipients: Recipients, subject: string, bodyText: string, confidential: ?boolean, senderMailAddress?: string): Promise<void> {
+		this._blockExternalContent = false
+		
 		function toMailAddress({name, address}: {name: ?string, address: string}) {
 			return createMailAddress({name: name || "", address})
 		}
