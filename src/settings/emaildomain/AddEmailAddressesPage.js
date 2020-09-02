@@ -167,17 +167,17 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		}
 		//Otherwise we check that there is either an alias or a user (or an alias for some other user) defined for the custom domain regardless of activation status
 		const checkMailAddresses = Promise.resolve().then(() => {
-			let aliases = logins.getUserController().userGroupInfo.mailAddressAliases.filter((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
-			if (aliases.length) {
+			const hasAliases = logins.getUserController().userGroupInfo.mailAddressAliases.some((alias) => alias.mailAddress.endsWith(`@${this.data.domain()}`))
+			if (hasAliases) {
 				return true
 			} else {
-				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
-					return loadAll(GroupInfoTypeRef, customer.userGroups).then((allUserGroupInfos) => {
-						return !!allUserGroupInfos.filter(u => neverNull(u.mailAddress).endsWith("@" + this.data.domain())
-							|| u.mailAddressAliases.filter((a) => neverNull(a.mailAddress).endsWith("@"
-								+ this.data.domain())).length).length;
+
+				return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+					.then((customer) => loadAll(GroupInfoTypeRef, customer.userGroups))
+					.then((allUserGroupInfos) => {
+						return allUserGroupInfos.some(u => neverNull(u.mailAddress).endsWith("@" + this.data.domain())
+							|| u.mailAddressAliases.some((a) => neverNull(a.mailAddress).endsWith("@" + this.data.domain())));
 					})
-				})
 			}
 		})
 		return showProgressDialog("pleaseWait_msg", checkMailAddresses).then((nextAllowed) => {
