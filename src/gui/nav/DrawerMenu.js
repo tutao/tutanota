@@ -14,10 +14,9 @@ import {Icons} from "../base/icons/Icons"
 import {nativeApp} from "../../native/NativeWrapper"
 import {Request} from "../../api/common/WorkerProtocol"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
-import { attachDropdown } from "../base/DropdownN"
-import { noOp } from "../../api/common/utils/Utils"
-import { keyManager } from "../../misc/KeyManager"
-import { Keys } from "../../api/common/TutanotaConstants"
+import {attachDropdown} from "../base/DropdownN"
+import {noOp} from "../../api/common/utils/Utils"
+import {keyManager} from "../../misc/KeyManager"
 
 type Attrs = void
 
@@ -49,7 +48,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				: null,
 			m(ButtonN, attachDropdown(
 				{
-					label: "showHelp_action" ,
+					label: "showHelp_action",
 					icon: () => BootIcons.Help,
 					type: ButtonType.ActionLarge,
 					click: noOp,
@@ -59,7 +58,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				() => [
 					{
 						label: "supportMenu_label",
-						click: () => writeSupportMail(),
+						click: () => showSupportDialog(),
 						type: ButtonType.Dropdown,
 						colors: ButtonColors.DrawerNav,
 					},
