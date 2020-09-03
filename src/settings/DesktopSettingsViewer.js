@@ -34,7 +34,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	_runOnStartup: Stream<?boolean>;
 	_isIntegrated: Stream<?boolean>;
 	_isAutoUpdateEnabled: Stream<?boolean>;
-	_showAutoUpdateOption: Stream<?boolean>;
+	_showAutoUpdateOption: boolean;
 	_updateAvailable: Stream<boolean>;
 	_isPathDialogOpen: boolean;
 
@@ -44,7 +44,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._runOnStartup = stream(false)
 		this._isIntegrated = stream(false)
 		this._isAutoUpdateEnabled = stream(false)
-		this._showAutoUpdateOption = stream(true)
+		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
 		this._requestDesktopConfig()
 	}
@@ -168,7 +168,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
 				env.platformId === 'linux' ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
-				this._showAutoUpdateOption() ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
+				this._showAutoUpdateOption ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
 			])
 		]
 	}
@@ -201,7 +201,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._runAsTrayApp(desktopConfig.runAsTrayApp)
 			         this._runOnStartup(desktopConfig.runOnStartup)
 			         this._isIntegrated(desktopConfig.isIntegrated)
-			         this._showAutoUpdateOption(desktopConfig.showAutoUpdateOption)
+			         this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
 			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
 			         this._updateAvailable(desktopConfig.updateAvailable)
 			         m.redraw()
@@ -236,7 +236,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		       })
 	}
 
-	appUpdate(): void {
+	onAppUpdateAvailable(): void {
 		this._updateAvailable(true)
 		m.redraw()
 	}

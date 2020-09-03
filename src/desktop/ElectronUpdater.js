@@ -12,6 +12,18 @@ import {DesktopTray} from "./tray/DesktopTray"
 import fs from 'fs-extra'
 import path from 'path'
 
+/**
+ * Wraps electron-updater for Tutanota Desktop
+ *
+ * To test:
+ * run local server to serve updates
+ * run 'node dist -l local' to build initial client
+ * run 'cp ./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage ~/tutanota-desktop-snapshot-linux.AppImage'
+ * run '~/tutanota-desktop-snapshot-linux.AppImage'
+ * run 'node dist -el local' to build an update when it's needed (takes about 20s)
+ *
+ */
+
 export class ElectronUpdater {
 	_conf: DesktopConfig;
 	_notifier: DesktopNotifier;
@@ -221,7 +233,7 @@ export class ElectronUpdater {
 	/**
 	 * check for update if none is currently available,
 	 * quit and install otherwise
-	 * @returns {Promise<boolean>}
+	 * @returns {Promise<boolean>} True if an update is available and the next call will install it, false otherwise.
 	 */
 	manualUpdate(): Promise<boolean> {
 		if (this._errorCount >= 5) return Promise.reject(new Error("Update failed 5 times"))
