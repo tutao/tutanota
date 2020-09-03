@@ -2,7 +2,6 @@
 
 import m from "mithril"
 import {Icon} from "../gui/base/Icon"
-import {noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {nativeApp} from '../native/NativeWrapper.js'
@@ -18,12 +17,33 @@ export class DesktopUpdateHelpLabel {
 
 	getActionLink(updateAvailable: Stream<boolean>): Child {
 		if (this._waiting || this._error) return null
+
+		const onclick = () => {
+			if (updateAvailable()) {
+				// install now (restarts the app)
+				nativeApp.invokeNative(new Request('manualUpdate', []))
+			} else if (!this._waiting) {
+				// no update available & not currently waiting for check result -> check for update again
+				this._waiting = true
+				Promise.join(
+					nativeApp.invokeNative(new Request('manualUpdate', [])),
+					// make sure there's at least some delay
+					// instant response tends to make users nervous
+					Promise.resolve().delay(500),
+					hasUpdate => {
+						this._waiting = false
+						updateAvailable(hasUpdate)
+					}
+				).catch(() => this._error = true)
+			}
+		}
+
 		return m("span.text-break.pr-s", m('button.underline', {
 				type: "button",
 				href: "#",
 				tabindex: "0",
 				role: "button",
-				onclick: this.getOnClick(updateAvailable)
+				onclick,
 			}, lang.get(updateAvailable() ? "installNow_action" : "checkAgain_action"))
 		)
 	}
@@ -49,32 +69,6 @@ export class DesktopUpdateHelpLabel {
 				class: 'flex-center items-center icon-progress-tiny icon-progress'
 			})
 			: null
-	}
-
-	getOnClick(updateAvailable: Stream<boolean>): () => void {
-		if (updateAvailable()) {
-			// install now (restarts the app)
-			return () => {
-				nativeApp.invokeNative(new Request('manualUpdate', []))
-			}
-		} else if (this._waiting) {
-			return noOp
-		} else {
-			// check again
-			return () => {
-				this._waiting = true
-				// make sure there's at least some delay
-				// instant response tends to make users nervous
-				Promise.join(
-					nativeApp.invokeNative(new Request('manualUpdate', [])),
-					Promise.resolve().delay(500),
-					hasUpdate => {
-						this._waiting = false
-						updateAvailable(hasUpdate)
-					}
-				).catch(e => this._error = true)
-			}
-		}
 	}
 
 	view(vnode: Vnode<UpdateHelpLabelAttrs>) {

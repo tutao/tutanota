@@ -72,7 +72,7 @@ export class SettingsView implements CurrentView {
 		if (isDesktop()) {
 			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => {
 				const desktopSettingsViewer = new DesktopSettingsViewer()
-				nativeApp.setAppUpdateListener(() => desktopSettingsViewer.appUpdate())
+				nativeApp.setAppUpdateListener(() => desktopSettingsViewer.onAppUpdateAvailable())
 				return desktopSettingsViewer
 			}))
 		}
