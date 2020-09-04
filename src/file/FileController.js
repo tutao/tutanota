@@ -13,6 +13,7 @@ import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
+import {sanitizeFilename} from "../api/common/utils/FileUtils"
 
 assertMainOrNode()
 
@@ -256,7 +257,10 @@ export class FileController {
 		const zipPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}libs/jszip.js`)
 		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, JSZip) => {
 			const zip = JSZip()
-			dataFiles.forEach(df => zip.file(df.name, df.data, {binary: true}))
+
+			dataFiles.forEach(df => {
+				zip.file(sanitizeFilename(df.name), df.data, {binary: true})
+			})
 			return zip.generateAsync({type: 'uint8array'})
 		}).then(zf => createDataFile(file, zf))
 	}

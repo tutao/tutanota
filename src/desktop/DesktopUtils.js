@@ -8,6 +8,7 @@ import {app} from 'electron'
 import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {noOp} from "../api/common/utils/Utils"
+import {sanitizeFilename} from "../api/common/utils/FileUtils"
 
 export default class DesktopUtils {
 
@@ -38,7 +39,7 @@ export default class DesktopUtils {
 	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
 	static nonClobberingFilename(files: Array<string>, filename: string): string {
-		filename = _sanitizeFilename(filename)
+		filename = sanitizeFilename(filename)
 		const clashingFile = files.find(f => f === filename)
 		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
 			return filename
@@ -300,25 +301,6 @@ function _unregisterOnWin(): Promise<void> {
 	app.removeAsDefaultProtocolClient('mailto')
 	const tmpRegScript = require('./reg-templater.js').unregisterKeys()
 	return _executeRegistryScript(tmpRegScript)
-}
-
-/**
- * removes invalid characters from the given filename
- * by replacing them with underscores
- */
-function _sanitizeFilename(filename: string): string {
-	// / ? < > \ : * | "
-	const illegalRe = /[\/\?<>\\:\*\|"]/g
-	// unicode control codes
-	const controlRe = /[\x00-\x1f\x80-\x9f]/g
-	// trailing period in windows file names
-	const windowsTrailingRe = /[\. ]+$/
-
-	const sanitized = filename.replace(illegalRe, "_").replace(controlRe, "_")
-
-	return process.platform === "win32"
-		? sanitized.replace(windowsTrailingRe, "_")
-		: sanitized
 }
 
 /**

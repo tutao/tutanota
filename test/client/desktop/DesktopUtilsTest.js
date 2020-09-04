@@ -214,7 +214,7 @@ o.spec("nonClobberingFileName Test", function () {
 			.equals("nul")
 
 		o(DesktopUtils.nonClobberingFilename([], ".."))
-			.equals("..-1")
+			.equals("_")
 	})
 })
 
