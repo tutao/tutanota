@@ -25,6 +25,7 @@ export const languages: Language[] = [
 	{code: 'de_sie', textId: 'languageGermanSie_label'},
 	{code: 'el', textId: 'languageGreek_label'},
 	{code: 'en', textId: 'languageEnglish_label'},
+	{code: 'en_gb', textId: 'languageEnglishGb_label'},
 	{code: 'es', textId: 'languageSpanish_label'},
 	{code: 'et', textId: 'languageEstonian_label'},
 	{code: 'fa_ir', textId: 'languagePersian_label'},
@@ -158,8 +159,12 @@ export class LanguageViewModel {
 		if (this.code === lang.code) {
 			return Promise.resolve()
 		}
+
+		// we don't support multiple language files for en so just use the one and only.
+		const code = lang.code.startsWith("en") ? "en" : lang.code
+
 		return asyncImport(typeof module
-		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${lang.code}.js`)
+		!== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/translations/${code}.js`)
 			.then(translations => {
 				this.translations = translations
 				this.code = lang.code

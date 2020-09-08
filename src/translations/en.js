@@ -1178,6 +1178,7 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
+		"languageEnglishUk_label": "English (UK)",
 		"you_label": "You",
 		"clientSuspensionWait_label": "The server is processing your request, please be patient.",
 		"runInBackground_action": "Run in background",

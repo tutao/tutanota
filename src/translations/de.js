@@ -1182,6 +1182,7 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
+		"languageEnglishUk_label": "Englisch (GB)",
 		"you_label": "Du",
 		"runInBackground_action": "Im Hintergrund ausführen",
 		"runInBackground_msg": "Ermöglicht fensterlose Push-Nachrichten und die Steuerung vom Infobereich.",
