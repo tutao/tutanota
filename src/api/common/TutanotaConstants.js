@@ -535,6 +535,7 @@ export const Keys = Object.freeze({
 	RIGHT: {code: 39, name: "→"},
 	DOWN: {code: 40, name: "↓"},
 	DELETE: {code: 46, name: "DEL"},
+	"0": {code: 48, name: "0"},
 	ONE: {code: 49, name: "1"},
 	TWO: {code: 50, name: "2"},
 	THREE: {code: 51, name: "3"},

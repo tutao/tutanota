@@ -1185,6 +1185,7 @@ module.exports = {
 		"runInBackground_msg": "Ermöglicht fensterlose Push-Nachrichten und die Steuerung vom Infobereich.",
 		"noUpdateAvailable_msg": "Keine neue Version verfügbar.",
 		"installNow_action": "Jetzt installieren.",
-		"checkingForUpdate_action": "Suche nach Aktualisierung…"
+		"checkingForUpdate_action": "Suche nach Aktualisierung…",
+		"resetZoomFactor_action": "Zoomfaktor zurücksetzen"
 	}
 }
