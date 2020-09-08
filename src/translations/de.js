@@ -1183,12 +1183,12 @@ module.exports = {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		//TODO: add to phrase. remove runAsTrayApp_action mayNotWorkForAllDe_msg showTrayIcon_action
 		"runInBackground_action": "Im Hintergrund ausführen",
 		"runInBackground_msg": "Ermöglicht fensterlose Push-Nachrichten und die Steuerung vom Infobereich.",
 		"noUpdateAvailable_msg": "Keine neue Version verfügbar.",
 		"installNow_action": "Jetzt installieren.",
 		"checkingForUpdate_action": "Suche nach Aktualisierung…",
-		"clientSuspensionWait_label": "Die Anfrage wird vom Server verarbeitet, bitte habe etwas Geduld."
+		"clientSuspensionWait_label": "Die Anfrage wird vom Server verarbeitet, bitte habe etwas Geduld.",
+		"resetZoomFactor_action": "Zoomfaktor zurücksetzen"
 	}
 }
