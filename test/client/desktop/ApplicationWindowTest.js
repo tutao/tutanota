@@ -263,7 +263,8 @@ o.spec("ApplicationWindow Test", function () {
 				contextIsolation: false,
 				webSecurity: true,
 				enableRemoteModule: false,
-				preload: '/path/to/app/preloadjs'
+				preload: '/path/to/app/preloadjs',
+				spellcheck: false
 			}
 		})
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
