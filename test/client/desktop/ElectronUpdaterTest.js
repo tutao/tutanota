@@ -333,12 +333,29 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		}, 250)
 	})
 
-	o("retry after autoUpdater reports an error", done => {
+	o.only("retry after autoUpdater reports an error", done => {
 		//mock node modules
 		const fsMock = n.mock('fs-extra', fs).set()
 		const forgeMock = n.mock('node-forge', nodeForge).set()
 		const electronMock = n.mock('electron', electron).set()
-		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).set().autoUpdater
+		let first = true
+		const autoUpdaterMock = n.mock('electron-updater', autoUpdater).with({
+			autoUpdater: {
+				checkForUpdates: function () {
+					if (first) {
+						first = false
+						this.emit('error', {message: "this is an autoUpdater error"})
+						return Promise.reject("oops")
+					} else {
+						this.emit('update-available', {
+							sha512: 'sha512',
+							signature: 'signature',
+						})
+						return Promise.resolve()
+					}
+				}
+			}
+		}).set().autoUpdater
 
 		//mock our modules
 		n.mock('./tray/DesktopTray', desktopTray).set()
@@ -352,8 +369,6 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		const upd = new ElectronUpdater(confMock, notifierMock, 100)
 
 		upd.start()
-
-		autoUpdaterMock.emit('error', {message: "this is an autoUpdater error"})
 
 		// after the error
 		setTimeout(() => {
@@ -370,7 +385,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 			})
 			o(autoUpdaterMock.downloadUpdate.callCount).equals(1)
 			done()
-		}, 150)
+		}, 450)
 	})
 
 	o("shut down autoUpdater after errors", done => {
