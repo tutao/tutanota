@@ -123,7 +123,8 @@ export class ApplicationWindow {
 				contextIsolation: false,
 				webSecurity: true,
 				enableRemoteModule: false,
-				preload: preloadPath
+				preload: preloadPath,
+				spellcheck: false
 			}
 		})
 		this._browserWindow.setMenuBarVisibility(false)
