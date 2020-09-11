@@ -168,9 +168,18 @@ export class _TextField {
 					onupdate: () => {
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+							const initialValue = this._domInput.value
+							const newValue = a.value()
+
 							this._domInput.value = a.value()
-							if (a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
+
+							// in the case that the input value is changed programatically
+							// animate in when going from empty to nonempty
+							// animate out when going from nonempty to empty
+							if (!this.active && initialValue === "" && newValue !== "") {
 								this.animate(true)
+							} else if (!this.active && initialValue !== "" && newValue === "") {
+								this.animate(false)
 							}
 						}
 					},

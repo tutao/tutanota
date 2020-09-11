@@ -70,8 +70,18 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser()
 	const startDatePicker = new DatePicker(startOfTheWeekOffset, "dateFrom_label", "emptyString_msg", viewModel.isReadOnlyEvent())
 	const endDatePicker = new DatePicker(startOfTheWeekOffset, "dateTo_label", "emptyString_msg", viewModel.isReadOnlyEvent())
-	startDatePicker.date.map((date) => viewModel.onStartDateSelected(date))
-	endDatePicker.date.map((date) => viewModel.onEndDateSelected(date))
+	startDatePicker.setDate(viewModel.startDate)
+	endDatePicker.setDate(viewModel.endDate)
+	startDatePicker.date.map((date) => {
+		viewModel.onStartDateSelected(date)
+		if (endDatePicker.date() !== viewModel.endDate) {
+			endDatePicker.setDate(viewModel.endDate)
+		}
+	})
+
+	endDatePicker.date.map((date) => {
+		viewModel.onEndDateSelected(date)
+	})
 
 	const repeatValues = createRepeatValues()
 	const intervalValues = createIntevalValues()
@@ -343,8 +353,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	viewModel.sendingOutUpdate.map(m.redraw)
 
 	function renderDialogContent() {
-		startDatePicker.setDate(viewModel.startDate)
-		endDatePicker.setDate(viewModel.endDate)
 
 		return m(".calendar-edit-container.pb", [
 				renderHeading(),

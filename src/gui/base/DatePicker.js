@@ -1,5 +1,4 @@
 //@flow
-import {TextField} from "./TextField"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
@@ -17,6 +16,8 @@ import type {CalendarDay} from "../../calendar/CalendarUtils"
 import {getCalendarMonth} from "../../calendar/CalendarUtils"
 import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
+import {TextFieldN} from "./TextFieldN"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 /**
  * The HTML input[type=date] is not usable on desktops because:
@@ -28,51 +29,38 @@ import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
  * and allow opening the picker by forwarding the click event to the input.
  */
 export class DatePicker implements Component {
-	input: TextField;
 	invalidDate: boolean;
 	date: Stream<?Date>;
+	_dateString: Stream<string>;
 	_startOfTheWeekOffset: number;
 	_showingDropdown: boolean;
 	_disabled: boolean;
+	_label: TranslationKey | lazy<string>
+	_nullSelectionHelpLabel: TranslationKey
+	_domInput: ?HTMLElement
 
 	constructor(startOfTheWeekOffset: number, labelTextIdOrTextFunction: TranslationKey | lazy<string>, nullSelectionTextId: TranslationKey = "emptyString_msg", disabled: boolean = false) {
 		this.date = stream(null)
+		this._dateString = stream("")
 		this._startOfTheWeekOffset = startOfTheWeekOffset
 		this._showingDropdown = false
 		this._disabled = disabled
-
-		let inputDate: ?Date
-
+		this._label = labelTextIdOrTextFunction
+		this._nullSelectionHelpLabel = nullSelectionTextId
 		this.invalidDate = false
-		this.input = new TextField(labelTextIdOrTextFunction, () => {
-			if (this._showingDropdown) {
-				return null
-			} else if (this.invalidDate) {
-				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
-			} else if (this.date() != null) {
-				return formatDateWithMonth(neverNull(inputDate))
-			} else {
-				return lang.get(nullSelectionTextId)
-			}
-		})
-		if (disabled) {
-			this.input.setDisabled()
-		}
-		this.input.onUpdate(value => {
+		this._domInput = null
+		this._dateString.map(value => {
 			try {
 				if (value.trim().length > 0) {
-					inputDate = parseDate(value)
+					this.date(parseDate(value))
 					this.invalidDate = false
 				} else {
 					this.invalidDate = false
-					inputDate = null
+					this.date(null)
 				}
 			} catch (e) {
 				this.invalidDate = true
 			}
-		})
-		this.input.onblur.map(() => {
-			this.date(inputDate)
 		})
 	}
 
@@ -80,6 +68,19 @@ export class DatePicker implements Component {
 
 	view: (() => Children) = () => {
 		const date = this.date()
+
+		const helpLabel = () => {
+			if (this._showingDropdown) {
+				return null
+			} else if (this.invalidDate) {
+				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
+			} else if (this.date() != null) {
+				return formatDateWithMonth(neverNull(this.date()))
+			} else {
+				return lang.get(this._nullSelectionHelpLabel)
+			}
+		}
+
 		return m(".rel", [
 			m("div", {
 				onclick: () => {
@@ -87,7 +88,25 @@ export class DatePicker implements Component {
 						this._showingDropdown = true
 					}
 				},
-			}, m(this.input)),
+
+			}, m(TextFieldN, {
+				label: this._label,
+				helpLabel,
+				disabled: this._disabled,
+				value: this._dateString,
+				onfocus: () => {
+					this._showingDropdown = true
+				},
+				oncreate: (vnode) => {
+					this._domInput = vnode.dom
+				},
+				keyHandler: (key) => {
+					if (key.keyCode === Keys.TAB.code) {
+						this._showingDropdown = false
+					}
+					return true
+				}
+			})),
 			this._showingDropdown
 				? m(".fixed.content-bg.z3.menu-shadow.plr.pb-s", {
 					style: {width: "280px"},
@@ -143,10 +162,7 @@ export class DatePicker implements Component {
 	setDate(date: ?Date) {
 		this.invalidDate = false
 		this.date(date)
-		if (this.input.isEmpty() && this.input._domInput) {
-			this.input.animate()
-		}
-		this.input.value(date != null ? formatDate(date) : "")
+		this._dateString(date && formatDate(date) || "")
 	}
 }
 

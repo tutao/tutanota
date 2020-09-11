@@ -6,6 +6,7 @@ import {TextFieldN, Type as TextFieldType} from "./TextFieldN"
 import {theme} from "../theme"
 import {parseTime, timeStringFromParts} from "../../calendar/CalendarUtils"
 import {client} from "../../misc/ClientDetector"
+import {Keys} from "../../api/common/TutanotaConstants"
 
 export type Attrs = {
 	value: string,
@@ -79,7 +80,7 @@ export class TimePicker implements MComponent<Attrs> {
 					e.redraw = false
 				},
 				keyHandler: (key) => {
-					if (key.keyCode === 13) {
+					if (key.keyCode === Keys.RETURN.code) {
 						this._onSelected(attrs)
 						document.activeElement && document.activeElement.blur()
 					}
