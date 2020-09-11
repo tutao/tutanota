@@ -59,15 +59,8 @@ export class DatePicker implements Component {
 		this.input.onUpdate(value => {
 			try {
 				if (value.trim().length > 0) {
-					let timestamp = parseDate(value)
-					if (isNaN(timestamp)) {
-						// always set invalidDate first to make sure that functions depending on the date stream can read the current invalidDate value
-						this.invalidDate = false
-						inputDate = null
-					} else {
-						this.invalidDate = false
-						inputDate = new Date(timestamp)
-					}
+					inputDate = parseDate(value)
+					this.invalidDate = false
 				} else {
 					this.invalidDate = false
 					inputDate = null

@@ -87,65 +87,88 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 	return lang.formats.dateWithWeekdayWoMonth.format(date)
 }
 
-const referenceDate = new Date(2017, 5, 23)
 
 /**
  * parses the following formats:
  *
+ * zh-hant    2017/6/23
+ * hu         2017. 06. 23.
+ * lt-lt      2017-06-23
+ *
+ * en        6/23/2017
+ * fil-ph    6/23/2017
+ * no        6/23/2017
+
  * sq        23.6.2017
  * hr        23. 06. 2017.
- * zh-hant    2017/6/23
- * en        6/23/2017
  * nl        23-6-2017
  * de        23.6.2017
  * el        23/6/2017
  * fr        23/06/2017
  * it        23/6/2017
  * pl        23.06.2017
- * pt-pt    23/06/2017
- * pt-br    23/06/2017
+ * pt-pt     23/06/2017
+ * pt-br     23/06/2017
  * ro        23.06.2017
  * ru        23.06.2017
  * es        23/6/2017
  * tr        23.06.2017
  * fi        23.6.2017
- * lt-lt    2017-06-23
  * mk        23.6.2017
  * sr        23.6.2017.
- * bg-bg    23.06.2017 г.
- * cs-cz    23. 6. 2017
- * da-dk    23/6/2017
- * et-ee    23.6.2017
- * fil-ph    6/23/2017
- * hu        2017. 06. 23.
+ * cs-cz     23. 6. 2017
+ * da-dk     23/6/2017
+ * et-ee     23.6.2017
  * id        23/6/2017
- * no        6/23/2017
- *
+ * bg-bg     23.06.2017 г.
+
  * @param dateString
  * @returns The timestamp from the given date string
  */
-export function parseDate(dateString: string): number {
-	let languageTag = lang.languageTag.toLowerCase()
+export function parseDate(dateString: string): Date {
 
-	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
-	// for finding day month and year position of locale date format  in cleanAndSplit array
-	let dayPos = referenceParts.findIndex(e => e === 23)
-	let monthPos = referenceParts.findIndex(e => e === 6)
-	let yearPos = referenceParts.findIndex(e => e === 2017)
+	// clear out extra chars
+	// and all slashes and dashes and dots become colons (user input can technically mix and match...)
+	const cleanDate = dateString
+		.replace(/( |‎|г.)/g, "") // VORSICHT: this regex contains an invisible unicode character (U+200E)
+		.replace(/[/\-.]/g, ":")
 
-	let parts = _cleanupAndSplit(dateString)
-	if (parts.length !== 3) {
-		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+	if (!cleanDate.match(/^\d+:\d+(:\d+)?$/)) {
+		throw new Error(`Invalid date string ${dateString}: invalid character or format`)
 	}
-	// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
-	let day = parts[dayPos]
-	let month = parts[monthPos] - 1
-	let year = parts[yearPos]
-	let parsed = new Date(year, month, day).getTime()
-	if (isNaN(parsed)) {
-		throw new Error(`could not parse date '${dateString}' for locale ${languageTag}`)
+
+	let parts = cleanDate.split(":")
+
+	const tag = lang.languageTag.toLowerCase()
+
+	// if year:month:day fmt then flip
+	if (tag.match(/^(zu-hant|hu|lt-lt)$/)) {
+		parts.reverse()
 	}
-	return parsed
+
+	if (parts.length === 2) {
+		parts.push(new Date().getFullYear().toString())
+	}
+
+	const [first, second, third] = parts
+
+	const [day, month, year] = (
+		tag.match(/^(en|en_us|fil-ph|no)$/)
+			? [second, first, third] // month:day:year
+			: [first, second, third]
+	).map((s) => Number(s))
+
+	if (month === 0 || month > 12) {
+		throw new Error(`Invalid value ${month} for month in ${dateString}`)
+	}
+	const monthIdx = month - 1
+
+	// maybe do better day clamping based on the month
+	if (day === 0 || day > 31) {
+		throw new Error(`Invalid value ${day} for day in ${dateString}`)
+	}
+
+	return new Date(...[year, monthIdx, day].map((s) => Number(s)))
 }
 
 /**
