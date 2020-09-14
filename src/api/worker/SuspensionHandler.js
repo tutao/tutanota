@@ -7,13 +7,20 @@ export class SuspensionHandler {
 	_deferredRequests: Array<DeferredObject<any>>;
 	_worker: WorkerImpl;
 	_hasSentInfoMessage: boolean;
+	_suspensionTimeFactor: number
 
-	constructor(worker: WorkerImpl) {
+
+	/**
+	 * @param worker
+	 * @param suspensionTimeFactor Changes the factor to convert suspension seconds to millis. Change it only for testing
+	 */
+	constructor(worker: WorkerImpl, suspensionTimeFactor: number = 1000) {
 		this._isSuspended = false
 		this._suspendedUntil = 0
 		this._deferredRequests = []
 		this._worker = worker
 		this._hasSentInfoMessage = false
+		this._suspensionTimeFactor = suspensionTimeFactor
 	}
 
 
@@ -28,14 +35,16 @@ export class SuspensionHandler {
 			this._isSuspended = true
 			const suspentionStartTime = Date.now()
 			setTimeout(() => {
-				console.log(`Suspension released after ${(Date.now() - suspentionStartTime) / 1000}s`)
+				console.log(`Suspension released after ${(Date.now() - suspentionStartTime) / this._suspensionTimeFactor}s`)
 				this._isSuspended = false
+				const deferredRequests = this._deferredRequests
+				this._deferredRequests = []
 				// do wee need to delay those requests?
-				Promise.each(this._deferredRequests, (deferredRequest) => {
+				Promise.each(deferredRequests, (deferredRequest) => {
 					deferredRequest.resolve()
 					return deferredRequest.promise
 				})
-			}, suspensionDurationSeconds * 1000)
+			}, suspensionDurationSeconds * this._suspensionTimeFactor)
 
 			if (!this._hasSentInfoMessage) {
 				this._worker.infoMessage({translationKey: "clientSuspensionWait_label", args: []})

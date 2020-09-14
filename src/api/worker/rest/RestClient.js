@@ -1,6 +1,6 @@
 // @flow
 import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../Env"
-import {ConnectionError, handleRestError} from "../../common/error/RestError"
+import {ConnectionError, handleRestError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
@@ -21,7 +21,6 @@ export class RestClient {
 
 	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
 		if (this._suspensionHandler.isSuspended()) {
-			console.log("Client suspended: Deferring worker request")
 			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener))
 		} else {
 			return new Promise((resolve, reject) => {
@@ -68,14 +67,8 @@ export class RestClient {
 							resolve()
 						}
 					} else {
-						let retryAfter = xhr.getResponseHeader("Retry-After")
-						let suspensionTime = xhr.getResponseHeader("Suspension-Time")
-						if (xhr.status === 429 && retryAfter) {
-							setTimeout(() => {
-								resolve(this.request(path, method, queryParams, headers, body, responseType, progressListener))
-							}, Number(retryAfter) * 1000)
-							console.log(`rate limited request to ${path}, retry after ${retryAfter}s`)
-						} else if (xhr.status === 503 && suspensionTime) {
+						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
+						if (isSuspensionResponse(xhr.status, suspensionTime)) {
 							this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 							resolve(this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener)))
 						} else {
@@ -167,4 +160,10 @@ export function addParamsToUrl(url: string, urlParams: Params) {
 		url = url.substring(0, url.length - 1)
 	}
 	return url
+}
+
+
+export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: ?string): boolean {
+	return Number(suspensionTimeNumberString) > 0
+		&& (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
 }

@@ -1,14 +1,17 @@
 //@flow
 import o from "ospec/ospec.js"
-import {RestClient} from "../../../src/api/worker/rest/RestClient"
+import {isSuspensionResponse, RestClient} from "../../../src/api/worker/rest/RestClient"
 import {HttpMethod, MediaType} from "../../../src/api/common/EntityFunctions"
 import {ResourceError} from "../../../src/api/common/error/RestError"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 
 o.spec("rest client", function () {
 	env.staticUrl = "http://localhost:3000"
-	let rc = new RestClient(new SuspensionHandler())
+	const worker = downcast({})
+
+	let rc = new RestClient(new SuspensionHandler(worker))
 
 	o.spec("integration tests", node(function () {
 
@@ -193,6 +196,15 @@ o.spec("rest client", function () {
 		}
 
 
+	}))
+
+	o("isSuspensionResponse", node(() => {
+		o(isSuspensionResponse(503, "1")).equals(true)
+		o(isSuspensionResponse(429, "100")).equals(true)
+		o(isSuspensionResponse(0, "2")).equals(false)
+		o(isSuspensionResponse(503, "0")).equals(false)
+		o(isSuspensionResponse(503, null)).equals(false)
+		o(isSuspensionResponse(503, undefined)).equals(false)
 	}))
 
 })

@@ -50,6 +50,7 @@ import {EntityRestClient} from "../../../src/api/worker/rest/EntityRestClient"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
+import {downcast} from "../../../src/api/common/utils/Utils"
 
 
 o.spec("crypto facade", function () {
@@ -59,7 +60,8 @@ o.spec("crypto facade", function () {
 	let restClient;
 
 	o.before(function () {
-		restClient = new RestClient(new SuspensionHandler())
+		const worker = downcast({})
+		restClient = new RestClient(new SuspensionHandler(worker))
 		locator.restClient = restClient
 		locator.login = new LoginFacade((null: any), restClient)
 
