@@ -131,7 +131,7 @@ function main() {
 	})
 	notifier.start(tray, 2000)
 	updater.start()
-	runIntegration()
+	runIntegration(wm)
 	handleArgv(process.argv)
 }
 

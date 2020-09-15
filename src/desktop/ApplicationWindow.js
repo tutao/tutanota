@@ -43,8 +43,7 @@ export class ApplicationWindow {
 			{key: Keys.F, meta: isMac, ctrl: !isMac, exec: () => this._openFindInPage(), help: "searchPage_label"},
 			{key: Keys.P, meta: isMac, ctrl: !isMac, exec: () => this._printMail(), help: "print_action"},
 			{key: Keys.F12, exec: () => this._toggleDevTools(), help: "toggleDevTools_action"},
-			{key: Keys.F5, exec: () => {this._browserWindow.loadURL(this._startFile)}, help: "reloadPage_action"},
-			{key: Keys.N, meta: isMac, ctrl: !isMac, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
+			{key: Keys.F5, exec: () => {this._browserWindow.loadURL(this._startFile)}, help: "reloadPage_action"}
 		].concat(isMac
 			? [{key: Keys.F, meta: true, ctrl: true, exec: () => this._toggleFullScreen(), help: "toggleFullScreen_action"},]
 			: [
@@ -52,6 +51,7 @@ export class ApplicationWindow {
 				{key: Keys.RIGHT, alt: true, exec: () => this._browserWindow.webContents.goForward(), help: "pageForward_label"},
 				{key: Keys.LEFT, alt: true, exec: () => this._tryGoBack(), help: "pageBackward_label"},
 				{key: Keys.H, ctrl: true, exec: () => wm.minimize(), help: "hideWindows_action"},
+				{key: Keys.N, ctrl: true, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
 			])
 
 		console.log("startFile: ", this._startFile)

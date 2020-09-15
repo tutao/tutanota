@@ -160,28 +160,6 @@ o.spec("DesktopIntegrator Test", () => {
 		const {electronMock} = standardMocks()
 		const {disableAutoLaunch} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
 		;(async function () {
-
-			o(electronMock.Menu.buildFromTemplate.callCount).equals(1)
-			o(electronMock.Menu.buildFromTemplate.args.length).equals(1)
-			o(electronMock.Menu.buildFromTemplate.args[0]).deepEquals([
-					{"role": "appMenu"}, {
-						"label": "Edit",
-						"submenu": [
-							{"role": "undo"}, {"role": "redo"}, {"type": "separator"}, {"role": "cut"}, {"role": "copy"}, {"role": "paste"},
-							{"role": "pasteAndMatchStyle"}, {"role": "delete"}, {"role": "selectAll"}, {"type": "separator"},
-							{"label": "Speech", "submenu": [{"role": "startSpeaking"}, {"role": "stopSpeaking"}]}
-						]
-					}, {"label": "View", "submenu": [{"role": "togglefullscreen"}]}, {
-						"role": "window",
-						"submenu": [
-							{"role": "minimize"}, {"role": "close"}, {"role": "minimize"}, {"role": "zoom"}, {"type": "separator"},
-							{"role": "front"}
-						]
-					}
-				]
-			)
-			o(electronMock.Menu.setApplicationMenu.callCount).equals(1)
-
 			await disableAutoLaunch()
 
 			o(electronMock.app.getLoginItemSettings.callCount).equals(1)
@@ -228,6 +206,18 @@ o.spec("DesktopIntegrator Test", () => {
 
 			done()
 		})()
+	})
+
+	o("ApplicationMenu gets created", () => {
+		n.setPlatform('darwin')
+		const {electronMock, langMock} = standardMocks()
+		const {runIntegration} = n.subject("../../src/desktop/integration/DesktopIntegrator.js")
+
+		const wmMock = {newWindow: o.spy(() => {})}
+		runIntegration(wmMock)
+		o(electronMock.Menu.buildFromTemplate.callCount).equals(1)
+		o(electronMock.Menu.buildFromTemplate.args.length).equals(1)
+		o(electronMock.Menu.setApplicationMenu.callCount).equals(1)
 	})
 
 	o("Linux enable when off", done => {

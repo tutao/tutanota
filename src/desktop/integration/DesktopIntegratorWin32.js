@@ -2,6 +2,7 @@
 
 import Registry from "winreg"
 import {app} from "electron"
+import type {WindowManager} from "../DesktopWindowManager"
 
 const autoRunKey = new Registry({
 	hive: Registry.HKCU,
@@ -49,7 +50,7 @@ export function disableAutoLaunch(): Promise<void> {
 		: Promise.resolve())
 }
 
-export function runIntegration(): Promise<void> {
+export function runIntegration(wm: WindowManager): Promise<void> {
 	return Promise.resolve()
 }
 

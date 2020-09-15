@@ -4,6 +4,7 @@ import {app, dialog} from "electron"
 import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import {execFile} from "child_process"
+import type {WindowManager} from "../DesktopWindowManager"
 
 const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
@@ -69,7 +70,7 @@ export function disableAutoLaunch(): Promise<void> {
 		})
 }
 
-export function runIntegration(): Promise<void> {
+export function runIntegration(wm: WindowManager): Promise<void> {
 	if (executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
 	return isIntegrated().then(integrated => {
 		if (integrated) {

@@ -326,11 +326,11 @@ o.spec("ApplicationWindow Test", function () {
 			'Control+P',
 			'F12',
 			'F5',
-			'Control+N',
 			'F11',
 			'Alt+Right',
 			'Alt+Left',
 			'Control+H',
+			'Control+N',
 		])
 	})
 
@@ -348,11 +348,11 @@ o.spec("ApplicationWindow Test", function () {
 			'Control+P',
 			'F12',
 			'F5',
-			'Control+N',
 			'F11',
 			'Alt+Right',
 			'Alt+Left',
-			'Control+H'
+			'Control+H',
+			'Control+N',
 		])
 	})
 
@@ -370,7 +370,6 @@ o.spec("ApplicationWindow Test", function () {
 			'Command+P',
 			'F12',
 			'F5',
-			'Command+N',
 			'Command+Control+F',
 		])
 	})
@@ -499,10 +498,6 @@ o.spec("ApplicationWindow Test", function () {
 		electronLocalshortcutMock.callbacks["F5"]()
 		o(bwInstance.loadURL.callCount).equals(2)
 		o(bwInstance.loadURL.args[0]).equals('/path/to/app/desktophtml')
-
-		electronLocalshortcutMock.callbacks["Command+N"]()
-		o(wmMock.newWindow.callCount).equals(1)
-		o(wmMock.newWindow.args[0]).equals(true)
 
 		electronLocalshortcutMock.callbacks["Command+Control+F"]()
 		o(bwInstance.setFullScreen.callCount).equals(1)
