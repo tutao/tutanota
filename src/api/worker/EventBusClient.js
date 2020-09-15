@@ -5,7 +5,7 @@ import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import {load, loadAll, loadRange} from "./EntityWorker"
+import {loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {
 	AccessBlockedError,
@@ -13,7 +13,6 @@ import {
 	ConnectionError,
 	handleRestError,
 	NotAuthorizedError,
-	NotFoundError,
 	ServiceUnavailableError,
 	SessionExpiredError
 } from "../common/error/RestError"
@@ -148,8 +147,8 @@ export class EventBusClient {
 
 	_initEntityEvents(reconnect: boolean) {
 		this._queueWebsocketEvents = true
-		let p = ((reconnect && Object.keys(this._lastEntityEventIds).length > 0)
-			? this._loadMissedEntityEvents() : this._setLatestEntityEventIds())
+		let existingConnection = reconnect && Object.keys(this._lastEntityEventIds).length > 0
+		let p = existingConnection ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds()
 		p.then(() => {
 			this._queueWebsocketEvents = false
 		}).catch(ConnectionError, e => {
@@ -160,9 +159,13 @@ export class EventBusClient {
 			console.log("cancelled retry process entity events after reconnect")
 		}).catch(ServiceUnavailableError, e => {
 			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
-			// TODO: is this correct for loadMissedEntityEvents?
-			this._lastEntityEventIds = {}
-			this._lastUpdateTime = 0
+			// some EventBatches/missed events are processed already now
+			// for an existing connection we just keep the current state and continue loading missed events for the other groups
+			// for a new connection we reset the last entity event ids because otherwise this would not be completed in the next try
+			if (!existingConnection) {
+				this._lastEntityEventIds = {}
+				this._lastUpdateTime = 0
+			}
 			console.log("retry init entity events in 30s", e)
 			let promise = Promise.delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 				// if we have a websocket reconnect we have to stop retrying
@@ -236,6 +239,7 @@ export class EventBusClient {
 					} else {
 						this._queueWebsocketEvents = true
 						return this._processEntityEvents(data.eventBatch, data.eventBatchOwner, data.eventBatchId).then(() => {
+							this._lastUpdateTime = Date.now()
 							if (this._websocketWrapperQueue.length > 0) {
 								return this._processQueuedEvents()
 							}
@@ -363,14 +367,14 @@ export class EventBusClient {
 			})
 		}).then(() => {
 			this._lastEntityEventIds = lastIds
-			this._lastUpdateTime = new Date().getTime()
+			this._lastUpdateTime = Date.now()
 			return this._processQueuedEvents()
 		})
 	}
 
 	_loadMissedEntityEvents(): Promise<void> {
 		if (this._login.isLoggedIn()) {
-			if (new Date().getTime() > this._lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
+			if (Date.now() > this._lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
 				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
 				return this._worker.sendError(new OutOfSyncError())
 			} else {
@@ -383,6 +387,7 @@ export class EventBusClient {
 							console.log("could not download entity updates => lost permission")
 						})
 				}).then(() => {
+					this._lastUpdateTime = Date.now()
 					return this._processQueuedEvents()
 				})
 			}
@@ -404,6 +409,7 @@ export class EventBusClient {
 				p = this._processEntityEvents(wrapper.eventBatch, groupId, eventId);
 			}
 			return p.then(() => {
+				this._lastUpdateTime = Date.now()
 				return this._processQueuedEvents()
 			})
 		}
@@ -434,7 +440,6 @@ export class EventBusClient {
 				           if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
 					           this._lastEntityEventIds[groupId].shift()
 				           }
-				           this._lastUpdateTime = new Date().getTime()
 
 				           // Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 				           // shall not receive the event twice.
