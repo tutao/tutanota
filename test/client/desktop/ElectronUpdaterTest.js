@@ -333,7 +333,7 @@ o.spec("ElectronUpdater Test", function (done, timeout) {
 		}, 250)
 	})
 
-	o.only("retry after autoUpdater reports an error", done => {
+	o("retry after autoUpdater reports an error", done => {
 		//mock node modules
 		const fsMock = n.mock('fs-extra', fs).set()
 		const forgeMock = n.mock('node-forge', nodeForge).set()
