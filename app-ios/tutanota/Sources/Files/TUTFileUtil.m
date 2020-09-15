@@ -279,13 +279,17 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
 
 + (void) addSuspensionTimeHeaderToResponseDict:(NSMutableDictionary*)responseDict from:(const NSHTTPURLResponse*)httpResponse {
-    const NSString *header = httpResponse.allHeaderFields[@"Suspension-Time"];
-    if (header == nil) {
-        [responseDict setValue:NSNull.null forKey:@"suspensionTime"];
+    const NSString *suspensionTime = httpResponse.allHeaderFields[@"Suspension-Time"];
+    const NSString *retryAfter = httpResponse.allHeaderFields[@"Retry-After"];
+    if (retryAfter != nil) {
+        [responseDict setValue:retryAfter forKey:@"suspensionTime"];
+    } else if (suspensionTime != nil) {
+        [responseDict setValue:suspensionTime forKey:@"suspensionTime"];
     } else {
-        [responseDict setValue:header forKey:@"suspensionTime"];
+        [responseDict setValue:NSNull.null forKey:@"suspensionTime"];
     }
 }
 
 @end
 
+			
