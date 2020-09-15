@@ -78,6 +78,7 @@ const infoLinks = {
 	//faq
 	"phishing_link": "https://tutanota.com/faq#phishing",
 	"mailAuth_link": "https://tutanota.com/faq#mail-auth",
+	"runInBackground_link": "https://tutanota.com/faq#tray",
 	//blog
 	"premiumProBusiness_link": "https://tutanota.com/blog/posts/premium-pro-business"
 }

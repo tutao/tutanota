@@ -67,9 +67,16 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const setRunAsTrayAppAttrs: DropDownSelectorAttrs<boolean> = {
-			label: env.platformId === 'linux' ? "showTrayIcon_action" : "runAsTrayApp_action",
-			helpLabel: env.platformId === 'linux' ? () => lang.get("mayNotWorkForAllDe_msg") : () => "",
+		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
+			label: "runInBackground_action",
+			helpLabel: () => {
+				const lnk = lang.getInfoLink("runInBackground_link")
+				return [
+					m("span", lang.get("runInBackground_msg") + " "),
+					m("span", lang.get("moreInfo_msg") + " "),
+					m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
+				]
+			},
 			items: [
 				{name: lang.get("yes_label"), value: true},
 				{name: lang.get("no_label"), value: false}
@@ -164,7 +171,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get('desktopSettings_label')),
 				env.platformId === 'linux' ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
-				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunAsTrayAppAttrs),
+				env.platformId === 'darwin' ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
 				m(DropDownSelectorN, setRunOnStartupAttrs),
 				m(TextFieldN, defaultDownloadPathAttrs),
 				env.platformId === 'linux' ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
