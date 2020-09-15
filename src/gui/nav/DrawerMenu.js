@@ -104,16 +104,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				click: () => m.route.set(LogoutUrl),
 				type: ButtonType.ActionLarge,
 				colors: ButtonColors.DrawerNav,
-			}),
-			isDesktop()
-				? m(ButtonN, {
-					icon: () => Icons.Power,
-					label: "quit_action",
-					click: () => nativeApp.invokeNative(new Request('closeApp', [])),
-					type: ButtonType.ActionLarge,
-					colors: ButtonColors.DrawerNav
-				})
-				: null,
+			})
 		]))
 	}
 }

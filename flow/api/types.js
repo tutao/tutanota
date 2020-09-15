@@ -196,7 +196,6 @@ type NativeRequestType = 'init'
 	| 'unIntegrateDesktop'
 	| 'unscheduleAlarms'
 	| 'setSearchOverlayState'
-	| 'closeApp'
 	| 'unload' // desktop
 	| 'changeLanguage'
 	| 'manualUpdate'
