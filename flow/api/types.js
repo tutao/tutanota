@@ -198,7 +198,8 @@ type NativeRequestType = 'init'
 	| 'setSearchOverlayState'
 	| 'unload' // desktop
 	| 'changeLanguage'
-	| 'manualUpdate'
+	| 'isUpdateAvailable' // check if update is ready to install
+	| 'manualUpdate' // progress update process (check, dl, install)
 
 
 type JsRequestType = 'createMailEditor'

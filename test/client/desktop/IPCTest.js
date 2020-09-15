@@ -127,7 +127,7 @@ o.spec("IPC tests", () => {
 	}
 
 	const autoUpdater = {
-		updateIsReady: false,
+		updateInfo: null,
 		setUpdateDownloadedListener: () => {}
 	}
 
@@ -450,7 +450,7 @@ o.spec("IPC tests", () => {
 					isMailtoHandler: "yesItIs",
 					runOnStartup: "noDoNot",
 					isIntegrated: true,
-					updateAvailable: false,
+					updateInfo: null,
 				}
 			})
 			done()
@@ -769,21 +769,6 @@ o.spec("IPC tests", () => {
 				type: 'response',
 				value: undefined
 			})
-			done()
-		}, 10)
-	})
-
-	o("closeApp", done => {
-		const {electronMock} = setUpWithWindowAndInit()
-
-		electronMock.ipcMain.callbacks["42"]({}, JSON.stringify({
-			type: "closeApp",
-			id: "id2",
-			args: []
-		}))
-
-		setTimeout(() => {
-			o(electronMock.app.quit.callCount).equals(1)
 			done()
 		}, 10)
 	})

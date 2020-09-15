@@ -210,7 +210,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			         this._isIntegrated(desktopConfig.isIntegrated)
 			         this._showAutoUpdateOption = desktopConfig.showAutoUpdateOption
 			         this._isAutoUpdateEnabled(desktopConfig.enableAutoUpdate)
-			         this._updateAvailable(desktopConfig.updateAvailable)
+			         this._updateAvailable(!!desktopConfig.updateInfo)
 			         m.redraw()
 		         })
 	}

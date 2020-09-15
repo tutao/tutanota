@@ -26,6 +26,8 @@ import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {ButtonType} from "./gui/base/ButtonN"
 import {changeSystemLanguage} from "./native/SystemApp"
+import {Request} from "./api/common/WorkerProtocol"
+import {nativeApp} from "./native/NativeWrapper"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -70,6 +72,21 @@ if (client.isIE()) {
 	_asyncImport("src/gui/base/NotificationOverlay.js").then((module) => module.show({
 		view: () => m("", lang.get("unsupportedBrowserOverlay_msg"))
 	}, "close_alt", []))
+} else if (isDesktop()) {
+	nativeApp.initialized().then(() => nativeApp.invokeNative(new Request('isUpdateAvailable', [])))
+	         .then(updateInfo => {
+		         if (updateInfo) {
+			         let message = {view: () => m("", lang.get("updateAvailable_label", {"{version}": updateInfo.version}))}
+			         _asyncImport("src/gui/base/NotificationOverlay.js").then(module => module.show(message, {label: "postpone_action"},
+				         [
+					         {
+						         label: "installNow_action",
+						         click: () => nativeApp.invokeNative(new Request('manualUpdate', [])),
+						         type: ButtonType.Primary
+					         }
+				         ]))
+		         }
+	         })
 }
 
 export const state: {prefix: ?string} = (deletedModule && deletedModule.module)

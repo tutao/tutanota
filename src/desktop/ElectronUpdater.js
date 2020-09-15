@@ -31,11 +31,11 @@ export class ElectronUpdater {
 	_checkUpdateSignature: boolean;
 	_errorCount: number;
 	_fallbackPollInterval: number = 15 * 60 * 1000;
-	_updateReady = false;
+	_updateInfo = null;
 	_logger: {info(string, ...args: any): void, warn(string, ...args: any): void, error(string, ...args: any): void};
 
-	get updateIsReady() {
-		return this._updateReady
+	get updateInfo() {
+		return this._updateInfo
 	}
 
 	constructor(conf: DesktopConfig, notifier: DesktopNotifier, fallbackPollInterval: ?number) {
@@ -76,9 +76,9 @@ export class ElectronUpdater {
 		}).on("download-progress", (prg: DownloadProgressInfo) => {
 			console.log('update dl progress:', prg)
 		}).on('update-downloaded', info => {
+			this._updateInfo = {version: info.version}
 			this._logger.info("update-downloaded")
 			this._stopPolling()
-			this._updateReady = true
 			this._notifyAndInstall(downcast(info))
 		}).on('error', e => {
 			const ee: any = e
@@ -108,9 +108,9 @@ export class ElectronUpdater {
 		 * is resolved.
 		 */
 		app.once('before-quit', ev => {
-			if (this._updateReady) {
+			if (this._updateInfo) {
 				ev.preventDefault()
-				this._updateReady = false
+				this._updateInfo = null
 				// TODO: this may restart the app after install
 				// TODO: which may be annoying if quit not via notification or 'install now'
 				autoUpdater.quitAndInstall(false, false)
@@ -237,7 +237,7 @@ export class ElectronUpdater {
 	 */
 	manualUpdate(): Promise<boolean> {
 		if (this._errorCount >= 5) return Promise.reject(new Error("Update failed 5 times"))
-		if (!this.updateIsReady) {
+		if (!this.updateInfo) {
 			return this._checkUpdate()
 		}
 		this.installUpdate()
@@ -282,7 +282,7 @@ export class ElectronUpdater {
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event
 		app.emit('enable-force-quit')
-		this._updateReady = false
+		this._updateInfo = null
 		autoUpdater.quitAndInstall(false, true)
 	}
 
