@@ -228,21 +228,22 @@ export class MailModel {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+		// TODO: make all calls sequential in EntityRestCache instead?
+		Promise.each(updates, update => {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
-				this._init().then(() => m.redraw())
+				return this._init().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
-					this._init().then(() => m.redraw())
+					return this._init().then(() => m.redraw())
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(logins.getUserController().user._id, update.instanceId)) {
-					load(UserTypeRef, update.instanceId).then(updatedUser => {
+					return load(UserTypeRef, update.instanceId).then(updatedUser => {
 						let newMemberships = updatedUser.memberships
 						                                .filter(membership => membership.groupType === GroupType.Mail)
-						this.getMailboxDetails().then(mailboxDetails => {
+						return this.getMailboxDetails().then(mailboxDetails => {
 							if (newMemberships.length !== mailboxDetails.length) {
-								this._init().then(() => m.redraw())
+								return this._init().then(() => m.redraw())
 							}
 						})
 					})
@@ -253,14 +254,14 @@ export class MailModel {
 					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 					// If we don't find another delete operation on this email in the batch, then it should be a create operation
 					const mailId = [update.instanceListId, update.instanceId]
-					load(MailTypeRef, mailId)
+					return load(MailTypeRef, mailId)
 						.then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
 						                    .then(mailboxDetail => findAndApplyMatchingRule(mailboxDetail, mail))
 						                    .then((newId) => this._showNotification(newId || mailId)))
 						.catch(noOp)
 				}
 			}
-		}
+		})
 	}
 
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {

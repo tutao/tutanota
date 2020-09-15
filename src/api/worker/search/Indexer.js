@@ -359,7 +359,8 @@ export class Indexer {
 				           console.log("could not download entity updates => lost permission on list")
 				           return null
 			           })
-		}).filter(r => r != null)
+		}, {concurrency: 1}) // sequentially to avoid rate limiting
+		              .filter(r => r != null)
 	}
 
 	/**
