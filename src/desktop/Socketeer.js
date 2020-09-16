@@ -35,7 +35,7 @@ export class Socketeer {
 		this.startClient(msg => {
 			const mailAddress = JSON.parse(msg).mailAddress
 			if (typeof mailAddress === 'string' && isMailAddress(mailAddress, false)) {
-				wm.getLastFocused(true).sendMessageToWebContents('open-customer', {mailAddress})
+				wm.getLastFocused(false).sendMessageToWebContents('open-customer', {mailAddress})
 			}
 		})
 	}
