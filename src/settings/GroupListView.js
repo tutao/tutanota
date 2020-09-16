@@ -7,6 +7,7 @@ import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {compareGroupInfos, neverNull} from "../api/common/utils/Utils"
@@ -26,7 +27,6 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 
 assertMainOrNode()
@@ -160,35 +160,35 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
-			this.processUpdate(update)
-		}
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			return this.processUpdate(update)
+		}).return()
 	}
 
-	processUpdate(update: EntityUpdateData): void {
+	processUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceListId, instanceId, operation} = update
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 			if (!logins.getUserController().isGlobalAdmin()) {
 				let listEntity = this.list.getEntity(instanceId)
-				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+				return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
 					let localAdminGroupIds = logins.getUserController()
 					                               .getLocalAdminGroupMemberships()
 					                               .map(gm => gm.group)
 					if (listEntity) {
 						if (!isAdministratedGroup(localAdminGroupIds, gi)) {
-							this.list.entityEventReceived(instanceId, OperationType.DELETE)
+							return this.list.entityEventReceived(instanceId, OperationType.DELETE)
 						} else {
-							this.list.entityEventReceived(instanceId, operation)
+							return this.list.entityEventReceived(instanceId, operation)
 						}
 					} else {
 						if (isAdministratedGroup(localAdminGroupIds, gi)) {
-							this.list.entityEventReceived(instanceId, OperationType.CREATE)
+							return this.list.entityEventReceived(instanceId, OperationType.CREATE)
 						}
 					}
 				})
 			} else {
-				this.list.entityEventReceived(instanceId, operation)
+				return this.list.entityEventReceived(instanceId, operation)
 			}
 		} else if (!logins.getUserController().isGlobalAdmin() && isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 			let oldLocalAdminGroupMembership = this._localAdminGroupMemberships.find(gm => gm.groupMember[1]
@@ -196,13 +196,18 @@ export class GroupListView implements UpdatableSettingsViewer {
 			let newLocalAdminGroupMembership = logins.getUserController()
 			                                         .getLocalAdminGroupMemberships()
 			                                         .find(gm => gm.groupMember[1] === instanceId)
+			let promise = Promise.resolve()
 			if (operation === OperationType.CREATE && !oldLocalAdminGroupMembership && newLocalAdminGroupMembership) {
-				this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
+				promise = this.list.entityEventReceived(newLocalAdminGroupMembership.groupInfo[1], operation)
 			} else if (operation === OperationType.DELETE && oldLocalAdminGroupMembership
 				&& !newLocalAdminGroupMembership) {
-				this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
+				promise = this.list.entityEventReceived(oldLocalAdminGroupMembership.groupInfo[1], operation)
 			}
-			this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
+			return promise.then(() => {
+				this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
+			})
+		} else {
+			return Promise.resolve()
 		}
 	}
 }

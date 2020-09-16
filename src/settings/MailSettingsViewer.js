@@ -289,11 +289,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			let p = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
+				p = load(TutanotaPropertiesTypeRef, logins.getUserController().props._id).then(props => {
 					this._updatePropertiesSettings(props)
 					this._updateInboxRules(props)
 				})
@@ -301,15 +302,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				this._updateInboxRules(logins.getUserController().props)
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+				p = load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 					this._senderName(groupInfo.name)
 					this._editAliasFormAttrs.userGroupInfo = groupInfo
 					m.redraw()
 				})
 			}
-
-			this._identifierListViewer.entityEventReceived(update)
-		}
-		m.redraw()
+			return p.then(() => {
+				this._identifierListViewer.entityEventReceived(update)
+			})
+		}).then(() => m.redraw())
 	}
 }

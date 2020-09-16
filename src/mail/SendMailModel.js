@@ -136,9 +136,9 @@ export class SendMailModel {
 		this._senderAddress = getDefaultSender(logins, this._mailboxDetails)
 
 		this._entityEventReceived = (updates) => {
-			for (let update of updates) {
-				this._handleEntityEvent(update)
-			}
+			return Promise.each(updates, update => {
+				return this._handleEntityEvent(update)
+			}).return()
 		}
 
 		this._eventController.addEntityListener(this._entityEventReceived)
@@ -609,7 +609,7 @@ export class SendMailModel {
 		})
 	}
 
-	_handleEntityEvent(update: EntityUpdateData): void {
+	_handleEntityEvent(update: EntityUpdateData): Promise<void> {
 		const {operation, instanceId, instanceListId} = update
 		if (isUpdateForTypeRef(ContactTypeRef, update)
 			&& (operation === OperationType.UPDATE || operation === OperationType.DELETE)) {
@@ -627,5 +627,6 @@ export class SendMailModel {
 				}
 			})
 		}
+		return Promise.resolve()
 	}
 }

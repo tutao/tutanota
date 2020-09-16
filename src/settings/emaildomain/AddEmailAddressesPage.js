@@ -36,16 +36,16 @@ export class AddEmailAddressesPage implements WizardPageN<AddDomainData> {
 	oncreate(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		const wizardAttrs = vnode.attrs
 		this._entityEventListener = (updates) => {
-			updates.forEach((update) => {
+			return Promise.each(updates, update => {
 				const {instanceListId, instanceId, operation} = update
 				if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 					&& isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-					load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
+					return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
 						wizardAttrs.data.editAliasFormAttrs.userGroupInfo = groupInfo
 						m.redraw()
 					})
 				}
-			})
+			}).return()
 		}
 		locator.eventController.addEntityListener(this._entityEventListener)
 

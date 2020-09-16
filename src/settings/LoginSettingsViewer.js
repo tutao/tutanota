@@ -146,8 +146,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	_updateSessions() {
-		loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
+	_updateSessions(): Promise<void> {
+		return loadAll(SessionTypeRef, neverNull(logins.getUserController().user.auth).sessions).then(sessions => {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 			this._activeSessionsTableLines(sessions
 				.filter(session => session.state === SessionState.SESSION_STATE_ACTIVE)
@@ -184,12 +184,15 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			let promise = Promise.resolve()
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
-				this._updateSessions()
+				promise = this._updateSessions()
 			}
-			this._secondFactorsForm.entityEventReceived(update)
-		}
+			return promise.then(() => {
+				return this._secondFactorsForm.entityEventReceived(update)
+			})
+		}).return()
 	}
 }

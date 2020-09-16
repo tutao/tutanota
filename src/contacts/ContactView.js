@@ -116,7 +116,7 @@ export class ContactView implements CurrentView {
 		this._setupShortcuts()
 
 		locator.eventController.addEntityListener(updates => {
-			updates.forEach((update) => this._processEntityUpdate(update))
+			return Promise.each(updates, update => this._processEntityUpdate(update)).return()
 		})
 	}
 
@@ -459,18 +459,20 @@ export class ContactView implements CurrentView {
 		m.redraw()
 	}
 
-	_processEntityUpdate(update: EntityUpdateData): void {
+	_processEntityUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceListId, instanceId, operation} = update
 		if (isUpdateForTypeRef(ContactTypeRef, update) && this._contactList && instanceListId === this._contactList.listId) {
-			this._contactList.list.entityEventReceived(instanceId, operation).then(() => {
+			return this._contactList.list.entityEventReceived(instanceId, operation).then(() => {
 				if (operation === OperationType.UPDATE && this.contactViewer && isSameId(this.contactViewer.contact._id,
 					[neverNull(instanceListId), instanceId])) {
-					load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
+					return load(ContactTypeRef, this.contactViewer.contact._id).then(updatedContact => {
 						this.contactViewer = new ContactViewer(updatedContact)
 						m.redraw()
 					})
 				}
 			})
+		} else {
+			return Promise.resolve()
 		}
 	}
 

@@ -227,9 +227,8 @@ export class MailModel {
 		return Promise.all(promises).return()
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		// TODO: make all calls sequential in EntityRestCache instead?
-		Promise.each(updates, update => {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				return this._init().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
@@ -261,7 +260,7 @@ export class MailModel {
 						.catch(noOp)
 				}
 			}
-		})
+		}).return()
 	}
 
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {

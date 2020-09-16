@@ -273,7 +273,7 @@ export class CalendarView implements CurrentView {
 		this._setupShortcuts();
 
 		locator.eventController.addEntityListener((updates, eventOwnerGroupId) => {
-			this.entityEventReceived(updates, eventOwnerGroupId)
+			return this.entityEventReceived(updates, eventOwnerGroupId)
 		})
 	}
 
@@ -817,16 +817,16 @@ export class CalendarView implements CurrentView {
 		})
 	}
 
-	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): void {
-		this._calendarInfos.then((calendarEvents) => {
-			updates.forEach(update => {
+	entityEventReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+		return this._calendarInfos.then((calendarEvents) => {
+			return Promise.each(updates, update => {
 				if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 					m.redraw()
 				}
 
 				if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
-						load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
+						return load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
 							.then((event) => {
 								this.addOrUpdateEvent(calendarEvents.get(neverNull(event._ownerGroup)), event)
 								m.redraw()
@@ -842,7 +842,7 @@ export class CalendarView implements CurrentView {
 					&& isSameId(eventOwnerGroupId, logins.getUserController().user.userGroup.group)) {
 					if (update.operation === OperationType.UPDATE) {
 						const calendarMemberships = logins.getUserController().getCalendarMemberships()
-						this._calendarInfos.then(calendarInfos => {
+						return this._calendarInfos.then(calendarInfos => {
 							// Remove calendars we no longer have membership in
 							calendarInfos.forEach((ci, group) => {
 								if (calendarMemberships.every((mb) => group !== mb.group)) {
@@ -853,23 +853,23 @@ export class CalendarView implements CurrentView {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
 								this._calendarInfos = calendarModel.loadCalendarInfos()
-								this._calendarInfos.then(() => {
+								return this._calendarInfos.then(() => {
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)
 									previousMonthDate.setMonth(selectedDate.getMonth() - 1)
 
 									const nextMonthDate = new Date(selectedDate)
 									nextMonthDate.setMonth(selectedDate.getMonth() + 1)
-									this._loadMonthIfNeeded(selectedDate)
-									    .then(() => this._loadMonthIfNeeded(nextMonthDate))
-									    .then(() => this._loadMonthIfNeeded(previousMonthDate))
+									return this._loadMonthIfNeeded(selectedDate)
+									           .then(() => this._loadMonthIfNeeded(nextMonthDate))
+									           .then(() => this._loadMonthIfNeeded(previousMonthDate))
 								}).tap(() => m.redraw())
 							}
 						})
 					}
 				} else if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
 					if (update.operation === OperationType.CREATE) {
-						load(ReceivedGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(invitation => {
+						return load(ReceivedGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(invitation => {
 							this._calendarInvitations.push(invitation)
 							m.redraw()
 						})
@@ -886,7 +886,7 @@ export class CalendarView implements CurrentView {
 					this._calendarInfos.then(calendarInfos => {
 						const calendarInfo = calendarInfos.get(eventOwnerGroupId) // ensure that it is a GroupInfo update for a calendar group.
 						if (calendarInfo) {
-							load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then(groupInfo => {
+							return load(GroupInfoTypeRef, [update.instanceListId, update.instanceId]).then(groupInfo => {
 								calendarInfo.groupInfo = groupInfo;
 								m.redraw()
 							})
@@ -894,7 +894,7 @@ export class CalendarView implements CurrentView {
 					})
 
 				}
-			})
+			}).return()
 		})
 	}
 

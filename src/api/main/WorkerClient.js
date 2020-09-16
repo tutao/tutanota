@@ -83,8 +83,7 @@ export class WorkerClient implements EntityRestInterface {
 			execNative: (message: Message) =>
 				nativeApp.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
 			entityEvent: (message: Message) => {
-				locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
-				return Promise.resolve()
+				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},
 			error: (message: Message) => {
 				handleUncaughtError(objToError((message: any).args[0]))

@@ -129,12 +129,12 @@ export class WhitelabelChildrenListView {
 		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && this._listId.getSync() === update.instanceListId) {
-				this.list.entityEventReceived(update.instanceId, update.operation)
+				return this.list.entityEventReceived(update.instanceId, update.operation)
 			}
-		}
+		}).return()
 	}
 }
 

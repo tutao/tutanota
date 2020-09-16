@@ -138,7 +138,7 @@ export class SettingsView implements CurrentView {
 			return m("#settings.main-view", m(this.viewSlider))
 		}
 		locator.eventController.addEntityListener((updates) => {
-			this.entityEventsReceived(updates)
+			return this.entityEventsReceived(updates)
 		})
 
 		this._customDomains = new LazyLoaded(() => {
@@ -226,10 +226,10 @@ export class SettingsView implements CurrentView {
 		this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(UserTypeRef, update) && isSameId(update.instanceId, logins.getUserController().user._id)) {
-				load(UserTypeRef, update.instanceId).then(user => {
+				return load(UserTypeRef, update.instanceId).then(user => {
 					// the user admin status might have changed
 					if (!this._isGlobalOrLocalAdmin(user) && this._currentViewer
 						&& this._adminFolders.find(f => f.isActive())) {
@@ -237,18 +237,19 @@ export class SettingsView implements CurrentView {
 					}
 					m.redraw()
 				})
-			}
-			if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				this._customDomains.reset()
-				this._customDomains.getAsync().then(() => m.redraw())
+				return this._customDomains.getAsync().then(() => m.redraw())
 			}
-		}
-		if (this._currentViewer) {
-			this._currentViewer.entityEventsReceived(updates)
-		}
-		if (this.detailsViewer) {
-			this.detailsViewer.entityEventsReceived(updates)
-		}
+		}).then(() => {
+			if (this._currentViewer) {
+				return this._currentViewer.entityEventsReceived(updates)
+			}
+		}).then(() => {
+			if (this.detailsViewer) {
+				return this.detailsViewer.entityEventsReceived(updates)
+			}
+		})
 	}
 
 	getViewSlider(): ?IViewSlider {

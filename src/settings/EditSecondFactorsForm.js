@@ -83,38 +83,38 @@ export class EditSecondFactorsForm {
 		]
 	}
 
-	_updateSecondFactors(): void {
-		this._user.getAsync()
-		    .then(user => loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors))
-		    .then(factors => {
+	_updateSecondFactors(): Promise<void> {
+		return this._user.getAsync()
+		           .then(user => loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors))
+		           .then(factors => {
 
-			    const differentDomainAppIds = factors.reduce((result, f) => {
-				    const isU2F = f.type === SecondFactorType.u2f
-				    if (isU2F && !contains(result, neverNull(f.u2f).appId)) {
-					    result.push(neverNull(f.u2f).appId)
-				    }
-				    return result
-			    }, [])
+			           const differentDomainAppIds = factors.reduce((result, f) => {
+				           const isU2F = f.type === SecondFactorType.u2f
+				           if (isU2F && !contains(result, neverNull(f.u2f).appId)) {
+					           result.push(neverNull(f.u2f).appId)
+				           }
+				           return result
+			           }, [])
 
-			    this._2FALineAttrs(factors.map(f => {
-				    const isU2F = f.type === SecondFactorType.u2f
-				    const removeButtonAttrs: ButtonAttrs = {
-					    label: "remove_action",
-					    click: () => Dialog
-						    .confirm("confirmDeleteSecondFactor_msg")
-						    .then(res => res ? showProgressDialog("pleaseWait_msg", erase(f)) : Promise.resolve())
-						    .catch(NotFoundError, e => console.log("could not delete second factor (already deleted)", e)),
-					    icon: () => Icons.Cancel
-				    }
-				    const domainInfo = (isU2F && differentDomainAppIds.length > 1)
-					    ? ((f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId)
-					    : ""
-				    return {
-					    cells: [f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])],
-					    actionButtonAttrs: logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null
-				    }
-			    }))
-		    })
+			           this._2FALineAttrs(factors.map(f => {
+				           const isU2F = f.type === SecondFactorType.u2f
+				           const removeButtonAttrs: ButtonAttrs = {
+					           label: "remove_action",
+					           click: () => Dialog
+						           .confirm("confirmDeleteSecondFactor_msg")
+						           .then(res => res ? showProgressDialog("pleaseWait_msg", erase(f)) : Promise.resolve())
+						           .catch(NotFoundError, e => console.log("could not delete second factor (already deleted)", e)),
+					           icon: () => Icons.Cancel
+				           }
+				           const domainInfo = (isU2F && differentDomainAppIds.length > 1)
+					           ? ((f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId)
+					           : ""
+				           return {
+					           cells: [f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])],
+					           actionButtonAttrs: logins.getUserController().isGlobalOrLocalAdmin() ? removeButtonAttrs : null
+				           }
+			           }))
+		           })
 	}
 
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
@@ -147,14 +147,14 @@ export class EditSecondFactorsForm {
 					selectedValue: selectedType,
 					items: Object.keys(SecondFactorTypeToNameTextId)
 					             .filter(k => (k !== SecondFactorType.u2f || u2fSupport))
-					             // Order them so that TOTP is the first
-					             .sort((a, b) => Number(b) - Number(a))
-					             .map(key => {
-						             return {
-							             name: lang.get(SecondFactorTypeToNameTextId[key]),
-							             value: key
-						             }
-					             }),
+						// Order them so that TOTP is the first
+						         .sort((a, b) => Number(b) - Number(a))
+						         .map(key => {
+							         return {
+								         name: lang.get(SecondFactorTypeToNameTextId[key]),
+								         value: key
+							         }
+						         }),
 					dropdownWidth: 300
 				}
 
@@ -349,9 +349,11 @@ export class EditSecondFactorsForm {
 			})
 	}
 
-	entityEventReceived(update: EntityUpdateData): void {
+	entityEventReceived(update: EntityUpdateData): Promise<void> {
 		if (isUpdateForTypeRef(SecondFactorTypeRef, update)) {
-			this._updateSecondFactors()
+			return this._updateSecondFactors()
+		} else {
+			return Promise.resolve()
 		}
 	}
 

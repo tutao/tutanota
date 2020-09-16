@@ -173,13 +173,13 @@ export class UserViewer {
 
 		this._customer.getAsync().then(customer => {
 			return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
-				loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
+				return loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
 						let contactFormsAddButton = new Button("addResponsiblePerson_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
 						this._contactFormsTable = new Table(["contactForms_label"], [
 							ColumnWidth.Largest, ColumnWidth.Small
 						], true, contactFormsAddButton)
-						this._updateContactForms()
+						return this._updateContactForms()
 					}
 				})
 			})
@@ -277,11 +277,11 @@ export class UserViewer {
 		}
 	}
 
-	_updateGroups(): void {
+	_updateGroups(): Promise<void> {
 		if (this._groupsTable) {
-			this._user.getAsync().then(user => {
-				this._customer.getAsync().then(customer => {
-					Promise.map(this._getTeamMemberships(user, customer), m => {
+			return this._user.getAsync().then(user => {
+				return this._customer.getAsync().then(customer => {
+					return Promise.map(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton
 							removeButton = new Button("remove_action", () => {
@@ -301,12 +301,14 @@ export class UserViewer {
 					})
 				})
 			})
+		} else {
+			return Promise.resolve()
 		}
 	}
 
-	_updateContactForms(): void {
+	_updateContactForms(): Promise<void> {
 		if (this._contactFormsTable) {
-			this._user.getAsync().then(user => {
+			return this._user.getAsync().then(user => {
 				let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
 				return load(MailboxGroupRootTypeRef, userMailGroupMembership.group).then(mailboxGroupRoot => {
 					if (mailboxGroupRoot.participatingContactForms.length > 0) {
@@ -328,6 +330,8 @@ export class UserViewer {
 					}
 				})
 			})
+		} else {
+			return Promise.resolve()
 		}
 	}
 
@@ -403,12 +407,12 @@ export class UserViewer {
 		})
 	}
 
-	_updateUsedStorageAndAdminFlag(): void {
-		this._user.getAsync().then(user => {
+	_updateUsedStorageAndAdminFlag(): Promise<void> {
+		return this._user.getAsync().then(user => {
 			let isAdmin = this._isAdmin(user)
 			this._admin.selectedValue(isAdmin)
 
-			worker.readUsedUserStorage(user).then(usedStorage => {
+			return worker.readUsedUserStorage(user).then(usedStorage => {
 				this._usedStorage.setValue(formatStorageSize(usedStorage))
 				m.redraw()
 			}).catch(BadRequestError, e => {
@@ -443,35 +447,39 @@ export class UserViewer {
 		})
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			let promise = Promise.resolve()
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE
 				&& isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])) {
-				load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
+				promise = load(GroupInfoTypeRef, this.userGroupInfo._id).then(updatedUserGroupInfo => {
 					this.userGroupInfo = updatedUserGroupInfo
 					this._senderName.setValue(updatedUserGroupInfo.name)
 					this._deactivated.selectedValue(updatedUserGroupInfo.deleted != null)
-					this._updateUsedStorageAndAdminFlag()
-					if (this._administratedBy) {
-						this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
-					}
-					this._editAliasFormAttrs.userGroupInfo = this.userGroupInfo
-					m.redraw()
+					return this._updateUsedStorageAndAdminFlag().then(() => {
+						if (this._administratedBy) {
+							this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
+						}
+						this._editAliasFormAttrs.userGroupInfo = this.userGroupInfo
+						m.redraw()
+					})
 				})
 			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE && this._user.isLoaded()
 				&& isSameId(this._user.getLoaded()._id, instanceId)) {
 				this._user.reset()
-				this._updateUsedStorageAndAdminFlag()
-				this._updateGroups()
+				promise = this._updateUsedStorageAndAdminFlag().then(() => {
+					return this._updateGroups()
+				})
 			} else if (isUpdateForTypeRef(MailboxServerPropertiesTypeRef, update)) {
 				this._createOrUpdateWhitelistProtectionField()
 			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
-				this._updateContactForms()
+				promise = this._updateContactForms()
 			}
-			this._secondFactorsForm.entityEventReceived(update)
-		}
-		m.redraw()
+			return promise.then(() => {
+				return this._secondFactorsForm.entityEventReceived(update)
+			})
+		}).then(() => m.redraw())
 	}
 }
 

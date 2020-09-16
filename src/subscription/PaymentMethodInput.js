@@ -11,13 +11,13 @@ import {PayPalLogo} from "../gui/base/icons/Icons"
 import {load} from "../api/main/Entity"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {locator} from "../api/main/MainLocator"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {px} from "../gui/size"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -45,14 +45,14 @@ export class PaymentMethodInput {
 
 
 		const accountingInfoListener = (updates) => {
-			for (let update of updates) {
+			return Promise.each(updates, update => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-					load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
+					return load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
 						this._accountingInfo = accountingInfo
 						m.redraw()
 					})
 				}
-			}
+			}).return()
 		}
 		this._payPalComponent = {
 			view: () => {

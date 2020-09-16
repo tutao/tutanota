@@ -91,15 +91,15 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				load(UserSettingsGroupRootTypeRef, update.instanceId)
+				return load(UserSettingsGroupRootTypeRef, update.instanceId)
 					.then((settings) => {
 						lang.updateFormats({hourCycle: getHourCycle(settings)})
 						m.redraw()
 					})
 			}
-		}
+		}).return()
 	}
 }

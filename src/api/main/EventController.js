@@ -3,13 +3,11 @@ import {remove} from "../common/utils/ArrayUtils"
 import {assertMainOrNode} from "../Env"
 import type {LoginController} from "./LoginController"
 import type {OperationTypeEnum} from "../common/TutanotaConstants"
-import {PhishingMarkerStatus} from "../common/TutanotaConstants"
 import {isSameTypeRefByAttr} from "../common/EntityFunctions"
 import stream from "mithril/stream/stream.js"
 import {downcast, identity} from "../common/utils/Utils"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
-import type {PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
 
 assertMainOrNode()
 
@@ -21,7 +19,7 @@ export type EntityUpdateData = {
 	operation: OperationTypeEnum
 }
 
-export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => mixed;
+export type EntityEventsListener = ($ReadOnlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => Promise<void>;
 
 export const isUpdateForTypeRef = <T>(typeRef: TypeRef<T>, update: EntityUpdateData): boolean => isSameTypeRefByAttr(typeRef, update.application, update.type)
 
@@ -49,19 +47,20 @@ export class EventController {
 		return this._countersStream.map(identity)
 	}
 
-	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>, eventOwnerGroupId: Id) {
+	notificationReceived(entityUpdates: $ReadOnlyArray<EntityUpdate>, eventOwnerGroupId: Id): Promise<void> {
 		let loginsUpdates = Promise.resolve()
 		if (this._logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			loginsUpdates = this._logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
 
-		loginsUpdates.then(() => {
-			this._entityListeners.forEach(listener => {
+		return loginsUpdates.then(() => {
+			// sequentially to prevent parallel loading of instances
+			return Promise.each(this._entityListeners, listener => {
 				let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
-				listener(entityUpdatesData, eventOwnerGroupId)
+				return listener(entityUpdatesData, eventOwnerGroupId)
 			})
-		})
+		}).return()
 	}
 
 	counterUpdateReceived(update: WebsocketCounterData) {

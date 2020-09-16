@@ -332,7 +332,7 @@ export class CalendarModelImpl implements CalendarModel {
 		this._pendingAlarmRequests = new Map()
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
-				this._entityEventsReceived(updates)
+				return this._entityEventsReceived(updates)
 			})
 		}
 	}
@@ -641,8 +641,8 @@ export class CalendarModelImpl implements CalendarModel {
 		this._scheduledNotifications.set(identifier, timeoutId)
 	}
 
-	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let entityEventData of updates) {
+	_entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, entityEventData => {
 			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData)) {
 				if (entityEventData.operation === OperationType.CREATE) {
 					const userAlarmInfoId = [entityEventData.instanceListId, entityEventData.instanceId]
@@ -652,7 +652,7 @@ export class CalendarModelImpl implements CalendarModel {
 					// We try to load UserAlarmInfo. Then we wait until the
 					// CalendarEvent is there (which might already be true)
 					// and load it.
-					load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
+					return load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
 						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
 						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
 						return deferredEvent.promise.then(() => {
@@ -669,19 +669,20 @@ export class CalendarModelImpl implements CalendarModel {
 							clearTimeout(value)
 						}
 					})
+					return Promise.resolve()
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)
 				&& (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)) {
-				getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
+				return getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer).resolve()
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData)
 				&& entityEventData.operation === OperationType.CREATE) {
-				load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
+				return load(CalendarEventUpdateTypeRef, [entityEventData.instanceListId, entityEventData.instanceId])
 					.then((invite) => this._handleCalendarEventUpdate(invite))
 					.catch(NotFoundError, (e) => {
 						console.log("invite not found", [entityEventData.instanceListId, entityEventData.instanceId], e)
 					})
 			}
-		}
+		}).return()
 	}
 
 	_localAlarmsEnabled(): boolean {

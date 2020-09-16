@@ -2,13 +2,13 @@
 import m from "mithril"
 import {loadAll} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {module as replaced} from "@hot"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 
 class LocalAdminGroupInfoModel {
 	_initialization: ?Promise<GroupInfo[]>;
@@ -25,9 +25,9 @@ class LocalAdminGroupInfoModel {
 			return this._initialization
 		}
 		locator.eventController.addEntityListener(updates => {
-			for (let update of updates) {
-				this.entityEventReceived(update)
-			}
+			return Promise.each(updates, update => {
+				return this.entityEventReceived(update)
+			}).return()
 		})
 		return this._init()
 	}
@@ -44,9 +44,11 @@ class LocalAdminGroupInfoModel {
 		return this._initialization
 	}
 
-	entityEventReceived<T>(update: EntityUpdateData): void {
+	entityEventReceived<T>(update: EntityUpdateData): Promise<void> {
 		if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
-			this._init().then(() => m.redraw())
+			return this._init().then(() => m.redraw())
+		} else {
+			return Promise.resolve()
 		}
 	}
 }

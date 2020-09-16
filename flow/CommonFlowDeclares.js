@@ -28,7 +28,7 @@ declare type dropHandler = (dragData: string) => void;
 declare interface UpdatableSettingsViewer {
 	view(): Children;
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void;
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void>;
 }
 
 declare interface MithrilEvent {

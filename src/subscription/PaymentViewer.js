@@ -235,21 +235,23 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
-			this.processUpdate(update)
-		}
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			return this.processUpdate(update)
+		}).return()
 	}
 
-	processUpdate(update: EntityUpdateData): void {
+	processUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceId} = update
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			load(AccountingInfoTypeRef, instanceId)
+			return load(AccountingInfoTypeRef, instanceId)
 				.then(accountingInfo => this._updateAccountingInfoData(accountingInfo))
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-			load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
+			return load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
 				this._invoiceInfo = invoiceInfo
 			})
+		} else {
+			return Promise.resolve()
 		}
 	}
 

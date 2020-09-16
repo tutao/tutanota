@@ -211,8 +211,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		this._updateAuditLog()
 	}
 
-	_updateCustomerServerProperties(): void {
-		worker.loadCustomerServerProperties().then(props => {
+	_updateCustomerServerProperties(): Promise<void> {
+		return worker.loadCustomerServerProperties().then(props => {
 			this._props(props)
 			const fieldToName = getSpamRuleFieldToName()
 			this._spamRuleLines(props.emailSenderList.map((rule, index) => {
@@ -308,10 +308,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateAuditLog() {
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+	_updateAuditLog(): Promise<void> {
+		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			this._customer(customer)
-			loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
+			return loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true)
 				.then(auditLog => {
 					this._auditLogLines(auditLog.map(auditLogEntry => {
 						return {
@@ -400,8 +400,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateDomains() {
-		this._customerInfo.getAsync().then(customerInfo => {
+	_updateDomains(): Promise<void> {
+		return this._customerInfo.getAsync().then(customerInfo => {
 			let customDomainInfos = getCustomMailDomains(customerInfo)
 			// remove dns status instances for all removed domains
 			Object.keys(this._domainDnsStatus).forEach(domain => {
@@ -409,7 +409,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					delete this._domainDnsStatus[domain]
 				}
 			})
-			Promise.map(customDomainInfos, domainInfo => {
+			return Promise.map(customDomainInfos, domainInfo => {
 				// create dns status instances for all new domains
 				if (!this._domainDnsStatus[domainInfo.domain]) {
 					this._domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain)
@@ -464,7 +464,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						}
 					}
 				})
-			}).then(tableLines => this._customDomainLines(tableLines))
+			}).then(tableLines => {
+				this._customDomainLines(tableLines)
+			})
 		})
 	}
 
@@ -527,17 +529,17 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		      .catch(LockedError, e => Dialog.error("operationStillActive_msg"))
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._updateCustomerServerProperties()
+				return this._updateCustomerServerProperties()
 			} else if (isUpdateForTypeRef(AuditLogEntryTypeRef, update)) {
-				this._updateAuditLog()
+				return this._updateAuditLog()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerInfo.reset()
-				this._updateDomains()
+				return this._updateDomains()
 			}
-		}
+		}).return()
 	}
 }
 

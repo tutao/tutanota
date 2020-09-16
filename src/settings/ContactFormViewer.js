@@ -183,8 +183,9 @@ export class ContactFormViewer implements UpdatableSettingsViewer {
 		return pageTitle
 	}
 
-	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>) {
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		// the contact form list view creates a new viewer if my contact form is updated
+		return Promise.resolve()
 	}
 }
 

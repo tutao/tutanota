@@ -11,9 +11,11 @@ import {SettingsView} from "./SettingsView"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {ContactFormViewer, getContactFormUrl} from "./ContactFormViewer"
 import * as ContactFormEditor from "./ContactFormEditor"
+import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
@@ -26,9 +28,6 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import * as AddUserDialog from "./AddUserDialog"
-import type {ContactForm} from "../api/entities/tutanota/ContactForm"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 
 assertMainOrNode()
 
@@ -148,59 +147,64 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
-			this.processUpdate(update)
-		}
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			return this.processUpdate(update)
+		}).return()
 	}
 
-	processUpdate(update: EntityUpdateData): void {
+	processUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceListId, instanceId, operation} = update
 		if (isUpdateForTypeRef(ContactFormTypeRef, update) && this._listId.isLoaded()
 			&& instanceListId === this._listId.getLoaded()) {
+			let promise
 			if (!logins.getUserController().isGlobalAdmin() && update.operation !== OperationType.DELETE) {
 				let listEntity = this.list.getEntity(instanceId)
-				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
+				promise = load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(cf => {
 					return getAdministratedGroupIds().then(allAdministratedGroupIds => {
 						if (listEntity) {
 							if (allAdministratedGroupIds.indexOf(cf.targetGroup) === -1) {
-								this.list.entityEventReceived(instanceId, OperationType.DELETE)
+								return this.list.entityEventReceived(instanceId, OperationType.DELETE)
 							} else {
-								this.list.entityEventReceived(instanceId, operation)
+								return this.list.entityEventReceived(instanceId, operation)
 							}
 						} else {
 							if (allAdministratedGroupIds.indexOf(cf.targetGroup) !== -1) {
-								this.list.entityEventReceived(instanceId, OperationType.CREATE)
+								return this.list.entityEventReceived(instanceId, OperationType.CREATE)
 							}
 						}
 					})
 				})
 			} else {
-				this.list.entityEventReceived(instanceId, operation)
+				promise = this.list.entityEventReceived(instanceId, operation)
 			}
-			if (this._customerInfo.isLoaded() && getWhitelabelDomain(this._customerInfo.getLoaded())
-				&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
-				&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
-					neverNull(instanceListId), instanceId
-				])) {
-				load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
-					this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm,
-						neverNull(getWhitelabelDomain(this._customerInfo.getLoaded())).domain,
-						contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
-					m.redraw()
-				})
-			}
+			return promise.then(() => {
+				if (this._customerInfo.isLoaded() && getWhitelabelDomain(this._customerInfo.getLoaded())
+					&& this._settingsView.detailsViewer && operation === OperationType.UPDATE
+					&& isSameId(((this._settingsView.detailsViewer: any): ContactFormViewer).contactForm._id, [
+						neverNull(instanceListId), instanceId
+					])) {
+					return load(ContactFormTypeRef, [neverNull(instanceListId), instanceId]).then(updatedContactForm => {
+						this._settingsView.detailsViewer = new ContactFormViewer(updatedContactForm,
+							neverNull(getWhitelabelDomain(this._customerInfo.getLoaded())).domain,
+							contactFormId => this.list.scrollToIdAndSelectWhenReceived(contactFormId))
+						m.redraw()
+					})
+				}
+			})
 		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && this._customerInfo.isLoaded()
 			&& isSameId(this._customerInfo.getLoaded()._id, [neverNull(instanceListId), instanceId])
 			&& operation === OperationType.UPDATE) {
 			// a domain may have been added
 			this._customerInfo.reset()
-			this._customerInfo.getAsync()
+			return this._customerInfo.getAsync().return()
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update) && this._customerInfo.isLoaded()
 			&& operation === OperationType.UPDATE) {
 			// the customer info may have been moved in case of premium upgrade/downgrade
 			this._customerInfo.reset()
-			this._customerInfo.getAsync()
+			return this._customerInfo.getAsync().return()
+		} else {
+			return Promise.resolve()
 		}
 	}
 }

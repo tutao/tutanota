@@ -3,14 +3,17 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
+import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {load, loadRange, serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
 import {Button} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
+import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
 import {GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
@@ -18,6 +21,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
+import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {SysService} from "../api/entities/sys/Services"
 import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddressAliasServiceReturn"
@@ -32,6 +36,7 @@ import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream/stream.js"
 import {showDeleteAccountDialog} from "./DeleteAccountDialog"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -53,11 +58,6 @@ import {
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import type {Customer} from "../api/entities/sys/Customer"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
-import type {Booking} from "../api/entities/sys/Booking"
-import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 
 assertMainOrNode()
 
@@ -423,24 +423,25 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return logins.getUserController().isPremiumAccount() || logins.getUserController().isOutlookAccount()
 	}
 
-	_updatePriceInfo() {
+	_updatePriceInfo(): Promise<void> {
 		if (!this._showPriceData()) {
-			return;
-		}
-		worker.getCurrentPrice().then(priceServiceReturn => {
-			if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-				if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
-					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
-					this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
-					this._nextPeriodPriceVisible = true
-				} else {
-					this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
-					this._nextPeriodPriceVisible = false
+			return Promise.resolve();
+		} else {
+			return worker.getCurrentPrice().then(priceServiceReturn => {
+				if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
+					if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
+						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+						this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
+						this._nextPeriodPriceVisible = true
+					} else {
+						this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+						this._nextPeriodPriceVisible = false
+					}
+					this._periodEndDate = priceServiceReturn.periodEndDate
+					m.redraw()
 				}
-				this._periodEndDate = priceServiceReturn.periodEndDate
-				m.redraw()
-			}
-		})
+			})
+		}
 	}
 
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
@@ -459,22 +460,22 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._subscriptionFieldValue(_getAccountTypeName(accountType, this._currentSubscription) + cancelledText)
 	}
 
-	_updateBookings() {
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			load(CustomerInfoTypeRef, customer.customerInfo)
+	_updateBookings(): Promise<void> {
+		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return load(CustomerInfoTypeRef, customer.customerInfo)
 				.catch(NotFoundError, e => console.log("could not update bookings as customer info does not exist (moved between free/premium lists)"))
 				.then(customerInfo => {
 					if (!customerInfo) {
 						return
 					}
 					this._customerInfo = customerInfo
-					loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+					return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 						.then(bookings => {
 							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 							this._isCancelled = customer.canceledPremiumAccount
 							this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
 							this._updateSubscriptionField(this._isCancelled)
-							Promise.all([
+							return Promise.all([
 									this._updateUserField(),
 									this._updateStorageField(customer, customerInfo),
 									this._updateAliasField(customer, customerInfo),
@@ -564,25 +565,30 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return Promise.resolve()
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
-			this.processUpdate(update)
-		}
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			return this.processUpdate(update)
+		}).return()
 	}
 
-	processUpdate(update: EntityUpdateData): void {
+	processUpdate(update: EntityUpdateData): Promise<void> {
 		const {instanceId} = update
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			load(AccountingInfoTypeRef, instanceId).then(accountingInfo => this._updateAccountInfoData(accountingInfo))
-			this._updatePriceInfo()
+			return load(AccountingInfoTypeRef, instanceId).then(accountingInfo => this._updateAccountInfoData(accountingInfo)).then(() => {
+				return this._updatePriceInfo()
+			})
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
-			this._updateBookings()
-			this._updatePriceInfo()
+			return this._updateBookings().then(() => {
+				return this._updatePriceInfo()
+			})
 		} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
-			this._updateBookings()
-			this._updatePriceInfo()
+			return this._updateBookings().then(() => {
+				return this._updatePriceInfo()
+			})
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
+			return load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
+		} else {
+			return Promise.resolve()
 		}
 	}
 }

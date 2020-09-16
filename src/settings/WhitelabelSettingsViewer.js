@@ -193,13 +193,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	_updateFields() {
-		this._customerInfo.getAsync().then(customerInfo => {
+	_updateFields(): Promise<void> {
+		return this._customerInfo.getAsync().then(customerInfo => {
 			const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 			return this._tryLoadWhitelabelConfig(whitelabelDomainInfo).then(data => {
 				const whitelabelConfig = data && data.whitelabelConfig
 				const certificateInfo = data && data.certificateInfo
-				loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+				return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 					.then(bookings => {
 						this._lastBooking = bookings.length === 1 ? bookings[0] : null
 						const whitelabelActive = isWhitelabelActive(this._lastBooking)
@@ -611,22 +611,22 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		}))
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>) {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(CustomerTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customer.reset()
-				this._customer.getAsync().then(() => m.redraw())
+				return this._customer.getAsync().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerInfo.reset()
-				this._updateFields()
+				return this._updateFields()
 			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
-				this._updateFields()
+				return this._updateFields()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				this._customerProperties.reset()
-				this._updateFields()
+				return this._updateFields()
 			} else if (isUpdateForTypeRef(BookingTypeRef, update)) {
-				this._updateFields()
+				return this._updateFields()
 			}
-		}
+		}).return()
 	}
 }

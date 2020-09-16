@@ -499,8 +499,6 @@ export class MailFacade {
 					this._deferredDraftUpdate = null
 					deferredPromiseWrapper.resolve(mail)
 				})
-			} else {
-				return Promise.resolve()
 			}
 		}).return()
 	}

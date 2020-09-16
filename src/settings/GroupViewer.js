@@ -10,8 +10,10 @@ import {lang} from "../misc/LanguageViewModel"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/EntityFunctions"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {compareGroupInfos, getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
+import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
@@ -31,8 +33,6 @@ import stream from "mithril/stream/stream.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {Group} from "../api/entities/sys/Group"
 
 assertMainOrNode()
 
@@ -238,16 +238,16 @@ export class GroupViewer {
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {view: () => m(dropdown)},
-						allowOkWithReturn: true,okAction: addUserToGroupOkAction
+						allowOkWithReturn: true, okAction: addUserToGroupOkAction
 					})
 				}
 			})
 		})
 	}
 
-	_updateMembers(): void {
+	_updateMembers(): Promise<void> {
 		this._members.reset()
-		this._members.getAsync().map(userGroupInfo => {
+		return this._members.getAsync().map(userGroupInfo => {
 			let removeButton = new Button("remove_action", () => {
 				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group)
 					.then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
@@ -261,9 +261,9 @@ export class GroupViewer {
 		})
 	}
 
-	_updateAdministratedGroups(): void {
+	_updateAdministratedGroups(): Promise<void> {
 		this._administratedGroups.reset()
-		this._administratedGroups.getAsync().map(groupInfo => {
+		return this._administratedGroups.getAsync().map(groupInfo => {
 			let removeButton = null
 			if (logins.getUserController().isGlobalAdmin()) {
 				removeButton = new Button("remove_action", () => {
@@ -288,9 +288,9 @@ export class GroupViewer {
 		return this.groupInfo.groupType === GroupType.Mail
 	}
 
-	_updateUsedStorage(): void {
+	_updateUsedStorage(): Promise<void> {
 		if (this._isMailGroup()) {
-			worker.readUsedGroupStorage(this.groupInfo.group).then(usedStorage => {
+			return worker.readUsedGroupStorage(this.groupInfo.group).then(usedStorage => {
 				this._usedStorage.setValue(formatStorageSize(usedStorage))
 				m.redraw()
 			}).catch(BadRequestError, e => {
@@ -298,14 +298,15 @@ export class GroupViewer {
 			})
 		} else {
 			this._usedStorage.setValue(formatStorageSize(0))
+			return Promise.resolve()
 		}
 	}
 
-	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
-				load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
+				return load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
 					if (isSameId(this.groupInfo._id, [neverNull(instanceListId), instanceId])) {
 						this.groupInfo = updatedUserGroupInfo
 						this._name.setValue(updatedUserGroupInfo.name)
@@ -313,23 +314,22 @@ export class GroupViewer {
 						if (this._administratedBy) {
 							this._administratedBy.selectedValue(this.groupInfo.localAdmin)
 						}
-						this._updateUsedStorage()
-						m.redraw()
+						return this._updateUsedStorage().then(() => m.redraw())
 					} else {
 						// a member name may have changed
-						this._updateMembers()
+						return this._updateMembers()
 					}
 				})
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update) && this._group.isLoaded()
 				&& this._group.getLoaded().members === neverNull(instanceListId)) {
 				// the members have changed
-				this._updateMembers()
+				return this._updateMembers()
 			} else if (isUpdateForTypeRef(AdministratedGroupTypeRef, update) && this._group.isLoaded()
 				&& this._group.getLoaded().administratedGroups
 				&& neverNull(this._group.getLoaded().administratedGroups).items === neverNull(instanceListId)) {
-				this._updateAdministratedGroups()
+				return this._updateAdministratedGroups()
 			}
-		}
+		}).return()
 	}
 }
 

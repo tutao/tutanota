@@ -69,11 +69,11 @@ export class WhitelabelChildViewer {
 		}
 	}
 
-	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && update.operation === OperationType.UPDATE
 				&& isSameId(this.whitelabelChild._id, [neverNull(update.instanceListId), update.instanceId])) {
-				load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
+				return load(WhitelabelChildTypeRef, this.whitelabelChild._id).then(updatedWhitelabelChild => {
 					this.whitelabelChild = updatedWhitelabelChild
 					this._mailAddress.setValue(updatedWhitelabelChild.mailAddress)
 					this._deactivated.selectedValue(updatedWhitelabelChild.deletedDate != null)
@@ -81,6 +81,6 @@ export class WhitelabelChildViewer {
 					m.redraw()
 				})
 			}
-		}
+		}).return()
 	}
 }

@@ -51,8 +51,8 @@ o.spec("MailModelTest", function () {
 	// 	o(showSpy.invocations.length).equals(1)
 	// })
 
-	o("doesn't send notification for another folder", function () {
-		model.entityEventsReceived([
+	o("doesn't send notification for another folder", async function () {
+		await model.entityEventsReceived([
 			makeUpdate({
 				instanceListId: anotherFolder.mails,
 				operation: OperationType.CREATE
@@ -61,8 +61,8 @@ o.spec("MailModelTest", function () {
 		o(showSpy.invocations.length).equals(0)
 	})
 
-	o("doesn't send notification for move operation", function () {
-		model.entityEventsReceived([
+	o("doesn't send notification for move operation", async function () {
+		await model.entityEventsReceived([
 			makeUpdate({
 				instanceListId: anotherFolder.mails,
 				operation: OperationType.DELETE

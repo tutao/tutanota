@@ -53,46 +53,45 @@ export function showCalendarSharingDialog(groupInfo: GroupInfo, allowGroupNameOv
 	showProgressDialog("loading_msg", loadGroupDetails(groupInfo))
 		.then(groupDetails => {
 			const eventListener: EntityEventsListener = (updates, eventOwnerGroupId) => {
-				updates.forEach(update => {
-						if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
-							// ignore events of different group here
-							return
+				return Promise.each(updates, update => {
+					if (!isSameId(eventOwnerGroupId, groupDetails.group._id)) {
+						// ignore events of different group here
+						return
+					}
+					if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
+						if (update.operation === OperationType.CREATE
+							&& isSameId(update.instanceListId, groupDetails.group.invitations)) {
+							return load(SentGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
+								if (instance) {
+									groupDetails.sentGroupInvitations.push(instance)
+									m.redraw()
+								}
+							}).catch(NotFoundError, e => console.log("sent invitation not found", update))
 						}
-						if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
-							if (update.operation === OperationType.CREATE
-								&& isSameId(update.instanceListId, groupDetails.group.invitations)) {
-								load(SentGroupInvitationTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
-									if (instance) {
-										groupDetails.sentGroupInvitations.push(instance)
+						if (update.operation === OperationType.DELETE) {
+							findAndRemove(groupDetails.sentGroupInvitations, (sentGroupInvitation) => isSameId(getElementId(sentGroupInvitation), update.instanceId))
+							m.redraw()
+						}
+					} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
+						console.log("update received in share dialog", update)
+						if (update.operation === OperationType.CREATE
+							&& isSameId(update.instanceListId, groupDetails.group.members)) {
+							return load(GroupMemberTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
+								if (instance) {
+									return loadGroupInfoForMember(instance).then(groupMemberInfo => {
+										console.log("new member", groupMemberInfo)
+										groupDetails.memberInfos.push(groupMemberInfo)
 										m.redraw()
-									}
-								}).catch(NotFoundError, e => console.log("sent invitation not found", update))
-							}
-							if (update.operation === OperationType.DELETE) {
-								findAndRemove(groupDetails.sentGroupInvitations, (sentGroupInvitation) => isSameId(getElementId(sentGroupInvitation), update.instanceId))
-								m.redraw()
-							}
-						} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
-							console.log("update received in share dialog", update)
-							if (update.operation === OperationType.CREATE
-								&& isSameId(update.instanceListId, groupDetails.group.members)) {
-								load(GroupMemberTypeRef, [update.instanceListId, update.instanceId]).then(instance => {
-									if (instance) {
-										return loadGroupInfoForMember(instance).then(groupMemberInfo => {
-											console.log("new member", groupMemberInfo)
-											groupDetails.memberInfos.push(groupMemberInfo)
-											m.redraw()
-										})
-									}
-								}).catch(NotFoundError, e => console.log("group member not found", update))
-							}
-							if (update.operation === OperationType.DELETE) {
-								findAndRemove(groupDetails.memberInfos, (memberInfo) => isSameId(getElementId(memberInfo.member), update.instanceId))
-								m.redraw()
-							}
+									})
+								}
+							}).catch(NotFoundError, e => console.log("group member not found", update))
+						}
+						if (update.operation === OperationType.DELETE) {
+							findAndRemove(groupDetails.memberInfos, (memberInfo) => isSameId(getElementId(memberInfo.member), update.instanceId))
+							m.redraw()
 						}
 					}
-				)
+				}).return()
 			}
 			locator.eventController.addEntityListener(eventListener)
 
@@ -182,8 +181,10 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 				cells: () => [
 					{
 						main: getDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
-						info: [(isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label"))
-							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))]
+						info: [
+							(isSharedGroupOwner(groupDetails.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label"))
+							+ ", " + getCapabilityText(this._getMemberCabability(memberInfo, groupDetails))
+						]
 					}
 				], actionButtonAttrs: {
 					label: "delete_action",

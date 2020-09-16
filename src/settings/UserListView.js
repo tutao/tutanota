@@ -181,37 +181,37 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 	}
 
-	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): void {
-		for (let update of updates) {
+	entityEventsReceived<T>(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
 				if (!logins.getUserController().isGlobalAdmin()) {
 					let listEntity = this.list.getEntity(instanceId)
-					load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
+					return load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
 						let localAdminGroupIds = logins.getUserController()
 						                               .getLocalAdminGroupMemberships()
 						                               .map(gm => gm.group)
 						if (listEntity) {
 							if (localAdminGroupIds.indexOf(gi.localAdmin) === -1) {
-								this.list.entityEventReceived(instanceId, OperationType.DELETE)
+								return this.list.entityEventReceived(instanceId, OperationType.DELETE)
 							} else {
-								this.list.entityEventReceived(instanceId, operation)
+								return this.list.entityEventReceived(instanceId, operation)
 							}
 						} else {
 							if (localAdminGroupIds.indexOf(gi.localAdmin) !== -1) {
-								this.list.entityEventReceived(instanceId, OperationType.CREATE)
+								return this.list.entityEventReceived(instanceId, OperationType.CREATE)
 							}
 						}
 					})
 				} else {
-					this.list.entityEventReceived(instanceId, operation)
+					return this.list.entityEventReceived(instanceId, operation)
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE) {
-				this._loadAdmins().then(() => {
+				return this._loadAdmins().then(() => {
 					this.list.redraw()
 				})
 			}
-		}
+		}).return()
 	}
 }
 
