@@ -174,11 +174,12 @@ export class UserController implements IUserController {
 	}
 
 	deleteSession(sync: boolean): Promise<void> {
-		if (this.persistentSession) return Promise.resolve()
 		if (sync) {
-			return this.deleteSessionSync()
+			// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
+			return this.persistentSession ? this.deleteSessionSync() : Promise.resolve()
 		} else {
-			return worker.deleteSession(this.accessToken).then(() => worker.reset())
+			const deletePromise = this.persistentSession ? worker.deleteSession(this.accessToken) : Promise.resolve()
+			return deletePromise.then(() => worker.reset())
 		}
 	}
 
