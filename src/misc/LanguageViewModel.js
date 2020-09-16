@@ -25,7 +25,7 @@ export const languages: Language[] = [
 	{code: 'de_sie', textId: 'languageGermanSie_label'},
 	{code: 'el', textId: 'languageGreek_label'},
 	{code: 'en', textId: 'languageEnglish_label'},
-	{code: 'en_gb', textId: 'languageEnglishGb_label'},
+	{code: 'en_gb', textId: 'languageEnglishUk_label'},
 	{code: 'es', textId: 'languageSpanish_label'},
 	{code: 'et', textId: 'languageEstonian_label'},
 	{code: 'fa_ir', textId: 'languagePersian_label'},

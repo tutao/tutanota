@@ -406,18 +406,24 @@ public class MainActivity extends ComponentActivity {
 		String subject = intent.getStringExtra(Intent.EXTRA_SUBJECT);
 
 		if (Intent.ACTION_SEND.equals(action)) {
-			if (clipData != null && clipData.getItemCount() > 0 && clipData.getDescription().getMimeType(0).startsWith("text")) {
-				text = clipData.getItemAt(0).getHtmlText();
+			// Try to read text from the clipboard before fall back on intent.getStringExtra
+			if (clipData != null && clipData.getItemCount() > 0) {
+				if (clipData.getDescription().getMimeType(0).startsWith("text")) {
+					text = clipData.getItemAt(0).getHtmlText();
+				}
 				if (text == null && clipData.getItemAt(0).getText() != null) {
 					text = clipData.getItemAt(0).getText().toString();
-				} else {
-					// e.g. text/x-vcard
-					Toast.makeText(this, "We don't support this kind of data yet",
-							Toast.LENGTH_SHORT).show();
-					Log.w(TAG, "Could not read text clipData with type " + type);
 				}
-			} else {
+			}
+			if (text == null) {
 				text = intent.getStringExtra(Intent.EXTRA_TEXT);
+			}
+			if (text == null) {
+				// TODO Toast.makeText throws an exception
+				// e.g. text/x-vcard
+				Toast.makeText(this, "We don't support this kind of data yet",
+						Toast.LENGTH_SHORT).show();
+				Log.w(TAG, "Could not read text clipData with type " + type);
 			}
 			files = getFilesFromIntent(intent);
 		} else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
