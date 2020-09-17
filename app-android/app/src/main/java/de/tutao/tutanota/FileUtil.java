@@ -214,7 +214,7 @@ public class FileUtil {
 			response.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
 			response.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
 			response.put("suspensionTime", con.getHeaderField("Retry-After"));
-			if (response.get("suspensionTime") == null) {
+			if (!response.has("suspensionTime")) {
 				response.put("suspensionTime", con.getHeaderField("Suspension-Time"));
 			}
 			return response;
@@ -252,7 +252,7 @@ public class FileUtil {
 			result.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
 			result.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
 			result.put("suspensionTime", con.getHeaderField("Retry-After"));
-			if (result.get("suspensionTime") == null) {
+			if (!result.has("suspensionTime")) {
 				result.put("suspensionTime", con.getHeaderField("Suspension-Time"));
 			}
 			return result;
