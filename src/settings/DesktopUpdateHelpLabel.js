@@ -33,6 +33,7 @@ export class DesktopUpdateHelpLabel {
 					hasUpdate => {
 						this._waiting = false
 						updateAvailable(hasUpdate)
+						m.redraw()
 					}
 				).catch(() => this._error = true)
 			}
