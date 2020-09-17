@@ -43,7 +43,7 @@ export class IPC {
 	_initialized: Array<DeferredObject<void>>;
 	_requestId: number = 0;
 	_queue: {[string]: Function};
-	_updater: ElectronUpdater;
+	_updater: ?ElectronUpdater;
 
 	constructor(
 		conf: DesktopConfig,
@@ -54,7 +54,7 @@ export class IPC {
 		alarmStorage: DesktopAlarmStorage,
 		desktopCryptoFacade: DesktopCryptoFacade,
 		dl: DesktopDownloadManager,
-		updater: ElectronUpdater
+		updater: ?ElectronUpdater
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -65,9 +65,12 @@ export class IPC {
 		this._crypto = desktopCryptoFacade
 		this._dl = dl
 		this._updater = updater
-		this._updater.setUpdateDownloadedListener(() => {
-			this._wm.getAll().forEach(w => this.sendRequest(w.id, 'appUpdateDownloaded', []))
-		})
+		if (!!this._updater) {
+			this._updater.setUpdateDownloadedListener(() => {
+				this._wm.getAll().forEach(w => this.sendRequest(w.id, 'appUpdateDownloaded', []))
+			})
+		}
+
 		this._initialized = []
 		this._queue = {}
 	}
@@ -122,7 +125,9 @@ export class IPC {
 						config.isMailtoHandler = isMailtoHandler
 						config.runOnStartup = autoLaunchEnabled
 						config.isIntegrated = isIntegrated
-						config.updateInfo = this._updater.updateInfo
+						config.updateInfo = !!this._updater
+							? this._updater.updateInfo
+							: null
 						return config
 					})
 			case 'openFileChooser':
@@ -213,9 +218,13 @@ export class IPC {
 			case 'changeLanguage':
 				return lang.setLanguage(args[0])
 			case 'manualUpdate':
-				return this._updater.manualUpdate()
+				return !!this._updater
+					? this._updater.manualUpdate()
+					: Promise.resolve(false)
 			case 'isUpdateAvailable':
-				return Promise.resolve(this._updater.updateInfo)
+				return !!this._updater
+					? Promise.resolve(this._updater.updateInfo)
+					: Promise.resolve(null)
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}
