@@ -985,7 +985,7 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 }
 
-export const ActionDistance = 150
+export const ACTION_DISTANCE = 150
 
 class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 	virtualElement: ?VirtualRow<T>;
@@ -1003,10 +1003,11 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 		// get it *before* raf so that we don't pick an element after reset() again
 		const ve = this.getVirtualElement()
 
+
 		// Animate the row with following touch
 		window.requestAnimationFrame(() => {
 			// Do not animate the swipe gesture more than necessary
-			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ActionDistance) : Math.min(xDelta, ActionDistance)
+			this.xoffset = xDelta < 0 ? Math.max(xDelta, -ACTION_DISTANCE) : Math.min(xDelta, ACTION_DISTANCE)
 			if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
 				ve.domElement.style.transform = `translateX(${this.xoffset}px) translateY(${ve.top}px)`
 				this.list._domSwipeSpacerLeft.style.transform =
@@ -1019,7 +1020,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 	}
 
 	onHorizontalGestureCompleted(delta: {x: number, y: number}): Promise<void> {
-		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance) {
+		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ACTION_DISTANCE) {
 			// Gesture is completed
 			let entity = this.virtualElement.entity
 			let swipePromise
@@ -1039,7 +1040,7 @@ class ListSwipeHandler<T: ListElement, R:VirtualRow<T>> extends SwipeHandler {
 			let ve = neverNull(this.virtualElement)
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
 			swipeActionPromise = swipeActionPromise
-				.then(() => true)
+				.then((commit) => commit !== false)
 				.catch(() => false)
 			return Promise
 				.all([

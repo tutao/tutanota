@@ -9,6 +9,7 @@ import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
 import {MailView} from "./MailView"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {assertMainOrNode} from "../api/Env"
 import {
@@ -34,7 +35,6 @@ import {MonitorService} from "../api/entities/monitor/Services"
 import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
-import type {Mail} from "../api/entities/tutanota/Mail"
 import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
@@ -84,12 +84,11 @@ export class MailListView implements Component {
 				],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))],
 				swipeLeft: (listElement: Mail) => showDeleteConfirmationDialog([listElement]).then((confirmed) => {
-					if (confirmed === true) {
+					if (confirmed) {
 						this.list.selectNone()
 						locator.mailModel.deleteMails([listElement])
-					} else {
-						return Promise.resolve()
 					}
+					return Promise.resolve(confirmed)
 				}),
 				swipeRight: (listElement: Mail) => {
 					if (!logins.isInternalUserLoggedIn()) {
@@ -97,11 +96,11 @@ export class MailListView implements Component {
 					} else if (this.targetInbox()) {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						                .then((folders) => locator.mailModel.moveMails([listElement], getInboxFolder(folders)))
+						              .then((folders) => locator.mailModel.moveMails([listElement], getInboxFolder(folders)))
 					} else {
 						this.list.selectNone()
 						return locator.mailModel.getMailboxFolders(listElement)
-						                .then((folders) => locator.mailModel.moveMails([listElement], getArchiveFolder(folders)))
+						              .then((folders) => locator.mailModel.moveMails([listElement], getArchiveFolder(folders)))
 					}
 				},
 				enabled: true

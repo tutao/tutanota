@@ -94,9 +94,11 @@ type SwipeConfiguration<T> = {
 
 	renderRightSpacer(): Children;
 
-	swipeLeft(listElement: T): Promise<void>;
+	// result value indicates whether to commit to the result of the swipe
+	// true and undefined both indicate commiting, false means to not commit - maybe we should change to just boolean and update all the callsites
+	swipeLeft(listElement: T): Promise<boolean | void>;
 
-	swipeRight(listElement: T): Promise<void>;
+	swipeRight(listElement: T): Promise<boolean | void>;
 
 	enabled: boolean;
 
