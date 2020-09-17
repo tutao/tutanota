@@ -98,8 +98,8 @@ export class _TextField {
 				]),
 			]),
 			a.helpLabel ? m("small.noselect.click", {
-				onclick: () => {
-					if (this._domInput) this._domInput.focus()
+				onclick: (e) => {
+					e.stopPropagation()
 				}
 			}, a.helpLabel()) : []
 		])
