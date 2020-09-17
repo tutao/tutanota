@@ -2,14 +2,22 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import type {ListElement} from "../api/common/EntityFunctions"
-import {GENERATED_MAX_ID, isSameId, isSameTypeRef, sortCompareByReverseId, TypeRef} from "../api/common/EntityFunctions"
+import {
+	elementIdPart,
+	GENERATED_MAX_ID,
+	isSameId,
+	isSameTypeRef,
+	listIdPart,
+	sortCompareByReverseId,
+	TypeRef
+} from "../api/common/EntityFunctions"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {size} from "../gui/size"
 import {MailRow} from "../mail/MailListView"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {erase, load} from "../api/main/Entity"
+import {erase, load, loadMultiple} from "../api/main/Entity"
 import {ContactRow} from "../contacts/ContactListView"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
@@ -24,6 +32,7 @@ import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailUtils"
 import {Dialog} from "../gui/base/Dialog"
+import {flat, groupBy} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -234,20 +243,29 @@ export class SearchListView {
 
 	_loadAndFilterInstances<T: ListElement>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
 	                                        startIndex: number): Promise<T[]> {
-		return Promise
-			.map(toLoad,
-				(id) => load(type, id).catch(NotFoundError, () => console.log("mail not found")),
-				{concurrency: 5})
-			.then(sr =>
-				// Filter not found instances from this load result
-				sr.filter((r, index) => {
-					if (!r) {
-						// Filter not found instances from the current result as well so we don’t loop forever trying to load them
-						currentResult.results.splice(startIndex + index, 1)
-					}
-					return r
-				})
-			)
+
+		const grouped = groupBy(toLoad, listIdPart)
+		return Promise.map(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)), {concurrency: 1})
+		              .then(flat)
+		              .then((loaded) => {
+			              // Filter not found instances from the current result as well so we don’t loop trying to load them
+			              if (loaded.length < toLoad.length) {
+				              const resultLength = currentResult.results.length
+				              console.log(`Could not load some results: ${loaded.length} out of ${toLoad.length}`)
+				              // loop backwards to remove correct elements by index
+				              for (let i = toLoad.length - 1; i >= 0; i--) {
+					              const toLoadId = toLoad[i]
+					              if (loaded.find((l) => isSameId(l._id, toLoadId)) == null) {
+						              currentResult.results.splice(startIndex + i, 1)
+						              if (loaded.length === toLoad.length) {
+							              break
+						              }
+					              }
+				              }
+				              console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
+			              }
+			              return loaded
+		              })
 	}
 
 	isEntitySelected(id: Id): boolean {
