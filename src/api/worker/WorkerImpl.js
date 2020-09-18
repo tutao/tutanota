@@ -7,7 +7,7 @@ import {ProgrammingError} from "../common/error/ProgrammingError"
 import {initLocator, locator, resetLocator} from "./WorkerLocator"
 import {_service} from "./rest/ServiceRestClient"
 import {random} from "./crypto/Randomizer"
-import {assertWorkerOrNode} from "../Env"
+import {assertWorkerOrNode, isMainOrNode} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
@@ -338,11 +338,13 @@ export class WorkerImpl {
 			},
 		})
 
-		Promise.onPossiblyUnhandledRejection(e => {
-			this.sendError(e)
-		})
+		// only register oncaught error handler if we are in the *real* worker scope
+		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
+		if (workerScope && !isMainOrNode()) {
+			Promise.onPossiblyUnhandledRejection(e => {
+				this.sendError(e)
+			})
 
-		if (workerScope) {
 			workerScope.onerror = (e: string | Event, source, lineno, colno, error) => {
 				console.error("workerImpl.onerror", e, source, lineno, colno, error)
 				if (error instanceof Error) {

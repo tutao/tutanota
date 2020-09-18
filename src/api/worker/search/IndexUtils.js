@@ -13,7 +13,13 @@ import type {
 	SearchIndexMetaDataRow
 } from "./SearchTypes"
 import {GroupType} from "../../common/TutanotaConstants"
-import {calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers} from "./SearchIndexEncoding"
+import {
+	calculateNeededSpaceForNumber,
+	calculateNeededSpaceForNumbers,
+	decodeNumberBlock,
+	decodeNumbers,
+	encodeNumbers
+} from "./SearchIndexEncoding"
 import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
 import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
 import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
@@ -92,7 +98,13 @@ export function decryptMetaData(key: Aes256Key, encryptedMeta: SearchIndexMetaDa
 	const numbers = decodeNumbers(numbersBlock)
 	const rows = []
 	for (let i = 0; i < numbers.length; i += metaEntryFieldsNumber) {
-		rows.push({app: numbers[i], type: numbers[i + 1], key: numbers[i + 2], size: numbers[i + 3], oldestElementTimestamp: numbers[i + 4]})
+		rows.push({
+			app: numbers[i],
+			type: numbers[i + 1],
+			key: numbers[i + 2],
+			size: numbers[i + 3],
+			oldestElementTimestamp: numbers[i + 4]
+		})
 	}
 	return {id: encryptedMeta.id, word: encryptedMeta.word, rows}
 }

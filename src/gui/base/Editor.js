@@ -30,6 +30,7 @@ export class Editor implements ImageHandler {
 	_active: boolean;
 	_minHeight: ?number;
 	_sanitizer: SanitizerFn;
+	// _tutanotaProperties: TutanotaProperties;
 	_styleActions: {[Style]: Array<Function>};
 	styles: Styles = {
 		b: false,
@@ -42,10 +43,12 @@ export class Editor implements ImageHandler {
 	};
 
 	constructor(minHeight: ?number, sanitizer: SanitizerFn) {
+
 		this._enabled = true
 		this._active = false
 		this._minHeight = minHeight
 		this._sanitizer = sanitizer
+		//this._tutanotaProperties = tutanotaProperties
 		this.initialized = defer()
 		this.onbeforeupdate = () => !(this._squire != null)  // do not update the dom part managed by squire
 		this.onremove = () => {
@@ -98,6 +101,8 @@ export class Editor implements ImageHandler {
 				sanitizeToDOMFragment: this._sanitizer,
 			})
 			.addEventListener('keyup', (e) => {
+				// Resolve logins.getUserController dependenciy and uncomment block
+				// if (!this._tutanotaProperties.sendPlaintextOnly) {
 				if (e.which === 32) {
 					let blocks = []
 					squire.forEachBlock((block) => {
@@ -106,6 +111,7 @@ export class Editor implements ImageHandler {
 					createList(blocks, /^1\.\s$/, true) // create an ordered list if a line is started with '1. '
 					createList(blocks, /^\*\s$/, false) // create an ordered list if a line is started with '1. '
 				}
+				// }
 			})
 
 		this._squire = squire

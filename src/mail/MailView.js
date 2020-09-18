@@ -24,7 +24,6 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {lazyMemoized, neverNull, noOp} from "../api/common/utils/Utils"
 import {MailListView} from "./MailListView"
-import {MailEditor, newMail} from "./MailEditor"
 import {assertMainOrNode, isApp} from "../api/Env"
 import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
@@ -65,6 +64,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
+import {newMailEditor, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
 
 assertMainOrNode()
 
@@ -513,14 +513,12 @@ export class MailView implements CurrentView {
 				let url = location.hash.substring(5)
 				let decodedUrl = decodeURIComponent(url)
 				locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-					let editor: MailEditor = new MailEditor(mailboxDetails)
-					editor.initWithMailtoUrl(decodedUrl, false)
-					editor.show()
+					newMailtoUrlMailEditor(decodedUrl, false, mailboxDetails).then(editor => editor.show())
 					history.pushState("", document.title, window.location.pathname) // remove # from url
 				})
 			}
 		} else if (args.action === 'supportMail' && logins.isGlobalAdminUserLoggedIn()) {
-			MailEditor.writeSupportMail()
+			writeSupportMail()
 		}
 
 		if (isApp()) {
@@ -674,8 +672,8 @@ export class MailView implements CurrentView {
 		])
 	}
 
-	_newMail(): Promise<MailEditor> {
-		return this._getMailboxDetails().then(newMail)
+	_newMail(): Promise<Dialog> {
+		return this._getMailboxDetails().then(mailboxDetails => newMailEditor(mailboxDetails)).then(dialog => dialog.show())
 	}
 
 	_getMailboxDetails(): Promise<MailboxDetail> {

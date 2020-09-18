@@ -12,9 +12,9 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {assertMainOrNode} from "../api/Env"
 import {faq} from "./FaqModel"
-import {MailEditor} from "../mail/MailEditor"
 import {Keys} from "../api/common/TutanotaConstants"
 import {debounce} from "../api/common/utils/Utils"
+import {writeSupportMail} from "../mail/MailEditorN"
 
 assertMainOrNode()
 
@@ -51,7 +51,7 @@ export function showSupportDialog() {
 		label: "contactSupport_action",
 		type: ButtonType.Login,
 		click: () => {
-			MailEditor.writeSupportMail(searchValue().trim())
+			writeSupportMail(searchValue().trim())
 			closeAction()
 		}
 	}

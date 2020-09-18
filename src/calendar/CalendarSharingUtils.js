@@ -1,6 +1,6 @@
 //@flow
-import type {Recipients} from "../mail/MailEditor"
-import {MailEditor} from "../mail/MailEditor"
+import type {Recipients} from "../mail/SendMailModel"
+import {defaultSendMailModel} from "../mail/SendMailModel"
 import {getDefaultSender, getEnabledMailAddresses} from "../mail/MailUtils"
 import {getCalendarName} from "./CalendarUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -16,6 +16,8 @@ import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 import {locator} from "../api/main/MainLocator"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {logins} from "../api/main/LoginController"
+import {MailMethod} from "../api/common/TutanotaConstants"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -59,14 +61,16 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation)
 function _sendNotificationEmail(recipients: Recipients, subject: TranslationKey, body: TranslationKey, senderMailAddress: string,
                                 replacements: {[string]: string}) {
 	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-		const editor: MailEditor = new MailEditor(mailboxDetails)
 		const sender = getEnabledMailAddresses(mailboxDetails).includes(senderMailAddress)
 			? senderMailAddress
 			: getDefaultSender(logins, mailboxDetails)
 		const subjectString = lang.get(subject)
 		const bodyString = lang.get(body, replacements)
-		editor.initWithTemplate(recipients, subjectString, bodyString, true, sender)
-		editor.send(false, "tooManyMailsAuto_msg")
+		const confirm = _ => Promise.resolve(true)
+		const wait = showProgressDialog
+		defaultSendMailModel(mailboxDetails)
+			.initWithTemplate(recipients, subjectString, bodyString, [], true, sender)
+			.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
 	})
 
 }

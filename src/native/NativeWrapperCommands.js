@@ -3,13 +3,12 @@ import {Request} from "../api/common/WorkerProtocol"
 import {getMimeType, getName, getSize} from "./FileApp"
 import {asyncImport} from "../api/common/utils/Utils"
 import {CloseEventBusOption, SECOND_MS} from "../api/common/TutanotaConstants"
-import type {MailEditor} from "../mail/MailEditor"
 import {nativeApp} from "./NativeWrapper"
 
 const createMailEditor = (msg: Request) => {
 	return Promise.all([
 		_asyncImport('src/api/main/MainLocator.js'),
-		_asyncImport('src/mail/MailEditor.js'),
+		_asyncImport('src/mail/MailEditorN.js'),
 		_asyncImport('src/mail/MailUtils.js'),
 		_asyncImport('src/api/main/LoginController.js')
 	]).spread((mainLocatorModule, mailEditorModule, mailUtilsModule, {logins}) => {
@@ -19,23 +18,19 @@ const createMailEditor = (msg: Request) => {
 			             mailToUrl ? [] : getFilesData(filesUris),
 			             mainLocatorModule.locator.mailModel.getUserMailboxDetails(),
 			             (files, mailboxDetails) => {
-				             const editor: MailEditor = new mailEditorModule.MailEditor(mailboxDetails)
-				             let editorInit
-				             if (mailToUrl) {
-					             editorInit = editor.initWithMailtoUrl(mailToUrl, false)
-				             } else {
-					             const address = addresses ? addresses.shift() : ""
-					             const recipients = address ? {to: [{name: "", address: address}]} : {}
-					             const finalSubject = subject || (files.length > 0 ? files[0].name : "")
-					             editorInit = editor.initWithTemplate(recipients, finalSubject,
-						             (text || "") + mailUtilsModule.getEmailSignature(), null)
-				             }
-				             return editorInit.then(() => {
-					             editor.attachFiles(files)
-					             editor.show()
-				             })
-			             }
-			             )
+				             const address = addresses && addresses[0] || ""
+				             const recipients = address ? {to: [{name: "", address: address}]} : {}
+				             const editorPromise = mailToUrl
+					             ? mailEditorModule.newMailtoUrlMailEditor(mailToUrl, false, mailboxDetails, files)
+					             : mailEditorModule.newMailEditorFromTemplate(
+						             mailboxDetails,
+						             recipients,
+						             subject || (files.length > 0 ? files[0].name : ""),
+						             (text || "") + mailUtilsModule.getEmailSignature(),
+						             files
+					             )
+				             return editorPromise.then(editor => editor.show())
+			             })
 		             )
 	})
 }

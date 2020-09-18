@@ -12,6 +12,8 @@ const EXTERNAL_CONTENT_ATTRS = ['src', 'poster', 'srcset', 'background'] // back
 
 type SanitizeConfig = {allowRelativeLinks?: boolean} & SanitizeConfigBase
 
+type SanitizedHTML = {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>}
+
 class HtmlSanitizer {
 
 	_blockExternalContent: boolean
@@ -71,7 +73,7 @@ class HtmlSanitizer {
 	 * @returns {{html: (DocumentFragment|HTMLElement|string), externalContent: string[]}}
 	 */
 	sanitizeFragment(html: string, blockExternalContent: boolean, allowRelativeLinks: boolean = false
-	): {html: DocumentFragment, externalContent: Array<string>, inlineImageCids: Array<string>, links: Array<string>} {
+	): SanitizedHTML {
 		const config: SanitizeConfigBase & {RETURN_DOM_FRAGMENT: true} =
 			Object.assign({}, this._prepareSanitize(html, blockExternalContent, allowRelativeLinks), {RETURN_DOM_FRAGMENT: true})
 		return {

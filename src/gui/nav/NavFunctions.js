@@ -19,8 +19,8 @@ export function showSupportDialog() {
 }
 
 export function writeInviteMail() {
-	_asyncImport("src/mail/MailEditor.js")
-		.then(mailEditorModule => mailEditorModule.MailEditor.writeInviteMail())
+	_asyncImport("src/mail/MailEditorN.js")
+		.then(mailEditorModule => mailEditorModule.writeInviteMail())
 }
 
 function _asyncImport(path: string) {

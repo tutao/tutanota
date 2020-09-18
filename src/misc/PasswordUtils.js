@@ -1,7 +1,16 @@
 //@flow
 import {assertMainOrNode} from "../api/Env"
+import type {RecipientInfo} from "../api/common/RecipientInfo"
+import type {MailboxDetail} from "../mail/MailModel"
+import {getEnabledMailAddressesWithUser, getMailboxName} from "../mail/MailUtils"
+import type {LoginController} from "../api/main/LoginController"
+import {logins as globalLogins} from "../api/main/LoginController"
 
 assertMainOrNode()
+
+export const PASSWORD_MAX_VALUE = 100
+export const PASSWORD_MIN_VALUE = 0
+export const PASSWORD_MIN_SECURE_VALUE = 80
 
 export const _BAD_SEQUENCES = [
 	"^1234567890ß´", "°!\"§$%&/()=?`", "qwertzuiopü+", "QWERTZUIOPÜ*", "asdfghjklöä#", "ASDFGHJKLÖÄ'", "<yxcvbnm,.-",
@@ -66,7 +75,25 @@ export function getPasswordStrength(password: string, badStrings: string[]) {
 	strength -= nbrOfSequenceDigits * 4
 	strength -= nbrOfBadStringDigits * 4
 
-	return Math.min(100, Math.max(0, Math.round(strength)))
+	return Math.min(PASSWORD_MAX_VALUE, Math.max(PASSWORD_MIN_VALUE, Math.round(strength)))
+}
+
+export function getPasswordStrengthForUser(password: string, recipientInfo: RecipientInfo, mailboxDetails: MailboxDetail, logins: LoginController = globalLogins): number {
+	let reserved = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).concat(
+		getMailboxName(logins, mailboxDetails),
+		recipientInfo.mailAddress,
+		recipientInfo.name
+	)
+	return Math.min(PASSWORD_MAX_VALUE, getPasswordStrength(password, reserved))
+}
+
+export function scaleToVisualPasswordStrength(passwordStrength: number): number {
+	const scale = PASSWORD_MIN_SECURE_VALUE / 100
+	return Math.min(PASSWORD_MAX_VALUE, (passwordStrength / scale))
+}
+
+export function isSecurePassword(passwordStrength: number): boolean {
+	return passwordStrength >= PASSWORD_MIN_SECURE_VALUE
 }
 
 /**

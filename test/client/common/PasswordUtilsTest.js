@@ -1,12 +1,20 @@
 //@flow
 import o from "ospec/ospec.js"
-import {getPasswordStrength, _BAD_SEQUENCES, _getNbrOfSequenceChars} from "../../../src/misc/PasswordUtils"
+import {
+	_BAD_SEQUENCES,
+	_getNbrOfSequenceChars,
+	getPasswordStrength,
+	isSecurePassword,
+	scaleToVisualPasswordStrength
+} from "../../../src/misc/PasswordUtils"
 
 o.spec("PasswordUtilsTest", function () {
 	function checkStrength(pw, min, max) {
 //		console.log(pw, min, max, getPasswordStrength(pw));
-		o(min <= getPasswordStrength(pw, [])).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is smaller than expected " + min)
-		o(getPasswordStrength(pw, []) <= max).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is bigger than expected " + max)
+		o(min <= getPasswordStrength(pw, [])).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, [])
+			+ " is smaller than expected " + min)
+		o(getPasswordStrength(pw, []) <= max).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, [])
+			+ " is bigger than expected " + max)
 	}
 
 	o("password strength", function () {
@@ -52,6 +60,23 @@ o.spec("PasswordUtilsTest", function () {
 		o(_getNbrOfSequenceChars("r56b", _BAD_SEQUENCES, true)).equals(0)  // two digit sequence is not found
 		o(_getNbrOfSequenceChars("tzuio54", _BAD_SEQUENCES, true)).equals(5)  // sequence at the beginning
 		o(_getNbrOfSequenceChars("54tzuio", _BAD_SEQUENCES, true)).equals(5)  // sequence at the end
+	});
+
+
+	o("scalueToVisualPasswordStrength", function () {
+		o(scaleToVisualPasswordStrength(0)).equals(0)  // german keyboard
+		o(scaleToVisualPasswordStrength(10)).equals(12.5)  // german keyboard
+		o(scaleToVisualPasswordStrength(79)).equals(98.75)  // german keyboard
+		o(scaleToVisualPasswordStrength(80)).equals(100)  // german keyboard
+		o(scaleToVisualPasswordStrength(100)).equals(100)  // german keyboard
+	});
+
+	o("isSecure", function () {
+		o(isSecurePassword(0)).equals(false)  // german keyboard
+		o(isSecurePassword(10)).equals(false)  // german keyboard
+		o(isSecurePassword(79)).equals(false)  // german keyboard
+		o(isSecurePassword(80)).equals(true)  // german keyboard
+		o(isSecurePassword(100)).equals(true)  // german keyboard
 	});
 
 })

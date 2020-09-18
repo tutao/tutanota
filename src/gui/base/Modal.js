@@ -7,6 +7,7 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
 import {windowFacade} from "../../misc/WindowFacade"
+import {remove} from "../../api/common/utils/ArrayUtils"
 
 assertMainOrNodeBoot()
 
@@ -17,12 +18,14 @@ class Modal {
 	view: Function;
 	visible: boolean;
 	currentKey: number;
+	_closingComponents: Array<ModalComponent>
 
 	constructor() {
 		this.currentKey = 0
 		this.components = []
 		this.visible = false
 		this._uniqueComponent = null
+		this._closingComponents = []
 
 		// modal should never get removed, so not saving unsubscriber
 		windowFacade.addHistoryEventListener(e => this._popState(e))
@@ -52,16 +55,20 @@ class Modal {
 							},
 							onbeforeremove: vnode => {
 								if (wrapper.needsBg) {
+									this._closingComponents.push(wrapper.component)
 									return Promise.all([
 										this.addAnimation(vnode.dom, false).then(() => {
-											if (this.components.length === 0) {
+											remove(this._closingComponents, wrapper.component)
+											if (this.components.length === 0 && this._closingComponents.length === 0) {
 												this.visible = false
 											}
 										}),
 										wrapper.component.hideAnimation()
-									]).then(() => m.redraw())
+									]).then(() => {
+										m.redraw()
+									})
 								} else {
-									if (this.components.length === 0) {
+									if (this.components.length === 0 && this._closingComponents.length === 0) {
 										this.visible = false
 									}
 									return wrapper.component.hideAnimation()

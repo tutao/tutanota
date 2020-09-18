@@ -25,7 +25,7 @@ import {isAllDayEvent, isAllDayEventByTimes} from "../api/common/utils/CommonCal
 import {Notifications} from "../gui/Notifications"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
-import {worker, WorkerClient} from "../api/main/WorkerClient"
+import {WorkerClient} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
 import {_eraseEntity, _loadEntity, elementIdPart, getElementId, HttpMethod, isSameId, listIdPart} from "../api/common/EntityFunctions"
 import {erase, load, loadAll, loadMultipleList, serviceRequestVoid} from "../api/main/Entity"
@@ -59,7 +59,6 @@ import {SysService} from "../api/entities/sys/Services"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
-import {module as replaced} from "@hot"
 import {ParserError} from "../misc/parsing"
 
 
@@ -712,9 +711,8 @@ function repeatRulesEqual(repeatRule: ?CalendarRepeatRule, repeatRule2: ?Calenda
 			repeatRule.timeZone === repeatRule2.timeZone)
 }
 
-export const calendarModel = new CalendarModelImpl(new Notifications, locator.eventController, worker, logins)
 
-if (replaced) {
-	Object.assign(calendarModel, replaced.calendarModel)
-}
+// if (replaced) {
+// 	Object.assign(calendarModel, replaced.calendarModel)
+// }
 

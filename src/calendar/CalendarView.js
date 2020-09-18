@@ -27,7 +27,8 @@ import {
 	getCalendarName,
 	getCapabilityText,
 	getEventStart,
-	getMonth, getNextHalfHour,
+	getMonth,
+	getNextHalfHour,
 	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeZone,
@@ -39,7 +40,7 @@ import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import {worker} from "../api/main/WorkerClient"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent, calendarModel} from "./CalendarModel"
+import {addDaysForEvent, addDaysForLongEvent, addDaysForRecurringEvent} from "./CalendarModel"
 import {findAllAndRemove, findAndRemove} from "../api/common/utils/ArrayUtils"
 import {formatDateWithWeekday, formatMonthWithFullYear} from "../misc/Formatter"
 import {NavButtonN} from "../gui/base/NavButtonN"
@@ -253,7 +254,7 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 		// load all calendars. if there is no calendar yet, create one
-		this._calendarInfos = calendarModel.loadOrCreateCalendarInfo().tap(m.redraw)
+		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo().tap(m.redraw)
 
 		this._calendarInvitations = []
 		this._updateCalendarInvitations()
@@ -852,7 +853,7 @@ export class CalendarView implements CurrentView {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
-								this._calendarInfos = calendarModel.loadCalendarInfos()
+								this._calendarInfos = locator.calendarModel.loadCalendarInfos()
 								return this._calendarInfos.then(() => {
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)

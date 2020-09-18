@@ -41,7 +41,6 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {formatPrice} from "../subscription/SubscriptionUtils"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
-import {calendarModel} from "../calendar/CalendarModel"
 import {getHourCycle} from "../misc/Formatter"
 
 assertMainOrNode()
@@ -257,7 +256,7 @@ export class LoginViewController implements ILoginViewController {
 			})
 			.then(() => {
 				if (!isAdminClient()) {
-					return calendarModel.init()
+					return locator.calendarModel.init()
 				}
 			}).then(() => {
 			lang.updateFormats({

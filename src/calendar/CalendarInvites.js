@@ -4,7 +4,6 @@ import {worker} from "../api/main/WorkerClient"
 import {showCalendarEventDialog} from "./CalendarEventEditDialog"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
-import {calendarModel} from "./CalendarModel"
 import {locator} from "../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import type {CalendarAttendeeStatusEnum, CalendarMethodEnum} from "../api/common/TutanotaConstants"
@@ -36,7 +35,7 @@ function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event
 
 export function showEventDetails(event: CalendarEvent, mail: ?Mail) {
 	return Promise.all([
-		calendarModel.loadOrCreateCalendarInfo(),
+		locator.calendarModel.loadOrCreateCalendarInfo(),
 		locator.mailModel.getUserMailboxDetails(),
 		getLatestEvent(event)
 	]).then(([calendarInfo, mailboxDetails, latestEvent]) => {
@@ -64,7 +63,7 @@ export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 				// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
 				// the invite. Then accepting first invite and then opening update should give us updated version.
 				if (filterInt(existingEvent.sequence) < filterInt(event.sequence)) {
-					return calendarModel.updateEventWithExternal(existingEvent, event)
+					return locator.calendarModel.updateEventWithExternal(existingEvent, event)
 				} else {
 					return existingEvent
 				}
@@ -91,10 +90,10 @@ export function replyToEventInvitation(
 	foundAttendee.status = decision
 
 	return Promise.all([
-		calendarModel.loadOrCreateCalendarInfo().then(findPrivateCalendar),
+		locator.calendarModel.loadOrCreateCalendarInfo().then(findPrivateCalendar),
 		locator.mailModel.getMailboxDetailsForMail(previousMail)
 	]).then(([calendar, mailboxDetails]) => {
-		const sendMailModel = new SendMailModel(logins, locator.mailModel, locator.contactModel, locator.eventController, mailboxDetails)
+		const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 		return calendarUpdateDistributor
 			.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
 			.catch(UserError, (e) => Dialog.error(() => e.message))
@@ -102,15 +101,15 @@ export function replyToEventInvitation(
 				if (calendar) {
 					// if the owner group is set there is an existing event already so just update
 					if (event._ownerGroup) {
-						return calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user)
-						                    .then((alarms) => {
+						return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user)
+						              .then((alarms) => {
 								                    const alarmInfos = alarms.map((a) => a.alarmInfo)
-								                    return calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
-								                                        .return()
+								              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
+								                            .return()
 							                    }
 						                    )
 					} else {
-						return calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+						return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
 					}
 				} else {
 					return Promise.resolve()

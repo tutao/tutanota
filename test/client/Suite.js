@@ -25,7 +25,7 @@ import "./search/PlainTextSearchTest"
 import "./gui/base/WizardDialogNTest"
 import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
-
+import "./mail/SendMailModelTest"
 import o from "ospec/ospec.js"
 
 node(() => {
@@ -47,7 +47,6 @@ node(() => {
 	require("./desktop/DesktopCryptoFacadeTest.js")
 	require("./desktop/DesktopContextMenuTest.js")
 })()
-
 o.run()
 
 

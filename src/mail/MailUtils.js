@@ -1,14 +1,14 @@
 // @flow
-import m from "mithril"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {isTutanotaMailAddress, RecipientInfoType} from "../api/common/RecipientInfo"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
+import type {ConversationTypeEnum, MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ContactAddressType,
+	ConversationType,
 	EmailSignatureType as TutanotaConstants,
 	getMailFolderType,
 	GroupType,
@@ -17,6 +17,7 @@ import {
 } from "../api/common/TutanotaConstants"
 import {
 	assertNotNull,
+	downcast,
 	getEnabledMailAddressesForGroupInfo,
 	getGroupInfoDisplayName,
 	getMailBodyText,
@@ -28,8 +29,9 @@ import {load, update} from "../api/main/Entity"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {contains} from "../api/common/utils/ArrayUtils"
 import type {LoginController} from "../api/main/LoginController"
-import {logins} from "../api/main/LoginController"
+import {logins as globalLogins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
 import type {MailboxDetail, MailModel} from "./MailModel"
@@ -55,6 +57,10 @@ import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMail
 import {fileController} from "../file/FileController"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {EntityClient} from "../api/common/EntityClient"
+import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
+import {client} from "../misc/ClientDetector"
+import {getTimeZone} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
@@ -79,7 +85,20 @@ export function createRecipientInfo(mailAddress: string, name: ?string, contact:
 	}
 }
 
-export function resolveRecipientInfoContact(recipientInfo: RecipientInfo, contactModel: ContactModel, user: User): Promise<?Contact> {
+export function bodyTextWithSignature(body: string): string {
+	let withSignature = "<br/><br/><br/>" + body
+	let signature = getEmailSignature(globalLogins)
+	if (globalLogins.getUserController().isInternalUser() && signature) {
+		withSignature = signature + withSignature
+	}
+	return withSignature
+}
+
+/**
+ * Resolves the existing contact for the recipient info if it has not contact. Creates a new contact if no contact has been found.
+ * Caller can either wait until promise is resolved or read the stored promise on the recipient info.
+ */
+export function resolveRecipientInfoContact(recipientInfo: RecipientInfo, contactModel: ContactModel, user: User): Promise<Contact> {
 	if (!recipientInfo.contact) {
 		const p = contactModel.searchForContact(recipientInfo.mailAddress).then(contact => {
 			if (contact) {
@@ -91,13 +110,11 @@ export function resolveRecipientInfoContact(recipientInfo: RecipientInfo, contac
 				recipientInfo.contact = createNewContact(user, recipientInfo.mailAddress, recipientInfo.name)
 			}
 			recipientInfo.resolveContactPromise = null
-			m.redraw()
 			return recipientInfo.contact
 		}).catch(e => {
 			console.log("error resolving contact", e)
 			recipientInfo.contact = createNewContact(user, recipientInfo.mailAddress, recipientInfo.name)
 			recipientInfo.resolveContactPromise = null
-			m.redraw()
 			return recipientInfo.contact
 		})
 		recipientInfo.resolveContactPromise = p
@@ -206,7 +223,6 @@ export function getDefaultSignature() {
 	return "<br><br>"
 		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": lang.getInfoLink("homePage_link")}), true).text;
 }
-
 
 export function parseMailtoUrl(mailtoUrl: string): {to: MailAddress[], cc: MailAddress[], bcc: MailAddress[], subject: string, body: string} {
 	let url = new URL(mailtoUrl)
@@ -370,7 +386,7 @@ export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
  * @deprecated Avoid grabbing singleton dependencies, use {@link getEnabledMailAddressesWithUser} instead to explicitly show dependencies.
  */
 export function getEnabledMailAddresses(mailboxDetails: MailboxDetail): string[] {
-	return getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo)
+	return getEnabledMailAddressesWithUser(mailboxDetails, globalLogins.getUserController().userGroupInfo)
 }
 
 export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
@@ -382,7 +398,7 @@ export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, us
 }
 
 export function isUserMailbox(mailboxDetails: MailboxDetail) {
-	return mailboxDetails.mailGroup.user != null
+	return mailboxDetails.mailGroup && mailboxDetails.mailGroup.user
 }
 
 
@@ -422,7 +438,7 @@ export function showDeleteConfirmationDialog(mails: Mail[]): Promise<boolean> {
 
 /** @deprecated use {@link getSenderNameForUser} instead */
 export function getSenderName(mailboxDetails: MailboxDetail): string {
-	return getSenderNameForUser(mailboxDetails, logins.getUserController())
+	return getSenderNameForUser(mailboxDetails, globalLogins.getUserController())
 }
 
 export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: IUserController): string {
@@ -434,7 +450,7 @@ export function getSenderNameForUser(mailboxDetails: MailboxDetail, userControll
 	}
 }
 
-export function getEmailSignature(): string {
+export function getEmailSignature(logins: LoginController = globalLogins): string {
 	// provide the user signature, even for shared mail groups
 	const type = logins.getUserController().props.emailSignatureType;
 	if (type === TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
@@ -577,4 +593,59 @@ export function markMails(mails: Mail[], unread: boolean): Promise<void> {
 
 export function copyMailAddress({address, name}: EncryptedMailAddress): EncryptedMailAddress {
 	return createEncryptedMailAddress({address, name})
+}
+
+export type InlineImageReference = {
+	cid: string;
+	objectUrl: string;
+}
+
+export function createInlineImage(file: FileReference | DataFile): InlineImageReference {
+	// Let'S assume it's DataFile for now... Editor bar is available for apps but image button is not
+	const dataFile: DataFile = downcast(file)
+	const cid = Math.random().toString(30).substring(2)
+	file.cid = cid
+	const blob = new Blob([dataFile.data], {type: file.mimeType})
+	const objectUrl = URL.createObjectURL(blob)
+	return {
+		cid: cid,
+		objectUrl: objectUrl
+	}
+}
+
+export function getTemplateLanguages(sortedLanguages: Array<Language>, entityClient: EntityClient, loginController: LoginController): Promise<Array<Language>> {
+	return loginController.getUserController().loadCustomer()
+	                      .then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+	                      .then((customerProperties) => {
+		                      return sortedLanguages.filter(sL =>
+			                      customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
+	                      })
+	                      .catch(() => [])
+}
+
+export function getSupportMailSignature(): string {
+	return "<br><br>--"
+		+ `<br>Client: ${client.getIdentifier()}`
+		+ `<br>Tutanota version: ${env.versionNumber}`
+		+ `<br>Time zone: ${getTimeZone()}`
+		+ `<br>User agent:<br> ${navigator.userAgent}`
+}
+
+export function conversationTypeString(conversationType: ConversationTypeEnum): string {
+	let key
+	switch (conversationType) {
+		case ConversationType.NEW:
+			key = "newMail_action"
+			break
+		case ConversationType.REPLY:
+			key = "reply_action"
+			break
+		case ConversationType.FORWARD:
+			key = "forward_action"
+			break
+		default:
+			key = "emptyString_msg"
+	}
+
+	return lang.get(key)
 }

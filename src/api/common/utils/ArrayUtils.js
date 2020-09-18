@@ -1,4 +1,3 @@
-
 //@flow
 
 import {identity, neverNull} from "./Utils"
@@ -243,4 +242,15 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 		zipped.push([arr1[i], arr2[i]])
 	}
 	return zipped
+}
+
+export function deduplicate<T>(arr: Array<T>, comp: (T, T) => boolean = (a, b) => a === b): Array<T> {
+	const deduplicated = []
+	arr.forEach(a => {
+		const isDuplicate = deduplicated.some(b => comp(a, b))
+		if (!isDuplicate) {
+			deduplicated.push(a)
+		}
+	})
+	return deduplicated
 }

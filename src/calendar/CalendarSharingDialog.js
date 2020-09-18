@@ -11,7 +11,7 @@ import {downcast, neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {lang} from "../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../gui/base/BubbleTextField"
-import {MailAddressBubbleHandler} from "../misc/MailAddressBubbleHandler"
+import {RecipientInfoBubbleHandler} from "../misc/RecipientInfoBubbleHandler"
 import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../mail/MailUtils"
 import {attachDropdown} from "../gui/base/DropdownN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -226,7 +226,7 @@ class CalendarSharingDialogContent implements MComponent<CalendarSharingDialogAt
 }
 
 function showAddParticipantDialog(sharedGroupInfo: GroupInfo) {
-	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new MailAddressBubbleHandler({
+	const invitePeopleValueTextField: BubbleTextField<RecipientInfo> = new BubbleTextField("shareWithEmailRecipient_label", new RecipientInfoBubbleHandler({
 		createBubble(name: ? string, mailAddress: string, contact: ? Contact): Bubble<RecipientInfo> {
 			let recipientInfo = createRecipientInfo(mailAddress, name, contact)
 			recipientInfo.resolveContactPromise =

@@ -56,3 +56,7 @@ export function repeat(value: string, length: number): string {
 	}
 	return result
 }
+
+export function cleanMatch(s1: string, s2: string): boolean {
+	return s1.toLowerCase().trim() === s2.toLowerCase().trim()
+}

@@ -2,7 +2,6 @@
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getDesktopLogs, getDeviceLogs} from "../native/SystemApp"
-import {MailEditor} from "../mail/MailEditor"
 import {LogoSvg} from "../gui/base/icons/Logo"
 import {theme} from "../gui/theme"
 import {isApp, isDesktop} from "../api/Env"
@@ -13,6 +12,7 @@ import {clientInfoString} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {isColorLight} from "../gui/Color"
 import {lang} from "../misc/LanguageViewModel"
+import {newMailEditorFromTemplate} from "../mail/MailEditorN"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -53,45 +53,44 @@ function aboutLink(href, text): Children {
 }
 
 function sendDeviceLogs() {
-	locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-		const editor = new MailEditor(mailboxDetails)
-		const timestamp = new Date()
-		let {message, type, client} = clientInfoString(timestamp, true)
-		message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
-		editor.initWithTemplate({}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, true)
-		const global = downcast(window)
-		let p = Promise.resolve()
-		if (global.logger) {
-			p = worker.getLog().then(workerLogEntries => {
-				const mainEntries = global.logger.getEntries()
-				editor.attachFiles([
-					createLogFile(timestamp.getTime(), mainEntries, "main"),
-					createLogFile(timestamp.getTime(), workerLogEntries, "worker")
-				])
-			})
-		}
 
-		if (isDesktop()) {
-			p = p.then(() => {
-				return getDesktopLogs()
-					.then((desktopEntries) => {
-						const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
-						editor.attachFiles([desktopLogFile])
-					})
-			})
-		}
+	const attachments = []
 
-		if (isApp()) {
-			p = p.then(() => {
-				getDeviceLogs()
-					.then((fileReference) => {
-						fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-						editor.attachFiles([fileReference])
-					})
-			})
-		}
-		p.then(() => {
-			editor.show()
+	const timestamp = new Date()
+
+	const global = downcast(window)
+	let p = Promise.resolve()
+	if (global.logger) {
+		p = worker.getLog().then(workerLogEntries => {
+			const mainEntries = global.logger.getEntries()
+			attachments.push(createLogFile(timestamp.getTime(), mainEntries, "main"))
+			attachments.push(createLogFile(timestamp.getTime(), workerLogEntries, "worker"))
 		})
-	})
+	}
+
+	if (isDesktop()) {
+		p = p.then(() => {
+			return getDesktopLogs()
+				.then((desktopEntries) => {
+					attachments.push(createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
+				})
+		})
+	}
+
+	if (isApp()) {
+		p = p.then(() => {
+			getDeviceLogs()
+				.then((fileReference) => {
+					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
+					attachments.push(fileReference)
+				})
+		})
+	}
+	p.then(_ => locator.mailModel.getUserMailboxDetails())
+	 .then((mailboxDetails) => {
+		 let {message, type, client} = clientInfoString(timestamp, true)
+		 message = message.split("\n").filter(Boolean).map((l) => `<div>${l}<br></div>`).join("")
+		 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
+	 })
+	 .then(editor => editor.show())
 }

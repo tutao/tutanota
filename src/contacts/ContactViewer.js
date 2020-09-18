@@ -17,7 +17,6 @@ import {keyManager} from "../misc/KeyManager"
 import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {NotFoundError} from "../api/common/error/RestError"
-import {MailEditor} from "../mail/MailEditor"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType, getContactSocialType, Keys} from "../api/common/TutanotaConstants"
 import {getEmailSignature} from "../mail/MailUtils"
@@ -25,6 +24,7 @@ import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {locator} from "../api/main/MainLocator"
+import {newMailEditorFromTemplate} from "../mail/MailEditorN"
 
 assertMainOrNode()
 
@@ -209,12 +209,9 @@ export class ContactViewer {
 
 	_writeMail(mailAddress: string): Promise<*> {
 		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-			const editor: MailEditor = new MailEditor(mailboxDetails)
 			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
-			return editor.initWithTemplate({to: [{name, address: mailAddress}]}, "", getEmailSignature(), null)
-			             .then(() => {
-				             editor.show()
-			             })
+			return newMailEditorFromTemplate(mailboxDetails, {to: [{name, address: mailAddress}]}, "", getEmailSignature())
+				.then(editor => editor.show())
 		})
 	}
 

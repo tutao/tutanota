@@ -15,6 +15,7 @@ import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailA
 import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
@@ -87,18 +88,18 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 					              previousMail: responseTo,
 					              conversationType: ConversationType.REPLY,
 					              senderMailAddress: sendAs,
-					              recipients: {to: [{name: organizer.name, address: organizer.address}]},
+					              toRecipients: [createMailAddress({address: organizer.address, name: organizer.name, contact: null})],
+					              ccRecipients: [],
+					              bccRecipients: [],
 					              attachments: [],
 					              bodyText: body,
 					              subject: message,
-					              addSignature: false,
-					              blockExternalContent: false,
 					              replyTos: [],
 				              })
 			              })
-			              .then(() => {
-				              sendMailModel.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
-				              return sendMailModel.send(body, MailMethod.ICAL_REPLY)
+			              .then(model => {
+				              model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
+				              return model.send(MailMethod.ICAL_REPLY)
 			              })
 			              .finally(() => this._sendEnd())
 		} else {
@@ -115,11 +116,12 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 		sender: string
 	}): Promise<void> {
 		const inviteFile = makeInvitationCalendarFile(event, mailMethodToCalendarMethod(method), new Date(), getTimeZone())
-		sendMailModel.selectSender(sender)
+		sendMailModel.setSender(sender)
 		sendMailModel.attachFiles([inviteFile])
 		sendMailModel.setSubject(subject)
+		sendMailModel.setBody(body)
 		this._sendStart()
-		return sendMailModel.send(body, method)
+		return sendMailModel.send(method)
 		                    .finally(() => this._sendEnd())
 	}
 

@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {TextField, Type} from "../gui/base/TextField"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
-import {getPasswordStrength} from "../misc/PasswordUtils"
+import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -95,7 +95,7 @@ export class PasswordForm {
 				.concat(logins.getUserController().userGroupInfo.name)
 		}
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
-		return Math.min(100, (getPasswordStrength(this._newPasswordField.value(), reserved) / 0.8 * 1))
+		return getPasswordStrength(this._newPasswordField.value(), reserved)
 	}
 
 	getErrorMessageId(): ?TranslationKey {
@@ -112,7 +112,7 @@ export class PasswordForm {
 	}
 
 	isPasswordUnsecure(): boolean {
-		return this._getPasswordStrength() < 100
+		return !isSecurePassword(this._getPasswordStrength())
 	}
 
 	/**

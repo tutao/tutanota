@@ -57,12 +57,12 @@ import {worker} from "../api/main/WorkerClient"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {PermissionError} from "../api/common/error/PermissionError"
-import {newMail} from "../mail/MailEditor"
 import {ContactEditor} from "../contacts/ContactEditor";
 import {LazyContactListId} from "../contacts/ContactUtils";
 import {styles} from "../gui/styles"
 import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
+import {newMailEditor} from "../mail/MailEditorN"
 
 assertMainOrNode()
 
@@ -252,7 +252,7 @@ export class SearchView implements CurrentView {
 			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(ButtonN, {
 					click: () => {
-						locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
 					},
 					label: "newMail_action",
 					type: ButtonType.Action,
@@ -404,7 +404,7 @@ export class SearchView implements CurrentView {
 				exec: () => {
 					const restriction = getRestriction(m.route.get()).type
 					if (isSameTypeRef(restriction, MailTypeRef)) {
-						locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
 						LazyContactListId.getAsync().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
@@ -549,7 +549,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
-					locator.mailModel.getUserMailboxDetails().then(newMail).catch(PermissionError, noOp)
+					locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
 				},
 				label: "newMail_action",
 			}
