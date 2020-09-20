@@ -28,7 +28,7 @@ contains most of the logic for server communication, encryption, indexing etc.
 
 ### Glossary
  * `SomethingView`: Big part of the app, corresponds to the URL, e.g. `mail`, `contact`, `settings`, `search`
- * `SomehingListView`: Component which displays things in the list, usually in the second column
+ * `SomethingListView`: Component which displays things in the list, usually in the second column
  * `SomethingViewer`: Component which usually displays one element (e.g. selected email or contact)
  * `SomethingModel`: Logic for some part of the app, lives in the main part
  * `SomethingController`: Something that does some bookkeeping or general action but is not tied to the specific part
