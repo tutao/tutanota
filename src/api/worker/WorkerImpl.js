@@ -410,6 +410,10 @@ export class WorkerImpl {
 		return this._queue.postMessage(new Request("updateWebSocketState", [state]))
 	}
 
+	updateEntityEventProgress(state: number): Promise<void> {
+		return this._queue.postMessage(new Request("updateEntityEventProgress", [state]))
+	}
+
 	updateCounter(update: WebsocketCounterData): Promise<void> {
 		return this._queue.postMessage(new Request("counterUpdate", [update]))
 	}

@@ -172,8 +172,8 @@ export class MailListView implements Component {
 					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
 				]),
-				m(".rel.flex-grow", m(this.list))
-			])
+			m(".rel.flex-grow", m(this.list))
+		])
 			: m(this.list)
 	}
 

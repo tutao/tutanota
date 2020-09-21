@@ -11,8 +11,11 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {PositionRect} from "../gui/base/Overlay"
 import {displayOverlay} from "../gui/base/Overlay"
+import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
+import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import type {ListElement} from "../api/common/EntityFunctions"
 import {getElementId, isSameTypeRef} from "../api/common/EntityFunctions"
@@ -22,10 +25,12 @@ import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
 import {compareContacts} from "../contacts/ContactUtils"
+import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 import {WhitelabelChildTypeRef} from "../api/entities/sys/WhitelabelChild"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector";
@@ -39,11 +44,6 @@ import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
-import type {Shortcut} from "../misc/KeyManager"
-import type {Mail} from "../api/entities/tutanota/Mail"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import type {WhitelabelChild} from "../api/entities/sys/WhitelabelChild"
 
 assertMainOrNode()
 
@@ -128,7 +128,7 @@ export class SearchBar implements Component {
 		let lastQueryStream
 		let shortcuts
 		this.view = (vnode: Vnode<SearchBarAttrs>): VirtualElement => {
-			return m(".flex.flex-no-grow" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
+			return m(".flex" + (vnode.attrs.classes || ""), {style: vnode.attrs.style}, [
 				m(".search-bar.flex-end.items-center" + landmarkAttrs(AriaLandmarks.Search), {
 					oncreate: (vnode) => {
 						this._domWrapper = vnode.dom

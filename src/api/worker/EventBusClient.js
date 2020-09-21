@@ -17,7 +17,7 @@ import {
 	SessionExpiredError
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
+import {downcast, identity, neverNull, ProgressMonitor, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
@@ -119,6 +119,11 @@ export class EventBusClient {
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this._serviceUnavailableRetry = null
 		this._worker.updateWebSocketState("connecting")
+		// Task for updating events are number of groups + 3. Use 2 as base for reconnect state and 1 for processing queued events.
+		const entityEventProgress = new ProgressMonitor(this._eventGroups().length + 3, (percentage) => {
+			if (reconnect) this._worker.updateEntityEventProgress(percentage)
+		})
+		entityEventProgress.workDone(2)
 		this._state = EventBusState.Automatic
 		this._connectTimer = null
 
@@ -137,7 +142,7 @@ export class EventBusClient {
 		this._socket.onopen = () => {
 			this._failedConnectionAttempts = 0
 			console.log("ws open: ", new Date(), "state:", this._state);
-			this._initEntityEvents(reconnect)
+			this._initEntityEvents(reconnect, entityEventProgress)
 			this._worker.updateWebSocketState("connected")
 		};
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
@@ -145,10 +150,10 @@ export class EventBusClient {
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
 	}
 
-	_initEntityEvents(reconnect: boolean) {
+	_initEntityEvents(reconnect: boolean, entityEventProgress: ProgressMonitor) {
 		this._queueWebsocketEvents = true
 		let existingConnection = reconnect && Object.keys(this._lastEntityEventIds).length > 0
-		let p = existingConnection ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds()
+		let p = existingConnection ? this._loadMissedEntityEvents(entityEventProgress) : this._setLatestEntityEventIds()
 		p.then(() => {
 			this._queueWebsocketEvents = false
 		}).catch(ConnectionError, e => {
@@ -171,7 +176,7 @@ export class EventBusClient {
 				// if we have a websocket reconnect we have to stop retrying
 				if (this._serviceUnavailableRetry === promise) {
 					console.log("retry initializing entity events")
-					return this._initEntityEvents(reconnect)
+					return this._initEntityEvents(reconnect, entityEventProgress)
 				} else {
 					console.log("cancel initializing entity events")
 				}
@@ -181,7 +186,9 @@ export class EventBusClient {
 		}).catch(e => {
 			this._queueWebsocketEvents = false
 			this._worker.sendError(e)
-		})
+		}).finally(() => {
+			entityEventProgress.completed()
+		}) //Done or Failed. We want to show full progress bar for 500ms to indicate that we are done. Don't show the progress bar anymore afterwards.
 	}
 
 
@@ -372,7 +379,7 @@ export class EventBusClient {
 		})
 	}
 
-	_loadMissedEntityEvents(): Promise<void> {
+	_loadMissedEntityEvents(entityEventProgress: ProgressMonitor): Promise<void> {
 		if (this._login.isLoggedIn()) {
 			if (Date.now() > this._lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
 				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
@@ -385,10 +392,15 @@ export class EventBusClient {
 						})
 						.catch(NotAuthorizedError, () => {
 							console.log("could not download entity updates => lost permission")
+						}).finally(() => {
+							entityEventProgress.workDone(1)
 						})
 				}).then(() => {
 					this._lastUpdateTime = Date.now()
-					return this._processQueuedEvents()
+					return this._processQueuedEvents().then(() => {
+							entityEventProgress.workDone(1)
+						}
+					)
 				})
 			}
 		} else {

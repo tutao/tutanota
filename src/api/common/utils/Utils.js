@@ -283,6 +283,11 @@ export class ProgressMonitor {
 		const result = Math.round(100 * (this.workCompleted) / this.totalWork)
 		this.updater(Math.min(100, result))
 	}
+
+	completed() {
+		this.workCompleted = this.totalWork
+		this.updater(100)
+	}
 }
 
 
