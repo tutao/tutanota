@@ -8,16 +8,16 @@ import {nativeApp} from "./NativeWrapper"
 
 const createMailEditor = (msg: Request) => {
 	return Promise.all([
-		_asyncImport('src/mail/MailModel.js'),
+		_asyncImport('src/api/main/MainLocator.js'),
 		_asyncImport('src/mail/MailEditor.js'),
 		_asyncImport('src/mail/MailUtils.js'),
 		_asyncImport('src/api/main/LoginController.js')
-	]).spread((mailModelModule, mailEditorModule, mailUtilsModule, {logins}) => {
+	]).spread((mainLocatorModule, mailEditorModule, mailUtilsModule, {logins}) => {
 		const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 		return logins.waitForUserLogin()
 		             .then(() => Promise.join(
 			             mailToUrl ? [] : getFilesData(filesUris),
-			             mailModelModule.mailModel.getUserMailboxDetails(),
+			             mainLocatorModule.locator.mailModel.getUserMailboxDetails(),
 			             (files, mailboxDetails) => {
 				             const editor: MailEditor = new mailEditorModule.MailEditor(mailboxDetails)
 				             let editorInit
