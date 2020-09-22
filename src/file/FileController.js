@@ -62,11 +62,11 @@ export class FileController {
 			save = p => p.then(files => files.forEach(file => putFileIntoDownloadsFolder(file.location)))
 		} else if (isApp()) {
 			downloadContent = f => worker.downloadFileContentNative(f)
-			concurrency = {concurrency: 5}
+			concurrency = {concurrency: 1}
 			save = p => p.then(files => files.forEach(file => this.openFileReference(file).finally(() => this._deleteFile(file.location))))
 		} else {
 			downloadContent = f => worker.downloadFileContent(f)
-			concurrency = {concurrency: 5}
+			concurrency = {concurrency: 1}
 			save = p => this.zipDataFiles(p, `${sortableTimestamp()}-attachments.zip`).then(zip => this.openDataFile(zip))
 		}
 
