@@ -48,7 +48,6 @@ const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, upd
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))
-app.allowRendererProcessReuse = false
 console.log("version:  ", app.getVersion())
 
 let wasAutolaunched = process.platform !== 'darwin'
