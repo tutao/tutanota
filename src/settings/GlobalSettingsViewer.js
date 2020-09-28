@@ -466,6 +466,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				})
 			}).then(tableLines => {
 				this._customDomainLines(tableLines)
+				m.redraw()
 			})
 		})
 	}
