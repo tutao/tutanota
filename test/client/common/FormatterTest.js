@@ -1,6 +1,6 @@
 // @flow
 import o from "ospec/ospec.js"
-import {lang, languages} from "../../../src/misc/LanguageViewModel"
+import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageViewModel"
 import en from "../../../src/translations/en"
 import {
 	formatDate,
@@ -20,82 +20,66 @@ o.spec("FormatterTest", function () {
 	o("Intl and parse support for all supported locales", browser(function () {
 		let referenceDate = new Date(2017, 5, 23)
 		languages.concat([{code: 'en_gb', textId: ''}]).forEach(l => {
-			let code = l.code.replace("_", "-")
-			lang._setLanguageTag(code)
+			lang._setLanguageTag(languageCodeToTag(l.code))
 			let formattedDate = formatDate(referenceDate)
-			let parsedTimestamp = parseDate(formattedDate)
-			o(formatDate(new Date(parsedTimestamp))).equals(formattedDate)(`invalid date parsing for lang ${code}: ${formatDate(new Date(parsedTimestamp))}`)
+			// exception case for lang code fa_ir because parse date can't handle persian numerals
+			if (l.code.startsWith("fa")) {
+				o(() => parseDate(formattedDate)).throws(Error)
+			} else {
+				let parsed = parseDate(formattedDate)
+				o(formatDate(parsed)).equals(formattedDate)(`invalid date parsing for lang ${l.code}: ${formatDate(parsed)}`)
+			}
 		})
 	}))
 
-	o.only("parse nice dates de", browser(function () {
+	o("parse nice dates de", browser(function () {
 		lang._setLanguageTag("de")
 		o(parseDate("03.05.2015")).deepEquals(new Date(2015, 4, 3))
 		o(parseDate("1/4/21")).deepEquals(new Date(1921, 3, 1))
 		o(parseDate("01-02")).deepEquals(new Date(new Date().getFullYear(), 1, 1))
 	}))
 
-	o.only("parse nice dates en", browser(function () {
+	o("parse nice dates en", browser(function () {
 		lang._setLanguageTag("en")
 		o(parseDate("03.05.2015")).deepEquals(new Date(2015, 2, 5))
 		o(parseDate("1/4/21")).deepEquals(new Date(1921, 0, 4))
 		o(parseDate("01-02")).deepEquals(new Date(new Date().getFullYear(), 0, 2))
 	}))
 
-	/* en_us is not supported
-	o.only("parse nice dates en_us", browser(function () {
-		lang._setLanguageTag("en_us")
-		o(parseDate("03.05.2015")).deepEquals(new Date(2015, 2, 5))
-		o(parseDate("1/4/21")).deepEquals(new Date(1921, 0, 4))
-		o(parseDate("01-02")).deepEquals(new Date(new Date().getFullYear(), 0, 2))
-	}))
-	*/
-
-	/* en_gb is not currently supported 0.0
-	o.only("parse nice dates en_gb", browser(function () {
-
-		lang._setLanguageTag("en_gb")
-		o(parseDate("03.05.2015")).deepEquals(new Date(2015, 4, 3))
-		o(parseDate("1/4/21")).deepEquals(new Date(1921, 3, 1))
-		o(parseDate("01-02")).deepEquals(new Date(new Date().getFullYear(), 1, 1))
-	}))
-	*/
-
-	o.only("parse nice dates hu", browser(function () {
+	o("parse nice dates hu", browser(function () {
 
 		lang._setLanguageTag("hu")
 		o(parseDate("2015.05.03")).deepEquals(new Date(2015, 4, 3))
 		o(parseDate("21/4/1")).deepEquals(new Date(1921, 3, 1))
 		o(parseDate("01-02")).deepEquals(new Date(new Date().getFullYear(), 0, 2))
-
 	}))
 
-	o.only("parse date edge case :-)", browser(function () {
+	o("parse date edge case :-)", browser(function () {
 		lang._setLanguageTag("de")
 		o(parseDate("‎03/‎05/‎2015")).deepEquals(new Date(2015, 4, 3)) // contains invisible left-to-right characters
 	}))
 
-	o.only("parse bad dates de", browser(function () {
+	o("parse bad dates de", browser(function () {
 		lang._setLanguageTag("de")
 		o(() => parseDate("01.2015")).throws(Error)
 		o(() => parseDate("05.2015")).throws(Error)
 		o(() => parseDate("2015")).throws(Error)
-		o(() => parseDate("05.05.")).throws(Error)
 		o(() => parseDate("2020.09.12")).throws(Error)
 		o(() => parseDate("2020/12/19")).throws(Error)
+		o(() => parseDate("05.2015.01")).throws(Error)
 	}))
 
-	o.only("parse bad dates en", browser(function () {
+	o("parse bad dates en", browser(function () {
 		lang._setLanguageTag("en")
 		o(() => parseDate("2015/01")).throws(Error)
 		o(() => parseDate("2015/05/")).throws(Error)
 		o(() => parseDate("2015")).throws(Error)
-		o(() => parseDate("05/05/")).throws(Error)
 		o(() => parseDate("2020/09/12")).throws(Error)
 		o(() => parseDate("2020.12.19")).throws(Error)
+		o(() => parseDate("05/2015/01")).throws(Error)
 	}))
 
-	o.only("parse bad dates hu", browser(function () {
+	o("parse bad dates hu", browser(function () {
 		lang._setLanguageTag("hu")
 		o(() => parseDate("2015/01")).throws(Error)
 		o(() => parseDate("2015/05/")).throws(Error)

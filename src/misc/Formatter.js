@@ -125,50 +125,54 @@ export function dateWithWeekdayWoMonth(date: Date): string {
  * @param dateString
  * @returns The timestamp from the given date string
  */
+
+const referenceDate = new Date(2017, 5, 23)
+
 export function parseDate(dateString: string): Date {
+	let languageTag = lang.languageTag.toLowerCase()
 
-	// clear out extra chars
-	// and all slashes and dashes and dots become colons (user input can technically mix and match...)
-	const cleanDate = dateString
-		.replace(/( |‎|г.)/g, "") // VORSICHT: this regex contains an invisible unicode character (U+200E)
-		.replace(/[/\-.]/g, ":")
+	let referenceParts = _cleanupAndSplit(formatDate(referenceDate))
+	// for finding day month and year position of locale date format  in cleanAndSplit array
+	const dayPos = referenceParts.findIndex(e => e === 23)
+	const monthPos = referenceParts.findIndex(e => e === 6)
+	const yearPos = referenceParts.findIndex(e => e === 2017)
 
-	if (!cleanDate.match(/^\d+:\d+(:\d+)?$/)) {
-		throw new Error(`Invalid date string ${dateString}: invalid character or format`)
+	const parts = _cleanupAndSplit(dateString)
+	let day, month, year
+
+	if (parts.length === 3) {
+		// default dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
+		day = parts[dayPos]
+		month = parts[monthPos]
+		year = parts[yearPos]
+	} else if (parts.length === 2) {
+		// if only two numbers are provided then we interpret that as a day and a month
+		// year pos *should* only ever be 0 or 2 (at the front or the back)
+		if (yearPos === 0) {
+			day = parts[dayPos - 1]
+			month = parts[monthPos - 1]
+		} else { // yearPos === 2
+			day = parts[dayPos]
+			month = parts[monthPos]
+		}
+		year = new Date().getFullYear()
+	} else { // invalid parts length
+		throw new Error(`could not parse dateString '${dateString}' for locale ${languageTag}`)
+
 	}
 
-	let parts = cleanDate.split(":")
-
-	const tag = lang.languageTag.toLowerCase()
-
-	// if year:month:day fmt then flip
-	if (tag.match(/^(zu-hant|hu|lt-lt)$/)) {
-		parts.reverse()
-	}
-
-	if (parts.length === 2) {
-		parts.push(new Date().getFullYear().toString())
-	}
-
-	const [first, second, third] = parts
-
-	const [day, month, year] = (
-		tag.match(/^(en|en_us|fil-ph|no)$/)
-			? [second, first, third] // month:day:year
-			: [first, second, third]
-	).map((s) => Number(s))
-
-	if (month === 0 || month > 12) {
+	if (month < 1 || month > 12) {
 		throw new Error(`Invalid value ${month} for month in ${dateString}`)
 	}
-	const monthIdx = month - 1
-
 	// maybe do better day clamping based on the month
-	if (day === 0 || day > 31) {
+	if (day < 1 || day > 31) {
 		throw new Error(`Invalid value ${day} for day in ${dateString}`)
 	}
-
-	return new Date(...[year, monthIdx, day].map((s) => Number(s)))
+	const date = new Date(year, month - 1, day)
+	if (isNaN(date.getTime())) {
+		throw new Error(`Couldn't parse date string ${dateString}`)
+	}
+	return date
 }
 
 /**
