@@ -9,6 +9,7 @@ import {Notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/ContactModel"
 import {ContactModelImpl} from "../../contacts/ContactModel"
+import {EntityClient} from "../common/EntityClient"
 
 assertMainOrNode()
 
@@ -19,6 +20,7 @@ export type MainLocatorType = {|
 	mailModel: MailModel;
 	init: (WorkerClient) => void;
 	contactModel: ContactModel;
+	entityClient: EntityClient;
 |}
 
 export const locator: MainLocatorType = ({
@@ -28,6 +30,7 @@ export const locator: MainLocatorType = ({
 		this.search = new SearchModel(worker)
 		this.mailModel = new MailModel(new Notifications(), this.eventController, worker)
 		this.contactModel = new ContactModelImpl(worker)
+		this.entityClient = new EntityClient(worker)
 	},
 }: any)
 

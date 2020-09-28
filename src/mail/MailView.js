@@ -772,6 +772,7 @@ export class MailView implements CurrentView {
 		this.mailList.list.selectNone()
 		let deleteMailData = createDeleteMailData()
 		deleteMailData.folder = folder._id
+		// The request will be handled async by server
 		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
 			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}

@@ -10,7 +10,7 @@ import {SearchListView} from "./SearchListView"
 import {erase, update} from "../api/main/Entity"
 import type {MailboxDetail} from "../mail/MailModel"
 import {NotFoundError} from "../api/common/error/RestError"
-import {getListId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameTypeRef} from "../api/common/EntityFunctions"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {Dialog} from "../gui/base/Dialog"
@@ -21,7 +21,6 @@ import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {mergeContacts} from "../contacts/ContactMergeUtils"
 import {logins} from "../api/main/LoginController"
 import {FeatureType} from "../api/common/TutanotaConstants"
-import {groupBy} from "../api/common/utils/ArrayUtils"
 import {exportContacts} from "../contacts/VCardExporter"
 import {lazyMemoized, noOp} from "../api/common/utils/Utils"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -162,11 +161,10 @@ export class MultiSearchViewer {
 						.concat(getSortedCustomFolders(sourceMailboxes[0].folders)))
 						.map(f => {
 							return new Button(() => getFolderName(f), () => {
-									const mailsGroupedByFolder = groupBy(selectedMails, getListId)
 									//is needed for correct selection behavior on mobile
 									this._searchListView.selectNone()
 									// move all groups one by one because the mail list cannot be modified in parallel
-									Promise.each(mailsGroupedByFolder.values(), (mails) => locator.mailModel.moveMails(mails, f))
+									return locator.mailModel.moveMails(selectedMails, f)
 								}, getFolderIcon(f)
 							).setType(ButtonType.Dropdown)
 						})

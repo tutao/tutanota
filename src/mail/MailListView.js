@@ -4,7 +4,7 @@ import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
 import {HttpMethod, sortCompareByReverseId} from "../api/common/EntityFunctions"
-import {load, loadRange, serviceRequestVoid} from "../api/main/Entity"
+import {serviceRequestVoid} from "../api/main/Entity"
 import {colors} from "../gui/AlternateColors"
 import type {MailFolderTypeEnum} from "../api/common/TutanotaConstants"
 import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} from "../api/common/TutanotaConstants"
@@ -68,7 +68,7 @@ export class MailListView implements Component {
 				return this._loadMailRange(start, count)
 			},
 			loadSingle: (elementId) => {
-				return load(MailTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
+				return locator.entityClient.load(MailTypeRef, [this.listId, elementId]).catch(NotFoundError, (e) => {
 					// we return null if the entity does not exist
 				})
 			},
@@ -172,8 +172,8 @@ export class MailListView implements Component {
 					m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 					m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs))
 				]),
-			m(".rel.flex-grow", m(this.list))
-		])
+				m(".rel.flex-grow", m(this.list))
+			])
 			: m(this.list)
 	}
 
@@ -196,7 +196,7 @@ export class MailListView implements Component {
 	}
 
 	_loadMailRange(start: Id, count: number): Promise<Mail[]> {
-		return loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
+		return locator.entityClient.loadRange(MailTypeRef, this.listId, start, count, true).then(mails => {
 			return locator.mailModel.getMailboxDetailsForMailListId(this.listId).then((mailboxDetail) => {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails

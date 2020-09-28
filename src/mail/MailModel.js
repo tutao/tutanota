@@ -20,7 +20,7 @@ import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import {FeatureType, GroupType, MailFolderType, OperationType} from "../api/common/TutanotaConstants"
+import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType} from "../api/common/TutanotaConstants"
 import {UserTypeRef} from "../api/entities/sys/User"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
@@ -28,15 +28,14 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {lang} from "../misc/LanguageViewModel"
 import {Notifications} from "../gui/Notifications"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
-import {getFromMap} from "../api/common/utils/MapUtils"
 import type {WebsocketCounterData} from "../api/entities/sys/WebsocketCounterData"
 import {SysService} from "../api/entities/sys/Services"
 import {createPublicKeyData} from "../api/entities/sys/PublicKeyData"
 import type {PublicKeyReturn} from "../api/entities/sys/PublicKeyReturn"
 import {PublicKeyReturnTypeRef} from "../api/entities/sys/PublicKeyReturn"
 import type {WorkerClient} from "../api/main/WorkerClient"
+import {groupBy, splitInChunks} from "../api/common/utils/ArrayUtils"
 
 export type MailboxDetail = {
 	mailbox: MailBox,
@@ -178,17 +177,41 @@ export class MailModel {
 		return null
 	}
 
-	moveMails(mails: Mail[], target: MailFolder): Promise<void> {
-		let moveMails = mails.filter(m => m._id[0] !== target.mails && target._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
-		if (moveMails.length > 0) {
+
+	/**
+	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
+	 */
+	_moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+		let moveMails = mails.filter(m => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
+		// Do not move if target is the same as the current mailFolder
+		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
+		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
 			let moveMailData = createMoveMailData()
-			moveMailData.targetFolder = target._id
-			moveMailData.mails.push(...mails.map(m => m._id))
-			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
-				.catch(LockedError, e => Dialog.error("operationStillActive_msg"))
-				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+			moveMailData.targetFolder = targetMailFolder._id
+			moveMailData.mails = mails.map(m => m._id)
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveMailData.mails)
+			return Promise.each(mailChunks, mailChunk => {
+				moveMailData.mails = mailChunk
+				return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+			}).catch(LockedError, e => Dialog.error("operationStillActive_msg")) //LockedError should no longer be thrown!?!
+			              .catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 		}
 		return Promise.resolve()
+	}
+
+	moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
+		const mailsPerFolder = groupBy(mails, (mail) => {
+			return getListId(mail)
+		})
+		return Promise.each(mailsPerFolder, (mapEntry) => {
+			const [listId, mails] = mapEntry
+			const sourceMailFolder = this.getMailFolder(listId)
+			if (sourceMailFolder) {
+				return this._moveMails(mails, targetMailFolder)
+			} else {
+				console.log("Move mail: no mail folder for list id", listId)
+			}
+		}).return()
 	}
 
 	/**
@@ -197,34 +220,39 @@ export class MailModel {
 	 * A deletion confirmation must have been show before.
 	 */
 	deleteMails(mails: Mail[]): Promise<void> {
-		const moveMap: Map<IdTuple, Mail[]> = new Map()
-		let mailBuckets = mails.reduce((buckets, mail) => {
-			const folder = this.getMailFolder(mail._id[0])
-			if (!folder) {
-				throw new ProgrammingError("tried to delete mail without folder")
-			} else if (this.isFinalDelete(folder)) {
-				buckets.trash.push(mail)
+		const mailsPerFolder = groupBy(mails, (mail) => {
+			return getListId(mail)
+		})
+		return Promise.each(mailsPerFolder, (mapEntry) => {
+			const [listId, mails] = mapEntry
+			const sourceMailFolder = this.getMailFolder(listId)
+			if (sourceMailFolder) {
+				return this.isFinalDelete(sourceMailFolder) ?
+					// finally delete mails that are in spam or trash
+					this._finallyDeleteMails(mails) :
+					// move other mails to trash folder of the mailbox
+					this.getMailboxFolders(mails[0]).then(folders => this._moveMails(mails, this.getTrashFolder(folders)))
 			} else {
-				getFromMap(buckets.move, folder._id, () => []).push(mail)
+				console.log("Delete mail: no mail folder for list id", listId)
 			}
-			return buckets
-		}, {trash: [], move: moveMap})
+		}).return()
+	}
 
-		let promises = []
-		if (mailBuckets.trash.length > 0) {
-			let deleteMailData = createDeleteMailData()
-			const trashFolder = neverNull(this.getMailFolder(getListId(mailBuckets.trash[0])))
-			deleteMailData.folder = trashFolder._id
-			deleteMailData.mails.push(...mailBuckets.trash.map(m => m._id))
-			promises.push(serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
-				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg")))
-		}
-		if (mailBuckets.move.size > 0) {
-			for (const [folderId, mails] of mailBuckets.move) {
-				promises.push(this.getMailboxFolders(mails[0]).then(folders => this.moveMails(mails, this.getTrashFolder(folders))))
-			}
-		}
-		return Promise.all(promises).return()
+	/**
+	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
+	 */
+	_finallyDeleteMails(mails: Mail[]): Promise<void> {
+		if (!mails.length) return Promise.resolve()
+		let deleteMailData = createDeleteMailData()
+		const mailFolder = neverNull(this.getMailFolder(getListId(mails[0])))
+		deleteMailData.folder = mailFolder._id
+		const mailIds = mails.map(m => m._id)
+		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
+		return Promise.each(mailChunks, mailChunk => {
+			deleteMailData.mails = mailChunk
+			return serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+		}).catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
+
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
