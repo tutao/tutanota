@@ -32,7 +32,6 @@ o.spec("HtmlSanitizerTest", browser(function () {
 
 
 	o("custom classes", function () {
-		//var sanitizer = DOMPurify.sanitize("");
 		o(htmlSanitizer.sanitize("<div class=\"custom1 tutanota_quote custom2\">test</div>", true).text)
 			.equals('<div class=\"tutanota_quote\">test</div>')
 	})
@@ -82,7 +81,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		o(sanitized).equals("");
 
 		sanitized = htmlSanitizer.sanitize(" ", true).text;
-		o(sanitized).equals("");
+		o(sanitized).equals(" ");
 
 		sanitized = htmlSanitizer.sanitize("yo", true).text;
 		o(sanitized).equals("yo");
