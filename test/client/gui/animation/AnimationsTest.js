@@ -306,7 +306,13 @@ o.spec("Animations", function () {
 			o(target.style.backgroundColor).equals("rgba(0, 0, 0, 0.5)")
 
 			m.updateDom(target, 200 / 200, ease.linear)
-			o(target.style.backgroundColor).equals("rgba(0, 0, 0, 1)")
+
+			browser(() => {
+				o(target.style.backgroundColor).equals("rgba(0, 0, 0)")
+			})
+			node(() => {
+				o(target.style.backgroundColor).equals("rgba(0, 0, 0, 1)")
+			})
 		})
 
 		o("color", function () {
@@ -322,7 +328,13 @@ o.spec("Animations", function () {
 			o(target.style.color).equals("rgba(255, 255, 255, 0.5)")
 
 			m.updateDom(target, 200 / 200, ease.linear)
-			o(target.style.color).equals("rgba(255, 255, 255, 1)")
+
+			browser(() => {
+				o(target.style.color).equals("rgba(255, 255, 255)")
+			})
+			node(() => {
+				o(target.style.color).equals("rgba(255, 255, 255, 1)")
+			})
 		})
 	})
 })
