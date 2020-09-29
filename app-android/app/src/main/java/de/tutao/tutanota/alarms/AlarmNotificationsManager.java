@@ -6,15 +6,15 @@ import androidx.annotation.Nullable;
 
 import java.security.KeyStoreException;
 import java.security.UnrecoverableEntryException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
-import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.CryptoError;
 import de.tutao.tutanota.OperationType;
@@ -24,37 +24,48 @@ import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.SseStorage;
 
 public class AlarmNotificationsManager {
-	public static final long TIME_IN_THE_FUTURE_LIMIT_MS = TimeUnit.DAYS.toMillis(14);
+	// Default Android 10 limit is 500 but Samsung has such limit 200 since earlier versions and it's lower
+	public static final int ALARM_LIMIT = 180;
 
 	private static final String TAG = "AlarmNotificationsMngr";
-	private final AndroidKeyStoreFacade keyStoreFacade;
 	private final SseStorage sseStorage;
 	private final Crypto crypto;
 	private final SystemAlarmFacade systemAlarmFacade;
 	private final PushKeyResolver pushKeyResolver;
 	private final LocalNotificationsFacade localNotificationsFacade;
 
-	public AlarmNotificationsManager(AndroidKeyStoreFacade androidKeyStoreFacade, SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade,
+	public AlarmNotificationsManager(SseStorage sseStorage, Crypto crypto, SystemAlarmFacade systemAlarmFacade,
 									 LocalNotificationsFacade localNotificationsFacade) {
-		keyStoreFacade = androidKeyStoreFacade;
 		this.sseStorage = sseStorage;
 		this.crypto = crypto;
 		this.systemAlarmFacade = systemAlarmFacade;
-		this.pushKeyResolver = new PushKeyResolver(keyStoreFacade, sseStorage);
+		this.pushKeyResolver = new PushKeyResolver(sseStorage);
 		this.localNotificationsFacade = localNotificationsFacade;
 	}
 
 	public void reScheduleAlarms() {
-		PushKeyResolver pushKeyResolver =
-				new PushKeyResolver(keyStoreFacade, sseStorage);
+		PushKeyResolver pushKeyResolver = new PushKeyResolver(sseStorage);
 		List<AlarmNotification> alarmInfos = sseStorage.readAlarmNotifications();
+		List<AlarmOccurrence> occurrences = new ArrayList<>(alarmInfos.size());
 		for (AlarmNotification alarmNotification : alarmInfos) {
 			byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
 			if (sessionKey != null) {
-				this.schedule(alarmNotification, sessionKey);
+				occurrences.addAll(getOccurrences(alarmNotification, sessionKey));
 			} else {
 				Log.d(TAG, "Failed to resolve session key for saved alarm notification: " + alarmNotification);
 			}
+		}
+		// We sort all alarms to get the most recent ones to schedule
+		Collections.sort(occurrences, (o1, o2) -> Long.compare(o1.alarmTime.getTime(), o2.alarmTime.getTime()));
+		for (int i = 0; i < occurrences.size(); i++) {
+			if (i == ALARM_LIMIT) {
+				break;
+			}
+			AlarmOccurrence occurrence = occurrences.get(i);
+			Log.d(TAG, "Re-scheduling alarm " + occurrence.identifier + "#" + occurrence.occurrence + " at " + occurrence.alarmTime);
+			systemAlarmFacade.cancelAlarm(occurrence.identifier, occurrence.occurrence);
+			systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(occurrence.alarmTime, occurrence.occurrence, occurrence.identifier, occurrence.summary,
+					occurrence.eventStart, occurrence.userId);
 		}
 	}
 
@@ -64,12 +75,8 @@ public class AlarmNotificationsManager {
 			return null;
 		}
 		try {
-
-
-			byte[] pushIdentifierSessionKey = pushKeyResolver
-					.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
+			byte[] pushIdentifierSessionKey = pushKeyResolver.resolvePushSessionKey(notificationSessionKey.getPushIdentifier().getElementId());
 			if (pushIdentifierSessionKey != null) {
-
 				byte[] encNotificationSessionKeyKey = Utils.base64ToBytes(notificationSessionKey.getPushIdentifierSessionEncSessionKey());
 				return this.crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey);
 			}
@@ -79,8 +86,7 @@ public class AlarmNotificationsManager {
 		return null;
 	}
 
-	public void scheduleNewAlarms(List<AlarmNotification> alarmNotifications) {
-
+	public void processAlarmNotifications(List<AlarmNotification> alarmNotifications) {
 		for (AlarmNotification alarmNotification : alarmNotifications) {
 			if (alarmNotification.getOperation() == OperationType.CREATE) {
 				byte[] sessionKey = this.resolveSessionKey(alarmNotification, pushKeyResolver);
@@ -88,13 +94,14 @@ public class AlarmNotificationsManager {
 					Log.d(TAG, "Failed to resolve session key for " + alarmNotification);
 					return;
 				}
-				this.schedule(alarmNotification, sessionKey);
 				sseStorage.insertAlarmNotification(alarmNotification);
 			} else {
 				this.cancelScheduledAlarm(alarmNotification, pushKeyResolver);
 				sseStorage.deleteAlarmNotification(alarmNotification.getAlarmInfo().getIdentifier());
 			}
 		}
+		// If there are new alarms, we want to unschedule existing ones and schedule the most recent ones again to not go over the alarm limit
+		reScheduleAlarms();
 	}
 
 	/**
@@ -110,7 +117,7 @@ public class AlarmNotificationsManager {
 		}
 	}
 
-	private void schedule(AlarmNotification alarmNotification, byte[] sessionKey) {
+	private List<AlarmOccurrence> getOccurrences(AlarmNotification alarmNotification, byte[] sessionKey) {
 		try {
 			String trigger = alarmNotification.getAlarmInfo().getTriggerDec(crypto, sessionKey);
 			AlarmTrigger alarmTrigger = AlarmTrigger.get(trigger);
@@ -121,22 +128,17 @@ public class AlarmNotificationsManager {
 			if (alarmNotification.getRepeatRule() == null) {
 				Date alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger);
 				Date now = new Date();
-				if (occurrenceIsTooFar(alarmTime)) {
-					Log.d(TAG, "Alarm " + identifier + " at " + alarmTime + " is too far in the future, skipping");
-				} else if (alarmTime.after(now)) {
-					systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart, alarmNotification.getUser());
+				if (alarmTime.after(now)) {
+					return Collections.singletonList(new AlarmOccurrence(identifier, 0, alarmTime, eventStart, summary, alarmNotification.getUser()));
 				} else {
 					Log.d(TAG, "Alarm " + identifier + " at " + alarmTime + " is before " + now + ", skipping");
 				}
 			} else {
+				List<AlarmOccurrence> occurrences = new ArrayList<>();
 				this.iterateAlarmOccurrences(alarmNotification, crypto, sessionKey, (alarmTime, occurrence, eventStartTime) -> {
-					if (occurrenceIsTooFar(alarmTime)) {
-						Log.d(TAG, "Alarm occurrence " + identifier + " " + occurrence + " at " + alarmTime + " is too far in the future, skipping");
-					} else {
-						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, occurrence, identifier, summary, eventStartTime,
-								alarmNotification.getUser());
-					}
+					occurrences.add(new AlarmOccurrence(identifier, occurrence, alarmTime, eventStart, summary, alarmNotification.getUser()));
 				});
+				return occurrences;
 			}
 		} catch (CryptoError cryptoError) {
 			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
@@ -144,12 +146,8 @@ public class AlarmNotificationsManager {
 			Log.e(TAG, "Error when scheduling alarm", e);
 			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e);
 		}
+		return Collections.emptyList();
 	}
-
-	private boolean occurrenceIsTooFar(Date alarmTime) {
-		return alarmTime.getTime() > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS;
-	}
-
 
 	/**
 	 * Cancel scheduled alarm with the system
@@ -214,12 +212,10 @@ public class AlarmNotificationsManager {
 
 
 	private static class PushKeyResolver {
-		private AndroidKeyStoreFacade keyStoreFacade;
 		private final SseStorage sseStorage;
 		private final Map<String, byte[]> pushIdentifierToResolvedSessionKey = new HashMap<>();
 
-		private PushKeyResolver(AndroidKeyStoreFacade keyStoreFacade, SseStorage sseStorage) {
-			this.keyStoreFacade = keyStoreFacade;
+		private PushKeyResolver(SseStorage sseStorage) {
 			this.sseStorage = sseStorage;
 		}
 
@@ -237,6 +233,36 @@ public class AlarmNotificationsManager {
 				pushIdentifierToResolvedSessionKey.put(pushIdentifierId, pushIdentifierSessionKey);
 				return pushIdentifierSessionKey;
 			}
+		}
+	}
+
+	private static final class AlarmOccurrence {
+		final String identifier;
+		final int occurrence;
+		final Date alarmTime;
+		final Date eventStart;
+		final String summary;
+		final String userId;
+
+		private AlarmOccurrence(String identifier, int occurrence, Date alarmTime, Date eventStart, String summary, String userId) {
+			this.occurrence = occurrence;
+			this.identifier = identifier;
+			this.alarmTime = alarmTime;
+			this.eventStart = eventStart;
+			this.summary = summary;
+			this.userId = userId;
+		}
+
+		@Override
+		public String toString() {
+			return "AlarmOccurrence{" +
+					"identifier='" + identifier + '\'' +
+					", occurrence=" + occurrence +
+					", alarmTime=" + alarmTime +
+					", eventStart=" + eventStart +
+					", summary='" + summary + '\'' +
+					", userId='" + userId + '\'' +
+					'}';
 		}
 	}
 }

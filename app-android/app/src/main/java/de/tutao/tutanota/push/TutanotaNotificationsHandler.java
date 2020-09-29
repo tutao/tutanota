@@ -150,7 +150,7 @@ public class TutanotaNotificationsHandler {
 
 
 	private void handleAlarmNotifications(List<AlarmNotification> alarmNotifications) {
-		this.alarmNotificationsManager.scheduleNewAlarms(alarmNotifications);
+		this.alarmNotificationsManager.processAlarmNotifications(alarmNotifications);
 	}
 
 	/**
