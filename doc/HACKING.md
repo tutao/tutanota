@@ -6,7 +6,7 @@
  * `src`: Common part and the desktop client code
  * `app-android`: Android specific parts
  * `app-ios`: iOS specific parts
- * `flow: contains `*implicitly* imported [Flow](https://flow.org/) typing definitions. Avoid putting something there,
+ * `flow`: contains *implicitly* imported [Flow](https://flow.org/) typing definitions. Avoid putting something there,
  it is buggy.
  * `libs`: "vendor" directory containing our dependencies in non-minified and minified form. May be improved. We take
  security seriously so we review diff between each version.
