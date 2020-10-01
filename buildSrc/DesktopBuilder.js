@@ -149,6 +149,7 @@ function findDirectDepsAndTranspile(filePath) {
 function babelCompile(src, srcFile) {
 	return babel.transform(src, {
 		"plugins": [
+			"transform-object-rest-spread",
 			"transform-flow-strip-types",
 			"transform-class-properties",
 		],

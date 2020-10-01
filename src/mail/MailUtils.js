@@ -553,10 +553,25 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
 	}
 }
 
-export function exportMails(mails: Mail[]): Promise<void> {
+/**
+ * convert a set of mail to a set of dataFiles in eml format
+ * @param mails array of mails to convert
+ * @returns {Promise<(DataFile|any)[]>}
+ */
+export function mailsToEmlDataFiles(mails: Mail[]): Promise<DataFile[]> {
 	const mapper = mail => load(MailBodyTypeRef, mail.body)
 		.then(body => mailToEmlFile(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	const exportPromise = Promise.map(mails, mapper, {concurrency: 5})
+	return Promise.map(mails, mapper, {concurrency: 5})
+}
+
+/**
+ * export a set of mails into a zip file and offer to download
+ * @param mails array of mails to export
+ * @returns {Promise<void>} resolved after the fileController
+ * was instructed to open the new zip File containing the mail eml
+ */
+export function exportMails(mails: Mail[]): Promise<void> {
+	const exportPromise = mailsToEmlDataFiles(mails)
 	const zipName = `${sortableTimestamp()}-mail-export.zip`
 	return showProgressDialog("pleaseWait_msg", fileController.zipDataFiles(exportPromise, zipName))
 		.then(zip => fileController.open(zip))

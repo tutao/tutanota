@@ -14,6 +14,12 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
+import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {mailsToEmlDataFiles} from "../mail/MailUtils"
+import {MailTypeRef} from "../api/entities/tutanota/Mail"
+import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
+import {nativeApp} from "../native/NativeWrapper"
+import {Request} from "../api/common/WorkerProtocol"
 
 assertMainOrNode()
 
@@ -263,6 +269,19 @@ export class FileController {
 			})
 			return zip.generateAsync({type: 'uint8array'})
 		}).then(zf => createDataFile(file, zf))
+	}
+
+	/**
+	 * Export a list of entities of type T. Export format will be decided by the type ref T._type
+	 * @param entities array of any type with a type ref
+	 */
+	exportEntities<T>(entities: T[]): void {
+		const mails = downcast(entities).filter(e => e._type && isSameTypeRef(MailTypeRef, e._type))
+		if (mails.length > 0) {
+			mailsToEmlDataFiles(mails)
+				.then(dataFiles => dataFiles.map(df => ({name: df.name, content: utf8Uint8ArrayToString(df.data)})))
+				.then(emls => nativeApp.invokeNative(new Request('dragExport', emls)))
+		}
 	}
 }
 

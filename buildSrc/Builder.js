@@ -137,6 +137,7 @@ function babelCompile(src, srcFile) {
 		"plugins": [
 			"transform-flow-strip-types",
 			"transform-class-properties",
+			"transform-object-rest-spread"
 		],
 		"presets": ["es2015"],
 		comments: false,

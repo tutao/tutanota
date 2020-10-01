@@ -1,5 +1,5 @@
 // @flow
-import type {ContextMenuParams, ElectronPermission, FindInPageResult} from 'electron'
+import type {ContextMenuParams, DragInfo, ElectronPermission, FindInPageResult} from 'electron'
 import {app, BrowserWindow, Menu, shell, WebContents} from 'electron'
 import * as localShortcut from 'electron-localshortcut'
 import DesktopUtils from './DesktopUtils.js'
@@ -81,6 +81,7 @@ export class ApplicationWindow {
 	center = () => this._browserWindow.center()
 	showInactive = () => this._browserWindow.showInactive()
 	isFocused = () => this._browserWindow.isFocused()
+	startDrag = (i: DragInfo) => this._browserWindow.webContents.startDrag(i)
 
 	get browserWindow() {
 		return this._browserWindow

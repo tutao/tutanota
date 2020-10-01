@@ -9,7 +9,7 @@ import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import {addAll, arrayEquals, last, remove} from "../../api/common/utils/ArrayUtils"
 import {debounceStart, neverNull} from "../../api/common/utils/Utils"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNode, isDesktop} from "../../api/Env"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
 import {animations, transform} from "./../animation/Animations"
@@ -22,6 +22,7 @@ import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
 import {styles} from "../styles"
 import {isKeyPressed} from "../../misc/KeyManager"
+import {fileController} from "../../file/FileController"
 
 assertMainOrNode()
 
@@ -337,8 +338,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 	}
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
-		// unfortunately, IE only allowes "text" and "url"
-		neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
+		// alt + drag on desktop will attempt to export the elements to the OS.
+		// the fileApp wrapper will determine if the elements can be exported.
+		if (ev.altKey && isDesktop()) {
+			// interpret as an export drag to the file system
+			ev.preventDefault()
+			fileController.exportEntities(this.getSelectedEntities())
+		} else {
+			// unfortunately, IE only allowes "text" and "url"
+			neverNull(ev.dataTransfer).setData("text", getLetId(neverNull(virtualRow.entity))[1]);
+		}
 	}
 
 	getEntity(id: Id): ?T {

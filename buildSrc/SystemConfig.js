@@ -86,7 +86,7 @@ function distBuildConfig() {
 		transpiler: "plugin-babel",
 		babelOptions: {
 			es2015: true,
-			"plugins": ["transform-flow-strip-types"],
+			"plugins": ["transform-flow-strip-types", "transform-object-rest-spread"],
 			stage1: true
 		},
 		packages: {

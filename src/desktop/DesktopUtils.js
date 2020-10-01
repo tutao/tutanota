@@ -36,11 +36,16 @@ export default class DesktopUtils {
 	/**
 	 * compares a filename to a list of filenames and finds the first number-suffixed
 	 * filename not already contained in the list.
+	 *
+	 * may return the filename as-is if no conflicts are found.
+	 * treats nonlegal file names (ie CON) as clashing.
+	 * assumes the file system is case insensitive (a.txt would overwrite A.TXT)
+	 *
 	 * @returns {string} the basename appended with '-<first non-clashing positive number>.<ext>
 	 */
 	static nonClobberingFilename(files: Array<string>, filename: string): string {
 		filename = sanitizeFilename(filename)
-		const clashingFile = files.find(f => f === filename)
+		const clashingFile = files.find(f => f.toLowerCase() === filename.toLowerCase())
 		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
 			return filename
 		} else { // there are clashing file names or the file name is reserved
@@ -52,8 +57,7 @@ export default class DesktopUtils {
 				.map(f => f.slice(basename.length + 1, f.length))
 				.map(f => !f.startsWith('0') ? parseInt(f, 10) : 0)
 				.filter(n => !isNaN(n) && n > 0)
-			const clashNumbersSet = new Set(clashNumbers)
-			clashNumbersSet.add(0)
+			const clashNumbersSet = new Set([0, ...clashNumbers])
 
 			// if a number is bigger than its index, there is room somewhere before that number
 			const firstGap = Array
@@ -65,6 +69,54 @@ export default class DesktopUtils {
 				? `${basename}-${firstGap}${ext}`
 				: `${basename}-${clashNumbersSet.size}${ext}`
 		}
+	}
+
+	/**
+	 * take array of file names and add numbered suffixes to the basename of
+	 * duplicates. Use to make a legal set of names for files written to disk
+	 * at the same time.
+	 *
+	 * treats file names that already have numbered suffixes as non-numbered.
+	 * assumes the file system is case insensitive (a.txt would overwrite A.TXT)
+	 *
+	 * @param files file names.
+	 * @returns map from old names to array of new names. use map[oldname].shift() to replace oldname with newname.
+	 */
+	static legalizeFilenames(files: Array<string>): {[string]: Array<string>} {
+		const suffix = (name, suf) => {
+			const ext = path.extname(name)
+			const basename = path.basename(name, ext)
+			return `${basename}-${suf}${ext}`
+		}
+		const unreserveFilename = name => _isReservedFilename(name) ? suffix(name, "") : name
+
+		let cleaned = files.map(sanitizeFilename).map(unreserveFilename)
+		let dedup = new Set(cleaned.map(s => s.toLowerCase()))
+		let conv = cleaned.map((e, i) => [files[i], e]) // pairs [oldname, newname]
+		if (dedup.size === cleaned.length) {
+			return conv.reduce((m, [o, n]) => ({...m, [o]: [n]}), {}) // convert into map oldname -> [newname]
+		}
+
+		const out = {}
+		const news = {}
+		conv.forEach(([o, n]) => {
+			const lower = n.toLowerCase()
+			let newname
+			if (news[lower] === undefined) {
+				news[lower] = 0
+				newname = n
+			} else {
+				news[lower] = news[lower] + 1
+				newname = suffix(n, news[lower])
+			}
+			if (out[o]) {
+				out[o].push(newname)
+			} else {
+				out[o] = [newname]
+			}
+		})
+
+		return out
 	}
 
 	static looksExecutable(file: string): boolean {
@@ -208,6 +260,27 @@ export default class DesktopUtils {
 		} else {
 			app.once('ready', callback)
 		}
+	}
+
+	/**
+	 * Writes files to tmp and deletes them after 3 seconds
+	 * @param files Array of named content to write to tmp
+	 * @returns {string[]} Array of the resulting paths.
+	 */
+	static writeFilesToTmp(files: {name: string, content: string}[]): Promise<string[]> {
+		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
+		const dirPromise = fs.mkdirp(dirPath)
+		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
+		const legalFiles = files.map(f => ({
+			content: f.content,
+			name: legalNames[f.name].shift()
+		}))
+		const writePromise = () => Promise.map(legalFiles, f => {
+			const p = path.join(dirPath, f.name)
+			return fs.writeFile(p, f.content).then(() => p)
+		})
+		setTimeout(() => fs.remove(dirPath), 3000)
+		return dirPromise.then(writePromise)
 	}
 }
 

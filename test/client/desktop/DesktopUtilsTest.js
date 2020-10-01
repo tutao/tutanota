@@ -85,7 +85,8 @@ o.spec("nonClobberingFileName Test", function () {
 			'hello-10.ext',
 		], 'hello.ext')).equals('hello-11.ext')
 
-
+		o(DesktopUtils.nonClobberingFilename(["A"], "a")).equals('a-1')
+		o(DesktopUtils.nonClobberingFilename(["A", "a"], "a")).equals('a-1')
 	})
 
 	o('numberedFileNameNonClashing', function () {
@@ -215,6 +216,91 @@ o.spec("nonClobberingFileName Test", function () {
 
 		o(DesktopUtils.nonClobberingFilename([], ".."))
 			.equals("_")
+	})
+})
+
+o.spec("legalizeFilenames Test", function () {
+	o("empty array is OK ", function () {
+		o(DesktopUtils.legalizeFilenames([]))
+			.deepEquals({})
+	})
+
+	o("windows reserved filenames get legalized", function () {
+		const arr = ["nul", "con", "con.pdf", "123.ex", "123.ex"]
+		const pf = process.platform
+		n.setPlatform("linux")
+		o(DesktopUtils.legalizeFilenames(arr))
+			.deepEquals({
+				"nul": ["nul"],
+				"con": ["con"],
+				"con.pdf": ["con.pdf"],
+				"123.ex": ["123.ex", "123-1.ex"]
+			})
+		n.setPlatform("win32")
+		o(DesktopUtils.legalizeFilenames(arr))
+			.deepEquals({
+				"nul": ["nul-"],
+				"con": ["con-"],
+				"con.pdf": ["con-.pdf"],
+				"123.ex": ["123.ex", "123-1.ex"]
+			})
+		n.setPlatform(pf)
+	})
+
+	o("no dupes", function () {
+		o(DesktopUtils.legalizeFilenames(["1.pdf", "2.pdf", "3.pdf"]))
+			.deepEquals({
+				'1.pdf': ['1.pdf'],
+				'2.pdf': ['2.pdf'],
+				'3.pdf': ['3.pdf']
+			})
+
+		o(DesktopUtils.legalizeFilenames([
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h54m44s-?.eml',
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h52m35s->.eml',
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h52m29s->.eml',
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h37m31s-<.eml'
+		])).deepEquals({
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h54m44s-?.eml':
+				['_tmp_4ec6fa51ddfb6a92219729f1_2020-10-01-18h54m44s-_.eml'],
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h52m35s->.eml':
+				['_tmp_4ec6fa51ddfb6a92219729f1_2020-10-01-18h52m35s-_.eml'],
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h52m29s->.eml':
+				['_tmp_4ec6fa51ddfb6a92219729f1_2020-10-01-18h52m29s-_.eml'],
+			'/tmp/4ec6fa51ddfb6a92219729f1/2020-10-01-18h37m31s-<.eml':
+				['_tmp_4ec6fa51ddfb6a92219729f1_2020-10-01-18h37m31s-_.eml']
+		})
+	})
+
+	o("only dupes", function () {
+		o(DesktopUtils.legalizeFilenames(["1.pdf", "1.pdf", "1.pdf"]))
+			.deepEquals({
+				'1.pdf': ['1.pdf', '1-1.pdf', '1-2.pdf'],
+			})
+	})
+
+	o("cleaned filenames clash after unreserving/sanitization", function () {
+		o(DesktopUtils.legalizeFilenames(["?", ">", "?"]))
+			.deepEquals({
+				'?': ['_', '_-2'],
+				'>': ['_-1'],
+			})
+		const pf = process.platform
+		n.setPlatform('win32')
+		o(DesktopUtils.legalizeFilenames(["con-", "con"]))
+			.deepEquals({
+				'con-': ['con-'],
+				'con': ['con--1']
+			})
+		n.setPlatform(pf)
+	})
+
+	o("assume case insensitivity", function () {
+		o(DesktopUtils.legalizeFilenames(['A', 'A', 'a']))
+			.deepEquals({
+				"A": ['A', 'A-1'],
+				"a": ['a-2']
+			})
 	})
 })
 
