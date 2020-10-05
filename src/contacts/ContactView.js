@@ -12,7 +12,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, getGroupInfoDisplayName, neverNull, noOp} from "../api/common/utils/Utils"
 import {erase, load, loadAll, setup, update} from "../api/main/Entity"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/Env"
@@ -43,6 +43,7 @@ import {NavButtonN} from "../gui/base/NavButtonN"
 import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
+import {flat} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -247,21 +248,14 @@ export class ContactView implements CurrentView {
 						}
 					})
 					return showProgressDialog("pleaseWait_msg", Promise.resolve().then(() => {
-						let flatvCards = vCardsList.reduce((sum, value) => sum.concat(value), [])
-						let contactList = vCardListToContacts(flatvCards,
-							neverNull(logins.getUserController()
-							                .user
-							                .memberships
-							                .find(m => m.groupType === GroupType.Contact)).group)
-						return LazyContactListId.getAsync().then(contactListId => {
-							let promises = []
-							contactList.forEach((contact) => {
-								promises.push(setup(contactListId, contact))
-							})
-							return Promise.all(promises).then(() => {
-								return promises.length
-							})
-						})
+						const flatvCards = flat(vCardsList)
+						const contactMembership =
+							assertNotNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact))
+						const contactList = vCardListToContacts(flatvCards, contactMembership.group)
+						return LazyContactListId
+							.getAsync()
+							.then(contactListId => Promise.each(contactList, (contact) => setup(contactListId, contact)))
+							.then(() => contactList.length)
 					}))
 				}
 			} catch (e) {
