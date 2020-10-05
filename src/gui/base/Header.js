@@ -47,7 +47,7 @@ class Header {
 	_shortcuts: Shortcut[];
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
-	_updateEntityEventProgress: number = 0
+	_updateEntityEventProgress: number = -1
 
 	constructor() {
 		this._currentView = null
@@ -93,7 +93,7 @@ class Header {
 						m.redraw()
 						if (this._updateEntityEventProgress === 100) {
 							setTimeout(() => {
-								this._updateEntityEventProgress = 0
+								this._updateEntityEventProgress = -1
 								m.redraw()
 							}, 500)
 						}
@@ -300,13 +300,22 @@ class Header {
 		if (this._wsState === "connected" || this._wsState === "terminated") {
 			return null
 		} else {
-			return m(".indefinite-progress")
+			// Use key so that mithril does not reuse dom element and transition works correctly
+			return m(".indefinite-progress", {key: "connection-indicator"})
 		}
 	}
 
 	_entityEventProgress(): Children {
-		if (this._updateEntityEventProgress !== 0) {
-			return m(".accent-bg", {style: {width: this._updateEntityEventProgress + '%', height: '3px'}})
+		if (this._updateEntityEventProgress !== -1) {
+			// Use key so that mithril does not reuse dom element and transition works correctly
+			return m(".accent-bg", {
+				key: "loading-indicator",
+				style: {
+					transition: 'width 500ms',
+					width: this._updateEntityEventProgress + '%',
+					height: '3px',
+				},
+			})
 		} else {
 			return null
 		}

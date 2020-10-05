@@ -144,6 +144,8 @@ export class EventBusClient {
 		this._socket.onopen = () => {
 			this._failedConnectionAttempts = 0
 			console.log("ws open: ", new Date(), "state:", this._state);
+			// Indicate some progress right away
+			if (reconnect) this._worker.updateEntityEventProgress(2)
 			this._initEntityEvents(reconnect, entityEventProgress)
 			this._worker.updateWebSocketState("connected")
 		};
