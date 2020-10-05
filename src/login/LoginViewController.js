@@ -249,7 +249,7 @@ export class LoginViewController implements ILoginViewController {
 			}
 		})
 			.then(() => {
-				if (logins.isGlobalAdminUserLoggedIn()) {
+				if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 					let receiveInfoData = createReceiveInfoServiceData()
 					receiveInfoData.language = lang.code
 					return serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
