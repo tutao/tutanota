@@ -2,7 +2,7 @@
 import {base64ToUint8Array, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {aes128RandomKey} from "./Aes"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
-import {load, loadAll, serviceRequestVoid} from "../EntityWorker"
+import {serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import {rsaDecrypt} from "./Rsa"
 import {HttpMethod, isSameTypeRef, isSameTypeRefByAttr, resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
@@ -62,7 +62,7 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		                                      .memberships
 		                                      .find((g: GroupMembership) => g.groupType === GroupType.Customer): any)
 		let customerGroupKey = locator.login.getGroupKey(customerGroupMembership.group)
-		return loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
+		return locator.cachingEntityClient.loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
 			let customerGroupPermission = listPermissions.find(p => p.group === customerGroupMembership.group)
 			if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
 			let listKey = decryptKey(customerGroupKey, (customerGroupPermission: any).symEncSessionKey)
@@ -122,13 +122,13 @@ interface ResolveSessionKeyLoaders {
 
 const resolveSessionKeyLoaders: ResolveSessionKeyLoaders = {
 	loadPermissions: function (listId: Id): Promise<Permission[]> {
-		return loadAll(PermissionTypeRef, listId)
+		return locator.cachingEntityClient.loadAll(PermissionTypeRef, listId)
 	},
 	loadBucketPermissions: function (listId: Id): Promise<BucketPermission[]> {
-		return loadAll(BucketPermissionTypeRef, listId)
+		return locator.cachingEntityClient.loadAll(BucketPermissionTypeRef, listId)
 	},
 	loadGroup: function (groupId: Id): Promise<Group> {
-		return load(GroupTypeRef, groupId)
+		return locator.cachingEntityClient.load(GroupTypeRef, groupId)
 	}
 }
 
@@ -268,7 +268,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
  */
 export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object): Promise<?Aes128Key> {
 	if (instance._ownerPublicEncSessionKey) {
-		return load(GroupTypeRef, instance._ownerGroup).then(group => {
+		return locator.cachingEntityClient.load(GroupTypeRef, instance._ownerGroup).then(group => {
 			let keypair = group.keys[0]
 			let gk = locator.login.getGroupKey(instance._ownerGroup)
 			let privKey

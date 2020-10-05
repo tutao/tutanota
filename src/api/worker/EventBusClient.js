@@ -5,7 +5,6 @@ import type {WorkerImpl} from "./WorkerImpl"
 import {decryptAndMapToInstance} from "./crypto/CryptoFacade"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
-import {loadAll, loadRange} from "./EntityWorker"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getLetId} from "../common/EntityFunctions"
 import {
 	AccessBlockedError,
@@ -29,6 +28,7 @@ import {CancelledError} from "../common/error/CancelledError"
 import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tutanota/PhishingMarkerWebsocketData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
+import {EntityClient} from "../common/EntityClient"
 
 assertWorkerOrNode()
 
@@ -54,6 +54,7 @@ export class EventBusClient {
 
 	_indexer: Indexer;
 	_cache: EntityRestInterface;
+	_entity: EntityClient;
 	_worker: WorkerImpl;
 	_mail: MailFacade;
 	_login: LoginFacade;
@@ -81,6 +82,7 @@ export class EventBusClient {
 		this._worker = worker
 		this._indexer = indexer
 		this._cache = cache
+		this._entity = new EntityClient(cache)
 		this._mail = mail
 		this._login = login
 		this._socket = null
@@ -367,7 +369,7 @@ export class EventBusClient {
 		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
 		let lastIds: {[key: Id]: Id[]} = {}
 		return Promise.each(this._eventGroups(), groupId => {
-			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
+			return this._entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
 				lastIds[groupId] = [
 					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
 				]
@@ -386,13 +388,13 @@ export class EventBusClient {
 				return this._worker.sendError(new OutOfSyncError())
 			} else {
 				return Promise.each(this._eventGroups(), groupId => {
-					return loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
-						.each(eventBatch => {
-							return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
-						})
-						.catch(NotAuthorizedError, () => {
-							console.log("could not download entity updates => lost permission")
-						}).finally(() => {
+					return this._entity.loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
+					           .each(eventBatch => {
+						           return this._processEntityEvents(eventBatch.events, groupId, getLetId(eventBatch)[1])
+					           })
+					           .catch(NotAuthorizedError, () => {
+						           console.log("could not download entity updates => lost permission")
+					           }).finally(() => {
 							entityEventProgress.workDone(1)
 						})
 				}).then(() => {

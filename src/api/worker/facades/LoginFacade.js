@@ -1,5 +1,5 @@
 // @flow
-import {load, loadRoot, serviceRequest, serviceRequestVoid, setup, update} from "../EntityWorker"
+import {load, serviceRequest, serviceRequestVoid, setup, update} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
 import {
 	base64ToBase64Ext,
@@ -46,7 +46,14 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull, noOp} from "../../common/utils/Utils"
-import {_loadEntity, GENERATED_ID_BYTES_LENGTH, HttpMethod, isSameId, isSameTypeRefByAttr, MediaType} from "../../common/EntityFunctions"
+import {
+	_loadEntity,
+	GENERATED_ID_BYTES_LENGTH,
+	HttpMethod,
+	isSameId,
+	isSameTypeRefByAttr,
+	MediaType
+} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -76,6 +83,7 @@ import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDelet
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RestClient} from "../rest/RestClient"
+import {EntityClient} from "../../common/EntityClient"
 
 assertWorkerOrNode()
 
@@ -100,10 +108,12 @@ export class LoginFacade {
 	 */
 	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 	_restClient: RestClient;
+	_entity: EntityClient;
 
-	constructor(worker: WorkerImpl, restClient: RestClient) {
+	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient) {
 		this._worker = worker
 		this._restClient = restClient
+		this._entity = entity
 		this.reset()
 	}
 
@@ -518,7 +528,7 @@ export class LoginFacade {
 	 * Loads entropy from the last logout.
 	 */
 	loadEntropy(): Promise<void> {
-		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
+		return this._entity.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
 					let entropy = aes128Decrypt(this.getUserGroupKey(), neverNull(tutanotaProperties.groupEncEntropy))
@@ -534,7 +544,7 @@ export class LoginFacade {
 
 	storeEntropy(): Promise<void> {
 		if (!this._accessToken) return Promise.resolve()
-		return loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
+		return this._entity.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
 				.catch(LockedError, noOp)

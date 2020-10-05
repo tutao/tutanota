@@ -1,7 +1,7 @@
 //@flow
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {EntityWorker} from "../EntityWorker"
 import {NotFoundError} from "../../common/error/RestError"
+import type {WhitelabelChild} from "../../entities/sys/WhitelabelChild"
 import {_TypeModel as WhitelabelChildModel, WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {neverNull} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -11,17 +11,17 @@ import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {WhitelabelChild} from "../../entities/sys/WhitelabelChild"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
+import {EntityClient} from "../../common/EntityClient"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore;
 	_db: Db;
-	_entity: EntityWorker;
+	_entity: EntityClient;
 	suggestionFacade: SuggestionFacade<WhitelabelChild>
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<WhitelabelChild>) {
+	constructor(core: IndexerCore, db: Db, entity: EntityClient, suggestionFacade: SuggestionFacade<WhitelabelChild>) {
 		this._core = core
 		this._db = db
 		this._entity = entity
@@ -81,7 +81,12 @@ export class WhitelabelChildIndexer {
 									this._core.encryptSearchIndexEntries(child._id, neverNull(child._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
 								return Promise.all([
-									this._core.writeIndexUpdate([{groupId: customer.adminGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this._core.writeIndexUpdate([
+										{
+											groupId: customer.adminGroup,
+											indexTimestamp: FULL_INDEXED_TIMESTAMP
+										}
+									], indexUpdate),
 									this.suggestionFacade.store()
 								]).return()
 							})

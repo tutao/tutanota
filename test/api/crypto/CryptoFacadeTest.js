@@ -63,7 +63,7 @@ o.spec("crypto facade", function () {
 		const worker = downcast({})
 		restClient = new RestClient(new SuspensionHandler(worker))
 		locator.restClient = restClient
-		locator.login = new LoginFacade((null: any), restClient)
+		locator.login = new LoginFacade((null: any), restClient, downcast({}))
 
 	})
 

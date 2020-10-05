@@ -40,24 +40,29 @@ assertMainOrNode()
 
 type SomeEntity = Element | ListElement
 
+/** @deprecated use EntityClient implementation instead */
 export function setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {
 	return _setupEntity(listId, instance, worker)
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function update<T: SomeEntity>(instance: T): Promise<void> {
 	return _updateEntity(instance, worker)
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function erase<T: SomeEntity>(instance: T): Promise<void> {
 	return _eraseEntity(instance, worker)
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function load<T: SomeEntity>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params): Promise<T> {
 	return _loadEntity(typeRef, id, queryParams, worker)
 }
 
 /**
  * load multiple does not guarantee order or completeness of returned elements.
+ * @deprecated use EntityClient implementation instead
  */
 export function loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, worker)
@@ -65,18 +70,21 @@ export function loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, el
 
 /**
  * load multiple does not guarantee order or completeness of returned elements.
+ * @deprecated use EntityClient implementation instead
  */
 export function loadMultipleList<T: ListElement>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
 ): Promise<T[]> {
 	return _loadMultipleEntities(typeRef, listId, elementIds, restInterface)
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
                                           reverse: boolean): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, worker)
 }
 
 
+/** @deprecated use EntityClient implementation instead */
 export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
@@ -110,6 +118,7 @@ function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, en
 		})
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return _loadReverseRangeBetween(typeRef, listId, start, end, worker, rangeItemLimit)
 }
@@ -138,6 +147,7 @@ export function loadVersionInfo<T: SomeEntity>(instance: T): Promise<VersionRetu
 	})
 }
 
+/** @deprecated use EntityClient implementation instead */
 export function loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		let rootId = [groupId, typeModel.rootId];

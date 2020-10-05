@@ -1,11 +1,15 @@
 //@flow
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {EntityWorker, load, loadAll} from "../EntityWorker"
+import {load} from "../EntityWorker"
+import type {MailBody} from "../../entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
+import type {MailBox} from "../../entities/tutanota/MailBox"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
+import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
+import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
@@ -20,27 +24,23 @@ import {
 	typeRefToTypeInfo
 } from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
+import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import {FileTypeRef} from "../../entities/tutanota/File"
 import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
-import * as promises from "../../common/utils/PromiseUtils"
 import type {FutureBatchActions} from "./EventQueue"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import type {DateProvider} from "../DateProvider"
-import type {Mail} from "../../entities/tutanota/Mail"
-import type {MailBody} from "../../entities/tutanota/MailBody"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
-import type {MailBox} from "../../entities/tutanota/MailBox"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
+import {EntityClient} from "../../common/EntityClient"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -60,14 +60,14 @@ export class MailIndexer {
 	_db: Db;
 	_worker: WorkerImpl;
 	_entityRestClient: EntityRestInterface;
-	_defaultCachingClient: EntityWorker;
+	_defaultCachingEntity: EntityClient;
 	_dateProvider: DateProvider;
 
 	constructor(core: IndexerCore, db: Db, worker: WorkerImpl, entityRestClient: EntityRestInterface, defaultCachingRestClient: EntityRestInterface,
 	            dateProvider: DateProvider) {
 		this._core = core
 		this._db = db
-		this._defaultCachingClient = new EntityWorker(defaultCachingRestClient)
+		this._defaultCachingEntity = new EntityClient(defaultCachingRestClient)
 		this._worker = worker
 
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
@@ -115,11 +115,11 @@ export class MailIndexer {
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+		return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
 		           .then(mail => {
 			           return Promise.all([
-				           Promise.map(mail.attachments, attachmentId => this._defaultCachingClient.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
-				           this._defaultCachingClient.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
+				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
+				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
 			           ]).spread((files, body) => {
 				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
 				           return {mail, keyToIndexEntries}
@@ -242,8 +242,8 @@ export class MailIndexer {
 		this.mailboxIndexingPromise = Promise
 			.map(memberships, (mailGroupMembership) => {
 				let mailGroupId = mailGroupMembership.group
-				return this._defaultCachingClient.load(MailboxGroupRootTypeRef, mailGroupId)
-				           .then(mailGroupRoot => this._defaultCachingClient.load(MailBoxTypeRef, mailGroupRoot.mailbox))
+				return this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
+				           .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 				           .then(mbox => {
 					           return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
 						           return t.get(GroupDataOS, mailGroupId).then((groupData: ?GroupData) => {
@@ -435,23 +435,23 @@ export class MailIndexer {
 		const bodies = indexLoader.loadMailBodies(mails)
 		const files = indexLoader.loadAttachments(mails)
 		return Promise.all([bodies, files])
-		               .then(([bodies, files]) => mails
-			               .map(mail => {
-				               const body = bodies.find(b => isSameId(b._id, mail.body))
-				               if (body == null) return null
-				               return {
-					               mail: mail,
-					               body,
-					               files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id)))
-				               }
-			               })
-			               .filter(Boolean))
-		               .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
-			               mailWithBodyAndFiles.forEach(element => {
-				               let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
-				               this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-			               })
-		               }).return(mails.length)
+		              .then(([bodies, files]) => mails
+			              .map(mail => {
+				              const body = bodies.find(b => isSameId(b._id, mail.body))
+				              if (body == null) return null
+				              return {
+					              mail: mail,
+					              body,
+					              files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id)))
+				              }
+			              })
+			              .filter(Boolean))
+		              .then((mailWithBodyAndFiles: {mail: Mail, body: MailBody, files: TutanotaFile[]}[]) => {
+			              mailWithBodyAndFiles.forEach(element => {
+				              let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
+				              this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+			              })
+		              }).return(mails.length)
 	}
 
 	_writeIndexUpdate(dataPerGroup: Array<{groupId: Id, indexTimestamp: number}>, indexUpdate: IndexUpdate): Promise<void> {
@@ -488,11 +488,11 @@ export class MailIndexer {
 	 */
 	_loadMailListIds(mailbox: MailBox): Promise<Id[]> {
 		let mailListIds = []
-		return this._defaultCachingClient.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
+		return this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
 		           .filter(f => !contains(this._excludedListIds, f.mails))
 		           .map(folder => {
 			           mailListIds.push(folder.mails)
-			           return this._defaultCachingClient.loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
+			           return this._defaultCachingEntity.loadAll(MailFolderTypeRef, folder.subFolders).map(folder => {
 				           mailListIds.push(folder.mails)
 			           })
 		           })
@@ -503,8 +503,8 @@ export class MailIndexer {
 		return load(MailboxGroupRootTypeRef, mailGroup.group)
 			.then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox))
 			.then(mbox => {
-				return loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders)
-					.then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
+				return this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders)
+				           .then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
 			})
 	}
 
@@ -567,7 +567,7 @@ export class MailIndexer {
 					return Promise.resolve()
 				}
 
-				return this._defaultCachingClient.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+				return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
 				           .then(mail => {
 					           if (mail.state === MailState.DRAFT) {
 						           return Promise.all([
@@ -628,13 +628,13 @@ type MboxIndexData = {mailListIds: Array<Id>, newestTimestamp: number, ownerGrou
 
 class IndexLoader {
 	_entityCache: EntityRestCache;
-	_entity: EntityWorker;
-	_cachingEntity: EntityWorker;
+	_entity: EntityClient;
+	_cachingEntity: EntityClient;
 
 	constructor(restClient: EntityRestInterface) {
 		this._entityCache = new EntityRestCache(restClient)
-		this._entity = new EntityWorker(restClient)
-		this._cachingEntity = new EntityWorker(this._entityCache)
+		this._entity = new EntityClient(restClient)
+		this._cachingEntity = new EntityClient(this._entityCache)
 	}
 
 	loadMailsWithCache(mailListId: Id, [rangeStart, rangeEnd]: TimeRange): Promise<{elements: Array<Mail>, loadedCompletely: boolean}> {

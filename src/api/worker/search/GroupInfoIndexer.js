@@ -1,7 +1,7 @@
 //@flow
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {EntityWorker} from "../EntityWorker"
 import {NotFoundError} from "../../common/error/RestError"
+import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {neverNull} from "../../common/utils/Utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -11,17 +11,17 @@ import {GroupDataOS} from "./DbFacade"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
+import {EntityClient} from "../../common/EntityClient"
 
 export class GroupInfoIndexer {
 	_core: IndexerCore;
 	_db: Db;
-	_entity: EntityWorker;
+	_entity: EntityClient;
 	suggestionFacade: SuggestionFacade<GroupInfo>
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<GroupInfo>) {
+	constructor(core: IndexerCore, db: Db, entity: EntityClient, suggestionFacade: SuggestionFacade<GroupInfo>) {
 		this._core = core
 		this._db = db
 		this._entity = entity
@@ -81,7 +81,12 @@ export class GroupInfoIndexer {
 									this._core.encryptSearchIndexEntries(groupInfo._id, neverNull(groupInfo._ownerGroup), keyToIndexEntries, indexUpdate)
 								})
 								return Promise.all([
-									this._core.writeIndexUpdate([{groupId: customer.customerGroup, indexTimestamp: FULL_INDEXED_TIMESTAMP}], indexUpdate),
+									this._core.writeIndexUpdate([
+										{
+											groupId: customer.customerGroup,
+											indexTimestamp: FULL_INDEXED_TIMESTAMP
+										}
+									], indexUpdate),
 									this.suggestionFacade.store()
 								])
 							})

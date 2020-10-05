@@ -1,27 +1,27 @@
 //@flow
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import type {Contact} from "../../entities/tutanota/Contact"
 import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
-import {EntityWorker} from "../EntityWorker"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
 import {neverNull} from "../../common/utils/Utils"
 import {GroupDataOS, MetaDataOS} from "./DbFacade"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
+import type {ContactList} from "../../entities/tutanota/ContactList"
 import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {Contact} from "../../entities/tutanota/Contact"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {ContactList} from "../../entities/tutanota/ContactList"
+import {EntityClient} from "../../common/EntityClient"
 
 export class ContactIndexer {
 	_core: IndexerCore;
 	_db: Db;
-	_entity: EntityWorker;
+	_entity: EntityClient;
 	suggestionFacade: SuggestionFacade<Contact>;
 
-	constructor(core: IndexerCore, db: Db, entity: EntityWorker, suggestionFacade: SuggestionFacade<Contact>) {
+	constructor(core: IndexerCore, db: Db, entity: EntityClient, suggestionFacade: SuggestionFacade<Contact>) {
 		this._core = core
 		this._db = db
 		this._entity = entity

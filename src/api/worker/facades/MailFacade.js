@@ -1,7 +1,7 @@
 // @flow
 import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
 import {aes128RandomKey} from "../crypto/Aes"
-import {load, loadRoot, serviceRequest, serviceRequestVoid} from "../EntityWorker"
+import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
 import type {LoginFacade} from "./LoginFacade"
 import type {ConversationTypeEnum, MailMethodEnum, ReportedMailFieldTypeEnum} from "../../common/TutanotaConstants"
@@ -33,7 +33,14 @@ import {KeyLength} from "../crypto/CryptoConstants"
 import {bitArrayToUint8Array, createAuthVerifier, keyToUint8Array} from "../crypto/CryptoUtils"
 import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {containsId, getLetId, HttpMethod, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/EntityFunctions"
+import {
+	containsId,
+	getLetId,
+	HttpMethod,
+	isSameId,
+	isSameTypeRefByAttr,
+	stringToCustomId
+} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {addressDomain, defer, getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, neverNull} from "../../common/utils/Utils"
 import type {User} from "../../entities/sys/User"
@@ -61,6 +68,7 @@ import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
 import murmurHash from "../crypto/lib/murmurhash3_32"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
+import {EntityClient} from "../../common/EntityClient"
 
 assertWorkerOrNode()
 
@@ -70,13 +78,15 @@ export class MailFacade {
 	_phishingMarkers: Set<string>;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
+	_entity: EntityClient;
 
-	constructor(login: LoginFacade, fileFacade: FileFacade) {
+	constructor(login: LoginFacade, fileFacade: FileFacade, entity: EntityClient) {
 		this._login = login
 		this._file = fileFacade
 		this._phishingMarkers = new Set()
 		this._deferredDraftId = null
 		this._deferredDraftUpdate = null
+		this._entity = entity
 	}
 
 	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id) {
@@ -302,7 +312,7 @@ export class MailFacade {
 					})
 				}).then(() => {
 					return Promise.all([
-						loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
+						this._entity.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
 							sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 						}),
 						resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
@@ -433,7 +443,7 @@ export class MailFacade {
 	 * @return Resolves to the the external user's group key and the external user's mail group key, rejected if an error occured
 	 */
 	_getExternalGroupKey = function (recipientInfo: RecipientInfo, externalUserPwKey: Aes128Key, verifier: Uint8Array): Promise<{externalUserGroupKey: Aes128Key, externalMailGroupKey: Aes128Key}> {
-		return loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
+		return this._entity.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientInfo.mailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
 			return load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])

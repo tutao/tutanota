@@ -1,7 +1,6 @@
 //@flow
 import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {EntityWorker} from "../EntityWorker"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DbTransaction} from "./DbFacade"
@@ -28,6 +27,7 @@ import {ContactIndexer} from "./ContactIndexer"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
+import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
@@ -50,7 +50,7 @@ import {getFromMap} from "../../common/utils/MapUtils"
 import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {User} from "../../entities/sys/User"
+import {EntityClient} from "../../common/EntityClient"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -82,7 +82,7 @@ export class Indexer {
 	_whitelabelChildIndexer: WhitelabelChildIndexer;
 
 	_core: IndexerCore;
-	_entity: EntityWorker;
+	_entity: EntityClient;
 	_indexedGroupIds: Array<Id>;
 
 	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestInterface) {
@@ -99,7 +99,7 @@ export class Indexer {
 		this._worker = worker
 		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
 			browserData)
-		this._entity = new EntityWorker(entityRestClient)
+		this._entity = new EntityClient(entityRestClient)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
 		this._whitelabelChildIndexer = new WhitelabelChildIndexer(this._core, this.db, this._entity, new SuggestionFacade(WhitelabelChildTypeRef, this.db))
 		const dateProvider = new LocalTimeDateProvider()
@@ -384,7 +384,8 @@ export class Indexer {
 						           const batchesToQueue: QueuedBatch[] = []
 						           for (let batch of eventBatchesOnServer) {
 							           const batchId = getElementId(batch)
-							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, startId)) {
+							           if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1
+								           && firstBiggerThanSecond(batchId, startId)) {
 								           batchesToQueue.push({groupId: groupIdToEventBatch.groupId, batchId, events: batch.events})
 							           }
 						           }
