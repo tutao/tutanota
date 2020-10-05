@@ -60,19 +60,21 @@ class Header {
 			return m(".header-nav.overflow-hidden.flex.items-end.flex-center", [
 				m(".abs.full-width",
 					this._connectionIndicator() || this._entityEventProgress())
-			].concat(injectedView || [
-				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
-					style: styles.isUsingBottomNavigation() ? {'margin-left': px(-15)} : null  // manual margin to align the hamburger icon on mobile devices
-				}, this._getLeftElements()),
-				(styles.isUsingBottomNavigation() ? this._getCenterContent() : null),
-				styles.isUsingBottomNavigation()
-					? m(".header-right.pr-s.flex-end.items-center",
-					this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
-					: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
-						this._renderDesktopSearchBar(),
-						m(NavBar, this._renderButtons(isNotSignup()))
-					])
-			]))
+			].concat(injectedView
+				? m(".flex-grow", injectedView)
+				: [
+					m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
+						style: styles.isUsingBottomNavigation() ? {'margin-left': px(-15)} : null  // manual margin to align the hamburger icon on mobile devices
+					}, this._getLeftElements()),
+					(styles.isUsingBottomNavigation() ? this._getCenterContent() : null),
+					styles.isUsingBottomNavigation()
+						? m(".header-right.pr-s.flex-end.items-center",
+						this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
+						: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
+							this._renderDesktopSearchBar(),
+							m(NavBar, this._renderButtons(isNotSignup()))
+						])
+				]))
 		}
 
 
