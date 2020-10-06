@@ -54,7 +54,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "63"
+	"version": "64"
 }
 
 export function createU2fKey(values?: $Shape<$Exact<U2fKey>>): U2fKey {

@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "63"
+	"version": "64"
 }
 
 export function createChat(values?: $Shape<$Exact<Chat>>): Chat {

@@ -61,7 +61,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "63"
+	"version": "64"
 }
 
 export function createEmailSenderListElement(values?: $Shape<$Exact<EmailSenderListElement>>): EmailSenderListElement {

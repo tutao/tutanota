@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "63"
+	"version": "64"
 }
 
 export function createCreditCard(values?: $Shape<$Exact<CreditCard>>): CreditCard {
