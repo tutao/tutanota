@@ -41,7 +41,7 @@ type ListConfig<T, R: VirtualRow<T>> = {
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
-	fetch(startId: Id, count: number): Promise<T[]>;
+	fetch(startId: Id, count: number): Promise<Array<T>>;
 
 	/**
 	 * Returns null if the given element could not be loaded
@@ -66,10 +66,19 @@ type ListConfig<T, R: VirtualRow<T>> = {
 	 *
 	 * @param entities: The selected entities.
 	 * @param elementClicked: True if the user clicked on any element, false if the selection changed by any other means.
-	 * @param selection Changed: True if the selection changed, false if it did not change. There may be no change, e.g. when the user clicks an element that is already selected.
+	 * @param selectionChanged: True if the selection changed, false if it did not change. There may be no change, e.g. when the user clicks an element that is already selected.
 	 * @param multiSelectOperation: True if the user executes a multi select (shift or ctrl key pressed) or if an element is removed from the selection because it was removed from the list.
 	 */
-	elementSelected(entities: T[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void;
+	elementSelected(entities: Array<T>, elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void;
+
+	/**
+	 * add custom drag behaviour to the list.
+	 * @param ev dragstart event
+	 * @param vR: the row the event was started on
+	 * @param selectedElements the currently selected elements
+	 * @return true if the event was fully handled, false if the list should execute default behaviour
+	 */
+	dragStart?: (ev: DragEvent, vR: VirtualRow<T>, selectedElements: Array<T>) => boolean;
 
 	createVirtualRow(): R;
 

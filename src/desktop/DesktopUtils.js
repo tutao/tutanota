@@ -49,7 +49,7 @@ export default class DesktopUtils {
 		if (typeof clashingFile !== "string" && !_isReservedFilename(filename)) { // all is well
 			return filename
 		} else { // there are clashing file names or the file name is reserved
-			const ext = path.extname(filename)
+			const ext = path.extname(filename) // includes the dot
 			const basename = path.basename(filename, ext)
 			const clashNumbers = files
 				.filter(f => f.startsWith(`${basename}-`))
@@ -84,11 +84,13 @@ export default class DesktopUtils {
 	 */
 	static legalizeFilenames(files: Array<string>): {[string]: Array<string>} {
 		const suffix = (name, suf) => {
-			const ext = path.extname(name)
+			const ext = path.extname(name) // includes the dot
 			const basename = path.basename(name, ext)
 			return `${basename}-${suf}${ext}`
 		}
-		const unreserveFilename = name => _isReservedFilename(name) ? suffix(name, "") : name
+		const unreserveFilename = name => _isReservedFilename(name)
+			? suffix(name, "") // maps "con" -> "con-", ".." -> "..-" etc., which are all legal, without adding too much bulk
+			: name
 
 		let cleaned = files.map(sanitizeFilename).map(unreserveFilename)
 		let dedup = new Set(cleaned.map(s => s.toLowerCase()))
@@ -265,9 +267,9 @@ export default class DesktopUtils {
 	/**
 	 * Writes files to tmp and deletes them after 3 seconds
 	 * @param files Array of named content to write to tmp
-	 * @returns {string[]} Array of the resulting paths.
+	 * @returns {Array<string>} Array of the resulting paths.
 	 */
-	static writeFilesToTmp(files: {name: string, content: string}[]): Promise<string[]> {
+	static writeFilesToTmp(files: Array<{name: string, content: string}>): Promise<Array<string>> {
 		const dirPath = path.join(app.getPath('temp'), 'tutanota', DesktopCryptoFacade.randomHexString(12))
 		const dirPromise = fs.mkdirp(dirPath)
 		const legalNames = DesktopUtils.legalizeFilenames(files.map(f => f.name))
@@ -277,9 +279,11 @@ export default class DesktopUtils {
 		}))
 		const writePromise = () => Promise.map(legalFiles, f => {
 			const p = path.join(dirPath, f.name)
-			return fs.writeFile(p, f.content).then(() => p)
+			return fs.writeFile(p, f.content)
+			         .then(() => setTimeout(() => fs.remove(dirPath), 3000))
+			         .then(() => p)
 		})
-		setTimeout(() => fs.remove(dirPath), 3000)
+
 		return dirPromise.then(writePromise)
 	}
 }

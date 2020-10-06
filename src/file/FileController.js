@@ -14,12 +14,13 @@ import {ConnectionError} from "../api/common/error/RestError"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {sortableTimestamp} from "../api/common/utils/DateUtils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
-import {isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
 import {mailsToEmlDataFiles} from "../mail/MailUtils"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {nativeApp} from "../native/NativeWrapper"
 import {Request} from "../api/common/WorkerProtocol"
+import type {Mail} from "../api/entities/tutanota/Mail"
 
 assertMainOrNode()
 
@@ -60,7 +61,7 @@ export class FileController {
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	downloadAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
+	downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
 		const showErr = (msg, name) => Dialog.error(() => lang.get(msg) + " " + name).return(null)
 		let downloadContent, concurrency, save
 		if (isAndroidApp()) {
@@ -95,7 +96,7 @@ export class FileController {
 	/**
 	 * @param allowedExtensions Array of extensions strings without "."
 	 */
-	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
+	showFileChooser(multiple: boolean, allowedExtensions: ?Array<string>): Promise<Array<DataFile>> {
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 
@@ -137,7 +138,7 @@ export class FileController {
 		return promise
 	}
 
-	readLocalFiles(fileList: FileList): Promise<DataFile[]> {
+	readLocalFiles(fileList: FileList): Promise<Array<DataFile>> {
 		// create an array of files form the FileList because we can not iterate the FileList directly
 		let nativeFiles = []
 		for (let i = 0; i < fileList.length; i++) {
@@ -258,7 +259,7 @@ export class FileController {
 	 * @param dataFilesPromises Promise resolving to an array of DataFiles
 	 * @param name the name of the new zip file
 	 */
-	zipDataFiles(dataFilesPromises: Promise<DataFile[]>, name: string): Promise<DataFile> {
+	zipDataFiles(dataFilesPromises: Promise<Array<DataFile>>, name: string): Promise<DataFile> {
 		const file = new File([], name, {type: "application/zip"})
 		const zipPromise = asyncImport(typeof module !== "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}libs/jszip.js`)
 		return Promise.join(dataFilesPromises, zipPromise, (dataFiles, JSZip) => {
@@ -272,13 +273,11 @@ export class FileController {
 	}
 
 	/**
-	 * Export a list of entities of type T. Export format will be decided by the type ref T._type
-	 * @param entities array of any type with a type ref
+	 * Export a list of entities mails to eml files
 	 */
-	exportEntities<T>(entities: T[]): void {
-		const mails = downcast(entities).filter(e => e._type && isSameTypeRef(MailTypeRef, e._type))
+	exportMails(mails: Array<Mail>): void {
 		if (mails.length > 0) {
-			mailsToEmlDataFiles(mails)
+			mailsToEmlDataFiles(downcast(mails))
 				.then(dataFiles => dataFiles.map(df => ({name: df.name, content: utf8Uint8ArrayToString(df.data)})))
 				.then(emls => nativeApp.invokeNative(new Request('dragExport', emls)))
 		}

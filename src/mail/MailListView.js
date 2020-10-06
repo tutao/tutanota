@@ -11,7 +11,7 @@ import {CounterType_UnreadMails, getMailFolderType, MailFolderType, ReplyType} f
 import {MailView} from "./MailView"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isDesktop} from "../api/Env"
 import {
 	getArchiveFolder,
 	getFolderName,
@@ -36,6 +36,7 @@ import {createWriteCounterData} from "../api/entities/monitor/WriteCounterData"
 import {debounce} from "../api/common/utils/Utils"
 import {worker} from "../api/main/WorkerClient"
 import {locator} from "../api/main/MainLocator"
+import {fileController} from "../file/FileController"
 
 assertMainOrNode()
 
@@ -77,6 +78,16 @@ export class MailListView implements Component {
 			createVirtualRow: () => new MailRow(false),
 			showStatus: false,
 			className: className,
+			dragStart: (ev, virtualRow, mails) => {
+				// alt + drag on desktop will attempt to export the mails to the OS.
+				if(ev.altKey && isDesktop()) {
+					// interpret as an export drag to the file system
+					ev.preventDefault()
+					fileController.exportMails(mails)
+					return true
+				}
+				return false
+			},
 			swipe: ({
 				renderLeftSpacer: () => !logins.isInternalUserLoggedIn() ? [] : [
 					m(Icon, {icon: Icons.Folder}),

@@ -558,10 +558,10 @@ export function moveToInbox(mails: Mail[]): Promise<*> {
  * @param mails array of mails to convert
  * @returns {Promise<(DataFile|any)[]>}
  */
-export function mailsToEmlDataFiles(mails: Mail[]): Promise<DataFile[]> {
+export function mailsToEmlDataFiles(mails: Array<Mail>): Promise<Array<DataFile>> {
 	const mapper = mail => load(MailBodyTypeRef, mail.body)
 		.then(body => mailToEmlFile(mail, htmlSanitizer.sanitize(getMailBodyText(body), false).text))
-	return Promise.map(mails, mapper, {concurrency: 5})
+	return Promise.map(mails, mapper, {concurrency: 1})
 }
 
 /**
