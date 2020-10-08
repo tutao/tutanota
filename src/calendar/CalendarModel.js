@@ -1,7 +1,9 @@
 //@flow
 import type {CalendarMonthTimeRange} from "./CalendarUtils"
 import {
-	assignEventId, filterInt, findPrivateCalendar,
+	assignEventId,
+	filterInt,
+	findPrivateCalendar,
 	getAllDayDateForTimezone,
 	getAllDayDateUTCFromZone,
 	getDiffInDays,
@@ -655,12 +657,16 @@ export class CalendarModelImpl implements CalendarModel {
 					return load(UserAlarmInfoTypeRef, userAlarmInfoId).then((userAlarmInfo) => {
 						const {listId, elementId} = userAlarmInfo.alarmInfo.calendarRef
 						const deferredEvent = getFromMap(this._pendingAlarmRequests, elementId, defer)
-						return deferredEvent.promise.then(() => {
+						// Don't wait for the deferred event promise because it can lead to a deadlock.
+						// Since issue #2264 we process event batches sequentially and the
+						// deferred event can never be resolved until the calendar event update is received.
+						deferredEvent.promise.then(() => {
 							return load(CalendarEventTypeRef, [listId, elementId])
 								.then(calendarEvent => {
 									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
 								})
 						})
+						return Promise.resolve()
 					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))
 				} else if (entityEventData.operation === OperationType.DELETE) {
 					this._scheduledNotifications.forEach((value, key) => {
