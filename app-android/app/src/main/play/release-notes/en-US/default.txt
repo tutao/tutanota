@@ -1,4 +1,6 @@
- * Swipe from the screen edge to go to the previous screen
- * Improved date formatting
- * Improved file names when downloading attachments/emails
- * Fixed calendar skipping months
+ * Fix unexpected error notification message
+ * Fix creating all day events
+ * Fix date selection when creating events
+ * Fix multi select action bar layout
+ * Fix receiving share to events
+ * Fix updating calendar after creating events
