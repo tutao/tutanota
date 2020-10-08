@@ -143,12 +143,14 @@ export class CalendarFacade {
 			.map(alarmInfos, (alarmInfo) => {
 				const newAlarm = createUserAlarmInfo()
 				newAlarm._ownerGroup = user.userGroup.group
-				newAlarm.alarmInfo = alarmInfo
+				newAlarm.alarmInfo = createAlarmInfo()
+				newAlarm.alarmInfo.alarmIdentifier = alarmInfo.alarmIdentifier
+				newAlarm.alarmInfo.trigger = alarmInfo.trigger
 				newAlarm.alarmInfo.calendarRef = createCalendarEventRef({
 					listId: listIdPart(event._id),
 					elementId: elementIdPart(event._id)
 				})
-				const alarmNotification = createAlarmNotificationForEvent(event, alarmInfo, user._id)
+				const alarmNotification = createAlarmNotificationForEvent(event, newAlarm.alarmInfo, user._id)
 				return this._entity.setup(userAlarmInfoListId, newAlarm).then((id) => ([
 					[userAlarmInfoListId, id], alarmNotification
 				]))
