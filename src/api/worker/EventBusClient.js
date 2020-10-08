@@ -125,7 +125,7 @@ export class EventBusClient {
 		const entityEventProgress = new ProgressMonitor(this._eventGroups().length + 3, (percentage) => {
 			if (reconnect) this._worker.updateEntityEventProgress(percentage)
 		})
-		entityEventProgress.workDone(2)
+		entityEventProgress.workDone(1)
 		this._state = EventBusState.Automatic
 		this._connectTimer = null
 
@@ -145,7 +145,7 @@ export class EventBusClient {
 			this._failedConnectionAttempts = 0
 			console.log("ws open: ", new Date(), "state:", this._state);
 			// Indicate some progress right away
-			if (reconnect) this._worker.updateEntityEventProgress(2)
+			entityEventProgress.workDone(1)
 			this._initEntityEvents(reconnect, entityEventProgress)
 			this._worker.updateWebSocketState("connected")
 		};
