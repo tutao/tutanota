@@ -272,7 +272,7 @@ export function calculateAlarmTime(date: Date, interval: AlarmIntervalEnum, iana
 			diff = {weeks: 1}
 			break
 		default:
-			diff = {}
+			diff = {minutes: 5}
 	}
 	return DateTime.fromJSDate(date, {zone: ianaTimeZone}).minus(diff).toJSDate()
 }

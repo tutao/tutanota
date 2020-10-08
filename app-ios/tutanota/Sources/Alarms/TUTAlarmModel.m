@@ -88,8 +88,9 @@
     } else if([@"1W"isEqualToString:alarmTrigger]){
         return [cal dateByAddingUnit:NSCalendarUnitWeekOfYear value:-1 toDate:eventTime options:0];
     } else {
-        return eventTime;
-    }
+    	// fallback to five minute alarm in the case of an invalid trigger value
+ 		return [cal dateByAddingUnit:NSCalendarUnitMinute value:-5 toDate:eventTime options:0];
+     }
 }
 
 +(NSDate *)allDayDateUTC:(NSDate *)localDate {

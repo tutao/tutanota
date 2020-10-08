@@ -110,12 +110,16 @@ export class DesktopAlarmScheduler {
 		const identifier = decAn.alarmInfo.alarmIdentifier
 		let hasScheduledAlarms = false
 		let mightNeedIntermediateSchedule = false
+
+		// fallback 5 minute alarm if invalid trigger
+		const trigger = TRIGGER_TIMES_IN_MS[decAn.alarmInfo.trigger] || TRIGGER_TIMES_IN_MS[AlarmInterval.FIVE_MINUTES]
+
 		decAn[Symbol.iterator] = occurrenceIterator
 		for (const occurrence of downcast(decAn)) {
 			if (this._scheduledNotifications[identifier].timeouts.length >= MAX_SCHEDULED_OCCURRENCES) break
 			// this should work independently of Time Zones and DST, because the dates in the alarm notification
 			// are already converted to Unix time stamps.
-			const reminderTime = occurrence.getTime() - TRIGGER_TIMES_IN_MS[decAn.alarmInfo.trigger]
+			const reminderTime = occurrence.getTime() - trigger
 			const lastTimeInArray = (last(this._scheduledNotifications[identifier].timeouts) || {time: 0}).time
 			if (reminderTime <= now() || reminderTime < lastTimeInArray) continue
 			const reminderDelay = reminderTime - now()
