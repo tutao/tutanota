@@ -119,31 +119,38 @@ export function _findMatchingRule(mail: Mail): Promise<?InboxRule> {
 			//console.log("rule matches", resultInboxRule)
 			return resultInboxRule
 		}
-		//console.log("find matching rule", inboxRule.value)
+		// console.log("find matching rule", inboxRule.value)
 		let ruleType = inboxRule.type;
-		if (ruleType === InboxRuleType.FROM_EQUALS) {
-			return _checkEmailAddresses([mail.sender], inboxRule)
-		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
-			return _checkEmailAddresses(mail.toRecipients, inboxRule)
-		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
-			return _checkEmailAddresses(mail.ccRecipients, inboxRule)
-		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
-			return _checkEmailAddresses(mail.bccRecipients, inboxRule)
-		} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
-			return _checkContainsRule(mail.subject, inboxRule)
-		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
-			if (mail.headers) {
-				return load(MailHeadersTypeRef, mail.headers)
-					.then(mailHeaders => {
-						return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
-					})
-					.catch(NotFoundError, noOp)
-			} else {
-				return null
+		try {
+			if (ruleType === InboxRuleType.FROM_EQUALS) {
+				return _checkEmailAddresses([mail.sender], inboxRule)
+			} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
+				return _checkEmailAddresses(mail.toRecipients, inboxRule)
+			} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
+				return _checkEmailAddresses(mail.ccRecipients, inboxRule)
+			} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
+				return _checkEmailAddresses(mail.bccRecipients, inboxRule)
+			} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
+				return _checkContainsRule(mail.subject, inboxRule)
+			} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
+				if (mail.headers) {
+					return load(MailHeadersTypeRef, mail.headers)
+						.then(mailHeaders => {
+							return _checkContainsRule(getMailHeaders(mailHeaders), inboxRule)
+						})
+						.catch(NotFoundError, noOp)
+						.catch(e => {
+							// Does the outer catch already handle this case?
+							console.error("Error processing inbox rule:", e.message)
+							return null
+						})
+				}
 			}
-		} else {
-			return null
+		} catch (e) {
+			console.error("Error processing inbox rule:", e.message)
 		}
+
+		return null
 	}, null)
 }
 
