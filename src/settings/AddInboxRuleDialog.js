@@ -6,18 +6,18 @@ import {lang} from "../misc/LanguageViewModel"
 import {InboxRuleType} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatValidator"
 import {getInboxRuleTypeNameMapping} from "../mail/InboxRuleHandler"
+import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import {createInboxRule} from "../api/entities/tutanota/InboxRule"
 import {update} from "../api/main/Entity"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
-import {getArchiveFolder, getFolderName, getInboxFolder} from "../mail/MailUtils"
+import {getArchiveFolder, getFolderName} from "../mail/MailUtils"
 import type {MailboxDetail} from "../mail/MailModel"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {isSameId} from "../api/common/EntityFunctions"
-import type {InboxRule} from "../api/entities/tutanota/InboxRule"
 import {LockedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
@@ -98,6 +98,8 @@ function _validateInboxRuleInput(type: string, value: string, ruleId: Id) {
 	let currentCleanedValue = _getCleanedValue(type, value)
 	if (currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
+	} else if (_isInvalidRegex(currentCleanedValue)) {
+		return "invalidRegexSyntax_msg"
 	} else if (type !== InboxRuleType.SUBJECT_CONTAINS && type !== InboxRuleType.MAIL_HEADER_CONTAINS
 		&& !isRegularExpression(currentCleanedValue) && !isDomainName(currentCleanedValue)
 		&& !isMailAddress(currentCleanedValue, false)) {
@@ -117,4 +119,21 @@ function _getCleanedValue(type: string, value: string) {
 	} else {
 		return value.trim().toLowerCase()
 	}
+}
+
+/**
+ * @param value
+ * @returns true if provided string is a regex and it's unparseable by RegExp, else false
+ * @private
+ */
+function _isInvalidRegex(value: string) {
+	if (!isRegularExpression(value)) return false // not a regular expression is not an invalid regular expression
+
+	try {
+		// RegExp ctor throws a ParseError if invalid regex
+		let regExp = new RegExp(value.substring(1, value.length - 1));
+	} catch (e) {
+		return true
+	}
+	return false
 }

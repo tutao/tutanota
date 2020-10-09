@@ -1195,6 +1195,7 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"invalidRegexSyntax_msg": "Invalid regex syntax"
 	}
 }
