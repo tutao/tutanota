@@ -8,6 +8,7 @@ import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {isMailAddress} from "./FormatValidator"
 import type {UserSettingsGroupRoot} from "../api/entities/tutanota/UserSettingsGroupRoot"
 import {TimeFormat} from "../api/common/TutanotaConstants"
+import {DateTime} from "luxon"
 
 assertMainOrNode()
 
@@ -165,7 +166,7 @@ export function parseDate(dateString: string): Date {
 		throw new Error(`Invalid value ${month} for month in ${dateString}`)
 	}
 	// maybe do better day clamping based on the month
-	if (day < 1 || day > 31) {
+	if (day < 1 || day > _getNumDaysInMonth(month, year)) {
 		throw new Error(`Invalid value ${day} for day in ${dateString}`)
 	}
 	const date = new Date(year, month - 1, day)
@@ -173,6 +174,17 @@ export function parseDate(dateString: string): Date {
 		throw new Error(`Couldn't parse date string ${dateString}`)
 	}
 	return date
+}
+
+/**
+ * Get the number of days in a month in a given year
+ * @param month as a number between 1 and 12
+ * @param year
+ * @return the number of days in the month
+ * @private
+ */
+export function _getNumDaysInMonth(month: number, year: number): number {
+	return DateTime.fromObject({month, year}).daysInMonth
 }
 
 /**

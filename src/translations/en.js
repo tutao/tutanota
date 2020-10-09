@@ -508,7 +508,7 @@ module.exports = {
 		"interval_title": "Interval",
 		"invalidBirthday_msg": "Invalid birthday. Please update the value of the birthday field.",
 		"invalidCnameRecord_msg": "The CNAME record for this domain is not set correctly.",
-		"invalidDateFormat_msg": "Invalid format. Valid: {1}. Year is optional.",
+		"invalidDateFormat_msg": "Invalid format or value. Example format: {1}. (Year is optional.)",
 		"invalidInputFormat_msg": "Invalid format.",
 		"invalidInterval_msg": "Invalid interval",
 		"invalidLink_msg": "Sorry, this link is not valid.",
@@ -1186,6 +1186,6 @@ module.exports = {
 		"noUpdateAvailable_msg": "No Update found.",
 		"installNow_action": "Install now.",
 		"checkingForUpdate_action": "Checking for Update…",
-		"resetZoomFactor_action": "Reset Zoom Factor"
+		"resetZoomFactor_action": "Reset Zoom Factor",
 	}
 }

@@ -512,7 +512,7 @@ module.exports = {
 		"interval_title": "Intervall",
 		"invalidBirthday_msg": "Ungültiges Geburtsdatum. Bitte korrigiere den Wert im Feld 'Geburtstag'.",
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
-		"invalidDateFormat_msg": "Ungültiges Format. Gültig: {1}. Jahr ist optional.",
+		"invalidDateFormat_msg": "Ungültiges Format oder Wert. Gültiges Format z.B: {1}. (Jahr ist optional.)",
 		"invalidInputFormat_msg": "Ungültiges Format.",
 		"invalidInterval_msg": "Ungültiges Intervall",
 		"invalidLink_msg": "Leider ist dieser Link ungültig.",
@@ -1190,6 +1190,6 @@ module.exports = {
 		"installNow_action": "Jetzt installieren.",
 		"checkingForUpdate_action": "Suche nach Aktualisierung…",
 		"clientSuspensionWait_label": "Die Anfrage wird vom Server verarbeitet, bitte habe etwas Geduld.",
-		"resetZoomFactor_action": "Zoomfaktor zurücksetzen"
+		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
 	}
 }
