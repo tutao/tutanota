@@ -126,7 +126,7 @@ function _checkContainsRule(value: string, inboxRule: InboxRule): ?InboxRule {
 export function _matchesRegularExpression(value: string, inboxRule: InboxRule): boolean {
 	if (isRegularExpression(inboxRule.value)) {
 		let flags = inboxRule.replace(/.*\/([gimsuy]*)$/, '$1');
-		let pattern = inboxRule.replace(new RegExp('^/(.*?)/'+flags+'$'), '$1');
+		let pattern = inboxRule.replace(new RegExp('^/(.*?)/' + flags + '$'), '$1');
 
 		// By default, we will make the inbox rule case insensitive.
 		if (flags.length == 0) {
