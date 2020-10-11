@@ -31,6 +31,27 @@ o.spec("InboxRuleHandlerTest", function () {
 		o(_matchesRegularExpression("[1]", regExRuleEscaped)).equals(true)
 		o(_matchesRegularExpression("[1", regExRuleEscaped)).equals(false)
 	})
+
+	o("check case insensitivity", function () {
+		let regExRuleLowerCase = _createRule("/hey/")
+		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(true)
+
+		let regExRuleUpperCase = _createRule("/HEY/")
+		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(true)
+	})
+
+	o("check regular expression with flags", function () {
+		let regExRuleWithFlagsLowerCase = _createRule("/hey/i")
+		o(_matchesRegularExpression("hey", regExRuleWithFlagsLowerCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleWithFlagsLowerCase)).equals(true)
+		o(_matchesRegularExpression("hEy", regExRuleWithFlagsLowerCase)).equals(true)
+
+		let regExRuleWithFlagsUpperCase = _createRule("/HEY/i")
+		o(_matchesRegularExpression("hey", regExRuleWithFlagsLowerCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleWithFlagsLowerCase)).equals(true)
+	})
 })
 
 

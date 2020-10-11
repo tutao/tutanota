@@ -194,10 +194,15 @@ o.spec("FormatterTest", function () {
 		o(isRegularExpression("/123/")).equals(true)
 		o(isRegularExpression("/[1]*/")).equals(true)
 		o(isRegularExpression("/$/")).equals(true)
-		//escaped characters
+		// escaped characters
 		o(isRegularExpression("/\./")).equals(true)
 		o(isRegularExpression("/\\/")).equals(true)
 		o(isRegularExpression("/\$/")).equals(true)
+		
+		// with flags
+		o(isRegularExpression("/hey/i")).equals(true)
+		o(isRegularExpression("//muy")).equals(true)
+		o(isRegularExpression("/hey/x")).equals(false)
 	})
 
 
