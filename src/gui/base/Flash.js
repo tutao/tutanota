@@ -15,6 +15,7 @@ export function addFlash(target: any) {
 		target.addEventListener("mousedown", flashIn, eventListenerArgs)
 		target.addEventListener("mouseup", flashOut, eventListenerArgs)
 		target.addEventListener("dragstart", PREVENT, client.passive() ? {passive: false} : false)
+		target.addEventListener("mouseleave", flashOut, eventListenerArgs)
 	} else {
 		target.addEventListener("touchstart", flashIn, eventListenerArgs)
 		target.addEventListener("touchend", flashOut, eventListenerArgs)
@@ -27,6 +28,7 @@ export function removeFlash(target: any) {
 		target.removeEventListener("mousedown", flashIn, eventListenerArgs)
 		target.removeEventListener("mouseup", flashOut, eventListenerArgs)
 		target.removeEventListener("dragstart", PREVENT)
+		target.removeEventListener("mouseleave", flashOut, eventListenerArgs)
 	} else {
 		target.removeEventListener("touchstart", flashIn, eventListenerArgs)
 		target.removeEventListener("touchend", flashOut, eventListenerArgs)

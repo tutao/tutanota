@@ -206,7 +206,7 @@ declare module 'chalk' {
 }
 
 declare module 'faker' {
-	declare var faker: any;
+	declare export default any;
 }
 declare module 'squire-rte' {
 	declare var Squire: any;
