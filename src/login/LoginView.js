@@ -461,7 +461,7 @@ export function getPrivacyStatementLink(): ?string {
 
 
 export function renderPrivacyAndImprintLinks(): Children {
-	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl", [
+	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
 		(getPrivacyStatementLink()) ? m("a.plr", {
 			href: getPrivacyStatementLink(),
 			target: "_blank"
@@ -470,7 +470,10 @@ export function renderPrivacyAndImprintLinks(): Children {
 			href: getImprintLink(),
 			target: "_blank"
 		}, lang.get("imprint_label")) : null,
-	])
+
+			m(".mt.center.small.full-width", `v${env.versionNumber}`),
+		]
+	)
 }
 
 export const login: LoginView = new LoginView()

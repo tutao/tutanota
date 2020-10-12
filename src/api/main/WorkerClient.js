@@ -4,7 +4,6 @@ import {objToError, Queue, Request} from "../common/WorkerProtocol"
 import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
-import {setup} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import type {
 	AccountTypeEnum,
