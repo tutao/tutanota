@@ -127,12 +127,6 @@ export function _matchesRegularExpression(value: string, inboxRule: InboxRule): 
 	if (isRegularExpression(inboxRule.value)) {
 		let flags = inboxRule.replace(/.*\/([gimsuy]*)$/, '$1');
 		let pattern = inboxRule.replace(new RegExp('^/(.*?)/' + flags + '$'), '$1');
-
-		// By default, we will make the inbox rule case insensitive.
-		if (flags.length == 0) {
-			flags = "i";
-		}
-
 		let regExp = new RegExp(pattern, flags);
 		return regExp.test(value)
 	}

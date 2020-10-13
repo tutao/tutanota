@@ -35,10 +35,10 @@ o.spec("InboxRuleHandlerTest", function () {
 	o("check case insensitivity", function () {
 		let regExRuleLowerCase = _createRule("/hey/")
 		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(true)
-		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(false)
 
 		let regExRuleUpperCase = _createRule("/HEY/")
-		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(true)
+		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(false)
 		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(true)
 	})
 
