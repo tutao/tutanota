@@ -59,7 +59,7 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 	// Editor resets its value on re-attach so we keep it ourselves
 	let savedHtml = editor.getValue()
 	selectedTab.map((tab) => {
-		if (tab === editSegment) {
+		if (tab === editSegment.value) {
 			editor.setValue(savedHtml)
 		} else {
 			savedHtml = editor.getValue()
