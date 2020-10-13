@@ -38,8 +38,8 @@ o.spec("InboxRuleHandlerTest", function () {
 		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(false)
 
 		let regExRuleUpperCase = _createRule("/HEY/")
-		o(_matchesRegularExpression("hey", regExRuleLowerCase)).equals(false)
-		o(_matchesRegularExpression("HEY", regExRuleLowerCase)).equals(true)
+		o(_matchesRegularExpression("hey", regExRuleUpperCase)).equals(false)
+		o(_matchesRegularExpression("HEY", regExRuleUpperCase)).equals(true)
 	})
 
 	o("check regular expression with flags", function () {
@@ -49,8 +49,8 @@ o.spec("InboxRuleHandlerTest", function () {
 		o(_matchesRegularExpression("hEy", regExRuleWithFlagsLowerCase)).equals(true)
 
 		let regExRuleWithFlagsUpperCase = _createRule("/HEY/i")
-		o(_matchesRegularExpression("hey", regExRuleWithFlagsLowerCase)).equals(true)
-		o(_matchesRegularExpression("HEY", regExRuleWithFlagsLowerCase)).equals(true)
+		o(_matchesRegularExpression("hey", regExRuleWithFlagsUpperCase)).equals(true)
+		o(_matchesRegularExpression("HEY", regExRuleWithFlagsUpperCase)).equals(true)
 	})
 })
 
