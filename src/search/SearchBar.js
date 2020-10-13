@@ -18,7 +18,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import type {ListElement} from "../api/common/EntityFunctions"
-import {getElementId, isSameTypeRef, TypeRef} from "../api/common/EntityFunctions"
+import {elementIdPart, getElementId, isSameTypeRef, listIdPart, TypeRef} from "../api/common/EntityFunctions"
 import {mod} from "../misc/MathUtils"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./SearchUtils"
@@ -44,6 +44,7 @@ import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../api/common/utils/AriaUtils"
+import {flat, groupBy} from "../api/common/utils/ArrayUtils"
 import type {SearchRestriction} from "../api/worker/search/SearchTypes"
 
 assertMainOrNode()
@@ -347,11 +348,15 @@ export class SearchBar implements Component {
 			return Promise.resolve(([]))
 		}
 
-		return Promise.map(results, r => load(restriction.type, r)
+		const byList = groupBy(results, listIdPart)
+		return Promise
+			.map(byList,
+				([listId, idTuples]) => locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart)),
+				{concurrency: 1})
+			.then(flat)
 			.catch(NotFoundError, () => console.log("mail from search index not found"))
-			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index")))
+			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index"))
 	}
-
 
 	_selectResult(result: ?Mail | Contact | GroupInfo | WhitelabelChild | ShowMoreAction) {
 		const {query} = this._state()
