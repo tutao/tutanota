@@ -560,6 +560,24 @@ export class MailViewer {
 						icon: () => Icons.Forward,
 						colors,
 					}))
+					actions.push(m(ButtonN, {
+						label: "move_action",
+						icon: () => Icons.Folder,
+						colors,
+						click: createAsyncDropdown(() => locator.mailModel.getMailboxFolders(this.mail).then((folders) => {
+								const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
+								const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
+								return targetFolders.map(f => {
+									return {
+										label: () => getFolderName(f),
+										click: () => locator.mailModel.moveMails([mail], f),
+										icon: getFolderIcon(f),
+										type: ButtonType.Dropdown,
+									}
+								})
+							})
+						)
+					}))
 				} else if (userController.isInternalUser()
 					&& restrictedParticipants
 					&& userController.getUserMailGroupMembership().group !== this.mail._ownerGroup) {
@@ -568,24 +586,6 @@ export class MailViewer {
 					                   .setColors(colors)))
 				}
 			}
-			actions.push(m(ButtonN, {
-				label: "move_action",
-				icon: () => Icons.Folder,
-				colors,
-				click: createAsyncDropdown(() => locator.mailModel.getMailboxFolders(this.mail).then((folders) => {
-						const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
-						const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
-						return targetFolders.map(f => {
-							return {
-								label: () => getFolderName(f),
-								click: () => locator.mailModel.moveMails([mail], f),
-								icon: getFolderIcon(f),
-								type: ButtonType.Dropdown,
-							}
-						})
-					})
-				)
-			}))
 		}
 		actions.push(m(ButtonN, {
 			label: "delete_action",
@@ -994,6 +994,7 @@ export class MailViewer {
 	}
 
 	_setupShortcuts() {
+		const userController = logins.getUserController()
 		let shortcuts = [
 			{
 				key: Keys.E,
@@ -1023,15 +1024,18 @@ export class MailViewer {
 				},
 				help: "replyAll_action"
 			},
-			{
+		]
+		if (userController.isInternalUser()) {
+			shortcuts.push({
 				key: Keys.F,
 				shift: true,
 				exec: (key: KeyPress) => {
 					this._forward()
 				},
 				help: "forward_action"
-			},
-		]
+			})
+		}
+
 
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
