@@ -85,6 +85,8 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RestClient} from "../rest/RestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {createTakeOverDeletedAddressData} from "../../entities/sys/TakeOverDeletedAddressData"
+import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
+import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()
 
@@ -110,12 +112,14 @@ export class LoginFacade {
 	_loggingInPromiseWrapper: ?{promise: Promise<void>, reject: (Error) => void};
 	_restClient: RestClient;
 	_entity: EntityClient;
+	_leaderStatus: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
 
 	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient) {
 		this._worker = worker
 		this._restClient = restClient
 		this._entity = entity
 		this.reset()
+
 	}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -135,6 +139,7 @@ export class LoginFacade {
 		if (this._eventBusClient) {
 			this._eventBusClient.close(CloseEventBusOption.Terminate)
 		}
+		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false})
 		return Promise.resolve()
 	}
 
@@ -544,7 +549,8 @@ export class LoginFacade {
 	}
 
 	storeEntropy(): Promise<void> {
-		if (!this._accessToken) return Promise.resolve()
+		// We only store entropy to the server if we are the leader
+		if (!this._accessToken || !this.isLeader()) return Promise.resolve()
 		return this._entity.loadRoot(TutanotaPropertiesTypeRef, this.getUserGroupId()).then(tutanotaProperties => {
 			tutanotaProperties.groupEncEntropy = encryptBytes(this.getUserGroupKey(), random.generateRandomData(32))
 			return update(tutanotaProperties)
@@ -745,6 +751,16 @@ export class LoginFacade {
 
 	getUserGroupInfo(): GroupInfo {
 		return neverNull(this._userGroupInfo)
+	}
+
+	setLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
+		this._leaderStatus = status
+		console.log("New leader status set:", status.leaderStatus)
+		return this._worker.updateLeaderStatus(status)
+	}
+
+	isLeader(): boolean {
+		return this._leaderStatus.leaderStatus
 	}
 }
 

@@ -201,7 +201,7 @@ export class MailListView implements Component {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return Promise.filter(mails, (mail) => {
-						return findAndApplyMatchingRule(mailboxDetail, mail).then(matchingMailId => !matchingMailId)
+						return findAndApplyMatchingRule(mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {
 							//console.log("load more because of matching inbox rules")

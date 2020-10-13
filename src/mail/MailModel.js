@@ -283,7 +283,10 @@ export class MailModel {
 					const mailId = [update.instanceListId, update.instanceId]
 					return load(MailTypeRef, mailId)
 						.then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)
-						                    .then(mailboxDetail => findAndApplyMatchingRule(mailboxDetail, mail))
+						                    .then(mailboxDetail => {
+							                    // We only apply rules on server if we are the leader in case of incoming messages
+							                    return findAndApplyMatchingRule(mailboxDetail, mail, this._worker.isLeader())
+						                    })
 						                    .then((newId) => this._showNotification(newId || mailId)))
 						.catch(noOp)
 				}

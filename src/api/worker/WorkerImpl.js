@@ -23,6 +23,7 @@ import type {ContactFormAccountReturn} from "../entities/tutanota/ContactFormAcc
 import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServicePutReturn"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
+import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()
 
@@ -426,5 +427,10 @@ export class WorkerImpl {
 	infoMessage(message: InfoMessage): Promise<void> {
 		return this._queue.postMessage(new Request("infoMessage", [message]))
 	}
+
+	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
+		return this._queue.postMessage(new Request("updateLeaderStatus", [status]))
+	}
+
 }
 

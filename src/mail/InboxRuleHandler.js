@@ -78,7 +78,7 @@ export function getInboxRuleTypeName(type: string): string {
  * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
  * @returns true if a rule matches otherwise false
  */
-export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail): Promise<?IdTuple> {
+export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mail, applyRulesOnServer: boolean): Promise<?IdTuple> {
 	if (mail._errors || !mail.unread || !isInboxList(mailboxDetail, getListId(mail))
 		|| !logins.getUserController().isPremiumAccount()) {
 		return Promise.resolve(null)
@@ -88,16 +88,18 @@ export function findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Mai
 			let targetFolder = mailboxDetail.folders.filter(folder => folder !== getInboxFolder(mailboxDetail.folders))
 			                                .find(folder => isSameId(folder._id, inboxRule.targetFolder))
 			if (targetFolder) {
-				let moveMailData = moveMailDataPerFolder.find(folderMoveMailData => isSameId(folderMoveMailData.targetFolder, inboxRule.targetFolder))
-				if (moveMailData) {
-					moveMailData.mails.push(mail._id)
-				} else {
-					moveMailData = createMoveMailData()
-					moveMailData.targetFolder = inboxRule.targetFolder
-					moveMailData.mails.push(mail._id)
-					moveMailDataPerFolder.push(moveMailData)
+				if (applyRulesOnServer) {
+					let moveMailData = moveMailDataPerFolder.find(folderMoveMailData => isSameId(folderMoveMailData.targetFolder, inboxRule.targetFolder))
+					if (moveMailData) {
+						moveMailData.mails.push(mail._id)
+					} else {
+						moveMailData = createMoveMailData()
+						moveMailData.targetFolder = inboxRule.targetFolder
+						moveMailData.mails.push(mail._id)
+						moveMailDataPerFolder.push(moveMailData)
+					}
+					applyMatchingRules()
 				}
-				applyMatchingRules()
 				return [targetFolder.mails, getElementId(mail)]
 			} else {
 				return null

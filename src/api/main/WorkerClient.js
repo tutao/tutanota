@@ -47,6 +47,8 @@ import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {NewSessionData} from "../worker/facades/LoginFacade"
 import {logins} from "./LoginController"
 import type {RecipientInfo} from "../common/RecipientInfo"
+import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
+import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 
@@ -71,8 +73,11 @@ export class WorkerClient implements EntityRestInterface {
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
 	_updateEntityEventProgress: Stream<number> = stream(0);
 	+infoMessages: Stream<InfoMessage>;
+	_leaderStatus: WebsocketLeaderStatus
+
 
 	constructor() {
+		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false}) //init as non-leader
 		this.infoMessages = stream()
 		locator.init(this)
 		this._initWorker()
@@ -111,6 +116,10 @@ export class WorkerClient implements EntityRestInterface {
 			},
 			counterUpdate: (message: Message) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
+				return Promise.resolve()
+			},
+			updateLeaderStatus: (message: Message) => {
+				this._leaderStatus = downcast(message.args[0])
 				return Promise.resolve()
 			},
 			infoMessage: (message: Message) => {
@@ -581,6 +590,10 @@ export class WorkerClient implements EntityRestInterface {
 
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
 		return this._queue.postMessage(new Request("getEventByUid", [uid]))
+	}
+
+	isLeader(): boolean {
+		return this._leaderStatus.leaderStatus
 	}
 }
 

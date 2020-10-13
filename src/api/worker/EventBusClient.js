@@ -29,6 +29,7 @@ import {_TypeModel as PhishingMarkerWebsocketDataTypeModel} from "../entities/tu
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityClient} from "../common/EntityClient"
+import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()
 
@@ -277,6 +278,12 @@ export class EventBusClient {
 					this._lastAntiphishingMarkersId = data.lastId
 					this._mail.phishingMarkersUpdateReceived(data.markers)
 				})
+		} else if (type === "leaderStatus") {
+			return decryptAndMapToInstance(WebsocketLeaderStatusTypeModel, JSON.parse(value), null)
+				.then(status => {
+					return this._login.setLeaderStatus(status)
+				})
+
 		} else {
 			console.log("ws message with unknown type", type)
 		}
@@ -286,6 +293,7 @@ export class EventBusClient {
 	_close(event: CloseEvent) {
 		this._failedConnectionAttempts++
 		console.log(new Date().toISOString(), "ws _close: ", event, "state:", this._state);
+		this._login.setLeaderStatus(createWebsocketLeaderStatus({leaderStatus: false}))
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
 		// do not catch session expired here because websocket will be reused when we authenticate again

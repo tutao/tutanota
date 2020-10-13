@@ -52,7 +52,7 @@ export {encryptKey, decryptKey, encrypt256Key, decrypt256Key, encryptRsaKey, dec
 
 // stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 // so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
-// this especially improves the performance when indexing mail bodys
+// this especially improves the performance when indexing mail bodies
 let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
 
 export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
@@ -286,7 +286,7 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
 }
 
 /**
- * Updates the given public permission with the given symmetric key for faster access.
+ * Updates the given public permission with the given symmetric key for faster access if the client is the leader and otherwise does nothing.
  * @param typeModel: the type model of the instance
  * @param instance The unencrypted (client-side) or encrypted (server-side) instance
  * @param permission The permission.
@@ -296,8 +296,9 @@ export function resolveServiceSessionKey(typeModel: TypeModel, instance: Object)
  * @param sessionKey The symmetric session key.
  */
 function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, permission: Permission, bucketPermission: BucketPermission, permissionOwnerGroupKey: Aes128Key, permissionGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {
-	if (typeof instance._type !== 'undefined') {
+	if (typeof instance._type !== 'undefined' || !locator.login.isLeader()) {
 		// do not update the session key in case of an unencrypted (client-side) instance
+		// or in case we are not the leader client
 		return Promise.resolve()
 	}
 	if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
