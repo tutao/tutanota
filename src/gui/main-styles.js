@@ -1415,6 +1415,9 @@ styles.registerStyle('main', () => {
 			".mobile .view-column:nth-child(2)": {
 				display: "initial",
 			},
+			".expander-panel": {
+				display: "none"
+			}
 		},
 
 		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7
