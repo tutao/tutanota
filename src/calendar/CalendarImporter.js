@@ -54,6 +54,8 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              if (event.uid && uidToEvent.has(event.uid)) {
 								              return
 							              }
+							              event.uid && uidToEvent.set(event.uid, event)
+
 							              const repeatRule = event.repeatRule
 							              assignEventId(event, zone, calendarGroupRoot)
 							              event._ownerGroup = calendarGroupRoot._id
