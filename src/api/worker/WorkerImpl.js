@@ -287,6 +287,9 @@ export class WorkerImpl {
 			resetSecondFactors: (message: Request) => {
 				return locator.login.resetSecondFactors.apply(locator.login, message.args)
 			},
+			takeOverDeletedAddress: (message: Request) => {
+				return locator.login.takeOverDeletedAddress.apply(locator.login, message.args)
+			},
 			resetSession: () => locator.login.reset(),
 			createCalendarEvent: (message: Request) => {
 				return locator.calendar.createCalendarEvent.apply(locator.calendar, message.args)

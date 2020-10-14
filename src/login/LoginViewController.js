@@ -4,7 +4,7 @@ import {worker} from "../api/main/WorkerClient"
 import {Dialog} from "../gui/base/Dialog"
 import {
 	AccessBlockedError,
-	AccessDeactivatedError,
+	AccessDeactivatedError, AccessExpiredError,
 	BadRequestError,
 	ConnectionError,
 	LockedError,
@@ -113,6 +113,7 @@ export class LoginViewController implements ILoginViewController {
 		} else {
 			this.view.helpText = lang.get('login_msg')
 			this.view.invalidCredentials = false
+			this.view.accessExpired = false
 			let persistentSession = this.view.savePassword.checked()
 			this._loginPromise = logins.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 			                           .then(newCredentials => {
@@ -172,6 +173,12 @@ export class LoginViewController implements ILoginViewController {
 		            })
 		            .catch(AccessDeactivatedError, e => {
 			            this.view.helpText = lang.get('loginFailed_msg')
+			            m.redraw()
+			            return errorAction()
+		            })
+		            .catch(AccessExpiredError, e => {
+			            this.view.helpText = lang.get('inactiveAccount_msg')
+		            	this.view.accessExpired = true
 			            m.redraw()
 			            return errorAction()
 		            })

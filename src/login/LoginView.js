@@ -22,6 +22,7 @@ import {show} from "./RecoverLoginDialog"
 import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
 import type {ILoginViewController} from "./LoginViewController"
+import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
 
 assertMainOrNode()
 
@@ -35,8 +36,9 @@ export class LoginView {
 	targetPath: string;
 	mailAddress: TextField;
 	password: TextField;
-	helpText: string;
+	helpText: Vnode<any> | string;
 	invalidCredentials: boolean;
+	accessExpired: boolean;
 	savePassword: Checkbox;
 	appButtons: Button[];
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
@@ -59,6 +61,8 @@ export class LoginView {
 			.setType(Type.Email)
 		this.mailAddress.autocomplete = "username"
 		this.helpText = lang.get('emptyString_msg')
+		this.invalidCredentials = false
+		this.accessExpired = false
 		this.password = new TextField("password_label")
 			.setType(Type.Password)
 		this.password.autocomplete = "password"
@@ -181,7 +185,7 @@ export class LoginView {
 	}
 
 	_knownCredentialsLinkVisible(): boolean {
-		return !this._displayMode !== DisplayMode.Credentials && (this._knownCredentials.length > 0)
+		return this._displayMode !== DisplayMode.Credentials && (this._knownCredentials.length > 0)
 	}
 
 	_switchThemeLinkVisible(): boolean {
@@ -274,7 +278,7 @@ export class LoginView {
 			})),
 			m("p.center.statusTextColor", m("small" + liveDataAttrs(),
 				[
-					this.helpText + " ",
+					this.helpText, " ",
 					this.invalidCredentials && this._recoverLoginVisible()
 						? m('a', {
 							href: '/recover',
@@ -284,7 +288,14 @@ export class LoginView {
 								e.preventDefault()
 							}
 						}, lang.get("recoverAccountAccess_action"))
-						: null
+						: ((this.accessExpired) ? m('a', {
+							href: '/takeover',
+							onclick: e => {
+								m.route.set('/takeover')
+								showTakeOverDialog(this.mailAddress.value(), this.password.value())
+								e.preventDefault()
+							}
+						}, lang.get("help_label")) : null)
 				])),
 			!(isApp() || isDesktop()) && isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(button))) : null
 		])
@@ -332,7 +343,7 @@ export class LoginView {
 		if (requestedPath.startsWith("/signup")) {
 			this._signup()
 			return
-		} else if (requestedPath.startsWith("/recover")) {
+		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
 			return
 		}
 		this._showingSignup = false
@@ -370,9 +381,9 @@ export class LoginView {
 
 		}
 		promise.then(() => {
-			if (this._displayMode) {
-				return
-			}
+			// if (this._displayMode) {
+			// 	return
+			// }
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
 				args.userId && deviceConfig.getByUserId(args.userId))) {
 				// there are no credentials stored for the desired email address or user id, so let the user enter the password
@@ -381,6 +392,12 @@ export class LoginView {
 				if (this.mailAddress._domInput) {
 					this.mailAddress.animate()
 				}
+				// when we pre-fill the email address field we need to delete all current state
+				this.helpText = lang.get('emptyString_msg')
+				this.invalidCredentials = false
+				this.accessExpired = false
+				this.password.value("")
+
 				this.password.focus()
 				this._knownCredentials = []
 				this._displayMode = DisplayMode.Form

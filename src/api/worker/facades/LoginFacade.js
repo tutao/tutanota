@@ -84,6 +84,7 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RestClient} from "../rest/RestClient"
 import {EntityClient} from "../../common/EntityClient"
+import {createTakeOverDeletedAddressData} from "../../entities/sys/TakeOverDeletedAddressData"
 
 assertWorkerOrNode()
 
@@ -677,7 +678,7 @@ export class LoginFacade {
 		const eventRestClient = new EntityRestClient(() => ({}), this._restClient)
 
 		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
-		// Don't pass email address to avoid proposing to reset second factor when we're resetting password
+			// Don't pass email address to avoid proposing to reset second factor when we're resetting password
 			.then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 			.then(sessionData => {
 				return _loadEntity(UserTypeRef, sessionData.userId, null, eventRestClient, {accessToken: sessionData.accessToken})
@@ -724,6 +725,23 @@ export class LoginFacade {
 		})
 	}
 
+	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: ?Hex, targetAccountMailAddress: string): Promise<void> {
+		return this._loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
+			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
+			let recoverCodeVerifier = null
+			if (recoverCode) {
+				const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+				recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
+			}
+
+			let data = createTakeOverDeletedAddressData()
+			data.mailAddress = mailAddress
+			data.authVerifier = authVerifier
+			data.recoverCodeVerifier = recoverCodeVerifier
+			data.targetAccountMailAddress = targetAccountMailAddress
+			return serviceRequestVoid(SysService.TakeOverDeletedAddressService, HttpMethod.POST, data, null, null)
+		})
+	}
 
 	getUserGroupInfo(): GroupInfo {
 		return neverNull(this._userGroupInfo)

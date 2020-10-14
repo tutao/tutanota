@@ -80,6 +80,7 @@ export class Checkbox {
 	toggle(event: MouseEvent) {
 		if (this.enabled) {
 			this.checked(!this.checked())
+			m.redraw()
 			if (this._domInput) {
 				this._domInput.focus()
 			}

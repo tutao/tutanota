@@ -126,7 +126,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "62"
+	"version": "63"
 }
 
 export function createBooking(values?: $Shape<$Exact<Booking>>): Booking {

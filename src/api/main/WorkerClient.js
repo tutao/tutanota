@@ -512,6 +512,10 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("resetSecondFactors", [mailAddress, password, recoverCode]))
 	}
 
+	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex, targetAccountMailAddress: ?string): Promise<void> {
+		return this._queue.postMessage(new Request("takeOverDeletedAddress", arguments))
+	}
+
 	resetSession(): Promise<void> {
 		return this._queue.postMessage(new Request("resetSession", []))
 	}

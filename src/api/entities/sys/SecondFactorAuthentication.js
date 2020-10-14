@@ -88,7 +88,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "62"
+	"version": "63"
 }
 
 export function createSecondFactorAuthentication(values?: $Shape<$Exact<SecondFactorAuthentication>>): SecondFactorAuthentication {

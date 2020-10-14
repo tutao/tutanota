@@ -10,7 +10,7 @@ import {neverNull} from "../api/common/utils/Utils"
 
 export function showDeleteAccountDialog() {
 	let why = new TextField("deleteAccountReason_label", () => lang.get("deleteAccountReasonInfo_msg"))
-	let takeover = new TextField("takeoverMailAddress_label", () => lang.get("takeoverMailAddressInfo_msg"))
+	let takeover = new TextField("targetAddress_label", () => lang.get("takeoverMailAddressInfo_msg"))
 	let password = new TextField("password_label", () => lang.get("passwordEnterNeutral_msg"))
 		.setType(Type.Password)
 

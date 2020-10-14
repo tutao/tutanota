@@ -207,7 +207,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "62"
+	"version": "63"
 }
 
 export function createAccountingInfo(values?: $Shape<$Exact<AccountingInfo>>): AccountingInfo {
