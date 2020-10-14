@@ -306,7 +306,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 
 - (void) sendErrorResponseWithId:(NSString*)responseId value:(NSError *)value {
 	var *message = @"";
-	if (value.userInfo && [value isKindOfClass:NSDictionary.class]) {
+	if (value.userInfo && [value.userInfo isKindOfClass:NSDictionary.class]) {
 		let dict = (NSDictionary *)value.userInfo;
 		let newDict = [NSMutableDictionary new];
 		foreach(key, dict) {
