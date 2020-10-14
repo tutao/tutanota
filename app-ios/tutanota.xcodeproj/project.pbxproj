@@ -10,6 +10,107 @@
 		3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D20B36322B8D61600472D12 /* TUTRepeatRule.m */; };
 		3D2DE2C823FC387700FFB95B /* AsyncBlockOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */; };
 		3D3697D722AA8CE9007F0A83 /* TUTUserPreferenceFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */; };
+		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
+		3D378EF02536F79A0001F1F3 /* AsyncBlockOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */; };
+		3D378EF12536F79A0001F1F3 /* TUTAlarmNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEC122B79C4D00205B1B /* TUTAlarmNotification.m */; };
+		3D378EF22536F79A0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
+		3D378EF32536F79A0001F1F3 /* TUTViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08A20F8C6240086EB36 /* TUTViewController.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378EF42536F79A0001F1F3 /* TUTSseInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0322AF9BD100289576 /* TUTSseInfo.m */; };
+		3D378EF52536F79A0001F1F3 /* TUTUserPreferenceFacade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */; };
+		3D378EF62536F79A0001F1F3 /* TUTIdTuple.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBE22B7979D00205B1B /* TUTIdTuple.m */; };
+		3D378EF82536F79A0001F1F3 /* TUTNotificationSessionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */; };
+		3D378EF92536F79A0001F1F3 /* TUTFontIconFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D69F032212D4A5B00D52BF7 /* TUTFontIconFactory.m */; };
+		3D378EFA2536F79A0001F1F3 /* TUTRepeatRule.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D20B36322B8D61600472D12 /* TUTRepeatRule.m */; };
+		3D378EFB2536F79A0001F1F3 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378EFC2536F79A0001F1F3 /* TUTFileViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F042105B12F0031E528 /* TUTFileViewer.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378EFD2536F79A0001F1F3 /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
+		3D378EFE2536F79A0001F1F3 /* TUTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D87ECE5212D9EB000FD7315 /* TUTIcons.m */; };
+		3D378EFF2536F79A0001F1F3 /* TUTAlarmManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD6D08822AAAE9800C0E312 /* TUTAlarmManager.m */; };
+		3D378F002536F79A0001F1F3 /* TUTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DB9A20D22BA5C23004EA08F /* TUTUtils.m */; };
+		3D378F012536F79A0001F1F3 /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536621089F4800B16F2E /* TUTErrorFactory.m */; };
+		3D378F022536F79A0001F1F3 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F032536F79A0001F1F3 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F042536F79A0001F1F3 /* TUTFileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* TUTFileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F052536F79A0001F1F3 /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
+		3D378F062536F79A0001F1F3 /* TUTContactsSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D74536E2108A1FD00B16F2E /* TUTContactsSource.m */; };
+		3D378F072536F79A0001F1F3 /* TUTKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */; };
+		3D378F082536F79A0001F1F3 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
+		3D378F0A2536F79A0001F1F3 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F0B2536F79A0001F1F3 /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
+		3D378F0C2536F79A0001F1F3 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
+		3D378F0D2536F79A0001F1F3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F0E2536F79A0001F1F3 /* TUTAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A08720F8C6240086EB36 /* TUTAppDelegate.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
+		3D378F102536F79A0001F1F3 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D891F142105B8AF0031E528 /* libcrypto.a */; };
+		3D378F122536F79A0001F1F3 /* build in Resources */ = {isa = PBXBuildFile; fileRef = 3D652B5720F8DC1500DF9962 /* build */; };
+		3D378F132536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EED22031B93002C2455 /* InfoPlist.strings */; };
+		3D378F142536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EDB22031B91002C2455 /* InfoPlist.strings */; };
+		3D378F152536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EC322031B8E002C2455 /* InfoPlist.strings */; };
+		3D378F162536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB122031B8C002C2455 /* InfoPlist.strings */; };
+		3D378F172536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EFF22031B98002C2455 /* InfoPlist.strings */; };
+		3D378F182536F79A0001F1F3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0722031B99002C2455 /* Main.storyboard */; };
+		3D378F192536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9322031B89002C2455 /* InfoPlist.strings */; };
+		3D378F1A2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9022031B88002C2455 /* InfoPlist.strings */; };
+		3D378F1B2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8722031B88002C2455 /* InfoPlist.strings */; };
+		3D378F1C2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7B22031B86002C2455 /* InfoPlist.strings */; };
+		3D378F1D2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EA222031B8A002C2455 /* InfoPlist.strings */; };
+		3D378F1E2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9922031B89002C2455 /* InfoPlist.strings */; };
+		3D378F1F2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE422031B92002C2455 /* InfoPlist.strings */; };
+		3D378F202536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EFC22031B98002C2455 /* InfoPlist.strings */; };
+		3D378F212536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EDE22031B91002C2455 /* InfoPlist.strings */; };
+		3D378F222536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1ED822031B91002C2455 /* InfoPlist.strings */; };
+		3D378F232536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7222031B85002C2455 /* InfoPlist.strings */; };
+		3D378F242536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EE122031B92002C2455 /* InfoPlist.strings */; };
+		3D378F252536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBD22031B8D002C2455 /* InfoPlist.strings */; };
+		3D378F262536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EB722031B8D002C2455 /* InfoPlist.strings */; };
+		3D378F272536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8122031B87002C2455 /* InfoPlist.strings */; };
+		3D378F282536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EC022031B8E002C2455 /* InfoPlist.strings */; };
+		3D378F292536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAB22031B8B002C2455 /* InfoPlist.strings */; };
+		3D378F2A2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6322031B84002C2455 /* InfoPlist.strings */; };
+		3D378F2B2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EEA22031B93002C2455 /* InfoPlist.strings */; };
+		3D378F2C2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5D22031B84002C2455 /* InfoPlist.strings */; };
+		3D378F2D2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5722031B83002C2455 /* InfoPlist.strings */; };
+		3D378F2E2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4B22031B82002C2455 /* InfoPlist.strings */; };
+		3D378F2F2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EC922031B8F002C2455 /* InfoPlist.strings */; };
+		3D378F302536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6622031B84002C2455 /* InfoPlist.strings */; };
+		3D378F312536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6022031B84002C2455 /* InfoPlist.strings */; };
+		3D378F322536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF622031B95002C2455 /* InfoPlist.strings */; };
+		3D378F332536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1ECC22031B8F002C2455 /* InfoPlist.strings */; };
+		3D378F342536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF922031B95002C2455 /* InfoPlist.strings */; };
+		3D378F352536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6922031B85002C2455 /* InfoPlist.strings */; };
+		3D378F362536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EA822031B8B002C2455 /* InfoPlist.strings */; };
+		3D378F372536F79A0001F1F3 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
+		3D378F382536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF322031B94002C2455 /* InfoPlist.strings */; };
+		3D378F392536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8A22031B88002C2455 /* InfoPlist.strings */; };
+		3D378F3A2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7522031B86002C2455 /* InfoPlist.strings */; };
+		3D378F3B2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5A22031B84002C2455 /* InfoPlist.strings */; };
+		3D378F3C2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1ECF22031B90002C2455 /* InfoPlist.strings */; };
+		3D378F3D2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1ED222031B90002C2455 /* InfoPlist.strings */; };
+		3D378F3E2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6F22031B85002C2455 /* InfoPlist.strings */; };
+		3D378F3F2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4822031B82002C2455 /* InfoPlist.strings */; };
+		3D378F402536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8422031B87002C2455 /* InfoPlist.strings */; };
+		3D378F412536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E8D22031B88002C2455 /* InfoPlist.strings */; };
+		3D378F422536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EF022031B94002C2455 /* InfoPlist.strings */; };
+		3D378F432536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E6C22031B85002C2455 /* InfoPlist.strings */; };
+		3D378F442536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4522031B82002C2455 /* InfoPlist.strings */; };
+		3D378F452536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9F22031B8A002C2455 /* InfoPlist.strings */; };
+		3D378F462536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EAE22031B8C002C2455 /* InfoPlist.strings */; };
+		3D378F472536F79A0001F1F3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0522031B99002C2455 /* LaunchScreen.storyboard */; };
+		3D378F482536F79A0001F1F3 /* ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3D87ECDE212D921600FD7315 /* ionicons.ttf */; };
+		3D378F492536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EBA22031B8D002C2455 /* InfoPlist.strings */; };
+		3D378F4A2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1F0222031B99002C2455 /* InfoPlist.strings */; };
+		3D378F4B2536F79A0001F1F3 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
+		3D378F4C2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1ED522031B90002C2455 /* InfoPlist.strings */; };
+		3D378F4D2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EA522031B8B002C2455 /* InfoPlist.strings */; };
+		3D378F4E2536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E7E22031B87002C2455 /* InfoPlist.strings */; };
+		3D378F4F2536F79A0001F1F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
+		3D378F502536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9C22031B8A002C2455 /* InfoPlist.strings */; };
+		3D378F512536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1EC622031B8E002C2455 /* InfoPlist.strings */; };
+		3D378F522536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4E22031B83002C2455 /* InfoPlist.strings */; };
+		3D378F532536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4222031B82002C2455 /* InfoPlist.strings */; };
+		3D378F542536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5422031B83002C2455 /* InfoPlist.strings */; };
+		3D378F552536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E9622031B89002C2455 /* InfoPlist.strings */; };
+		3D378F562536F79A0001F1F3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E5122031B83002C2455 /* InfoPlist.strings */; };
 		3D57BEB622B796CD00205B1B /* TUTMissedNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB522B796CD00205B1B /* TUTMissedNotification.m */; };
 		3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
 		3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEBB22B7976200205B1B /* TUTNotificationSessionKey.m */; };
@@ -33,7 +134,6 @@
 		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0F2105B12F0031E528 /* TUTFileViewer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F042105B12F0031E528 /* TUTFileViewer.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F052105B12F0031E528 /* TUTFileChooser.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D891F142105B8AF0031E528 /* libcrypto.a */; };
 		3D9A1F0922031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4222031B82002C2455 /* InfoPlist.strings */; };
 		3D9A1F0A22031B99002C2455 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3D9A1E4522031B82002C2455 /* InfoPlist.strings */; };
@@ -130,6 +230,10 @@
 		3D2DE2C723FC387700FFB95B /* AsyncBlockOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AsyncBlockOperation.m; sourceTree = "<group>"; };
 		3D3697D522AA8CE9007F0A83 /* TUTUserPreferenceFacade.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTUserPreferenceFacade.h; sourceTree = "<group>"; };
 		3D3697D622AA8CE9007F0A83 /* TUTUserPreferenceFacade.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTUserPreferenceFacade.m; sourceTree = "<group>"; };
+		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
+		3D378EE62536F51F0001F1F3 /* FileChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChooser.swift; sourceTree = "<group>"; };
+		3D378F5A2536F79A0001F1F3 /* tutanota debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "tutanota debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D378F5B2536F79A0001F1F3 /* tutanota copy2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy2-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy2-Info.plist"; sourceTree = "<absolute>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D57BEB422B796CD00205B1B /* TUTMissedNotification.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTMissedNotification.h; sourceTree = "<group>"; };
@@ -167,14 +271,12 @@
 		3D891F022105B12E0031E528 /* TUTEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTEncodingConverter.m; sourceTree = "<group>"; };
 		3D891F032105B12F0031E528 /* TUTAes128Facade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAes128Facade.m; sourceTree = "<group>"; };
 		3D891F042105B12F0031E528 /* TUTFileViewer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileViewer.m; sourceTree = "<group>"; };
-		3D891F052105B12F0031E528 /* TUTFileChooser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileChooser.m; sourceTree = "<group>"; };
 		3D891F142105B8AF0031E528 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = tutanota/Frameworks/libcrypto.a; sourceTree = "<group>"; };
 		3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rsa_oaep_sha256.h; sourceTree = "<group>"; };
 		3D891F1E2105BB200031E528 /* TUTFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileViewer.h; sourceTree = "<group>"; };
 		3D891F1F2105BB200031E528 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTCrypto.h; sourceTree = "<group>"; };
 		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
 		3D891F242105BB210031E528 /* TUTFileUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileUtil.h; sourceTree = "<group>"; };
-		3D891F252105BB210031E528 /* TUTFileChooser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileChooser.h; sourceTree = "<group>"; };
 		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
 		3D891F2A2106132B0031E528 /* tutanota.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tutanota.entitlements; sourceTree = "<group>"; };
 		3D9A1E4322031B82002C2455 /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = hi; path = InfoPlist.strings; sourceTree = "<group>"; };
@@ -263,11 +365,20 @@
 		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
+		3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy-Info.plist"; sourceTree = "<absolute>"; };
 		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
 		3DFDBDD4212ADA1D00785FC7 /* JFGC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFGC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		3D378F0F2536F79A0001F1F3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D378F102536F79A0001F1F3 /* libcrypto.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DD4A08020F8C6240086EB36 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -319,6 +430,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3D57BEB322B796AC00205B1B /* Alarms */,
 				3D6C6D0522B7707B00289576 /* Keychain */,
 				3D7453682108A0CE00B16F2E /* Contacts */,
@@ -359,10 +471,9 @@
 			children = (
 				3D891F242105BB210031E528 /* TUTFileUtil.h */,
 				3D891EFE2105B12E0031E528 /* TUTFileUtil.m */,
-				3D891F252105BB210031E528 /* TUTFileChooser.h */,
-				3D891F052105B12F0031E528 /* TUTFileChooser.m */,
 				3D891F1E2105BB200031E528 /* TUTFileViewer.h */,
 				3D891F042105B12F0031E528 /* TUTFileViewer.m */,
+				3D378EE62536F51F0001F1F3 /* FileChooser.swift */,
 			);
 			path = Files;
 			sourceTree = "<group>";
@@ -923,6 +1034,8 @@
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
+				3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */,
+				3D378F5B2536F79A0001F1F3 /* tutanota copy2-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -931,6 +1044,7 @@
 			children = (
 				3DD4A08320F8C6240086EB36 /* tutanota.app */,
 				3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */,
+				3D378F5A2536F79A0001F1F3 /* tutanota debug.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1028,6 +1142,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3D378EEE2536F79A0001F1F3 /* tutanota debug */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3D378F572536F79A0001F1F3 /* Build configuration list for PBXNativeTarget "tutanota debug" */;
+			buildPhases = (
+				3D378EEF2536F79A0001F1F3 /* Sources */,
+				3D378F0F2536F79A0001F1F3 /* Frameworks */,
+				3D378F112536F79A0001F1F3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "tutanota debug";
+			productName = tutanota;
+			productReference = 3D378F5A2536F79A0001F1F3 /* tutanota debug.app */;
+			productType = "com.apple.product-type.application";
+		};
 		3DD4A08220F8C6240086EB36 /* tutanota */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3DD4A0A420F8C6260086EB36 /* Build configuration list for PBXNativeTarget "tutanota" */;
@@ -1074,6 +1205,7 @@
 				TargetAttributes = {
 					3DD4A08220F8C6240086EB36 = {
 						CreatedOnToolsVersion = 9.4.1;
+						LastSwiftMigration = 1200;
 						SystemCapabilities = {
 							com.apple.Push = {
 								enabled = 1;
@@ -1187,11 +1319,88 @@
 			targets = (
 				3DD4A08220F8C6240086EB36 /* tutanota */,
 				3DD4A09A20F8C6260086EB36 /* tutanotaTests */,
+				3D378EEE2536F79A0001F1F3 /* tutanota debug */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		3D378F112536F79A0001F1F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D378F122536F79A0001F1F3 /* build in Resources */,
+				3D378F132536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F142536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F152536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F162536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F172536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F182536F79A0001F1F3 /* Main.storyboard in Resources */,
+				3D378F192536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1A2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1B2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1C2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1D2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1E2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F1F2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F202536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F212536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F222536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F232536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F242536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F252536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F262536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F272536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F282536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F292536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2A2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2B2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2C2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2D2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2E2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F2F2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F302536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F312536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F322536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F332536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F342536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F352536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F362536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F372536F79A0001F1F3 /* Info-Debug.plist in Resources */,
+				3D378F382536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F392536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3A2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3B2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3C2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3D2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3E2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F3F2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F402536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F412536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F422536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F432536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F442536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F452536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F462536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F472536F79A0001F1F3 /* LaunchScreen.storyboard in Resources */,
+				3D378F482536F79A0001F1F3 /* ionicons.ttf in Resources */,
+				3D378F492536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F4A2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F4B2536F79A0001F1F3 /* LaunchScreen.storyboard in Resources */,
+				3D378F4C2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F4D2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F4E2536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F4F2536F79A0001F1F3 /* Assets.xcassets in Resources */,
+				3D378F502536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F512536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F522536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F532536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F542536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F552536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+				3D378F562536F79A0001F1F3 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DD4A08120F8C6240086EB36 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1279,17 +1488,54 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3D378EEF2536F79A0001F1F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D378EF02536F79A0001F1F3 /* AsyncBlockOperation.m in Sources */,
+				3D378EF12536F79A0001F1F3 /* TUTAlarmNotification.m in Sources */,
+				3D378EF22536F79A0001F1F3 /* FileChooser.swift in Sources */,
+				3D378EF32536F79A0001F1F3 /* TUTViewController.m in Sources */,
+				3D378EF42536F79A0001F1F3 /* TUTSseInfo.m in Sources */,
+				3D378EF52536F79A0001F1F3 /* TUTUserPreferenceFacade.m in Sources */,
+				3D378EF62536F79A0001F1F3 /* TUTIdTuple.m in Sources */,
+				3D378EF82536F79A0001F1F3 /* TUTNotificationSessionKey.m in Sources */,
+				3D378EF92536F79A0001F1F3 /* TUTFontIconFactory.m in Sources */,
+				3D378EFA2536F79A0001F1F3 /* TUTRepeatRule.m in Sources */,
+				3D378EFB2536F79A0001F1F3 /* rsa_oaep_sha256.c in Sources */,
+				3D378EFC2536F79A0001F1F3 /* TUTFileViewer.m in Sources */,
+				3D378EFD2536F79A0001F1F3 /* TUTMissedNotification.m in Sources */,
+				3D378EFE2536F79A0001F1F3 /* TUTIcons.m in Sources */,
+				3D378EFF2536F79A0001F1F3 /* TUTAlarmManager.m in Sources */,
+				3D378F002536F79A0001F1F3 /* TUTUtils.m in Sources */,
+				3D378F012536F79A0001F1F3 /* TUTErrorFactory.m in Sources */,
+				3D378F022536F79A0001F1F3 /* TUTEncodingConverter.m in Sources */,
+				3D378F032536F79A0001F1F3 /* TUTAes128Facade.m in Sources */,
+				3D378F042536F79A0001F1F3 /* TUTFileUtil.m in Sources */,
+				3D378F052536F79A0001F1F3 /* TUTSubKeys.m in Sources */,
+				3D378F062536F79A0001F1F3 /* TUTContactsSource.m in Sources */,
+				3D378F072536F79A0001F1F3 /* TUTKeychainManager.m in Sources */,
+				3D378F082536F79A0001F1F3 /* TUTCrypto.m in Sources */,
+				3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */,
+				3D378F0A2536F79A0001F1F3 /* JFBCrypt.m in Sources */,
+				3D378F0B2536F79A0001F1F3 /* TUTAlarmInfo.m in Sources */,
+				3D378F0C2536F79A0001F1F3 /* TUTAlarmModel.m in Sources */,
+				3D378F0D2536F79A0001F1F3 /* main.m in Sources */,
+				3D378F0E2536F79A0001F1F3 /* TUTAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3DD4A07F20F8C6240086EB36 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				3D2DE2C823FC387700FFB95B /* AsyncBlockOperation.m in Sources */,
 				3D57BEC222B79C4D00205B1B /* TUTAlarmNotification.m in Sources */,
+				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3DD4A08B20F8C6240086EB36 /* TUTViewController.m in Sources */,
 				3D6C6D0422AF9BD100289576 /* TUTSseInfo.m in Sources */,
 				3D3697D722AA8CE9007F0A83 /* TUTUserPreferenceFacade.m in Sources */,
 				3D57BEBF22B7979D00205B1B /* TUTIdTuple.m in Sources */,
-				3D891F102105B12F0031E528 /* TUTFileChooser.m in Sources */,
 				3D57BEBC22B7976200205B1B /* TUTNotificationSessionKey.m in Sources */,
 				3D69F033212D4A5B00D52BF7 /* TUTFontIconFactory.m in Sources */,
 				3D20B36422B8D61600472D12 /* TUTRepeatRule.m in Sources */,
@@ -1860,6 +2106,79 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		3D378F582536F79A0001F1F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+				);
+				INFOPLIST_FILE = "tutanota copy2-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3D378F592536F79A0001F1F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				HEADER_SEARCH_PATHS = (
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"\"$(BUILT_PRODUCTS_DIR)\"",
+				);
+				INFOPLIST_FILE = "tutanota copy2-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
+					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.debug;
+				PRODUCT_MODULE_NAME = tutanota;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		3DD4A0A220F8C6260086EB36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1911,7 +2230,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1963,7 +2282,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -1974,6 +2293,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1998,6 +2318,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -2006,6 +2329,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CODE_SIGN_ENTITLEMENTS = tutanota/tutanota.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -2030,6 +2354,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -2037,6 +2363,7 @@
 		3DD4A0A820F8C6260086EB36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
@@ -2056,6 +2383,7 @@
 		3DD4A0A920F8C6260086EB36 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
@@ -2075,6 +2403,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3D378F572536F79A0001F1F3 /* Build configuration list for PBXNativeTarget "tutanota debug" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3D378F582536F79A0001F1F3 /* Debug */,
+				3D378F592536F79A0001F1F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		3DD4A07E20F8C6240086EB36 /* Build configuration list for PBXProject "tutanota" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -4,7 +4,7 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "TUTFileViewer.h"
 #import "TUTFileUtil.h"
-#import "TUTFileChooser.h"
+#import "tutanota-Swift.h"
 
 static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 
@@ -19,7 +19,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 {
     self = [super init];
     if (self) {
-        _attachmentChooser = [[TUTFileChooser alloc] init];
+        _attachmentChooser = [[TUTFileChooser alloc] initWithViewController:viewController];
 		_viewer = [[TUTFileViewer alloc] initWithViewController:viewController];
     }
     return self;
@@ -62,7 +62,7 @@ static NSString * const FILES_ERROR_DOMAIN = @"tutanota_files";
 		} else {
 			completion(nil, [NSError errorWithDomain:FILES_ERROR_DOMAIN
 												code:1
-											userInfo:@{@"message":@"file does not exists"}]);
+											userInfo:@{@"message":@"file does not exist"}]);
 		}
 	 });
 }

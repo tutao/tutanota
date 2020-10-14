@@ -20,4 +20,9 @@ extern const int LOG_SIZE;
 
 void TUTLog(NSString *format, ...);
 
+/**
+ Simple, non-variadic version of TUTLog which is usable in Swift.
+ */
+void TUTSLog(NSString *message);
+
 NS_ASSUME_NONNULL_END

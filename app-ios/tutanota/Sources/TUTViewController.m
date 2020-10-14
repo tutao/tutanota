@@ -14,13 +14,14 @@
 #import "TUTAppDelegate.h"
 #import "TUTViewController.h"
 #import "TUTCrypto.h"
-#import "TUTFileChooser.h"
 #import "TUTContactsSource.h"
 #import "TUTEncodingConverter.h"
 #import "TUTUserPreferenceFacade.h"
 #import "Keychain/TUTKeychainManager.h"
 #import "TUTLog.h"
 #import "Utils/TUTLog.h"
+#import "Files/TUTFileUtil.h"
+#import "tutanota-Swift.h"
 
 // Frameworks
 #import <WebKit/WebKit.h>
@@ -180,7 +181,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
 							  ((NSNumber *) rectDict[@"width"]).floatValue,
 							  ((NSNumber *) rectDict[@"height"]).floatValue
 							  );
-		[_fileChooser openWithAnchorRect:rect completion: sendResponseBlock];
+        [_fileChooser openWithAnchorRect:rect completion: sendResponseBlock];
 	} else if ([@"getName" isEqualToString:type]) {
 		[_fileUtil getNameForPath:arguments[0] completion:sendResponseBlock];
 	} else if ([@"changeLanguage" isEqualToString:type]) {

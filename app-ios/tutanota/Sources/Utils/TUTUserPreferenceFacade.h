@@ -3,7 +3,7 @@
 //  tutanota
 //
 //  Created by Tutao GmbH on 07.06.19.
-//  Copyright © 2019 Tutao GmbH. All rights reserved.
+//  Copyright © 2019 Tutao GmbH. GPL-3.0-only.
 //
 
 #import <Foundation/Foundation.h>

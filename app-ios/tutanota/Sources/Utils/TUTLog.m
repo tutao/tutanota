@@ -54,13 +54,17 @@ static TUTLogger *singleton = nil;
 @end
 
 void TUTLog(NSString *format, ...) {
-    let log = [TUTLogger sharedInstance];
     va_list args;
     va_start(args, format);
     NSString *contents = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
+    TUTSLog(contents);
+}
+
+void TUTSLog(NSString *message) {
+    let log = [TUTLogger sharedInstance];
     let dateString = [log.dateFormatter stringFromDate:NSDate.date];
-    let entry = [NSString stringWithFormat:@"%@ %@ %@", dateString, @"I", contents];
+    let entry = [NSString stringWithFormat:@"%@ %@ %@", dateString, @"I", message];
     [log addEntry:entry];
-    NSLog(@"%@", contents);
+    NSLog(@"%@", message);
 }
