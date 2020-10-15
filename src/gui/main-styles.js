@@ -1092,6 +1092,16 @@ styles.registerStyle('main', () => {
 			width: "24px",
 		},
 
+		'.calendar-alternative-day-month': {
+			margin: '4px auto',
+			color: '#757575',
+			'text-align': 'center',
+		},
+
+		'.rtl': {
+			direction: 'rtl',
+		},
+
 		'.calendar-event': {
 			'border-radius': px(4),
 			'border': `1px solid ${theme.content_bg}`,
