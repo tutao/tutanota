@@ -1,10 +1,13 @@
 //@flow
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {DateTime, IANAZone} from "luxon"
+import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, RepeatPeriod, reverse} from "../api/common/TutanotaConstants"
+import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {createRepeatRule} from "../api/entities/sys/RepeatRule"
+import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../api/entities/sys/AlarmInfo"
 import {DAY_IN_MILLIS} from "../api/common/utils/DateUtils"
 import type {Parser} from "../misc/parsing"
@@ -23,11 +26,7 @@ import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
 import {parstatToCalendarAttendeeStatus} from "./CalendarImporter"
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
-import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {filterInt} from "./CalendarUtils"
-import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
-import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
-import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 
 function parseDateString(dateString: string): {year: number, month: number, day: number} {
@@ -223,8 +222,14 @@ export function parseICalendar(stringData: string): ICalObject {
 
 function parseAlarm(alarmObject: ICalObject, event: CalendarEvent): ?AlarmInfo {
 	const triggerProp = getProp(alarmObject, "TRIGGER")
-	const actionProp = getProp(alarmObject, "ACTION")
-	if (actionProp.value !== "DISPLAY") return null
+
+	// Tutacalendar currently only supports the DISPLAY value for action
+	const actionProp = {
+		name: "ACTION",
+		params: {},
+		value: "DISPLAY"
+	}
+
 	const triggerValue = triggerProp.value
 	if (typeof triggerValue !== "string") throw new ParserError("expected TRIGGER property to be a string: " + JSON.stringify(triggerProp))
 	let trigger: AlarmIntervalEnum
