@@ -55,6 +55,10 @@ o.spec("CalendarParser", function () {
 		o("value with semicolon", function () {
 			o(parseProperty("DTSTART:some\\;things")).deepEquals({name: "DTSTART", params: {}, value: "some;things"})
 		})
+
+		o("accept malformed custom property", function () {
+			o(parseProperty("CUSTOM_PROP:some value")).deepEquals({name: "CUSTOM_PROP", params: {}, value: "some value"})
+		})
 	})
 
 	o("parsePropertyKeyValue", function () {

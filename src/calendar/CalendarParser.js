@@ -566,7 +566,7 @@ function toValidJSDate(dateTime: DateTime, value: string, zone: ?string): Date {
 
 function parsePropertyName(iterator: StringIterator): string {
 	let text = ""
-	while (iterator.peek() && /[a-zA-Z0-9-]/.test(iterator.peek())) {
+	while (iterator.peek() && /[a-zA-Z0-9-_]/.test(iterator.peek())) {
 		text += neverNull(iterator.next().value)
 	}
 	if (text === "") {
