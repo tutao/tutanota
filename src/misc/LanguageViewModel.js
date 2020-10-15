@@ -209,6 +209,7 @@ export class LanguageViewModel {
 		monthWithYear: Intl.DateTimeFormat,
 		monthWithFullYear: Intl.DateTimeFormat,
 		yearNumeric: Intl.DateTimeFormat,
+		dayWithMonth: Intl.DateTimeFormat,
 	};
 
 	constructor() {
@@ -356,6 +357,10 @@ export class LanguageViewModel {
 				}),
 				yearNumeric: new Intl.DateTimeFormat(tag, {
 					year: 'numeric'
+				}),
+				dayWithMonth: new Intl.DateTimeFormat(tag, {
+					month: 'long',
+					day: 'numeric',
 				}),
 			}
 		}

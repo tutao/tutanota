@@ -90,6 +90,16 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 	return lang.formats.dateWithWeekdayWoMonth.format(date)
 }
 
+export function formatDayWithMonth(date: Date): string {
+	if (lang.languageTag === 'fa-IR') {
+		let dayMonth = lang.formats.dayWithMonth.format(date)
+		let dayMonthSplitted = dayMonth.split(' ')
+		return `${dayMonthSplitted[1]} ${dayMonthSplitted[0]}`
+	} else {
+		return lang.formats.dayWithMonth.format(date)
+	}
+}
+
 
 /**
  * Parses the given string for a name and mail address. The following formats are recognized: [name][<]mailAddress[>]
