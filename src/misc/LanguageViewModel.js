@@ -64,7 +64,7 @@ export const languageByCode = languages.reduce((acc, curr) => {
 
 const infoLinks = {
 	"homePage_link": "https://tutanota.com",
-	"about_link": "https://tutanota.com/about",
+	"about_link": "https://tutanota.com/imprint",
 	"privacy_link": "https://tutanota.com/privacy",
 	//terms
 	"termsPrivacy_link": "https://tutanota.com/terms#privacy",
