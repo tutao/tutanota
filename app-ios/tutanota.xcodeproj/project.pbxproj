@@ -36,7 +36,6 @@
 		3D378F072536F79A0001F1F3 /* TUTKeychainManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6C6D0722B7709A00289576 /* TUTKeychainManager.m */; };
 		3D378F082536F79A0001F1F3 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
-		3D378F0A2536F79A0001F1F3 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D378F0B2536F79A0001F1F3 /* TUTAlarmInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D57BEB822B796DD00205B1B /* TUTAlarmInfo.m */; };
 		3D378F0C2536F79A0001F1F3 /* TUTAlarmModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD7A23722C604F000876B85 /* TUTAlarmModel.m */; };
 		3D378F0D2536F79A0001F1F3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DD4A09520F8C6260086EB36 /* main.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -129,7 +128,6 @@
 		3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D87ECE5212D9EB000FD7315 /* TUTIcons.m */; };
 		3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F092105B12F0031E528 /* TUTFileUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFE2105B12E0031E528 /* TUTFileUtil.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
-		3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891EFF2105B12E0031E528 /* JFBCrypt.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F002105B12E0031E528 /* TUTCrypto.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F022105B12E0031E528 /* TUTEncodingConverter.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D891F032105B12F0031E528 /* TUTAes128Facade.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
@@ -266,7 +264,6 @@
 		3D87ECE5212D9EB000FD7315 /* TUTIcons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTIcons.m; sourceTree = "<group>"; };
 		3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rsa_oaep_sha256.c; sourceTree = "<group>"; };
 		3D891EFE2105B12E0031E528 /* TUTFileUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTFileUtil.m; sourceTree = "<group>"; };
-		3D891EFF2105B12E0031E528 /* JFBCrypt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JFBCrypt.m; sourceTree = "<group>"; };
 		3D891F002105B12E0031E528 /* TUTCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTCrypto.m; sourceTree = "<group>"; };
 		3D891F022105B12E0031E528 /* TUTEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTEncodingConverter.m; sourceTree = "<group>"; };
 		3D891F032105B12F0031E528 /* TUTAes128Facade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TUTAes128Facade.m; sourceTree = "<group>"; };
@@ -274,7 +271,6 @@
 		3D891F142105B8AF0031E528 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = tutanota/Frameworks/libcrypto.a; sourceTree = "<group>"; };
 		3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rsa_oaep_sha256.h; sourceTree = "<group>"; };
 		3D891F1E2105BB200031E528 /* TUTFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileViewer.h; sourceTree = "<group>"; };
-		3D891F1F2105BB200031E528 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTCrypto.h; sourceTree = "<group>"; };
 		3D891F232105BB210031E528 /* TUTEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTEncodingConverter.h; sourceTree = "<group>"; };
 		3D891F242105BB210031E528 /* TUTFileUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTFileUtil.h; sourceTree = "<group>"; };
 		3D891F262105BB210031E528 /* TUTAes128Facade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TUTAes128Facade.h; sourceTree = "<group>"; };
@@ -366,8 +362,7 @@
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy-Info.plist"; sourceTree = "<absolute>"; };
-		3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFBCrypt.h; sourceTree = "<group>"; };
-		3DFDBDD4212ADA1D00785FC7 /* JFGC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFGC.h; sourceTree = "<group>"; };
+		3DF3055B253853C300E942A8 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TUTCrypto.h; path = tutanota/Sources/Crypto/TUTCrypto.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -453,14 +448,10 @@
 			children = (
 				3DE7B3422135855F003415BE /* TUTSubKeys.h */,
 				3DE7B3432135855F003415BE /* TUTSubKeys.m */,
-				3DFDBDD4212ADA1D00785FC7 /* JFGC.h */,
-				3DFDBDD3212AD9B300785FC7 /* JFBCrypt.h */,
-				3D891F1F2105BB200031E528 /* TUTCrypto.h */,
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891F262105BB210031E528 /* TUTAes128Facade.h */,
 				3D891F032105B12F0031E528 /* TUTAes128Facade.m */,
 				3D891F002105B12E0031E528 /* TUTCrypto.m */,
-				3D891EFF2105B12E0031E528 /* JFBCrypt.m */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
 			);
 			path = Crypto;
@@ -469,6 +460,7 @@
 		3D74536321089D8100B16F2E /* Files */ = {
 			isa = PBXGroup;
 			children = (
+				3DF3055B253853C300E942A8 /* TUTCrypto.h */,
 				3D891F242105BB210031E528 /* TUTFileUtil.h */,
 				3D891EFE2105B12E0031E528 /* TUTFileUtil.m */,
 				3D891F1E2105BB200031E528 /* TUTFileViewer.h */,
@@ -1517,7 +1509,6 @@
 				3D378F072536F79A0001F1F3 /* TUTKeychainManager.m in Sources */,
 				3D378F082536F79A0001F1F3 /* TUTCrypto.m in Sources */,
 				3D378F092536F79A0001F1F3 /* TUTLog.m in Sources */,
-				3D378F0A2536F79A0001F1F3 /* JFBCrypt.m in Sources */,
 				3D378F0B2536F79A0001F1F3 /* TUTAlarmInfo.m in Sources */,
 				3D378F0C2536F79A0001F1F3 /* TUTAlarmModel.m in Sources */,
 				3D378F0D2536F79A0001F1F3 /* main.m in Sources */,
@@ -1554,7 +1545,6 @@
 				3D6C6D0822B7709A00289576 /* TUTKeychainManager.m in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
-				3D891F0A2105B12F0031E528 /* JFBCrypt.m in Sources */,
 				3D57BEB922B796DD00205B1B /* TUTAlarmInfo.m in Sources */,
 				3DD7A23822C604F000876B85 /* TUTAlarmModel.m in Sources */,
 				3DD4A09620F8C6260086EB36 /* main.m in Sources */,
@@ -2230,7 +2220,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -2282,7 +2272,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
