@@ -3,7 +3,7 @@
 import m from "mithril"
 import {getStartOfDay, incrementDate} from "../api/common/utils/DateUtils"
 import {styles} from "../gui/styles"
-import {formatTime} from "../misc/Formatter"
+import {formatTime, formatDayWithMonth} from "../misc/Formatter"
 import {
 	CALENDAR_EVENT_HEIGHT,
 	eventEndsAfterDay,
@@ -24,7 +24,7 @@ import {theme} from "../gui/theme"
 import {px, size} from "../gui/size"
 import {ContinuingCalendarEventBubble} from "./ContinuingCalendarEventBubble"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption, WeekStart, AlternativeDateOptions} from "../api/common/TutanotaConstants"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
@@ -33,6 +33,7 @@ import {PageView} from "../gui/base/PageView"
 import {DEFAULT_HOUR_OF_DAY} from "./CalendarView"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {logins} from "../api/main/LoginController"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 export type Attrs = {
 	selectedDate: Date,
@@ -107,7 +108,12 @@ export class CalendarWeekView implements MComponent<Attrs> {
 			},
 		}, [
 			m(".calendar-long-events-header.mt-s.flex-fixed", {
-				style: {height: px(45 + 24 + mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT + marginForWeekEvents + 8)},
+				style: {
+					height: px(
+						45 + 24 + mainWeek.longEvents.maxColumns * CALENDAR_EVENT_HEIGHT + marginForWeekEvents 
+						+ 8 + (deviceConfig.getAlternativeDate() === AlternativeDateOptions.SHOW ? 24 : 0)
+					)
+				},
 			}, [
 				m(".pr-l.flex.row.items-center", [
 					m("button.calendar-switch-button", {
@@ -128,13 +134,19 @@ export class CalendarWeekView implements MComponent<Attrs> {
 					style: {
 						"margin": `0 0 ${px(marginForWeekEvents)} ${px(size.calendar_hour_width)}`
 					}
-				}, thisWeek.week.map((wd) => m(".flex.center-horizontally.flex-grow.center.b.", [
-					m(".calendar-day-indicator", {
-						style: {"margin-right": "4px"},
-					}, lang.formats.weekdayShort.format(wd) + " "),
-					m(".calendar-day-indicator.calendar-day-number" + (todayTimestamp === wd.getTime() ? ".date-current" : ""), {
-						style: {margin: "0"}
-					}, wd.getDate())
+				}, thisWeek.week.map((wd) => 
+					m(".flex.col.flex-grow.center.b.", [
+						m(".flex.center-horizontally.flex-grow.center.b.", [
+							m(".calendar-day-indicator", {
+								style: {"margin-right": "4px"},
+							}, lang.formats.weekdayShort.format(wd) + " "),
+							m(".calendar-day-indicator.calendar-day-number" + (todayTimestamp === wd.getTime() ? ".date-current" : ""), {
+								style: {margin: "0"}
+							}, wd.getDate())
+						]),
+					deviceConfig.getAlternativeDate() === AlternativeDateOptions.SHOW
+						? m(`.calendar-alternative-day-month${lang.languageTag === 'fa-IR'?'.rtl':''}`, String(formatDayWithMonth(wd)))
+						: null,
 				]))),
 				m(".calendar-hour-margin.flex.row", {
 						oncreate: (vnode) => {
