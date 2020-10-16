@@ -1101,7 +1101,7 @@ styles.registerStyle('main', () => {
 		},
 
 		'.calendar-alternative-day-month': {
-			margin: '4px auto',
+			'margin-top': '2px',
 			color: '#757575',
 			'text-align': 'center',
 		},
