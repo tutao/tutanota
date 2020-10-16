@@ -449,6 +449,7 @@ module.exports = {
 		"formatTextMonospace_msg": "Monospace",
 		"formatTextOl_msg": "Ordered list",
 		"formatTextRight_msg": "Right",
+		"formatTextRTL_msg": "Right to Left",
 		"formatTextUl_msg": "Unordered list",
 		"formatTextUnderline_msg": "Make selected text underlined.",
 		"forward_action": "Forward",

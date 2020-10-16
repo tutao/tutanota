@@ -10,7 +10,7 @@ import type {ImageHandler} from '../../mail/MailUtils'
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
-type Style = 'b' | 'i' | 'u' | 'c' | 'a'
+type Style = 'b' | 'i' | 'u' | 'c' | 'a' | 'rtl'
 type Alignment = 'left' | 'center' | 'right' | 'justify'
 type Listing = 'ol' | 'ul'
 type Styles = {
@@ -39,6 +39,7 @@ export class Editor implements ImageHandler {
 		a: false,
 		alignment: 'left',
 		listing: null,
+		rtl: false,
 	};
 
 	constructor(minHeight: ?number, sanitizer: SanitizerFn) {
@@ -61,7 +62,8 @@ export class Editor implements ImageHandler {
 			'i': [() => this._squire.italic(), () => this._squire.removeItalic(), () => this.styles.i],
 			'u': [() => this._squire.underline(), () => this._squire.removeUnderline(), () => this.styles.u],
 			'c': [() => this._squire.setFontFace('monospace'), () => this._squire.setFontFace('sans-serif'), () => this.styles.c],
-			'a': [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a]
+			'a': [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a],
+			'rtl': [() => this._squire.setTextDirection('rtl'), () => this._squire.setTextDirection(), () => this.styles.rtl],
 		})
 
 
@@ -224,6 +226,9 @@ export class Editor implements ImageHandler {
 		this.styles.b = this._squire.hasFormat('b')
 		this.styles.u = this._squire.hasFormat('u')
 		this.styles.i = this._squire.hasFormat('i')
+
+		// direction
+		this.styles.rtl = pathSegments.find(s => s.includes('rtl')) !== undefined
 	}
 
 	makeLink() {

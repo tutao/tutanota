@@ -39,7 +39,8 @@ export class RichTextToolbar {
 					? lang.get('breakLink_action')
 					: lang.get('makeLink_action'),
 				icon: Icons.Link
-			}
+			},
+			{style: 'rtl', title: "formatTextRTL_msg", icon: Icons.RTL},
 		].map(o => ({
 			label: "emptyString_msg",
 			title: o.title,

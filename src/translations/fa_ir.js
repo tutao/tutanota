@@ -410,6 +410,7 @@ module.exports = {
 		"formatTextMonospace_msg": "با عرض ثابت",
 		"formatTextOl_msg": "فهرست مرتب",
 		"formatTextRight_msg": "راست",
+		"formatTextRTL_msg": "راست به چپ",
 		"formatTextUl_msg": "فهرست نامرتب",
 		"formatTextUnderline_msg": "متن انتخابی را زیرخط‌دار کن.",
 		"forward_action": "ارسال مجدد",
