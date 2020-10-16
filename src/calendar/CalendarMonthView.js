@@ -4,7 +4,7 @@
 import m from "mithril"
 import {px, size} from "../gui/size"
 import type {WeekStartEnum} from "../api/common/TutanotaConstants"
-import {EventTextTimeOption, WeekStart} from "../api/common/TutanotaConstants"
+import {EventTextTimeOption, WeekStart, AlternativeDateOptions} from "../api/common/TutanotaConstants"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import type {CalendarDay} from "./CalendarUtils"
 import {
@@ -35,6 +35,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {PageView} from "../gui/base/PageView"
 import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {lang} from "../misc/LanguageViewModel"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date,
@@ -51,7 +52,11 @@ type CalendarMonthAttrs = {
 
 type SimplePosRect = {top: number, left: number, right: number}
 
-const dayHeight = () => styles.isDesktopLayout() ? 32 : 24
+const dayHeight = () => {
+	let height = styles.isDesktopLayout() ? 32 : 24
+	height += deviceConfig.getAlternativeDate() === AlternativeDateOptions.SHOW ? 24 : 0
+	return height
+}
 const spaceBetweenEvents = () => styles.isDesktopLayout() ? 2 : 1
 
 
@@ -178,7 +183,9 @@ export class CalendarMonthView implements MComponent<CalendarMonthAttrs>, Lifecy
 			},
 			[
 				m(".calendar-day-indicator.calendar-day-number" + getDateIndicator(d.date, null, today), String(d.day)),
-				m(`.calendar-alternative-day-month${lang.languageTag === 'fa-IR'?'.rtl':''}`, String(formatDayWithMonth(d.date))),
+				deviceConfig.getAlternativeDate() === AlternativeDateOptions.SHOW
+					? m(`.calendar-alternative-day-month${lang.languageTag === 'fa-IR'?'.rtl':''}`, String(formatDayWithMonth(d.date)))
+					: null,
 				// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 				// weeks that do not start on Monday are not strictly defined, so we only display
 				// a week number if the user's client is configured to start weeks on Monday

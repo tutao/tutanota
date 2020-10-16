@@ -4,6 +4,8 @@ import {themeId} from "../gui/theme"
 import {client} from "./ClientDetector"
 import type {CalendarViewTypeEnum} from "../calendar/CalendarView"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
+import type {AlternativeDateEnum} from "../api/common/TutanotaConstants"
+import {AlternativeDateOptions} from "../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -19,6 +21,7 @@ class DeviceConfig {
 	_scheduledAlarmUsers: Id[];
 	_theme: ThemeId;
 	_language: ?string;
+	_alternativeDate: ?AlternativeDateEnum;
 	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
 	_signupToken: string;
 
@@ -35,6 +38,7 @@ class DeviceConfig {
 		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
+		this._alternativeDate = (loadedConfig && loadedConfig._alternativeDate) ? loadedConfig._alternativeDate : AlternativeDateOptions.HIDE
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
@@ -148,6 +152,15 @@ class DeviceConfig {
 			themeId(theme)
 			this._store()
 		}
+	}
+
+	getAlternativeDate(): ?AlternativeDateEnum {
+		return this._alternativeDate
+	}
+
+	setAlternativeDate(alternativeDate: ?AlternativeDateEnum) {
+		this._alternativeDate = alternativeDate
+		this._store()
 	}
 
 	getDefaultCalendarView(userId: Id): ?CalendarViewTypeEnum {

@@ -7,8 +7,8 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {themeId} from "../gui/theme"
-import type {TimeFormatEnum, WeekStartEnum} from "../api/common/TutanotaConstants"
-import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
+import type {TimeFormatEnum, WeekStartEnum, AlternativeDateEnum} from "../api/common/TutanotaConstants"
+import {TimeFormat, WeekStart, AlternativeDateOptions} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {downcast} from "../api/common/utils/Utils"
 import {load, update} from "../api/main/Entity"
@@ -45,6 +45,16 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			items: [{name: lang.get("light_label"), value: "light"}, {name: lang.get("dark_label"), value: "dark"}],
 			selectedValue: themeId,
 			selectionChangedHandler: (value) => deviceConfig.setTheme(value)
+		}
+
+		const alternativeDateDropDownAttrs: DropDownSelectorAttrs<AlternativeDateEnum> = {
+			label: "alternativeDate_label",
+			items: [
+				{name: lang.get("hideAlternativeDate_label"), value: AlternativeDateOptions.HIDE},
+				{name: lang.get("showAlternativeDate_label"), value: AlternativeDateOptions.SHOW},
+			],
+			selectedValue: stream(deviceConfig.getAlternativeDate() || AlternativeDateOptions.HIDE),
+			selectionChangedHandler: (value) => deviceConfig.setAlternativeDate(value)
 		}
 
 		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
@@ -85,6 +95,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			m(".h4.mt-l", lang.get('settingsForDevice_label')),
 			m(DropDownSelectorN, languageDropDownAttrs),
 			themeId() === 'custom' ? null : m(DropDownSelectorN, themeDropDownAttrs),
+			m(DropDownSelectorN, alternativeDateDropDownAttrs),
 			m(".h4.mt-l", lang.get('userSettings_label')),
 			m(DropDownSelectorN, hourFormatDropDownAttrs),
 			m(DropDownSelectorN, weekStartDropDownAttrs),
