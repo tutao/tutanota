@@ -43,7 +43,7 @@ import {CalendarModel, incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
+import {NotFoundError, TooManyRequestsError, PayloadTooLargeError} from "../api/common/error/RestError"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
@@ -622,6 +622,8 @@ export class CalendarEventViewModel {
 				showProgress(p)
 				return p.return(true)
 			}
+		}).catch(PayloadTooLargeError, () => {
+			throw new UserError("requestTooLarge_msg")
 		}).finally(() => {
 			this._processing = false
 		})

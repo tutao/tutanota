@@ -13,6 +13,8 @@ import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
+import {PayloadTooLargeError} from "../api/common/error/RestError"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -48,12 +50,31 @@ export function show(props: TutanotaProperties) {
 		}
 	}
 	let editSignatureOkAction = (dialog) => {
-		logins.getUserController().props.emailSignatureType = typeField.selectedValue()
-		if (typeField.selectedValue() === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-			logins.getUserController().props.customEmailSignature = editor.getValue()
+		const props = logins.getUserController().props
+
+		const newType = typeField.selectedValue()
+		const newCustomValue = editor.getValue()
+
+		const oldType = props.emailSignatureType
+		const oldCustomValue = props.customEmailSignature
+
+		if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {
+			return dialog.close()
+		} else {
+			props.emailSignatureType = newType
+			if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+				props.customEmailSignature = newCustomValue
+			}
+			const updatePromise = update(props)
+			return showProgressDialog("pleaseWait_msg", updatePromise)
+				.then(() => dialog.close())
+				.catch(PayloadTooLargeError, () => {
+					props.emailSignatureType = oldType
+					props.customEmailSignature = oldCustomValue
+					return Dialog.error("requestTooLarge_msg")
+				})
+
 		}
-		update(logins.getUserController().props)
-		dialog.close()
 	}
 
 	Dialog.showActionDialog({

@@ -7,7 +7,7 @@ import {
 	AccessBlockedError,
 	LockedError,
 	NotAuthorizedError,
-	NotFoundError,
+	NotFoundError, PayloadTooLargeError,
 	PreconditionFailedError,
 	TooManyRequestsError
 } from "../api/common/error/RestError"
@@ -712,11 +712,10 @@ export class SendMailModel {
 				                        .then(() => true)
 				                        .catch(LockedError, () => { throw new UserError("operationStillActive_msg")})
 
+
 				return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", sendPromise)
 			})
 			.catch(CancelledError, () => false)
-
-
 			// catch all of the badness
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
 			.catch(RecipientsNotFoundError, (e) => {
@@ -786,6 +785,8 @@ export class SendMailModel {
 				this.attachFiles(attachments)
 				this._mailChanged = false
 			})
+		}).catch(PayloadTooLargeError, () => {
+			throw new UserError("requestTooLarge_msg")
 		})
 
 		return blockingWaitHandler("save_msg", savePromise)

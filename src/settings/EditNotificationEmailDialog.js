@@ -16,11 +16,12 @@ import {getWhitelabelDomain, neverNull} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {PreconditionFailedError} from "../api/common/error/RestError"
+import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {CustomerProperties} from "../api/entities/sys/CustomerProperties"
 import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
+import {UserError} from "../api/common/error/UserError"
 
 export function show(existingTemplate: ?NotificationMailTemplate, customerProperties: LazyLoaded<CustomerProperties>) {
 	let template: NotificationMailTemplate
@@ -122,31 +123,47 @@ export function show(existingTemplate: ?NotificationMailTemplate, customerProper
 		},
 		okAction: (dialog) => {
 			if (!editor.getValue().includes("{link}")) {
-				Dialog.error(() => lang.get("templateMustContain_msg", {"{value}": "{link}"}))
-				return
+				return Dialog.error(() => lang.get("templateMustContain_msg", {"{value}": "{link}"}))
 			}
-			showProgressDialog("pleaseWait_msg", customerProperties.getAsync().then((customerProperties) => {
+
+			let templates
+			let isExistingTemplate
+			const oldLanguage = template.language
+			const oldSubject = template.subject
+			const oldBody = template.body
+
+			return showProgressDialog("pleaseWait_msg", customerProperties.getAsync().then((customerProperties) => {
+				templates = customerProperties.notificationMailTemplates
 				if (customerProperties.notificationMailTemplates.filter((t) => t !== existingTemplate && t.language
 					=== selectedLanguageStream()).length > 0) {
-					Dialog.error("templateLanguageExists_msg")
-					return
+					throw new UserError("templateLanguageExists_msg")
+				}
+
+				isExistingTemplate = templates.includes(template)
+				if (!isExistingTemplate) {
+					customerProperties.notificationMailTemplates.push(template)
 				}
 
 				template.subject = htmlSanitizer.sanitize(subject(), false).text
 				template.body = htmlSanitizer.sanitize(editor.getValue(), false).text
 				template.language = selectedLanguageStream()
-				const index = customerProperties.notificationMailTemplates.findIndex((t) => t === template)
-				if (index !== -1) {
-					customerProperties.notificationMailTemplates[index] = template
-				} else {
-					customerProperties.notificationMailTemplates.push(template)
-				}
-				update(customerProperties)
+
+				return update(customerProperties)
 					.then(() => dialog.close())
-					.catch(PreconditionFailedError, () => {
-						Dialog.error("notificationMailTemplateTooLarge_msg")
-					})
+
 			}))
+				.catch(UserError, err => {
+					return Dialog.error(() => err.message)
+				})
+				.catch(PayloadTooLargeError, () => {
+					template.subject = oldSubject
+					template.body = oldBody
+					template.language = oldLanguage
+					if (!isExistingTemplate) {
+						templates.pop()
+					}
+					return Dialog.error("notificationMailTemplateTooLarge_msg")
+				})
 		}
 	})
 }

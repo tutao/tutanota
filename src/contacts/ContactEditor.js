@@ -39,7 +39,7 @@ import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {ButtonType} from "../gui/base/ButtonN"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
@@ -283,6 +283,9 @@ export class ContactEditor {
 		}
 
 		promise.then(() => this._close())
+		       .catch(PayloadTooLargeError, () => {
+			       Dialog.error("requestTooLarge_msg")
+		       })
 	}
 
 	createNewMailAddressEditor() {

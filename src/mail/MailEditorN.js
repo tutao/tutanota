@@ -386,6 +386,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	const save = () => {
 		return model.saveDraft(true, MailMethod.NONE, showProgressDialog)
+		            .catch(UserError, err => Dialog.error(() => err.message))
 		            .catch(FileNotFoundError, () => Dialog.error("couldNotAttachFile_msg"))
 		            .catch(PreconditionFailedError, () => Dialog.error("operationStillActive_msg"))
 	}

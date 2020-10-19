@@ -1199,6 +1199,7 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax"
+		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
+		"requestTooLarge_msg": "Deine Anfrage war zu groß für den Server"
 	}
 }

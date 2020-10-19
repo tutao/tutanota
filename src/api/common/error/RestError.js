@@ -170,6 +170,14 @@ export class ResourceError extends TutanotaError {
 	}
 }
 
+export class PayloadTooLargeError extends TutanotaError {
+	static CODE: number = 413
+
+	constructor(msg: string) {
+		super("PayloadTooLargeError", msg)
+	}
+}
+
 /**
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
@@ -216,6 +224,8 @@ export function handleRestError(errorCode: number, path: string, errorId: ?strin
 			return new ServiceUnavailableError(message);
 		case InsufficientStorageError.CODE:
 			return new InsufficientStorageError(message);
+		case PayloadTooLargeError.CODE:
+			return new PayloadTooLargeError(message);
 		default:
 			return new ResourceError(message);
 	}

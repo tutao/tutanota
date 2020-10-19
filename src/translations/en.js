@@ -1196,6 +1196,7 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"invalidRegexSyntax_msg": "Invalid regex syntax"
+		"invalidRegexSyntax_msg": "Invalid regex syntax",
+		"requestTooLarge_msg": "Your request was too large for the server"
 	}
 }
