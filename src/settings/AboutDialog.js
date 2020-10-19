@@ -69,23 +69,22 @@ function sendDeviceLogs() {
 	}
 
 	if (isDesktop()) {
-		p = p.then(() => {
-			return getDesktopLogs()
-				.then((desktopEntries) => {
-					attachments.push(createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
-				})
-		})
+		p = p
+			.then(getDesktopLogs)
+			.then(desktopEntries => {
+				attachments.push(createLogFile(timestamp.getTime(), desktopEntries, "desktop"))
+			})
 	}
 
 	if (isApp()) {
-		p = p.then(() => {
-			getDeviceLogs()
-				.then((fileReference) => {
-					fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-					attachments.push(fileReference)
-				})
-		})
+		p = p
+			.then(getDeviceLogs)
+			.then(fileReference => {
+				fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
+				attachments.push(fileReference)
+			})
 	}
+
 	p.then(_ => locator.mailModel.getUserMailboxDetails())
 	 .then((mailboxDetails) => {
 		 let {message, type, client} = clientInfoString(timestamp, true)
