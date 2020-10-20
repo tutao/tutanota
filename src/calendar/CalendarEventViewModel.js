@@ -43,13 +43,13 @@ import {CalendarModel, incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, TooManyRequestsError} from "../api/common/error/RestError"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import type {IUserController} from "../api/main/UserController"
 import type {RecipientInfo, RecipientInfoTypeEnum} from "../api/common/RecipientInfo"
-import {RecipientInfoType} from "../api/common/RecipientInfo"
+import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {defaultSendMailModel, SendMailModel} from "../mail/SendMailModel"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
@@ -60,7 +60,6 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {worker} from "../api/main/WorkerClient"
 import {cleanMatch} from "../api/common/utils/StringUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
@@ -634,10 +633,28 @@ export class CalendarEventViewModel {
 		const cancelAddresses = event.attendees
 		                             .filter(a => !this._ownMailAddresses.includes(a.address.address))
 		                             .map(a => a.address)
+		const promises = []
 		cancelAddresses.forEach((a) => {
-			this._cancelModel.addOrGetRecipient("bcc", {name: a.name, address: a.address, contact: null})
+			const recipientInfo = this._cancelModel.addOrGetRecipient("bcc", {name: a.name, address: a.address, contact: null})
+			//We cannot send a notification to external recipients without a password, so we exclude them
+			if (this._cancelModel.isConfidential()) {
+				promises.push((recipientInfo.resolveContactPromise ? recipientInfo.resolveContactPromise : Promise.resolve()).then(() => {
+					if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+						this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+					}
+				}))
+			}
 		})
-		return this._distributor.sendCancellation(updatedEvent, this._cancelModel)
+		return Promise.all(promises)
+		              .then(() => {
+			              //We check if there are any attendees left to send the cancellation to
+			              return this._cancelModel.allRecipients().length ?
+				              this._distributor.sendCancellation(updatedEvent, this._cancelModel) :
+				              Promise.resolve()
+		              })
+		              .catch(TooManyRequestsError, () => {
+			              throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
+		              })
 	}
 
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {
