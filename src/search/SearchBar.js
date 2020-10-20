@@ -583,6 +583,7 @@ export class SearchBar implements Component {
 							selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
 						})
 					}
+					e.preventDefault()
 				} else if (keyCode === Keys.DOWN.code) {
 					if (entities.length > 0) {
 						let newSelected = selected || entities[0]
@@ -590,6 +591,7 @@ export class SearchBar implements Component {
 							selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
 						})
 					}
+					e.preventDefault()
 				}
 				// disable key bindings
 				e.stopPropagation()
