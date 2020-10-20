@@ -128,10 +128,11 @@ export class CalendarView implements CurrentView {
 	onremove: Function;
 
 	constructor() {
-		this._currentViewType = deviceConfig.getDefaultCalendarView(logins.getUserController().user._id) || CalendarViewType.MONTH
+		const userId = logins.getUserController().user._id
+		this._currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
 		this._loadedMonths = new Set()
 		this._eventsForDays = freezeMap(new Map())
-		this._hiddenCalendars = new Set()
+		this._hiddenCalendars = new Set(deviceConfig.getHiddenCalendars(userId))
 		this.selectedDate = stream(getStartOfDay(new Date()))
 
 		this.sidebarColumn = new ViewColumn({
@@ -517,7 +518,7 @@ export class CalendarView implements CurrentView {
 									     this._hiddenCalendars.has(groupRootId)
 										     ? newHiddenCalendars.delete(groupRootId)
 										     : newHiddenCalendars.add(groupRootId)
-									     this._hiddenCalendars = newHiddenCalendars
+									     this._setHiddenCalendars(newHiddenCalendars)
 								     },
 								     style: {
 									     "border-color": colorValue,
@@ -533,6 +534,11 @@ export class CalendarView implements CurrentView {
 					     ])
 			     })
 			: null
+	}
+
+	_setHiddenCalendars(newHiddenCalendars: Set<Id>) {
+		this._hiddenCalendars = newHiddenCalendars
+		deviceConfig.setHiddenCalendars(logins.getUserController().user._id, [...newHiddenCalendars])
 	}
 
 	_createCalendarActionDropdown(calendarInfo: CalendarInfo, colorValue: string, existingGroupSettings: ?GroupSettings, userSettingsGroupRoot: UserSettingsGroupRoot, sharedCalendar: boolean): Children {

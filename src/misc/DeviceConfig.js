@@ -20,6 +20,7 @@ class DeviceConfig {
 	_theme: ThemeId;
 	_language: ?string;
 	_defaultCalendarView: {[uderId: Id]: ?CalendarViewTypeEnum};
+	_hiddenCalendars: {[userId: Id]: Id[]}
 	_signupToken: string;
 
 	/**
@@ -41,7 +42,7 @@ class DeviceConfig {
 		this._scheduledAlarmUsers = loadedConfig && loadedConfig._scheduledAlarmUsers || []
 		this._language = loadedConfig && loadedConfig._language
 		this._defaultCalendarView = loadedConfig && loadedConfig._defaultCalendarView || {}
-
+		this._hiddenCalendars = loadedConfig && loadedConfig._hiddenCalendars || {}
 		let loadedSignupToken = loadedConfig && loadedConfig._signupToken
 		if (loadedSignupToken) {
 			this._signupToken = loadedSignupToken
@@ -157,6 +158,17 @@ class DeviceConfig {
 	setDefaultCalendarView(userId: Id, defaultView: CalendarViewTypeEnum) {
 		if (this._defaultCalendarView[userId] !== defaultView) {
 			this._defaultCalendarView[userId] = defaultView
+			this._store()
+		}
+	}
+
+	getHiddenCalendars(user: Id): Id[] {
+		return this._hiddenCalendars.hasOwnProperty(user) ? this._hiddenCalendars[user] : []
+	}
+
+	setHiddenCalendars(user: Id, calendars: Id[]) {
+		if (this._hiddenCalendars[user] !== calendars) {
+			this._hiddenCalendars[user] = calendars
 			this._store()
 		}
 	}
