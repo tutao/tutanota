@@ -354,7 +354,7 @@ export class MailViewer {
 									this._rescale(false)
 								},
 								onsubmit: (event: Event) => this._confirmSubmit(event),
-								style: {'line-height': px(this._bodyLineHeight), 'transform-origin': 'top left'},
+								style: {'line-height': this._bodyLineHeight.toString(), 'transform-origin': 'top left'},
 							}, (this._mailBody == null && !this._errorOccurred)
 								? m(".progress-panel.flex-v-center.items-center", {
 									style: {
