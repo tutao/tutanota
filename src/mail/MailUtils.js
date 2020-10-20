@@ -398,7 +398,7 @@ export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, us
 }
 
 export function isUserMailbox(mailboxDetails: MailboxDetail): boolean {
-	return mailboxDetails.mailGroup && mailboxDetails.mailGroup.user
+	return mailboxDetails.mailGroup != null && mailboxDetails.mailGroup.user != null
 }
 
 

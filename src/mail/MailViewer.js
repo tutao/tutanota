@@ -1323,7 +1323,7 @@ export class MailViewer {
 		}
 	}
 
-	_assignMail(userGroupInfo: GroupInfo) {
+	_assignMail(userGroupInfo: GroupInfo): Promise<void> {
 		const recipient = createMailAddress()
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name

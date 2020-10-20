@@ -1,6 +1,7 @@
 // @flow
 
 import o from "ospec/ospec.js"
+// $FlowIgnore[untyped-import]
 import en from "../../../src/translations/en"
 import type {IUserController} from "../../../src/api/main/UserController"
 import type {LoginController} from "../../../src/api/main/LoginController"

@@ -25,6 +25,7 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {locator} from "../api/main/MainLocator"
 import {newMailEditorFromTemplate} from "../mail/MailEditorN"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 

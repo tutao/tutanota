@@ -34,6 +34,7 @@ import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {cleanMatch} from "../api/common/utils/StringUtils"
 import {ConnectionError, TooManyRequestsError} from "../api/common/error/RestError"
+import type {TranslationKey} from "../misc/LanguageViewModel"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
@@ -133,7 +134,7 @@ function _downloadAttachment(attachment: Attachment) {
 	}
 }
 
-export const cleanupInlineAttachments = debounce(50, (domElement: HTMLElement, inlineImageElements: Array<HTMLElement>, attachments: Array<Attachment>) => {
+export const cleanupInlineAttachments: (HTMLElement, Array<HTMLElement>, Array<Attachment>) => void = debounce(50, (domElement: HTMLElement, inlineImageElements: Array<HTMLElement>, attachments: Array<Attachment>) => {
 	// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
 	// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
 	// and check each descendant and if it's an image with CID or not.
@@ -160,6 +161,15 @@ export const cleanupInlineAttachments = debounce(50, (domElement: HTMLElement, i
 	findAllAndRemove(inlineImageElements, (imageElement) => elementsToRemove.includes(imageElement))
 })
 
+// To make flow stop yelling at me
+function _getRecipientFieldLabelTranslationKey(field: RecipientField): TranslationKey {
+	return {
+		"to": "to_label",
+		"cc": "cc_label",
+		"bcc": "bcc_label"
+	}[field]
+}
+
 export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 
 	model: SendMailModel
@@ -173,7 +183,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		this.field = fieldType
 
 		const handler = new RecipientInfoBubbleHandler(this)
-		this.component = new BubbleTextField(fieldType + "_label", handler)
+		this.component = new BubbleTextField(_getRecipientFieldLabelTranslationKey(this.field), handler)
 
 		// we want to fill in the field with existing recipients from the model
 		this.component.bubbles = this._modelRecipients().map(recipient => this.createBubble(recipient.name, recipient.mailAddress, recipient.contact))

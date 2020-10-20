@@ -614,7 +614,7 @@ export class SendMailModel {
 		}
 	}
 
-	getSenderName() {
+	getSenderName(): string {
 		return getSenderNameForUser(this._mailboxDetails, this.user())
 	}
 
@@ -622,7 +622,7 @@ export class SendMailModel {
 		return this._draft
 	}
 
-	_updateDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, draft: Mail) {
+	_updateDraft(body: string, attachments: ?$ReadOnlyArray<Attachment>, draft: Mail): Promise<Mail> {
 		return this._worker
 		           .updateMailDraft(this.getSubject(), body, this._senderAddress, this.getSenderName(), this.toRecipients(),
 			           this.ccRecipients(), this.bccRecipients(), attachments, this.isConfidential(), draft)
@@ -720,7 +720,7 @@ export class SendMailModel {
 			// catch all of the badness
 			.catch(RecipientNotResolvedError, () => {throw new UserError("tooManyAttempts_msg")})
 			.catch(RecipientsNotFoundError, (e) => {
-						let invalidRecipients = e.message
+				let invalidRecipients = e.message
 				throw new UserError(() => lang.get("invalidRecipients_msg") + "\n" + invalidRecipients)
 			})
 			.catch(TooManyRequestsError, () => {throw new UserError(tooManyRequestsError)})
@@ -735,7 +735,7 @@ export class SendMailModel {
 			.catch(PreconditionFailedError, () => {throw new UserError("operationStillActive_msg")})
 	}
 
-	_externalPasswordConfirm(getConfirmation: (TranslationKey | lazy<string>) => Promise<boolean>) {
+	_externalPasswordConfirm(getConfirmation: (TranslationKey | lazy<string>) => Promise<boolean>): Promise<void> {
 		if (this.isConfidential()
 			&& this.containsExternalRecipients()
 			&& this.getExternalRecipients().some(r => !this.getPassword(r.mailAddress))) {

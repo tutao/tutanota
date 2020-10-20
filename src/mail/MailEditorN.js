@@ -207,7 +207,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		}
 	}
 
-	view(vnode: Vnode<MailEditorAttrs>) {
+	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
 		const model = a.model
 
