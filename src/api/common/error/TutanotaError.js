@@ -1,9 +1,5 @@
 //@flow
 
-// import {downcast} from "../utils/Utils"
-
-import {downcast} from "../utils/Utils"
-
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
  * Implemented using ES5 inheritance as babel does not support extending builtin types
@@ -12,8 +8,11 @@ import {downcast} from "../utils/Utils"
 const ExtendableErrorF = function ExtendableError() {
 	Error.apply(this, arguments);
 }
+
+// Warning: huge type hack
+// You can't import downcast here
 ExtendableErrorF.prototype = Object.create(Error.prototype)
-const ExtendableError: Class<Error> = downcast(ExtendableErrorF)
+const ExtendableError: Class<Error> = (ExtendableErrorF: any)
 
 export class TutanotaError extends ExtendableError {
 	constructor(name: string, message: string) {
