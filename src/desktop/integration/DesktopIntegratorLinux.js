@@ -55,6 +55,7 @@ export function enableAutoLaunch(): Promise<void> {
 	Comment=${app.name} startup script
 	Exec=${packagePath} -a
 	StartupNotify=false
+	StartupWMClass=${app.name}
 	Terminal=false`
 		fs.ensureDirSync(path.dirname(autoLaunchPath))
 		fs.writeFileSync(autoLaunchPath, autoLaunchDesktopEntry, {encoding: 'utf-8'})
@@ -148,7 +149,7 @@ Exec="${packagePath}" %U
 Terminal=false
 Type=Application
 Icon=${app.name}.png
-StartupWMClass=de.tutao.${app.name}
+StartupWMClass=${app.name}
 MimeType=x-scheme-handler/mailto;
 Categories=Network;
 X-Tutanota-Version=${app.getVersion()}
