@@ -10,8 +10,13 @@ import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 
-export const reverse = (objectMap: Object): {} => Object.keys(objectMap)
-                                                        .reduce((r, k) => Object.assign(r, {[objectMap[k]]: k}), {})
+export const reverse: <K,V>({[K]: V}) => {[V]: K} = (objectMap) =>  Object.keys(objectMap)
+                                                        .reduce((r, k) => {
+                                                        	const v = objectMap[downcast(k)]
+                                                        	return Object.assign(r, {[v]: k})
+                                                        }, {})
+// Also used in other prjects
+export type $Reversed<T> = $Call<typeof reverse, T>
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 
@@ -746,4 +751,22 @@ export function getAsEnumValue<K, V>(enumValues: {[K]: V}, value: string): ?V {
 		}
 	}
 	return null
+}
+
+export function assertEnumValue<K, V>(enumValues: {[K]: V}, value: string): V {
+	for (const key of Object.getOwnPropertyNames(enumValues)) {
+		const enumValue = enumValues[key]
+		if (enumValue === value) {
+			return enumValue
+		}
+	}
+	throw new Error(`Invalid enum value ${value} for ${JSON.stringify(enumValues)}`)
+}
+
+export function assertEnumKey<K: string, V>(obj: {[K]: V}, key: string): K {
+	if (key in obj) {
+		return downcast(key)
+	} else {
+		throw Error("Not valid enum value: " + key)
+	}
 }
