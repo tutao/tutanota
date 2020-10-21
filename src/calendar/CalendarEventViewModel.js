@@ -633,28 +633,30 @@ export class CalendarEventViewModel {
 		const cancelAddresses = event.attendees
 		                             .filter(a => !this._ownMailAddresses.includes(a.address.address))
 		                             .map(a => a.address)
-		const promises = []
-		cancelAddresses.forEach((a) => {
-			const recipientInfo = this._cancelModel.addOrGetRecipient("bcc", {name: a.name, address: a.address, contact: null})
-			//We cannot send a notification to external recipients without a password, so we exclude them
-			if (this._cancelModel.isConfidential()) {
-				promises.push((recipientInfo.resolveContactPromise ? recipientInfo.resolveContactPromise : Promise.resolve()).then(() => {
-					if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
-						this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
-					}
-				}))
-			}
-		})
-		return Promise.all(promises)
-		              .then(() => {
-			              //We check if there are any attendees left to send the cancellation to
-			              return this._cancelModel.allRecipients().length ?
-				              this._distributor.sendCancellation(updatedEvent, this._cancelModel) :
-				              Promise.resolve()
-		              })
-		              .catch(TooManyRequestsError, () => {
-			              throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
-		              })
+
+		return Promise
+			.each(cancelAddresses, (a) => {
+				const recipientInfo = this._cancelModel.addOrGetRecipient("bcc", {name: a.name, address: a.address, contact: null})
+				//We cannot send a notification to external recipients without a password, so we exclude them
+				if (this._cancelModel.isConfidential()) {
+					return Promise.resolve(recipientInfo.resolveContactPromise).then(() => {
+						if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+							this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+						}
+					})
+				} else {
+					return Promise.resolve()
+				}
+			})
+			.then(() => {
+				//We check if there are any attendees left to send the cancellation to
+				return this._cancelModel.allRecipients().length
+					? this._distributor.sendCancellation(updatedEvent, this._cancelModel)
+					: Promise.resolve()
+			})
+			.catch(TooManyRequestsError, () => {
+				throw new UserError("mailAddressDelay_msg") // This will be caught and open error dialog
+			})
 	}
 
 	_saveEvent(newEvent: CalendarEvent, newAlarms: Array<AlarmInfo>): Promise<void> {
