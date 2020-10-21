@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-08-10T08:34:24Z",
+	"updated_at": "2020-10-21T12:54:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -606,7 +606,6 @@ module.exports = {
 		"markRead_action": "标为已读",
 		"markUnread_action": "标记为未读",
 		"matchCase_alt": "匹配大小写",
-		"mayNotWorkForAllDe_msg": "这可能不适用于所有Linux桌面环境。",
 		"mergeAllSelectedContacts_msg": "您确定要合并选中的联系人吗？",
 		"mergeContacts_action": "合并联系人",
 		"merge_action": "合并",
@@ -853,7 +852,6 @@ module.exports = {
 		"retry_action": "请重试",
 		"richText_label": "富文本",
 		"role_placeholder": "功能",
-		"runAsTrayApp_action": "作为托盘应用运行",
 		"runOnStartup_action": "启动时运行",
 		"saveAll_action": "全部保存",
 		"saveDownloadNotPossibleIe_msg": "移动版IE浏览器不支持保存或显示附件，为此可使用桌面版浏览器。",
@@ -945,7 +943,6 @@ module.exports = {
 		"showMoreUpgrade_action": "显示更多",
 		"showMore_action": "显示更多",
 		"showRichTextToolbar_action": "显示格式化工具",
-		"showTrayIcon_action": "显示托盘图标",
 		"showURL_alt": "打开链接",
 		"show_action": "显示",
 		"signedOn_msg": "签订于 {date}。",

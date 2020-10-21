@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-10-21T12:54:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -611,7 +611,6 @@ module.exports = {
 		"markRead_action": "Merkitse luetuksi",
 		"markUnread_action": "Merkitse lukemattomaksi",
 		"matchCase_alt": "Noudata kirjainkokoa",
-		"mayNotWorkForAllDe_msg": "Tämä ei välttämättä toimi kaikissa Linux-työpöytäympäristöissä.",
 		"mergeAllSelectedContacts_msg": "Haluatko yhdistää valitut yhteystiedot?",
 		"mergeContacts_action": "Yhdistä yhteystiedot",
 		"merge_action": "Yhdistä",
@@ -861,7 +860,6 @@ module.exports = {
 		"retry_action": "Yritä uudelleen",
 		"richText_label": "Rikastettu teksti",
 		"role_placeholder": "Rooli",
-		"runAsTrayApp_action": "Näytä ohjelma työkalupalkissa",
 		"runOnStartup_action": "Käynnistä järjestelmän käynnistyessä",
 		"saveAll_action": "Tallenna kaikki",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorerin mobiiliversio ei tue liitteiden tallentamista tai näyttämistä. Käytä työpöytäversion selainta.",
@@ -954,7 +952,6 @@ module.exports = {
 		"showMore_action": "NÄYTÄ LISÄÄ",
 		"showRejectReason_action": "Näytä torjunnan syy.",
 		"showRichTextToolbar_action": "Tekstin muotoilu",
-		"showTrayIcon_action": "Näytä pienoiskuvake",
 		"showURL_alt": "Avaa linkki",
 		"show_action": "Näytä",
 		"signedOn_msg": "Allekirjoitettu {date}.",

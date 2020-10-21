@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-09-22T06:25:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -823,7 +823,6 @@ module.exports = {
 		"retry_action": "पुनः प्रयास करें",
 		"richText_label": "गहरे वर्ण",
 		"role_placeholder": "भूमिका",
-		"runAsTrayApp_action": "ट्रे ऐप के रूप में चलाएं",
 		"runOnStartup_action": "स्टार्टअप पर प्रारंभ करें",
 		"saveAll_action": "सभी सहेजें",
 		"saveDownloadNotPossibleIe_msg": "मोबाइल इंटरनेट एक्सप्लोरर सेव या अटैचमेंट को प्रदर्शित करने का समर्थन नहीं करता। इन सुविधाओं के लिए एक डेस्कटॉप ब्राउज़र का उपयोग करें।",

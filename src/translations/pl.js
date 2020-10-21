@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-10-21T12:54:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -618,7 +618,6 @@ module.exports = {
 		"markRead_action": "Oznacz jako \"przeczytane\"",
 		"markUnread_action": "Oznacz nieprzeczytane",
 		"matchCase_alt": "Dopasowanie",
-		"mayNotWorkForAllDe_msg": "To może nie działać na wszystkich dystrybucjach Linux-a",
 		"mergeAllSelectedContacts_msg": "Czy jesteś pewien, że chcesz połączyć wybrane kontakty?",
 		"mergeContacts_action": "Połącz kontakty",
 		"merge_action": "Połącz",
@@ -872,7 +871,6 @@ module.exports = {
 		"retry_action": "Spróbuj ponownie",
 		"richText_label": "Tekst sformatowany",
 		"role_placeholder": "Rola",
-		"runAsTrayApp_action": "Uruchom z zasobnika systemowego",
 		"runOnStartup_action": "Uruchom przy starcie",
 		"saveAll_action": "Zapisz wszystkie",
 		"saveDownloadNotPossibleIe_msg": "Mobilna wersja Internet Explorer nie obsługuje zapisu załaczników na dysk. Prosimy użyć desktopowej wersji przeglądarki.",
@@ -965,7 +963,6 @@ module.exports = {
 		"showMore_action": "POKAŻ WIĘCEJ",
 		"showRejectReason_action": "Pokaż powód odrzucenia",
 		"showRichTextToolbar_action": "Pokaż narzędzia formatowanie tekstu",
-		"showTrayIcon_action": "Pokaż listę ikon",
 		"showURL_alt": "Otwórz link",
 		"show_action": "Pokaż",
 		"signedOn_msg": "Zarejestrowano w dniu {date}.",

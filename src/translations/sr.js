@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2020-08-12T19:38:55Z",
+	"updated_at": "2020-09-22T06:25:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -824,7 +824,6 @@ module.exports = {
 		"retry_action": "Покушајте поново",
 		"richText_label": "Форматирани текст",
 		"role_placeholder": "Улога",
-		"runAsTrayApp_action": "Покрените као мини апликацију",
 		"runOnStartup_action": "Покрените на старту",
 		"saveAll_action": "Сачувај све",
 		"saveDownloadNotPossibleIe_msg": "Интернет претраћивачи за мобителе немају подршку за снимање или показивање додатака. Молимо да користите претраћивач за рачунар.",

@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-10-21T12:54:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -616,7 +616,6 @@ module.exports = {
 		"markRead_action": "Označi pročitanim",
 		"markUnread_action": "Označi nepročitanim",
 		"matchCase_alt": "Podudaranje izraza",
-		"mayNotWorkForAllDe_msg": "Ovo možda neće raditi za sva Linux radna okruženja.",
 		"mergeAllSelectedContacts_msg": "Jeste li sigurni da želite spojiti izabrane kontakte?",
 		"mergeContacts_action": "Spoji kontakte",
 		"merge_action": "Spoji",
@@ -870,7 +869,6 @@ module.exports = {
 		"retry_action": "Pokušajte ponovno",
 		"richText_label": "Obogaćeni tekst",
 		"role_placeholder": "Uloga",
-		"runAsTrayApp_action": "Pokreni kao tray aplikaciju",
 		"runOnStartup_action": "Pokreni pri pokretanju računala",
 		"saveAll_action": "Sačuvaj sve",
 		"saveDownloadNotPossibleIe_msg": "Mobilni internet Explorer preglednik ne podržava spremanje ili prikaz privitaka. Molimo da za ove značajke koristite desktop preglednik.",
@@ -963,7 +961,6 @@ module.exports = {
 		"showMore_action": "PRIKAŽI VIŠE",
 		"showRejectReason_action": "Prikaži razlog odbijanja",
 		"showRichTextToolbar_action": "Prikaži alate za oblikovanje",
-		"showTrayIcon_action": "Prikaži ikonu ladice",
 		"showURL_alt": "Otvori poveznicu",
 		"show_action": "Prikaži",
 		"signedOn_msg": "Potpisano na {date}.",

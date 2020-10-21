@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-10-21T12:54:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -621,7 +621,6 @@ module.exports = {
 		"markRead_action": "Označiť ako prečítané",
 		"markUnread_action": "Označiť ako neprečítané",
 		"matchCase_alt": "Rozlišovať veľkosť písmen",
-		"mayNotWorkForAllDe_msg": "Toto nemusí fungovať vo všetkých počítačových prostrediach Linuxu.",
 		"mergeAllSelectedContacts_msg": "Si si istý/istá, že chceš zlúčiť vybrané kontakty?",
 		"mergeContacts_action": "Zlúčiť kontakty",
 		"merge_action": "Zlúčiť",
@@ -877,7 +876,6 @@ module.exports = {
 		"retry_action": "Skús znova",
 		"richText_label": "Text vo formáte RTF",
 		"role_placeholder": "Funkcia",
-		"runAsTrayApp_action": "Spustiť ako aplikáciu v oblasti oznámení",
 		"runOnStartup_action": "Otvoriť pri spustení",
 		"saveAll_action": "Uložiť všetko",
 		"saveDownloadNotPossibleIe_msg": "Mobilný Internet Explorer nepodporuje ukladanie ani zobrazovanie príloh. Pre tieto funkcie použi, prosím, prehliadač pre počítače.",
@@ -970,7 +968,6 @@ module.exports = {
 		"showMore_action": "ZOBRAZIŤ VIAC",
 		"showRejectReason_action": "Zobraziť dôvod zamietnutia",
 		"showRichTextToolbar_action": "Zobraziť formátovacie nástroje:",
-		"showTrayIcon_action": "Zobraziť ikonu v paneli úloh",
 		"showURL_alt": "Otvoriť odkaz",
 		"show_action": "Zobraziť",
 		"signedOn_msg": "Podpísané {date}.",

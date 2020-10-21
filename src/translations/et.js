@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2020-08-10T08:34:26Z",
+	"updated_at": "2020-09-22T06:25:02Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -613,7 +613,6 @@ module.exports = {
 		"retry_action": "Proovi uuesti",
 		"richText_label": "Vormindatud tekst",
 		"role_placeholder": "Roll",
-		"runAsTrayApp_action": "Jooksuta taustarakendusena",
 		"runOnStartup_action": "Jooksuta käivitumisel",
 		"saveAll_action": "Salvesta kõik",
 		"saveDownloadNotPossibleIe_msg": "Internet Explorer'i mobiiliversioon ei toeta manuste salvestamist või kuvamist. Palun kasutage lauaarvutit nende funktsioonide jaoks.",

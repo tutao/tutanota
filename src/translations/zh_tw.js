@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2020-08-10T08:34:25Z",
+	"updated_at": "2020-10-21T12:54:35Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -718,7 +718,6 @@ module.exports = {
 		"retry_action": "重試",
 		"richText_label": "RTF 富文本格式",
 		"role_placeholder": "擔任",
-		"runAsTrayApp_action": "縮小至工作列執行",
 		"runOnStartup_action": "系統啟動時執行",
 		"saveAll_action": "全部保存",
 		"saveDownloadNotPossibleIe_msg": "行動裝置版 I.E 並不支援或顯示附件檔案。請改使用桌面瀏覽器來操作此功能。",

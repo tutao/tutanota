@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2020-08-17T07:42:55Z",
+	"updated_at": "2020-10-21T12:54:35Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "در باره",
@@ -67,7 +67,7 @@ module.exports = {
 		"adminPremiumFeatures_action": "ضمیمه ها",
 		"adminSettings_label": "تنظیمات مدیر",
 		"adminSpamRuleInfo_msg": "جزئيات برای پیکربندی قوانین هرزنامه",
-		"adminSpam_action": "قوانین اسپم",
+		"adminSpam_action": "آیین هرزنامه",
 		"adminSubscription_action": "اشتراک",
 		"adminUserList_action": "مدیریت کاربر",
 		"ageConfirmation_msg": "من حداقل ۱۶ سال دارم.",
@@ -839,7 +839,6 @@ module.exports = {
 		"retry_action": "دوباره تلاش نمایید",
 		"richText_label": "متن غنی",
 		"role_placeholder": "نقش",
-		"runAsTrayApp_action": "اجرا در پس زمینه",
 		"runOnStartup_action": "اجرا در شروع به کار",
 		"saveAll_action": "همه را ذخیره کن",
 		"saveDownloadNotPossibleIe_msg": " متاسفانه، توسط اینترنت اکسپلورر موبایل فایل پیوست برای ذخیره و یا مشاهده کردن  پشتیبانی نمیشود  . لطفا برای مرورگر دسکتاپ استفاده کنید.",
