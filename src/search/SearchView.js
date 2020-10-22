@@ -253,7 +253,7 @@ export class SearchView implements CurrentView {
 			isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
 				? m(ButtonN, {
 					click: () => {
-						locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMailEditor).then(editor => editor.show()).catch(PermissionError, noOp)
 					},
 					label: "newMail_action",
 					type: ButtonType.Action,
@@ -405,7 +405,7 @@ export class SearchView implements CurrentView {
 				exec: () => {
 					const restriction = getRestriction(m.route.get()).type
 					if (isSameTypeRef(restriction, MailTypeRef)) {
-						locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
+						locator.mailModel.getUserMailboxDetails().then(newMailEditor).then(editor => editor.show()).catch(PermissionError, noOp)
 					} else if (isSameTypeRef(restriction, ContactTypeRef)) {
 						LazyContactListId.getAsync().then(contactListId => {
 							new ContactEditor(null, contactListId, null).show()
@@ -550,7 +550,7 @@ export class SearchView implements CurrentView {
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {
 				click: () => {
-					locator.mailModel.getUserMailboxDetails().then(newMailEditor).catch(PermissionError, noOp)
+					locator.mailModel.getUserMailboxDetails().then(newMailEditor).then(editor => editor.show()).catch(PermissionError, noOp)
 				},
 				label: "newMail_action",
 			}
