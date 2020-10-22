@@ -279,10 +279,15 @@ function bundleServiceWorker(bundles) {
 		// Using "function" to hoist declaration, var wouldn't work in this case and we cannot prepend because
 		// of "declare var"
 		const customDomainFileExclusions = ["index.html", "index.js"]
-		content = content + "\n" + "function filesToCache() { return " + JSON.stringify(filesToCache) + "}"
-			+ "\n function version() { return \"" + version + "\"}"
-			+ "\n" + "function customDomainCacheExclusions() { return " + JSON.stringify(customDomainFileExclusions)
-			+ "}"
+		// This is a hack to use the same build for tests and for prod. This module is not compiled with SystemJS
+		// and is just processed with babel so we want to define "module" variable but if we do it with new variable Babel
+		// will rename module to _module so we define it on self which has the same effect but is not detected by Babel.
+		// See the comment near the end of sw.js
+		content = `self.module = {}
+${content}
+function filesToCache() { return ${JSON.stringify(filesToCache)} }
+function version() { return "${version}" }
+function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
 		return babelCompile(content).code
 	}).then((content) => _writeFile(distLoc("sw.js"), content))
 }

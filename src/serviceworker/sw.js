@@ -14,8 +14,7 @@ const urlWithoutQuery = (urlString) => {
 	return queryIndex !== -1 ? urlString.substring(0, queryIndex) : urlString
 }
 
-// Only exported for tests
-export class ServiceWorker {
+class ServiceWorker {
 	_caches: CacheStorage
 	_cacheName: string
 	_selfLocation: string
@@ -168,6 +167,13 @@ const init = (sw: ServiceWorker) => {
 		           .then((allClients) => allClients.forEach((c) => c.postMessage({type: "error", value: serializedError})))
 	})
 }
+
+// Only exported for tests.
+// We export it like this because this file is standalone and not wrapped into module loader context when bundled.
+// With normal import Babel generates code which tries to set __esModule on exports but we have no exports in standalone.
+// We hack module in dist.js by prepending `self.module` = {} so that the line below actually works.
+// We should probably split the class and the actual content into separate files and just bundle them together during the build.
+module.exports = {ServiceWorker}
 
 // do not add listeners for Node tests
 if (typeof env !== "undefined" && env.mode !== "Test") {
