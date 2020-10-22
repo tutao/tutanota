@@ -1,6 +1,6 @@
 // @flow
 
-export const TutanotaService = {
+export const TutanotaService = Object.freeze({
 	ExternalUserService: "externaluserservice",
 	MailService: "mailservice",
 	PasswordMessagingService: "passwordmessagingservice",
@@ -22,4 +22,4 @@ export const TutanotaService = {
 	CalendarService: "calendarservice",
 	GroupInvitationService: "groupinvitationservice",
 	ReportPhishingService: "reportphishingservice"
-}
+})

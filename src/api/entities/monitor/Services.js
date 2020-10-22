@@ -1,5 +1,5 @@
 // @flow
 
-export const MonitorService = {
+export const MonitorService = Object.freeze({
 	CounterService: "counterservice"
-}
+})

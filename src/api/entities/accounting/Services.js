@@ -1,5 +1,5 @@
 // @flow
 
-export const AccountingService = {
+export const AccountingService = Object.freeze({
 	CustomerAccountService: "customeraccountservice"
-}
+})
