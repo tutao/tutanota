@@ -352,7 +352,7 @@ export class SearchBar implements Component {
 		return Promise
 			.map(byList,
 				([listId, idTuples]) => locator.entityClient.loadMultipleEntities(restriction.type, listId, idTuples.map(elementIdPart)),
-				{concurrency: 1})
+				{concurrency: 3}) // Higher concurrency to not wait too long for search results of multiple lists
 			.then(flat)
 			.catch(NotFoundError, () => console.log("mail from search index not found"))
 			.catch(NotAuthorizedError, () => console.log("no permission on instance from search index"))
