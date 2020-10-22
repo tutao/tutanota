@@ -5,11 +5,12 @@ import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import DesktopUtils from "./DesktopUtils"
 import fs from "fs-extra"
-import {noOp} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {ApplicationWindow} from "./ApplicationWindow"
+import {EventEmitter} from 'events'
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
@@ -93,10 +94,10 @@ export class DesktopDownloadManager {
 			return Promise.reject('canceled')
 		}
 
-		const downloadItem = new DownloadItem()
+		const downloadItem: DownloadItem = new EventEmitter()
 		downloadItem.getFilename = () => filename
 
-		this._handleDownloadItem(new Event("saveBlob"), downloadItem)
+		this._handleDownloadItem(downcast("saveBlob"), downloadItem)
 		const writePromise = downloadItem.savePath
 			? write({canceled: false, filePath: downloadItem.savePath})
 			: dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(app.getPath('downloads'), filename)})
@@ -108,7 +109,7 @@ export class DesktopDownloadManager {
 
 	_handleDownloadItem(ev: Event, item: DownloadItem): void {
 		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
-		// if the last dl ended more than 30s ago, open dl dir in file manager
+		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
 		if (defaultDownloadPath && fs.existsSync(defaultDownloadPath)) {
 			try {
