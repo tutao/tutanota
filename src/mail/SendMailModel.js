@@ -451,7 +451,7 @@ export class SendMailModel {
 		const {to = [], cc = [], bcc = []} = recipients
 
 		const makeRecipientInfo = (r: Recipient) => {
-			const recipient = this._createAndResolveRecipientInfo(r.name, r.address, r.contact, false)
+			const [recipient] = this._createAndResolveRecipientInfo(r.name, r.address, r.contact, false)
 			if (recipient.resolveContactPromise) {
 				recipient.resolveContactPromise.then(() => this._mailChanged = false)
 			} else {
@@ -525,7 +525,7 @@ export class SendMailModel {
 	 * @param notify: whether or not to notify onRecipientAdded listeners
 	 * @returns {RecipientInfo}
 	 */
-	addOrGetRecipient(type: RecipientField, recipient: Recipient, skipResolveContact: boolean = false): RecipientInfo {
+	addOrGetRecipient(type: RecipientField, recipient: Recipient, skipResolveContact: boolean = false): [RecipientInfo, Promise<RecipientInfo>] {
 		// if recipients with same mail address exist
 		//      if one of them also has the same contact, use that one
 		//      else use an arbitrary one
@@ -543,16 +543,19 @@ export class SendMailModel {
 
 		// make a new recipient info if we don't have one for that recipient
 		if (!recipientInfo) {
-			recipientInfo = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
+			let p: Promise<RecipientInfo>
+			[recipientInfo, p] = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
 			this.getRecipientList(type).push(recipientInfo)
 			this.setMailChanged(true)
+			return [recipientInfo, p]
+		} else {
+			return [recipientInfo, Promise.resolve(recipientInfo)]
 		}
-
-		return recipientInfo
 	}
 
-	_createAndResolveRecipientInfo(name: ?string, address: string, contact: ?Contact, skipResolveContact: boolean): RecipientInfo {
+	_createAndResolveRecipientInfo(name: ?string, address: string, contact: ?Contact, skipResolveContact: boolean): [RecipientInfo, Promise<RecipientInfo>] {
 		const ri = createRecipientInfo(address, name, contact)
+		let p: Promise<RecipientInfo>
 		if (!skipResolveContact) {
 			if (this._logins.isInternalUserLoggedIn()) {
 				resolveRecipientInfoContact(ri, this._contactModel, this.user().user)
@@ -562,9 +565,14 @@ export class SendMailModel {
 						}
 					})
 			}
-			resolveRecipientInfo(this._mailModel, ri).then().then(_ => this.setMailChanged(true))
+			p = resolveRecipientInfo(this._mailModel, ri).then((resolved) => {
+				this.setMailChanged(true)
+				return resolved
+			})
+		} else {
+			p = Promise.resolve(ri)
 		}
-		return ri
+		return [ri, p]
 	}
 
 	removeRecipient(recipient: RecipientInfo, type: RecipientField, notify: boolean = true): boolean {

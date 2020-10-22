@@ -43,7 +43,7 @@ import {CalendarModel, incrementByRepeatPeriod} from "./CalendarModel"
 import {DateTime} from "luxon"
 import type {EncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
-import {NotFoundError, TooManyRequestsError, PayloadTooLargeError} from "../api/common/error/RestError"
+import {NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../api/common/error/RestError"
 import {incrementDate} from "../api/common/utils/DateUtils"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
@@ -638,14 +638,19 @@ export class CalendarEventViewModel {
 
 		return Promise
 			.each(cancelAddresses, (a) => {
-				const recipientInfo = this._cancelModel.addOrGetRecipient("bcc", {name: a.name, address: a.address, contact: null})
+				const [recipientInfo, recipientInfoPromise] = this._cancelModel.addOrGetRecipient("bcc", {
+					name: a.name,
+					address: a.address,
+					contact: null
+				})
 				//We cannot send a notification to external recipients without a password, so we exclude them
 				if (this._cancelModel.isConfidential()) {
-					return Promise.resolve(recipientInfo.resolveContactPromise).then(() => {
-						if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
-							this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
-						}
-					})
+					return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
+						.then(() => {
+							if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+								this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+							}
+						})
 				} else {
 					return Promise.resolve()
 				}

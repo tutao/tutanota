@@ -206,7 +206,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		// addOrGetRecipient will either create and add a new recipientInfo to itself
 		// or will return an existing recipientInfo from itself
 		// duplicate bubbles will not have a duplicate in the sendmailmodel
-		const recipientInfo = this.model.addOrGetRecipient(this.field, {name, address, contact}, false)
+		const [recipientInfo] = this.model.addOrGetRecipient(this.field, {name, address, contact}, false)
 
 		let bubble
 

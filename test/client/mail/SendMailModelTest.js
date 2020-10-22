@@ -43,6 +43,7 @@ import {CustomerAccountCreateDataTypeRef} from "../../../src/api/entities/tutano
 import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/NotificationMail"
 import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
+import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 
 
 type TestIdGenerator = {
@@ -132,9 +133,9 @@ const SUBJECT_LINE_1 = "Did you get that thing I sent ya"
 const STRONG_PASSWORD = "@()IE!)(@FME)0-123jfDSA32SDACmmnvnvddEW"
 const WEAK_PASSWORD = "123"
 
-o.spec("SendMailModel", () => {
+o.spec("SendMailModel", function() {
 
-	o.before(() => {
+	o.before(function() {
 		// we need lang initialized because the SendMailModel constructor requires some translation
 		lang.init(en)
 	})
@@ -145,7 +146,7 @@ o.spec("SendMailModel", () => {
 
 	let mockedAttributeReferences = []
 
-	o.beforeEach(() => {
+	o.beforeEach(function() {
 
 		currentIdValue: 0,
 			testIdGenerator = {
@@ -237,17 +238,16 @@ o.spec("SendMailModel", () => {
 		mockedAttributeReferences.push(mockAttribute(worker, worker.updateMailDraft, o.spy(worker.updateMailDraft)))
 	})
 
-	o.afterEach(() => {
+	o.afterEach(function() {
 		mockedAttributeReferences.forEach(ref => unmockAttribute(ref))
 		mockedAttributeReferences = []
 	})
 
 
-	o.spec("initialization", () => {
-		o.beforeEach(() => {
-
+	o.spec("initialization", function() {
+		o.beforeEach(function() {
 			mockAttribute(model, model._createAndResolveRecipientInfo, (name, address, contact, resolveLazily) => {
-				return {
+				const ri: RecipientInfo = {
 					type: isTutanotaMailAddress(address) ? RecipientInfoType.INTERNAL : RecipientInfoType.EXTERNAL,
 					mailAddress: address,
 					name: name,
@@ -257,11 +257,13 @@ o.spec("SendMailModel", () => {
 					}),
 					resolveContactPromise: null
 				}
+				return [ri, Promise.resolve(ri)]
 			})
 		})
-		o("initWithTemplate empty", async () => {
 
-			const initializedModel = await model.initWithTemplate({}, "", "", [], false)
+		o("initWithTemplate empty", async function() {
+
+			await model.initWithTemplate({}, "", "", [], false)
 
 			o(model.getConversationType()).equals(ConversationType.NEW)
 			o(model.getSubject()).equals("")
@@ -276,7 +278,7 @@ o.spec("SendMailModel", () => {
 			o(model.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithTemplate data", async () => {
+		o("initWithTemplate data", async function() {
 
 			const initializedModel = await model.initWithTemplate(
 				{to: [INTERNAL_RECIPIENT_1]},
@@ -300,7 +302,7 @@ o.spec("SendMailModel", () => {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithTemplate duplicated recipients", async () => {
+		o("initWithTemplate duplicated recipients", async function() {
 
 			const duplicate = {
 				name: INTERNAL_RECIPIENT_1.name,
@@ -329,7 +331,7 @@ o.spec("SendMailModel", () => {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithDraft with blank data", async () => {
+		o("initWithDraft with blank data", async function() {
 
 			const draftMail = createMail({
 				confidential: false,
@@ -355,7 +357,7 @@ o.spec("SendMailModel", () => {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithDraft with some data", async () => {
+		o("initWithDraft with some data", async function() {
 			const draftMail = createMail({
 				confidential: true,
 				sender: createMailAddress(),
@@ -384,23 +386,23 @@ o.spec("SendMailModel", () => {
 		})
 	})
 
-	o.spec("Adding and removing recipients", () => {
+	o.spec("Adding and removing recipients", function() {
 
-		o.beforeEach(async () => {
+		o.beforeEach(async function() {
 			await model.initWithTemplate({}, "", "", [], false, "")
 
 		})
 
-		o("adding duplicate to recipient", async () => {
+		o("adding duplicate to recipient", async function() {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
 				contact: null
 			}
-			const r1 = model.addOrGetRecipient("to", recipient, false)
+			const [r1] = model.addOrGetRecipient("to", recipient, false)
 			o(r1.contact === null).equals(true)
 			o(r1.resolveContactPromise === null).equals(false)
-			o(model.addOrGetRecipient("to", recipient, false) === r1).equals(true)
+			o(model.addOrGetRecipient("to", recipient, false)[0] === r1).equals(true)
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(0)
 			o(model.bccRecipients().length).equals(0)
@@ -411,7 +413,7 @@ o.spec("SendMailModel", () => {
 
 		})
 
-		o("add different to recipients", async () => {
+		o("add different to recipients", async function() {
 			const pablo = {
 				name: "pablo",
 				address: "pablo94@test.co.uk",
@@ -423,8 +425,8 @@ o.spec("SendMailModel", () => {
 				address: "c.asd@test.net",
 				contact: null
 			}
-			const r1 = model.addOrGetRecipient("to", pablo, false)
-			const r2 = model.addOrGetRecipient("to", cortez, false)
+			const [r1] = model.addOrGetRecipient("to", pablo, false)
+			const [r2] = model.addOrGetRecipient("to", cortez, false)
 			o(r1.contact === null).equals(true)
 			o(r1.resolveContactPromise === null).equals(false)
 			o(r2.contact === null).equals(true)
@@ -446,14 +448,14 @@ o.spec("SendMailModel", () => {
 
 		})
 
-		o("add duplicate recipients to different fields", async () => {
+		o("add duplicate recipients to different fields", async function() {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
 				contact: null
 			}
-			const r1 = model.addOrGetRecipient("to", recipient, false)
-			const r2 = model.addOrGetRecipient("cc", recipient, false)
+			const [r1] = model.addOrGetRecipient("to", recipient, false)
+			const [r2] = model.addOrGetRecipient("cc", recipient, false)
 
 			o(r1.contact === null).equals(true)
 			o(r1.resolveContactPromise === null).equals(false)
@@ -493,7 +495,7 @@ o.spec("SendMailModel", () => {
 
 		o("blank subject no confirm", async function () {
 
-			await model.addOrGetRecipient("to", {name: "test", address: "test@address.com", contact: null}).resolveContactPromise
+			await model.addOrGetRecipient("to", {name: "test", address: "test@address.com", contact: null})[0].resolveContactPromise
 
 			const method = MailMethod.NONE
 			const getConfirmation = o.spy(_ => Promise.resolve(false))
@@ -508,7 +510,7 @@ o.spec("SendMailModel", () => {
 
 		o("confidential missing password", async function () {
 
-			await model.addOrGetRecipient("to", {name: "test", address: "test@address.com", contact: null}).resolveContactPromise
+			await model.addOrGetRecipient("to", {name: "test", address: "test@address.com", contact: null})[0].resolveContactPromise
 			model.setConfidential(true)
 
 			const method = MailMethod.NONE
@@ -527,7 +529,7 @@ o.spec("SendMailModel", () => {
 		o("confidential weak password no confirm", async function () {
 
 			const recipient = {name: "test", address: "test@address.com", contact: null}
-			const ri = model.addOrGetRecipient("to", recipient)
+			model.addOrGetRecipient("to", recipient)
 			model.setSubject("subject")
 			model.setPassword("test@address.com", "abc")
 			o(model.getPassword(recipient.address)).equals("abc")
@@ -548,7 +550,7 @@ o.spec("SendMailModel", () => {
 		o("confidential weak password confirm", async function () {
 
 			const recipient = {name: "test", address: "test@address.com", contact: null}
-			const ri = model.addOrGetRecipient("to", recipient)
+			model.addOrGetRecipient("to", recipient)
 			model.setSubject("did you get that thing i sent ya?")
 			const password = WEAK_PASSWORD
 			model.setPassword("test@address.com", password)
@@ -575,7 +577,7 @@ o.spec("SendMailModel", () => {
 
 			const address = "test@address.com"
 			const recipient = {name: "test", address: address, contact: null}
-			const ri = model.addOrGetRecipient("to", recipient)
+			model.addOrGetRecipient("to", recipient)
 			model.setSubject("did you get that thing i sent ya?")
 			const password = STRONG_PASSWORD
 			model.setPassword(address, password)
@@ -690,7 +692,7 @@ o.spec("SendMailModel", () => {
 		let loadMock
 		let existingContact
 
-		o.beforeEach(async () => {
+		o.beforeEach(async function() {
 			existingContact = createContact({
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
@@ -708,7 +710,7 @@ o.spec("SendMailModel", () => {
 			await model.initWithTemplate({to: recipients}, "they all drink lemonade", "")
 		})
 
-		o.afterEach(() => {
+		o.afterEach(function() {
 		})
 
 		o("nonmatching event", async function () {

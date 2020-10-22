@@ -455,6 +455,45 @@ o.spec("CalendarEventViewModel", function () {
 			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
 		})
 
+		o.only("own event with external eventually resolved attendees in own calendar, no password, confidential", async function () {
+			// There should no cancellations sent to attendees without password as we cannot encrypt emails
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const attendee = makeAttendee()
+			const ownAttendee = makeAttendee(encMailAddress.address)
+			const calendarModel = makeCalendarModel()
+			const mailModel = makeMailModel([], 100) // delay resolving
+			const contact = createContact({
+				mailAddresses: [createContactMailAddress({address: attendee.address.address})],
+				presharedPassword: null,
+			})
+			const contactModel = makeContactModel([contact])
+			const existingEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: encMailAddress,
+				attendees: [ownAttendee, attendee],
+				sequence: "1",
+				invitedConfidentially: true,
+			})
+			const newEvent = createCalendarEvent({
+				_id: ["listid", "calendarid"],
+				_ownerGroup: calendarGroupId,
+				organizer: encMailAddress,
+				attendees: [ownAttendee, attendee],
+				sequence: "2",
+				invitedConfidentially: true,
+			})
+			const viewModel = init({calendars, existingEvent, calendarModel, distributor, mailModel, contactModel})
+
+			await viewModel.deleteEvent()
+
+			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
+			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
+			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([])
+			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
+		})
+
 		o("own event without attendees in own calendar", async function () {
 			const calendars = makeCalendars("own")
 			const distributor = makeDistributor()
@@ -1592,10 +1631,10 @@ function makeCalendarModel(): CalendarModel {
 	})
 }
 
-function makeMailModel(internal: Array<string> = []): MailModel {
+function makeMailModel(internal: Array<string> = [], delay: number = 0): MailModel {
 	return downcast({
 			getRecipientKeyData: (address) =>
-				Promise.resolve(internal.includes(address) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null),
+				Promise.delay(delay).then(() => internal.includes(address) ? createPublicKeyReturn({pubKey: new Uint8Array(0)}) : null)
 		}
 	)
 }
