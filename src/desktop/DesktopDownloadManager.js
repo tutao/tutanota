@@ -24,7 +24,7 @@ export class DesktopDownloadManager {
 	}
 
 	manageDownloadsForSession(session: ElectronSession) {
-		session.removeAllListeners('will-download').on('will-download', (ev, item) => this._handleDownloadItem(ev, item))
+		session.removeAllListeners('will-download').on('will-download', (ev, item) => this._handleDownloadItem(item))
 	}
 
 	downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
@@ -97,7 +97,7 @@ export class DesktopDownloadManager {
 		const downloadItem: DownloadItem = new EventEmitter()
 		downloadItem.getFilename = () => filename
 
-		this._handleDownloadItem(downcast("saveBlob"), downloadItem)
+		this._handleDownloadItem(downloadItem)
 		const writePromise = downloadItem.savePath
 			? write({canceled: false, filePath: downloadItem.savePath})
 			: dialog.showSaveDialog(win.browserWindow, {defaultPath: path.join(app.getPath('downloads'), filename)})
@@ -107,7 +107,7 @@ export class DesktopDownloadManager {
 	}
 
 
-	_handleDownloadItem(ev: Event, item: DownloadItem): void {
+	_handleDownloadItem(item: DownloadItem): void {
 		const defaultDownloadPath = this._conf.getVar('defaultDownloadPath')
 		// if the lasBBt dl ended more than 30s ago, open dl dir in file manager
 		let fileManagerLock = noOp
