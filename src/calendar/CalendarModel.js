@@ -664,6 +664,9 @@ export class CalendarModelImpl implements CalendarModel {
 								.then(calendarEvent => {
 									this.scheduleUserAlarmInfo(calendarEvent, userAlarmInfo)
 								})
+								.catch(NotFoundError, () => {
+									console.log("event not found", [listId, elementId])
+								})
 						})
 						return Promise.resolve()
 					}).catch(NotFoundError, (e) => console.log(e, "Event or alarm were not found: ", entityEventData, e))

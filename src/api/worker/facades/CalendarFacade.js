@@ -284,6 +284,7 @@ export class CalendarFacade {
 			.then((indexEntry) => {
 				if (indexEntry) {
 					return this._entity.load(CalendarEventTypeRef, indexEntry.calendarEvent)
+						.catch(NotFoundError, () => null)
 				}
 			})
 	}
