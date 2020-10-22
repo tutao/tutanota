@@ -12,7 +12,7 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
-import {elementIdPart, isSameId, listIdPart, readOnlyHeaders, TypeRef} from "../../common/EntityFunctions"
+import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
 import {containsEventOfType, getMailBodyText, neverNull, ProgressMonitor} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
@@ -115,11 +115,11 @@ export class MailIndexer {
 		if (this._isExcluded(event)) {
 			return Promise.resolve()
 		}
-		return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+		return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
 		           .then(mail => {
 			           return Promise.all([
-				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null, readOnlyHeaders())),
-				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null, readOnlyHeaders())
+				           Promise.map(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId, null)),
+				           this._defaultCachingEntity.load(MailBodyTypeRef, mail.body, null)
 			           ]).spread((files, body) => {
 				           let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
 				           return {mail, keyToIndexEntries}
@@ -567,7 +567,7 @@ export class MailIndexer {
 					return Promise.resolve()
 				}
 
-				return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null, readOnlyHeaders())
+				return this._defaultCachingEntity.load(MailTypeRef, [event.instanceListId, event.instanceId], null)
 				           .then(mail => {
 					           if (mail.state === MailState.DRAFT) {
 						           return Promise.all([
