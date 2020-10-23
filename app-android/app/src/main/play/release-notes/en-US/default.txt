@@ -1,6 +1,3 @@
- * Fix unexpected error notification message
- * Fix creating all day events
- * Fix date selection when creating events
- * Fix multi select action bar layout
- * Fix receiving share to events
- * Fix updating calendar after creating events
+* Allow inbox rules to be case insensitive
+* Allow taking over deleted unused Free account address to Premium account
+* Various bugfixes
