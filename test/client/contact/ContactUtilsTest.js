@@ -8,7 +8,7 @@ import {lang} from "../../../src/misc/LanguageViewModel"
 import {compareContacts} from "../../../src/contacts/view/ContactGuiUtils";
 
 o.spec("ContactUtilsTest", function () {
-	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, expectedResult) {
+	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {
 		let c1 = createContact()
 		let c2 = createContact()
 		c1._id = ["a", "1"]
@@ -27,7 +27,7 @@ o.spec("ContactUtilsTest", function () {
 			m.address = c2MailAddress
 			c2.mailAddresses.push(m)
 		}
-		let result = compareContacts(c1, c2)
+		let result = compareContacts(c1, c2, byFirstName)
 		// We should use Mithril's ability to print messages instead of this log when it will work again (and the moment of writing it's
 		// fixed but not released: https://github.com/MithrilJS/mithril.js/issues/2391
 		if (result != expectedResult) {
@@ -37,42 +37,80 @@ o.spec("ContactUtilsTest", function () {
 		o(result).equals(expectedResult)
 	}
 
-	o("compareContacts", () => {
+	o("compareContacts by first name", () => {
 		// only first name
-		compare("Alf", "", null, "", "", null, -1)
-		compare("Alf", "", null, "Bob", "", null, -1)
-		compare("", "", null, "Bob", "", null, 1)
-		compare("Bob", "", null, "Alf", "", null, 1)
+		compare("Alf", "", null, "", "", null, true, -1)
+		compare("Alf", "", null, "Bob", "", null, true, -1)
+		compare("", "", null, "Bob", "", null, true, 1)
+		compare("Bob", "", null, "Alf", "", null, true, 1)
 
 		// only last name
-		compare("", "Alf", null, "", "", null, -1)
-		compare("", "Alf", null, "", "Bob", null, -1)
-		compare("", "", null, "", "Bob", null, 1)
-		compare("", "Bob", null, "", "Alf", null, 1)
+		compare("", "Alf", null, "", "", null, true, -1)
+		compare("", "Alf", null, "", "Bob", null, true, -1)
+		compare("", "", null, "", "Bob", null, true, 1)
+		compare("", "Bob", null, "", "Alf", null, true, 1)
 
 		// only mail address
-		compare("", "", "Alf", "", "", null, -1)
-		compare("", "", "Alf", "", "", "Bob", -1)
-		compare("", "", null, "", "", "Bob", 1)
-		compare("", "", "Bob", "", "", "Alf", 1)
+		compare("", "", "Alf", "", "", null, true, -1)
+		compare("", "", "Alf", "", "", "Bob", true, -1)
+		compare("", "", null, "", "", "Bob", true, 1)
+		compare("", "", "Bob", "", "", "Alf", true, 1)
 
 		// first and last name
-		compare("", "Alf", null, "Alf", "Bob", null, 1)
-		compare("Alf", "Bob", null, "Bob", "Alf", null, -1)
-		compare("Alf", "Bob", null, "", "Bob", null, -1)
-		compare("Alf", "", null, "Alf", "Bob", null, 1)
+		compare("", "Alf", null, "Alf", "Bob", null, true, 1)
+		compare("Alf", "Bob", null, "Bob", "Alf", null, true, -1)
+		compare("Alf", "Bob", null, "", "Bob", null, true, -1)
+		compare("Alf", "", null, "Alf", "Bob", null, true, 1)
 
 		// mixed
-		compare("", "Bob", null, "", "", "Alf", -1)
-		compare("Bob", "", null, "", "", "Alf", -1)
-		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Alf", 1)
-		compare("Alf", "Bob", null, "", "", "Alf", -1)
+		compare("", "Bob", null, "", "", "Alf", true, -1)
+		compare("Bob", "", null, "", "", "Alf", true, -1)
+		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Alf", true, 1)
+		compare("Alf", "Bob", null, "", "", "Alf", true, -1)
 
 		// none or same
-		compare("", "", null, "", "", null, 1) // reverse id
-		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Bob", 1) // reverse id
+		compare("", "", null, "", "", null, true, 1) // reverse id
+		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Bob", true, 1) // reverse id
 
-		compare("ma", "p", "aa", "Gump", "Forrest", "aa", 1) // reverse id
+		compare("ma", "p", "aa", "Gump", "Forrest", "aa", true, 1) // reverse id
+	})
+
+	o("compareContacts by last name", () => {
+		// only first name
+		compare("Alf", "", null, "", "", null, false, -1)
+		compare("Alf", "", null, "Bob", "", null, false, -1)
+		compare("", "", null, "Bob", "", null, false, 1)
+		compare("Bob", "", null, "Alf", "", null, false, 1)
+
+		// only last name
+		compare("", "Alf", null, "", "", null, false, -1)
+		compare("", "Alf", null, "", "Bob", null, false, -1)
+		compare("", "", null, "", "Bob", null, false, 1)
+		compare("", "Bob", null, "", "Alf", null, false, 1)
+
+		// only mail address
+		compare("", "", "Alf", "", "", null, false, -1)
+		compare("", "", "Alf", "", "", "Bob", false, -1)
+		compare("", "", null, "", "", "Bob", false, 1)
+		compare("", "", "Bob", "", "", "Alf", false, 1)
+
+		// first and last name
+		compare("", "Alf", null, "Alf", "Bob", null, false, -1)
+		compare("Alf", "Bob", null, "Bob", "Alf", null, false, 1)
+		compare("Alf", "Bob", null, "", "Bob", null, false, -1)
+		compare("Alf", "", null, "Alf", "Bob", null, false, 1)
+
+		// mixed
+		compare("", "Bob", null, "", "", "Alf", false, -1)
+		compare("Bob", "", null, "", "", "Alf", false, -1)
+		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Alf", false, 1)
+		compare("Alf", "Bob", null, "", "", "Alf", false, -1)
+
+		// none or same
+		compare("", "", null, "", "", null, false, 1) // reverse id
+		compare("Alf", "Bob", "Bob", "Alf", "Bob", "Bob", false, 1) // reverse id
+
+		compare("ma", "p", "aa", "Gump", "Forrest", "aa", false, 1) // reverse id
 	})
 
 	o("formatNewBirthdayTest", function () {

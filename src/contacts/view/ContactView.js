@@ -30,25 +30,26 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../../gui/ProgressDialog"
 import {locator} from "../../api/main/MainLocator"
 import {ContactMergeView} from "./ContactMergeView"
-import {getMergeableContacts, mergeContacts} from "../ContactMergeUtils"
-import {exportContacts} from "../VCardExporter"
-import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
-import {NavButtonN} from "../../gui/base/NavButtonN"
-import {styles} from "../../gui/styles"
-import {size} from "../../gui/size"
-import {FolderColumnView} from "../../gui/base/FolderColumnView"
-import {flat} from "../../api/common/utils/ArrayUtils"
-import {FolderExpander} from "../../gui/base/FolderExpander"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils";
 import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
-
+import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN"
+import {navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
+import {FolderColumnView} from "../../gui/base/FolderColumnView"
+import {styles} from "../../gui/styles"
+import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {size} from "../../gui/size"
+import {NavButtonN} from "../../gui/base/NavButtonN"
+import {flat} from "../../api/common/utils/ArrayUtils"
+import {getMergeableContacts, mergeContacts} from "../ContactMergeUtils"
+import {compareContacts} from "./ContactGuiUtils"
+import type {EntityUpdateData} from "../../api/main/EventController"
+import {isUpdateForTypeRef} from "../../api/main/EventController"
+import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
+import {exportContacts} from "../VCardExporter"
 assertMainOrNode()
 
 export class ContactView implements CurrentView {
@@ -63,8 +64,25 @@ export class ContactView implements CurrentView {
 	oncreate: Function;
 	onremove: Function;
 	_throttledSetUrl: (string) => void;
+	_doSortByFirstName: Stream<boolean>
 
 	constructor() {
+		this._doSortByFirstName = stream(true)
+		const sortSelectorAttrs: DropDownSelectorAttrs<boolean> = {
+			label: () => "Sort by",
+			selectedValue: this._doSortByFirstName,
+			items: [
+				{
+					name: lang.get("firstName_placeholder"),
+					value: true
+				},
+				{
+					name: lang.get("lastName_placeholder"),
+					value: false
+				}
+			],
+		}
+
 
 		const contactsExpanded = stream(true)
 		this._throttledSetUrl = throttleRoute()
@@ -78,6 +96,7 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
+						m(".plr", m(DropDownSelectorN, sortSelectorAttrs)),
 						m(SidebarSection, {
 							name: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
 						}, this.createContactFoldersExpanderChildren())
@@ -398,8 +417,11 @@ export class ContactView implements CurrentView {
 				if (args.listId !== contactListId) {
 					this._setUrl(`/contact/${contactListId}`)
 				} else {
-					this._contactList = new ContactListView(args.listId, (this: any)) // cast to avoid error in WebStorm
+					this._contactList = new ContactListView(args.listId, (this: any), (a, b) => compareContacts(a, b, this._doSortByFirstName())) // cast to avoid error in WebStorm
 					this._contactList.list.loadInitial(args.contactId)
+					this._doSortByFirstName.map(_ => {
+						this._contactList && this._contactList.list.sort()
+					})
 				}
 			}).then(m.redraw)
 		} else if (this._contactList && args.listId === this._contactList.listId && args.contactId
