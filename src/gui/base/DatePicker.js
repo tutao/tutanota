@@ -3,7 +3,12 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {Icons} from "./icons/Icons"
 import {client} from "../../misc/ClientDetector"
-import {formatDate, formatDateWithMonth, formatMonthWithFullYear, parseDate} from "../../misc/Formatter"
+import {
+	formatDate,
+	formatDateWithWeekdayAndYear,
+	formatMonthWithFullYear,
+	parseDate
+} from "../../misc/Formatter"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
@@ -75,7 +80,7 @@ export class DatePicker implements Component {
 			} else if (this.invalidDate) {
 				return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 			} else if (this.date() != null) {
-				return formatDateWithMonth(neverNull(this.date()))
+				return formatDateWithWeekdayAndYear(neverNull(this.date()))
 			} else {
 				return lang.get(this._nullSelectionHelpLabel)
 			}

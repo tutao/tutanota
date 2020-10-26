@@ -37,6 +37,10 @@ export function formatDateWithWeekday(date: Date): string {
 	}
 }
 
+export function formatDateWithWeekdayAndYear(date: Date): string {
+	return lang.formats.dateWithWeekdayAndYear.format(date)
+}
+
 export function formatDateTimeFromYesterdayOn(date: Date): string {
 	let dateString = null
 	let startOfToday = new Date().setHours(0, 0, 0, 0)
