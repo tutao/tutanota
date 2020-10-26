@@ -15,25 +15,24 @@ import UIKit
 class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate,
   UIDocumentMenuDelegate, UIPopoverPresentationControllerDelegate, UIDocumentPickerDelegate
 {
-  private var sourceController: UIViewController!
-  private var cameraImage: UIImage!
-  private var photoLibImage: UIImage!
-  private var attachmentTypeMenu: UIDocumentMenuViewController!
-  private var imagePickerController: UIImagePickerController!
+  private var sourceController: UIViewController
+  private var cameraImage: UIImage
+  private var photoLibImage: UIImage
+  private var attachmentTypeMenu: UIDocumentMenuViewController?
+  private var imagePickerController: UIImagePickerController
   private var supportedUTIs: [String]
   private var resultHandler: (([String]?, Error?) -> Void)?
-  private var popOverPresentationController: UIPopoverPresentationController!
+  private var popOverPresentationController: UIPopoverPresentationController?
 
   @objc init(viewController: UIViewController) {
-
     self.supportedUTIs = ["public.content", "public.archive", "public.data"]
-    super.init()
-    self.imagePickerController = UIImagePickerController()
     self.sourceController = viewController
+    self.imagePickerController = UIImagePickerController()
     self.cameraImage = TUTFontIconFactory.createFontImage(
       forIconId: TUT_ICON_CAMERA, fontName: "ionicons", size: 34)
     self.photoLibImage = TUTFontIconFactory.createFontImage(
       forIconId: TUT_ICON_FILES, fontName: "ionicons", size: 34)
+    super.init()
     self.imagePickerController.delegate = self
   }
 
@@ -41,16 +40,17 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     withAnchorRect anchorRect: CGRect,
     completion completionHandler: @escaping ([String]?, Error?) -> Void
   ) {
-    if self.resultHandler != nil {
-      TUTSLog("Another file picker is already open?")
-      completionHandler(nil, TUTErrorFactory.createError("file chooser already open"))
-      return
+    if let previousHandler = self.resultHandler {
+        TUTSLog("Another file picker is already open?")
+        self.sourceController.dismiss(animated: true, completion: nil)
+        previousHandler([], nil)
     }
     self.resultHandler = completionHandler
 
-    self.attachmentTypeMenu = UIDocumentMenuViewController(
-      documentTypes: self.supportedUTIs, in: .import)
-    self.attachmentTypeMenu.delegate = self
+    let attachmentTypeMenu = UIDocumentMenuViewController(
+      documentTypes: self.supportedUTIs, in: UIDocumentPickerMode.import)
+    self.attachmentTypeMenu = attachmentTypeMenu
+    attachmentTypeMenu.delegate = self
 
     // add menu item for selecting images from photo library.
     // according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
@@ -58,14 +58,15 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
       if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad {
         attachmentTypeMenu.modalPresentationStyle = .popover
         popOverPresentationController = attachmentTypeMenu.popoverPresentationController
-        popOverPresentationController.permittedArrowDirections = [.up, .down]
-        popOverPresentationController.sourceView = sourceController.view
-        popOverPresentationController.sourceRect = anchorRect
+        popOverPresentationController?.permittedArrowDirections = [.up, .down]
+        popOverPresentationController?.sourceView = sourceController.view
+        popOverPresentationController?.sourceRect = anchorRect
       }
       let photosLabel = TUTUtils.translate("TutaoChoosePhotosAction", default: "Photos")
-      self.attachmentTypeMenu.addOption(
+      attachmentTypeMenu.addOption(
         withTitle: photosLabel, image: self.photoLibImage, order: .first,
         handler: { [weak self] in
+          // capture the weak reference to avoid reference self
           guard let self = self else {
             return
           }
@@ -84,7 +85,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                 }
               })
             } else if PHPhotoLibrary.authorizationStatus() == .authorized {
-              self.showLegacyImagePicker(anchor: anchorRect)  // capture the weak reference to avoid reference self
+              self.showLegacyImagePicker(anchor: anchorRect)
             } else {
               self.showPermissionDeniedDialog()
             }
@@ -96,13 +97,13 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     // according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
     if UIImagePickerController.isSourceTypeAvailable(.camera) {
       let cameraLabel = TUTUtils.translate("TutaoShowCameraAction", default: "Camera")
-      self.attachmentTypeMenu.addOption(
+      attachmentTypeMenu.addOption(
         withTitle: cameraLabel, image: self.cameraImage, order: .first
       ) { [weak self] in
-        self?.openCamera()  // capture the weak reference to avoid refFFFFerence cycle
+        self?.openCamera()  // capture the weak reference to avoid reference cycle
       }
     }
-    self.sourceController.present(self.attachmentTypeMenu, animated: true, completion: nil)
+    self.sourceController.present(attachmentTypeMenu, animated: true, completion: nil)
   }
 
   private func showLegacyImagePicker(anchor: CGRect) {
@@ -114,12 +115,11 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
       self.imagePickerController.allowsEditing = false
       if UIDevice.current.userInterfaceIdiom == .pad {
         self.imagePickerController.modalPresentationStyle = .popover
-        let popOverController: UIPopoverPresentationController! = self.imagePickerController
-          .popoverPresentationController
-        popOverController.sourceView = self.sourceController.view
-        popOverController.permittedArrowDirections = [.up, .down]
-        popOverController.sourceRect = anchor
-        popOverController.delegate = self
+        let popOverController = self.imagePickerController.popoverPresentationController
+        popOverController?.sourceView = self.sourceController.view
+        popOverController?.permittedArrowDirections = [.up, .down]
+        popOverController?.sourceRect = anchor
+        popOverController?.delegate = self
       }
       self.sourceController.present(self.imagePickerController, animated: true, completion: nil)
     }
@@ -163,13 +163,13 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     self.sourceController.present(documentPicker, animated: true, completion: nil)
   }
   // from UIDocumentMenuDelegate protocol
-  func documentMenuWasCancelled(documentMenu: UIDocumentMenuViewController!) {
+  func documentMenuWasCancelled(documentMenu: UIDocumentMenuViewController) {
     self.sendResult(filePath: nil)
   }
 
   // from UIDocumentPickerDelegate protocol
   private func documentPicker(
-    controller: UIDocumentPickerViewController!, didPickDocumentAtURL url: URL
+    controller: UIDocumentPickerViewController, didPickDocumentAtURL url: URL
   ) {
     self.copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
   }
@@ -199,16 +199,9 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         if self.imagePickerController.sourceType == .camera {
           let mediaType = info[UIImagePickerController.InfoKey.mediaType] as! String
           if mediaType == "public.image" {  // Handle a still image capture
-            var originalImage: UIImage!
-            var editedImage: UIImage!
-            var imageToSave: UIImage!
-            editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
-            originalImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
-            if editedImage != nil {
-              imageToSave = editedImage
-            } else {
-              imageToSave = originalImage
-            }
+            let editedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage
+            let originalImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
+            let imageToSave: UIImage = editedImage ?? originalImage!
             let fileName = self.generateFileName(prefixString: "img", withExtension: "jpg")
             let filePath = URL(fileURLWithPath: targetFolder).appendingPathComponent(fileName)
             guard let imageData = imageToSave.jpegData(compressionQuality: 0.9) else {
@@ -320,14 +313,14 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     let fileManager = FileManager.default
     // NSFileManager copyItemAtUrl returns an error if the file alredy exists. so delete it first.
     if fileManager.fileExists(atPath: targetUrl.path) {
-      try fileManager.removeItem(atPath: targetUrl.path)
+      try? fileManager.removeItem(atPath: targetUrl.path)
     }
 
     try fileManager.copyItem(at: srcUrl, to: targetUrl)
     return targetUrl
   }
 
-  func generateFileName(prefixString: String!, withExtension extensionString: String!) -> String {
+  func generateFileName(prefixString: String, withExtension extensionString: String) -> String {
     let time = Date()
     let df = DateFormatter()
     df.dateFormat = "hhmmss"
@@ -353,16 +346,15 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 
   func showPermissionDeniedDialog() {
     //User don't give us permission. Showing alert with redirection to settings
-    let permissionTitle: String! = "No permission"
-    let permissionInfo: String! =
+    let permissionTitle = "No permission"
+    let permissionInfo =
       "To grant access you have to modify the permissions for this device"
     let settingsActionLabel = "Settings"
     let cancelActionLabel = "Cancel"
 
-    let alertController: UIAlertController! = UIAlertController(
+    let alertController = UIAlertController(
       title: permissionTitle, message: permissionInfo, preferredStyle: .alert)
-    let cancelAction: UIAlertAction! = UIAlertAction(
-      title: cancelActionLabel, style: .cancel, handler: nil)
+    let cancelAction = UIAlertAction(title: cancelActionLabel, style: .cancel, handler: nil)
     alertController.addAction(cancelAction)
 
     let settingsAction = UIAlertAction(title: settingsActionLabel, style: .default) { _ in
@@ -383,55 +375,69 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   }
 }
 
+/**
+    Extending TUTFileChooser on iOS14 to conform to  ickerViewControllerDelegate
+ */
 @available(iOS 14.0, *)
 extension TUTFileChooser: PHPickerViewControllerDelegate {
+    /**
+        Invoked when user finished picking the files.
+     */
   func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
     picker.dismiss(animated: true, completion: nil)
 
+    
+    // Each item can be of different type. We must ask the result what type we can
+    // get, ask to load it and then copy the result to the local folder because URL
+    // will stop being valid after the callback returns.
+    // We use waitGroup to wait for all of these async callbacks.
     let waitGroup = DispatchGroup()
     var urls = [URL]()
-
-    for result in results {
-      if result.itemProvider.hasItemConformingToTypeIdentifier("public.image") {
-        waitGroup.enter()
-        result.itemProvider.loadFileRepresentation(forTypeIdentifier: "public.image") {
-          (url, error) in
-          if let url = url {
-            do {
-              let resultUrl = try self.copyToLocalFolder(
-                srcUrl: url, filename: url.lastPathComponent)
-              urls.append(resultUrl)
-            } catch {
-              TUTSLog("Error while copying image to local folder: \(error)")
+    
+    func requestFileOfType(result: PHPickerResult, type: String) -> Bool {
+        if result.itemProvider.hasItemConformingToTypeIdentifier(type) {
+          waitGroup.enter()
+          result.itemProvider.loadFileRepresentation(forTypeIdentifier: type) {
+            (url, error) in
+            if let url = url {
+              do {
+                let resultUrl = try self.copyToLocalFolder(
+                  srcUrl: url, filename: url.lastPathComponent)
+                urls.append(resultUrl)
+              } catch {
+                TUTSLog("Error while copying \(type) to local folder: \(error)")
+              }
+            } else {
+              TUTSLog("Error while loading \(type): \(error.debugDescription)")
             }
-          } else {
-            TUTSLog("Error while loading image: \(error.debugDescription)")
+            waitGroup.leave()
           }
-          waitGroup.leave()
+            return true
+        } else {
+            return false
         }
-      } else if result.itemProvider.hasItemConformingToTypeIdentifier("public.movie") {
-        result.itemProvider.loadFileRepresentation(forTypeIdentifier: "public.movie") {
-          (url, error) in
-          if let url = url {
-            do {
-              let resultUrl = try self.copyToLocalFolder(
-                srcUrl: url, filename: url.lastPathComponent)
-              urls.append(resultUrl)
-            } catch {
-              TUTSLog("Error while copying video to local folder: \(error)")
-            }
-          } else {
-            TUTSLog("Error while loading video: \(error.debugDescription)")
-          }
-          waitGroup.leave()
-        }
-      } else {
-        print("Unknown file types: \(result)")
-      }
     }
 
+    for result in results {
+        var succeeded = false
+        // Try out multiple formats until we get one which is supported.
+        // We request jpeg and png instead of public.image to not get .heic
+        // if Apple changes their default public.image format
+        for type in ["public.jpeg", "public.png", "public.movie"] {
+            if requestFileOfType(result: result, type: type) {
+                succeeded = true
+                break
+            }
+        }
+        if !succeeded {
+            TUTSLog("Could not copy result of unknown type: \(result)")
+        }
+    }
+
+    // Notify us when all callbacks have returned so that we can send the result
     waitGroup.notify(queue: DispatchQueue.main) {
       self.sendMultipleResults(filePaths: urls.map { $0.path })
     }
   }
 }
+
