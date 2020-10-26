@@ -417,6 +417,16 @@ export class List<T: ListElement, R:VirtualRow<T>> {
 		this._elementSelected(this.getSelectedEntities(), true, multiSelect)
 	}
 
+	sort() {
+		this._loadedEntities.sort(this._config.sortCompare)
+		try {
+			this.redraw()
+		} catch (e) {
+			// this may be called before "this" hasn't been fully initialized, in which case this.redraw() will throw
+			// so just catch and do nothing
+		}
+	}
+
 	_entitySelected(entity: T, addToSelection: boolean) {
 		if (addToSelection) {
 			if (this._selectedEntities.indexOf(entity) === -1) {
