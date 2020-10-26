@@ -36,6 +36,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import type {EntityUpdateData} from "../api/main/EventController"
+import {getEtId, isSameId} from "../api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -359,6 +360,10 @@ export class EditSecondFactorsForm {
 	}
 
 	_showRecoveryInfoDialog(user: User) {
+		// We only show the recovery code if it is for the current user
+		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user))) {
+			return
+		}
 		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
 		Dialog.showActionDialog({
 			title: lang.get("recoveryCode_label"),
