@@ -246,11 +246,6 @@ export class SendMailModel {
 		return this._passwords.get(mailAddress) || ""
 	}
 
-	getConfidentialStateTranslationKey(): TranslationKey {
-		return this._isConfidential
-			? 'confidentialStatus_msg'
-			: 'nonConfidentialStatus_msg'
-	}
 
 	getSubject(): string {
 		return this._subject
@@ -654,6 +649,10 @@ export class SendMailModel {
 		return this._isConfidential || !this.containsExternalRecipients()
 	}
 
+	isConfidentialExternal(): boolean {
+		return this._isConfidential && this.containsExternalRecipients()
+	}
+
 	setConfidential(confidential: boolean): void {
 		this._isConfidential = confidential
 	}
@@ -743,12 +742,11 @@ export class SendMailModel {
 	}
 
 	_externalPasswordConfirm(getConfirmation: (TranslationKey | lazy<string>) => Promise<boolean>): Promise<void> {
-		if (this.isConfidential()
-			&& this.containsExternalRecipients()
+		if (this.isConfidentialExternal()
 			&& this.getExternalRecipients().some(r => !this.getPassword(r.mailAddress))) {
 			throw new UserError("noPreSharedPassword_msg")
 		}
-		return this.isConfidential() && this.hasInsecurePasswords()
+		return this.isConfidentialExternal() && this.hasInsecurePasswords()
 			? getConfirmation("presharedPasswordNotStrongEnough_msg").then(confirmation => {
 				if (!confirmation) {
 					throw new CancelledError("password not confirmed")
