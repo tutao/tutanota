@@ -45,7 +45,8 @@ export class SuspensionHandler {
 				// do wee need to delay those requests?
 				Promise.each(deferredRequests, (deferredRequest) => {
 					deferredRequest.resolve()
-					return deferredRequest.promise
+					// Ignore all errors here, any errors should be caught by whoever is handling the deferred request
+					return deferredRequest.promise.catch(e => console.warn("Encountered error in SuspensionHandler:\n", e))
 				})
 			}, suspensionDurationSeconds * this._suspensionTimeFactor)
 
