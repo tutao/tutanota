@@ -167,7 +167,9 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			a.inlineImages.then((loadedInlineImages) => {
 				Object.keys(loadedInlineImages).forEach((key) => {
 					const {file} = loadedInlineImages[key]
-					if (!model.getAttachments().includes(file)) model.attachFiles([file])
+					if (!model.getAttachments().includes(file)) {
+						model.attachFiles([file], m => Dialog.error(() => m))
+					}
 				})
 				m.redraw()
 
@@ -316,7 +318,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 			ondrop: (ev) => {
 				if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 					fileController.readLocalFiles(ev.dataTransfer.files).then(dataFiles => {
-						model.attachFiles((dataFiles: any))
+						model.attachFiles((dataFiles: any), m => Dialog.error(() => m))
 						m.redraw()
 					}).catch(e => {
 						console.log(e)
