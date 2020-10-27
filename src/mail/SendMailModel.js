@@ -466,7 +466,9 @@ export class SendMailModel {
 		this._isConfidential = confidential == null ? !this.user().props.defaultUnconfidential : confidential
 		this._attachments = []
 		if (attachments) {
-			this.attachFiles(attachments)
+			// I don't want to throw here because we should finish initializing the email.
+			// And it's nice to not have to think about exceptions everytime we open up a mail editor
+			this.attachFiles(attachments, m => console.error(m))
 			this._mailChanged = false
 		}
 
@@ -539,7 +541,9 @@ export class SendMailModel {
 		// make a new recipient info if we don't have one for that recipient
 		if (!recipientInfo) {
 			let p: Promise<RecipientInfo>
-			[recipientInfo, p] = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
+			[
+				recipientInfo, p
+			] = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
 			this.getRecipientList(type).push(recipientInfo)
 			this.setMailChanged(true)
 			return [recipientInfo, p]
@@ -591,8 +595,13 @@ export class SendMailModel {
 		return this._attachments
 	}
 
-	/** @throws UserError in case files are too big to add */
-	attachFiles(files: $ReadOnlyArray<Attachment>): void {
+	/**
+	 *
+	 * @param files: the files to attach
+	 * @param onTooBigFiles: action to take when there are too big files. we used to throw but this way we don't have to wrap every single
+	 * call in a try catch, as there are quite a few
+	 */
+	attachFiles(files: $ReadOnlyArray<Attachment>, onTooBigFiles: (string) => any = () => {}): void {
 		let totalSize = this._attachments.reduce((total, file) => total + Number(file.size), 0)
 		const tooBigFiles: Array<string> = [];
 		files.forEach(file => {
@@ -605,7 +614,7 @@ export class SendMailModel {
 		})
 
 		if (tooBigFiles.length > 0) {
-			throw new UserError(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "))
+			onTooBigFiles(lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "))
 		}
 
 		this.setMailChanged(true)
@@ -788,7 +797,7 @@ export class SendMailModel {
 			this._draft = draft
 			return Promise.map(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
 				this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
-				this.attachFiles(attachments)
+				this.attachFiles(attachments, m => {throw new UserError(() => m)})
 				this._mailChanged = false
 			})
 		}).catch(PayloadTooLargeError, () => {
