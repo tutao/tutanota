@@ -58,6 +58,7 @@ import {
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {Dialog} from "../gui/base/Dialog"
 
 assertMainOrNode()
 
@@ -264,7 +265,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						dropdownWidth: 300,
 						selectionChangedHandler: (value) => {
 							if (this._accountingInfo) {
-								changeSubscriptionInterval(this._accountingInfo, value)
+								changeSubscriptionInterval(this._accountingInfo, value, this._periodEndDate)
 							}
 						}
 					})
@@ -601,15 +602,24 @@ function _getAccountTypeName(type: AccountTypeEnum, subscription: SubscriptionTy
 	}
 }
 
-export function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number): void {
+function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: ?Date): void {
 	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
-		const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
-		worker.updatePaymentData(accountingInfo.business, paymentInterval, {
-				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-				country: invoiceCountry,
-				vatNumber: accountingInfo.invoiceVatIdNo
-			},
-			null,
-			invoiceCountry)
+		const confirmationMessage = () => {
+			return periodEndDate
+				? lang.get("subscriptionChangePeriod_msg", {"{1}": formatDate(periodEndDate)})
+				: lang.get("subscriptionChange_msg")
+		}
+		Dialog.confirm(confirmationMessage).then((confirmed) => {
+			if (confirmed) {
+				const invoiceCountry = neverNull(getByAbbreviation(neverNull(accountingInfo.invoiceCountry)))
+				worker.updatePaymentData(accountingInfo.business, paymentInterval, {
+						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+						country: invoiceCountry,
+						vatNumber: accountingInfo.invoiceVatIdNo
+					},
+					null,
+					invoiceCountry)
+			}
+		})
 	}
 }
