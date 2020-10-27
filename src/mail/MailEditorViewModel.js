@@ -170,6 +170,13 @@ function _getRecipientFieldLabelTranslationKey(field: RecipientField): Translati
 	}[field]
 }
 
+
+export function getConfidentialStateMessage(isConfidential: boolean): string {
+	return isConfidential
+		? lang.get('confidentialStatus_msg')
+		: lang.get('nonConfidentialStatus_msg')
+}
+
 export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 
 	model: SendMailModel

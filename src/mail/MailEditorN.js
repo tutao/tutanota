@@ -41,7 +41,7 @@ import {
 	chooseAndAttachFile,
 	cleanupInlineAttachments,
 	createAttachmentButtonAttrs,
-	createPasswordField,
+	createPasswordField, getConfidentialStateMessage,
 	MailEditorRecipientField
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
@@ -242,7 +242,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
-			helpLabel: () => lang.get(model.getConfidentialStateTranslationKey()),
+			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: stream(model.getSubject()),
 			oninput: val => model.setSubject(val),
 			injectionsRight: () => {
