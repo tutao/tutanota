@@ -455,7 +455,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
 		})
 
-		o.only("own event with external eventually resolved attendees in own calendar, no password, confidential", async function () {
+		o("own event with external eventually resolved attendees in own calendar, no password, confidential", async function () {
 			// There should no cancellations sent to attendees without password as we cannot encrypt emails
 			const calendars = makeCalendars("own")
 			const distributor = makeDistributor()
