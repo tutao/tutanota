@@ -35,7 +35,7 @@ import {theme} from "../gui/theme"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	archiveMails,
+	archiveMails, getDefaultSignature,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -64,7 +64,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
-import {newMailEditor, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
+import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
 
 assertMainOrNode()
 
@@ -106,7 +106,7 @@ export class MailView implements CurrentView {
 				button: (!styles.isUsingBottomNavigation() && isNewMailActionAvailable())
 					? {
 						label: 'newMail_action',
-						click: () => this._newMail().catch(PermissionError, noOp),
+						click: () => this._showNewMailDialog().catch(PermissionError, noOp),
 					}
 					: null,
 				content: Object.keys(this._mailboxExpanders)
@@ -161,11 +161,10 @@ export class MailView implements CurrentView {
 					ondrop: (ev) => {
 						if (isNewMailActionAvailable() && ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
 							Promise.join(
-								this._newMail(),
+								this._getMailboxDetails(),
 								fileController.readLocalFiles(ev.dataTransfer.files),
-								(editor, dataFiles) => {
-									editor.attachFiles((dataFiles: any))
-									m.redraw()
+								(mailbox, dataFiles) => {
+									newMailEditorFromTemplate(mailbox, {}, "", getDefaultSignature(), dataFiles).then(dialog => dialog.show())
 								}).catch(PermissionError, noOp)
 						}
 						// prevent in any case because firefox tries to open
@@ -195,7 +194,7 @@ export class MailView implements CurrentView {
 		return isNewMailActionAvailable()
 			? m(ButtonN, {
 				label: "newMail_action",
-				click: () => this._newMail().catch(PermissionError, noOp),
+				click: () => this._showNewMailDialog().catch(PermissionError, noOp),
 				type: ButtonType.Action,
 				icon: () => Icons.PencilSquare,
 				colors: ButtonColors.Header,
@@ -279,7 +278,7 @@ export class MailView implements CurrentView {
 			},
 			{
 				key: Keys.N,
-				exec: () => (this._newMail().catch(PermissionError, noOp): any),
+				exec: () => (this._showNewMailDialog().catch(PermissionError, noOp): any),
 				enabled: () => !!this.selectedFolder && isNewMailActionAvailable(),
 				help: "newMail_action"
 			},
@@ -672,7 +671,7 @@ export class MailView implements CurrentView {
 		])
 	}
 
-	_newMail(): Promise<Dialog> {
+	_showNewMailDialog(): Promise<Dialog> {
 		return this._getMailboxDetails().then(mailboxDetails => newMailEditor(mailboxDetails)).then(dialog => dialog.show())
 	}
 
