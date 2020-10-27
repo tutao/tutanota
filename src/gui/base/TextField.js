@@ -9,6 +9,7 @@ import {ease} from "../animation/Easing"
 import {assertMainOrNodeBoot} from "../../api/Env"
 import {theme} from "../theme"
 import type {keyHandler} from "../../misc/KeyManager"
+import {TabIndex} from "../../api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 
@@ -163,13 +164,13 @@ export class TextField {
 			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
 			// This is mostly done to prevent autofill which happens if the field type="password".
 			const autofillGuard = this._preventAutofill ? [
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
-				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text})
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Text}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Password}),
+				m("input.abs", {style: {opacity: '0', height: '0'}, tabIndex: TabIndex.Programmatic, type: Type.Text})
 			] : []
 
 			return m('.flex-grow', autofillGuard.concat(
-				m("input.input" + (this._alignRight ? ".right" : ""), {
+				m("input.input[tabindex=0]" + (this._alignRight ? ".right" : ""), {
 					autocomplete: this._preventAutofill ? "off" : this.autocomplete,
 					type: typeAttr,
 					"aria-label": lang.getMaybeLazy(this.label),
