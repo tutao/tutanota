@@ -1,5 +1,12 @@
+NSCameraUsageDescription = "Ambil foto atau video untuk menambahkannya sebagai lampiran.";
+NSPhotoLibraryUsageDescription = "Tambahkan gambar dari perpustakaan Anda sebagai lampiran.";
+NSMicrophoneUsageDescription = "Tambahkan gambar dari perpustakaan Anda sebagai lampiran.";
+NSMicrophoneUsageDescription = "Digunakan ketika merekam video sebagai lampiran.";
 NSContactsUsageDescription = "Cari alamat email penerima di daftar kontak.";
+NSRemindersUsageDescription = "Menunjukkan notifikasi ketika surel baru datang.";
 TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Foto";
+TutaoNoPermissionTitle = "Tidak Diizinkan";
 TutaoChangePermissionMsg = "Untuk memberikan akses Anda perlu memodifikasi perizinan bagi perangkat ini.";
 TutaoCancelAction = "Batal";
 TutaoSettingsAction = "Pengaturan";

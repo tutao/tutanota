@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-10-21T13:09:02Z",
+	"updated_at": "2020-10-27T09:19:20Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -523,6 +523,7 @@ module.exports = {
 		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 		"invalidPassword_msg": "Invalid password. Please check it again.",
 		"invalidRecipients_msg": "Please correct the invalid email address(es) in the recipient fields.",
+		"invalidRegexSyntax_msg": "Invalid regex syntax",
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
 		"invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
 		"invalidVatIdValidationFailed_msg": "Failed to validate the value added tax identification number. Please try again later.",
@@ -922,6 +923,7 @@ module.exports = {
 		"reportPhishing_action": "Report phishing",
 		"reportSpam_action": "Report spam",
 		"requestApproval_msg": "Sorry, you are currently not allowed to send or receive emails (except to Tutanota support) because your account was marked for approval to avoid abuse like spam emails. Please contact us at approval@tutao.de directly from your Tutanota account and describe what you would like to use this email account for. Please write in English or German, so we can understand you. Thanks!",
+		"requestTooLarge_msg": "The amount of data is too large. Please shorten the text.",
 		"requiresNewWindow_msg": "Will take effect in any new window.",
 		"resetZoomFactor_action": "Reset Zoom Factor",
 		"responsiblePersonsInfo_msg": "Limit the users that the message from the receiving mailbox can be forwarded to. There are no restrictions if the list is empty.",
@@ -1056,6 +1058,8 @@ module.exports = {
 		"storePassword_action": "Store password",
 		"subject_label": "Subject",
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact the support to reactivate your subscription.",
+		"subscriptionChangePeriod_msg": "Your subscription will be changed after the end of the current subscription period ({1}).",
+		"subscriptionChange_msg": "Your subscription will be changed after the end of the current subscription period.",
 		"subscriptionPeriod_label": "Subscription period",
 		"subscription_label": "Subscription",
 		"summary_label": "Summary",
@@ -1195,8 +1199,6 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"invalidRegexSyntax_msg": "Invalid regex syntax",
-		"requestTooLarge_msg": "Your request was too large for the server"
+		"you_label": "You"
 	}
 }

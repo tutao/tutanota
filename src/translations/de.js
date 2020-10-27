@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2020-10-21T13:09:57Z",
+	"updated_at": "2020-10-27T09:20:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -527,6 +527,7 @@ module.exports = {
 		"invalidMailAddress_msg": "Die folgenden Empfänger konnten nicht eingeladen werden, da die E-Mail-Adressen ungültig sind:",
 		"invalidPassword_msg": "Das Passwort ist leider ungültig.",
 		"invalidRecipients_msg": "Bitte korrigiere die ungültige(n) E-Mail-Adresse(n) der Empfänger.",
+		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invalidVatIdValidationFailed_msg": "Fehler bei der Prüfung der Umsatzsteuer-Identifikationsnummer. Bitte versuche es später erneut.",
@@ -926,6 +927,7 @@ module.exports = {
 		"reportPhishing_action": "Als Phishing melden",
 		"reportSpam_action": "Als Spam melden",
 		"requestApproval_msg": "Du darfst leider gerade keine E-Mails senden oder empfangen (außer an den Tutanota-Support), da dein Account erst freigegeben werden muss, um Missbrauch wie Spam zu verhindern. Bitte schreibe uns an approval@tutao.de direkt von deinem Tutanota-Account und beschreibe, wozu du diesen E-Mail-Account verwenden möchtest.",
+		"requestTooLarge_msg": "Die Datenmenge ist zu groß. Bitte kürze den Text.",
 		"requiresNewWindow_msg": "Änderung wird in neuen Fenstern aktiv.",
 		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
 		"responsiblePersonsInfo_msg": "Schränkt die Benutzer ein, an die die Nachricht von der empfangenden Mailbox weitergeleitet werden können. Wenn die Liste keine Benutzer enthält, gibt es keine Einschränkungen.",
@@ -1060,6 +1062,8 @@ module.exports = {
 		"storePassword_action": "Passwort speichern",
 		"subject_label": "Betreff",
 		"subscriptionCancelledMessage_msg": "Dein Abonnement wurde storniert. Bitte informiere den Support, wenn Du das Abonnement wieder aktivieren möchtest.",
+		"subscriptionChangePeriod_msg": "Dein Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums  ({1}) angepasst.",
+		"subscriptionChange_msg": "Dein Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums angepasst.",
 		"subscriptionPeriod_label": "Abrechnungszeitraum",
 		"subscription_label": "Abonnement",
 		"summary_label": "Zusammenfassung",
@@ -1199,7 +1203,6 @@ module.exports = {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
-		"requestTooLarge_msg": "Deine Anfrage war zu groß für den Server"
+		"you_label": "Du"
 	}
 }

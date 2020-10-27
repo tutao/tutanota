@@ -1,3 +1,4 @@
 <resources>
     <string name="pushNewMail_msg">Surel baru diterima.</string>
+    <string name="wantToSendReport_msg">Sesuatu kesalahan terjadi secara tidak terduga. Apakah Anda ingin mengirimkan laporan? Anda dapat menambahkan pesan untuk membantu kami memperbaiki masalah ini. </string>
 </resources>
