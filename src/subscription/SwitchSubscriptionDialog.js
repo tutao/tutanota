@@ -22,7 +22,6 @@ import stream from "mithril/stream/stream.js"
 import {buyAliases} from "./EmailAliasOptionsDialog"
 import {buyStorage} from "./StorageCapacityOptionsDialog"
 import {buySharing, buyWhitelabel} from "./WhitelabelAndSharingBuyDialog"
-import {changeSubscriptionInterval} from "./SubscriptionViewer"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {SubscriptionType} from "./SubscriptionUtils"
@@ -90,7 +89,6 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
                                  currentlySharingOrdered: boolean,
                                  currentlyWhitelabelOrdered: boolean): Promise<void> {
 	let businessStream = stream(accountingInfo.business)
-	let paymentIntervalStream = stream(Number(accountingInfo.paymentInterval))
 
 	return showProgressDialog("pleaseWait_msg", getPrices(currentSubscription, currentNbrOfUsers, currentTotalStorage, currentTotalAliases, includedStorage, includedAliases, currentlyWhitelabelOrdered, currentlySharingOrdered))
 		.then(prices => {
@@ -105,7 +103,8 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 			}
 			const dialog = Dialog.largeDialog(headerBarAttrs, {
 				view: () => m("#upgrade-account-dialog.pt", m(SubscriptionSelector, {
-					options: {businessUse: businessStream, paymentInterval: paymentIntervalStream},
+					// paymentInterval will not be updated as isInitialUpgrade is false
+					options: {businessUse: businessStream, paymentInterval: stream(Number(accountingInfo.paymentInterval))},
 					campaignInfoTextId: null,
 					boxWidth: 230,
 					boxHeight: 230,
@@ -136,7 +135,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Premium, currentSubscription, accountingInfo, paymentIntervalStream(), dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Premium, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -147,7 +146,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Teams, currentSubscription, accountingInfo, paymentIntervalStream(), dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Teams, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -158,7 +157,7 @@ export function showSwitchDialog(accountingInfo: AccountingInfo,
 							return m(ButtonN, {
 								label: "pricing.select_action",
 								click: () => {
-									switchSubscription(SubscriptionType.Pro, currentSubscription, accountingInfo, paymentIntervalStream(), dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
+									switchSubscription(SubscriptionType.Pro, currentSubscription, dialog, currentTotalAliases, currentTotalStorage, includedAliases, includedStorage, currentlySharingOrdered, currentlyWhitelabelOrdered)
 								},
 								type: ButtonType.Login,
 							})
@@ -409,8 +408,6 @@ function isDowngradeWhitelabelNeeded(targetSubscription: SubscriptionTypeEnum, c
 function switchSubscription(
 	targetSubscription: SubscriptionTypeEnum,
 	currentSubscription: SubscriptionTypeEnum,
-	accountingInfo: AccountingInfo,
-	paymentInterval: number,
 	dialog: Dialog,
 	currentNbrOfAliases: number,
 	currentAmountOfStorage: number,
@@ -443,8 +440,7 @@ function switchSubscription(
 					if (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered)) {
 						return buyWhitelabel(true)
 					}
-				}).then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
-					.then(() => dialog.close())
+				})).then(() => dialog.close())
 			}
 		})
 	} else {
@@ -456,8 +452,7 @@ function switchSubscription(
 					includedAliases,
 					includedStorage,
 					currentlySharingOrdered,
-					currentlyWhitelabelOrdered)
-					.then(() => updatePaymentInterval(paymentInterval, accountingInfo)))
+					currentlyWhitelabelOrdered))
 					.then(() => dialog.close())
 			}
 		})
@@ -499,10 +494,4 @@ function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
 			return previousFailed
 		}
 	})
-}
-
-function updatePaymentInterval(paymentInterval: number, accountingInfo: AccountingInfo) {
-	if (paymentInterval !== Number(accountingInfo.paymentInterval)) {
-		changeSubscriptionInterval(accountingInfo, paymentInterval)
-	}
 }
