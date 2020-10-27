@@ -39,7 +39,7 @@ export interface Shortcut {
 }
 
 export function focusPrevious(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none' && e.tabIndex !==-1) // also filter for tabIndex here to restrict tabbing to invisible inputs
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -62,11 +62,11 @@ export function focusPrevious(dom: HTMLElement): boolean {
 }
 
 export function focusNext(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none')
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => e.style.display !== 'none' && e.tabIndex !== -1) // also filter for tabIndex here to restrict tabbing to invisible inputs
 	let selected = tabbable.find(e => document.activeElement === e)
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
-		//squiere makes a list which can be indented and manages this with tab and shift tab
+		//squire makes a list which can be indented and manages this with tab and shift tab
 		const selection = window.getSelection()
 		if (selection && selection.focusNode
 			&& (selection.focusNode.nodeName === "LI"
