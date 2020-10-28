@@ -17,7 +17,7 @@ import {
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, clone, defer, downcast, neverNull, noOp, ProgressMonitor} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -369,40 +369,48 @@ export class CalendarModelImpl implements CalendarModel {
 
 	loadCalendarInfos(): Promise<Map<Id, CalendarInfo>> {
 		const userId = this._logins.getUserController().user._id
+		let progressMonitor: ProgressMonitor
 		return load(UserTypeRef, userId)
 			.then(user => {
 				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
 				const notFoundMemberships = []
+
+				// You're gonna have to update me if you decide to load any more things hereB
+				const progressMonitor = new ProgressMonitor(calendarMemberships.length * 4)
+				locator.progressTracker.registerMonitor(progressMonitor)
+
 				return Promise
 					.map(calendarMemberships, (membership) => Promise
 						.all([
-							load(CalendarGroupRootTypeRef, membership.group),
-							load(GroupInfoTypeRef, membership.groupInfo),
-							load(GroupTypeRef, membership.group)
+							load(CalendarGroupRootTypeRef, membership.group).tap(() => progressMonitor.workDone(1)),
+							load(GroupInfoTypeRef, membership.groupInfo).tap(() => progressMonitor.workDone(1)),
+							load(GroupTypeRef, membership.group).tap(() => progressMonitor.workDone(1))
 						])
 						.catch(NotFoundError, () => {
 							notFoundMemberships.push(membership)
+							progressMonitor.workDone(3)
 							return null
 						})
 					)
 					.then((groupInstances) => {
 						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						groupInstances.filter(Boolean)
-						              .forEach(([groupRoot, groupInfo, group]) => {
-							              calendarInfos.set(groupRoot._id, {
-								              groupRoot,
-								              groupInfo,
-								              shortEvents: [],
-								              longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
-								              group: group,
-								              shared: !isSameId(group.user, userId)
-							              })
-						              })
+						const filtered = groupInstances.filter(Boolean)
+						progressMonitor.workDone(groupInstances.length - filtered.length) // say we completed all the ones that we wont have to load
+						filtered.forEach(([groupRoot, groupInfo, group]) => {
+							calendarInfos.set(groupRoot._id, {
+								groupRoot,
+								groupInfo,
+								shortEvents: [],
+								longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents).tap(() => progressMonitor.workDone(1)), []),
+								group: group,
+								shared: !isSameId(group.user, userId)
+							})
+						})
 
 						// cleanup inconsistent memberships
 						Promise.each(notFoundMemberships, (notFoundMembership) => {
 							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
-							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
+							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data).tap(() => progressMonitor.workDone(1))
 						})
 						return calendarInfos
 					})

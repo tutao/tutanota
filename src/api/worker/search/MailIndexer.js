@@ -309,7 +309,7 @@ export class MailIndexer {
 
 	_indexMailLists(mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}>, oldestTimestamp: number): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
-		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
+		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp).addListener(progress => {
 			this._worker.sendIndexState({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,

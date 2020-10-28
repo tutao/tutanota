@@ -19,6 +19,7 @@ import type {WorkerClient} from "../../api/main/WorkerClient";
 import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
+import type {ProgressTracker} from "../../api/main/ProgressTracker"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")
@@ -47,7 +48,7 @@ class Header {
 	_shortcuts: Shortcut[];
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
-	_updateEntityEventProgress: number = -1
+	_loadingProgress: number = -1
 
 	constructor() {
 		this._currentView = null
@@ -87,23 +88,32 @@ class Header {
 					this._wsState = state
 					m.redraw()
 				})
-				worker.updateEntityEventProgress().map(state => {
-					if (this._updateEntityEventProgress !== state) {
-						this._updateEntityEventProgress = state
-						m.redraw()
-						if (this._updateEntityEventProgress === 100) {
-							setTimeout(() => {
-								this._updateEntityEventProgress = -1
-								m.redraw()
-							}, 500)
-						}
-					}
-				})
 				worker.initialized.then(() => {
 					asyncImport(typeof module !== "undefined" ?
 						module.id : __moduleName, `${env.rootPathPrefix}src/search/SearchBar.js`)
 						.then((searchBarModule) => {
 							this.searchBar = new searchBarModule.SearchBar()
+						})
+
+					asyncImport(typeof module !== "undefined" ?
+						module.id : __moduleName, `${env.rootPathPrefix}src/api/main/MainLocator.js`)
+						.then(locatorModule => {
+							const progressTracker: ProgressTracker = locatorModule.locator.progressTracker
+							if (progressTracker.totalWork() !== 0) {
+								this._loadingProgress = progressTracker.completedAmount()
+							}
+							progressTracker.onProgressUpdate.map(amount => {
+								if (this._loadingProgress !== amount) {
+									this._loadingProgress = amount
+									m.redraw()
+									if (this._loadingProgress >= 1) {
+										setTimeout(() => {
+											this._loadingProgress = -1
+											m.redraw()
+										}, 500)
+									}
+								}
+							})
 						})
 				})
 			})
@@ -306,13 +316,13 @@ class Header {
 	}
 
 	_entityEventProgress(): Children {
-		if (this._updateEntityEventProgress !== -1) {
+		if (this._loadingProgress !== -1) {
 			// Use key so that mithril does not reuse dom element and transition works correctly
 			return m(".accent-bg", {
 				key: "loading-indicator",
 				style: {
 					transition: 'width 500ms',
-					width: this._updateEntityEventProgress + '%',
+					width: (this._loadingProgress * 100) + '%',
 					height: '3px',
 				},
 			})

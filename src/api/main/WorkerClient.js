@@ -18,7 +18,7 @@ import type {
 } from "../common/TutanotaConstants"
 import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity} from "../common/utils/Utils"
+import {downcast, identity, ProgressMonitor} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
@@ -71,7 +71,6 @@ export class WorkerClient implements EntityRestInterface {
 	_queue: Queue;
 	_progressUpdater: ?progressUpdater;
 	_wsConnection: Stream<WsConnectionState> = stream("terminated");
-	_updateEntityEventProgress: Stream<number> = stream(0);
 	+infoMessages: Stream<InfoMessage>;
 	_leaderStatus: WebsocketLeaderStatus
 
@@ -110,10 +109,6 @@ export class WorkerClient implements EntityRestInterface {
 				this._wsConnection(downcast(message.args[0]));
 				return Promise.resolve()
 			},
-			updateEntityEventProgress: (message: Message) => {
-				this._updateEntityEventProgress(downcast(message.args[0]));
-				return Promise.resolve()
-			},
 			counterUpdate: (message: Message) => {
 				locator.eventController.counterUpdateReceived(downcast(message.args[0]))
 				return Promise.resolve()
@@ -126,6 +121,19 @@ export class WorkerClient implements EntityRestInterface {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
 			},
+
+			createProgressMonitor: (message: Message) => {
+				const work = downcast(message.args[0])
+				const reference = locator.progressTracker.registerMonitor(new ProgressMonitor(work))
+				return Promise.resolve(reference)
+			},
+			progressWorkDone: (message: Message) => {
+				const reference = downcast(message.args[0])
+				const workDone = downcast(message.args[1])
+				const monitor = locator.progressTracker.getMonitor(reference)
+				monitor && monitor.workDone(workDone)
+				return Promise.resolve()
+			}
 		})
 	}
 
@@ -491,10 +499,6 @@ export class WorkerClient implements EntityRestInterface {
 
 	wsConnection(): Stream<WsConnectionState> {
 		return this._wsConnection.map(identity)
-	}
-
-	updateEntityEventProgress(): Stream<number> {
-		return this._updateEntityEventProgress.map(identity)
 	}
 
 	closeEventBus(closeOption: CloseEventBusOptionEnum): Promise<void> {

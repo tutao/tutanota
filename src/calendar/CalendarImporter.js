@@ -38,7 +38,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 
 		              const totalCount = parsedEvents.reduce((acc, eventsWithAlarms) => acc + eventsWithAlarms.length, 0)
 		              const progress = stream(0)
-		              const progressMonitor = new ProgressMonitor(totalCount, progress)
+		              const progressMonitor = new ProgressMonitor(totalCount).addListener(progress)
 		              const zone = getTimeZone()
 
 		              const importPromise =
