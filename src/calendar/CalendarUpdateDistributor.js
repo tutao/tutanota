@@ -16,7 +16,6 @@ import type {CalendarEventAttendee} from "../api/entities/tutanota/CalendarEvent
 import {createCalendarEventAttendee} from "../api/entities/tutanota/CalendarEventAttendee"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {Dialog} from "../gui/base/Dialog"
 
 export interface CalendarUpdateDistributor {
 	sendInvite(existingEvent: CalendarEvent, sendMailModel: SendMailModel): Promise<void>;
@@ -99,7 +98,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 				              })
 			              })
 			              .then(model => {
-				              model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())], m => Dialog.error(() => m))
+				              model.attachFiles([makeInvitationCalendarFile(event, CalendarMethod.REPLY, new Date(), getTimeZone())])
 				              return model.send(MailMethod.ICAL_REPLY)
 			              })
 			              .finally(() => this._sendEnd())
@@ -118,7 +117,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 	}): Promise<void> {
 		const inviteFile = makeInvitationCalendarFile(event, mailMethodToCalendarMethod(method), new Date(), getTimeZone())
 		sendMailModel.setSender(sender)
-		sendMailModel.attachFiles([inviteFile], m => Dialog.error(() => m))
+		sendMailModel.attachFiles([inviteFile])
 		sendMailModel.setSubject(subject)
 		sendMailModel.setBody(body)
 		this._sendStart()

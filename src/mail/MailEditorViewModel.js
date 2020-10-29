@@ -39,7 +39,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
 		.then(files => {
-			model.attachFiles((files: any), m => Dialog.error(() => m))
+			model.attachFiles((files: any))
 			return files
 		})
 }
