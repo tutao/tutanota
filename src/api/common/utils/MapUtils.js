@@ -34,3 +34,9 @@ export function addMapEntry<K, V>(map: $ReadOnlyMap<K, V>, key: K, value: V): Ma
 	newMap.set(key, value)
 	return newMap
 }
+
+export function deleteMapEntry<K, V>(map: $ReadOnlyMap<K, V>, key: K): Map<K, V> {
+	const newMap = new Map(map)
+	newMap.delete(key)
+	return newMap
+}
