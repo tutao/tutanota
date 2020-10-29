@@ -8,11 +8,12 @@ import {isApp, isDesktop} from "../api/Env"
 import {worker} from "../api/main/WorkerClient"
 import {createLogFile} from "../api/common/Logger"
 import {downcast} from "../api/common/utils/Utils"
-import {clientInfoString} from "../misc/ErrorHandlerImpl"
+import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {isColorLight} from "../gui/Color"
 import {lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/MailEditorN"
+import {UserError} from "../api/common/error/UserError"
 
 export class AboutDialog implements MComponent<void> {
 	view(vnode: Vnode<void>): ?Children {
@@ -92,4 +93,5 @@ function sendDeviceLogs() {
 		 return newMailEditorFromTemplate(mailboxDetails, {}, `Device logs v${env.versionNumber} - ${type} - ${client}`, message, attachments, true)
 	 })
 	 .then(editor => editor.show())
+	 .catch(UserError, showUserError)
 }

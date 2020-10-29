@@ -1,7 +1,7 @@
 // @flow
 
 import type {DeferredObject} from "../common/utils/Utils"
-import {defer} from "../common/utils/Utils"
+import {defer, noOp} from "../common/utils/Utils"
 import {WorkerImpl} from "./WorkerImpl"
 
 export class SuspensionHandler {
@@ -46,7 +46,7 @@ export class SuspensionHandler {
 				Promise.each(deferredRequests, (deferredRequest) => {
 					deferredRequest.resolve()
 					// Ignore all errors here, any errors should be caught by whoever is handling the deferred request
-					return deferredRequest.promise.catch(e => console.warn("Encountered error in SuspensionHandler:\n", e))
+					return deferredRequest.promise.catch(noOp)
 				})
 			}, suspensionDurationSeconds * this._suspensionTimeFactor)
 

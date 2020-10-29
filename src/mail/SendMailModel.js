@@ -539,7 +539,9 @@ export class SendMailModel {
 		// make a new recipient info if we don't have one for that recipient
 		if (!recipientInfo) {
 			let p: Promise<RecipientInfo>
-			[recipientInfo, p] = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
+			[
+				recipientInfo, p
+			] = this._createAndResolveRecipientInfo(recipient.name, recipient.address, recipient.contact, skipResolveContact)
 			this.getRecipientList(type).push(recipientInfo)
 			this.setMailChanged(true)
 			return [recipientInfo, p]
@@ -604,11 +606,12 @@ export class SendMailModel {
 			}
 		})
 
+		this.setMailChanged(true)
+
 		if (tooBigFiles.length > 0) {
 			throw new UserError(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "))
 		}
 
-		this.setMailChanged(true)
 	}
 
 	removeAttachment(file: Attachment): void {

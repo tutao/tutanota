@@ -39,6 +39,7 @@ import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
+import {UserError} from "../api/common/error/UserError"
 
 assertMainOrNode()
 
@@ -425,4 +426,9 @@ function showErrorDialogNotLoggedIn(e) {
 
 if (typeof window !== "undefined") {
 	window.tutao.testError = () => handleUncaughtError(new Error("test error!"))
+}
+
+
+export function showUserError(error: UserError): Promise<void> {
+	return Dialog.error(() => error.message)
 }

@@ -65,6 +65,8 @@ import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
 import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
+import {UserError} from "../api/common/error/UserError"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -166,6 +168,7 @@ export class MailView implements CurrentView {
 								(mailbox, dataFiles) => {
 									newMailEditorFromTemplate(mailbox, {}, "", getDefaultSignature(), dataFiles).then(dialog => dialog.show())
 								}).catch(PermissionError, noOp)
+							       .catch(UserError, showUserError)
 						}
 						// prevent in any case because firefox tries to open
 						// dataTransfer as a URL otherwise.

@@ -35,13 +35,15 @@ import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {cleanMatch} from "../api/common/utils/StringUtils"
 import {ConnectionError, TooManyRequestsError} from "../api/common/error/RestError"
 import type {TranslationKey} from "../misc/LanguageViewModel"
+import {UserError} from "../api/common/error/UserError"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 
 export function chooseAndAttachFile(model: SendMailModel, boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {
 	return showFileChooserForAttachments(boundingRect, fileTypes)
 		.then(files => {
 			model.attachFiles((files: any))
 			return files
-		})
+		}).catch(UserError, showUserError)
 }
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<?$ReadOnlyArray<FileReference | DataFile>> {

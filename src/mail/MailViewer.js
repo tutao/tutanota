@@ -123,6 +123,8 @@ import {newMailEditorAsResponse, newMailEditorFromDraft, newMailtoUrlMailEditor}
 import type {MailboxDetail} from "./MailModel"
 import type {ResponseMailParameters} from "./SendMailModel"
 import {defaultSendMailModel} from "./SendMailModel"
+import {UserError} from "../api/common/error/UserError"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -1187,10 +1189,10 @@ export class MailViewer {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
 				return locator.mailModel.getMailboxDetailsForMail(this.mail)
-				              .then((mailboxDetails) => {
-					              newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails)
-						              .then(editorDialog => editorDialog.show())
-				              })
+				              .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails))
+				              .then(editorDialog => editorDialog.show())
+				              .catch(UserError, showUserError)
+
 			}
 		})
 	}
@@ -1250,7 +1252,8 @@ export class MailViewer {
 						}, this._contentBlocked, this._inlineImages, mailboxDetails)
 					}).then(editor => {
 						editor.show()
-					})
+					}).catch(UserError, showUserError)
+
 				})
 			}
 		})
@@ -1271,6 +1274,7 @@ export class MailViewer {
 					return this._getMailboxDetails().then(mailboxDetails => {
 						newMailEditorAsResponse(args, this._contentBlocked, this._inlineImages, mailboxDetails)
 							.then(editor => editor.show())
+							.catch(UserError, showUserError)
 					})
 				})
 			}

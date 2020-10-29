@@ -57,6 +57,7 @@ import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, neverNull} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -165,10 +166,20 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 
 		if (a.inlineImages) {
 			a.inlineImages.then((loadedInlineImages) => {
-				Object.keys(loadedInlineImages).forEach((key) => {
-					const {file} = loadedInlineImages[key]
-					if (!model.getAttachments().includes(file)) model.attachFiles([file])
-				})
+				try {
+					Object.keys(loadedInlineImages).forEach((key) => {
+						const {file} = loadedInlineImages[key]
+						if (!model.getAttachments().includes(file)) {
+							model.attachFiles([file])
+						}
+					})
+				} catch (e) {
+					if (e instanceof UserError) {
+						showUserError(downcast(e))
+					} else {
+						throw e
+					}
+				}
 				m.redraw()
 
 				this.editor.initialized.promise.then(() => {
@@ -532,7 +543,7 @@ export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaF
 
 }
 
-export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail, attachments?: Array<Attachment>): Promise<Dialog> {
+export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 
 	return _mailboxPromise(mailboxDetails).then(mailbox => {
 		const mailTo = parseMailtoUrl(mailtoUrl)
@@ -544,7 +555,7 @@ export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean,
 			bcc: mailTo.bcc.map(mailAddressToRecipient)
 		}
 
-		return newMailEditorFromTemplate(mailbox, recipients, subject, body, attachments, confidential)
+		return newMailEditorFromTemplate(mailbox, recipients, subject, body, [], confidential)
 	})
 
 }
