@@ -370,9 +370,6 @@ export function printMeasure(prefix: string, names: string[]) {
 		} catch (e) {
 		}
 	}
-
-
-	console.log(prefix, JSON.stringify(measures))
 }
 
 export function markStart(name: string) {

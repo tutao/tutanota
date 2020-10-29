@@ -53,7 +53,7 @@ import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {defaultSendMailModel, SendMailModel} from "../mail/SendMailModel"
 import {firstThrow} from "../api/common/utils/ArrayUtils"
-import {addMapEntry} from "../api/common/utils/MapUtils"
+import {addMapEntry, deleteMapEntry} from "../api/common/utils/MapUtils"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
@@ -369,23 +369,39 @@ export class CalendarEventViewModel {
 	}
 
 	addGuest(mailAddress: string, contact: ?Contact) {
+
+		// 1: if the attendee already exists, do nothing
+		// 2: if the attendee is not yourself, add to the invite model
+		// 3: if the attendee is yourself and you already exist as an attendee, remove yourself
+		// 4: add the attendee
+		// 5: add organizer if you are not already in the list
 		if (this.shouldShowInviteUnavailble()) {
 			throw new ProgrammingError("Not available for free account")
 		}
 
-		// We don't add a guest if they are already an attendee or if they are ourself
+		// We don't add a guest if they are already an attendee
 		// even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
-		if (this.attendees().some((a) => a.address.address === mailAddress)
-			|| this._ownMailAddresses.some(address => cleanMatch(address, mailAddress))) {
+		if (this.attendees().some((a) => a.address.address === mailAddress)) {
 			return
 		}
 
+		const isOwnAttendee = this._ownMailAddresses.includes(mailAddress)
+
 		// SendMailModel handles deduplication
 		// this.attendees will be updated when the model's recipients are updated
-		this._inviteModel.addOrGetRecipient("bcc", {address: mailAddress, contact, name: null})
+		if (!isOwnAttendee) this._inviteModel.addOrGetRecipient("bcc", {address: mailAddress, contact, name: null})
 
-		const isOwnAttendee = this._ownMailAddresses.includes(mailAddress)
 		const status = isOwnAttendee ? CalendarAttendeeStatus.ACCEPTED : CalendarAttendeeStatus.ADDED
+
+
+		// If we exist as an attendee and the added guest is also an attendee, then remove the existing ownAttendee
+		// and the new one will be added in the next step
+		if (isOwnAttendee) {
+			const ownAttendee = this.findOwnAttendee()
+			if (ownAttendee) {
+				this._guestStatuses(deleteMapEntry(this._guestStatuses(), ownAttendee.address.address))
+			}
+		}
 
 		// if this guy wasn't already an attendee with a status
 		if (!this._guestStatuses().has(mailAddress)) {
@@ -395,6 +411,12 @@ export class CalendarEventViewModel {
 		// Add organizer as attendee if not currenly in the list
 		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
 			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
+		}
+
+		// this duplicated condition check may or may not be redundant to do here
+		if (isOwnAttendee) {
+			const newOrganizer = this.possibleOrganizers.find(o => o.address === mailAddress)
+			if (newOrganizer) this.setOrganizer(newOrganizer)
 		}
 	}
 
@@ -646,11 +668,11 @@ export class CalendarEventViewModel {
 				//We cannot send a notification to external recipients without a password, so we exclude them
 				if (this._cancelModel.isConfidential()) {
 					return Promise.all([recipientInfo.resolveContactPromise, recipientInfoPromise])
-						.then(() => {
-							if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
-								this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
-							}
-						})
+					              .then(() => {
+						              if (isExternal(recipientInfo) && !this._cancelModel.getPassword(recipientInfo.mailAddress)) {
+							              this._cancelModel.removeRecipient(recipientInfo, "bcc", false)
+						              }
+					              })
 				} else {
 					return Promise.resolve()
 				}
