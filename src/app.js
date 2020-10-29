@@ -12,7 +12,7 @@ import "./gui/main-styles"
 import {InfoView} from "./gui/base/InfoView"
 import {Button} from "./gui/base/Button"
 import {header} from "./gui/base/Header"
-import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop} from "./api/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/Env"
 import deletedModule from "@hot"
 import {keyManager} from "./misc/KeyManager"
 import {logins} from "./api/main/LoginController"
@@ -308,7 +308,7 @@ function setupExceptionHandling() {
 	})
 }
 
-env.dist && setTimeout(() => {
+env.dist && isTutanotaDomain() && setTimeout(() => {
 	console.log(`
 
 ''''''''''''''''''''''''''''''''''''''''

@@ -125,13 +125,15 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			lines: this._closedSessionsTableLines(),
 		}
 
+		const user = logins.getUserController()
+
 		return m("", [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get('loginCredentials_label')),
 				m(TextFieldN, mailAddressAttrs),
 				m(TextFieldN, passwordAttrs),
-				m(TextFieldN, recoveryCodeFieldAttrs),
-				(!logins.getUserController().isOutlookAccount()) ?
+				user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
+				(!user.isOutlookAccount() && user.isGlobalAdmin()) ?
 					m(this._secondFactorsForm) : null,
 				m(".h4.mt-l", lang.get('activeSessions_label')),
 				m(TableN, activeSessionTableAttrs),

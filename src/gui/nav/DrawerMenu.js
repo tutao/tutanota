@@ -80,7 +80,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 				},
 				300
 			)),
-			isNewMailActionAvailable()
+			isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()
 				? m(ButtonN, {
 					icon: () => BootIcons.Share,
 					label: "invite_alt",
