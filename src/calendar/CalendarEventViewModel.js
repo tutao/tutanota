@@ -408,16 +408,17 @@ export class CalendarEventViewModel {
 			this._guestStatuses(addMapEntry(this._guestStatuses(), mailAddress, status))
 		}
 
-		// Add organizer as attendee if not currenly in the list
-		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
-			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
-		}
-
 		// this duplicated condition check may or may not be redundant to do here
 		if (isOwnAttendee) {
 			const newOrganizer = this.possibleOrganizers.find(o => o.address === mailAddress)
 			if (newOrganizer) this.setOrganizer(newOrganizer)
 		}
+
+		// Add organizer as attendee if not currenly in the list
+		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
+			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
+		}
+
 	}
 
 	getGuestPassword(guest: Guest): string {
@@ -788,7 +789,8 @@ export class CalendarEventViewModel {
 				if (ownAttendee) {
 					this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
 				} else if (this._eventType === EventType.OWN) {
-					const newOwnAttendee = createEncryptedMailAddress({address: firstThrow(this._ownMailAddresses)})
+					// use the default sender as the organizer
+					const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
 					this._ownAttendee(newOwnAttendee)
 					this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
 				}
