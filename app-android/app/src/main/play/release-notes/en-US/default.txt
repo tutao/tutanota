@@ -1,3 +1,4 @@
-* Allow inbox rules to be case insensitive
-* Allow taking over deleted unused Free account address to Premium account
+* Show day of week in calendar event
+* Remember calendar visibility across logins
 * Various bugfixes
+
