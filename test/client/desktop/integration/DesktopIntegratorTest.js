@@ -1,7 +1,7 @@
 // @flow
 import o from "ospec/ospec.js"
 import n from "../../nodemocker"
-const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage'
+
 o.spec("DesktopIntegrator Test", () => {
 	n.startGroup({
 		group: __filename,
@@ -231,7 +231,7 @@ o.spec("DesktopIntegrator Test", () => {
 			o(fsExtraMock.writeFileSync.callCount).equals(1)
 			o(fsExtraMock.writeFileSync.args.length).equals(3)
 			o(fsExtraMock.writeFileSync.args[0]).equals("/app/path/file/.config/autostart/appName.desktop")
-			o(fsExtraMock.writeFileSync.args[1]).equals('[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=appName\n\tComment=appName startup script\n\tExec=/appimage/path/file.appImage -a\n\tStartupNotify=false\n\tStartupWMClass=appName\n\tTerminal=false')
+			o(fsExtraMock.writeFileSync.args[1]).equals('[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=appName\n\tComment=appName startup script\n\tExec=/appimage/path/file.appImage -a\n\tStartupNotify=false\n\tTerminal=false')
 			o(fsExtraMock.writeFileSync.args[2]).deepEquals({encoding: 'utf-8'})
 
 			o(fsExtraMock.ensureDirSync.callCount).equals(1)
@@ -390,7 +390,7 @@ o.spec("DesktopIntegrator Test", () => {
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: desktopEntry,
+					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
 					opts: {encoding: 'utf-8'}
 				}
 			])
@@ -431,7 +431,7 @@ o.spec("DesktopIntegrator Test", () => {
 					opts: {encoding: 'utf-8', flag: 'a'}
 				}, {
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: desktopEntry,
+					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
 					opts: {encoding: 'utf-8'}
 				}
 			])
@@ -514,7 +514,7 @@ o.spec("DesktopIntegrator Test", () => {
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: desktopEntry,
+					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
 					opts: {encoding: 'utf-8'}
 				}
 			])

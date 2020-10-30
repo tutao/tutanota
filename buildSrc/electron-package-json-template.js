@@ -8,10 +8,9 @@ const pj = require('../package.json')
 
 module.exports = function (opts) {
 	const {nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked} = opts
-	const appName = "tutanota-desktop" + nameSuffix
-	const appId = "de.tutao." + appName
+
 	return {
-		"name": appName,
+		"name": "tutanota-desktop" + nameSuffix,
 		"main": "./src/desktop/DesktopMain.js",
 		"version": version,
 		"author": "Tutao GmbH",
@@ -47,7 +46,7 @@ module.exports = function (opts) {
 			"fileManagerTimeout": 30000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.
 			"checkUpdateSignature": sign || !!process.env.JENKINS,
-			"appUserModelId": appId,
+			"appUserModelId": "de.tutao.tutanota" + nameSuffix,
 			"initialSseConnectTimeoutInSeconds": 60,
 			"maxSseConnectTimeoutInSeconds": 2400,
 			"configMigrationFunction": "migrateClient",
@@ -75,7 +74,7 @@ module.exports = function (opts) {
 		"build": {
 			"electronVersion": pj.devDependencies.electron,
 			"icon": iconPath,
-			"appId": appId,
+			"appId": "de.tutao.tutanota" + nameSuffix,
 			"productName": nameSuffix.length > 0
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
@@ -158,7 +157,7 @@ module.exports = function (opts) {
 				"synopsis": "Tutanota Desktop Client",
 				"category": "Network",
 				"desktop": {
-					"StartupWMClass": appName
+					"StartupWMClass": "tutanota-desktop" + nameSuffix
 				},
 				"target": [
 					{
