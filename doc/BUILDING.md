@@ -1,6 +1,6 @@
 ## Building and running your own Tutanota web client
 
-You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on 
+You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on
 your own. If you prefer the auto-update feature, you can use the official [mail](https://mail.tutanota.com) client.
 
 #### Pre-requisites:
@@ -12,6 +12,7 @@ your own. If you prefer the auto-update feature, you can use the official [mail]
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the repository directory: `cd tutanota`
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
+4. `npm install --global rollup` and `npm install --global electron-builder`
 4. run `npm install` to install dependencies.
 5. Build the web part: `node dist prod`
 6. Switch into the build directory: `cd build/dist`
@@ -53,7 +54,7 @@ Keep in mind that your own build of Tutanota Desktop will not update automatical
 3. Checkout the latest web release tag: `git checkout tutanota-release-xxx`
 4. Run `npm install` to install dependencies.
 
-### Build:  
+### Build:
 Run `node dist --custom-desktop-release`.
 
 The client for your platform will be in `build/desktop/`.
