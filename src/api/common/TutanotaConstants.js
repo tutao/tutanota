@@ -10,15 +10,21 @@ import type {CertificateInfo} from "../entities/sys/CertificateInfo"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
 
-export const reverse: <K,V>({[K]: V}) => {[V]: K} = (objectMap) =>  Object.keys(objectMap)
-                                                        .reduce((r, k) => {
-                                                        	const v = objectMap[downcast(k)]
-                                                        	return Object.assign(r, {[v]: k})
-                                                        }, {})
-// Also used in other prjects
+export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
+                                                                          .reduce((r, k) => {
+	                                                                          const v = objectMap[downcast(k)]
+	                                                                          return Object.assign(r, {[v]: k})
+                                                                          }, {})
+// Also used in other projects
 export type $Reversed<T> = $Call<typeof reverse, T>
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
+
+export const REQUEST_SIZE_LIMIT_DEFAULT = 1024 * 1024
+export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
+	["/rest/tutanota/filedataservice", 1024 * 1024 * 25],
+	["/rest/tutanota/draftservice", 1024 * 1024], // should be large enough
+])
 
 export const GroupType = Object.freeze({
 	User: "0",
