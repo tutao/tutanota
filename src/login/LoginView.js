@@ -399,7 +399,7 @@ export class LoginView {
 				this.password.value("")
 
 				this.password.focus()
-				this._knownCredentials = []
+				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
 				m.redraw()
 			} else {
