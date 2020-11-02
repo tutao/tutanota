@@ -1,10 +1,17 @@
 // @flow
 import {assertWorkerOrNode, getHttpOrigin, isWorker} from "../../Env"
-import {ConnectionError, handleRestError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
+import {
+	ConnectionError,
+	handleRestError,
+	PayloadTooLargeError,
+	ServiceUnavailableError,
+	TooManyRequestsError
+} from "../../common/error/RestError"
 import type {HttpMethodEnum, MediaTypeEnum} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 import {SuspensionHandler} from "../SuspensionHandler"
+import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
@@ -20,6 +27,7 @@ export class RestClient {
 	}
 
 	request(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
+		this._checkRequestSizeLimit(path, method, body)
 		if (this._suspensionHandler.isSuspended()) {
 			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener))
 		} else {
@@ -133,6 +141,18 @@ export class RestClient {
 		}
 	}
 
+	/**
+	 * Checks if the request body is too large.
+	 * Ignores the method because GET requests etc. should not exceed the limits neither.
+	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
+	 * */
+	_checkRequestSizeLimit(path: string, method: HttpMethodEnum, body: ?string | ?Uint8Array) {
+		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) || REQUEST_SIZE_LIMIT_DEFAULT
+		if (body && body.length > limit) {
+			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
+		}
+	}
+
 	_setHeaders(xhr: XMLHttpRequest, headers: Params, body: ?string | ?Uint8Array, responseType: ?MediaTypeEnum) {
 		headers['cv'] = env.versionNumber
 		if (body instanceof Uint8Array) {
@@ -150,6 +170,7 @@ export class RestClient {
 
 
 }
+
 
 export function addParamsToUrl(url: string, urlParams: Params): string {
 	if (urlParams) {
