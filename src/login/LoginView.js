@@ -23,6 +23,7 @@ import {header} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../api/common/utils/AriaUtils"
 import type {ILoginViewController} from "./LoginViewController"
 import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 
 assertMainOrNode()
 
@@ -52,6 +53,7 @@ export class LoginView {
 	permitAutoLogin: boolean;
 	_showingSignup: boolean;
 	_formsUpdateStream: ?Stream<*>;
+	_moreExpanded: Stream<boolean>;
 
 	constructor() {
 		this.targetPath = '/mail'
@@ -93,6 +95,7 @@ export class LoginView {
 
 		this._knownCredentials = []
 		this._isDeleteCredentials = false;
+		this._moreExpanded = stream(false)
 
 		this._viewController = asyncImport(typeof module !== "undefined" ? module.id : __moduleName,
 			`${env.rootPathPrefix}src/login/LoginViewController.js`)
@@ -108,7 +111,6 @@ export class LoginView {
 			this.permitAutoLogin = true
 		}
 
-		const optionsExpander = this._expanderButton()
 
 		this._setupHooks()
 
@@ -137,18 +139,80 @@ export class LoginView {
 							width: client.isDesktopDevice() ? "360px" : null,
 						}
 					}, [
-						this._displayMode === DisplayMode.Credentials ? this.renderCredentialsSelector() : this.rengerLoginForm(),
-						(this._anyMoreItemVisible()) ? m(".flex-center.pt-l", [
-							m(optionsExpander),
-						]) : null,
-						(this._anyMoreItemVisible()) ? m("", [
-							m(optionsExpander.panel),
-						]) : null,
+						this._displayMode === DisplayMode.Credentials ? this.renderCredentialsSelector() : this.renderLoginForm(),
+						(this._anyMoreItemVisible()) ? this._renderOptionsExpander() : null,
 						(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
 					])
 				),
 			])
 		}
+	}
+
+	_renderOptionsExpander(): Children {
+		return [
+			m(".flex-center.pt-l", m(ExpanderButtonN, {
+				label: 'more_label',
+				expanded: this._moreExpanded,
+			})),
+			m(ExpanderPanelN, {
+				expanded: this._moreExpanded,
+			}, [
+				m(".flex-center.flex-column", [
+					this._loginAnotherLinkVisible()
+						? m(ButtonN, {
+							label: "loginOtherAccount_action",
+							type: ButtonType.Secondary,
+							click: () => this._showLoginForm("")
+						})
+						: null,
+					this._deleteCredentialsLinkVisible()
+						? m(ButtonN, {
+							label: this._isDeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+							type: ButtonType.Secondary,
+							click: () => this._switchDeleteCredentialsState()
+						})
+						: null,
+					this._knownCredentialsLinkVisible()
+						? m(ButtonN, {
+							label: "knownCredentials_label",
+							type: ButtonType.Secondary,
+							click: () => this._showCredentials()
+						})
+						: null,
+					this._signupLinkVisible()
+						? m(ButtonN, {
+							label: "register_label",
+							type: ButtonType.Secondary,
+							click: () => m.route.set("/signup")
+						})
+						: null,
+					this._switchThemeLinkVisible()
+						? m(ButtonN, {
+							label: "switchColorTheme_action",
+							type: ButtonType.Secondary,
+							click: () => {
+								switch (themeId()) {
+									case 'light':
+										return deviceConfig.setTheme('dark')
+									case 'dark':
+										return deviceConfig.setTheme('light')
+								}
+							}
+						})
+						: null,
+					this._recoverLoginVisible()
+						? m(ButtonN, {
+							label: "recoverAccountAccess_action",
+							click: () => {
+								m.route.set('/recover')
+								show()
+							},
+							type: ButtonType.Secondary,
+						})
+						: null,
+				])
+			])
+		]
 	}
 
 	_setupHooks() {
@@ -205,59 +269,11 @@ export class LoginView {
 			|| this._recoverLoginVisible()
 	}
 
-	_expanderButton(): ExpanderButton {
-		const panel = {
-			view: () => m(".flex-center.flex-column", [
-				this._loginAnotherLinkVisible() ? m(ButtonN, {
-					label: "loginOtherAccount_action",
-					type: ButtonType.Secondary,
-					click: () => this._showLoginForm("")
-				}) : null,
-				this._deleteCredentialsLinkVisible() ? m(ButtonN, {
-					label: this._isDeleteCredentials ? "cancel_action" : "deleteCredentials_action",
-					type: ButtonType.Secondary,
-					click: () => this._switchDeleteCredentialsState()
-				}) : null,
-				this._knownCredentialsLinkVisible() ? m(ButtonN, {
-					label: "knownCredentials_label",
-					type: ButtonType.Secondary,
-					click: () => this._showCredentials()
-				}) : null,
-				this._signupLinkVisible() ? m(ButtonN, {
-					label: "register_label",
-					type: ButtonType.Secondary,
-					click: () => m.route.set("/signup")
-				}) : null,
-				this._switchThemeLinkVisible() ? m(ButtonN, {
-					label: "switchColorTheme_action",
-					type: ButtonType.Secondary,
-					click: () => {
-						switch (themeId()) {
-							case 'light':
-								return deviceConfig.setTheme('dark')
-							case 'dark':
-								return deviceConfig.setTheme('light')
-						}
-					}
-				}) : null,
-				this._recoverLoginVisible() ? m(ButtonN, {
-					label: "recoverAccountAccess_action",
-					click: () => {
-						m.route.set('/recover')
-						show()
-					},
-					type: ButtonType.Secondary,
-				}) : null,
-			])
-		}
-		return new ExpanderButton('more_label', new ExpanderPanel(panel), false)
-	}
-
 	login() {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
-	rengerLoginForm(): Children {
+	renderLoginForm(): Children {
 		return m("form", {
 			onsubmit: (e) => {
 				// do not post the form, the form is just here to enable browser auto-fill
@@ -454,7 +470,6 @@ export class LoginView {
 		window.open(url, '_blank')
 	}
 
-
 	_switchDeleteCredentialsState(): void {
 		this._isDeleteCredentials = !this._isDeleteCredentials;
 		m.redraw();
@@ -479,15 +494,18 @@ export function getPrivacyStatementLink(): ?string {
 
 export function renderPrivacyAndImprintLinks(): Children {
 	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
-		(getPrivacyStatementLink()) ? m("a.plr", {
-			href: getPrivacyStatementLink(),
-			target: "_blank"
-		}, lang.get("privacyLink_label")) : null,
-		(getImprintLink()) ? m("a.plr", {
-			href: getImprintLink(),
-			target: "_blank"
-		}, lang.get("imprint_label")) : null,
-
+			(getPrivacyStatementLink())
+				? m("a.plr", {
+					href: getPrivacyStatementLink(),
+					target: "_blank"
+				}, lang.get("privacyLink_label"))
+				: null,
+			(getImprintLink())
+				? m("a.plr", {
+					href: getImprintLink(),
+					target: "_blank"
+				}, lang.get("imprint_label"))
+				: null,
 			m(".mt.center.small.full-width", `v${env.versionNumber}`),
 		]
 	)
