@@ -612,10 +612,10 @@ export class CalendarView implements CurrentView {
 						      serviceRequestVoid(TutanotaService.CalendarService, HttpMethod.DELETE, createCalendarDeleteData({
 							      groupRootId: calendarInfo.groupRoot._id
 						      }))
+							      .catch(NotFoundError, () => console.log("Calendar to be deleted was not found."))
 					      }
 				      }
 			      )
-
 		})
 	}
 
