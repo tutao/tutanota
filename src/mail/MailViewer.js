@@ -4,7 +4,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
-import {load, serviceRequestVoid, update} from "../api/main/Entity"
+import {serviceRequestVoid} from "../api/main/Entity"
 import {Button, createAsyncDropDownButton, createDropDownButton} from "../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
@@ -86,7 +86,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {theme} from "../gui/theme"
 import {LazyContactListId, searchForContactByMailAddress} from "../contacts/ContactUtils"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {getListId, HttpMethod} from "../api/common/EntityFunctions"
+import {elementIdPart, getListId, HttpMethod, listIdPart} from "../api/common/EntityFunctions"
 import {createListUnsubscribeData} from "../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../api/entities/tutanota/MailHeaders"
 import {mailToEmlFile} from "./Exporter"
@@ -230,14 +230,14 @@ export class MailViewer {
 		const expanderStyle = {}
 		const detailsExpander = this._createDetailsExpander(bubbleMenuWidth, mail, expanderStyle)
 
+		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
 		this._inlineFileIds = this._loadMailBody(mail)
-
-		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-		load(ConversationEntryTypeRef, mail.conversationEntry)
-			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
-
-		this._inlineImages = this._loadAttachments(mail)
-
+		this._inlineImages = this._loadAttachments(mail).then((inlineImages) => {
+			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
+			locator.entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
+			       .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
+			return inlineImages
+		})
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -493,7 +493,7 @@ export class MailViewer {
 
 	_unsubscribe(): Promise<void> {
 		if (this.mail.headers) {
-			return showProgressDialog("pleaseWait_msg", load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+			return showProgressDialog("pleaseWait_msg", locator.entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
 				let headers = getMailHeaders(mailHeaders).split("\n").filter(headerLine =>
 					headerLine.toLowerCase().startsWith("list-unsubscribe"))
 				if (headers.length > 0) {
@@ -688,7 +688,7 @@ export class MailViewer {
 			      .then(() => {
 				      if (reportType === MailReportType.PHISHING) {
 					      this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-					      return update(this.mail)
+					      return locator.entityClient.update(this.mail)
 				      }
 			      })
 			      .then(() => locator.mailModel.getMailboxDetailsForMail(this.mail))
@@ -748,9 +748,9 @@ export class MailViewer {
 		}
 
 		this.mail.phishingStatus = MailPhishingStatus.WHITELISTED
-		return update(this.mail)
-			.catch(e => this.mail.phishingStatus = oldStatus)
-			.then(m.redraw)
+		return locator.entityClient.update(this.mail)
+		              .catch(e => this.mail.phishingStatus = oldStatus)
+		              .then(m.redraw)
 	}
 
 	_checkMailForPhishing(mail: Mail, links: Array<string>) {
@@ -761,9 +761,9 @@ export class MailViewer {
 				if (isSuspicious) {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-					update(mail)
-						.catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
-						.catch(NotFoundError, e => console.log("mail already moved"))
+					locator.entityClient.update(mail)
+					       .catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
+					       .catch(NotFoundError, e => console.log("mail already moved"))
 					m.redraw()
 				}
 			})
@@ -835,7 +835,7 @@ export class MailViewer {
 
 	/** @return list of inline referenced cid */
 	_loadMailBody(mail: Mail): Promise<Array<string>> {
-		return load(MailBodyTypeRef, mail.body).then(body => {
+		return locator.entityClient.load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
 			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true, isTutanotaTeamMail(mail))
 			this._checkMailForPhishing(mail, sanitizeResult.links)
@@ -873,28 +873,31 @@ export class MailViewer {
 			this._loadingAttachments = false
 			return Promise.resolve({})
 		} else {
-			this._loadingAttachments = true
-			return Promise.map(mail.attachments, fileId => load(FileTypeRef, fileId))
-			              .then(files => {
-				              const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
-				              if (calendarFile
-					              && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
-					              && mail.state === MailState.RECEIVED
-				              ) {
-					              Promise.all([
-						              getEventFromFile(calendarFile),
-						              this._getSenderOfResponseMail()
-					              ]).then(([event, recipient]) => {
-						              this._calendarEventAttachment = event && {
-							              event,
-							              method: mailMethodToCalendarMethod(downcast(mail.method)),
-							              recipient,
-						              }
-						              m.redraw()
-					              })
-				              }
-				              this._attachments = files
-				              return this._inlineFileIds.then((inlineCids) => {
+			//We make the requests sequentially and wait for _inlineFileIds to resolve
+			return this._inlineFileIds.then((inlineCids) => {
+				this._loadingAttachments = true
+				const attachmentsListId = listIdPart(mail.attachments[0])
+				const attchmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+				return locator.entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds)
+				              .then(files => {
+					              const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
+					              if (calendarFile
+						              && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
+						              && mail.state === MailState.RECEIVED
+					              ) {
+						              Promise.all([
+							              getEventFromFile(calendarFile),
+							              this._getSenderOfResponseMail()
+						              ]).then(([event, recipient]) => {
+							              this._calendarEventAttachment = event && {
+								              event,
+								              method: mailMethodToCalendarMethod(downcast(mail.method)),
+								              recipient,
+							              }
+							              m.redraw()
+						              })
+					              }
+					              this._attachments = files
 					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
 					              this._loadingAttachments = false
 					              m.redraw()
@@ -912,11 +915,11 @@ export class MailViewer {
 							              })
 						              ).return(inlineImages)
 				              })
-			              })
-			              .catch(NotFoundError, e => {
-				              console.log("could load attachments as they have been moved/deleted already", e)
-				              return {}
-			              })
+				              .catch(NotFoundError, e => {
+					              console.log("could load attachments as they have been moved/deleted already", e)
+					              return {}
+				              })
+			})
 		}
 	}
 
@@ -1180,9 +1183,9 @@ export class MailViewer {
 
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
-		update(this.mail)
-			.catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
-			.catch(NotFoundError, noOp)
+		locator.entityClient.update(this.mail)
+		       .catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
+		       .catch(NotFoundError, noOp)
 	}
 
 	_editDraft(): Promise<void> {
@@ -1321,7 +1324,7 @@ export class MailViewer {
 	_getAssignableMailRecipients(): Promise<GroupInfo[]> {
 		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
 			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
-			return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return loadGroupInfos(participantGroupInfos.filter(groupInfoId => {
 					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
 				})).filter(groupInfo => groupInfo.deleted == null)
@@ -1431,7 +1434,7 @@ export class MailViewer {
 	_showHeaders() {
 		if (!this.mailHeaderDialog.visible) {
 			if (this.mail.headers) {
-				load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+				locator.entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
 						this.mailHeaderInfo = getMailHeaders(mailHeaders)
 						this.mailHeaderDialog.show()
 					}
