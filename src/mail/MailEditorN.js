@@ -41,7 +41,8 @@ import {
 	chooseAndAttachFile,
 	cleanupInlineAttachments,
 	createAttachmentButtonAttrs,
-	createPasswordField, getConfidentialStateMessage,
+	createPasswordField,
+	getConfidentialStateMessage,
 	MailEditorRecipientField
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
@@ -55,7 +56,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 
@@ -156,12 +157,13 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		}
 
 		if (model.logins().isInternalUserLoggedIn()) {
-			neverNull(this.recipientFields.to).component.textField._injectionsRight = () => m(ExpanderButtonN, {
+			this.recipientFields.to.component.textField._injectionsRight = () => m(ExpanderButtonN, {
 				label: "show_action",
 				expanded: a.areDetailsExpanded,
+				class: ".mr-s",
 			})
 		} else {
-			neverNull(this.recipientFields.to).component.textField.setDisabled()
+			this.recipientFields.to.component.textField.setDisabled()
 		}
 
 		if (a.inlineImages) {

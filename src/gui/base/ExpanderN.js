@@ -16,7 +16,8 @@ export type ExpanderAttrs = {
 	expanded: Stream<boolean>,
 	showWarning?: boolean,
 	style?: Object,
-	color?: string
+	color?: string,
+	class?: string,
 }
 
 export type ExpanderPanelAttrs = {
@@ -29,8 +30,8 @@ export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
 
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
-		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
-			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width.mr-s", {
+		return m(".flex.limit-width" + (a.class || ""), [ // .limit-width does not work without .flex in IE11
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style: a.style,
 				onclick: (event: MouseEvent) => {
 					this.toggle(a.expanded)

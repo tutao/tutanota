@@ -421,6 +421,7 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 				label: "guests_label",
 				expanded: attendeesExpanded,
 				style: {paddingTop: 0},
+				class: ".mr-s",
 			})
 		})
 	}
