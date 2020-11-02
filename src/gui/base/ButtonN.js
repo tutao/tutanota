@@ -109,10 +109,10 @@ export type ButtonAttrs = {
 /**
  * A button.
  */
-class _Button {
+export class ButtonN implements MComponent<LifecycleAttrs<ButtonAttrs>> {
 	_domButton: HTMLElement;
 
-	view(vnode: Vnode<LifecycleAttrs<ButtonAttrs>>) {
+	view(vnode: Vnode<LifecycleAttrs<ButtonAttrs>>): Children {
 		const a = vnode.attrs
 		const type = this.getType(a.type)
 		const title = a.title !== undefined ? this.getTitle(a.title) : lang.getMaybeLazy(a.label)
@@ -152,7 +152,7 @@ class _Button {
 		)
 	}
 
-	_getStyle(a) {
+	_getStyle(a: LifecycleAttrs<ButtonAttrs>): {} {
 		return a.type === ButtonType.Login
 			? {
 				'border-radius': '3px',
@@ -171,11 +171,11 @@ class _Button {
 		return lang.getMaybeLazy(title)
 	}
 
-	getType(type: ?ButtonTypeEnum) {
+	getType(type: ?ButtonTypeEnum): ButtonTypeEnum {
 		return type ? type : ButtonType.Action
 	}
 
-	getIcon(a: ButtonAttrs) {
+	getIcon(a: ButtonAttrs): Children {
 		return (a.icon instanceof Function && a.icon()) ? m(Icon, {
 			icon: a.icon(),
 			class: this.getIconClass(a),
@@ -186,7 +186,7 @@ class _Button {
 		}) : null
 	}
 
-	getIconColor(a: ButtonAttrs) {
+	getIconColor(a: ButtonAttrs): string {
 		const type = this.getType(a.type)
 
 		if (type === ButtonType.Bubble) {
@@ -200,7 +200,7 @@ class _Button {
 		}
 	}
 
-	getIconBackgroundColor(a: ButtonAttrs) {
+	getIconBackgroundColor(a: ButtonAttrs): string {
 		const type = this.getType(a.type)
 		if ([ButtonType.Toggle, ButtonType.Bubble, ButtonType.Login].includes(type)) {
 			return 'initial'
@@ -213,7 +213,7 @@ class _Button {
 		}
 	}
 
-	getIconClass(a: ButtonAttrs) {
+	getIconClass(a: ButtonAttrs): string {
 		const type = this.getType(a.type)
 		if (type === ButtonType.Login) {
 			return "flex-center items-center button-icon icon-xl pr-s"
@@ -231,7 +231,7 @@ class _Button {
 		}
 	}
 
-	getButtonClasses(a: ButtonAttrs) {
+	getButtonClasses(a: ButtonAttrs): Array<string> {
 		const type = this.getType(a.type)
 		let buttonClasses = ["bg-transparent"]
 		if (type === ButtonType.Floating) {
@@ -251,7 +251,7 @@ class _Button {
 		return buttonClasses
 	}
 
-	getWrapperClasses(a: ButtonAttrs) {
+	getWrapperClasses(a: ButtonAttrs): Array<string> {
 		const type = this.getType(a.type)
 		let wrapperClasses = ["button-content", "flex", "items-center", type]
 		if (![ButtonType.Floating, ButtonType.TextBubble, ButtonType.Toggle].includes(type)) {
@@ -268,7 +268,7 @@ class _Button {
 		return wrapperClasses
 	}
 
-	_getLabelElement(a: ButtonAttrs) {
+	_getLabelElement(a: ButtonAttrs): Children {
 		const type = this.getType(a.type)
 		const label = lang.getMaybeLazy(a.label)
 		if (label.trim() === '' || [ButtonType.Action, ButtonType.Floating].includes(type)) {
@@ -288,7 +288,7 @@ class _Button {
 		}, label)
 	}
 
-	_getLabelStyle(a: ButtonAttrs) {
+	_getLabelStyle(a: ButtonAttrs): {} {
 		const type = this.getType(a.type)
 		let color
 		switch (type) {
@@ -323,8 +323,6 @@ class _Button {
 		}
 	}
 }
-
-export const ButtonN: Class<MComponent<ButtonAttrs>> = _Button
 
 export function isVisible(a: NavButtonAttrs | ButtonAttrs): boolean {
 	return (typeof a.isVisible !== "function") || a.isVisible()

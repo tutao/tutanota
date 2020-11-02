@@ -5,7 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SubscriptionOptions, SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {BusinessUseItems, formatPrice, getFormattetUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
+import {BusinessUseItems, formatPrice, getFormattedUpgradePrice, SubscriptionType, UpgradePriceType} from "./SubscriptionUtils"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 
@@ -28,10 +28,10 @@ export type SubscriptionSelectorAttr = {|
 	proPrices: PlanPrices,
 |}
 
-class _SubscriptionSelector {
+export class SubscriptionSelector implements MComponent<SubscriptionSelectorAttr> {
 	_containerDOM: ?Element;
 
-	view(vnode: Vnode<SubscriptionSelectorAttr>) {
+	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		let buyBoxesViewPlacement
 		if (vnode.attrs.options.businessUse()) {
 			buyBoxesViewPlacement = [
@@ -105,18 +105,18 @@ class _SubscriptionSelector {
 			&& selectorAttrs.currentlyWhitelabelOrdered) ? [
 			lang.get("pricing.comparisonLoginPro_msg"),
 			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
+			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
 		] : []
 		return {
 			heading: 'Premium',
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Premium
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.premiumActionButton,
-			price: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
+			price: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
 			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
 			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)}),
+				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)}),
 				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.premiumPrices.includedStorage}),
 				lang.get("pricing.comparisonDomainPremium_msg"),
 				lang.get("pricing.comparisonSearchPremium_msg"),
@@ -140,18 +140,18 @@ class _SubscriptionSelector {
 			&& selectorAttrs.currentlyWhitelabelOrdered) ? [
 			lang.get("pricing.comparisonLoginPro_msg"),
 			lang.get("pricing.comparisonThemePro_msg"),
-			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
+			lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)})
 		] : []
 		return {
 			heading: 'Teams',
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Teams
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.teamsActionButton,
-			price: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanReferencePrice),
+			price: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.PlanReferencePrice),
 			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
 			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.AdditionalUserPrice)}),
+				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Teams, UpgradePriceType.AdditionalUserPrice)}),
 				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.teamsPrices.includedStorage}),
 				lang.get("pricing.comparisonDomainPremium_msg"),
 				lang.get("pricing.comparisonSearchPremium_msg"),
@@ -174,11 +174,11 @@ class _SubscriptionSelector {
 			actionButton: selectorAttrs.currentlyActive === SubscriptionType.Pro
 				? getActiveSubscriptionActionButtonReplacement()
 				: selectorAttrs.proActionButton,
-			price: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice),
-			originalPrice: getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice),
+			price: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice),
+			originalPrice: getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice),
 			helpLabel: selectorAttrs.options.businessUse() ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg",
 			features: () => [
-				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)}),
+				lang.get("pricing.comparisonAddUser_msg", {"{1}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)}),
 				lang.get("pricing.comparisonStorage_msg", {"{amount}": selectorAttrs.proPrices.includedStorage}),
 				lang.get("pricing.comparisonDomainPremium_msg"),
 				lang.get("pricing.comparisonSearchPremium_msg"),
@@ -189,7 +189,7 @@ class _SubscriptionSelector {
 				lang.get("pricing.comparisonSharingCalendar_msg"),
 				lang.get("pricing.comparisonLoginPro_msg"),
 				lang.get("pricing.comparisonThemePro_msg"),
-				lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattetUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)}),
+				lang.get("pricing.comparisonContactFormPro_msg", {"{price}": getFormattedUpgradePrice(selectorAttrs, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)}),
 			],
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -198,5 +198,3 @@ class _SubscriptionSelector {
 		}
 	}
 }
-
-export const SubscriptionSelector: Class<MComponent<SubscriptionSelectorAttr>> = _SubscriptionSelector

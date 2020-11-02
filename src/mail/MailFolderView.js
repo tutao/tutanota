@@ -1,9 +1,9 @@
 //@flow
 
-import type {NavButtonAttrs} from "../gui/base/NavButtonN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import m from "mithril"
+import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {animations, opacity} from "../gui/animation/Animations"
 
@@ -31,11 +31,11 @@ export class MailFolderView implements MComponent<Attrs> {
 			rightButton
 				? m(ButtonN, Object.assign({}, rightButton, {
 					oncreate: vnode => {
-						vnode.dom.style.opacity = 0
+						vnode.dom.style.opacity = '0'
 						return animations.add(vnode.dom, opacity(0, 1, true))
 					},
 					onbeforeremove: vnode => {
-						vnode.dom.style.opacity = 1
+						vnode.dom.style.opacity = '1'
 						return animations.add(vnode.dom, opacity(1, 0, true))
 					}
 				}))

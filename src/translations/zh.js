@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2020-10-30T16:34:56Z",
+	"updated_at": "2020-12-08T23:28:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -129,7 +129,8 @@ module.exports = {
 		"calendarRepeatIntervalMonthly_label": "每月一次",
 		"calendarRepeatIntervalNoRepeat_label": "请勿重复",
 		"calendarRepeatIntervalWeekly_label": "每周一次",
-		"calendarRepeatStopConditionNever_label": "从不",
+		"calendarRepeatStopConditionDate_label": "截至日期",
+		"calendarRepeatStopConditionNever_label": "一直重复",
 		"calendarRepeatStopConditionOccurrences_label": "发生之后",
 		"calendarRepeatStopCondition_label": "完结",
 		"calendarShareCapabilityInvite_label": "编辑和管理共享",

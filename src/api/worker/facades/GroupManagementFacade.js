@@ -44,7 +44,8 @@ export class GroupManagementFacade {
 	createMailGroup(name: string, mailAddress: string): Promise<void> {
 		let adminGroupIds = this._login.getGroupIds(GroupType.Admin)
 		if (adminGroupIds.length === 0) {
-			adminGroupIds = this._login.getGroupIds(GroupType.LocalAdmin)
+			adminGroupIds = this._login
+			                    .getGroupIds(GroupType.LocalAdmin)
 		}
 		let adminGroupKey = this._login.getGroupKey(adminGroupIds[0])
 		let customerGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Customer))

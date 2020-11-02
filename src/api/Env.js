@@ -24,6 +24,11 @@ export function getHttpOrigin(): string {
 	}
 }
 
+export function getWebRoot(): string {
+	const origin = getHttpOrigin()
+	return origin + (origin.includes("localhost") ? "/client/build" : "")
+}
+
 export function isTutanotaDomain(): boolean {
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
 	return location.hostname.endsWith("tutanota.com") || location.hostname.indexOf(".") === -1

@@ -2,4 +2,5 @@
     <string name="reminder_label">Påmindelse</string>
     <string name="pushNewMail_msg">Ny e-mail modtaget.</string>
     <string name="wantToSendReport_msg">Noget uventet gik galt. Vil du sende en fejlrapport? Du kan tilføje en besked for at hjælpe os med at rette op på denne fejl.</string>
+    <string name="downloadCompleted_msg">Download afsluttet</string>
 </resources>

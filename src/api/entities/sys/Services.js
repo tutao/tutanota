@@ -42,5 +42,7 @@ export const SysService = Object.freeze({
 	AlarmService: "alarmservice",
 	CustomDomainCheckService: "customdomaincheckservice",
 	CloseSessionService: "closesessionservice",
-	TakeOverDeletedAddressService: "takeoverdeletedaddressservice"
+	TakeOverDeletedAddressService: "takeoverdeletedaddressservice",
+	GiftCardService: "giftcardservice",
+	GiftCardRedeemService: "giftcardredeemservice"
 })

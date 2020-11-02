@@ -22,6 +22,11 @@ import {createCloseSessionServicePost} from "../entities/sys/CloseSessionService
 import {worker} from "./WorkerClient"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
+import {CustomerInfoTypeRef} from "../entities/sys/CustomerInfo"
+import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
+import {locator} from "./MainLocator"
+import type {AccountingInfo} from "../entities/sys/AccountingInfo"
+import type {CustomerInfo} from "../entities/sys/CustomerInfo"
 
 assertMainOrNode()
 
@@ -46,6 +51,10 @@ export interface IUserController {
 	isInternalUser(): boolean;
 
 	loadCustomer(): Promise<Customer>;
+
+	loadCustomerInfo(): Promise<CustomerInfo>;
+
+	loadAccountingInfo(): Promise<AccountingInfo>;
 
 	getMailGroupMemberships(): GroupMembership[];
 
@@ -127,9 +136,18 @@ export class UserController implements IUserController {
 	}
 
 	loadCustomer(): Promise<Customer> {
-		return load(CustomerTypeRef, neverNull(this.user.customer))
+		return locator.entityClient.load(CustomerTypeRef, neverNull(this.user.customer))
 	}
 
+	loadCustomerInfo(): Promise<CustomerInfo> {
+		return this.loadCustomer()
+		           .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+	}
+
+	loadAccountingInfo(): Promise<AccountingInfo> {
+		return this.loadCustomerInfo()
+		           .then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+	}
 
 	getMailGroupMemberships(): GroupMembership[] {
 		return this.user.memberships.filter(membership => membership.groupType === GroupType.Mail)

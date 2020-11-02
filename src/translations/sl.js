@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2020-11-13T13:27:19Z",
+	"updated_at": "2020-11-24T00:12:41Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -459,7 +459,7 @@ module.exports = {
 		"formatTextUl_msg": "Neurejen seznam",
 		"formatTextUnderline_msg": "Izbrano besedilo naj bo podčrtano.",
 		"forward_action": "Posreduj",
-		"freeAccountInfo_msg": "Na osebo je dovoljen samo en brezplačen račun, brezplačni računi pa se lahko uporabljajo samo za zasebno komunikacijo. Če želite Tutanoto uporabljati v poslovne namene (npr. za podjetje ali organizacijo ali kot s.p.), naročite plačljivo naročnino. Upoštevajte tudi, da se brezplačni računi izbrišejo, če niso uporabljeni več kot šest mesecev.",
+		"freeAccountInfo_msg": "Na osebo je dovoljen samo en brezplačen račun. Brezplačni računi se lahko uporabljajo samo za zasebno komunikacijo. Če želite Tutanoto uporabljati v poslovne namene, naročite plačljivo naročnino. Upoštevajte tudi, da se brezplačni računi izbriše, če se vanj ne prijavite več kot šest mesecev.",
 		"from_label": "Od",
 		"functionNotSupported_msg": "Ta funkcija ni podprta s strani vaše naprave ali brskalnika.",
 		"germanLanguageFile_label": "Datoteka v nemščini",

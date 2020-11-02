@@ -26,6 +26,7 @@ import {showProgressDialog} from "./ProgressDialog"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../../api/common/utils/AriaUtils"
 import {styles} from "../styles"
+import {defer} from "../../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -354,6 +355,7 @@ export class Dialog {
 			const dialog = Dialog.confirmMultiple(messageIdOrMessageFunction, buttonAttrs, resolve)
 		})
 	}
+
 
 	/**
 	 * Show a dialog with multiple selection options below the message.

@@ -950,3 +950,7 @@ export const privacy_en = `<section id="privacy-en" class="content">
         with the request and getting in contact with the affected person. We will not disclose this personal data to
         third parties.</p>
 </section>`
+
+export const giftCards_en = `<section id="gift-cards-terms-en" class="content"><h1>TODO</h1></section>` // TODO
+
+export const giftCards_de = `<section id="gift-cards-terms-de" class="content"><h1>TODO</h1></section>` // TODO

@@ -50,7 +50,6 @@ import {UnencryptedStatisticLogEntryTypeRef} from "../api/entities/tutanota/Unen
 import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../subscription/PriceUtils"
-import * as WhitelabelBuyDialog from "../subscription/WhitelabelAndSharingBuyDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
@@ -61,7 +60,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import * as EditNotificationEmailDialog from "./EditNotificationEmailDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
+import {isWhitelabelActive, showWhitelabelBuyDialog} from "../subscription/SubscriptionUtils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/CalendarUtils"
 import {SysService} from "../api/entities/sys/Services"
@@ -207,14 +206,14 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						const enableWhiteLabelAction = {
 							label: "whitelabelDomain_label",
 							click: createNotAvailableForFreeClickHandler(false,
-								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(true),
+								() => showWhitelabelBuyDialog(true),
 								() => logins.getUserController().isPremiumAccount()),
 							icon: () => Icons.Edit,
 						}
 						const disableWhiteLabelAction = {
 							label: "whitelabelDomain_label",
 							click: createNotAvailableForFreeClickHandler(false,
-								() => WhitelabelBuyDialog.showWhitelabelBuyDialog(false),
+								() => showWhitelabelBuyDialog(false),
 								() => logins.getUserController().isPremiumAccount()),
 							icon: () => Icons.Cancel,
 						}
@@ -251,7 +250,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							if (logins.getUserController().isFreeAccount()) {
 								showNotAvailableForFreeDialog(false)
 							} else {
-								const whitelabelFailedPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
+								const whitelabelFailedPromise: Promise<boolean> = whitelabelActive ? Promise.resolve(false) : showWhitelabelBuyDialog(true)
 								whitelabelFailedPromise.then(failed => {
 									if (!failed) {
 										SetCustomDomainCertificateDialog.show(customerInfo, certificateInfo)
@@ -591,7 +590,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 
 			const whitelabelFailedPromise: Promise<boolean> = isWhitelabelActive(this._lastBooking) ?
-				Promise.resolve(false) : WhitelabelBuyDialog.showWhitelabelBuyDialog(true)
+				Promise.resolve(false) : showWhitelabelBuyDialog(true)
 			whitelabelFailedPromise.then(failed => {
 				if (!failed) {
 					EditNotificationEmailDialog.show(existingTemplate, this._customerProperties)

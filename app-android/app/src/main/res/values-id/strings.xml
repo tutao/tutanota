@@ -1,5 +1,7 @@
 <resources>
+    <string name="reminder_label">Pengingat</string>
     <string name="pushNewMail_msg">Surel baru diterima.</string>
+    <string name="notificationSync_msg">Sinkronisasi notifikasi</string>
     <string name="scheduleAlarmError_msg">Tidak bisa memasang alarm. Mohon perbarui aplikasi.</string>
     <string name="wantToSendReport_msg">Sesuatu kesalahan terjadi secara tidak terduga. Apakah Anda ingin mengirimkan laporan? Anda dapat menambahkan pesan untuk membantu kami memperbaiki masalah ini. </string>
 </resources>

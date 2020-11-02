@@ -2,8 +2,21 @@
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/Encoding"
+import type {TranslationKey} from "./LanguageViewModel"
 import {lang} from "./LanguageViewModel"
 import {getHttpOrigin} from "../api/Env"
+import {
+	AccessBlockedError,
+	AccessDeactivatedError,
+	AccessExpiredError,
+	BadRequestError,
+	ConnectionError,
+	NotAuthenticatedError,
+	TooManyRequestsError
+} from "../api/common/error/RestError"
+import {CancelledError} from "../api/common/error/CancelledError"
+import {client} from "./ClientDetector"
+import {TutanotaError} from "../api/common/error/TutanotaError"
 
 /**
  * Shows warnings if the invoices is not paid or the registration is not approved yet.
@@ -48,4 +61,28 @@ export function checkApprovalStatus(includeInvoiceNotPaidForAdmin: boolean, defa
 			return true
 		}
 	})
+}
+
+// TODO Use in LoginViewController.handleSession
+export function getLoginErrorMessage(error: TutanotaError): TranslationKey {
+
+	console.log(error.constructor)
+	switch (error.constructor) {
+		case BadRequestError:
+		case NotAuthenticatedError:
+		case AccessDeactivatedError:
+			return "loginFailed_msg"
+		case AccessBlockedError:
+			return "loginFailedOften_msg"
+		case AccessExpiredError:
+			return "inactiveAccount_msg"
+		case TooManyRequestsError:
+			return "tooManyAttempts_msg"
+		case CancelledError:
+			return "emptyString_msg"
+		case ConnectionError:
+			return client.isIE() ? "loginFailed_msg" : "emptyString_msg"
+		default:
+			return "emptyString_msg"
+	}
 }

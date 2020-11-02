@@ -29,7 +29,6 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {SentGroupInvitation} from "../api/entities/sys/SentGroupInvitation"
 import {SentGroupInvitationTypeRef} from "../api/entities/sys/SentGroupInvitation"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {showSharingBuyDialog} from "../subscription/WhitelabelAndSharingBuyDialog"
 import {logins} from "../api/main/LoginController"
 import {RecipientsNotFoundError} from "../api/common/error/RecipientsNotFoundError"
 import type {EntityEventsListener} from "../api/main/EventController"
@@ -43,6 +42,7 @@ import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
+import {showSharingBuyDialog} from "../subscription/SubscriptionUtils"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,

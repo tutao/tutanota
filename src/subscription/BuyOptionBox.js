@@ -13,7 +13,7 @@ import {SegmentControl} from "../gui/base/SegmentControl"
 export type BuyOptionBoxAttr = {|
 	heading: string,
 	actionButton: ?Component,
-	price: string,
+	price?: string,
 	originalPrice: string,
 	helpLabel: TranslationKey | lazy<string>,
 	features: () => string[],
@@ -38,13 +38,9 @@ export function getActiveSubscriptionActionButtonReplacement(): {|view: () => Vn
 
 export const BOX_MARGIN = 10
 
-class _BuyOptionBox {
+export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 
-	constructor() {
-
-	}
-
-	view(vnode: Vnode<BuyOptionBoxAttr>) {
+	view(vnode: Vnode<BuyOptionBoxAttr>): Children {
 
 		return m("", {
 			style: {
@@ -71,7 +67,7 @@ class _BuyOptionBox {
 					}
 				}, vnode.attrs.heading),
 				m(".text-center.pt.flex.center-vertically.center-horizontally", [
-					m("span.h1", vnode.attrs.price),
+					vnode.attrs.price ? m("span.h1", vnode.attrs.price) : null,
 					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
 						? [
 							// This element is for the screen reader because they tend to not announce strikethrough.
@@ -119,14 +115,4 @@ class _BuyOptionBox {
 		])
 	}
 }
-
-export const BuyOptionBox: Class<MComponent<BuyOptionBoxAttr>> = _BuyOptionBox
-
-
-
-
-
-
-
-
 
