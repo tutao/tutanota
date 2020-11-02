@@ -398,7 +398,7 @@ export class SendMailModel {
 				bcc: bccRecipients.map(mailAddressToRecipient),
 			}
 			return this._init({
-				conversationType: ConversationType.NEW,
+				conversationType: conversationType,
 				subject,
 				bodyText,
 				recipients,
