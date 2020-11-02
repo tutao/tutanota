@@ -16,6 +16,7 @@ import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
+import {remove} from "../../api/common/utils/ArrayUtils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -138,10 +139,16 @@ export class DesktopSseClient {
 		this._reschedule(randomIntFromInterval(1, this._connectTimeoutInSeconds))
 		this._disconnect()
 
-		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo)
+		const userId = sseInfo.userIds[0]
+		if (userId == null) {
+			console.log("No user IDs, skip reconnect")
+			this._reschedule(20)
+			return Promise.resolve()
+		}
+		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
 		console.log(
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
-			'userIds', sseInfo.userIds
+			'userIds', userId,
 		)
 		this._connection = this._net.request(url, {
 			headers: {
@@ -156,10 +163,19 @@ export class DesktopSseClient {
 		}).on('response', res => {
 			console.log("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
-				console.log('sse: got 403, deleting identifier')
-				this._connectedSseInfo = null
-				this._conf.setVar('pushIdentifier', null)
-				this._disconnect()
+				console.log('sse: got NotAuthenticated, deleting userId')
+
+				const sseInfo: SseInfo = this._conf.getVar('pushIdentifier')
+				remove(sseInfo.userIds, userId)
+				this._conf.setVar("pushIdentifier", sseInfo)
+				this._connectedSseInfo = sseInfo
+
+				// If we don't remove _connectedSseInfo then timeout loop will restart connection automatiicaly
+				if (sseInfo.userIds.length === 0) {
+					console.log("No user ids, skipping reconnect")
+					this._connectedSseInfo = null
+					this._disconnect()
+				}
 			} else if (this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime) == null) {
 				// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
 				// MISSED_NOTIFICATION_TTL has passed and notifications has expired.
@@ -363,26 +379,24 @@ export class DesktopSseClient {
 		}
 	}
 
-	_reschedule(delay?: number) {
+	_reschedule(delaySeconds?: number) {
 		clearTimeout(neverNull(this._nextReconnect))
 		if (!this._tryToReconnect) return
-		delay = delay ? delay : Math.floor(this._readTimeoutInSeconds * 1.2)
-		if (typeof delay !== 'number' || Number.isNaN(delay)) {
+		delaySeconds = delaySeconds ? delaySeconds : Math.floor(this._readTimeoutInSeconds * 1.2)
+		if (typeof delaySeconds !== 'number' || Number.isNaN(delaySeconds)) {
 			console.error("invalid reschedule delay, setting to 10")
-			delay = 10
+			delaySeconds = 10
 		}
-		console.log('scheduling to reconnect sse in', delay, 'seconds')
+		console.log('scheduling to check sse in', delaySeconds, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
-		this._nextReconnect = this._delayHandler(() => this.connect(), delay * 1000)
+		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
 	}
 
-	_requestJson(sseInfo: SseInfo): string {
+	_requestJson(identifier: string, userId: string): string {
 		return encodeURIComponent(JSON.stringify({
-				"_format": '0',
-				"identifier": sseInfo.identifier,
-				"userIds": sseInfo.userIds.map(userId => {
-					return {"_id": this._crypto.generateId(4), "value": userId}
-				})
+				_format: '0',
+				identifier: identifier,
+				userIds: [{"_id": this._crypto.generateId(4), "value": userId}]
 			}
 		))
 	}
