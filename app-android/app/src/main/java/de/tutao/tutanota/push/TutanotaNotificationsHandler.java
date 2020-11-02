@@ -164,9 +164,15 @@ public class TutanotaNotificationsHandler {
 		return lastMissedNotificationCheckTime != null && (System.currentTimeMillis() - lastMissedNotificationCheckTime.getTime()) > MISSED_NOTIFICATION_TTL;
 	}
 
-	public void onNotAuthorized() {
-		alarmNotificationsManager.unscheduleAlarms(null);
-		sseStorage.clear();
+	public void onNotAuthorized(String userId) {
+		// If we get notAuthorized, then user removed push identifier and we should try the next one.
+		// It will be done automatically when we remove the user from DB because there's already an observer for users
+		// in PushNotificationService which restarts the connection.
+		this.sseStorage.removeUser(userId);
+		if (this.sseStorage.getUsers().isEmpty()) {
+			alarmNotificationsManager.unscheduleAlarms(null);
+			sseStorage.clear();
+		}
 	}
 
 	static class ClientRequestException extends HttpException {

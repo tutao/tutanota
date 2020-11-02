@@ -87,7 +87,7 @@ public class MainActivity extends ComponentActivity {
 		doChangeTheme(PreferenceManager.getDefaultSharedPreferences(this)
 				.getString(THEME_PREF, "light"));
 
-		sseStorage = new SseStorage(this, AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false), new AndroidKeyStoreFacade(this));
+		sseStorage = new SseStorage(AppDatabase.getDatabase(this, /*allowMainThreadAccess*/false), new AndroidKeyStoreFacade(this));
 		nativeImpl = new Native(this, sseStorage);
 
 		super.onCreate(savedInstanceState);

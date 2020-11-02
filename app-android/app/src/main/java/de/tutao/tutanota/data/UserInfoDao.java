@@ -13,6 +13,9 @@ import static androidx.room.OnConflictStrategy.REPLACE;
 @Dao
 public abstract class UserInfoDao {
 	@Query("SELECT * FROM User")
+	public abstract List<User> getUsers();
+
+	@Query("SELECT * FROM User")
 	public abstract LiveData<List<User>> observeUsers();
 
 	@Query("SELECT * FROM PushIdentifierKey WHERE pushIdentifierId = :pushIdentifier")
@@ -36,4 +39,6 @@ public abstract class UserInfoDao {
 	@Query("Delete FROM User")
 	abstract void clearUsers();
 
+	@Query("DELETE FROM User WHERE userId = :userId")
+	public abstract void deleteUser(String userId);
 }
