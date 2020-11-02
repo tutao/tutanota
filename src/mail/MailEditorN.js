@@ -12,6 +12,7 @@ import {checkApprovalStatus} from "../misc/LoginUtils"
 import {
 	conversationTypeString,
 	createInlineImage,
+	getDefaultSignature,
 	getEmailSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
@@ -41,7 +42,8 @@ import {
 	chooseAndAttachFile,
 	cleanupInlineAttachments,
 	createAttachmentButtonAttrs,
-	createPasswordField, getConfidentialStateMessage,
+	createPasswordField,
+	getConfidentialStateMessage,
 	MailEditorRecipientField
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
@@ -548,7 +550,7 @@ export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean,
 	return _mailboxPromise(mailboxDetails).then(mailbox => {
 		const mailTo = parseMailtoUrl(mailtoUrl)
 		const subject = mailTo.subject
-		const body = mailTo.body
+		const body = mailTo.body + getDefaultSignature()
 		const recipients = {
 			to: mailTo.to.map(mailAddressToRecipient),
 			cc: mailTo.cc.map(mailAddressToRecipient),
