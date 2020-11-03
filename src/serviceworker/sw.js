@@ -5,6 +5,10 @@ declare var filesToCache: () => Array<string | URL>;
 declare var version: () => string;
 declare var customDomainCacheExclusions: () => Array<string>;
 
+// test case
+var versionString = typeof version === "undefined" ? "test" : version()
+console.log("sw start", versionString)
+
 const isTutanotaDomain = () =>
 	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
 	self.location.hostname.endsWith("tutanota.com") || self.location.hostname.indexOf(".") === -1
@@ -139,18 +143,20 @@ class ServiceWorker {
 }
 
 const init = (sw: ServiceWorker) => {
+	console.log("sw init", versionString)
 	self.addEventListener("install", (evt) => {
-		console.log("SW: being installed")
+		console.log("SW: being installed", versionString)
 		evt.waitUntil(sw.precache())
 	})
 	self.addEventListener('activate', (event) => {
+		console.log("sw activate", versionString)
 		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
 	})
 	self.addEventListener('fetch', (evt) => {
 		sw.respond(evt)
 	})
 	self.addEventListener("message", (event) => {
-		console.log("sw message", event)
+		console.log("sw message", versionString, event)
 		if (event.data === "update") {
 			self.skipWaiting()
 		}
@@ -175,9 +181,11 @@ const init = (sw: ServiceWorker) => {
 // We should probably split the class and the actual content into separate files and just bundle them together during the build.
 module.exports = {ServiceWorker}
 
-// do not add listeners for Node tests
-if (typeof env !== "undefined" && env.mode !== "Test") {
-	const cacheName = "CODE_CACHE-v" + version()
+console.log("sw top-level end", versionString)
+
+// do not add listeners for Node tests. env is not set for production
+if (typeof env === "undefined" || env.mode !== "Test") {
+	const cacheName = "CODE_CACHE-v" + versionString
 	const selfLocation = self.location.href.substring(0, self.location.href.indexOf("sw.js"))
 	const exclusions = customDomainCacheExclusions()
 	const urlsToCache = (isTutanotaDomain()
