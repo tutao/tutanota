@@ -32,7 +32,7 @@ export class ApplicationWindow {
 	_findingInPage: boolean = false;
 	_skipNextSearchBarBlur: boolean = false;
 	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
-	_lastSearchPromiseReject: () => void;
+	_lastSearchPromiseReject: (?string) => void;
 	_shortcuts: Array<Shortcut>;
 	id: number;
 
