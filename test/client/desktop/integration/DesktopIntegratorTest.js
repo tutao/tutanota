@@ -2,6 +2,11 @@
 import o from "ospec/ospec.js"
 import n from "../../nodemocker"
 
+const desktopEntry = '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.'
+	+ '\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application'
+	+ '\nIcon=appName.png\nStartupWMClass=appName\nMimeType=x-scheme-handler/mailto;'
+	+ '\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage'
+
 o.spec("DesktopIntegrator Test", () => {
 	n.startGroup({
 		group: __filename,
@@ -390,7 +395,7 @@ o.spec("DesktopIntegrator Test", () => {
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
+					content: desktopEntry,
 					opts: {encoding: 'utf-8'}
 				}
 			])
@@ -431,7 +436,7 @@ o.spec("DesktopIntegrator Test", () => {
 					opts: {encoding: 'utf-8', flag: 'a'}
 				}, {
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
+					content: desktopEntry,
 					opts: {encoding: 'utf-8'}
 				}
 			])
@@ -514,7 +519,7 @@ o.spec("DesktopIntegrator Test", () => {
 			o(fsExtraMock.writtenFiles).deepEquals([
 				{
 					file: '/app/path/file/.local/share/applications/appName.desktop',
-					content: '[Desktop Entry]\nName=Tutanota Desktop\nComment=The desktop client for Tutanota, the secure e-mail service.\nExec="/appimage/path/file.appImage" %U\nTerminal=false\nType=Application\nIcon=appName.png\nStartupWMClass=de.tutao.appName\nMimeType=x-scheme-handler/mailto;\nCategories=Network;\nX-Tutanota-Version=appVersion\nTryExec=/appimage/path/file.appImage',
+					content: desktopEntry,
 					opts: {encoding: 'utf-8'}
 				}
 			])
