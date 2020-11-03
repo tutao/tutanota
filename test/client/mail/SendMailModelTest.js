@@ -44,6 +44,7 @@ import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/Notifi
 import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
+import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 
 
 type TestIdGenerator = {
@@ -133,9 +134,9 @@ const SUBJECT_LINE_1 = "Did you get that thing I sent ya"
 const STRONG_PASSWORD = "@()IE!)(@FME)0-123jfDSA32SDACmmnvnvddEW"
 const WEAK_PASSWORD = "123"
 
-o.spec("SendMailModel", function() {
+o.spec("SendMailModel", function () {
 
-	o.before(function() {
+	o.before(function () {
 		// we need lang initialized because the SendMailModel constructor requires some translation
 		lang.init(en)
 	})
@@ -146,7 +147,7 @@ o.spec("SendMailModel", function() {
 
 	let mockedAttributeReferences = []
 
-	o.beforeEach(function() {
+	o.beforeEach(function () {
 
 		currentIdValue: 0,
 			testIdGenerator = {
@@ -238,14 +239,14 @@ o.spec("SendMailModel", function() {
 		mockedAttributeReferences.push(mockAttribute(worker, worker.updateMailDraft, o.spy(worker.updateMailDraft)))
 	})
 
-	o.afterEach(function() {
+	o.afterEach(function () {
 		mockedAttributeReferences.forEach(ref => unmockAttribute(ref))
 		mockedAttributeReferences = []
 	})
 
 
-	o.spec("initialization", function() {
-		o.beforeEach(function() {
+	o.spec("initialization", function () {
+		o.beforeEach(function () {
 			mockAttribute(model, model._createAndResolveRecipientInfo, (name, address, contact, resolveLazily) => {
 				const ri: RecipientInfo = {
 					type: isTutanotaMailAddress(address) ? RecipientInfoType.INTERNAL : RecipientInfoType.EXTERNAL,
@@ -261,7 +262,7 @@ o.spec("SendMailModel", function() {
 			})
 		})
 
-		o("initWithTemplate empty", async function() {
+		o("initWithTemplate empty", async function () {
 
 			await model.initWithTemplate({}, "", "", [], false)
 
@@ -278,7 +279,7 @@ o.spec("SendMailModel", function() {
 			o(model.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithTemplate data", async function() {
+		o("initWithTemplate data", async function () {
 
 			const initializedModel = await model.initWithTemplate(
 				{to: [INTERNAL_RECIPIENT_1]},
@@ -302,7 +303,7 @@ o.spec("SendMailModel", function() {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithTemplate duplicated recipients", async function() {
+		o("initWithTemplate duplicated recipients", async function () {
 
 			const duplicate = {
 				name: INTERNAL_RECIPIENT_1.name,
@@ -331,8 +332,13 @@ o.spec("SendMailModel", function() {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithDraft with blank data", async function() {
-
+		o("initWithDraft with blank data", async function () {
+			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params) => {
+				const values = {_id: id}
+				const ce = createConversationEntry()
+				ce.conversationType = ConversationType.REPLY
+				return Promise.resolve(ce)
+			})
 			const draftMail = createMail({
 				confidential: false,
 				sender: createMailAddress(),
@@ -342,10 +348,10 @@ o.spec("SendMailModel", function() {
 				subject: "",
 				replyTos: []
 			})
-
 			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1)
+			unmockAttribute(loadMock)
 
-			o(initializedModel.getConversationType()).equals(ConversationType.NEW)
+			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
 			o(initializedModel.getDraft()).equals(draftMail)
@@ -357,7 +363,13 @@ o.spec("SendMailModel", function() {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 
-		o("initWithDraft with some data", async function() {
+		o("initWithDraft with some data", async function () {
+			const loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params) => {
+				const values = {_id: id}
+				const ce = createConversationEntry()
+				ce.conversationType = ConversationType.FORWARD
+				return Promise.resolve(ce)
+			})
 			const draftMail = createMail({
 				confidential: true,
 				sender: createMailAddress(),
@@ -367,10 +379,10 @@ o.spec("SendMailModel", function() {
 				subject: SUBJECT_LINE_1,
 				replyTos: []
 			})
-
 			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1)
+			unmockAttribute(loadMock)
 
-			o(initializedModel.getConversationType()).equals(ConversationType.NEW)
+			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
 			o(initializedModel.getDraft()).equals(draftMail)
@@ -386,14 +398,14 @@ o.spec("SendMailModel", function() {
 		})
 	})
 
-	o.spec("Adding and removing recipients", function() {
+	o.spec("Adding and removing recipients", function () {
 
-		o.beforeEach(async function() {
+		o.beforeEach(async function () {
 			await model.initWithTemplate({}, "", "", [], false, "")
 
 		})
 
-		o("adding duplicate to recipient", async function() {
+		o("adding duplicate to recipient", async function () {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
@@ -413,7 +425,7 @@ o.spec("SendMailModel", function() {
 
 		})
 
-		o("add different to recipients", async function() {
+		o("add different to recipients", async function () {
 			const pablo = {
 				name: "pablo",
 				address: "pablo94@test.co.uk",
@@ -448,7 +460,7 @@ o.spec("SendMailModel", function() {
 
 		})
 
-		o("add duplicate recipients to different fields", async function() {
+		o("add duplicate recipients to different fields", async function () {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
@@ -692,7 +704,7 @@ o.spec("SendMailModel", function() {
 		let loadMock
 		let existingContact
 
-		o.beforeEach(async function() {
+		o.beforeEach(async function () {
 			existingContact = createContact({
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
@@ -710,7 +722,7 @@ o.spec("SendMailModel", function() {
 			await model.initWithTemplate({to: recipients}, "they all drink lemonade", "")
 		})
 
-		o.afterEach(function() {
+		o.afterEach(function () {
 		})
 
 		o("nonmatching event", async function () {
