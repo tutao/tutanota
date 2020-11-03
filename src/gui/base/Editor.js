@@ -7,6 +7,7 @@ import {px} from "../size"
 import {Dialog} from "./Dialog"
 import {isMailAddress} from '../../misc/FormatValidator.js'
 import type {ImageHandler} from '../../mail/MailUtils'
+import {TabIndex} from "../../api/common/TutanotaConstants"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 
@@ -72,6 +73,7 @@ export class Editor implements ImageHandler {
 			return m(".hide-outline.selectable", {
 				role: "textbox",
 				"aria-multiline": "true",
+				tabindex: TabIndex.Default,
 				oncreate: vnode => this.initSquire(vnode.dom),
 				style: this._minHeight ? {"min-height": px(this._minHeight)} : {},
 			})
