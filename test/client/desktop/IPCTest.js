@@ -136,11 +136,9 @@ o.spec("IPC tests", () => {
 			id: 42,
 			sendMessageToWebContents: () => {
 			},
-			findInPage: () => {
-				return {
-					then: cb => cb({numberOfMatches: 37, currentMatch: 13})
-				}
-			},
+			findInPage: () => new Promise((resolve, reject) => {
+				resolve({numberOfMatches: 37, currentMatch: 13})
+			}),
 			stopFindInPage: () => {
 
 			},
@@ -283,7 +281,7 @@ o.spec("IPC tests", () => {
 			o(windowMock.sendMessageToWebContents.args[1]).deepEquals({
 				id: 'id2',
 				type: 'response',
-				value: {numberOfMatches: 37, currentMatch: 13}// there it is
+				value: {numberOfMatches: 37, currentMatch: 13}
 			})
 
 			electronMock.ipcMain.callbacks[CALLBACK_ID]({}, JSON.stringify({
