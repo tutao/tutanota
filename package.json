@@ -17,7 +17,7 @@
 	"dependencies": {
 		"autolinker": "3.11.1",
 		"bluebird": "3.7.2",
-		"dompurify": "2.1.1",
+		"dompurify": "2.2.2",
 		"keytar": "7.0.0",
 		"luxon": "^1.22.0",
 		"mithril": "2.0.4",
