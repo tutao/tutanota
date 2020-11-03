@@ -89,7 +89,7 @@ export class SearchInPageOverlay {
 					}
 				},
 				onfocus: e => nativeApp.invokeNative(new Request("setSearchOverlayState", [true, false])),
-				oninput: e => this._find(true, false),
+				oninput: e => this._find(true, true),
 				style: {
 					width: px(250),
 					top: 0,
@@ -102,7 +102,6 @@ export class SearchInPageOverlay {
 	}
 
 	_find: ((forward: boolean, findNext: boolean) => Promise<void>) = (forward, findNext) => {
-		console.log("finding next", this._domInput.value)
 		this._skipNextBlur = true
 		return nativeApp.invokeNative(new Request("findInPage", [
 			this._domInput.value, {
@@ -173,6 +172,7 @@ export class SearchInPageOverlay {
 									if (keyCode === Keys.ESC.code) {
 										this.close()
 									}
+									// prevent key from getting picked up by shortcuts etc.
 									e.stopPropagation()
 									return true
 								},

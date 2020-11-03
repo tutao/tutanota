@@ -13,6 +13,7 @@ import {Keys} from "../api/common/TutanotaConstants"
 import type {Shortcut} from "../misc/KeyManager"
 import {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
+import {noOp} from "../api/common/utils/Utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -31,6 +32,7 @@ export class ApplicationWindow {
 	_findingInPage: boolean = false;
 	_skipNextSearchBarBlur: boolean = false;
 	_lastSearchRequest: ?[string, {forward: boolean, matchCase: boolean}] = null;
+	_lastSearchPromiseReject: () => void;
 	_shortcuts: Array<Shortcut>;
 	id: number;
 
@@ -38,6 +40,7 @@ export class ApplicationWindow {
 		this._userInfo = null
 		this._ipc = wm.ipc
 		this._startFile = DesktopUtils.pathToFileURL(path.join(app.getAppPath(), conf.getConst("desktophtml")),)
+		this._lastSearchPromiseReject = noOp
 
 		const isMac = process.platform === 'darwin';
 		this._shortcuts = [
@@ -294,10 +297,16 @@ export class ApplicationWindow {
 		if (searchTerm !== '') {
 			this._lastSearchRequest = [searchTerm, options]
 			this._browserWindow.webContents.findInPage(searchTerm, options)
-			return new Promise((resolve) => {
-				this._browserWindow.webContents.once('found-in-page', (ev: Event, res: FindInPageResult) => {
-					resolve(res)
-				})
+			return new Promise((resolve, reject) => {
+				this._lastSearchPromiseReject("outdated request")
+				this._lastSearchPromiseReject = reject
+				this._browserWindow.webContents
+					// the last listener might not have fired yet
+					.removeAllListeners('found-in-page')
+					.once('found-in-page', (ev: Event, res: FindInPageResult) => {
+						this._lastSearchPromiseReject = noOp
+						resolve(res)
+					})
 			})
 		} else {
 			this.stopFindInPage()
