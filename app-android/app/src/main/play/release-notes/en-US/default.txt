@@ -1,4 +1,2 @@
-* Show day of week in calendar event
-* Remember calendar visibility across logins
-* Various bugfixes
-
+* Security patch (could not be exploited)
+* Other small bugfixes
