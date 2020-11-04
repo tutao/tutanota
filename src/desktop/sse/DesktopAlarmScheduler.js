@@ -1,5 +1,4 @@
 // @flow
-
 import {lang} from "../../misc/LanguageViewModel"
 import type {AlarmIntervalEnum, RepeatPeriodEnum} from "../../api/common/TutanotaConstants"
 import {AlarmInterval, AlarmIntervalByCode, EndType, OperationType, RepeatPeriod} from "../../api/common/TutanotaConstants"
@@ -13,6 +12,7 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import {downcast} from "../../api/common/utils/Utils"
 import {getAllDayDateLocal, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {log} from "../DesktopUtils"
 
 export type TimeoutData = {
 	id: TimeoutID,
@@ -69,7 +69,7 @@ export class DesktopAlarmScheduler {
 	 */
 	handleAlarmNotification(an: any): void {
 		if (an.operation === OperationType.CREATE) {
-			console.log("creating alarm notification!")
+			log.debug("creating alarm notification!")
 			this._alarmStorage.resolvePushIdentifierSessionKey(an.notificationSessionKeys)
 			    .then(({piSk, piSkEncSk}) => this._crypto.decryptAndMapToInstance(AlarmNotificationTypeModel, an, piSk, piSkEncSk))
 			    .then(decAn => {
@@ -83,7 +83,7 @@ export class DesktopAlarmScheduler {
 			    .then(() => this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications))
 			    .catch(e => console.error("failed to schedule alarm!", e))
 		} else if (an.operation === OperationType.DELETE) {
-			console.log(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
+			log.debug(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
 			this._cancelAlarms(an)
 			this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
 		} else {
@@ -151,12 +151,12 @@ export class DesktopAlarmScheduler {
 		if (!hasScheduledAlarms && mightNeedIntermediateSchedule) {
 			const id = setTimeout(() => {
 				clearTimeout(this._scheduledNotifications[identifier].timeouts.shift().id)
-				console.log("intermediate alarm timeout, rescheduling")
+				log.debug("intermediate alarm timeout, rescheduling")
 				this._scheduleAlarms(decAn)
 			}, MAX_SAFE_DELAY)
 			this._scheduledNotifications[identifier].timeouts.push({id: id, time: now() + MAX_SAFE_DELAY})
 		}
-		console.log("scheduled", this._scheduledNotifications[identifier].timeouts.length, "alarm timeouts for ", decAn.alarmInfo.alarmIdentifier)
+		log.debug("scheduled", this._scheduledNotifications[identifier].timeouts.length, "alarm timeouts for ", decAn.alarmInfo.alarmIdentifier)
 		if (this._scheduledNotifications[identifier].timeouts.length === 0) {
 			delete this._scheduledNotifications[identifier]
 		}

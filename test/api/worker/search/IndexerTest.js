@@ -3,7 +3,7 @@ import o from "ospec/ospec.js"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
 import {DbTransaction, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
-import {GroupType, NOTHING_INDEXED_TIMESTAMP} from "../../../../src/api/common/TutanotaConstants"
+import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
 import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/EntityFunctions"
@@ -19,11 +19,12 @@ import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/ap
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 import {browserDataStub, mock, spy} from "../../TestUtils"
-import type {FutureBatchActions, QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
+import type  {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
+import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 
 const restClientMock: EntityRestClient = downcast({})
 
@@ -641,15 +642,14 @@ o.spec("Indexer test", () => {
 		]
 		indexer._indexedGroupIds = [groupId]
 		const batch = {events, groupId, batchId}
-		const futureActions: FutureBatchActions = {deleted: new Map(), moved: new Map()}
-		await indexer._processEntityEvents(batch, futureActions)
+		await indexer._processEntityEvents(batch)
 
 		o(indexer._core.writeIndexUpdateWithBatchId.invocations.length).equals(4)
 		let indexUpdateMail = indexer._core.writeIndexUpdateWithBatchId.invocations[0][2]
 
 		o(indexer._mail.processEntityEvents.callCount).equals(1)
 		o(indexer._mail.processEntityEvents.args)
-			.deepEquals([[events[0]], groupId, batchId, indexUpdateMail, futureActions])
+			.deepEquals([[events[0]], groupId, batchId, indexUpdateMail])
 
 		let indexUpdateContact = indexer._core.writeIndexUpdateWithBatchId.invocations[1][2]
 		o(indexer._contact.processEntityEvents.callCount).equals(1)
@@ -692,7 +692,7 @@ o.spec("Indexer test", () => {
 		let events = [update(MailTypeRef), update(ContactTypeRef), update(GroupInfoTypeRef), update(UserTypeRef)]
 		const batch: QueuedBatch = {events, groupId: "group-id", batchId: "batch-id"}
 		indexer._indexedGroupIds = ["group-id"]
-		indexer._processEntityEvents(batch, {deleted: new Map(), moved: new Map()}).then(() => {
+		indexer._processEntityEvents(batch).then(() => {
 			o(indexer._core.writeIndexUpdate.callCount).equals(0)
 			o(indexer._mail.processEntityEvents.callCount).equals(0)
 			o(indexer._contact.processEntityEvents.callCount).equals(0)
@@ -726,22 +726,26 @@ o.spec("Indexer test", () => {
 			})
 		})
 
-		function update(typeRef: TypeRef<any>) {
-			let u = createEntityUpdate()
-			u.application = typeRef.app
-			u.type = typeRef.type
-			return u
-		}
 
 
-		let events1 = [update(MailTypeRef)]
+		const events1 = [createEntityUpdate({
+			application: MailTypeRef.app,
+			type: MailTypeRef.type,
+			operation: OperationType.CREATE,
+			instanceId: "id-1"
+		})]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch1: QueuedBatch = {
 			events: events1,
 			groupId: "group-id",
 			batchId: "batch-id-1"
 		}
-		let events2 = [update(MailTypeRef)]
+		const events2 = [createEntityUpdate({
+			application: MailTypeRef.app,
+			type: MailTypeRef.type,
+			operation: OperationType.CREATE,
+			instanceId: "id-2"
+		})]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch2: QueuedBatch = {
 			events: events2,

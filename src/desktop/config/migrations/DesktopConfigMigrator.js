@@ -1,4 +1,5 @@
 // @flow
+import {log} from "../../DesktopUtils"
 
 /**
  *
@@ -17,7 +18,7 @@ export default function applyMigrations(migrationFunction: "migrateClient" | "mi
 		case 0:
 			oldConfig = applyMigration(require('./migration-0001')[migrationFunction], oldConfig)
 		case 1:
-			console.log("config up to date")
+			log.debug("config up to date")
 			/* add new migrations as needed */
 			break;
 		default:

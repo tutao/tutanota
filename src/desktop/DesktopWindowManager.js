@@ -11,6 +11,7 @@ import {LOGIN_TITLE} from "../api/Env"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {IPC} from "./IPC"
 import {DesktopContextMenu} from "./DesktopContextMenu"
+import {log} from "./DesktopUtils"
 
 export type WindowBounds = {|
 	rect: Rectangle,
@@ -136,7 +137,7 @@ export class WindowManager {
 	saveBounds(w: ApplicationWindow): void {
 		const lastBounds = w.getBounds()
 		if (this.isRectContainedInRect(screen.getDisplayMatching(lastBounds.rect).bounds, lastBounds.rect)) {
-			console.log("saving bounds:", lastBounds)
+			log.debug("saving bounds:", lastBounds)
 			this._conf.setVar('lastBounds', lastBounds)
 		}
 	}

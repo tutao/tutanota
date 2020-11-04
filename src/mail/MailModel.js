@@ -279,7 +279,8 @@ export class MailModel {
 				const folder = this.getMailFolder(update.instanceListId)
 				if (folder && folder.folderType === MailFolderType.INBOX
 					&& !containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
-					// If we don't find another delete operation on this email in the batch, then it should be a create operation
+					// If we don't find another delete operation on this email in the batch, then it should be a create operation,
+					// otherwise it's a move
 					const mailId = [update.instanceListId, update.instanceId]
 					return load(MailTypeRef, mailId)
 						.then((mail) => this.getMailboxDetailsForMailListId(update.instanceListId)

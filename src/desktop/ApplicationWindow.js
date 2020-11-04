@@ -14,6 +14,7 @@ import type {Shortcut} from "../misc/KeyManager"
 import {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {noOp} from "../api/common/utils/Utils"
+import {log} from "./DesktopUtils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 
@@ -59,7 +60,7 @@ export class ApplicationWindow {
 				{key: Keys.N, ctrl: true, exec: () => {wm.newWindow(true)}, help: "openNewWindow_action"}
 			])
 
-		console.log("startFile: ", this._startFile)
+		log.debug("startFile: ", this._startFile)
 		const preloadPath = path.join(app.getAppPath(), conf.getConst("preloadjs"))
 		this._createBrowserWindow(wm, preloadPath)
 		this._browserWindow.loadURL(
@@ -176,12 +177,12 @@ export class ApplicationWindow {
 			    }
 		    })
 		    .on('did-fail-load', (evt, errorCode, errorDesc) => {
-			    console.log("failed to load resource: ", errorDesc)
+			    log.debug("failed to load resource: ", errorDesc)
 			    if (errorDesc === 'ERR_FILE_NOT_FOUND') {
-				    console.log("redirecting to start page...")
+				    log.debug("redirecting to start page...")
 				    this._browserWindow.loadURL(this._startFile + "?noAutoLogin=true")
 				        .then(() => {
-					        console.log("...redirected")
+					        log.debug("...redirected")
 				        })
 			    }
 		    })
@@ -225,7 +226,7 @@ export class ApplicationWindow {
 		if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
 			this._browserWindow.webContents.goBack()
 		} else {
-			console.log("Ignore back events on login page")
+			log.debug("Ignore back events on login page")
 		}
 	}
 
@@ -249,11 +250,11 @@ export class ApplicationWindow {
 
 	sendMessageToWebContents(message: WebContentsMessage | number, args: any) {
 		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			console.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
+			log.warn(`BrowserWindow unavailable, not sending message ${message}:\n${args}`)
 			return
 		}
 		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			console.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
+			log.warn(`WebContents unavailable, not sending message ${message}:\n${args}`)
 			return
 		}
 		this._browserWindow.webContents.send(message.toString(), args)

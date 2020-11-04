@@ -20,6 +20,7 @@ import {remove} from "../../api/common/utils/ArrayUtils"
 import {Mode} from "../../api/Env"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
+import {log} from "../DesktopUtils"
 
 export type SseInfo = {|
 	identifier: string,
@@ -32,8 +33,6 @@ let INITIAL_CONNECT_TIMEOUT: number
 let MAX_CONNECT_TIMEOUT: number
 
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
-
-const log: ((...args: any) => void) = env.mode === Mode.Test ? noOp : console.log.bind(console)
 
 export class DesktopSseClient {
 	_app: App;
@@ -99,7 +98,7 @@ export class DesktopSseClient {
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
-		log("storing push identifier", identifier.substring(0, 3))
+		log.debug("storing push identifier", identifier.substring(0, 3))
 		let userIds
 		if (!this._connectedSseInfo) {
 			userIds = [userId]
@@ -125,12 +124,12 @@ export class DesktopSseClient {
 	connect(): Promise<void> {
 		if (!this._connectedSseInfo) {
 			this._reschedule(10)
-			log("sse info not available, skip reconnect")
+			log.debug("sse info not available, skip reconnect")
 			return Promise.resolve()
 		}
 		const sseInfo = this._connectedSseInfo
 		if (this.hasNotificationTTLExpired()) {
-			log("invalidating alarms on connect")
+			log.debug("invalidating alarms on connect")
 			return this.resetStoredState()
 		}
 
@@ -142,11 +141,11 @@ export class DesktopSseClient {
 
 		const userId = sseInfo.userIds[0]
 		if (userId == null) {
-			log("No user IDs, skip reconnect")
+			log.debug("No user IDs, skip reconnect")
 			return Promise.resolve()
 		}
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
-		log(
+		log.debug(
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
 			'userIds', userId,
 		)
@@ -167,14 +166,14 @@ export class DesktopSseClient {
 			// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
 			s.on('lookup', () => log("lookup sse request"))
 		}).on('response', res => {
-			log("established SSE connection")
+			log.debug("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
-				log('sse: got NotAuthenticated, deleting userId')
+				log.debug('sse: got NotAuthenticated, deleting userId')
 				const sseInfo = this._removeUserId(userId)
 
 				// If we don't remove _connectedSseInfo then timeout loop will restart connection automatiicaly
 				if (sseInfo.userIds.length === 0) {
-					log("No user ids, skipping reconnect")
+					log.debug("No user ids, skipping reconnect")
 					this._connectedSseInfo = null
 					this._disconnect()
 				}
@@ -193,14 +192,14 @@ export class DesktopSseClient {
 				resData = lines.pop() // put the last line back into the buffer
 				lines.forEach(l => this._processSseData(l, userId))
 			}).on('close', () => {
-				log('sse response closed')
+				log.debug('sse response closed')
 				this._disconnect()
 				this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 				this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			}).on('error', e => console.error('sse response error:', e))
 		}).on(
-			'information', e => log('sse information:', e.message)
-		).on('connect', e => log('sse connect:', e.message)
+			'information', e => log.debug('sse information:', e.message)
+		).on('connect', e => log.debug('sse connect:', e.message)
 		).on('error', e => console.error('sse error:', e.message)
 		).end()
 
@@ -218,7 +217,7 @@ export class DesktopSseClient {
 
 	_processSseData(data: string, userId: string): void {
 		if (!data.startsWith("data")) {
-			log('sse heartbeat', this._readTimeoutInSeconds)
+			log.debug('sse heartbeat', this._readTimeoutInSeconds)
 			this._reschedule()
 			return
 		}
@@ -229,13 +228,13 @@ export class DesktopSseClient {
 
 		// check for heartbeat settings
 		if (data.startsWith('heartbeatTimeout:')) {
-			log("received new timeout:", data)
+			log.debug("received new timeout:", data)
 			const newTimeout = Number(data.split(':')[1])
 			if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
 				this._readTimeoutInSeconds = newTimeout
 				this._conf.setVar('heartbeatTimeoutInSeconds', newTimeout)
 			} else {
-				console.error("got invalid heartbeat timeout from server")
+				log.error("got invalid heartbeat timeout from server")
 			}
 			this._reschedule()
 			return
@@ -251,7 +250,7 @@ export class DesktopSseClient {
 					    this._removeUserId(userId)
 					    this._disconnect()
 				    } else {
-					    console.error("failed to handle push message:", e)
+					    log.error("failed to handle push message:", e)
 					    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
 				    }
 			    })
@@ -267,7 +266,7 @@ export class DesktopSseClient {
 	 */
 	hasNotificationTTLExpired(): boolean {
 		const lastMissedNotificationCheckTime = this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
-		log("last missed notification check:", {lastMissedNotificationCheckTime})
+		log.debug("last missed notification check:", {lastMissedNotificationCheckTime})
 		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
 	}
 
@@ -275,7 +274,7 @@ export class DesktopSseClient {
 	 * Reset state when TTL has expired,
 	 */
 	resetStoredState(): Promise<void> {
-		log("Resetting stored state")
+		log.debug("Resetting stored state")
 		return Promise
 			.all([
 				this._alarmScheduler.unscheduleAllAlarms(),
@@ -302,18 +301,18 @@ export class DesktopSseClient {
 			                          this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			                          if (mn.notificationInfos && mn.notificationInfos.length === 0
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
-				                          log("MissedNotification is empty")
+				                          log.debug("MissedNotification is empty")
 			                          } else {
 				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni))
 				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			                          }
 		                          })
-		                          .catch(FileNotFoundError, e => log('404:', e))
+		                          .catch(FileNotFoundError, e => log.debug('404:', e))
 		this._handlingPushMessage = this._handlingPushMessage.then(process, (e) => {
 			if (e instanceof NotAuthenticatedError) {
 				throw e
 			} else {
-				log("Error while downloading missed notification", e)
+				log.debug("Error while downloading missed notification", e)
 				return process()
 			}
 		})
@@ -350,7 +349,7 @@ export class DesktopSseClient {
 			}
 
 			const url = this._makeAlarmNotificationUrl()
-			log("downloading missed notification with user", userId)
+			log.debug("downloading missed notification with user", userId)
 			const headers: {[string]: string} = {
 				userIds: userId,
 				v: MissedNotificationTypeModel.version,
@@ -397,7 +396,7 @@ export class DesktopSseClient {
 							                fail(req, res, e)
 						                }
 					                })
-					                .on('close', () => log("dl missed notification response closed"))
+					                .on('close', () => log.debug("dl missed notification response closed"))
 					                .on('error', e => fail(req, res, e))
 			                })
 			                .on('error', e => fail(req, null, e))
@@ -425,7 +424,7 @@ export class DesktopSseClient {
 			console.error("invalid reschedule delay, setting to 10")
 			delaySeconds = 10
 		}
-		log('scheduling to check sse in', delaySeconds, 'seconds')
+		log.debug('scheduling to check sse in', delaySeconds, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
 		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
 	}

@@ -105,7 +105,7 @@ o.spec("crypto facade", function () {
 
 	o.spec("decrypt value", function () {
 
-		o("decrypt string / number value without mac", () => {
+		o("decrypt string / number value without mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
@@ -116,7 +116,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 
-		o("decrypt string / number value with mac", () => {
+		o("decrypt string / number value with mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
@@ -127,7 +127,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 
-		o("decrypt boolean value without mac", () => {
+		o("decrypt boolean value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
@@ -143,7 +143,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 
-		o("decrypt boolean value with mac", () => {
+		o("decrypt boolean value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
@@ -159,7 +159,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 
-		o("decrypt date value without mac", () => {
+		o("decrypt date value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
@@ -167,7 +167,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 
-		o("decrypt date value with mac", () => {
+		o("decrypt date value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
@@ -175,7 +175,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 
-		o("decrypt bytes value without mac", () => {
+		o("decrypt bytes value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
@@ -185,7 +185,7 @@ o.spec("crypto facade", function () {
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
 		})
 
-		o("decrypt bytes value with mac", () => {
+		o("decrypt bytes value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
@@ -195,7 +195,7 @@ o.spec("crypto facade", function () {
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
 		})
 
-		o("decrypt compressedString", () => {
+		o("decrypt compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = base64ToUint8Array("QHRlc3Q=")
@@ -216,7 +216,7 @@ o.spec("crypto facade", function () {
 				.equals("text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text ")
 		})
 
-		o("decrypt empty compressedString", () => {
+		o("decrypt empty compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
@@ -225,7 +225,7 @@ o.spec("crypto facade", function () {
 			o(decryptedValue).equals("")
 		})
 
-		o("do not decrypt null values", () => {
+		o("do not decrypt null values", function () {
 			let sk = aes128RandomKey()
 
 			o(decryptValue(createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
@@ -295,7 +295,7 @@ o.spec("crypto facade", function () {
 	})
 
 	o.spec("encryptValue", function () {
-		o("encrypt string / number value", () => {
+		o("encrypt string / number value", function () {
 			var valueType = createValueType(ValueType.String, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
@@ -306,7 +306,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).equals(value)
 		})
 
-		o("encrypt boolean value", () => {
+		o("encrypt boolean value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 
@@ -326,7 +326,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 
-		o("encrypt date value", () => {
+		o("encrypt date value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date()
@@ -338,7 +338,7 @@ o.spec("crypto facade", function () {
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(value)
 		})
 
-		o("encrypt bytes value", () => {
+		o("encrypt bytes value", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
@@ -350,7 +350,7 @@ o.spec("crypto facade", function () {
 			o(Array.from(decryptValue(valueType, encryptedValue, sk))).deepEquals(Array.from(value))
 		})
 
-		o("do not encrypt null values", () => {
+		o("do not encrypt null values", function () {
 			let sk = aes128RandomKey()
 
 			o(encryptValue(createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
@@ -360,7 +360,7 @@ o.spec("crypto facade", function () {
 			o(encryptValue(createValueType(ValueType.Number, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 		})
 
-		o("accept null _id and _permissions value during encryption", () => {
+		o("accept null _id and _permissions value during encryption", function () {
 			let vt = {
 				"name": "_id",
 				"id": 426,

@@ -239,7 +239,7 @@ o.spec("entity rest cache", function () {
 
 		o("list element is deleted from range", function (done) {
 			setupMailList(true, true).then(originalMails => {
-				return cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]).then(() => {
+				return cache. entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]).then(() => {
 					o(clientSpy.callCount).equals(1) // entity is not loaded from server
 					return cache.entityRequest(MailTypeRef, HttpMethod.GET, "listId1", null, null, {
 						start: GENERATED_MIN_ID,

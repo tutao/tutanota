@@ -30,9 +30,7 @@ function startGroup(opts: {
 
 function enable(allowables: Array<string>) {
 	testcount = testcount + 1
-	exit = setProperty(process, 'exit', o.spy(code => {
-		console.log(`mock ${chalk.blue.bold("process.exit()")} with code ${chalk.red.bold(code.toString())}`)
-	}))
+	exit = setProperty(process, 'exit', o.spy())
 	random = setProperty(Math, 'random', () => 0)
 	setProperty(process, 'resourcesPath', 'app/path/resources')
 	mockery.enable({useCleanCache: true, warnOnUnregistered: false})

@@ -123,6 +123,13 @@ type ComparisonDescriptor = (string) => void;
 type DoneFn = () => void;
 type TimeoutFn = (number) => void;
 
+type OspecSpy<T> = T & {
+	/** Last invocation */
+	args: $ReadOnlyArray<any>,
+	/** All invocations */
+	calls: $ReadOnlyArray<{this: any, args: $ReadOnlyArray<any>}>,
+	callCount: number,
+}
 interface Ospec {
 	<T>(T): {
 		equals: (T) => ComparisonDescriptor,
@@ -141,8 +148,9 @@ interface Ospec {
 	after: ((DoneFn, TimeoutFn) => mixed) => void;
 	beforeEach: ((DoneFn, TimeoutFn) => mixed) => void;
 	afterEach: ((DoneFn, TimeoutFn) => mixed) => void;
-	// stub
-	spy: (any) => any;
+	spy(): OspecSpy<() => void>;
+	spy<T>(T): OspecSpy<T>;
+	timeout: (number) => void;
 	specTimeout: (number) => void;
 }
 

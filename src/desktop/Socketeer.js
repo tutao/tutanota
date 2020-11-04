@@ -5,6 +5,7 @@ import {app} from 'electron'
 import {neverNull} from "../api/common/utils/Utils"
 import type {WindowManager} from "./DesktopWindowManager"
 import {isMailAddress} from "../misc/FormatValidator"
+import {log} from "./DesktopUtils"
 
 const SOCKET_PATH = '/tmp/tutadb.sock'
 
@@ -41,12 +42,12 @@ export class Socketeer {
 	}
 
 	startServer() {
-		console.log('opening admin socket')
+		log.debug('opening admin socket')
 		if (this._server) {
 			return
 		}
 		this._server = net.createServer(c => {
-			console.log("got connection")
+			log.debug("got connection")
 			this._connection = c
 			c.on('data', () => {
 				console.warn("Data was pushed through admin socket, aborting connection")
@@ -56,7 +57,7 @@ export class Socketeer {
 			})
 		}).on('error', e => {
 			if (e.code === 'EADDRINUSE' && this._server) {
-				console.log('Socket in use, retrying...')
+				log.debug('Socket in use, retrying...')
 				this._delayHandler(() => {
 					neverNull(this._server).close()
 					neverNull(this._server).listen(SOCKET_PATH)
@@ -82,7 +83,7 @@ export class Socketeer {
 		this._connection = net
 			.createConnection(SOCKET_PATH)
 			.on('connect', () => {
-				console.log('socket connected')
+				log.debug('socket connected')
 			})
 			.on('close', hadError => {
 				if (hadError) {
@@ -90,7 +91,7 @@ export class Socketeer {
 				}
 			})
 			.on('end', () => {
-				console.log("socket disconnected")
+				log.debug("socket disconnected")
 				this._tryReconnect(ondata)
 			})
 			.on('error', e => {

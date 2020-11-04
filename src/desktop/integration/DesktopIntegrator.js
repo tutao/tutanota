@@ -1,4 +1,5 @@
 // @flow
+import {log} from "../DesktopUtils"
 
 import type {WindowManager} from "../DesktopWindowManager"
 
@@ -28,13 +29,13 @@ switch (process.platform) {
 
 export function enableAutoLaunch(): Promise<void> {
 	return platformIntegrator.enableAutoLaunch().catch(e => {
-		console.log("could not enable auto launch:", e)
+		log.debug("could not enable auto launch:", e)
 	})
 }
 
 export function disableAutoLaunch(): Promise<void> {
 	return platformIntegrator.disableAutoLaunch().catch(e => {
-		console.log("could not disable auto launch:", e)
+		log.debug("could not disable auto launch:", e)
 	})
 }
 

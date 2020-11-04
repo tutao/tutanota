@@ -5,6 +5,7 @@ import path from "path"
 import {lang} from "../../misc/LanguageViewModel"
 import {execFile} from "child_process"
 import type {WindowManager} from "../DesktopWindowManager"
+import {log} from "../DesktopUtils"
 
 const DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath('home'), ".local/share")
 const CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath('home'), ".config")
@@ -22,12 +23,12 @@ const iconSourcePath512 = path.join(path.dirname(executablePath), `resources/ico
 const nointegrationpath = path.join(CONFIG_HOME, 'tuta_integration/no_integration')
 
 fs.access(iconSourcePath512, fs.constants.F_OK)
-  .catch(() => console.error("icon logo-solo-red.png not found, has the file name changed?"))
+  .catch(() => log.error("icon logo-solo-red.png not found, has the file name changed?"))
 
 function logExecFile(err, stdout, stderr) {
-	if (stdout && stdout !== "") console.log("stdout:", stdout)
-	if (err) console.error(err)
-	if (stderr && stderr !== "") console.error("stderr:", stderr)
+	if (stdout && stdout !== "") log.debug("stdout:", stdout)
+	if (err) log.error(err)
+	if (stderr && stderr !== "") log.error("stderr:", stderr)
 }
 
 export function isAutoLaunchEnabled(): Promise<boolean> {
@@ -74,14 +75,14 @@ export function runIntegration(wm: WindowManager): Promise<void> {
 	if (executablePath.includes("node_modules/electron/dist/electron")) return Promise.resolve();
 	return isIntegrated().then(integrated => {
 		if (integrated) {
-			console.log(`desktop file exists, checking version...`)
+			log.debug(`desktop file exists, checking version...`)
 			const desktopEntryVersion = getDesktopEntryVersion()
 			if (desktopEntryVersion !== app.getVersion()) {
-				console.log("version mismatch, reintegrating...")
+				log.debug("version mismatch, reintegrating...")
 				return integrate()
 			}
 		} else {
-			console.log(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
+			log.debug(`${desktopFilePath} does not exist, checking for permission to ask for permission...`)
 			checkFileIsThere(nointegrationpath).then(isThere => {
 				if (isThere) {
 					const forbiddenPaths = fs.readFileSync(nointegrationpath, {encoding: 'utf8', flag: 'r'})
@@ -193,7 +194,7 @@ function askPermission(): Promise<void> {
 	}).then(({response, checkboxChecked}) => {
 		let p: Promise<void> = Promise.resolve()
 		if (checkboxChecked) {
-			console.log("updating no_integration blacklist...")
+			log.debug("updating no_integration blacklist...")
 			p.then(() => fs.ensureDir(path.dirname(nointegrationpath)))
 			 .then(() => fs.writeFile(nointegrationpath, packagePath + '\n', {encoding: 'utf-8', flag: 'a'}))
 		}

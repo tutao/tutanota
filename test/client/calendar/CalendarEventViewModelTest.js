@@ -130,8 +130,8 @@ o.spec("CalendarEventViewModel", function () {
 		)
 	}
 
-	let askForUpdates
-	let askInsecurePassword
+	let askForUpdates: OspecSpy<() => Promise<"yes" | "no" | "cancel">>
+	let askInsecurePassword: OspecSpy<() => Promise<boolean>>
 
 	o.before(function () {
 		// We need this because SendMailModel queries for default language. We should refactor to avoid this.
@@ -139,8 +139,8 @@ o.spec("CalendarEventViewModel", function () {
 	})
 
 	o.beforeEach(function () {
-		askForUpdates = o.spy()
-		askInsecurePassword = o.spy()
+		askForUpdates = o.spy(async () => "yes")
+		askInsecurePassword = o.spy(async () => true)
 	})
 
 	o("init with existing event", function () {
@@ -613,7 +613,7 @@ o.spec("CalendarEventViewModel", function () {
 			const newGuest = "new-attendee@example.com"
 
 			viewModel.addGuest(newGuest)
-			askInsecurePassword = o.spy(() => true)
+			askInsecurePassword = o.spy(async () => true)
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).deepEquals(true)
 
 			o(calendarModel.createEvent.calls.length).equals(1)("created event")
@@ -730,7 +730,7 @@ o.spec("CalendarEventViewModel", function () {
 			updateModel.onMailChanged(true)
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
-			askInsecurePassword = o.spy()
+			askInsecurePassword = o.spy(async () => true)
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
@@ -765,7 +765,7 @@ o.spec("CalendarEventViewModel", function () {
 			viewModel.updatePassword(viewModel.attendees()[0], "123")
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			askForUpdates = o.spy(() => Promise.resolve("yes"))
-			askInsecurePassword = o.spy(() => false)
+			askInsecurePassword = o.spy(async () => false)
 
 			viewModel.addGuest(newGuest, null)
 
@@ -890,7 +890,7 @@ o.spec("CalendarEventViewModel", function () {
 			const viewModel = init({calendars, existingEvent, calendarModel, distributor})
 			viewModel.onStartDateSelected(new Date(2020, 4, 3))
 			viewModel.removeAttendee(toRemoveGuest)
-			askForUpdates = o.spy()
+			askForUpdates = o.spy(async () => "yes")
 
 			o(await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})).equals(true)
 			o(calendarModel.updateEvent.calls.length).equals(1)("created event")

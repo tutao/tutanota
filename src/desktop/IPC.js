@@ -26,6 +26,7 @@ import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {base64ToUint8Array} from "../api/common/utils/Encoding"
+import {log} from "./DesktopUtils"
 import type {ElectronUpdater} from "./ElectronUpdater"
 
 /**
@@ -90,7 +91,7 @@ export class IPC {
 						// findInPage might reject if requests come too quickly
 						// if it's rejecting for another reason we'll have logs
 						return w.findInPage(args)
-						        .catch(e => console.log("findInPage reject:", args, e))
+						        .catch(e => log.debug("findInPage reject:", args, e))
 					} else {
 						return {numberOfMatches: 0, currentMatch: 0}
 					}
@@ -299,10 +300,10 @@ export class IPC {
 
 		const sseValueListener = (value: ?SseInfo) => {
 			if (value && value.userIds.length === 0) {
-				console.log("invalidating alarms for window", id)
+				log.debug("invalidating alarms for window", id)
 				this.sendRequest(id, "invalidateAlarms", [])
 				    .catch((e) => {
-					    console.log("Could not invalidate alarms for window ", id, e)
+					    log.debug("Could not invalidate alarms for window ", id, e)
 					    this._conf.removeListener(DesktopConfigKey.pushIdentifier, sseValueListener)
 				    })
 			}

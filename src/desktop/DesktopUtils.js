@@ -9,6 +9,7 @@ import {defer} from '../api/common/utils/Utils.js'
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {neverNull, noOp} from "../api/common/utils/Utils"
 import {sanitizeFilename} from "../api/common/utils/FileUtils"
+import {Mode} from "../api/Env"
 
 export default class DesktopUtils {
 
@@ -97,7 +98,7 @@ export default class DesktopUtils {
 	}
 
 	static registerAsMailtoHandler(tryToElevate: boolean): Promise<void> {
-		console.log("trying to register...")
+		log.debug("trying to register...")
 		switch (process.platform) {
 			case "win32":
 				return checkForAdminStatus()
@@ -122,7 +123,7 @@ export default class DesktopUtils {
 	}
 
 	static unregisterAsMailtoHandler(tryToElevate: boolean): Promise<void> {
-		console.log("trying to unregister...")
+		log.debug("trying to unregister...")
 		switch (process.platform) {
 			case "win32":
 				return checkForAdminStatus()
@@ -316,4 +317,11 @@ function _isReservedFilename(filename: string): boolean {
 	const reservedRe = /^\.{1,2}$/
 
 	return (process.platform === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
+}
+
+type LogFn = (...args: any) => void
+export const log = {
+	debug: ((env.mode === Mode.Test ? noOp : (...args) => console.log(args)): LogFn),
+	warn: ((env.mode === Mode.Test ? noOp : (...args) => console.warn(args)): LogFn),
+	error: ((env.mode === Mode.Test ? noOp : (...args) => console.error(args)): LogFn),
 }

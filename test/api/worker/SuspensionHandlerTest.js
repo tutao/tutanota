@@ -94,7 +94,7 @@ o.spec("SuspensionHandler test", () => {
 	}))
 
 	o("deferred request throws exception", async () => {
-		const callOnResolve = o.spy()
+		const callOnResolve  = o.spy()
 		const shouldntGetCalled = o.spy()
 
 		suspensionHandler.activateSuspensionIfInactive(100)

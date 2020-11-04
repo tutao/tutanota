@@ -6,11 +6,13 @@ import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from './DesktopConstants'
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
-import {downcast, neverNull} from "../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import {UpdateError} from "../api/common/error/UpdateError"
 import {DesktopTray} from "./tray/DesktopTray"
 import fs from 'fs-extra'
 import path from 'path'
+import {log} from "./DesktopUtils"
+import {Mode} from "../api/Env"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -46,14 +48,23 @@ export class ElectronUpdater {
 			this._fallbackPollInterval = fallbackPollInterval
 		}
 
-		this._logger = {
-			info: (m: string, ...args: any) => console.log.apply(console, ["autoUpdater info:\n", m].concat(args)),
-			warn: (m: string, ...args: any) => console.warn.apply(console, ["autoUpdater warn:\n", m].concat(args)),
-			error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
-			verbose: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
-			debug: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater debug:\n", m].concat(args)),
-			silly: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
-		}
+		this._logger = env.mode === Mode.Test
+			? {
+				info: (m: string, ...args: any) => {},
+				warn: (m: string, ...args: any) => {},
+				error: (m: string, ...args: any) => {},
+				verbose: (m: string, ...args: any) => {},
+				debug: (m: string, ...args: any) => {},
+				silly: (m: string, ...args: any) => {},
+			}
+			: {
+				info: (m: string, ...args: any) => log.debug.apply(console, ["autoUpdater info:\n", m].concat(args)),
+				warn: (m: string, ...args: any) => console.warn.apply(console, ["autoUpdater warn:\n", m].concat(args)),
+				error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
+				verbose: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
+				debug: (m: string, ...args: any) => log.debug.apply(console, ["autoUpdater debug:\n", m].concat(args)),
+				silly: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
+			}
 		autoUpdater.logger = this._logger
 		// default behaviour is to just dl the update as soon as found, but we want to check the signature
 		// before telling the updater to get the file.
@@ -67,14 +78,14 @@ export class ElectronUpdater {
 			Promise
 				.any(this._conf.getConst("pubKeys").map(pk => this._verifySignature(pk, downcast(updateInfo))))
 				.then(() => this._downloadUpdate())
-				.then(p => console.log("dl'd update files: ", p))
+				.then(p => log.debug("dl'd update files: ", p))
 				.catch(UpdateError, e => {
 					this._logger.warn("invalid signature, could not update", e)
 				})
 		}).on('update-not-available', info => {
 			this._logger.info("update not available:", info)
 		}).on("download-progress", (prg: DownloadProgressInfo) => {
-			console.log('update dl progress:', prg)
+			log.debug('update dl progress:', prg)
 		}).on('update-downloaded', info => {
 			this._updateInfo = downcast({version: info.version})
 			this._logger.info("update-downloaded")
@@ -128,7 +139,7 @@ export class ElectronUpdater {
 			const appUpdateYmlPath = path.join(basepath, 'resources', 'app-update.yml')
 			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
 		} catch (e) {
-			console.log("no update info on disk, disabling updater.")
+			log.debug("no update info on disk, disabling updater.")
 			this._conf.setVar('showAutoUpdateOption', false)
 			return
 		}
@@ -245,7 +256,7 @@ export class ElectronUpdater {
 	}
 
 	_downloadUpdate(): Promise<Array<string>> {
-		console.log("downloading")
+		log.debug("downloading")
 		return autoUpdater
 			.downloadUpdate()
 			.catch(e => {
@@ -256,7 +267,7 @@ export class ElectronUpdater {
 	}
 
 	_notifyAndInstall(info: UpdateInfo): void {
-		console.log("notifying for update")
+		log.debug("notifying for update")
 		this._notifier
 		    .showOneShot({
 			    title: lang.get('updateAvailable_label', {"{version}": info.version}),
@@ -277,7 +288,7 @@ export class ElectronUpdater {
 	 * TODO: closed it not via the notification or the 'install now' button
 	 */
 	installUpdate() {
-		console.log("installing")
+		log.debug("installing")
 		//the window manager enables force-quit on the app-quit event,
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event

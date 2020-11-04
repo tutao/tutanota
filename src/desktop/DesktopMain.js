@@ -20,6 +20,7 @@ import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
+import {log} from "./DesktopUtils"
 
 mp()
 
@@ -33,7 +34,7 @@ const dl = new DesktopDownloadManager(conf, net)
 const alarmStorage = new DesktopAlarmStorage(conf, crypto)
 alarmStorage.init()
             .then(() => {
-	            console.log("alarm storage initialized")
+	            log.debug("alarm storage initialized")
             })
             .catch(e => {
 	            console.warn("alarm storage failed to initialize:", e)
@@ -48,7 +49,7 @@ const ipc = new IPC(conf, notifier, sse, wm, sock, alarmStorage, crypto, dl, upd
 wm.setIPC(ipc)
 
 app.setAppUserModelId(conf.getConst("appUserModelId"))
-console.log("version:  ", app.getVersion())
+log.debug("version:  ", app.getVersion())
 
 let wasAutolaunched = process.platform !== 'darwin'
 	? process.argv.indexOf("-a") !== -1
@@ -111,7 +112,7 @@ function onAppReady() {
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
 	const w = wm.getLastFocused(!(conf.getVar('runAsTrayApp') && wasAutolaunched))
-	console.log("default mailto handler:", app.isDefaultProtocolClient("mailto"))
+	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
 	ipc.initialized(w.id)
 	   .then(main)
 }
@@ -121,7 +122,7 @@ function main() {
 	if (process.argv.indexOf('-s') !== -1) {
 		sock.startServer()
 	}
-	console.log("Webapp ready")
+	log.debug("Webapp ready")
 	app.on('activate', () => {
 		// MacOs
 		// this is fired for almost every interaction and on launch

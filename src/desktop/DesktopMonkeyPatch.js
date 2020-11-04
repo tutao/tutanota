@@ -7,6 +7,7 @@ import {execSync} from 'child_process'
 import {last} from '../api/common/utils/ArrayUtils'
 import {neverNull} from "../api/common/utils/Utils"
 import {Logger, replaceNativeLogger} from "../api/common/Logger"
+import {log} from "./DesktopUtils"
 
 const logger = new Logger()
 replaceNativeLogger(global, logger, true)
@@ -50,11 +51,11 @@ if (process.platform === "win32") {
 		const parts = stdout.split(' ')
 		if (parts.length > 0) {
 			const locale = neverNull(last(parts)).trim()
-			console.log("detected locale", locale)
+			log.debug("detected locale", locale)
 			process.env.LC_ALL = locale
 		}
 	} catch (e) {
-		console.log("failed to detect locale")
+		log.debug("failed to detect locale")
 	}
 }
 
@@ -62,5 +63,5 @@ global.btoa = str => Buffer.from(str, 'binary').toString('base64')
 global.atob = b64 => Buffer.from(b64, 'base64').toString('binary')
 
 export function mp() {
-	console.log("the monkey has been patched")
+	log.debug("the monkey has been patched")
 }

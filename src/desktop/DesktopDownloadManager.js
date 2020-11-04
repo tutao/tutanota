@@ -11,6 +11,7 @@ import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import {ApplicationWindow} from "./ApplicationWindow"
 import {EventEmitter} from 'events'
+import {log} from "./DesktopUtils"
 
 export class DesktopDownloadManager {
 	_conf: DesktopConfig;
@@ -149,7 +150,7 @@ export class DesktopDownloadManager {
 				showDownloadErrorMessageBox('download interrupted', item.getFilename())
 			}
 			if (state === 'cancelled') {
-				console.log("download cancelled", item.getFilename())
+				log.debug("download cancelled", item.getFilename())
 			}
 		})
 	}

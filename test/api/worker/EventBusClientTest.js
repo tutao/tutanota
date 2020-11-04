@@ -5,28 +5,28 @@ import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {spy} from "../TestUtils"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 
-o.spec("EventBusClient test", () => {
+o.spec("EventBusClient test", function () {
 
 	let ebc: any = null
 	let cacheMock: any = null
 
-	o.beforeEach(() => {
+	o.beforeEach(function () {
 		cacheMock = ({
 			cacheCallState: "initial",
 			entityEventsReceived: (data: Array<EntityUpdate>) => {
 				//console.log("enter", cacheCallState)
-				if (cacheMock.cacheCallState == "initial") {
+				if (cacheMock.cacheCallState === "initial") {
 					cacheMock.cacheCallState = "firstEntered"
-				} else if (cacheMock.cacheCallState == "firstFinished") {
+				} else if (cacheMock.cacheCallState === "firstFinished") {
 					cacheMock.cacheCallState = "secondEntered"
 				} else {
 					o(cacheMock.cacheCallState).equals("invalid state found entering entityEventsReceived")
 				}
 				return Promise.delay(10).then(() => {
 					//console.log("finish", cacheCallState)
-					if (cacheMock.cacheCallState == "firstEntered") {
+					if (cacheMock.cacheCallState === "firstEntered") {
 						cacheMock.cacheCallState = "firstFinished"
-					} else if (cacheMock.cacheCallState == "secondEntered") {
+					} else if (cacheMock.cacheCallState === "secondEntered") {
 						cacheMock.cacheCallState = "secondFinished"
 					} else {
 						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventsReceived")
@@ -83,43 +83,40 @@ o.spec("EventBusClient test", () => {
 	// 	})
 	// })
 
-	o("parallel received event batches are passed sequentially to the entity rest cache", node((done, timeout) => {
-		timeout(500)
+	// TODO: do we need to adapt this?
+	// o("parallel received event batches are passed sequentially to the entity rest cache", node(async function () {
+	// 	o.timeout(500)
+	//
+	// 	let messageData1 = _createMessageData(1)
+	// 	let messageData2 = _createMessageData(2)
+	//
+	// 	// call twice as if it was received in parallel
+	// 	let p1 = ebc._message({data: messageData1})
+	// 	let p2 = ebc._message({data: messageData2})
+	// 	await Promise.all([p1, p2])
+	// 	// make sure the second queued event was also processed
+	// 	o(cacheMock.cacheCallState).equals("secondFinished")
+	// }))
 
-		let messageData1 = _createMessageData(1)
-		let messageData2 = _createMessageData(2)
-
-		// call twice as if it was received in parallel
-		let p1 = ebc._message({data: messageData1})
-		let p2 = ebc._message({data: messageData2})
-		Promise.all([p1, p2]).then(() => {
-			// make sure the second queued event was also processed
-			o(cacheMock.cacheCallState).equals("secondFinished")
-			done()
-		})
-	}))
-
-	o("counter update", node((done, timeout) => {
+	o("counter update", node(async function () {
 		let counterUpdate = _createCounterData("group1", 4, "list1")
 		ebc._worker.updateCounter = spy(ebc._worker.updateCounter)
-		ebc._message({data: counterUpdate}).then(() => {
-			o(ebc._worker.updateCounter.invocations).deepEquals([
-				[
-					{
-						_format: "0",
-						mailGroup: "group1",
-						counterValues: [
-							{
-								_id: "counterupdateid",
-								count: 4,
-								mailListId: "list1"
-							}
-						]
-					}
-				]
-			])
-			done()
-		})
+		await ebc._message({data: counterUpdate})
+		o(ebc._worker.updateCounter.invocations).deepEquals([
+			[
+				{
+					_format: "0",
+					mailGroup: "group1",
+					counterValues: [
+						{
+							_id: "counterupdateid",
+							count: 4,
+							mailListId: "list1"
+						}
+					]
+				}
+			]
+		])
 	}))
 
 

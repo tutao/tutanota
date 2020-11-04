@@ -7,6 +7,7 @@ import path from 'path'
 import os from 'os'
 import type {IPC} from "./IPC"
 import type {WindowManager} from "./DesktopWindowManager.js"
+import {log} from "./DesktopUtils"
 
 type ErrorLog = {|
 	name: string,
@@ -44,7 +45,7 @@ class DesktopErrorHandler {
 			try {
 				this.lastErrorLog = JSON.parse(fs.readFileSync(this._errorLogPath).toString())
 				if (this.lastErrorLog) {
-					console.log('found error log')
+					log.debug('found error log')
 				}
 			} catch (e) {
 				console.warn("Could not read error log:", e)
@@ -82,7 +83,7 @@ class DesktopErrorHandler {
 		}).then(({response, checkboxChecked}) => {
 			if (response === 1) { // clicked yes
 				if (checkboxChecked) {
-					console.log('writing error log to', this._errorLogPath)
+					log.debug('writing error log to', this._errorLogPath)
 					fs.writeFileSync(this._errorLogPath, this.lastErrorLog ? JSON.stringify(this.lastErrorLog) : "")
 					app.relaunch({args: process.argv.slice(1)})
 					app.exit(0)

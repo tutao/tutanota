@@ -36,7 +36,7 @@ import type {EntityRestClient, EntityRestInterface} from "../rest/EntityRestClie
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {DbError} from "../../common/error/DbError"
-import type {FutureBatchActions, QueuedBatch} from "./EventQueue"
+import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
 import {WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
@@ -92,7 +92,7 @@ export class Indexer {
 			initialized: deferred.promise
 		} // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db, new EventQueue(worker, (batch, futureActions) => this._processEntityEvents(batch, futureActions)),
+		this._core = new IndexerCore(this.db, new EventQueue((batch) => this._processEntityEvents(batch)),
 			browserData)
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
@@ -452,7 +452,7 @@ export class Indexer {
 		})
 	}
 
-	_processEntityEvents(batch: QueuedBatch, futureActions: FutureBatchActions): Promise<void> {
+	_processEntityEvents(batch: QueuedBatch): Promise<void> {
 		const {events, groupId, batchId} = batch
 		return this
 			.db.initialized.then(() => {
@@ -491,7 +491,7 @@ export class Indexer {
 					const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(key))
 
 					if (isSameTypeRef(MailTypeRef, key)) {
-						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate, futureActions)
+						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
 					} else if (isSameTypeRef(ContactTypeRef, key)) {
 						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
 					} else if (isSameTypeRef(GroupInfoTypeRef, key)) {
