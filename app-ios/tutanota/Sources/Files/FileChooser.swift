@@ -162,15 +162,13 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     documentPicker.delegate = self
     self.sourceController.present(documentPicker, animated: true, completion: nil)
   }
+    
   // from UIDocumentMenuDelegate protocol
   func documentMenuWasCancelled(documentMenu: UIDocumentMenuViewController) {
     self.sendResult(filePath: nil)
   }
-
-  // from UIDocumentPickerDelegate protocol
-  private func documentPicker(
-    controller: UIDocumentPickerViewController, didPickDocumentAtURL url: URL
-  ) {
+    
+  func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
     self.copyFileToLocalFolderAndSendResult(srcUrl: url, filename: url.lastPathComponent)
   }
 
@@ -217,6 +215,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
                   "failed to save captured image to path \(filePath)"))
               return
             }
+            self.sendResult(filePath: filePath.path)
           } else if mediaType == "public.movie" {  // Handle a movie capture
             let videoURL = info[UIImagePickerController.InfoKey.mediaURL] as! URL
             let fileName = self.generateFileName(prefixString: "movie", withExtension: "mp4")
@@ -299,7 +298,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
   private func copyFileToLocalFolderAndSendResult(srcUrl: URL, filename: String) {
     do {
       let targetUrl = try self.copyToLocalFolder(srcUrl: srcUrl, filename: filename)
-      self.sendResult(filePath: targetUrl.absoluteString)
+      self.sendResult(filePath: targetUrl.path)
     } catch {
       self.sendError(error: error)
       return
