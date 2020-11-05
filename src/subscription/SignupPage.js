@@ -54,7 +54,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		this._codeField = new TextField("whitelabelRegistrationCode_label")
 		this._confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
-			m("div", m(`a[href=${lang.getInfoLink("termsFree_link")}][target=_blank]`, {
+			m("div", m(`a[href=${lang.getInfoLink("terms_link")}][target=_blank]`, {
 				onclick: (e) => {
 					if (isApp()) {
 						this.showTerms("terms")
@@ -62,7 +62,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 					}
 				}
 			}, lang.get("termsAndConditionsLink_label"))),
-			m("div", m(`a[href=${lang.getInfoLink("termsPrivacy_link")}][target=_blank]`, {
+			m("div", m(`a[href=${lang.getInfoLink("privacy_link")}][target=_blank]`, {
 				onclick: (e) => {
 					if (isApp()) {
 						this.showTerms("privacy")
