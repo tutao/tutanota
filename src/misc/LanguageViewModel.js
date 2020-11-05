@@ -64,10 +64,9 @@ export const languageByCode: {[string]: Language} = languages.reduce((acc, curr)
 const infoLinks = {
 	"homePage_link": "https://tutanota.com",
 	"about_link": "https://tutanota.com/imprint",
-	"privacy_link": "https://tutanota.com/privacy",
 	//terms
-	"termsPrivacy_link": "https://tutanota.com/terms#privacy",
-	"termsFree_link": "https://tutanota.com/terms#terms-free",
+	"terms_link": "https://tutanota.com/terms",
+	"privacy_link": "https://tutanota.com/privacy",
 	//howto
 	"recoverCode_link": "https://tutanota.com/howto/#reset",
 	"2FA_link": "https://tutanota.com/howto#2fa",
@@ -135,11 +134,11 @@ export class LanguageViewModel {
 
 		const language = getLanguage()
 		return this.setLanguage(language)
-		           // Service worker currently caches only English. We don't want the whole app to fail if we cannot fetch the language.
-		           .catch((e) => {
-			           console.warn("Could not set language", language, e)
-			           this._setLanguageTag("en-US")
-		           })
+			// Service worker currently caches only English. We don't want the whole app to fail if we cannot fetch the language.
+			       .catch((e) => {
+				       console.warn("Could not set language", language, e)
+				       this._setLanguageTag("en-US")
+			       })
 	}
 
 	addStaticTranslation(key: string, text: string) {
