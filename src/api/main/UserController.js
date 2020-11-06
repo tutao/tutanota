@@ -6,7 +6,7 @@ import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
 import type {User} from "../entities/sys/User"
 import {UserTypeRef} from "../entities/sys/User"
-import {isSameId} from "../common/EntityFunctions"
+import {isSameId, MediaType} from "../common/EntityFunctions"
 import type {GroupInfo} from "../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin} from "../Env"
@@ -195,7 +195,9 @@ export class UserController implements IUserController {
 						sessionId: this.sessionId
 					})
 					delete downcast(requestObject)["_type"] // Remove extra field which is not part of the data model
-					const queued = sendBeacon.call(navigator, path, JSON.stringify(requestObject))
+					// Send as Blob to be able to set content type otherwise sends 'text/plain'
+					const queued = sendBeacon.call(navigator, path,
+						new Blob([JSON.stringify(requestObject)], {type: MediaType.Json}));
 					console.log("queued closing session: ", queued)
 					resolve()
 				} catch (e) {
