@@ -91,9 +91,11 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
-	unscheduleAllAlarms(): Promise<void> {
+	unscheduleAllAlarms(userId: ?Id = null): Promise<void> {
 		this._alarmStorage.getScheduledAlarms().forEach(alarm => {
-			this._cancelAlarms(alarm)
+			if (userId == null || alarm.user == userId) {
+				this._cancelAlarms(alarm)
+			}
 		})
 		return this._alarmStorage.storeScheduledAlarms(this._scheduledNotifications)
 	}

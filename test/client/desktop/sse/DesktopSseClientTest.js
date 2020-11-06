@@ -3,7 +3,7 @@ import o from "ospec/ospec.js"
 import n from "../../nodemocker"
 import {numberRange} from '../../../../src/api/common/utils/ArrayUtils.js'
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
-import {downcast, neverNull} from "../../../../src/api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../../../../src/api/common/utils/Utils"
 import * as url from "url"
 import * as querystring from "querystring"
 import {DesktopConfigKey} from "../../../../src/desktop/config/DesktopConfig"
@@ -27,7 +27,7 @@ o.spec("DesktopSseClient Test", function () {
 					return {
 						identifier: identifier,
 						sseOrigin: 'http://here.there',
-						userIds: userIds
+						userIds: userIds.slice()
 					}
 				case 'heartbeatTimeoutInSeconds':
 					return 30
@@ -256,9 +256,7 @@ o.spec("DesktopSseClient Test", function () {
 		o(requestBody).deepEquals({
 			_format: '0',
 			identifier,
-			userIds: userIds.map((id) => {
-				return {_id: "an_id", value: id}
-			})
+			userIds: [{_id: "an_id", value: userIds[0]}],
 		})
 
 		const res = new netMock.Response(200)
@@ -311,7 +309,7 @@ o.spec("DesktopSseClient Test", function () {
 		electronMock.app.callbacks['will-quit']()
 	})
 
-	o("403 response causes deletion of userids", async function () {
+	o("403 response causes deletion of userid", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const res = new netMock.Response(403)
@@ -322,7 +320,13 @@ o.spec("DesktopSseClient Test", function () {
 		await Promise.resolve()
 		o(confMock.setVar.callCount).equals(1)
 		o(confMock.setVar.args[0]).equals("pushIdentifier")
-		o(confMock.setVar.args[1]).equals(null)
+		o(confMock.setVar.args[1]).deepEquals({
+			identifier,
+			sseOrigin: 'http://here.there',
+			userIds: ['id2'],
+		})
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(['id1'])
+		o(sse._nextReconnect).notEquals(null)
 
 		// done
 		res.callbacks['data']("data: heartbeatTimeout:1\n")
@@ -536,7 +540,7 @@ o.spec("DesktopSseClient Test", function () {
 		o(netMock.request.args[1]).deepEquals({
 			method: 'GET',
 			headers: {
-				userIds: 'id1,id2',
+				userIds: 'id1',
 				v: MissedNotificationTypeModel.version,
 				cv: electronMock.app.getVersion()
 			},
@@ -578,7 +582,7 @@ o.spec("DesktopSseClient Test", function () {
 		missedNotificationResponse.callbacks['data'](`${JSON.stringify(missedNotification)}\n`)
 		missedNotificationResponse.callbacks['end']()
 
-		await Promise.resolve()
+		await sse._handlingPushMessage
 
 		o(notifierMock.submitGroupedNotification.callCount).equals(1)
 		o(notifierMock.submitGroupedNotification.args.length).equals(4)
@@ -631,7 +635,36 @@ o.spec("DesktopSseClient Test", function () {
 		electronMock.app.callbacks['will-quit']()
 	})
 
-	o("error code on downloadMissedNotification ", async function () {
+	o("download missed notification with 401", async function () {
+		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
+			alarmSchedulerMock, langMock, timeoutMock)
+		let res = new netMock.Response(200)
+		sse.start()
+		timeoutMock.next()
+		await Promise.resolve()
+
+		netMock.ClientRequest.mockedInstances[0].callbacks['response'](res)
+		res.callbacks['data']("data: heartbeatTimeout:3\n")
+		res.callbacks['data'](`data: notification\n`)
+		await Promise.resolve()
+		// wait for missedNotification request to be sent...
+		let missedNotificationResponse = new netMock.Response(401)
+		netMock.ClientRequest.mockedInstances[1].callbacks['response'](missedNotificationResponse)
+
+		await sse._handlingPushMessage.catch(noOp)
+
+		o(notifierMock.submitGroupedNotification.callCount).equals(0)
+		o(alarmSchedulerMock.handleAlarmNotification.callCount).equals(0)
+		o(confMock.setVar.calls[2].args).deepEquals(['pushIdentifier', {
+			identifier,
+			sseOrigin: 'http://here.there',
+			userIds: ['id2'],
+		}])
+		o(alarmSchedulerMock.unscheduleAllAlarms.calls[0].args).deepEquals(['id1'])
+		electronMock.app.callbacks['will-quit']()
+	})
+
+	o("error code on downloadMissedNotification", async function () {
 		const sse = new DesktopSseClient(electronMock.app, confMock, notifierMock, wmMock, alarmSchedulerMock, netMock, cryptoMock,
 			alarmStorageMock, langMock, timeoutMock)
 		const sseResponse = new netMock.Response(200)

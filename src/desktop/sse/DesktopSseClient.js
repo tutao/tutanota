@@ -2,7 +2,7 @@
 
 import type {App} from "electron"
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
+import {neverNull, noOp, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfig} from "../config/DesktopConfig"
@@ -17,6 +17,8 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
+import {Mode} from "../../api/Env"
+import {NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 
 export type SseInfo = {|
 	identifier: string,
@@ -29,6 +31,8 @@ let INITIAL_CONNECT_TIMEOUT: number
 let MAX_CONNECT_TIMEOUT: number
 
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+const log: ((...args: any) => void) = env.mode === Mode.Test ? noOp : (...args) => console.log(args)
 
 export class DesktopSseClient {
 	_app: App;
@@ -94,7 +98,7 @@ export class DesktopSseClient {
 	}
 
 	storePushIdentifier(identifier: string, userId: string, sseOrigin: string): Promise<void> {
-		console.log("storing push identifier", identifier.substring(0, 3))
+		log("storing push identifier", identifier.substring(0, 3))
 		let userIds
 		if (!this._connectedSseInfo) {
 			userIds = [userId]
@@ -124,12 +128,12 @@ export class DesktopSseClient {
 	connect(): Promise<void> {
 		if (!this._connectedSseInfo) {
 			this._reschedule(10)
-			console.log("sse info not available, skip reconnect")
+			log("sse info not available, skip reconnect")
 			return Promise.resolve()
 		}
 		const sseInfo = this._connectedSseInfo
 		if (this.hasNotificationTTLExpired()) {
-			console.log("invalidating alarms on connect")
+			log("invalidating alarms on connect")
 			return this.resetStoredState()
 		}
 
@@ -141,11 +145,11 @@ export class DesktopSseClient {
 
 		const userId = sseInfo.userIds[0]
 		if (userId == null) {
-			console.log("No user IDs, skip reconnect")
+			log("No user IDs, skip reconnect")
 			return Promise.resolve()
 		}
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
-		console.log(
+		log(
 			"starting sse connection, identifier", sseInfo.identifier.substring(0, 3),
 			'userIds', userId,
 		)
@@ -160,18 +164,14 @@ export class DesktopSseClient {
 			},
 			method: "GET"
 		}).on('response', res => {
-			console.log("established SSE connection")
+			log("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
-				console.log('sse: got NotAuthenticated, deleting userId')
-
-				const sseInfo: SseInfo = this._conf.getVar('pushIdentifier')
-				remove(sseInfo.userIds, userId)
-				this._conf.setVar("pushIdentifier", sseInfo)
-				this._connectedSseInfo = sseInfo
+				log('sse: got NotAuthenticated, deleting userId')
+				const sseInfo = this._removeUserId(userId)
 
 				// If we don't remove _connectedSseInfo then timeout loop will restart connection automatiicaly
 				if (sseInfo.userIds.length === 0) {
-					console.log("No user ids, skipping reconnect")
+					log("No user ids, skipping reconnect")
 					this._connectedSseInfo = null
 					this._disconnect()
 				}
@@ -188,25 +188,34 @@ export class DesktopSseClient {
 				resData += d
 				const lines = resData.split("\n")
 				resData = lines.pop() // put the last line back into the buffer
-				lines.forEach(l => this._processSseData(l))
+				lines.forEach(l => this._processSseData(l, userId))
 			}).on('close', () => {
-				console.log('sse response closed')
+				log('sse response closed')
 				this._disconnect()
 				this._connectTimeoutInSeconds = INITIAL_CONNECT_TIMEOUT
 				this._reschedule(INITIAL_CONNECT_TIMEOUT)
 			}).on('error', e => console.error('sse response error:', e))
 		}).on(
-			'information', e => console.log('sse information:', e.message)
-		).on('connect', e => console.log('sse connect:', e.message)
+			'information', e => log('sse information:', e.message)
+		).on('connect', e => log('sse connect:', e.message)
 		).on('error', e => console.error('sse error:', e.message)
 		).end()
 
 		return Promise.resolve()
 	}
 
-	_processSseData(data: string): void {
+	_removeUserId(userId: string): SseInfo {
+		this._alarmScheduler.unscheduleAllAlarms(userId)
+		const sseInfo: SseInfo = this._conf.getVar('pushIdentifier')
+		remove(sseInfo.userIds, userId)
+		this._conf.setVar("pushIdentifier", sseInfo)
+		this._connectedSseInfo = sseInfo
+		return sseInfo
+	}
+
+	_processSseData(data: string, userId: string): void {
 		if (!data.startsWith("data")) {
-			console.log('sse heartbeat')
+			log('sse heartbeat')
 			this._reschedule()
 			return
 		}
@@ -217,7 +226,7 @@ export class DesktopSseClient {
 
 		// check for heartbeat settings
 		if (data.startsWith('heartbeatTimeout:')) {
-			console.log("received new timeout:", data)
+			log("received new timeout:", data)
 			const newTimeout = Number(data.split(':')[1])
 			if (typeof newTimeout === 'number' && !Number.isNaN(newTimeout)) {
 				this._readTimeoutInSeconds = newTimeout
@@ -230,11 +239,16 @@ export class DesktopSseClient {
 		}
 
 		if (data === 'notification') {
-			this._handlePushMessage()
+			this._handlePushMessage(userId)
 			    .then(() => this._reschedule())
 			    .catch(e => {
-				    console.error("failed to handle push message:", e)
-				    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
+			    	if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
+					    this._removeUserId(userId)
+					    this._disconnect()
+				    } else {
+					    console.error("failed to handle push message:", e)
+					    this._notifier.showOneShot({title: "Failed to handle PushMessage"})
+				    }
 			    })
 		}
 
@@ -248,7 +262,7 @@ export class DesktopSseClient {
 	 */
 	hasNotificationTTLExpired(): boolean {
 		const lastMissedNotificationCheckTime = this._conf.getVar(DesktopConfigKey.lastMissedNotificationCheckTime)
-		console.log("last missed notification check:", {lastMissedNotificationCheckTime})
+		log("last missed notification check:", {lastMissedNotificationCheckTime})
 		return lastMissedNotificationCheckTime && (Date.now() - lastMissedNotificationCheckTime) > MISSED_NOTIFICATION_TTL
 	}
 
@@ -256,7 +270,7 @@ export class DesktopSseClient {
 	 * Reset state when TTL has expired,
 	 */
 	resetStoredState(): Promise<void> {
-		console.log("Resetting stored state")
+		log("Resetting stored state")
 		return Promise
 			.all([
 				this._alarmScheduler.unscheduleAllAlarms(),
@@ -276,21 +290,27 @@ export class DesktopSseClient {
 			})
 	}
 
-	_handlePushMessage(): Promise<void> {
-		const process = () => this._downloadMissedNotification()
+	_handlePushMessage(userId: string): Promise<void> {
+		const process = () => this._downloadMissedNotification(userId)
 		                          .then(mn => {
 			                          this._conf.setVar(DesktopConfigKey.lastProcessedNotificationId, mn.lastProcessedNotificationId)
 			                          this._conf.setVar(DesktopConfigKey.lastMissedNotificationCheckTime, Date.now())
 			                          if (mn.notificationInfos && mn.notificationInfos.length === 0
 				                          && mn.alarmNotifications && mn.alarmNotifications.length === 0) {
-				                          console.log("MissedNotification is empty")
+				                          log("MissedNotification is empty")
 			                          } else {
 				                          mn.notificationInfos.forEach(ni => this._handleNotificationInfo(this._lang.get("pushNewMail_msg"), ni))
 				                          mn.alarmNotifications.forEach(an => this._alarmScheduler.handleAlarmNotification(an))
 			                          }
 		                          })
-		                          .catch(FileNotFoundError, e => console.log('404:', e))
-		this._handlingPushMessage = this._handlingPushMessage.then(process, process)
+		                          .catch(FileNotFoundError, e => log('404:', e))
+		this._handlingPushMessage = this._handlingPushMessage.then(process, (e) => {
+			if (e instanceof NotAuthenticatedError) {
+				throw e
+			} else {
+				return process()
+			}
+		})
 		return this._handlingPushMessage
 	}
 
@@ -313,7 +333,7 @@ export class DesktopSseClient {
 	}
 
 
-	_downloadMissedNotification(): Promise<any> {
+	_downloadMissedNotification(userId: string): Promise<any> {
 		return new Promise((resolve, reject) => {
 			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?Error | ?string) => {
 				if (res) {
@@ -323,10 +343,10 @@ export class DesktopSseClient {
 				reject(e)
 			}
 
-			console.log("downloading missed notification")
+			log("downloading missed notification")
 			const url = this._makeAlarmNotificationUrl()
 			const headers: {[string]: string} = {
-				userIds: neverNull(this._connectedSseInfo).userIds.join(","),
+				userIds: userId,
 				v: MissedNotificationTypeModel.version,
 				cv: this._app.getVersion(),
 			}
@@ -342,6 +362,10 @@ export class DesktopSseClient {
 			).on('response', res => {
 				if (res.statusCode === 404) {
 					fail(req, res, new FileNotFoundError("no missed notification"))
+					return
+				}
+				if (res.statusCode === 401) {
+					fail(req, res, new NotAuthenticatedError(`not authenticated to download missed notification w/ userId ${userId}`))
 					return
 				}
 				if (res.statusCode !== 200) {
@@ -360,7 +384,7 @@ export class DesktopSseClient {
 						fail(req, res, e)
 					}
 				})
-				   .on('close', () => console.log("dl missed notification response closed"))
+				   .on('close', () => log("dl missed notification response closed"))
 				   .on('error', e => fail(req, res, e))
 			}).on('error', e => fail(req, null, e)).end()
 		})
@@ -386,7 +410,7 @@ export class DesktopSseClient {
 			console.error("invalid reschedule delay, setting to 10")
 			delaySeconds = 10
 		}
-		console.log('scheduling to check sse in', delaySeconds, 'seconds')
+		log('scheduling to check sse in', delaySeconds, 'seconds')
 		// clearTimeout doesn't care about undefined or null, but flow still complains
 		this._nextReconnect = this._delayHandler(() => this.connect(), delaySeconds * 1000)
 	}
