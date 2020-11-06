@@ -88,7 +88,7 @@ public class SseStorage {
 	}
 
 	public LiveData<List<User>> observeUsers() {
-		return this.db.userInfoDao().observeUsers();
+			return this.db.userInfoDao().observeUsers();
 	}
 
 	public List<AlarmNotification> readAlarmNotifications() {

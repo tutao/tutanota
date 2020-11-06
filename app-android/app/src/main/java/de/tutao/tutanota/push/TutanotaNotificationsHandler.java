@@ -169,6 +169,7 @@ public class TutanotaNotificationsHandler {
 		// It will be done automatically when we remove the user from DB because there's already an observer for users
 		// in PushNotificationService which restarts the connection.
 		this.sseStorage.removeUser(userId);
+		alarmNotificationsManager.unscheduleAlarms(userId);
 		if (this.sseStorage.getUsers().isEmpty()) {
 			alarmNotificationsManager.unscheduleAlarms(null);
 			sseStorage.clear();

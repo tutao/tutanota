@@ -142,7 +142,6 @@ export class DesktopSseClient {
 		const userId = sseInfo.userIds[0]
 		if (userId == null) {
 			console.log("No user IDs, skip reconnect")
-			this._reschedule(20)
 			return Promise.resolve()
 		}
 		const url = sseInfo.sseOrigin + "/sse?_body=" + this._requestJson(sseInfo.identifier, userId)
