@@ -8,7 +8,7 @@ import {erase, load, loadAll, setup} from "../api/main/Entity"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {U2fClient} from "../misc/U2fClient"
-import {SecondFactorType} from "../api/common/TutanotaConstants"
+import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {neverNull} from "../api/common/utils/Utils"
@@ -81,7 +81,7 @@ export class EditSecondFactorsForm {
 			m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 			m(TableN, secondFactorTableAttrs),
 			m("span.small", lang.get("moreInfo_msg") + " "),
-			m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)]),
+			isTutanotaDomain() ? m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)]) : null
 		]
 	}
 
@@ -360,8 +360,9 @@ export class EditSecondFactorsForm {
 	}
 
 	_showRecoveryInfoDialog(user: User) {
-		// We only show the recovery code if it is for the current user
-		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user))) {
+		// We only show the recovery code if it is for the current user and it is a global admin
+		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user))
+			|| !user.memberships.find(gm => gm.groupType === GroupType.Admin)) {
 			return
 		}
 		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null

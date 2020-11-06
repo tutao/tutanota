@@ -1,7 +1,7 @@
 // @flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {lang} from "../misc/LanguageViewModel"
@@ -94,11 +94,16 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				const lnk = lang.getInfoLink("recoverCode_link")
-				return [
-					m("span", lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
-				]
+				if (isTutanotaDomain()) {
+					const lnk = lang.getInfoLink("recoverCode_link")
+					return [
+						m("span", lang.get("moreInfo_msg") + " "),
+						m("span.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
+					]
+				} else {
+					return ""
+				}
+
 			},
 			value: this._stars,
 			disabled: true,
@@ -133,7 +138,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				m(TextFieldN, mailAddressAttrs),
 				m(TextFieldN, passwordAttrs),
 				user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
-				(!user.isOutlookAccount() && user.isGlobalAdmin()) ?
+				(!user.isOutlookAccount()) ?
 					m(this._secondFactorsForm) : null,
 				m(".h4.mt-l", lang.get('activeSessions_label')),
 				m(TableN, activeSessionTableAttrs),
