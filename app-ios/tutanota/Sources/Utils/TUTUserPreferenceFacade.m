@@ -56,6 +56,18 @@ NSString *const LAST_MISSED_NOTIFICATION_CHECK_TIME = @"lastMissedNotificationCh
     [self putSseInfo:sseInfo];
 }
 
+- (void) removeUser:(NSString *)userId {
+    let sseInfo = self.sseInfo;
+    if (!sseInfo) {
+      TUTLog(@"Removing userId but there's no SSEInfo stored");
+      return;
+    }
+    NSMutableArray<NSString *> *userIds = sseInfo.userIds.mutableCopy;
+    [userIds removeObject:userId];
+    sseInfo.userIds = userIds;
+    [self putSseInfo:sseInfo];
+}
+
 -(void)putSseInfo:(TUTSseInfo *)sseInfo {
     [NSUserDefaults.standardUserDefaults setObject:sseInfo.toDict forKey:SSE_INFO_KEY];
 }

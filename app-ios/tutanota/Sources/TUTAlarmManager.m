@@ -81,7 +81,12 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         }
         
         NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
-        additionalHeaders[@"userIds"] = [sseInfo.userIds componentsJoinedByString:@","];
+        if (sseInfo.userIds.count == 0) {
+            queueCompletionHandler();
+            complete(nil);
+        }
+        NSString *userId = sseInfo.userIds[0];
+        additionalHeaders[@"userIds"] = userId;
         if (strongSelf.userPreference.lastProcessedNotificationId) {
             additionalHeaders[@"lastProcessedNotificationId"] = strongSelf.userPreference.lastProcessedNotificationId;
         }
@@ -96,6 +101,11 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
             TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
             if (error) {
                 complete(error);
+            } else if (httpResponse.statusCode == 401) {
+                // Not authenticated, remove user id and try again with the next one
+                [strongSelf.userPreference removeUser:userId];
+                queueCompletionHandler();
+                [strongSelf fetchMissedNotifications:completionHandler];
             } else if (httpResponse.statusCode == 404) {
                 complete(nil);
             } else if (httpResponse.statusCode != 200) {

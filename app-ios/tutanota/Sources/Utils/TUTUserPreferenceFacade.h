@@ -14,11 +14,12 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface TUTUserPreferenceFacade : NSObject
-- (TUTSseInfo * _Nullable)sseInfo;
-- (void)storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin;
-- (void)storeAlarms:(NSArray<TUTAlarmNotification *> *)alarmNotifications;
-- (NSMutableArray<TUTAlarmNotification *> *)alarms;
-- (void)clear;
+- (TUTSseInfo * _Nullable) sseInfo;
+- (void) storeSseInfoWithPushIdentifier:(NSString *)pushIdentifier userId:(NSString *)userId sseOrign:(NSString *)sseOrigin;
+- (void) removeUser:(NSString *)userId;
+- (void) storeAlarms:(NSArray<TUTAlarmNotification *> *)alarmNotifications;
+- (NSMutableArray<TUTAlarmNotification *> *) alarms;
+- (void) clear;
 @property (nonatomic, nullable) NSString *lastProcessedNotificationId;
 @property (nonatomic, nullable) NSDate *lastMissedNotificationCheckTime;
 @end
