@@ -77,10 +77,16 @@ public class TutanotaNotificationsHandler {
 	private MissedNotification downloadMissedNotification(@NonNull SseInfo sseInfo) {
 		int triesLeft = 3;
 		// We try to download limited number of times. If it fails then  we are probably offline
+		String userId;
 		while (triesLeft > 0) {
+			if (sseInfo.getUserIds().isEmpty()) {
+				Log.i(TAG, "No users to download missed notification with");
+				return null;
+			}
+			userId = sseInfo.getUserIds().iterator().next();
 			try {
-				Log.d(TAG, "Downloading missed notification");
-				return executeMissedNotificationDownload(sseInfo);
+				Log.d(TAG, "Downloading missed notification with user id " + userId);
+				return executeMissedNotificationDownload(sseInfo, userId);
 			} catch (FileNotFoundException e) {
 				Log.i(TAG, "MissedNotification is not found, ignoring: " + e.getMessage());
 				return null;
@@ -94,6 +100,15 @@ public class TutanotaNotificationsHandler {
 			} catch (ServerResponseException e) {
 				triesLeft--;
 				Log.w(TAG, e);
+			} catch (ClientRequestException e) {
+				if (e.code == ResponseCodes.NOT_AUTHENTICATED) {
+					Log.i(TAG, "Not authenticated to download missed notification with user " + userId, e);
+					// This will initiate reconnect so we don't have to try again here
+					this.onNotAuthorized(userId);
+				} else {
+					Log.w(TAG, e);
+				}
+				return null;
 			} catch (HttpException e) { // other HTTP exceptions, client ones
 				Log.w(TAG, e);
 				return null;
@@ -102,7 +117,7 @@ public class TutanotaNotificationsHandler {
 		return null;
 	}
 
-	private MissedNotification executeMissedNotificationDownload(@NonNull SseInfo sseInfo) throws IllegalArgumentException, IOException, HttpException {
+	private MissedNotification executeMissedNotificationDownload(@NonNull SseInfo sseInfo, String userId) throws IllegalArgumentException, IOException, HttpException {
 		try {
 			URL url = makeAlarmNotificationUrl(sseInfo);
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -110,7 +125,7 @@ public class TutanotaNotificationsHandler {
 			urlConnection.setConnectTimeout(30 * 1000);
 			urlConnection.setReadTimeout(20 * 1000);
 
-			urlConnection.setRequestProperty("userIds", TextUtils.join(",", sseInfo.getUserIds()));
+			urlConnection.setRequestProperty("userIds", userId);
 			NetworkUtils.addCommonHeaders(urlConnection);
 			String lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId();
 			if (lastProcessedNotificationId != null) {
