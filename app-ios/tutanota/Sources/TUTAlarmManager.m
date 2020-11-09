@@ -82,8 +82,11 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         
         NSMutableDictionary<NSString *, NSString *> *additionalHeaders = [NSMutableDictionary new];
         if (sseInfo.userIds.count == 0) {
+            TUTLog(@"No users to download missed notification with");
+            [strongSelf unscheduleAllAlarmsForUserId:nil];
             queueCompletionHandler();
             complete(nil);
+            return;
         }
         NSString *userId = sseInfo.userIds[0];
         additionalHeaders[@"userIds"] = userId;
@@ -95,14 +98,18 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
         
         let urlSession = [NSURLSession sessionWithConfiguration:configuration];
         let urlString = [strongSelf missedNotificationUrl:sseInfo.sseOrigin pushIdentifier:sseInfo.pushIdentifier];
-        
+      
+        TUTLog(@"Downloading missed notification with userId %@", userId);
+      
         [[urlSession dataTaskWithURL:[NSURL URLWithString:urlString] completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
             let httpResponse = (NSHTTPURLResponse *) response;
             TUTLog(@"Fetched missed notifications with status code %zd, error: %@", httpResponse.statusCode, error);
             if (error) {
                 complete(error);
             } else if (httpResponse.statusCode == 401) {
+                TUTLog(@"Not authenticated to download missed notification w/ user %@", userId);
                 // Not authenticated, remove user id and try again with the next one
+                [strongSelf unscheduleAllAlarmsForUserId:userId];
                 [strongSelf.userPreference removeUser:userId];
                 queueCompletionHandler();
                 [strongSelf fetchMissedNotifications:completionHandler];
@@ -148,7 +155,7 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
 
 -(void)resetStoredState {
     TUTLog(@"Resetting current state");
-    [self unscheduleAllAlarms];
+    [self unscheduleAllAlarmsForUserId:nil];
     [_userPreference clear];
     NSError *error;
     [_keychainManager removePushIdentifierKeys:&error];
@@ -157,14 +164,16 @@ static const long MISSED_NOTIFICATION_TTL_SEC = 30L * 24 * 60 * 60; // 30 days
     }
 }
 
--(void)unscheduleAllAlarms {
+-(void)unscheduleAllAlarmsForUserId:(NSString *_Nullable)userId {
     let alarms = [_userPreference alarms];
     foreach(alarm, alarms) {
-        NSError *error;
-        [self unscheduleAlarm:alarm error:&error];
-        if (error) {
-            TUTLog(@"Error duruing unscheduling of all alarms %@", error);
-            error = nil;
+        if (userId == nil || [alarm.user isEqualToString:userId]) {
+            NSError *error;
+            [self unscheduleAlarm:alarm error:&error];
+            if (error) {
+                TUTLog(@"Error duruing unscheduling of all alarms %@", error);
+                error = nil;
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly, nonnull) TUTAlarmInfo *alarmInfo;
 @property (readonly, nonnull) NSArray<TUTNotificationSessionKey *> *notificationSessionKeys;
 @property (readonly, nullable) TUTRepeatRule *repeatRule;
+@property (readonly, nonnull) NSString *user;
 @property (readonly, nonnull) NSDictionary *jsonDict;
 
 -(NSDate * _Nullable)getEventStartDec:(NSData *)sessionKey error:(NSError**)error;
