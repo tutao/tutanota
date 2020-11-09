@@ -230,14 +230,15 @@ export class MailViewer {
 		const expanderStyle = {}
 		const detailsExpander = this._createDetailsExpander(bubbleMenuWidth, mail, expanderStyle)
 
-		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-		this._inlineFileIds = this._loadMailBody(mail)
-		this._inlineImages = this._loadAttachments(mail).then((inlineImages) => {
-			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-			locator.entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
-			       .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
-			return inlineImages
-		})
+
+		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
+		locator.entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
+		       .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
+		       .then(() => {
+			       //We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
+			       this._inlineFileIds = this._loadMailBody(mail)
+			       this._inlineImages = this._loadAttachments(mail)
+		       })
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -873,7 +874,7 @@ export class MailViewer {
 			this._loadingAttachments = false
 			return Promise.resolve({})
 		} else {
-			//We make the requests sequentially and wait for _inlineFileIds to resolve
+			//We wait for _inlineFileIds to resolve in order to make the server requests sequentially
 			return this._inlineFileIds.then((inlineCids) => {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
