@@ -18,7 +18,8 @@ import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
 import {Mode} from "../../api/Env"
-import {NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
+import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
+import {TutanotaError} from "../../api/common/error/TutanotaError"
 
 export type SseInfo = {|
 	identifier: string,
@@ -243,6 +244,8 @@ export class DesktopSseClient {
 			    .then(() => this._reschedule())
 			    .catch(e => {
 			    	if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
+			    		// Reset the queue so that the previous error will not be handled again
+			    		this._handlingPushMessage = Promise.resolve()
 					    this._removeUserId(userId)
 					    this._disconnect()
 				    } else {
@@ -308,6 +311,7 @@ export class DesktopSseClient {
 			if (e instanceof NotAuthenticatedError) {
 				throw e
 			} else {
+				log("Error while downloading missed notification", e)
 				return process()
 			}
 		})
@@ -335,7 +339,7 @@ export class DesktopSseClient {
 
 	_downloadMissedNotification(userId: string): Promise<any> {
 		return new Promise((resolve, reject) => {
-			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?Error | ?string) => {
+			const fail = (req: ClientRequest, res: ?http$IncomingMessage<net$Socket>, e: ?TutanotaError) => {
 				if (res) {
 					res.destroy()
 				}
@@ -360,16 +364,9 @@ export class DesktopSseClient {
 					timeout: 20000
 				}
 			).on('response', res => {
-				if (res.statusCode === 404) {
-					fail(req, res, new FileNotFoundError("no missed notification"))
-					return
-				}
-				if (res.statusCode === 401) {
-					fail(req, res, new NotAuthenticatedError(`not authenticated to download missed notification w/ userId ${userId}`))
-					return
-				}
 				if (res.statusCode !== 200) {
-					fail(req, res, `error during missedNotification retrieval, got ${res.statusCode}`)
+					const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
+					fail(req, res, tutanotaError)
 					return
 				}
 				res.setEncoding('utf8')

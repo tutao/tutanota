@@ -136,7 +136,8 @@ o.spec("DesktopSseClient Test", function () {
 				},
 				setEncoding: function (enc) {
 				},
-				destroy: function () {}
+				destroy: function () {},
+				headers: {},
 			},
 			statics: {}
 		})
