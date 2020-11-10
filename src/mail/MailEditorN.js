@@ -10,10 +10,9 @@ import {lang} from "../misc/LanguageViewModel"
 import type {MailboxDetail} from "./MailModel"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {
+	appendEmailSignature,
 	conversationTypeString,
 	createInlineImage,
-	getDefaultSignature,
-	getEmailSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
 	parseMailtoUrl,
@@ -523,7 +522,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 	return checkApprovalStatus(false).then(sendAllowed => {
 		if (sendAllowed) {
-			return newMailEditorFromTemplate(mailboxDetails, {}, "", "<br/>" + getEmailSignature())
+			return newMailEditorFromTemplate(mailboxDetails, {}, "", appendEmailSignature(""))
 		} else {
 			return Promise.reject(new PermissionError("not allowed to send mail"))
 		}
@@ -550,7 +549,7 @@ export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean,
 	return _mailboxPromise(mailboxDetails).then(mailbox => {
 		const mailTo = parseMailtoUrl(mailtoUrl)
 		const subject = mailTo.subject
-		const body = mailTo.body + getDefaultSignature()
+		const body = appendEmailSignature(mailTo.body)
 		const recipients = {
 			to: mailTo.to.map(mailAddressToRecipient),
 			cc: mailTo.cc.map(mailAddressToRecipient),
@@ -592,7 +591,7 @@ export function writeSupportMail(subject: string = "", mailboxDetails?: MailboxD
 			const recipients = {
 				to: [{name: null, address: "premium@tutao.de"}]
 			}
-			newMailEditorFromTemplate(mailbox, recipients, subject, "<br/>" + getSupportMailSignature())
+			newMailEditorFromTemplate(mailbox, recipients, subject, getSupportMailSignature())
 				.then(dialog => dialog.show())
 		})
 

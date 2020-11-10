@@ -19,7 +19,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {NotFoundError} from "../api/common/error/RestError"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {ContactSocialType, getContactSocialType, Keys} from "../api/common/TutanotaConstants"
-import {getEmailSignature} from "../mail/MailUtils"
+import {appendEmailSignature} from "../mail/MailUtils"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
@@ -211,7 +211,7 @@ export class ContactViewer {
 	_writeMail(mailAddress: string): Promise<*> {
 		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
-			return newMailEditorFromTemplate(mailboxDetails, {to: [{name, address: mailAddress}]}, "", getEmailSignature())
+			return newMailEditorFromTemplate(mailboxDetails, {to: [{name, address: mailAddress}]}, "", appendEmailSignature(""))
 				.then(editor => editor.show())
 		})
 	}

@@ -45,7 +45,7 @@ import {startsWith} from "../api/common/utils/StringUtils"
 import {Request} from "../api/common/WorkerProtocol.js"
 import {ConversationEntryTypeRef} from "../api/entities/tutanota/ConversationEntry"
 import {
-	bodyTextWithSignature,
+	prependEmailSignature,
 	createNewContact,
 	getArchiveFolder,
 	getDefaultSender,
@@ -1247,7 +1247,7 @@ export class MailViewer {
 							bccRecipients,
 							attachments: [],
 							subject,
-							bodyText: bodyTextWithSignature(body),
+							bodyText: prependEmailSignature(body),
 							replyTos: [],
 						}, this._contentBlocked, this._inlineImages, mailboxDetails)
 					}).then(editor => {
@@ -1308,7 +1308,7 @@ export class MailViewer {
 				bccRecipients: [],
 				attachments: this._attachments.slice(),
 				subject: "FWD: " + this.mail.subject,
-				bodyText: addSignature ? bodyTextWithSignature(body) : body,
+				bodyText: addSignature ? prependEmailSignature(body) : body,
 				replyTos,
 			}
 		})

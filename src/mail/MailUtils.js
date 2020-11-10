@@ -64,6 +64,8 @@ import {getTimeZone} from "../calendar/CalendarUtils"
 
 assertMainOrNode()
 
+const SIGNATURE_DISTANCE = "<br><br>"
+
 /**
  *
  * @param mailAddress
@@ -85,13 +87,22 @@ export function createRecipientInfo(mailAddress: string, name: ?string, contact:
 	}
 }
 
-export function bodyTextWithSignature(body: string): string {
+export function prependEmailSignature(body: string): string {
 	let withSignature = "<br/><br/><br/>" + body
 	let signature = getEmailSignature(globalLogins)
 	if (globalLogins.getUserController().isInternalUser() && signature) {
 		withSignature = signature + withSignature
 	}
 	return withSignature
+}
+
+export function appendEmailSignature(body: string): string {
+	const signature = getEmailSignature()
+	if (signature) {
+		return body + signature
+	} else {
+		return body
+	}
 }
 
 /**
@@ -220,7 +231,7 @@ export function getDefaultSenderFromUser({props, userGroupInfo}: IUserController
 }
 
 export function getDefaultSignature(): string {
-	return "<br><br>"
+	return SIGNATURE_DISTANCE
 		+ htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": lang.getInfoLink("homePage_link")}), true).text;
 }
 
@@ -454,9 +465,10 @@ export function getEmailSignature(logins: LoginController = globalLogins): strin
 	// provide the user signature, even for shared mail groups
 	const type = logins.getUserController().props.emailSignatureType;
 	if (type === TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT) {
+		// default signature already contains empty lines
 		return getDefaultSignature()
 	} else if (TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM === type) {
-		return logins.getUserController().props.customEmailSignature
+		return SIGNATURE_DISTANCE + logins.getUserController().props.customEmailSignature
 	} else {
 		return ""
 	}
@@ -624,7 +636,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 }
 
 export function getSupportMailSignature(): string {
-	return "<br><br>--"
+	return SIGNATURE_DISTANCE + "--"
 		+ `<br>Client: ${client.getIdentifier()}`
 		+ `<br>Tutanota version: ${env.versionNumber}`
 		+ `<br>Time zone: ${getTimeZone()}`
