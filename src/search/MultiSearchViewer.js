@@ -133,11 +133,6 @@ export class MultiSearchViewer {
 				() => Icons.Cancel))
 		}
 
-		actionBar.add(new Button('delete_action', () => {
-			this._searchListView.deleteSelected()
-
-		}, () => Icons.Trash))
-
 		actionBar.add(createAsyncDropDownButton('move_action', () => Icons.Folder, () => {
 			let selected = this._searchListView.getSelectedEntities()
 			let selectedMails = []
@@ -171,6 +166,11 @@ export class MultiSearchViewer {
 				}
 			})
 		}))
+
+		actionBar.add(new Button('delete_action', () => {
+			this._searchListView.deleteSelected()
+
+		}, () => Icons.Trash))
 
 		actionBar.add(createDropDownButton('more_label', () => Icons.More, () => {
 			//select non is needed for mobile
