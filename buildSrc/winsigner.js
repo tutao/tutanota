@@ -9,7 +9,7 @@ function signer(args) {
 	const hsmPin = process.env["HSM_USER_PIN"]
 	const extension = "." + args.path.split(".").pop()
 	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
-	const command = "/opt/osslsigncode/osslsigncode"
+	const command = "/usr/bin/osslsigncode"
 
 	//  Timestamping:
 	//  1. The client application creates a hashed value of the data to the timestamp server.
