@@ -43,7 +43,7 @@ function signer(args) {
 	const commandArguments = [
 		"-in", unsignedFileName,
 		"-out", args.path,
-		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/openssl-1.0.2/engines/pkcs11.so",
+		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
 		"-key", "10",
