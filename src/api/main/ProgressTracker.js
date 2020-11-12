@@ -39,6 +39,7 @@ export class ProgressTracker {
 	/**
 	 * Register a monitor with the tracker, so that it's progress can be displayed
 	 * Returns an ID as a handle, useful for making calls from the worker
+	 * Automatically deregisters after a given timeout, or when a monitor completes its work
 	 * @param monitor
 	 * @returns {number}
 	 */
