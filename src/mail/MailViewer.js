@@ -237,11 +237,11 @@ export class MailViewer {
 
 
 		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-		this._inlineFileIds = this._loadMailBody(mail).tap(() => console.log("body finished"))
-		this._inlineImages = this._loadAttachments(mail).tap(() => console.log("attachments finished"))
+		this._inlineFileIds = this._loadMailBody(mail)
+		this._inlineImages = this._loadAttachments(mail)
 		this._inlineImages.then(() => {
 			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry).tap(() => console.log("conversation entry finished"))
+			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
 			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 		})
 
@@ -885,7 +885,7 @@ export class MailViewer {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
 				const attchmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds).tap(() => console.log("multiple entities finished"))
+				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds)
 				           .then(files => {
 					           const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 					           if (calendarFile
