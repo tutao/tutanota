@@ -53,12 +53,14 @@ import type {Contact} from "../../../src/api/entities/tutanota/Contact"
 import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import type {MailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
+import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 
 const calendarGroupId = "0"
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = "Europe/Berlin"
 const wrapEncIntoMailAddress = (address) => createEncryptedMailAddress({address})
-const encMailAddress = wrapEncIntoMailAddress("address@tutanota.com")
+const accountMailAddress = "address@tutanota.com"
+const encMailAddress = wrapEncIntoMailAddress(accountMailAddress)
 const userId = "12356"
 const getAddress = a => a.mailAddress
 
@@ -1081,6 +1083,84 @@ o.spec("CalendarEventViewModel", function () {
 		})
 	})
 
+	o("send invite with alias as default sender", async function () {
+		const calendars = makeCalendars("own")
+		const distributor = makeDistributor()
+		const alias = "alias@tutanota.com"
+		const userController = makeUserController([alias], AccountType.PREMIUM, alias)
+		const viewModel = init({calendars, distributor, userController, existingEvent: null})
+		viewModel.setConfidential(false)
+		viewModel.addGuest("guest@external.de")
+		o(viewModel.attendees().length).equals(2)
+		o(viewModel.organizer).deepEquals(wrapEncIntoMailAddress(alias))
+
+		const attendees = viewModel.attendees()
+		o(attendees.find(guest => guest.address.address === "guest@external.de")).notEquals(undefined)
+		o(attendees.find(guest => guest.address.address === alias)).notEquals(undefined)
+		o(attendees.find(guest => guest.address.address === "address@tutanota.com")).equals(undefined)
+	})
+
+	o("invite self to set organizer with existing attendees", async function () {
+		const calendars = makeCalendars("own")
+		const distributor = makeDistributor()
+		const alias = "alias@tutanota.com"
+		const aliasEncMailAddress = wrapEncIntoMailAddress(alias)
+		const userController = makeUserController([alias], AccountType.PREMIUM)
+		const viewModel = init({calendars, distributor, userController, existingEvent: null})
+		const attendees = viewModel.attendees
+
+		viewModel.setConfidential(false)
+		viewModel.addGuest("guest@external.de")
+		o(attendees().length).equals(2)
+		o(viewModel.organizer).deepEquals(encMailAddress)
+
+		viewModel.addGuest(accountMailAddress)
+		o(attendees().length).equals(2)
+		o(viewModel.organizer).deepEquals(encMailAddress)
+		o(attendees().find(guest => guest.address.address === "guest@external.de")).notEquals(undefined)
+		o(attendees().find(guest => guest.address.address === accountMailAddress)).notEquals(undefined)
+		o(attendees().find(guest => guest.address.address === alias)).equals(undefined)
+
+		viewModel.addGuest(alias)
+		o(attendees().length).equals(2)
+		o(viewModel.organizer).deepEquals(aliasEncMailAddress)("the organizer should now be the alias")
+		o(attendees().find(guest => guest.address.address === "guest@external.de")).notEquals(undefined)
+		o(attendees().find(guest => guest.address.address === alias)).notEquals(undefined)
+		o(attendees().find(guest => guest.address.address === accountMailAddress)).equals(undefined)
+	})
+
+	o("invite self as first attendee", async function () {
+		const calendars = makeCalendars("own")
+		const distributor = makeDistributor()
+		const alias = "alias@tutanota.com"
+		const userController = makeUserController([alias], AccountType.PREMIUM)
+		const viewModel = init({calendars, distributor, userController, existingEvent: null})
+		const attendees = viewModel.attendees
+
+		viewModel.setConfidential(false)
+		viewModel.addGuest(accountMailAddress)
+		o(attendees().length).equals(1)
+		o(viewModel.organizer).deepEquals(encMailAddress)
+		o(attendees().find(guest => guest.address.address === accountMailAddress)).notEquals(undefined)
+	})
+
+
+	o("invite alias as first attendee", async function () {
+		const calendars = makeCalendars("own")
+		const distributor = makeDistributor()
+		const alias = "alias@tutanota.com"
+		const aliasEncMailAddress = wrapEncIntoMailAddress(alias)
+		const userController = makeUserController([alias], AccountType.PREMIUM)
+		const viewModel = init({calendars, distributor, userController, existingEvent: null})
+		const attendees = viewModel.attendees
+
+		viewModel.setConfidential(false)
+		viewModel.addGuest(alias)
+		o(attendees().length).equals(1)
+		o(viewModel.organizer).deepEquals(aliasEncMailAddress)
+		o(attendees().find(guest => guest.address.address === alias)).notEquals(undefined)
+	})
+
 	o.spec("onStartDateSelected", function () {
 		o("date adjusted forward", async function () {
 			const calendars = makeCalendars("own")
@@ -1565,19 +1645,20 @@ function makeCalendars(type: "own" | "shared", id: string = calendarGroupId): Ma
 	return new Map([[id, calendarInfo]])
 }
 
-function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM): IUserController {
+function makeUserController(aliases: Array<string> = [], accountType: AccountTypeEnum = AccountType.PREMIUM, defaultSender?: string): IUserController {
+
 	return downcast({
 		user: createUser({
 			_id: userId,
 			memberships: [createGroupMembership({groupType: GroupType.Mail}), createGroupMembership({groupType: GroupType.Contact})],
 			accountType,
 		}),
-		props: {
-			defaultSender: encMailAddress,
-		},
+		props: createTutanotaProperties({
+			defaultSender: defaultSender || accountMailAddress,
+		}),
 		userGroupInfo: createGroupInfo({
 			mailAddressAliases: aliases.map((address) => createMailAddressAlias({mailAddress: address, enabled: true})),
-			mailAddress: encMailAddress.address,
+			mailAddress: accountMailAddress,
 		}),
 		userSettingsGroupRoot: {
 			timeFormat: TimeFormat.TWENTY_FOUR_HOURS,
