@@ -51,6 +51,7 @@ export class TextField {
 	onblur: Stream<*>;
 	skipNextBlur: boolean;
 	_keyHandler: ?keyHandler; // interceptor used by the BubbleTextField to react on certain keys
+	_keyPressHandler: ?Function; // used by BubbleTextField to react on commas
 	_alignRight: boolean;
 	_preventAutofill: boolean;
 	autocomplete: string;
@@ -79,6 +80,7 @@ export class TextField {
 		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
+		this._keyPressHandler = null
 		this._preventAutofill = false
 
 		this.view = (): VirtualElement => {
@@ -193,6 +195,9 @@ export class TextField {
 					},
 					onfocus: (e) => this.focus(),
 					onblur: e => this.blur(e),
+					onkeypress: e => {
+						return this._keyPressHandler != null ? this._keyPressHandler(e) : true
+					},
 					onkeydown: e => {
 						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 						let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
