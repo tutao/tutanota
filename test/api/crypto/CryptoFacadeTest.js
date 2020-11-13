@@ -53,6 +53,7 @@ import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {downcast} from "../../../src/api/common/utils/Utils"
+import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 
 
 o.spec("crypto facade", function () {
@@ -66,7 +67,6 @@ o.spec("crypto facade", function () {
 		restClient = new RestClient(new SuspensionHandler(worker))
 		locator.restClient = restClient
 		locator.login = new LoginFacade((null: any), restClient, downcast({}))
-
 	})
 
 	o.afterEach(function () {
@@ -576,7 +576,7 @@ o.spec("crypto facade", function () {
 		}).then(done)
 	})
 
-	o("resolve session key: public key decryption of session key", function (done) {
+	o("resolve session key: public key decryption of session key", async function () {
 		let subject = "this is our subject"
 		let confidential = true
 		let senderName = "TutanotaTeam"
@@ -610,47 +610,46 @@ o.spec("crypto facade", function () {
 		permission.type = PermissionType.Public
 		permission._ownerGroup = userGroup._id
 
-		rsaEncrypt(publicKey, bitArrayToUint8Array(bk)).then(pubEncBucketKey => {
-			let bucketPermission = createBucketPermission()
-			bucketPermission.pubEncBucketKey = pubEncBucketKey
-			bucketPermission.type = BucketPermissionType.Public
-			bucketPermission._id = ["bucketPermissionListId", "bucketPermissionId"]
-			bucketPermission._ownerGroup = userGroup._id
-			bucketPermission.group = userGroup._id
+		const pubEncBucketKey = await rsaEncrypt(publicKey, bitArrayToUint8Array(bk))
+		let bucketPermission = createBucketPermission()
+		bucketPermission.pubEncBucketKey = pubEncBucketKey
+		bucketPermission.type = BucketPermissionType.Public
+		bucketPermission._id = ["bucketPermissionListId", "bucketPermissionId"]
+		bucketPermission._ownerGroup = userGroup._id
+		bucketPermission.group = userGroup._id
 
-			let mem = createGroupMembership()
-			mem.group = userGroup._id
+		let mem = createGroupMembership()
+		mem.group = userGroup._id
 
-			locator.login._user = createUser()
-			locator.login._user.userGroup = mem
-			locator.login.groupKeys['userGroupId'] = gk
+		locator.login._user = createUser()
+		locator.login._user.userGroup = mem
+		locator.login.groupKeys['userGroupId'] = gk
+		locator.login._leaderStatus = createWebsocketLeaderStatus({leaderStatus: true})
 
-			let loaders = {
-				loadBucketPermissions: function (listId) {
-					o(listId).equals(bucketPermission._id[0])
-					return Promise.resolve([bucketPermission])
-				},
-				loadPermissions: function (listId) {
-					o(listId).equals(permission._id[0])
-					return Promise.resolve([permission])
-				},
-				loadGroup: function (groupId) {
-					o(groupId).equals(userGroup._id)
-					return Promise.resolve(userGroup)
-				}
+		let loaders = {
+			loadBucketPermissions: function (listId) {
+				o(listId).equals(bucketPermission._id[0])
+				return Promise.resolve([bucketPermission])
+			},
+			loadPermissions: function (listId) {
+				o(listId).equals(permission._id[0])
+				return Promise.resolve([permission])
+			},
+			loadGroup: function (groupId) {
+				o(groupId).equals(userGroup._id)
+				return Promise.resolve(userGroup)
 			}
+		}
 
-			// mock the invocation of UpdatePermissionKeyService
-			let updateMock = mockAttribute(restClient, restClient.request, () => Promise.resolve())
-
-			resolveSessionKey(Mail._TypeModel, mail, loaders).then(sessionKey => {
-				o(sessionKey).deepEquals(sk)
-				o((restClient.request: any).callCount).equals(1)
-				done()
-			}).finally(() => unmockAttribute(updateMock))
-		})
-
-
+		// mock the invocation of UpdatePermissionKeyService
+		let updateMock = mockAttribute(restClient, restClient.request, () => Promise.resolve())
+		try {
+			const sessionKey = await resolveSessionKey(Mail._TypeModel, mail, loaders)
+			o(sessionKey).deepEquals(sk)
+			o((restClient.request: any).callCount).equals(1)
+		} finally {
+			unmockAttribute(updateMock)
+		}
 	})
 
 	o("decryption errors should be written to _errors field", function (done) {
