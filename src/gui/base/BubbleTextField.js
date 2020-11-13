@@ -102,6 +102,7 @@ export class BubbleTextField<T> {
 		this.textField.baseLabelPosition = size.text_field_label_top
 		this.textField.onblur.map(() => this.createBubbles())
 		this.textField._keyHandler = key => this.handleKey(key)
+        this.textField._keyPressHandler = key => this.handleKeypress(key)
 
 		this.bubbleHandler = bubbleHandler
 
@@ -188,8 +189,7 @@ export class BubbleTextField<T> {
 		switch (key.keyCode) {
 			case 13: // return
 			case 32: // whitespace
-			case 188: //comma
-				return this.createBubbles() || false
+                return this.createBubbles() || false
 			case 8:
 				return this.handleBackspace()
 			case 46:
@@ -207,9 +207,18 @@ export class BubbleTextField<T> {
 			case 17: // do not react on ctrl key
 				return true
 		}
+        
 		this.removeBubbleSelection()
 		return true
 	}
+    
+    handleKeypress(key: KeyboardEvent): boolean {
+        if (key.key === ",") {
+            return this.createBubbles() || false
+        }
+        
+        return true
+    }
 
 	createBubbles(): void {
 		let value = this.textField.value().trim()
