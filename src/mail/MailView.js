@@ -719,7 +719,7 @@ export class MailView implements CurrentView {
 		(mails, elementClicked, selectionChanged, multiSelectOperation) => {
 			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewer)) {
 				// set or update the visible mail
-				this.mailViewer = new MailViewer(mails[0], false)
+				this.mailViewer = new MailViewer(mails[0], false, locator.entityClient, locator.mailModel)
 				let url = `/mail/${mails[0]._id.join("/")}`
 				if (this.selectedFolder) {
 					this._folderToUrl[this.selectedFolder._id[1]] = url
@@ -792,7 +792,7 @@ export class MailView implements CurrentView {
 				if (operation === OperationType.UPDATE && this.mailViewer
 					&& isSameId(this.mailViewer.mail._id, [neverNull(instanceListId), instanceId])) {
 					return load(MailTypeRef, this.mailViewer.mail._id).then(updatedMail => {
-						this.mailViewer = new MailViewer(updatedMail, false)
+						this.mailViewer = new MailViewer(updatedMail, false, locator.entityClient, locator.mailModel)
 					}).catch(() => {
 						// ignore. might happen if a mail was just sent
 					})

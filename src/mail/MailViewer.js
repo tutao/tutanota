@@ -114,7 +114,6 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel} from "../api/entities/tutanota/Mail"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import {locator} from "../api/main/MainLocator"
 import {EventBanner} from "./EventBanner"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getEventFromFile} from "../calendar/CalendarInvites"
@@ -125,6 +124,8 @@ import type {ResponseMailParameters} from "./SendMailModel"
 import {defaultSendMailModel} from "./SendMailModel"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {EntityClient} from "../api/common/EntityClient"
+import {MailModel} from "./MailModel"
 
 assertMainOrNode()
 
@@ -173,19 +174,23 @@ export class MailViewer {
 	_domForScrolling: ?HTMLElement
 	_warningDismissed: boolean;
 	_calendarEventAttachment: ?{|event: CalendarEvent, method: CalendarMethodEnum, recipient: string|};
+	_entityClient: EntityClient;
+	_mailModel: MailModel;
 
-	constructor(mail: Mail, showFolder: boolean) {
+	constructor(mail: Mail, showFolder: boolean, entityClient: EntityClient, mailModel: MailModel) {
 		if (isDesktop()) {
 			nativeApp.invokeNative(new Request('sendSocketMessage', [{mailAddress: mail.sender.address}]))
 		}
 		this.mail = mail
+		this._entityClient = entityClient
+		this._mailModel = mailModel
 		this._folderText = null
 		this._filesExpanded = stream(false)
 		this._domBodyDeferred = defer()
 		if (showFolder) {
-			let folder = locator.mailModel.getMailFolder(mail._id[0])
+			let folder = this._mailModel.getMailFolder(mail._id[0])
 			if (folder) {
-				locator.mailModel.getMailboxDetailsForMail(mail).then((mailboxDetails) => {
+				this._mailModel.getMailboxDetailsForMail(mail).then((mailboxDetails) => {
 					this._folderText =
 						`${lang.get("location_label")}: ${getMailboxName(logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
 					m.redraw()
@@ -231,14 +236,15 @@ export class MailViewer {
 		const detailsExpander = this._createDetailsExpander(bubbleMenuWidth, mail, expanderStyle)
 
 
-		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-		locator.entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)
-		       .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
-		       .then(() => {
-			       //We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-			       this._inlineFileIds = this._loadMailBody(mail)
-			       this._inlineImages = this._loadAttachments(mail)
-		       })
+		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
+		this._inlineFileIds = this._loadMailBody(mail).tap(() => console.log("body finished"))
+		this._inlineImages = this._loadAttachments(mail).tap(() => console.log("attachments finished"))
+		this._inlineImages.then(() => {
+			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
+			this._entityClient.load(ConversationEntryTypeRef, mail.conversationEntry).tap(() => console.log("conversation entry finished"))
+			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
+		})
+
 
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
@@ -494,7 +500,7 @@ export class MailViewer {
 
 	_unsubscribe(): Promise<void> {
 		if (this.mail.headers) {
-			return showProgressDialog("pleaseWait_msg", locator.entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+			return showProgressDialog("pleaseWait_msg", this._entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
 				let headers = getMailHeaders(mailHeaders).split("\n").filter(headerLine =>
 					headerLine.toLowerCase().startsWith("list-unsubscribe"))
 				if (headers.length > 0) {
@@ -567,13 +573,13 @@ export class MailViewer {
 						label: "move_action",
 						icon: () => Icons.Folder,
 						colors,
-						click: createAsyncDropdown(() => locator.mailModel.getMailboxFolders(this.mail).then((folders) => {
+						click: createAsyncDropdown(() => this._mailModel.getMailboxFolders(this.mail).then((folders) => {
 								const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
 								const targetFolders = (getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders)))
 								return targetFolders.map(f => {
 									return {
 										label: () => getFolderName(f),
-										click: () => locator.mailModel.moveMails([mail], f),
+										click: () => this._mailModel.moveMails([mail], f),
 										icon: getFolderIcon(f),
 										type: ButtonType.Dropdown,
 									}
@@ -595,7 +601,7 @@ export class MailViewer {
 			click: () => {
 				showDeleteConfirmationDialog([this.mail]).then((confirmed) => {
 					if (confirmed) {
-						locator.mailModel.deleteMails([this.mail])
+						this._mailModel.deleteMails([this.mail])
 					}
 				})
 			},
@@ -689,13 +695,13 @@ export class MailViewer {
 			      .then(() => {
 				      if (reportType === MailReportType.PHISHING) {
 					      this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-					      return locator.entityClient.update(this.mail)
+					      return this._entityClient.update(this.mail)
 				      }
 			      })
-			      .then(() => locator.mailModel.getMailboxDetailsForMail(this.mail))
+			      .then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
 			      .then((mailboxDetails) => {
 				      const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-				      return locator.mailModel.moveMails([this.mail], spamFolder)
+				      return this._mailModel.moveMails([this.mail], spamFolder)
 			      })
 			      .catch(LockedError, () => Dialog.error("operationStillActive_msg"))
 			      .catch(NotFoundError, () => console.log("mail already moved"))
@@ -749,22 +755,22 @@ export class MailViewer {
 		}
 
 		this.mail.phishingStatus = MailPhishingStatus.WHITELISTED
-		return locator.entityClient.update(this.mail)
-		              .catch(e => this.mail.phishingStatus = oldStatus)
-		              .then(m.redraw)
+		return this._entityClient.update(this.mail)
+		           .catch(e => this.mail.phishingStatus = oldStatus)
+		           .then(m.redraw)
 	}
 
 	_checkMailForPhishing(mail: Mail, links: Array<string>) {
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			this._suspicious = true
 		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
-			locator.mailModel.checkMailForPhishing(mail, links).then((isSuspicious) => {
+			this._mailModel.checkMailForPhishing(mail, links).then((isSuspicious) => {
 				if (isSuspicious) {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-					locator.entityClient.update(mail)
-					       .catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
-					       .catch(NotFoundError, e => console.log("mail already moved"))
+					this._entityClient.update(mail)
+					    .catch(LockedError, e => console.log("could not update mail phishing status as mail is locked"))
+					    .catch(NotFoundError, e => console.log("mail already moved"))
 					m.redraw()
 				}
 			})
@@ -836,7 +842,7 @@ export class MailViewer {
 
 	/** @return list of inline referenced cid */
 	_loadMailBody(mail: Mail): Promise<Array<string>> {
-		return locator.entityClient.load(MailBodyTypeRef, mail.body).then(body => {
+		return this._entityClient.load(MailBodyTypeRef, mail.body).then(body => {
 			this._mailBody = body
 			let sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), true, isTutanotaTeamMail(mail))
 			this._checkMailForPhishing(mail, sanitizeResult.links)
@@ -879,47 +885,47 @@ export class MailViewer {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
 				const attchmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return locator.entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds)
-				              .then(files => {
-					              const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
-					              if (calendarFile
-						              && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
-						              && mail.state === MailState.RECEIVED
-					              ) {
-						              Promise.all([
-							              getEventFromFile(calendarFile),
-							              this._getSenderOfResponseMail()
-						              ]).then(([event, recipient]) => {
-							              this._calendarEventAttachment = event && {
-								              event,
-								              method: mailMethodToCalendarMethod(downcast(mail.method)),
-								              recipient,
-							              }
-							              m.redraw()
-						              })
-					              }
-					              this._attachments = files
-					              this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
-					              this._loadingAttachments = false
-					              m.redraw()
-					              const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
-					              const inlineImages: InlineImages = {}
-					              return Promise
-						              .map(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								              const blob = new Blob([dataFile.data], {
-									              type: dataFile.mimeType
-								              })
-								              inlineImages[neverNull(file.cid)] = {
-									              file,
-									              url: URL.createObjectURL(blob)
-								              }
-							              })
-						              ).return(inlineImages)
-				              })
-				              .catch(NotFoundError, e => {
-					              console.log("could load attachments as they have been moved/deleted already", e)
-					              return {}
-				              })
+				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds).tap(() => console.log("multiple entities finished"))
+				           .then(files => {
+					           const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
+					           if (calendarFile
+						           && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY)
+						           && mail.state === MailState.RECEIVED
+					           ) {
+						           Promise.all([
+							           getEventFromFile(calendarFile),
+							           this._getSenderOfResponseMail()
+						           ]).then(([event, recipient]) => {
+							           this._calendarEventAttachment = event && {
+								           event,
+								           method: mailMethodToCalendarMethod(downcast(mail.method)),
+								           recipient,
+							           }
+							           m.redraw()
+						           })
+					           }
+					           this._attachments = files
+					           this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
+					           this._loadingAttachments = false
+					           m.redraw()
+					           const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
+					           const inlineImages: InlineImages = {}
+					           return Promise
+						           .each(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
+								           const blob = new Blob([dataFile.data], {
+									           type: dataFile.mimeType
+								           })
+								           inlineImages[neverNull(file.cid)] = {
+									           file,
+									           url: URL.createObjectURL(blob)
+								           }
+							           })
+						           ).return(inlineImages)
+				           })
+				           .catch(NotFoundError, e => {
+					           console.log("could load attachments as they have been moved/deleted already", e)
+					           return {}
+				           })
 			})
 		}
 	}
@@ -1120,7 +1126,7 @@ export class MailViewer {
 				})
 			}
 			return contactsPromise.then(() => {
-				return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+				return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					if (defaultInboxRuleField
 						&& !logins.getUserController().isOutlookAccount()
 						&& !logins.isEnabled(FeatureType.InternalCommunication)) {
@@ -1152,7 +1158,7 @@ export class MailViewer {
 	}
 
 	_addSpamRule(defaultInboxRuleField: ?InboxRuleTypeEnum, address: string) {
-		const folder = locator.mailModel.getMailFolder(getListId(this.mail))
+		const folder = this._mailModel.getMailFolder(getListId(this.mail))
 		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM
 			? SpamRuleType.WHITELIST
 			: SpamRuleType.BLACKLIST
@@ -1184,18 +1190,18 @@ export class MailViewer {
 
 	_markUnread(unread: boolean) {
 		this.mail.unread = unread
-		locator.entityClient.update(this.mail)
-		       .catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
-		       .catch(NotFoundError, noOp)
+		this._entityClient.update(this.mail)
+		    .catch(LockedError, e => console.log("could not update mail read state: ", lang.get("operationStillActive_msg")))
+		    .catch(NotFoundError, noOp)
 	}
 
 	_editDraft(): Promise<void> {
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return locator.mailModel.getMailboxDetailsForMail(this.mail)
-				              .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails))
-				              .then(editorDialog => editorDialog.show())
-				              .catch(UserError, showUserError)
+				return this._mailModel.getMailboxDetailsForMail(this.mail)
+				           .then(mailboxDetails => newMailEditorFromDraft(this.mail, this._attachments, this._getMailBody(), this._contentBlocked, this._inlineImages, mailboxDetails))
+				           .then(editorDialog => editorDialog.show())
+				           .catch(UserError, showUserError)
 
 			}
 		})
@@ -1207,7 +1213,7 @@ export class MailViewer {
 		}
 		return checkApprovalStatus(false).then(sendAllowed => {
 			if (sendAllowed) {
-				return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+				return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 					let prefix = "Re: "
 					let subject = (startsWith(this.mail.subject.toUpperCase(), prefix.toUpperCase())) ? this.mail.subject : prefix
 						+ this.mail.subject
@@ -1319,13 +1325,13 @@ export class MailViewer {
 	}
 
 	_getMailboxDetails(): Promise<MailboxDetail> {
-		return locator.mailModel.getMailboxDetailsForMail(this.mail)
+		return this._mailModel.getMailboxDetailsForMail(this.mail)
 	}
 
 	_getAssignableMailRecipients(): Promise<GroupInfo[]> {
 		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
 			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return this._entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 				return loadGroupInfos(participantGroupInfos.filter(groupInfoId => {
 					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
 				})).filter(groupInfo => groupInfo.deleted == null)
@@ -1353,13 +1359,13 @@ export class MailViewer {
 			return this._getMailboxDetails().then(mailboxDetails => {
 				return defaultSendMailModel(mailboxDetails).initAsResponse(args).then(model => model.send(MailMethod.NONE))
 			})
-		}).then(() => locator.mailModel.getMailboxFolders(this.mail)).then((folders) => {
-			locator.mailModel.moveMails([this.mail], getArchiveFolder(folders))
+		}).then(() => this._mailModel.getMailboxFolders(this.mail)).then((folders) => {
+			this._mailModel.moveMails([this.mail], getArchiveFolder(folders))
 		})
 	}
 
 	_getSenderOfResponseMail(): Promise<string> {
-		return locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+		return this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 			let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
 			let addressesInMail = []
 			addAll(addressesInMail, this.mail.toRecipients)
@@ -1382,7 +1388,7 @@ export class MailViewer {
 			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
 				event.preventDefault()
 				if (isNewMailActionAvailable()) { // disable new mails for external users.
-					locator.mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
+					this._mailModel.getMailboxDetailsForMail(this.mail).then((mailboxDetails) => {
 						newMailtoUrlMailEditor(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
 							.then(editor => editor.show())
 					})
@@ -1435,7 +1441,7 @@ export class MailViewer {
 	_showHeaders() {
 		if (!this.mailHeaderDialog.visible) {
 			if (this.mail.headers) {
-				locator.entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
+				this._entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
 						this.mailHeaderInfo = getMailHeaders(mailHeaders)
 						this.mailHeaderDialog.show()
 					}
