@@ -850,13 +850,13 @@ export class MailViewer {
 			/**
 			 * check if we need to improve contrast for dark theme.
 			 * 1. theme id must be 'dark'
-			 * 2. html body needs to contain any tag with a style attribute that has the color property set
+			 * 2. html body needs to contain any tag with a style attribute that has the color property set (besides "inherit")
 			 * OR
 			 * there is a font tag with the color attribute set
 			 */
 			this._contrastFixNeeded = (
 				'undefined' !== typeof Array.from(sanitizeResult.html.querySelectorAll('*[style]'), e => e.style)
-				                            .find(s => s.color !== "" && typeof s.color !== 'undefined')
+				                            .find(s => s.color !== "" && s.color !== "inherit" && typeof s.color !== 'undefined')
 				|| 0 < Array.from(sanitizeResult.html.querySelectorAll('font[color]'), e => e.style).length
 			)
 			this._htmlBody = urlify(stringifyFragment(sanitizeResult.html))
