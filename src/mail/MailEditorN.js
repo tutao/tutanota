@@ -31,7 +31,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {fileController} from "../file/FileController"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
-import {isApp} from "../api/Env"
+import {isApp, isBrowser} from "../api/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {RecipientInfoType} from "../api/common/RecipientInfo"
 import {animations, height, opacity} from "../gui/animation/Animations"
@@ -451,7 +451,10 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		middle: () => conversationTypeString(model.getConversationType()),
 		create: () => {
 			windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
-				closeButtonAttrs.click(newMouseEvent(), domCloseButton)
+				// Simulate a button click only if we're on not on browser, since on a browser, we can't override it closing, only ask if the user is sure they want to close
+				if (!isBrowser()) {
+					closeButtonAttrs.click(newMouseEvent(), domCloseButton)
+				}
 			})
 		},
 		remove: () => {
