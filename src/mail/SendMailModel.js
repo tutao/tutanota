@@ -403,7 +403,7 @@ export class SendMailModel {
 				bodyText,
 				recipients,
 				draft,
-				sender: sender.address,
+				senderMailAddress: sender.address,
 				confidential,
 				attachments,
 				replyTos,
