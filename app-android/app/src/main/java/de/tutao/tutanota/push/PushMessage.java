@@ -13,19 +13,15 @@ final class PushMessage {
 	private static final String COUNTER_KEY = "counter";
 	private static final String USER_ID_KEY = "userId";
 	private static final String NOTIFICATIONS_KEY = "notificationInfos";
-	private static final String CONFIRMATION_ID_KEY = "confirmationId";
 	private static final String HAS_ALARM_NOTIFICATIONS_KEY = "hasAlarmNotifications";
 
 	private final String title;
-	private final String confirmationId;
 	private final List<NotificationInfo> notificationInfos;
 	private final boolean hasAlarmNotifications;
-	private final String changeTime;
 
 	public static PushMessage fromJson(String json) throws JSONException {
 		JSONObject jsonObject = new JSONObject(json);
 		String title = jsonObject.getString(TITLE_KEY);
-		String confirmationId = jsonObject.getString(CONFIRMATION_ID_KEY);
 		JSONArray recipientInfosJsonArray = jsonObject.getJSONArray(NOTIFICATIONS_KEY);
 		List<NotificationInfo> notificationInfos = new ArrayList<>(recipientInfosJsonArray.length());
 		for (int i = 0; i < recipientInfosJsonArray.length(); i++) {
@@ -33,18 +29,13 @@ final class PushMessage {
 			notificationInfos.add(NotificationInfo.fromJson(itemObject, "address"));
 		}
 		boolean hasAlarmNotifications = jsonObject.getBoolean(HAS_ALARM_NOTIFICATIONS_KEY);
-		String changeTime = jsonObject.getString("changeTime");
-		return new PushMessage(title, confirmationId, notificationInfos, hasAlarmNotifications, changeTime);
+		return new PushMessage(title, notificationInfos, hasAlarmNotifications);
 	}
 
-	private PushMessage(String title, String confirmationId,
-						List<NotificationInfo> notificationInfos,
-						boolean hasAlarmNotifications, String changeTime) {
+	private PushMessage(String title, List<NotificationInfo> notificationInfos, boolean hasAlarmNotifications) {
 		this.title = title;
-		this.confirmationId = confirmationId;
 		this.notificationInfos = notificationInfos;
 		this.hasAlarmNotifications = hasAlarmNotifications;
-		this.changeTime = changeTime;
 	}
 
 	public String getTitle() {
@@ -55,16 +46,8 @@ final class PushMessage {
 		return notificationInfos;
 	}
 
-	public String getConfirmationId() {
-		return confirmationId;
-	}
-
 	public boolean hasAlarmNotifications() {
 		return hasAlarmNotifications;
-	}
-
-	public String getChangeTime() {
-		return changeTime;
 	}
 
 	final static class NotificationInfo {
