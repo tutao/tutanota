@@ -8,7 +8,7 @@
 
 #import "TUTUtils.h"
 
-static const int SYS_MODEL_VERSION = 60;
+static const int SYS_MODEL_VERSION = 64;
 
 @implementation TUTUtils
 + (NSString *)translate:(NSString *)key default:(NSString*)defaultValue {
