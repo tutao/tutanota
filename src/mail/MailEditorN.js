@@ -31,7 +31,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {attachDropdown, createDropdown} from "../gui/base/DropdownN"
 import {fileController} from "../file/FileController"
 import {RichTextToolbar} from "../gui/base/RichTextToolbar"
-import {isApp, isBrowser} from "../api/Env"
+import {isApp, isBrowser, isDesktop} from "../api/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {RecipientInfoType} from "../api/common/RecipientInfo"
 import {animations, height, opacity} from "../gui/animation/Animations"
@@ -450,12 +450,15 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		],
 		middle: () => conversationTypeString(model.getConversationType()),
 		create: () => {
-			windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
-				// Simulate a button click only if we're on not on browser, since on a browser, we can't override it closing, only ask if the user is sure they want to close
-				if (!isBrowser()) {
+			if (isBrowser()) {
+				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window
+				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
+			} else if (isDesktop()) {
+				// Simulate clicking the Close button when on the desktop so they can see they can save a draft rather than completely closing it
+				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
 					closeButtonAttrs.click(newMouseEvent(), domCloseButton)
-				}
-			})
+				})
+			}
 		},
 		remove: () => {
 			windowCloseUnsubscribe()
