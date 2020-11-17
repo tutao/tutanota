@@ -18,7 +18,7 @@ assertMainOrNodeBoot()
 
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
 
-export type KeyPress = {keyCode: number, ctrl: boolean, shift: boolean};
+export type KeyPress = {keyCode: number, key: string, ctrl: boolean, shift: boolean};
 type Key = {code: number, name: string};
 
 /**
@@ -118,6 +118,7 @@ class KeyManager {
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec({
 					keyCode,
+					key: e.key,
 					ctrl: e.ctrlKey,
 					alt: e.altKey,
 					shift: e.shiftKey,
