@@ -21,7 +21,7 @@ import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {SysService} from "../../entities/sys/Services"
 import {uint8ArrayToBitArray} from "./CryptoUtils"
-import {LockedError, NotFoundError} from "../../common/error/RestError"
+import {LockedError, NotFoundError, PayloadTooLargeError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {locator} from "../WorkerLocator"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
@@ -322,6 +322,9 @@ function _updateOwnerEncSessionKey(typeModel: TypeModel, instance: Object, owner
 	let headers = locator.login.createAuthHeaders()
 	headers["v"] = typeModel.version
 	return locator.restClient.request(path, HttpMethod.PUT, {updateOwnerEncSessionKey: "true"}, headers, JSON.stringify(instance))
+	              .catch(PayloadTooLargeError, (e) => {
+		              console.log("Could not update owner enc session key - PayloadTooLargeError", e)
+	              })
 }
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {
