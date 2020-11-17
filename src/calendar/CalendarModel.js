@@ -60,6 +60,7 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {ParserError} from "../misc/parsing"
+import {ProgressTracker} from "../api/main/ProgressTracker"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -324,13 +325,15 @@ export class CalendarModelImpl implements CalendarModel {
 	/** Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event */
 	_pendingAlarmRequests: Map<string, DeferredObject<void>>;
 	_logins: LoginController
+	_progressTracker: ProgressTracker
 
-	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, logins: LoginController) {
+	constructor(notifications: Notifications, eventController: EventController, worker: WorkerClient, logins: LoginController, progressTracker: ProgressTracker) {
 		this._logins = logins
 		this._notifications = notifications
 		this._worker = worker
 		this._scheduledNotifications = new Map()
 		this._pendingAlarmRequests = new Map()
+		this._progressTracker = progressTracker
 		if (!isApp()) {
 			eventController.addEntityListener((updates: $ReadOnlyArray<EntityUpdateData>) => {
 				return this._entityEventsReceived(updates)
@@ -377,7 +380,7 @@ export class CalendarModelImpl implements CalendarModel {
 
 				// You're gonna have to update me if you decide to load any more things hereB
 				const progressMonitor = new ProgressMonitor(calendarMemberships.length * 4)
-				locator.progressTracker.registerMonitor(progressMonitor)
+				this._progressTracker.registerMonitor(progressMonitor)
 
 				return Promise
 					.map(calendarMemberships, (membership) => Promise
@@ -401,7 +404,7 @@ export class CalendarModelImpl implements CalendarModel {
 								groupRoot,
 								groupInfo,
 								shortEvents: [],
-								longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents).tap(() => progressMonitor.workDone(1)), []),
+								longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
 								group: group,
 								shared: !isSameId(group.user, userId)
 							})
@@ -410,7 +413,7 @@ export class CalendarModelImpl implements CalendarModel {
 						// cleanup inconsistent memberships
 						Promise.each(notFoundMemberships, (notFoundMembership) => {
 							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
-							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data).tap(() => progressMonitor.workDone(1))
+							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
 						})
 						return calendarInfos
 					})

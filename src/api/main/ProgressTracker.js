@@ -5,7 +5,7 @@ import type {ProgressMonitorId} from "../common/utils/Utils"
 import {ProgressMonitor} from "../common/utils/Utils"
 
 
-const TIME_TO_RESET = 2000
+const TIME_TO_RESET = 20000 // processing entity updates for a group might take long so we set a log reset timeout.
 
 /**
  * The progress tracker controls the progress bar located in Header.js

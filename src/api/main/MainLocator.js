@@ -32,12 +32,13 @@ export const locator: MainLocatorType = ({
 	init(worker: WorkerClient) {
 		this.eventController = new EventController(logins)
 		this.entropyCollector = new EntropyCollector(worker)
+		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(worker)
 		this.mailModel = new MailModel(notifications, this.eventController, worker)
-		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins)
+		this.calendarModel = new CalendarModelImpl(notifications, this.eventController, worker, logins, this.progressTracker)
 		this.contactModel = new ContactModelImpl(worker)
 		this.entityClient = new EntityClient(worker)
-		this.progressTracker = new ProgressTracker()
+
 	}
 }: any)
 

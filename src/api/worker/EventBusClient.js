@@ -30,7 +30,7 @@ import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityClient} from "../common/EntityClient"
 import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
-import {ProgressMonitorDelegate} from "./WorkerImpl"
+import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 
 assertWorkerOrNode()
 

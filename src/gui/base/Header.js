@@ -40,6 +40,10 @@ export interface CurrentView extends Component {
 	+overrideBackIcon?: () => boolean;
 }
 
+const PROGRESS_HIDDEN = -1
+const PROGRESS_DONE = 1
+
+
 class Header {
 	view: Function;
 	_currentView: ?CurrentView;  // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
@@ -48,7 +52,7 @@ class Header {
 	_shortcuts: Shortcut[];
 	searchBar: ?SearchBar
 	_wsState: WsConnectionState = "terminated"
-	_loadingProgress: number = -1
+	_loadingProgress: number = PROGRESS_HIDDEN
 
 	constructor() {
 		this._currentView = null
@@ -106,9 +110,10 @@ class Header {
 								if (this._loadingProgress !== amount) {
 									this._loadingProgress = amount
 									m.redraw()
-									if (this._loadingProgress >= 1) {
+									if (this._loadingProgress >= PROGRESS_DONE) {
+										// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
 										setTimeout(() => {
-											this._loadingProgress = -1
+											this._loadingProgress = PROGRESS_HIDDEN
 											m.redraw()
 										}, 500)
 									}
@@ -316,7 +321,7 @@ class Header {
 	}
 
 	_entityEventProgress(): Children {
-		if (this._loadingProgress !== -1) {
+		if (this._loadingProgress !== PROGRESS_HIDDEN) {
 			// Use key so that mithril does not reuse dom element and transition works correctly
 			return m(".accent-bg", {
 				key: "loading-indicator",
