@@ -157,7 +157,7 @@ export class _TextField {
 					onblur: e => this.blur(e, a),
 					onkeydown: e => {
 						// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
-						let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
+						let key = {keyCode: e.which, key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey}
 						return a.keyHandler != null ? a.keyHandler(key) : true
 					},
 					onremove: e => {
@@ -232,7 +232,7 @@ export class _TextField {
 				onfocus: (e) => this.focus(e, a),
 				onblur: e => this.blur(e, a),
 				onkeydown: e => {
-					let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}
+					let key = {keyCode: e.which, key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey}
 					return a.keyHandler != null ? a.keyHandler(key) : true
 				},
 				oninput: e => {
