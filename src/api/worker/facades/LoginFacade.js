@@ -557,6 +557,7 @@ export class LoginFacade {
 			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32))
 		})
 		return serviceRequestVoid(TutanotaService.EntropyService, HttpMethod.PUT, entropyData)
+			.catch(LockedError, noOp)
 			.catch(ConnectionError, e => {
 				console.log("could not store entropy", e)
 			})
