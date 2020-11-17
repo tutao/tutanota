@@ -426,7 +426,7 @@ export class SendMailModel {
 		      replyTos,
 		      previousMail,
 		      previousMessageId,
-	      }: {
+	      }: {|
 		conversationType: ConversationTypeEnum,
 		subject: string,
 		bodyText: string,
@@ -438,7 +438,7 @@ export class SendMailModel {
 		replyTos?: EncryptedMailAddress[],
 		previousMail?: ?Mail,
 		previousMessageId?: ?string,
-	}): Promise<SendMailModel> {
+	|}): Promise<SendMailModel> {
 		this._conversationType = conversationType
 		this._subject = subject
 		this._body = bodyText
