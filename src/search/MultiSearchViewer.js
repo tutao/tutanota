@@ -71,14 +71,15 @@ export class MultiSearchViewer {
 									m(mailActionBar)
 								])
 							] : [
-								m(".button-height"), // just for the margin
-								m(".flex-space-between", [
-									m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-									m(contactActionBar)
-								])
+								// Add spacing so buttons for contacts also align with the regular client view's buttons
+								m(".header.pt-ml",
+									m(".contact-actions.flex-space-between.flex-wrap", [
+										m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+										m(contactActionBar)
+									])
+								)
 							]
 						)
-							
 						: m(ColumnEmptyMessageBox, {
 							message: () => this._getSearchSelectionMessage(this._searchListView),
 							color: theme.content_message_bg,

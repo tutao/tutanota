@@ -27,11 +27,13 @@ export class MultiContactViewer {
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
-							m(".button-height"), // just for the margin
-							m(".flex-space-between", [
-								m(".flex.items-center", this._getContactSelectionMessage(contactView)),
-								m(actionBar)
-							])
+							// Add spacing so buttons for contacts also align with the regular client view's buttons
+							m(".header.pt-ml",
+								m(".contact-actions.flex-space-between.flex-wrap", [
+									m(".flex.items-center", this._getContactSelectionMessage(contactView)),
+									m(actionBar)
+								])
+							)
 						] :
 						m(ColumnEmptyMessageBox, {
 							message: () => this._getContactSelectionMessage(contactView),
