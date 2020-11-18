@@ -104,7 +104,6 @@ export type ButtonAttrs = {
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string,
-	preventDefault?: boolean // Button can trigger form submit in some cases, use this if that's not desired
 }
 
 /**
@@ -321,9 +320,6 @@ class _Button {
 		a.click(event, dom)
 		if (a.noBubble) {
 			event.stopPropagation()
-		}
-		if (a.preventDefault) {
-			event.preventDefault()
 		}
 	}
 }
