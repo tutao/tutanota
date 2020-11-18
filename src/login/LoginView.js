@@ -42,7 +42,6 @@ export class LoginView {
 	invalidCredentials: boolean;
 	accessExpired: boolean;
 	savePassword: Checkbox;
-	appButtons: ButtonAttrs[];
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 	view: Function;
 	_knownCredentials: Credentials[];
@@ -73,33 +72,6 @@ export class LoginView {
 		if (!client.localStorage()) {
 			this.savePassword.setDisabled("functionNotSupported_msg")
 		}
-
-		this.appButtons = [
-			{
-				label: 'appInfoAndroidImageAlt_alt',
-				click: e => this.openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota"),
-				icon: () => BootIcons.Android,
-				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
-				type: ButtonType.ActionLarge,
-				preventDefault: true
-			},
-			{
-				label: 'appInfoIosImageAlt_alt',
-				click: e => this.openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb"),
-				icon: () => BootIcons.Apple,
-				isVisible: () => client.isDesktopDevice() || (client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE),
-				type: ButtonType.ActionLarge,
-				preventDefault: true
-			},
-			{
-				label: 'appInfoFDroidImageAlt_alt',
-				click: e => this.openUrl("https://f-droid.org/packages/de.tutao.tutanota/"),
-				icon: () => BootIcons.FDroid,
-				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
-				type: ButtonType.ActionLarge,
-				preventDefault: true
-			},
-		]
 
 		this._knownCredentials = []
 		this._isDeleteCredentials = false;
@@ -322,7 +294,42 @@ export class LoginView {
 						}, lang.get("help_label")) : null)
 				])),
 			!(isApp() || isDesktop())
-			&& isTutanotaDomain() ? m(".flex-center.pt-l", this.appButtons.map(button => m(ButtonN, button))) : null
+			&& isTutanotaDomain() ? this.renderAppButtons() : null
+		])
+	}
+
+	renderAppButtons(): Children {
+		return m(".flex-center.pt-l", [
+			m(ButtonN, {
+				label: 'appInfoAndroidImageAlt_alt',
+				click: e => {
+					this.openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
+					e.preventDefault()
+				},
+				icon: () => BootIcons.Android,
+				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
+				type: ButtonType.ActionLarge,
+			}),
+			m(ButtonN, {
+				label: 'appInfoIosImageAlt_alt',
+				click: e => {
+					this.openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
+					e.preventDefault()
+				},
+				icon: () => BootIcons.Apple,
+				isVisible: () => client.isDesktopDevice() || (client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE),
+				type: ButtonType.ActionLarge,
+			}),
+			m(ButtonN, {
+				label: 'appInfoFDroidImageAlt_alt',
+				click: e => {
+					this.openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
+					e.preventDefault()
+				},
+				icon: () => BootIcons.FDroid,
+				isVisible: () => client.isDesktopDevice() || client.device === DeviceType.ANDROID,
+				type: ButtonType.ActionLarge,
+			})
 		])
 	}
 
