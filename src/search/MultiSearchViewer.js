@@ -53,16 +53,32 @@ export class MultiSearchViewer {
 			} else {
 				console.log("ERROR LIST TYPE NOT FOUND")
 			}
+			
 			return [
 				m(".fill-absolute.mt-xs.plr-l",
 					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
-						? [
-							m(".button-height"), // just for the margin
-							m(".flex-space-between" + (this._isMailList ? ".mr-negative-s" : ""), [ // add an extra class if it's a mail search for alignment
-								m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
-								m(this._viewingMails() ? mailActionBar : contactActionBar)
-							])
-						]
+						? (
+							(this._viewingMails()) ? [
+								// Add spacing so the buttons are where the mail view are
+								m(".flex-space-between.button-min-height",
+									m(".flex.flex-column-reverse", [
+										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", m.trust("&nbsp;")),
+										m("small.b.flex.pt", m.trust("&nbsp;"))
+									])
+								),
+								m(".flex-space-between.mr-negative-s", [
+									m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+									m(mailActionBar)
+								])
+							] : [
+								m(".button-height"), // just for the margin
+								m(".flex-space-between", [
+									m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
+									m(contactActionBar)
+								])
+							]
+						)
+							
 						: m(ColumnEmptyMessageBox, {
 							message: () => this._getSearchSelectionMessage(this._searchListView),
 							color: theme.content_message_bg,
