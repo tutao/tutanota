@@ -49,7 +49,7 @@ export class MultiMailViewer {
 					(mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0)
 						? [
 							m(".button-height"), // just for the margin
-							m(".flex-space-between", [
+							m(".flex-space-between.mr-negative-s", [
 								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
 								m(actions)
 							])
