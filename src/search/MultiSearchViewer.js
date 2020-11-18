@@ -58,7 +58,7 @@ export class MultiSearchViewer {
 					(this._searchListView.list && this._searchListView.list._selectedEntities.length > 0)
 						? [
 							m(".button-height"), // just for the margin
-							m(".flex-space-between", [
+							m(".flex-space-between" + (this._isMailList ? ".mr-negative-s" : ""), [ // add an extra class if it's a mail search for alignment
 								m(".flex.items-center", this._getSearchSelectionMessage(this._searchListView)),
 								m(this._viewingMails() ? mailActionBar : contactActionBar)
 							])
