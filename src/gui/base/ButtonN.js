@@ -36,12 +36,12 @@ export const ButtonColors = Object.freeze({
 export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 export function getColors(buttonColors: ?ButtonColorEnum): {|
-  border: string,
-  button: string,
-  button_icon_bg: string,
-  button_selected: string,
-  icon: string,
-  icon_selected: string,
+	border: string,
+	button: string,
+	button_icon_bg: string,
+	button_selected: string,
+	icon: string,
+	icon_selected: string,
 |} {
 	switch (buttonColors) {
 		case ButtonColors.Nav:
@@ -104,6 +104,7 @@ export type ButtonAttrs = {
 	isSelected?: lazy<boolean>,
 	noBubble?: boolean,
 	staticRightText?: string,
+	preventDefault?: boolean // Button can trigger form submit in some cases, use this if that's not desired
 }
 
 /**
@@ -320,6 +321,9 @@ class _Button {
 		a.click(event, dom)
 		if (a.noBubble) {
 			event.stopPropagation()
+		}
+		if (a.preventDefault) {
+			event.preventDefault()
 		}
 	}
 }
