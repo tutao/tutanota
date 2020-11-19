@@ -8,7 +8,7 @@ import {createContactPhoneNumber} from "../../../../src/api/entities/tutanota/Co
 import {createContactSocialId} from "../../../../src/api/entities/tutanota/ContactSocialId"
 import {NotAuthorizedError, NotFoundError} from "../../../../src/api/common/error/RestError"
 import {ContactListTypeRef, createContactList} from "../../../../src/api/entities/tutanota/ContactList"
-import {DbTransaction, GroupDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../src/api/worker/search/IndexUtils"
@@ -18,6 +18,7 @@ import {makeCore} from "../../TestUtils"
 import {downcast} from "../../../../src/api/common/utils/Utils"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
+import {GroupDataOS} from "../../../../src/api/worker/search/SearchIndexDb"
 
 
 const dbMock: any = {iv: fixedIv}

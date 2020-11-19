@@ -33,7 +33,7 @@ import {defer, downcast, neverNull, noOp} from "../../../../src/api/common/utils
 import {makeCore, spy} from "../../TestUtils"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
-import {DbTransaction, ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/DbFacade"
+import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS} from "../../../../src/api/worker/search/SearchIndexDb"
 import {concat} from "../../../../src/api/common/utils/ArrayUtils"
 import {appendBinaryBlocks} from "../../../../src/api/worker/search/SearchIndexEncoding"
 import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
@@ -45,6 +45,7 @@ import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
 import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/Contact"
 import {PromisableWrapper} from "../../../../src/api/common/utils/PromiseUtils"
 import {elementIdPart, listIdPart} from "../../../../src/api/common/utils/EntityUtils";
+import type {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
 
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)

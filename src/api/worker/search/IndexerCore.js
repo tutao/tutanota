@@ -1,6 +1,6 @@
 //@flow
 import type {DbTransaction} from "./DbFacade"
-import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
+import {ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./SearchIndexDb"
 import {tokenize} from "./Tokenizer"
 import {getFromMap, mergeMaps} from "../../common/utils/MapUtils"
 import type {DeferredObject} from "../../common/utils/Utils"

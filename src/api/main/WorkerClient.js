@@ -1,7 +1,6 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
 import {Queue, Request} from "../common/WorkerProtocol"
-import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../common/Env"
 import type {
 	AccountTypeEnum,
@@ -51,6 +50,8 @@ import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {TypeRef} from "../common/utils/TypeRef"
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
+import type {ElementEntity, ListElementEntity} from "../common/utils/EntityUtils"
 
 assertMainOrNode()
 
@@ -447,7 +448,9 @@ export class WorkerClient implements EntityRestInterface {
 		return this._postRequest(new Request('resolveSessionKey', arguments))
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params
+	): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}
 

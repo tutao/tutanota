@@ -11,7 +11,7 @@ import type {MailFolder} from "../../entities/tutanota/MailFolder"
 import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
+import {ElementDataOS, GroupDataOS, MetaDataOS} from "./SearchIndexDb"
 import {containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
@@ -31,7 +31,6 @@ import {Metadata} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {contains, flat, groupBy, splitInChunks} from "../../common/utils/ArrayUtils"
 import {DbError} from "../../common/error/DbError"
-import {EntityRestCache} from "../rest/EntityRestCache"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
@@ -40,7 +39,8 @@ import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
-import {elementIdPart, isSameId, listIdPart} from "../../common/utils/EntityUtils";
+import type {SomeEntity} from "../../common/utils/EntityUtils"
+import {isSameId} from "../../common/utils/EntityUtils";
 import {TypeRef} from "../../common/utils/TypeRef";
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
@@ -321,7 +321,7 @@ export class MailIndexer {
 			})
 		})
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
-		const indexLoader = new IndexLoader(this._entityRestClient)
+		const indexLoader = new IndexLoader(this._defaultCachingEntity)
 
 		return Promise.map(mailBoxes, (mBoxData => {
 			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
@@ -421,8 +421,8 @@ export class MailIndexer {
 							                  mboxData.mailListIds.splice(mboxData.mailListIds.indexOf(listId), 1)
 						                  }
 						                  this._core._stats.mailcount += mails.length
-						                  // Remove all processed entities from cache
-						                  mails.forEach((m) => indexLoader.removeFromCache(m._id))
+						                  // TODO: Remove all processed entities from cache
+						                  // mails.forEach((m) => indexLoader.removeFromCache(m._id))
 						                  return this._processIndexMails(mails, indexUpdate, indexLoader)
 					                  })
 				}, {concurrency: 2})
@@ -586,23 +586,14 @@ type TimeRange = [number, number]
 type MboxIndexData = {mailListIds: Array<Id>, newestTimestamp: number, ownerGroup: Id}
 
 class IndexLoader {
-	_entityCache: EntityRestCache;
-	_entity: EntityClient;
-	_cachingEntity: EntityClient;
-
-	constructor(restClient: EntityRestInterface) {
-		this._entityCache = new EntityRestCache(restClient)
-		this._entity = new EntityClient(restClient)
-		this._cachingEntity = new EntityClient(this._entityCache)
+	entityClient: EntityClient
+	constructor(entityCLient: EntityClient) {
+		this.entityClient = entityCLient
 	}
 
 	loadMailsWithCache(mailListId: Id, [rangeStart, rangeEnd]: TimeRange): Promise<{elements: Array<Mail>, loadedCompletely: boolean}> {
-		return this._cachingEntity.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
+		return this.entityClient.loadReverseRangeBetween(MailTypeRef, mailListId, timestampToGeneratedId(rangeStart),
 			timestampToGeneratedId(rangeEnd), MAIL_INDEXER_CHUNK)
-	}
-
-	removeFromCache(id: IdTuple) {
-		this._entityCache._tryRemoveFromCache(MailTypeRef, listIdPart(id), elementIdPart(id))
 	}
 
 	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
@@ -624,11 +615,11 @@ class IndexLoader {
 		return Promise.all(fileLoadingPromises).then((filesResults: TutanotaFile[][]) => flat(filesResults))
 	}
 
-	_loadInChunks<T>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
+	_loadInChunks<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, ids: Id[]): Promise<T[]> {
 		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
 		return Promise.map(byChunk, (chunk) => {
 			return chunk.length > 0
-				? this._entity.loadMultipleEntities(typeRef, listId, chunk)
+				? this.entityClient.loadMultipleEntities(typeRef, listId, chunk)
 				: Promise.resolve([])
 		}, {concurrency: 2})
 		              .then(entityResults => flat(entityResults))

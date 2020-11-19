@@ -1,16 +1,19 @@
 //@flow
 import {locator} from "../WorkerLocator"
 import {decryptAndMapToInstance, encryptAndMapToLiteral, resolveServiceSessionKey} from "../crypto/CryptoFacade"
-import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../common/Env"
 import {neverNull} from "../../common/utils/Utils"
 import {TypeRef} from "../../common/utils/TypeRef";
+import type {Entity} from "../../common/utils/EntityUtils"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
-export function _service<T>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum,
-                            method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key, extraHeaders?: Params): Promise<any> {
+export function _service<T: Entity>(service: SysServiceEnum | TutanotaServiceEnum | MonitorServiceEnum | AccountingServiceEnum,
+                                    method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params,
+                                    sk: ?Aes128Key, extraHeaders?: Params
+): Promise<any> {
 	return resolveTypeReference((requestEntity) ? requestEntity._type : (responseTypeRef: any))
 		.then(modelForAppAndVersion => {
 			let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`

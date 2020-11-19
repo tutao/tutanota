@@ -45,6 +45,7 @@ import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import {isSameTypeRef, isSameTypeRefByAttr, TypeRef} from "../../common/utils/TypeRef";
+import type {Entity} from "../../common/utils/EntityUtils"
 
 assertWorkerOrNode()
 
@@ -56,7 +57,7 @@ export {encryptKey, decryptKey, encrypt256Key, decrypt256Key, encryptRsaKey, dec
 // this especially improves the performance when indexing mail bodies
 let mailBodySessionKeyCache: {[key: string]: Aes128Key} = {};
 
-export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
+export function applyMigrations<T: Entity>(typeRef: TypeRef<T>, data: Object): Promise<Object> {
 	if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 		//FIXME: do we still need this?
 		let customerGroupMembership = (locator.login.getLoggedInUser()

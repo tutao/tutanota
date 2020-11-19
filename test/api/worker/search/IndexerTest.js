@@ -2,7 +2,7 @@
 import o from "ospec"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../../src/api/entities/sys/GroupMembership"
-import {DbTransaction, GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/DbFacade"
+import {DbTransaction} from "../../../../src/api/worker/search/DbFacade"
 import {GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {Indexer, Metadata} from "../../../../src/api/worker/search/Indexer"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/EntityEventBatch"
@@ -23,7 +23,9 @@ import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
+import type {SomeEntity} from "../../../../src/api/common/utils/EntityUtils"
 import {GENERATED_MAX_ID, getElementId} from "../../../../src/api/common/utils/EntityUtils";
+import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/SearchIndexDb"
 import {TypeRef} from "../../../../src/api/common/utils/TypeRef";
 
 const restClientMock: EntityRestClient = downcast({})
@@ -765,7 +767,7 @@ o.spec("Indexer test", () => {
 			indexerMock._initParams = {user}
 		})
 
-		function newUpdate<T>(typeRef: TypeRef<T>) {
+		function newUpdate<T: SomeEntity>(typeRef: TypeRef<T>) {
 			let u = createEntityUpdate()
 			u.application = typeRef.app
 			u.type = typeRef.type
@@ -861,7 +863,6 @@ o.spec("Indexer test", () => {
 				_processNext()
 			})
 		})
-
 
 
 		const events1 = [

@@ -59,7 +59,7 @@ import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import type {CreateSessionReturn} from "../../entities/sys/CreateSessionReturn"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys/Session"
-import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
+import {EntityRestClient, TutCacheHeader, TutCacheHeaderName, typeRefToPath} from "../rest/EntityRestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
@@ -90,18 +90,20 @@ import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
 
 assertWorkerOrNode()
 
-const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 export type NewSessionData = {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}
+
+type LoginHooks = {
+	postLogin: (user: User, userIdFromFormerLogin: ?string) => Promise<void>,
+	reset: () => Promise<void>,
+}
 
 export class LoginFacade {
 	_user: ?User;
 	_userGroupInfo: ?GroupInfo;
 	_accessToken: ?string;
 	groupKeys: {[key: Id]: Aes128Key};
-	_eventBusClient: EventBusClient;
 	_worker: WorkerImpl;
-	_indexer: Indexer;
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -113,22 +115,21 @@ export class LoginFacade {
 	_restClient: RestClient;
 	_entity: EntityClient;
 	_leaderStatus: WebsocketLeaderStatus // needed here for entropy updates, init as non-leader
+	_loginHooks: LoginHooks
 
 	constructor(worker: WorkerImpl, restClient: RestClient, entity: EntityClient) {
 		this._worker = worker
 		this._restClient = restClient
 		this._entity = entity
+		this._loginHooks = {
+			postLogin: () => Promise.resolve(),
+			reset: () => Promise.resolve(),
+		}
 		this.reset()
-
 	}
 
-	init(indexer: Indexer, eventBusClient: EventBusClient) {
-		if (indexer) {
-			this._indexer = indexer
-		}
-		if (eventBusClient) {
-			this._eventBusClient = eventBusClient
-		}
+	init(hooks: LoginHooks) {
+		this._loginHooks = hooks
 	}
 
 	reset(): Promise<void> {
@@ -136,11 +137,8 @@ export class LoginFacade {
 		this._userGroupInfo = null
 		this._accessToken = null
 		this.groupKeys = {}
-		if (this._eventBusClient) {
-			this._eventBusClient.close(CloseEventBusOption.Terminate)
-		}
 		this._leaderStatus = createWebsocketLeaderStatus({leaderStatus: false})
-		return Promise.resolve()
+		return this._loginHooks.reset()
 	}
 
 	/**
@@ -340,13 +338,16 @@ export class LoginFacade {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 		this._accessToken = accessToken
-		return load(UserTypeRef, userId)
-			.then(user => {
+		return this
+			._entity
+			.load(UserTypeRef, userId, null, {[TutCacheHeaderName]: TutCacheHeader.Uncached})
+			.then(async user => {
 				// we check that the password is not changed
 				// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
 				// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
 				if (uint8ArrayToBase64(user.verifier)
-					!== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))) {
+					!== uint8ArrayToBase64(hash(createAuthVerifier(userPassphraseKey)))
+				) {
 					// delete the obsolete session in parallel to make sure it can not be used any more
 					this.deleteSession(accessToken)
 					this._accessToken = null
@@ -355,54 +356,17 @@ export class LoginFacade {
 				}
 				this._user = user
 				this.groupKeys[this.getUserGroupId()] = decryptKey(userPassphraseKey, this._user.userGroup.symEncGKey)
-				return load(GroupInfoTypeRef, user.userGroup.groupInfo)
-			})
-			.then(groupInfo => this._userGroupInfo = groupInfo)
-			.then(() => {
-				if (!isTest() && permanentLogin && !isAdminClient()) {
-					// index new items in background
-					console.log("_initIndexer after log in")
-					this._initIndexer()
+				this._userGroupInfo = await this._entity.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+				if (permanentLogin) {
+					await this._loginHooks.postLogin(user, userIdFromFormerLogin)
 				}
 			})
 			.then(() => this.loadEntropy())
-			.then(() => {
-				if (permanentLogin) {
-					// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
-					// close the event bus and reconnect to make sure we get all missed events
-					if (userIdFromFormerLogin) {
-						this._eventBusClient.tryReconnect(true, true)
-					} else {
-						this._eventBusClient.connect(false)
-					}
-				}
-			})
 			.then(() => this.storeEntropy())
 			.catch(e => {
 				this.reset()
 				throw e
 			})
-	}
-
-	_initIndexer(): Promise<void> {
-		return this._indexer.init(neverNull(this._user), this.getUserGroupKey())
-		           .catch(ServiceUnavailableError, e => {
-			           console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
-			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-				           console.log("_initIndexer after ServiceUnavailableError")
-				           return this._initIndexer()
-			           })
-		           })
-		           .catch(ConnectionError, e => {
-			           console.log("Retry init indexer in 30 seconds after ConnectionError")
-			           return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
-				           console.log("_initIndexer after ConnectionError")
-				           return this._initIndexer()
-			           })
-		           })
-		           .catch(e => {
-			           this._worker.sendError(e)
-		           })
 	}
 
 	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
@@ -570,13 +534,13 @@ export class LoginFacade {
 			if (this._user && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(UserTypeRef, update.application, update.type)
 				&& isSameId(this._user._id, update.instanceId)) {
-				return load(UserTypeRef, this._user._id).then(updatedUser => {
+				return this._entity.load(UserTypeRef, this._user._id, null, {"Tut-Cache": "uncached"}).then(updatedUser => {
 					this._user = updatedUser
 				})
 			} else if (this._userGroupInfo && update.operation === OperationType.UPDATE
 				&& isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type)
 				&& isSameId(this._userGroupInfo._id, [neverNull(update.instanceListId), update.instanceId])) {
-				return load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
+				return this._entity.load(GroupInfoTypeRef, this._userGroupInfo._id).then(updatedUserGroupInfo => {
 					this._userGroupInfo = updatedUserGroupInfo
 				})
 			} else {

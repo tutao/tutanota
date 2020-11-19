@@ -14,8 +14,8 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacade} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, isAdminClient} from "../common/Env"
-import {Const} from "../common/TutanotaConstants"
+import {assertWorkerOrNode, isAdminClient, isTest} from "../common/Env"
+import {CloseEventBusOption, Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
 import {ShareFacade} from "./facades/ShareFacade"
@@ -23,6 +23,9 @@ import {RestClient} from "./rest/RestClient"
 import {SuspensionHandler} from "./SuspensionHandler"
 import {EntityClient} from "../common/EntityClient"
 import {GiftCardFacade} from "./facades/GiftCardFacade"
+import {EntityCacheIdb} from "./rest/EntityCachePersister"
+import type {User} from "../entities/sys/User"
+import {ConnectionError, ServiceUnavailableError} from "../common/error/RestError"
 
 assertWorkerOrNode()
 type WorkerLocatorType = {
@@ -60,7 +63,7 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient)
 
 	locator._browserData = browserData
-	let cache = new EntityRestCache(entityRestClient)
+	let cache = new EntityRestCache(entityRestClient, new EntityCacheIdb())
 	locator.cache = isAdminClient() ? entityRestClient : cache // we don't wont to cache within the admin area
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache)
@@ -81,7 +84,27 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.mailAddress = new MailAddressFacade(locator.login)
 	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login,
 		locator.cachingEntityClient)
-	locator.login.init(locator.indexer, locator.eventBusClient)
+	locator.login.init({
+		async postLogin(user, userIdFromFormerLogin) {
+			if (locator.cache instanceof EntityRestCache) {
+				await locator.cache.init(user)
+			}
+			if (userIdFromFormerLogin) {
+				locator.eventBusClient.tryReconnect(true, true)
+			} else {
+				locator.eventBusClient.connect(false)
+			}
+
+			if (!isTest() && !isAdminClient()) {
+				// index new items in background
+				console.log("_initIndexer after log in")
+				initIndexer(worker, user)
+			}
+		},
+		async reset() {
+			locator.eventBusClient.close(CloseEventBusOption.Terminate)
+		},
+	})
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.login)
 	locator.giftCards = new GiftCardFacade(locator.login)
@@ -94,25 +117,26 @@ export function resetLocator(): Promise<void> {
 if (typeof self !== "undefined") {
 	self.locator = locator // export in worker scope
 }
-// // hot reloading
-// if (replaced) {
-// 	if (replaced.locator.login) {
-// 		Object.assign(locator.login, replaced.locator.login)
-// 		// close the websocket, but do not reset the state
-// 		if (locator.login._eventBusClient._socket && locator.login._eventBusClient._socket.close) { // close is undefined in node tests
-// 			locator.login._eventBusClient.close(CloseEventBusOption.Reconnect);
-// 		}
-// 		if (locator.login.isLoggedIn()) {
-// 			locator.login._eventBusClient.connect(false)
-// 		}
-// 	}
-//
-//
-// 	if (replaced.locator.indexer) {
-// 		Object.assign(locator.indexer, replaced.locator.indexer)
-// 	}
-//
-// 	if (replaced.locator.search) {
-// 		Object.assign(locator.search, replaced.locator.search)
-// 	}
-// }
+
+function initIndexer(worker: WorkerImpl, user: User): Promise<void> {
+	return locator.indexer.init(user, locator.login.getUserGroupKey())
+	              .catch(ServiceUnavailableError, e => {
+		              console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
+		              return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+			              console.log("_initIndexer after ServiceUnavailableError")
+			              return initIndexer(worker, user)
+		              })
+	              })
+	              .catch(ConnectionError, e => {
+		              console.log("Retry init indexer in 30 seconds after ConnectionError")
+		              return Promise.delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
+			              console.log("_initIndexer after ConnectionError")
+			              return initIndexer(worker, user)
+		              })
+	              })
+	              .catch(e => {
+		              worker.sendError(e)
+	              })
+}
+
+const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000

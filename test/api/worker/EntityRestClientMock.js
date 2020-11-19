@@ -17,7 +17,7 @@ import {
 	getListId,
 	listIdPart
 } from "../../../src/api/common/utils/EntityUtils";
-import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
+import type {Element, ElementEntity, ListElement, ListElementEntity} from "../../../src/api/common/utils/EntityUtils";
 import {TypeRef} from "../../../src/api/common/utils/TypeRef";
 
 export class EntityRestClientMock extends EntityRestClient {
@@ -74,8 +74,8 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
-	                 extraHeaders?: Params
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
 	): Promise<any> {
 		return resolveTypeReference(typeRef).then(() => {
 			const startId = queryParameter && queryParameter["start"]

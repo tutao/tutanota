@@ -25,15 +25,13 @@ import {assertMainOrNode} from "../common/Env"
 import {Type, ValueType} from "../common/EntityConstants"
 import {downcast} from "../common/utils/Utils"
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
+import type {ListElementEntity, SomeEntity} from "../common/utils/EntityUtils";
 import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getEtId, getLetId, RANGE_ITEM_LIMIT} from "../common/utils/EntityUtils";
-import type {Element, ListElement} from "../common/utils/EntityUtils";
 import {TypeRef} from "../common/utils/TypeRef";
 
 assertMainOrNode()
 
 // TODO write testcases
-
-export type SomeEntity = Element | ListElement
 
 /** @deprecated use EntityClient implementation instead */
 export function setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {
@@ -67,20 +65,20 @@ export function loadMultiple<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, el
  * load multiple does not guarantee order or completeness of returned elements.
  * @deprecated use EntityClient implementation instead
  */
-export function loadMultipleList<T: ListElement>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
+export function loadMultipleList<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[], restInterface: EntityRestInterface
 ): Promise<T[]> {
-	return _loadMultipleEntities(typeRef, listId, elementIds, restInterface)
+	return downcast<Promise<Array<T>>>(_loadMultipleEntities(typeRef, listId, elementIds, restInterface))
 }
 
 /** @deprecated use EntityClient implementation instead */
-export function loadRange<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+export function loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
                                           reverse: boolean): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, worker)
 }
 
 
 /** @deprecated use EntityClient implementation instead */
-export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
+export function loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		if (!start) {
 			start = (typeModel.values["_id"].type === ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
@@ -89,7 +87,7 @@ export function loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: 
 	})
 }
 
-function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
+function _loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef)
 		.then(getFirstIdIsBiggerFnForType)
 		.then((isFirstIdBigger) => {
@@ -114,7 +112,7 @@ function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, en
 }
 
 /** @deprecated use EntityClient implementation instead */
-export function loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
+export function loadReverseRangeBetween<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
 	return _loadReverseRangeBetween(typeRef, listId, start, end, worker, rangeItemLimit)
 }
 
