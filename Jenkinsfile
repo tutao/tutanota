@@ -32,8 +32,10 @@ pipeline {
         }
 
         stage('Build Desktop clients'){
+			when {
+				expression { !params.RELEASE }
+			}
             parallel {
-
                 stage('desktop-win') {
 					environment {
         		        PATH="${env.PATH}:${env.NODE_PATH}"
