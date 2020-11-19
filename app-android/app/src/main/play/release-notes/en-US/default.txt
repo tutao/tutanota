@@ -1,2 +1,3 @@
-* Security patch (could not be exploited)
-* Other small bugfixes
+* Reduce number of server request by introducing leader client
+* Improve setting the organizer of calendar event
+* Various Bugfixes
