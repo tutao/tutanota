@@ -10,3 +10,4 @@ TutaoNoPermissionTitle = "Tidak Diizinkan";
 TutaoChangePermissionMsg = "Untuk memberikan akses Anda perlu memodifikasi perizinan bagi perangkat ini.";
 TutaoCancelAction = "Batal";
 TutaoSettingsAction = "Pengaturan";
+TutaoScheduleAlarmError = "Tidak bisa memasang alarm. Mohon perbarui aplikasi.";

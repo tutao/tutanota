@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-10-24T10:18:43Z",
+	"updated_at": "2020-11-13T13:27:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1062,6 +1062,8 @@ module.exports = {
 		"storePassword_action": "Sačuvaj lozinku",
 		"subject_label": "Tema",
 		"subscriptionCancelledMessage_msg": "Vaša pretplata je poništena. Molimo Vas kontaktirajte podršku da ponovno aktivirate pretplatu.",
+		"subscriptionChangePeriod_msg": "Vaša će se pretplata promijeniti nakon završetka trenutnog razdoblja pretplate ({1}).",
+		"subscriptionChange_msg": "Vaša će se pretplata promijeniti nakon završetka trenutnog razdoblja pretplate.",
 		"subscriptionPeriod_label": "Razdoblje pretplate",
 		"subscription_label": "Pretplata",
 		"summary_label": "Sažetak",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2020-10-27T09:20:54Z",
+	"updated_at": "2020-11-13T13:29:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -461,7 +461,7 @@ module.exports = {
 		"formatTextUl_msg": "Liste",
 		"formatTextUnderline_msg": "Ausgewählten Text unterstreichen.",
 		"forward_action": "Weiterleiten",
-		"freeAccountInfo_msg": "Nur ein Free-Account pro Person ist erlaubt und Free-Accounts dürfen nur für private Kommunikation verwendet werden. Wenn du Tutanota geschäftlich nutzen möchtest (z.B. für deine Firma oder Organisation oder als Freiberufler), buche bitte ein bezahltes Abo. Bitte beachte auch, dass Free-Accounts gelöscht werden, wenn sie sechs Monate nicht verwendet wurden.",
+		"freeAccountInfo_msg": "Nur ein Free-Account pro Person ist erlaubt. Free-Accounts dürfen nur für private Kommunikation verwendet werden. Wenn du Tutanota geschäftlich oder als Freiberufler nutzen möchtest, buche bitte ein bezahltes Abo. Bitte beachte, dass Free-Accounts gelöscht werden, wenn du dich sechs Monate lang nicht einloggst.",
 		"from_label": "Von",
 		"functionNotSupported_msg": "Diese Funktion wird von diesem Gerät oder Browser nicht unterstützt.",
 		"germanLanguageFile_label": "Deutsche Sprachdatei",
@@ -826,6 +826,7 @@ module.exports = {
 		"priceForCurrentAccountingPeriod_label": "Anteiliger Preis für aktuellen Abrechnungszeitraum ist {1}.",
 		"priceForNextYear_label": "Preis im nächsten Jahr",
 		"priceFrom_label": "Preis ab {date}",
+		"priceSpecialOffer_label": "Tutanota-Angebot: Ein Jahr gratis",
 		"priceTill_label": "Preis bis {date}",
 		"price_label": "Preis",
 		"pricing.basePriceExcludesTaxes_msg": "Basispreis. Ohne MwSt.",

@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2020-10-21T12:54:35Z",
+	"updated_at": "2020-11-17T16:26:49Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -724,7 +724,7 @@ module.exports = {
 		"oneMailSelected_msg": "１件を選択中です。",
 		"onlyAvailableForPremiumNotIncluded_msg": "この機能は有料プランにアップグレードした後にのみ、ご注文することができます。今すぐアカウントをアップグレードしてください。",
 		"onlyAvailableForPremium_msg": "この機能は有料プランでのみご利用いただけます。今すぐアカウントをアップグレードしてください。",
-		"onlyPrivateComputer_msg": "あなたが個人的な機器を使っている場合にのみ、このオプションを用いてください。\n",
+		"onlyPrivateComputer_msg": "あなた所有の端末を使っている場合にのみ、このオプションをご利用ください。\n",
 		"openCamera_action": "カメラ",
 		"openNewWindow_action": "新しいウィンドウ",
 		"open_action": "開く",

@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2020-10-21T12:54:35Z",
+	"updated_at": "2020-10-29T07:13:02Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -136,6 +136,7 @@ module.exports = {
 		"cancelledBy_label": "(annulleret af {endOfSubscriptionPeriod})",
 		"cancelLocalAdminGroup_label": "Annuller lokal administratorgruppe",
 		"cancelSharedMailbox_label": "Aflys delt mailkonto",
+		"cancelSharingBooking_label": "Annuller delings funktionen for {1} brugere",
 		"cancelUserAccounts_label": "Annuller {1} brugerkonto(i)",
 		"cancelWhitelabelBooking_label": "Annuller whitelabel-funktionen til {1} brugere",
 		"cancel_action": "Annuller",
@@ -467,6 +468,7 @@ module.exports = {
 		"invalidInputFormat_msg": "Ugyldigt format.",
 		"invalidInterval_msg": "Ugyldigt interval",
 		"invalidLink_msg": "Beklager, men dette link er ikke gyldigt.",
+		"invalidMailAddress_msg": "Følgende email adresser kunne ikke inviteres, fordi de er ugyldige:",
 		"invalidPassword_msg": "Ugyldig adgangskode. Tjek den igen.",
 		"invalidRecipients_msg": "Ret venligst de(n) ugyldige e-mailadresse(r) i modtagerfelterne.",
 		"invalidRegistrationCode_msg": "Registreringskoden er ugyldig.",
