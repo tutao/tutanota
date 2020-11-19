@@ -108,23 +108,6 @@ pipeline {
             }
         }
 
-		stage('Copy Snapshot'){
-			agent {
-				label 'master'
-			}
-			when {
-				expression { !params.RELEASE }
-			}
-			steps {
-				sh 'rm -rf /opt/desktop-snapshot/*'
-				dir('/opt/desktop-snapshot/') {
-					unstash 'linux_installer_test'
-					unstash 'win_installer_test'
-					unstash 'mac_installer_test'
-				}
-			}
-		}
-
         stage('Build deb and publish') {
             when {
             	expression { params.RELEASE }
