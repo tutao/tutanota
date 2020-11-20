@@ -80,8 +80,12 @@ export class EditSecondFactorsForm {
 		return [
 			m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 			m(TableN, secondFactorTableAttrs),
-			m("span.small", lang.get("moreInfo_msg") + " "),
-			isTutanotaDomain() ? m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)]) : null
+			isTutanotaDomain()
+				? [
+					m("span.small", lang.get("moreInfo_msg") + " "),
+					m("span.small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])
+				]
+				: null
 		]
 	}
 
