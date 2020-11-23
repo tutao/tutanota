@@ -15,6 +15,7 @@ import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
@@ -25,7 +26,6 @@ import type {ExpanderAttrs} from "../gui/base/ExpanderN"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
-import type {EntityUpdateData} from "../api/main/EventController"
 
 assertMainOrNode()
 
@@ -130,28 +130,31 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			lines: this._closedSessionsTableLines(),
 		}
 
-		const user = logins.getUserController()
-
-		return m("", [
-			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-				m(".h4.mt-l", lang.get('loginCredentials_label')),
-				m(TextFieldN, mailAddressAttrs),
-				m(TextFieldN, passwordAttrs),
-				user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
-				(!user.isOutlookAccount()) ?
-					m(this._secondFactorsForm) : null,
-				m(".h4.mt-l", lang.get('activeSessions_label')),
-				m(TableN, activeSessionTableAttrs),
-				m(".small", lang.get("sessionsInfo_msg")),
-				m(".flex-space-between.items-center.mt-l.mb-s", [
-					m(".h4", lang.get('closedSessions_label')),
-					m(ExpanderButtonN, closedSessionExpanderAttrs)
-				]),
-				m(ExpanderPanelN, {expanded: this._closedSessionsExpanded}, m(TableN, closedSessionTableAttrs)),
-				m(".small", lang.get("sessionsWillBeDeleted_msg")),
-				m(".small", lang.get("sessionsInfo_msg")),
+		if (logins.isUserLoggedIn()) {
+			const user = logins.getUserController()
+			return m("", [
+				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
+					m(".h4.mt-l", lang.get('loginCredentials_label')),
+					m(TextFieldN, mailAddressAttrs),
+					m(TextFieldN, passwordAttrs),
+					user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
+					(!user.isOutlookAccount()) ?
+						m(this._secondFactorsForm) : null,
+					m(".h4.mt-l", lang.get('activeSessions_label')),
+					m(TableN, activeSessionTableAttrs),
+					m(".small", lang.get("sessionsInfo_msg")),
+					m(".flex-space-between.items-center.mt-l.mb-s", [
+						m(".h4", lang.get('closedSessions_label')),
+						m(ExpanderButtonN, closedSessionExpanderAttrs)
+					]),
+					m(ExpanderPanelN, {expanded: this._closedSessionsExpanded}, m(TableN, closedSessionTableAttrs)),
+					m(".small", lang.get("sessionsWillBeDeleted_msg")),
+					m(".small", lang.get("sessionsInfo_msg")),
+				])
 			])
-		])
+		} else {
+			return []
+		}
 	}
 
 	_updateSessions(): Promise<void> {

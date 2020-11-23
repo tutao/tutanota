@@ -113,8 +113,9 @@ export class SettingsView implements CurrentView {
 				content: m(".flex.flex-grow.col", [
 					m(".plr-l", m(userFolderExpander)),
 					m(userFolderExpander.panel),
-					logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
-					logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
+					logins.isUserLoggedIn()
+					&& logins.getUserController().isGlobalOrLocalAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
+					logins.isUserLoggedIn() && logins.getUserController().isGlobalOrLocalAdmin() ? m(adminFolderExpander.panel) : null,
 					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 				]),
 				ariaLabel: "settings_label"
