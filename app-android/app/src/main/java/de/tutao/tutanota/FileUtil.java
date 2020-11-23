@@ -1,12 +1,18 @@
 package de.tutao.tutanota;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
@@ -21,15 +27,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -81,39 +90,38 @@ public class FileUtil {
 		intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
 		final Intent chooser = Intent.createChooser(intent, "Select File");
-		return this.requestStoragePermission()
-				.then((DonePipe<Void, Object, Exception, Void>) result ->
-						activity.startActivityForResult(chooser)
-								.then(new DonePipe<ActivityResult, Object, Exception, Void>() {
-									@Override
-									public Promise<Object, Exception, Void> pipeDone(ActivityResult result) {
-										JSONArray selectedFiles = new JSONArray();
-										if (result.resultCode == RESULT_OK) {
-											ClipData clipData = result.data.getClipData();
-											try {
-												if (clipData != null) {
-													for (int i = 0; i < clipData.getItemCount(); i++) {
-														ClipData.Item item = clipData.getItemAt(i);
-														selectedFiles.put(item.getUri().toString());
-													}
-												} else {
-													Uri uri = result.data.getData();
-													selectedFiles.put(uri.toString());
-												}
-											} catch (Exception e) {
-												return new DeferredObject<Object, Exception, Void>().reject(e);
+		return
+				activity.startActivityForResult(chooser)
+						.then(new DonePipe<ActivityResult, Object, Exception, Void>() {
+							@Override
+							public Promise<Object, Exception, Void> pipeDone(ActivityResult result) {
+								JSONArray selectedFiles = new JSONArray();
+								if (result.resultCode == RESULT_OK) {
+									ClipData clipData = result.data.getClipData();
+									try {
+										if (clipData != null) {
+											for (int i = 0; i < clipData.getItemCount(); i++) {
+												ClipData.Item item = clipData.getItemAt(i);
+												selectedFiles.put(item.getUri().toString());
 											}
+										} else {
+											Uri uri = result.data.getData();
+											selectedFiles.put(uri.toString());
 										}
-										return Utils.resolvedDeferred(selectedFiles);
+									} catch (Exception e) {
+										return new DeferredObject<Object, Exception, Void>().reject(e);
 									}
-								}));
+								}
+								return Utils.resolvedDeferred(selectedFiles);
+							}
+						});
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
 	Promise<Object, Exception, Void> openFile(String fileUri, String mimeType) {
 		Uri file = Uri.parse(fileUri);
 		String scheme = file.getScheme();
-		if (scheme.equals("file")) {
+		if ("file".equals(scheme)) {
 			file = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, new File(file.getPath()));
 		}
 		Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -134,13 +142,13 @@ public class FileUtil {
 	@NonNull
 	String getMimeType(Uri fileUri) {
 		String scheme = fileUri.getScheme();
-		if (scheme.equals("file")) {
+		if ("file".equals(scheme)) {
 			String extension = MimeTypeMap.getFileExtensionFromUrl(fileUri.toString());
 			String type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
 			if (type != null) {
 				return type;
 			}
-		} else if (scheme.equals("content")) {
+		} else if ("content".equals(scheme)) {
 			String type = activity.getContentResolver().getType(fileUri);
 			if (type != null) {
 				return type;
@@ -149,28 +157,74 @@ public class FileUtil {
 		return "application/octet-stream";
 	}
 
-	public Promise<Object, Exception, Void> putToDownloadFolder(String path) {
-		return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) nothing -> {
+	public Promise<Object, Exception, Void> putToDownloadFolder(String fileUriString) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			DeferredObject<Object, Exception, Void> promise = new DeferredObject<>();
 			backgroundTasksExecutor.execute(() -> {
 				try {
-					promise.resolve(addFileToDownloads(path));
-				} catch (IOException e) {
+					promise.resolve(addFileToDownloadsMediaStore(fileUriString));
+				} catch (Exception e) {
 					promise.reject(e);
+				} catch (Throwable e) {
+					// For everything else
+					promise.reject(new RuntimeException(e));
 				}
 			});
 			return promise;
-		});
+		} else {
+			return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) nothing -> {
+				DeferredObject<Object, Exception, Void> promise = new DeferredObject<>();
+				backgroundTasksExecutor.execute(() -> {
+					try {
+						promise.resolve(addFileToDownloadsOld(fileUriString));
+					} catch (Exception e) {
+						promise.reject(e);
+					} catch (Throwable e) {
+						// For everything else
+						promise.reject(new RuntimeException(e));
+					}
+				});
+				return promise;
+			});
+		}
 	}
 
-	private String addFileToDownloads(String fileUri) throws IOException {
+	@TargetApi(Build.VERSION_CODES.Q)
+	private String addFileToDownloadsMediaStore(String fileUriString) throws IOException, FileOpenException {
+		ContentResolver contentResolver = activity.getContentResolver();
+		Uri fileUri = Uri.parse(fileUriString);
+		FileInfo fileInfo = Utils.getFileInfo(activity, fileUri);
+
+		ContentValues values = new ContentValues();
+		values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+		String mimeType = getMimeType(fileUri);
+		values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+		values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileInfo.name);
+		values.put(MediaStore.MediaColumns.SIZE, fileInfo.size);
+		Uri outputUri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+		if (outputUri == null) {
+			throw new FileOpenException("Could not insert into downloads, no output URI");
+		}
+		InputStream is = Objects.requireNonNull(contentResolver.openInputStream(fileUri));
+		OutputStream os = contentResolver.openOutputStream(outputUri);
+		long copiedBytes = IOUtils.copyLarge(is, os);
+		Log.d(TAG, "Copied " + copiedBytes);
+
+		ContentValues updateValues = new ContentValues();
+		updateValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
+		int updated = contentResolver.update(outputUri, updateValues, null, null);
+		Log.d(TAG, "Updated with not pending: " + updated);
+		return outputUri.toString();
+	}
+
+	private String addFileToDownloadsOld(String fileUri) throws IOException {
 		File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 		if (!downloadsDir.exists()) {
 			boolean created = downloadsDir.mkdirs();
 			if (!created) {
 				throw new IOException("Could not create downloads folder");
 			}
-
 		}
 
 		Uri file = Uri.parse(fileUri);
@@ -189,7 +243,6 @@ public class FileUtil {
 	long getSize(String fileUri) throws FileNotFoundException {
 		return Utils.getFileInfo(activity, Uri.parse(fileUri)).size;
 	}
-
 
 	public String getName(String fileUri) throws FileNotFoundException {
 		return Utils.getFileInfo(activity, Uri.parse(fileUri)).name;
@@ -237,13 +290,8 @@ public class FileUtil {
 
 			File encryptedFile = null;
 			if (con.getResponseCode() == 200) {
-
-				File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
-				encryptedDir.mkdirs();
-				encryptedFile = new File(encryptedDir, filename);
-
-				IOUtils.copyLarge(con.getInputStream(), new FileOutputStream(encryptedFile),
-						new byte[1024 * 1000]);
+				InputStream inputStream = con.getInputStream();
+				encryptedFile = writeFileToUnencryptedDIr(filename, inputStream);
 			}
 
 			JSONObject result = new JSONObject();
@@ -263,29 +311,26 @@ public class FileUtil {
 		}
 	}
 
+	private File writeFileToUnencryptedDIr(String filename, InputStream inputStream) throws IOException {
+		File encryptedFile;
+		File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
+		encryptedDir.mkdirs();
+		encryptedFile = new File(encryptedDir, filename);
+
+		IOUtils.copyLarge(inputStream, new FileOutputStream(encryptedFile),
+				new byte[1024 * 1000]);
+		return encryptedFile;
+	}
+
 	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {
-		return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) __ -> {
+		try {
+			File localFile = writeFileToUnencryptedDIr(name, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
+			return this.putToDownloadFolder(Utils.fileToUri(localFile));
+		} catch (IOException e) {
 			DeferredObject<Object, Exception, Void> result = new DeferredObject<>();
-			backgroundTasksExecutor.execute(() -> {
-				final File file = new File(Environment.getExternalStoragePublicDirectory(
-						Environment.DIRECTORY_DOWNLOADS), name);
-
-
-				try (FileOutputStream fout = new FileOutputStream(file)) {
-					byte[] fileBytes = Utils.base64ToBytes(base64blob);
-					fout.write(fileBytes);
-					result.resolve(Uri.fromFile(file).toString());
-					DownloadManager downloadManager =
-							(DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-					downloadManager.addCompletedDownload(name, "Tutanota invoice", false,
-							getMimeType(Uri.fromFile(file)), file.getAbsolutePath(),
-							fileBytes.length, true);
-				} catch (IOException e) {
-					result.reject(e);
-				}
-			});
+			result.reject(e);
 			return result;
-		});
+		}
 	}
 
 	private static void addHeadersToRequest(URLConnection connection, JSONObject headers) throws JSONException {
