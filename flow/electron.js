@@ -535,11 +535,15 @@ declare module 'electron' {
 }
 
 
-declare type ClientRequest = {
-	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage) => void): ClientRequest,
-	end(): ClientRequest,
-	abort(): void,
-};
+declare interface ClientRequest {
+	on('error' | 'response' | 'information' | 'connect' | 'timeout', (Error & IncomingMessage) => void): ClientRequest;
+
+	on('socket', (net$Socket => void)): ClientRequest;
+
+	end(): ClientRequest;
+
+	abort(): void;
+}
 
 declare module 'electron-updater' {
 	declare export var autoUpdater: AutoUpdater
