@@ -14,6 +14,7 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as EmailAliasOptionsDialog from "../subscription/EmailAliasOptionsDialog"
 import {getAvailableDomains} from "./AddUserDialog"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -74,9 +75,9 @@ export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
 				Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " "
 					+ lang.get("orderAliasesConfirm_msg")).then(confirmed => {
 					if (confirmed) {
-						// TODO: Navigate to alias upgrade
-						//tutao.locator.navigator.settings();
-						//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+						// Navigate to subscriptions folder and show alias options
+						m.route.set("/settings/subscription")
+						EmailAliasOptionsDialog.show()
 					}
 				})
 			}
