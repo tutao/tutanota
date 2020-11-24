@@ -33,7 +33,7 @@ let MAX_CONNECT_TIMEOUT: number
 
 const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 
-const log: ((...args: any) => void) = env.mode === Mode.Test ? noOp : (...args) => console.log(args)
+const log: ((...args: any) => void) = env.mode === Mode.Test ? noOp : console.log.bind(console)
 
 export class DesktopSseClient {
 	_app: App;
@@ -243,9 +243,9 @@ export class DesktopSseClient {
 			this._handlePushMessage(userId)
 			    .then(() => this._reschedule())
 			    .catch(e => {
-			    	if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
-			    		// Reset the queue so that the previous error will not be handled again
-			    		this._handlingPushMessage = Promise.resolve()
+				    if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
+					    // Reset the queue so that the previous error will not be handled again
+					    this._handlingPushMessage = Promise.resolve()
 					    this._removeUserId(userId)
 					    this._disconnect()
 				    } else {
@@ -347,8 +347,8 @@ export class DesktopSseClient {
 				reject(e)
 			}
 
-			log("downloading missed notification")
 			const url = this._makeAlarmNotificationUrl()
+			log("downloading missed notification with user", userId)
 			const headers: {[string]: string} = {
 				userIds: userId,
 				v: MissedNotificationTypeModel.version,
@@ -357,33 +357,49 @@ export class DesktopSseClient {
 			if (this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)) {
 				headers["lastProcessedNotificationId"] = this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)
 			}
-			const req = this._net.request(url, {
-					method: "GET",
-					headers,
-					// this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
-					timeout: 20000
-				}
-			).on('response', res => {
-				if (res.statusCode !== 200) {
-					const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
-					fail(req, res, tutanotaError)
-					return
-				}
-				res.setEncoding('utf8')
+			const req = this._net
+			                .request(url, {
+					                method: "GET",
+					                headers,
+					                // this defines the timeout for the connection attempt, not for waiting for the servers response after a connection was made
+					                timeout: 20000
+				                }
+			                )
+			                .on('timeout', () => {
+				                log("Missed notification download timeout")
+				                req.abort()
+			                })
+			                .on('socket', (s) => {
+				                // We add this listener purely as a workaround for some problem with net module.
+				                // The problem is that sometimes request gets stuck after handshake - does not process unless some event
+				                // handler is called (and it works more reliably with console.log()).
+				                // This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
+				                s.on('lookup', () => log("lookup"))
+			                })
+			                .on('response', res => {
+				                log("missed notification response", res.statusCode)
+				                if (res.statusCode !== 200) {
+					                const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
+					                fail(req, res, tutanotaError)
+					                return
+				                }
+				                res.setEncoding('utf8')
 
-				let resData = ''
-				res.on('data', chunk => {
-					resData += chunk
-				}).on('end', () => {
-					try {
-						resolve(JSON.parse(resData))
-					} catch (e) {
-						fail(req, res, e)
-					}
-				})
-				   .on('close', () => log("dl missed notification response closed"))
-				   .on('error', e => fail(req, res, e))
-			}).on('error', e => fail(req, null, e)).end()
+				                let resData = ''
+				                res
+					                .on('data', chunk => {resData += chunk})
+					                .on('end', () => {
+						                try {
+							                resolve(JSON.parse(resData))
+						                } catch (e) {
+							                fail(req, res, e)
+						                }
+					                })
+					                .on('close', () => log("dl missed notification response closed"))
+					                .on('error', e => fail(req, res, e))
+			                })
+			                .on('error', e => fail(req, null, e))
+			                .end()
 		})
 	}
 
