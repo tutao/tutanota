@@ -200,8 +200,6 @@ function buildDesktopClient() {
 			unpacked: options.unpacked
 		}
 
-		const fakeVersion = "3.78.0" // This one is tricky to get right to please the server so change it manually if you have to
-
 		if (options.stage === "release") {
 			const buildPromise = createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Desktop", true), bundles)
 				.then(() => desktopBuilder.build(desktopBaseOpts))
@@ -218,7 +216,7 @@ function buildDesktopClient() {
 			return buildPromise
 		} else if (options.stage === "local") {
 			const desktopLocalOpts = Object.assign({}, desktopBaseOpts, {
-				version: fakeVersion,
+				version,
 				updateUrl: "http://localhost:9000/client/build/desktop-snapshot",
 				nameSuffix: "-snapshot",
 				notarize: false
@@ -235,7 +233,7 @@ function buildDesktopClient() {
 				.then(() => desktopBuilder.build(desktopTestOpts))
 		} else if (options.stage === "prod") {
 			const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
-				version: fakeVersion,
+				version,
 				updateUrl: "http://localhost:9000/desktop",
 				notarize: false
 			})
@@ -243,7 +241,7 @@ function buildDesktopClient() {
 				.then(() => desktopBuilder.build(desktopProdOpts))
 		} else { // stage = host
 			const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
-				version: `${new Date().getTime()}.0.0`,
+				version,
 				updateUrl: "http://localhost:9000/desktop-snapshot",
 				nameSuffix: "-snapshot",
 				notarize: false
