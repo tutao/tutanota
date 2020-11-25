@@ -115,10 +115,6 @@ export class DesktopSseClient {
 		return this._conf.setVar('pushIdentifier', sseInfo)
 		           .then(() => {
 			           this._connectedSseInfo = sseInfo
-			           if (this._connection) {
-				           this._connection.abort()
-				           this._reschedule(INITIAL_CONNECT_TIMEOUT)
-			           }
 		           })
 	}
 
@@ -164,6 +160,12 @@ export class DesktopSseClient {
 				"cv": this._app.getVersion(),
 			},
 			method: "GET"
+		}).on('socket', (s) => {
+			// We add this listener purely as a workaround for some problem with net module.
+			// The problem is that sometimes request gets stuck after handshake - does not process unless some event
+			// handler is called (and it works more reliably with console.log()).
+			// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
+			s.on('lookup', () => log("lookup sse request"))
 		}).on('response', res => {
 			log("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
@@ -216,7 +218,7 @@ export class DesktopSseClient {
 
 	_processSseData(data: string, userId: string): void {
 		if (!data.startsWith("data")) {
-			log('sse heartbeat')
+			log('sse heartbeat', this._readTimeoutInSeconds)
 			this._reschedule()
 			return
 		}

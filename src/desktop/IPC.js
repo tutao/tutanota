@@ -201,7 +201,7 @@ export class IPC {
 					)
 				]).return()
 			case 'initPushNotifications':
-				this._sse.connect()
+				// Nothing to do here because sse connection is opened when starting the native part.
 				return Promise.resolve()
 			case 'closePushNotifications':
 				// only gets called in the app
