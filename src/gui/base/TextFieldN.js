@@ -160,11 +160,6 @@ export class _TextField {
 						let key = {keyCode: e.which, key: e.key, ctrl: e.ctrlKey, shift: e.shiftKey}
 						return a.keyHandler != null ? a.keyHandler(key) : true
 					},
-					onremove: e => {
-						// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
-						// TODO test if still needed with newer mithril releases
-						this._domInput.onblur = null
-					},
 					onupdate: () => {
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
