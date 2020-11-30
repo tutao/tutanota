@@ -100,11 +100,12 @@ public class LocalNotificationsFacade {
 		}
 	}
 
-	public void sendEmailNotifications(String title, List<PushMessage.NotificationInfo> notificationInfos) {
+	public void sendEmailNotifications(List<PushMessage.NotificationInfo> notificationInfos) {
 		if (notificationInfos.isEmpty()) {
 			return;
 		}
 
+		String title = this.context.getString(R.string.pushNewMail_msg);
 		for (int i = 0; i < notificationInfos.size(); i++) {
 			PushMessage.NotificationInfo notificationInfo = notificationInfos.get(i);
 
@@ -213,25 +214,25 @@ public class LocalNotificationsFacade {
 
 	@TargetApi(Build.VERSION_CODES.O)
 	public void createNotificationChannels() {
-		NotificationChannel notificationsChannel = new NotificationChannel(
+		NotificationChannel mailNotificationChannel = new NotificationChannel(
 				EMAIL_NOTIFICATION_CHANNEL_ID,
-				context.getString(R.string.notificationSync_msg),
+				"Mail",
 				NotificationManager.IMPORTANCE_DEFAULT);
-		notificationsChannel.setShowBadge(true);
+		mailNotificationChannel.setShowBadge(true);
 		Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 		AudioAttributes att = new AudioAttributes.Builder()
 				.setUsage(AudioAttributes.USAGE_NOTIFICATION)
 				.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
 				.build();
-		notificationsChannel.setSound(ringtoneUri, att);
-		notificationsChannel.setVibrationPattern(VIBRATION_PATTERN);
-		notificationsChannel.enableLights(true);
-		notificationsChannel.setLightColor(Color.RED);
-		notificationsChannel.setShowBadge(true);
-		getNotificationManager().createNotificationChannel(notificationsChannel);
+		mailNotificationChannel.setSound(ringtoneUri, att);
+		mailNotificationChannel.setVibrationPattern(VIBRATION_PATTERN);
+		mailNotificationChannel.enableLights(true);
+		mailNotificationChannel.setLightColor(Color.RED);
+		mailNotificationChannel.setShowBadge(true);
+		getNotificationManager().createNotificationChannel(mailNotificationChannel);
 
 		NotificationChannel serviceNotificationChannel = new NotificationChannel(
-				PERSISTENT_NOTIFICATION_CHANNEL_ID, "Notification service",
+				PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
 				NotificationManager.IMPORTANCE_LOW);
 		getNotificationManager().createNotificationChannel(serviceNotificationChannel);
 

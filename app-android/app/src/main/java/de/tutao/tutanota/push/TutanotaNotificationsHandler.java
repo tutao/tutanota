@@ -159,7 +159,7 @@ public class TutanotaNotificationsHandler {
 
 	private void handleNotificationInfos(List<PushMessage.NotificationInfo> notificationInfos) {
 		// TODO: translate
-		localNotificationsFacade.sendEmailNotifications("New email received", notificationInfos);
+		localNotificationsFacade.sendEmailNotifications(notificationInfos);
 	}
 
 
