@@ -29,7 +29,6 @@ import de.tutao.tutanota.data.SseInfo;
 
 public class TutanotaNotificationsHandler {
 	private static final String TAG = "TutanotaNotifications";
-	// TODO: change back
 	private static final long MISSED_NOTIFICATION_TTL = TimeUnit.DAYS.toMillis(30);
 
 	private final LocalNotificationsFacade localNotificationsFacade;

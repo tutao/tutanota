@@ -77,7 +77,11 @@ public class SseClient {
 		if (connection == null) {
 			Log.d(TAG, "ConnectionRef not available, schedule connect");
 			reschedule(0);
-		} else if (!Objects.equals(this.connectedSseInfo, oldConnectedInfo)) {
+		} else if (oldConnectedInfo == null
+				|| !oldConnectedInfo.getPushIdentifier().equals(sseInfo.getPushIdentifier())
+				|| !oldConnectedInfo.getSseOrigin().equals(sseInfo.getSseOrigin())) {
+			// If pushIdentifier or SSE origin have changed for some reason, restart the connect.
+			// If user IDs have changed, do not restart, if current user is invalid we have either oldConnectedInfo
 			Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection");
 			connection.disconnect();
 		} else {
@@ -251,6 +255,7 @@ public class SseClient {
 		 * @return {@code true} to continue connecting
 		 */
 		boolean onStartingConnection();
+
 		/**
 		 * Will block reading from SSE until this returns
 		 */
