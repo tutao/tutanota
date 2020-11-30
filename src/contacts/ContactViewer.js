@@ -113,14 +113,18 @@ export class ContactViewer {
 					m(".header.pt-ml", [
 						m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
 							m(".left.flex-grow-shrink-150", [
-								m(".h2.selectable.text-break", this.contactAppellation),
-								m(".flex-wrap.selectable", insertBetween([
+								m(".h2.selectable.text-break", [
+									this.contactAppellation,
+									m.trust("&nbsp;") // alignment in case nothing is present here
+								]),
+								m(".flex-wrap.selectable", [
+									insertBetween([
 										this.contact.company ? m("span.company", this.contact.company) : null,
 										this.contact.role ? m("span.title", this.contact.role) : null,
 										this._hasBirthday() ? m("span.birthday", this._formatBirthday()) : null
-									], () => m("span", " | ")
-									)
-								)
+									], () => m("span", " | ")),
+									m.trust("&nbsp;") // alignment in case nothing is present here
+								])
 							]),
 							m(".action-bar.align-self-end", [//css align self needed otherwise the buttons will float in the top right corner instead of bottom right
 								m(actions)
