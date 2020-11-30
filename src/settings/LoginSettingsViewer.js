@@ -130,6 +130,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			lines: this._closedSessionsTableLines(),
 		}
 
+		// Might be not there when we are logging out
 		if (logins.isUserLoggedIn()) {
 			const user = logins.getUserController()
 			return m("", [
@@ -153,7 +154,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				])
 			])
 		} else {
-			return []
+			return null
 		}
 	}
 
