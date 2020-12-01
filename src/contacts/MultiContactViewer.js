@@ -29,7 +29,7 @@ export class MultiContactViewer {
 					(contactView._contactList && contactView._contactList.list.getSelectedEntities().length > 0) ? [
 							// Add spacing so buttons for contacts also align with the regular client view's buttons
 							m(".header.pt-ml.flex-space-between",
-								m(".left.flex-grow-shrink-150", [
+								m(".left.flex-grow", [
 									m(".contact-actions.flex-wrap.flex-grow-shrink", [
 										m(".h2", "\u00A0"),
 										m(".flex-space-between", m(".flex-wrap.items-center", this._getContactSelectionMessage(contactView)))
