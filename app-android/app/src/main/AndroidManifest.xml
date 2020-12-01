@@ -14,12 +14,16 @@
 
     <!-- We have to enable cleartext (non-HTTPS) traffic because of the external email content
     which might still be served or HTTP. The only alternative is to proxy all of it. -->
+
+    <!-- resizeableActivity is redundant with our target API version but it is required for Samsung DeX to work
+    correctly, see https://github.com/tutao/tutanota/issues/2167 -->
     <application
             android:allowBackup="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
+            android:resizeableActivity="true"
             android:usesCleartextTraffic="true">
         <activity
                 android:name=".MainActivity"
