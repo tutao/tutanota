@@ -62,8 +62,8 @@ export class MultiSearchViewer {
 								// Add spacing so the buttons are where the mail view are
 								m(".flex-space-between.button-min-height",
 									m(".flex.flex-column-reverse", [
-										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", m.trust("&nbsp;")),
-										m("small.b.flex.pt", m.trust("&nbsp;"))
+										m(".small.flex.text-break.selectable.badge-line-height.flex-wrap pt-s", "\u00A0"),
+										m("small.b.flex.pt", "\u00A0")
 									])
 								),
 								m(".flex-space-between.mr-negative-s", [
@@ -75,7 +75,7 @@ export class MultiSearchViewer {
 								m(".header.pt-ml.flex-space-between",
 									m(".left.flex-grow-shrink-150", [
 										m(".contact-actions.flex-wrap.flex-grow-shrink", [
-											m(".h2", m.trust("&nbsp;")),
+											m(".h2", "\u00A0"),
 											m(".flex-space-between", m(".flex-wrap.items-center", this._getSearchSelectionMessage(this._searchListView)))
 										]),
 									]),
