@@ -790,7 +790,7 @@ export class CalendarView implements CurrentView {
 			// take care of this now.
 			const aggregateShortEvents = []
 			const aggregateLongEvents = []
-			return Promise.map(calendarInfos.values(), (calendarInfo) => {
+			return Promise.each(calendarInfos.values(), (calendarInfo) => {
 				const {groupRoot, longEvents} = calendarInfo
 				return Promise.all([
 					_loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, worker, 200),
