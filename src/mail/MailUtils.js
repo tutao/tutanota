@@ -468,7 +468,7 @@ export function getEmailSignature(logins: LoginController = globalLogins): strin
 		// default signature already contains empty lines
 		return getDefaultSignature()
 	} else if (TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM === type) {
-		return SIGNATURE_DISTANCE + logins.getUserController().props.customEmailSignature
+		return logins.getUserController().props.customEmailSignature
 	} else {
 		return ""
 	}
