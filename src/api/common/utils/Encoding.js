@@ -315,3 +315,55 @@ export function base64ToUint8Array(base64: Base64): Uint8Array {
 	}
 	return result
 }
+
+/**
+ * Converts a Uint8Array containing string data into a string, given the charset the data is in.
+ * @param charset The charset. Must be supported by TextDecoder.
+ * @param bytes The string data
+ * @trhows RangeError if the charset is not supported
+ * @return The string
+ */
+export function uint8ArrayToString(charset: string, bytes: Uint8Array): string {
+	// $FlowExpectedError[incompatible-call] we will rely on the constructor throwing an error if the charset is not supported
+	const decoder = new TextDecoder(charset)
+	return decoder.decode(bytes);
+}
+
+/**
+ * Decodes a quoted-printable piece of text in a given charset.
+ * This was copied and modified from https://github.com/mathiasbynens/quoted-printable/blob/master/src/quoted-printable.js (MIT licensed)
+ *
+ * @param charset Must be supported by TextEncoder
+ * @param input The encoded text
+ * @throws RangeError if the charset is not supported
+ * @returns The text as a JavaScript string
+ */
+export function decodeQuotedPrintable(charset: string, input: string): string {
+	return input
+		// https://tools.ietf.org/html/rfc2045#section-6.7, rule 3:
+		// “Therefore, when decoding a `Quoted-Printable` body, any trailing white
+		// space on a line must be deleted, as it will necessarily have been added
+		// by intermediate transport agents.”
+		.replace(/[\t\x20]$/gm, '')
+		// Remove hard line breaks preceded by `=`. Proper `Quoted-Printable`-
+		// encoded data only contains CRLF line  endings, but for compatibility
+		// reasons we support separate CR and LF too.
+		.replace(/=(?:\r\n?|\n|$)/g, '')
+		// Decode escape sequences of the form `=XX` where `XX` is any
+		// combination of two hexidecimal digits. For optimal compatibility,
+		// lowercase hexadecimal digits are supported as well. See
+		// https://tools.ietf.org/html/rfc2045#section-6.7, note 1.
+		.replace(/(=([a-fA-F0-9]{2}))+/g,
+			match => {
+				const hexValues = match.split(/=/)
+				// splitting on '=' is convenient, but adds an empty string at the start due to the first byte
+				hexValues.shift()
+				const intArray = hexValues.map(char => parseInt(char, 16))
+				const bytes = Uint8Array.from(intArray)
+				return uint8ArrayToString(charset, bytes)
+			})
+}
+
+export function decodeBase64(charset: string, input: string): string {
+	return uint8ArrayToString(charset, base64ToUint8Array(input))
+}

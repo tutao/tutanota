@@ -1,4 +1,5 @@
 // @flow
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactAddress} from "../api/entities/tutanota/ContactAddress"
 import type {ContactAddressTypeEnum, ContactPhoneNumberTypeEnum} from "../api/common/TutanotaConstants"
@@ -9,7 +10,7 @@ import {createContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {assertMainOrNode} from "../api/Env"
 import {createBirthday} from "../api/entities/tutanota/Birthday"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
-import type {Contact} from "../api/entities/tutanota/Contact"
+import {decodeBase64, decodeQuotedPrintable} from "../api/common/utils/Encoding"
 
 assertMainOrNode()
 
@@ -24,7 +25,6 @@ export function vCardFileToVCards(vCardFileData: string): ?string[] {
 	vCardFileData = vCardFileData.replace(/begin:vcard/g, "BEGIN:VCARD")
 	vCardFileData = vCardFileData.replace(/end:vcard/g, "END:VCARD")
 	vCardFileData = vCardFileData.replace(/version:2.1/g, "VERSION:2.1")
-	let vCardList = []
 	if (vCardFileData.indexOf("BEGIN:VCARD") > -1
 		&& vCardFileData.indexOf(E) > -1
 		&& (vCardFileData.indexOf(V3) > -1 || vCardFileData.indexOf(V2) > -1)) {
@@ -79,6 +79,19 @@ export function vCardEscapingSplitAdr(addressDetails: string): string[] {
 }
 
 
+function _decodeTag(encoding: string, charset: string, text: string): string {
+	let decoder = (cs, l) => l
+	switch (encoding.toLowerCase()) {
+		case 'quoted-printable:':
+			decoder = decodeQuotedPrintable
+			break
+		case 'base64:':
+			decoder = decodeBase64
+	}
+
+	return text.split(';').map((line) => decoder(charset, line)).join(';')
+}
+
 export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Contact[] {
 	let contacts = []
 	for (let i = 0; i < vCardList.length; i++) {
@@ -93,6 +106,15 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			let tagAndTypeString = vCardLines[j].substring(0, indexAfterTag).toUpperCase()
 			let tagName = tagAndTypeString.split(";")[0]
 			let tagValue = vCardLines[j].substring(indexAfterTag + 1)
+
+			let encodingObj = vCardLines[j].split(';').find((line) => line.includes('ENCODING='))
+			let encoding = encodingObj ? encodingObj.split('=')[1] : ''
+
+			let charsetObj = vCardLines[j].split(';').find((line) => line.includes('CHARSET='))
+			let charset = charsetObj ? charsetObj.split('=')[1] : ''
+
+			tagValue = _decodeTag(encoding, charset, tagValue)
+
 			switch (tagName) {
 				case "N":
 					let nameDetails = vCardReescapingArray(vCardEscapingSplit(tagValue))
