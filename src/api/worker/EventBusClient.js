@@ -161,8 +161,9 @@ export class EventBusClient {
 		this._serviceUnavailableRetry = null
 		this._worker.updateWebSocketState("connecting")
 
+		// Task for updating events are number of groups + 2. Use 2 as base for reconnect state.
 		this._progressMonitor = (reconnect)
-			? new ProgressMonitorDelegate(this._eventGroups().length + 3, this._worker)
+			? new ProgressMonitorDelegate(this._eventGroups().length + 2, this._worker)
 			: new NoopProgressMonitor()
 		this._progressMonitor.workDone(1)
 
@@ -402,7 +403,7 @@ export class EventBusClient {
 		}).then(() => {
 			this._lastEntityEventIds = lastIds
 			this._lastUpdateTime = Date.now()
-			return this._processQueuedEvents()
+			this._eventQueue.resume()
 		})
 	}
 
@@ -416,24 +417,23 @@ export class EventBusClient {
 					return this._entity
 					           .loadAll(EntityEventBatchTypeRef, groupId, this._getLastEventBatchIdOrMinIdForGroup(groupId))
 					           .then((eventBatches) => {
-							           for (const batch of eventBatches) {
-								           this._addBatch(getElementId(batch), groupId, batch.events)
+							           if (eventBatches.length === 0) {
+								           // There won't be a callback from the queue to process the event so we mark this group as
+								           // completed right away
+								           this._progressMonitor.workDone(1)
+							           } else {
+								           for (const batch of eventBatches) {
+									           this._addBatch(getElementId(batch), groupId, batch.events)
+								           }
 							           }
 						           }
 					           )
 					           .catch(NotAuthorizedError, () => {
 						           console.log("could not download entity updates => lost permission")
 					           })
-					           .finally(() => this._progressMonitor.workDone(1))
 				}).then(() => {
 					this._lastUpdateTime = Date.now()
-					const totalEventNumber = this._eventQueue.queueSize()
-					if (totalEventNumber === 0) {
-						this._progressMonitor.completed()
-					} else {
-						// progressMonitor.setStageTotalWork(1, totalEventNumber)
-						this._processQueuedEvents()
-					}
+					this._eventQueue.resume()
 				})
 			}
 		} else {
@@ -452,10 +452,6 @@ export class EventBusClient {
 		}
 		this._lastEntityEventIds[batchId] = lastForGroup
 		this._eventQueue.add(batchId, groupId, events)
-	}
-
-	_processQueuedEvents() {
-		this._eventQueue.resume()
 	}
 
 	_processEventBatch(batch: QueuedBatch): Promise<void> {

@@ -2,7 +2,7 @@
 
 import type {App} from "electron"
 import {base64ToBase64Url, stringToUtf8Uint8Array, uint8ArrayToBase64} from "../../api/common/utils/Encoding"
-import {neverNull, noOp, randomIntFromInterval} from "../../api/common/utils/Utils"
+import {neverNull, randomIntFromInterval} from "../../api/common/utils/Utils"
 import type {DesktopNotifier} from '../DesktopNotifier.js'
 import type {WindowManager} from "../DesktopWindowManager.js"
 import type {DesktopConfig} from "../config/DesktopConfig"
@@ -17,7 +17,6 @@ import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
 import {remove} from "../../api/common/utils/ArrayUtils"
-import {Mode} from "../../api/Env"
 import {handleRestError, NotAuthenticatedError, NotAuthorizedError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopUtils"
@@ -164,7 +163,7 @@ export class DesktopSseClient {
 			// The problem is that sometimes request gets stuck after handshake - does not process unless some event
 			// handler is called (and it works more reliably with console.log()).
 			// This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-			s.on('lookup', () => log("lookup sse request"))
+			s.on('lookup', () => log.debug("lookup sse request"))
 		}).on('response', res => {
 			log.debug("established SSE connection")
 			if (res.statusCode === 403) { // invalid userids
@@ -367,7 +366,7 @@ export class DesktopSseClient {
 				                }
 			                )
 			                .on('timeout', () => {
-				                log("Missed notification download timeout")
+				                log.debug("Missed notification download timeout")
 				                req.abort()
 			                })
 			                .on('socket', (s) => {
@@ -375,10 +374,10 @@ export class DesktopSseClient {
 				                // The problem is that sometimes request gets stuck after handshake - does not process unless some event
 				                // handler is called (and it works more reliably with console.log()).
 				                // This makes the request magically unstuck, probably console.log does some I/O and/or socket things.
-				                s.on('lookup', () => log("lookup"))
+				                s.on('lookup', () => log.debug("lookup"))
 			                })
 			                .on('response', res => {
-				                log("missed notification response", res.statusCode)
+				                log.debug("missed notification response", res.statusCode)
 				                if (res.statusCode !== 200) {
 					                const tutanotaError = handleRestError(res.statusCode, url, res.headers["Error-Id"], null)
 					                fail(req, res, tutanotaError)
