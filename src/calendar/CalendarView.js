@@ -82,6 +82,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CalendarEventPopup} from "./CalendarEventPopup"
+import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 export const DEFAULT_HOUR_OF_DAY = 6
@@ -255,7 +256,15 @@ export class CalendarView implements CurrentView {
 
 		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 		// load all calendars. if there is no calendar yet, create one
-		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo().tap(m.redraw)
+
+
+		// we load three instances per calendar / CalendarGroupRoot / GroupInfo / Group + 3
+		// for each calendar we load short events for three months +3
+		const workPerCalendar = 3 + 3
+		const totalWork = logins.getUserController().getCalendarMemberships().length * workPerCalendar
+		const monitorHandle = locator.progressTracker.registerMonitor(totalWork)
+		const progressMonitor = neverNull(locator.progressTracker.getMonitor(monitorHandle))
+		this._calendarInfos = locator.calendarModel.loadOrCreateCalendarInfo(progressMonitor).tap(m.redraw)
 
 		this._calendarInvitations = []
 		this._updateCalendarInvitations()
@@ -268,8 +277,11 @@ export class CalendarView implements CurrentView {
 			nextMonthDate.setMonth(d.getMonth() + 1)
 
 			this._loadMonthIfNeeded(d)
+			    .then(() => progressMonitor.workDone(1))
 			    .then(() => this._loadMonthIfNeeded(nextMonthDate))
+			    .then(() => progressMonitor.workDone(1))
 			    .then(() => this._loadMonthIfNeeded(previousMonthDate))
+			    .finally(() => progressMonitor.completed())
 		})
 
 		this._setupShortcuts();
@@ -859,7 +871,7 @@ export class CalendarView implements CurrentView {
 							if (calendarMemberships.length !== calendarInfos.size) {
 								this._loadedMonths.clear()
 								this._replaceEvents(new Map())
-								this._calendarInfos = locator.calendarModel.loadCalendarInfos()
+								this._calendarInfos = locator.calendarModel.loadCalendarInfos(new NoopProgressMonitor())
 								return this._calendarInfos.then(() => {
 									const selectedDate = this.selectedDate()
 									const previousMonthDate = new Date(selectedDate)

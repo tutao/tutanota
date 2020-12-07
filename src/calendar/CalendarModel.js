@@ -17,7 +17,7 @@ import {
 import {isToday} from "../api/common/utils/DateUtils"
 import {getFromMap} from "../api/common/utils/MapUtils"
 import type {DeferredObject} from "../api/common/utils/Utils"
-import {assertNotNull, clone, defer, downcast, neverNull, noOp, ProgressMonitor} from "../api/common/utils/Utils"
+import {assertNotNull, clone, defer, downcast, noOp} from "../api/common/utils/Utils"
 import type {AlarmIntervalEnum, EndTypeEnum, RepeatPeriodEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarMethod, EndType, FeatureType, GroupType, OperationType, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
@@ -43,7 +43,6 @@ import {client} from "../misc/ClientDetector"
 import {insertIntoSortedArray} from "../api/common/utils/ArrayUtils"
 import m from "mithril"
 import type {User} from "../api/entities/sys/User"
-import {UserTypeRef} from "../api/entities/sys/User"
 import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot"
 import {CalendarGroupRootTypeRef} from "../api/entities/tutanota/CalendarGroupRoot"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -61,6 +60,7 @@ import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {CalendarRepeatRule} from "../api/entities/tutanota/CalendarRepeatRule"
 import {ParserError} from "../misc/parsing"
 import {ProgressTracker} from "../api/main/ProgressTracker"
+import type {IProgressMonitor} from "../api/common/utils/ProgressMonitor"
 
 
 function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
@@ -308,9 +308,9 @@ export interface CalendarModel {
 	loadAlarms(alarmInfos: Array<IdTuple>, user: User): Promise<Array<UserAlarmInfo>>;
 
 	/** Load map from group/groupRoot ID to the calendar info */
-	loadCalendarInfos(): Promise<Map<Id, CalendarInfo>>;
+	loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>>;
 
-	loadOrCreateCalendarInfo(): Promise<Map<Id, CalendarInfo>>;
+	loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>>;
 
 	/**
 	 * Update {@param dbEvent} stored on the server with {@param event} from the ics file.
@@ -370,61 +370,52 @@ export class CalendarModelImpl implements CalendarModel {
 		}
 	}
 
-	loadCalendarInfos(): Promise<Map<Id, CalendarInfo>> {
-		const userId = this._logins.getUserController().user._id
-		let progressMonitor: ProgressMonitor
-		return load(UserTypeRef, userId)
-			.then(user => {
-				const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
-				const notFoundMemberships = []
-
-				// You're gonna have to update me if you decide to load any more things hereB
-				const progressMonitor = new ProgressMonitor(calendarMemberships.length * 4)
-				this._progressTracker.registerMonitor(progressMonitor)
-
-				return Promise
-					.map(calendarMemberships, (membership) => Promise
-						.all([
-							load(CalendarGroupRootTypeRef, membership.group).tap(() => progressMonitor.workDone(1)),
-							load(GroupInfoTypeRef, membership.groupInfo).tap(() => progressMonitor.workDone(1)),
-							load(GroupTypeRef, membership.group).tap(() => progressMonitor.workDone(1))
-						])
-						.catch(NotFoundError, () => {
-							notFoundMemberships.push(membership)
-							progressMonitor.workDone(3)
-							return null
-						})
-					)
-					.then((groupInstances) => {
-						const calendarInfos: Map<Id, CalendarInfo> = new Map()
-						const filtered = groupInstances.filter(Boolean)
-						progressMonitor.workDone(groupInstances.length - filtered.length) // say we completed all the ones that we wont have to load
-						filtered.forEach(([groupRoot, groupInfo, group]) => {
-							calendarInfos.set(groupRoot._id, {
-								groupRoot,
-								groupInfo,
-								shortEvents: [],
-								longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
-								group: group,
-								shared: !isSameId(group.user, userId)
-							})
-						})
-
-						// cleanup inconsistent memberships
-						Promise.each(notFoundMemberships, (notFoundMembership) => {
-							const data = createMembershipRemoveData({user: userId, group: notFoundMembership.group})
-							return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
-						})
-						return calendarInfos
+	loadCalendarInfos(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
+		const user = this._logins.getUserController().user
+		const calendarMemberships = user.memberships.filter(m => m.groupType === GroupType.Calendar);
+		const notFoundMemberships = []
+		return Promise
+			.mapSeries(calendarMemberships, (membership) => Promise
+				.all([
+					load(CalendarGroupRootTypeRef, membership.group).tap(() => progressMonitor.workDone(1)),
+					load(GroupInfoTypeRef, membership.groupInfo).tap(() => progressMonitor.workDone(1)),
+					load(GroupTypeRef, membership.group).tap(() => progressMonitor.workDone(1))
+				])
+				.catch(NotFoundError, () => {
+					notFoundMemberships.push(membership)
+					progressMonitor.workDone(3)
+					return null
+				})
+			)
+			.then((groupInstances) => {
+				const calendarInfos: Map<Id, CalendarInfo> = new Map()
+				const filtered = groupInstances.filter(Boolean)
+				progressMonitor.workDone(groupInstances.length - filtered.length) // say we completed all the ones that we wont have to load
+				filtered.forEach(([groupRoot, groupInfo, group]) => {
+					calendarInfos.set(groupRoot._id, {
+						groupRoot,
+						groupInfo,
+						shortEvents: [],
+						longEvents: new LazyLoaded(() => loadAll(CalendarEventTypeRef, groupRoot.longEvents), []),
+						group: group,
+						shared: !isSameId(group.user, user._id)
 					})
+				})
+
+				// cleanup inconsistent memberships
+				Promise.each(notFoundMemberships, (notFoundMembership) => {
+					const data = createMembershipRemoveData({user: user._id, group: notFoundMembership.group})
+					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
+				})
+				return calendarInfos
 			})
 	}
 
-	loadOrCreateCalendarInfo(): Promise<Map<Id, CalendarInfo>> {
-		return this.loadCalendarInfos()
+	loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<Map<Id, CalendarInfo>> {
+		return this.loadCalendarInfos(progressMonitor)
 		           .then((calendarInfo) => (!this._logins.isInternalUserLoggedIn() || findPrivateCalendar(calendarInfo))
 			           ? calendarInfo
-			           : this._worker.addCalendar("").then(() => this.loadCalendarInfos()))
+			           : this._worker.addCalendar("").then(() => this.loadCalendarInfos(progressMonitor)))
 	}
 
 	_doCreate(event: CalendarEvent, zone: string, groupRoot: CalendarGroupRoot, alarmInfos: Array<AlarmInfo>,

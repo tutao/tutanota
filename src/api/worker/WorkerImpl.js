@@ -24,7 +24,7 @@ import type {PaymentDataServicePutReturn} from "../entities/sys/PaymentDataServi
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import {LazyLoaded} from "../common/utils/LazyLoaded"
-import type {ProgressMonitorId} from "../common/utils/Utils"
+import type {ProgressMonitorId} from "../common/utils/ProgressMonitor";
 import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 
 assertWorkerOrNode()

@@ -16,6 +16,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../gui/base/Dialog"
 import {UserError} from "../api/common/error/UserError"
+import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
 
 function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event: CalendarEvent, uid: string} {
 	try {
@@ -35,7 +36,7 @@ function getParsedEvent(fileData: DataFile): ?{method: CalendarMethodEnum, event
 
 export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<void> {
 	return Promise.all([
-		locator.calendarModel.loadOrCreateCalendarInfo(),
+		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()),
 		locator.mailModel.getUserMailboxDetails(),
 		getLatestEvent(event)
 	]).then(([calendarInfo, mailboxDetails, latestEvent]) => {
@@ -90,7 +91,7 @@ export function replyToEventInvitation(
 	foundAttendee.status = decision
 
 	return Promise.all([
-		locator.calendarModel.loadOrCreateCalendarInfo().then(findPrivateCalendar),
+		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar),
 		locator.mailModel.getMailboxDetailsForMail(previousMail)
 	]).then(([calendar, mailboxDetails]) => {
 		const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
@@ -103,11 +104,11 @@ export function replyToEventInvitation(
 					if (event._ownerGroup) {
 						return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user)
 						              .then((alarms) => {
-								                    const alarmInfos = alarms.map((a) => a.alarmInfo)
+								              const alarmInfos = alarms.map((a) => a.alarmInfo)
 								              return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event)
 								                            .return()
-							                    }
-						                    )
+							              }
+						              )
 					} else {
 						return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
 					}

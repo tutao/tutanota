@@ -13,7 +13,7 @@ import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {ElementDataOS, GroupDataOS, MetaDataOS} from "./DbFacade"
 import {elementIdPart, isSameId, listIdPart, TypeRef} from "../../common/EntityFunctions"
-import {containsEventOfType, getMailBodyText, neverNull, ProgressMonitor} from "../../common/utils/Utils"
+import {containsEventOfType, getMailBodyText, neverNull} from "../../common/utils/Utils"
 import {timestampToGeneratedId} from "../../common/utils/Encoding"
 import {
 	_createNewIndexUpdate,
@@ -41,6 +41,7 @@ import type {User} from "../../entities/sys/User"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityRestInterface} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
+import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 
@@ -309,7 +310,7 @@ export class MailIndexer {
 
 	_indexMailLists(mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}>, oldestTimestamp: number): Promise<void> {
 		const newestTimestamp = mailBoxes.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
-		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp).addListener(progress => {
+		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, progress => {
 			this._worker.sendIndexState({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexingEnabled,

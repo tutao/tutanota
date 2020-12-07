@@ -16,7 +16,7 @@ import {
 	SessionExpiredError
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {downcast, identity, neverNull, ProgressMonitor, randomIntFromInterval} from "../common/utils/Utils"
+import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {contains} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
@@ -31,6 +31,8 @@ import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityClient} from "../common/EntityClient"
 import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
+import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
+import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
 
 assertWorkerOrNode()
 
@@ -124,7 +126,9 @@ export class EventBusClient {
 		this._serviceUnavailableRetry = null
 		this._worker.updateWebSocketState("connecting")
 		// Task for updating events are number of groups + 3. Use 2 as base for reconnect state and 1 for processing queued events.
-		const entityEventProgress = new ProgressMonitorDelegate(this._eventGroups().length + 3, this._worker)
+		const entityEventProgress = (reconnect)
+			? new ProgressMonitorDelegate(this._eventGroups().length + 3, this._worker)
+			: new NoopProgressMonitor()
 		entityEventProgress.workDone(1)
 		this._state = EventBusState.Automatic
 		this._connectTimer = null
@@ -154,7 +158,7 @@ export class EventBusClient {
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
 	}
 
-	_initEntityEvents(reconnect: boolean, entityEventProgress: ProgressMonitorDelegate) {
+	_initEntityEvents(reconnect: boolean, entityEventProgress: IProgressMonitor) {
 		this._queueWebsocketEvents = true
 		let existingConnection = reconnect && Object.keys(this._lastEntityEventIds).length > 0
 		let p = existingConnection ? this._loadMissedEntityEvents(entityEventProgress) : this._setLatestEntityEventIds()
@@ -390,7 +394,7 @@ export class EventBusClient {
 		})
 	}
 
-	_loadMissedEntityEvents(entityEventProgress: ProgressMonitorDelegate): Promise<void> {
+	_loadMissedEntityEvents(entityEventProgress: IProgressMonitor): Promise<void> {
 		if (this._login.isLoggedIn()) {
 			if (Date.now() > this._lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
 				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more

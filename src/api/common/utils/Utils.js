@@ -267,40 +267,6 @@ export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export type ProgressMonitorId = number
-export type ProgressListener = (percentageCompleted: number) => any
-
-export class ProgressMonitor {
-	totalWork: number
-	workCompleted: number
-	listeners: Set<ProgressListener>
-
-	constructor(totalWork: number) {
-		this.listeners = new Set()
-		this.totalWork = totalWork
-		this.workCompleted = 0
-	}
-
-	workDone(amount: number) {
-		this.workCompleted += amount
-		const result = this.totalWork ? Math.round(100 * (this.workCompleted) / this.totalWork) : 100
-		const percentage = Math.min(100, result)
-		Array.from(this.listeners.values()).forEach(listener => listener(percentage))
-	}
-
-	completed() {
-		this.workCompleted = this.totalWork
-		Array.from(this.listeners.values()).forEach(listener => listener(100))
-		this.listeners.clear()
-	}
-
-	addListener(listener: ProgressListener): ProgressMonitor {
-		this.listeners.add(listener)
-		return this
-	}
-}
-
-
 export function getMailBodyText(body: MailBody): string {
 	return body.compressedText || body.text || ""
 }

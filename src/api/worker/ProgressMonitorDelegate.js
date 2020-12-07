@@ -1,9 +1,9 @@
 //@flow
 
-import type {ProgressMonitorId} from "../common/utils/Utils"
 import {WorkerImpl} from "./WorkerImpl"
+import type {IProgressMonitor, ProgressMonitorId} from "../common/utils/ProgressMonitor"
 
-export class ProgressMonitorDelegate {
+export class ProgressMonitorDelegate implements IProgressMonitor {
 	_worker: WorkerImpl
 	_ref: Promise<ProgressMonitorId>
 	_totalAmount: number

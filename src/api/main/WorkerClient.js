@@ -18,7 +18,7 @@ import type {
 } from "../common/TutanotaConstants"
 import {locator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
-import {downcast, identity, ProgressMonitor} from "../common/utils/Utils"
+import {downcast, identity} from "../common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import type {InfoMessage} from "../common/CommonTypes"
 import type {EventWithAlarmInfo} from "../worker/facades/CalendarFacade"
@@ -51,6 +51,7 @@ import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
+import {ProgressMonitor} from "../common/utils/ProgressMonitor"
 
 assertMainOrNode()
 
@@ -124,7 +125,7 @@ export class WorkerClient implements EntityRestInterface {
 
 			createProgressMonitor: (message: Message) => {
 				const work = downcast(message.args[0])
-				const reference = locator.progressTracker.registerMonitor(new ProgressMonitor(work))
+				const reference = locator.progressTracker.registerMonitor(work)
 				return Promise.resolve(reference)
 			},
 			progressWorkDone: (message: Message) => {
