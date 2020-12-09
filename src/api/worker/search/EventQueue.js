@@ -147,9 +147,9 @@ export class EventQueue {
 					}
 					// skip delete in favor of create so that we don't run the same conditions twice
 				} else if (newEntityModification === EntityModificationType.DELETE) {
-					// find first move operation
+					// find first move or delete (at different list) operation
 					const firstMoveIndex = this._eventQueue.findIndex((queuedBatch) => this._processingBatch !== queuedBatch
-						&& batchMod(queuedBatch.events, elementId) === EntityModificationType.MOVE)
+						&& containsEventOfType(queuedBatch.events, OperationType.DELETE, elementId))
 					if (firstMoveIndex !== -1) {
 						// delete CREATE of first move and keep the DELETE event
 						const firstMoveBatch = this._eventQueue[firstMoveIndex]
@@ -206,9 +206,7 @@ export class EventQueue {
 		const next = this._eventQueue[0]
 		if (next) {
 			this._processingBatch = next
-			// TODO: we take the first one here but we don't always add to the queue
-
-			this._queueAction(firstThrow(this._eventQueue))
+			this._queueAction(next)
 			    .then(() => {
 				    this._eventQueue.shift()
 				    this._processingBatch = null
@@ -229,6 +227,7 @@ export class EventQueue {
 
 	clear() {
 		this._eventQueue.splice(0)
+		this._processingBatch = null
 		for (const k of this._lastOperationForEntity.keys()) {
 			this._lastOperationForEntity.delete(k)
 		}

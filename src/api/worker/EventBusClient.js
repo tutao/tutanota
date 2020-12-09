@@ -113,22 +113,7 @@ export class EventBusClient {
 		this._reconnectTimer = null
 		this._connectTimer = null
 		this._progressMonitor = new NoopProgressMonitor()
-		this._reset()
 
-		// we store the last 1000 event ids per group, so we know if an event was already processed.
-		// it is not sufficient to check the last event id because a smaller event id may arrive later
-		// than a bigger one if the requests are processed in parallel on the server
-		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
-	}
-
-	_reset(): void {
-		this._immediateReconnect = false
-		this._lastEntityEventIds = {}
-		this._lastUpdateTime = 0
-		if (this._eventQueue) {
-			this._eventQueue.pause()
-			this._eventQueue.clear()
-		}
 		this._eventQueue = new EventQueue((modification) => {
 			return this._processEventBatch(modification)
 			           .catch((e) => {
@@ -143,6 +128,22 @@ export class EventBusClient {
 				           }
 			           })
 		})
+
+		this._reset()
+
+		// we store the last 1000 event ids per group, so we know if an event was already processed.
+		// it is not sufficient to check the last event id because a smaller event id may arrive later
+		// than a bigger one if the requests are processed in parallel on the server
+		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
+	}
+
+	_reset(): void {
+		this._immediateReconnect = false
+		this._lastEntityEventIds = {}
+		this._lastUpdateTime = 0
+		this._eventQueue.pause()
+		this._eventQueue.clear()
+
 		this._serviceUnavailableRetry = null
 	}
 
@@ -166,12 +167,6 @@ export class EventBusClient {
 			? new ProgressMonitorDelegate(this._eventGroups().length + 2, this._worker)
 			: new NoopProgressMonitor()
 		this._progressMonitor.workDone(1)
-
-		// // First stage is loading missed events
-		// entityEventProgress.addStage(/*part*/0.5, /*totalWork*/this._eventGroups().length + 2)
-		// // Second stage is processing events
-		// entityEventProgress.addStage(/*part*/0.5,/*totalWork*/ 1)
-		// entityEventProgress.workDone(/*stageNumber*/0, /*amount*/1)
 		this._state = EventBusState.Automatic
 		this._connectTimer = null
 

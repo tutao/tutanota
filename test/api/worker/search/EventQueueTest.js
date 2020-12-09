@@ -122,6 +122,23 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
+		o("create + update == create", async function () {
+			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
+			const updateEvent = createUpdate(OperationType.UPDATE, createEvent.instanceListId, createEvent.instanceId, "u2")
+
+			queue.add("batch-id-1", "group-id", [createEvent])
+			queue.add("batch-id-2", "group-id", [updateEvent])
+			queue.start()
+			await lastProcess.promise
+
+			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [expectedCreate], batchId: "batch-id-1", groupId: "group-id"}],
+			])
+		})
+
+
 		o("create + update + delete == delete", async function () {
 			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
 			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u2")
@@ -205,6 +222,22 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
+		o("move + update == move + update", async function () {
+			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u0")
+			const moveCreateEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
+			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u2")
+
+			queue.add("batch-id-1", "group-id", [moveDeleteEvent, moveCreateEvent])
+			queue.add("batch-id-2", "group-id", [updateEvent])
+			queue.start()
+			await lastProcess.promise
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [moveDeleteEvent, moveCreateEvent], batchId: "batch-id-1", groupId: "group-id"}],
+				[{events: [updateEvent], batchId: "batch-id-2", groupId: "group-id"}],
+			])
+		})
+
 		o("move + delete == delete", async function () {
 			const instanceId = "mailId"
 
@@ -229,21 +262,6 @@ o.spec("EventQueueTest", function () {
 			])
 		})
 
-		o("move + update == move + update", async function () {
-			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u0")
-			const moveCreateEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
-			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u2")
-
-			queue.add("batch-id-1", "group-id", [moveDeleteEvent, moveCreateEvent])
-			queue.add("batch-id-2", "group-id", [updateEvent])
-			queue.start()
-			await lastProcess.promise
-
-			o(processElement.calls.map(c => c.args)).deepEquals([
-				[{events: [moveDeleteEvent, moveCreateEvent], batchId: "batch-id-1", groupId: "group-id"}],
-				[{events: [updateEvent], batchId: "batch-id-2", groupId: "group-id"}],
-			])
-		})
 
 		o("move + update + delete == delete", async function () {
 			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u0")
@@ -263,13 +281,13 @@ o.spec("EventQueueTest", function () {
 		})
 
 		o("update + move + delete == delete", async function () {
-			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u0")
+			const updateEvent = createUpdate(OperationType.UPDATE, "old-mail-list", "1", "u0")
 			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u1")
 			const moveCreateEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u2")
 			const deleteEvent = createUpdate(OperationType.DELETE, "new-mail-list", "1", "u3")
 
-			queue.add("batch-id-1", "group-id", [moveDeleteEvent, moveCreateEvent])
-			queue.add("batch-id-2", "group-id", [updateEvent])
+			queue.add("batch-id-1", "group-id", [updateEvent])
+			queue.add("batch-id-2", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-3", "group-id", [deleteEvent])
 			queue.start()
 			await lastProcess.promise
@@ -296,6 +314,45 @@ o.spec("EventQueueTest", function () {
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
 				[{events: [moveDeleteEvent], batchId: "batch-id-1", groupId: "group-id"}],
+			])
+		})
+
+
+		o("create + move + update + delete == delete (from first move)", async function () {
+			const createEvent = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
+			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u1")
+			const moveCreateEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u2")
+			const updateEvent = createUpdate(OperationType.UPDATE, "new-mail-list", "1", "u4")
+			const deleteEvent = createUpdate(OperationType.DELETE, "new-mail-list", "1", "u5")
+
+			queue.add("batch-id-1", "group-id", [createEvent])
+			queue.add("batch-id-2", "group-id", [moveDeleteEvent, moveCreateEvent])
+			queue.add("batch-id-3", "group-id", [updateEvent])
+			queue.add("batch-id-4", "group-id", [deleteEvent])
+			queue.start()
+			await lastProcess.promise
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id"}],
+			])
+		})
+
+		o("create +  update + move + delete == delete (from first move)", async function () {
+			const createEvent = createUpdate(OperationType.CREATE, "old-mail-list", "1", "u0")
+			const updateEvent = createUpdate(OperationType.UPDATE, "old-mail-list", "1", "u1")
+			const moveDeleteEvent = createUpdate(OperationType.DELETE, "old-mail-list", "1", "u2")
+			const moveCreateEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u3")
+			const deleteEvent = createUpdate(OperationType.DELETE, "new-mail-list", "1", "u4")
+
+			queue.add("batch-id-1", "group-id", [createEvent])
+			queue.add("batch-id-2", "group-id", [updateEvent])
+			queue.add("batch-id-3", "group-id", [moveDeleteEvent, moveCreateEvent])
+			queue.add("batch-id-4", "group-id", [deleteEvent])
+			queue.start()
+			await lastProcess.promise
+
+			o(processElement.calls.map(c => c.args)).deepEquals([
+				[{events: [deleteEvent], batchId: "batch-id-4", groupId: "group-id"}],
 			])
 		})
 
