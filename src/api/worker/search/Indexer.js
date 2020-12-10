@@ -92,7 +92,7 @@ export class Indexer {
 			initialized: deferred.promise
 		} // correctly initialized during init()
 		this._worker = worker
-		this._core = new IndexerCore(this.db, new EventQueue((batch) => this._processEntityEvents(batch)),
+		this._core = new IndexerCore(this.db, new EventQueue(true, (batch) => this._processEntityEvents(batch)),
 			browserData)
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))

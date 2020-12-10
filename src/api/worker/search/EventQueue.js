@@ -68,16 +68,18 @@ export class EventQueue {
 
 	_processingBatch: ?QueuedBatch;
 	_paused: boolean;
+	_optimizationEnabled: boolean;
 
 	/**
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
-	constructor(queueAction: QueueAction) {
+	constructor(optimizationEnabled: boolean, queueAction: QueueAction) {
 		this._eventQueue = []
 		this._lastOperationForEntity = new Map()
 		this._processingBatch = null
 		this._paused = false
 		this._queueAction = queueAction
+		this._optimizationEnabled = optimizationEnabled
 	}
 
 	addBatches(batches: $ReadOnlyArray<QueuedBatch>) {
@@ -88,7 +90,23 @@ export class EventQueue {
 
 	add(batchId: Id, groupId: Id, newEvents: $ReadOnlyArray<EntityUpdate>) {
 		const newBatch: QueuedBatch = {events: [], groupId, batchId}
+		if (!this._optimizationEnabled) {
+			newBatch.events.push(...newEvents)
+		} else {
+			this._optimizingAddEvents(newBatch, batchId, groupId, newEvents)
+		}
 
+		if (newBatch.events.length !== 0) {
+			this._eventQueue.push(newBatch)
+			for (const update of newBatch.events) {
+				this._lastOperationForEntity.set(update.instanceId, newBatch)
+			}
+		}
+		// ensures that events are processed when not paused
+		this.start()
+	}
+
+	_optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: $ReadOnlyArray<EntityUpdate>): void {
 		for (const newEvent of newEvents) {
 			const elementId = newEvent.instanceId
 			const lastBatchForEntity = this._lastOperationForEntity.get(elementId)
@@ -165,12 +183,6 @@ export class EventQueue {
 				} else {
 					throw new ProgrammingError(`Impossible modification combination ${lastEntityModification} ${newEntityModification}`)
 				}
-			}
-		}
-		if (newBatch.events.length !== 0) {
-			this._eventQueue.push(newBatch)
-			for (const update of newBatch.events) {
-				this._lastOperationForEntity.set(update.instanceId, newBatch)
 			}
 		}
 	}

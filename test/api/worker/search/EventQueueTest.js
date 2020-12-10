@@ -32,7 +32,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		queue = new EventQueue(processElement)
+		queue = new EventQueue(true, processElement)
 	})
 
 	o("pause and resume", async function () {
@@ -89,7 +89,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		let queue = new EventQueue((nextElement: QueuedBatch) => {
+		let queue = new EventQueue(true, (nextElement: QueuedBatch) => {
 			if (nextElement.batchId === "2") {
 				return Promise.reject(new ConnectionError("no connection"))
 			} else {
@@ -106,13 +106,18 @@ o.spec("EventQueueTest", function () {
 	})
 
 	o.spec("collapsing events", function () {
+
+		o.beforeEach(function () {
+			queue.pause()
+		})
+
 		o("create + delete == delete", async function () {
 			const createEvent = createUpdate(OperationType.CREATE, "new-mail-list", "1", "u1")
 			const deleteEvent = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u2")
 
 			queue.add("batch-id-1", "group-id", [createEvent])
 			queue.add("batch-id-2", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u2")
@@ -128,7 +133,7 @@ o.spec("EventQueueTest", function () {
 
 			queue.add("batch-id-1", "group-id", [createEvent])
 			queue.add("batch-id-2", "group-id", [updateEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedCreate = createUpdate(OperationType.CREATE, createEvent.instanceListId, createEvent.instanceId, "u1")
@@ -147,7 +152,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [createEvent])
 			queue.add("batch-id-2", "group-id", [updateEvent])
 			queue.add("batch-id-3", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedDelete = createUpdate(OperationType.DELETE, createEvent.instanceListId, createEvent.instanceId, "u")
@@ -165,7 +170,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [createEvent])
 			queue.add("batch-id-2", "group-id", [deleteEvent, createAgainEvent])
 
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedCreate = createUpdate(OperationType.CREATE, "new-mail-list-2", "1", "u3")
@@ -187,7 +192,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [deleteEvent, createEvent])
 			queue.add("batch-id-2", "group-id", [deleteAgainEvent, createAgainEvent])
 
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedEvents = [
@@ -209,7 +214,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [updateEvent])
 			queue.add("batch-id-2", "group-id", [deleteEvent, createEvent])
 
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 
@@ -229,7 +234,7 @@ o.spec("EventQueueTest", function () {
 
 			queue.add("batch-id-1", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-2", "group-id", [updateEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
@@ -250,7 +255,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [deleteEvent, createEvent])
 			queue.add("batch-id-2", "group-id", [deleteEvent2])
 
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			const expectedEvents = [
@@ -272,7 +277,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-2", "group-id", [updateEvent])
 			queue.add("batch-id-3", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
@@ -289,7 +294,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-1", "group-id", [updateEvent])
 			queue.add("batch-id-2", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-3", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
@@ -309,7 +314,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-2", "group-id", [updateEvent])
 			queue.add("batch-id-3", "group-id", [move2DeleteEvent, move2CreateEvent])
 			queue.add("batch-id-4", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
@@ -329,7 +334,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-2", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-3", "group-id", [updateEvent])
 			queue.add("batch-id-4", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([
@@ -348,7 +353,7 @@ o.spec("EventQueueTest", function () {
 			queue.add("batch-id-2", "group-id", [updateEvent])
 			queue.add("batch-id-3", "group-id", [moveDeleteEvent, moveCreateEvent])
 			queue.add("batch-id-4", "group-id", [deleteEvent])
-			queue.start()
+			queue.resume()
 			await lastProcess.promise
 
 			o(processElement.calls.map(c => c.args)).deepEquals([

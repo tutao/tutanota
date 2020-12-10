@@ -89,7 +89,10 @@ export class EventBusClient {
 	_lastUpdateTime: number; // the last time we received an EntityEventBatch or checked for updates. we use this to find out if our data has expired, see ENTITY_EVENT_BATCH_EXPIRE_MS
 	_lastAntiphishingMarkersId: ?Id;
 
+	/* queue to process all events. */
 	_eventQueue: EventQueue;
+	/* queue that handles incoming websocket messages while. */
+	_entityUpdateMessageQueue: EventQueue;
 
 	_reconnectTimer: ?TimeoutID;
 	_connectTimer: ?TimeoutID;
@@ -114,11 +117,12 @@ export class EventBusClient {
 		this._connectTimer = null
 		this._progressMonitor = new NoopProgressMonitor()
 
-		this._eventQueue = new EventQueue((modification) => {
+		this._eventQueue = new EventQueue(true, (modification) => {
 			return this._processEventBatch(modification)
 			           .catch((e) => {
 				           console.log("Error while processing event batches", e)
 				           this._worker.sendError(e)
+				           throw e
 			           })
 			           .then(() => {
 				           // If we completed the event, it cannot be empty
@@ -127,6 +131,11 @@ export class EventBusClient {
 					           this._progressMonitor && this._progressMonitor.workDone(1)
 				           }
 			           })
+		})
+
+		this._entityUpdateMessageQueue = new EventQueue(false, (batch) => {
+			return Promise.resolve(this._addBatch(batch.batchId, batch.groupId, batch.events))
+			              .then(() => this._eventQueue.resume())
 		})
 
 		this._reset()
@@ -196,9 +205,16 @@ export class EventBusClient {
 	}
 
 	_initEntityEvents(reconnect: boolean) {
+		// pause processing entity update message while initializing event queue
+		this._entityUpdateMessageQueue.pause()
+		// pause event queue and add all missed entity events first
+		this._eventQueue.pause()
 		let existingConnection = reconnect && Object.keys(this._lastEntityEventIds).length > 0
 		let p = existingConnection ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds()
-		p.catch(ConnectionError, e => {
+		p.then(() => {
+			this._entityUpdateMessageQueue.resume()
+			this._eventQueue.resume()
+		}).catch(ConnectionError, e => {
 			console.log("not connected in connect(), close websocket", e)
 			this.close(CloseEventBusOption.Reconnect)
 		}).catch(CancelledError, e => {
@@ -226,6 +242,8 @@ export class EventBusClient {
 			this._serviceUnavailableRetry = promise
 			return promise
 		}).catch(e => {
+			this._entityUpdateMessageQueue.resume()
+			this._eventQueue.resume()
 			this._worker.sendError(e)
 		})
 	}
@@ -278,8 +296,7 @@ export class EventBusClient {
 		if (type === "entityUpdate") {
 			// specify type of decrypted entity explicitly because decryptAndMapToInstance effectively returns `any`
 			return decryptAndMapToInstance(WebsocketEntityDataTypeModel, JSON.parse(value), null).then((data: WebsocketEntityData) => {
-				this._addBatch(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
-				this._eventQueue.resume()
+				this._entityUpdateMessageQueue.add(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
 			})
 		} else if (type === "unreadCounterUpdate") {
 			this._worker.updateCounter(JSON.parse(value))
@@ -438,9 +455,12 @@ export class EventBusClient {
 
 	_addBatch(batchId: Id, groupId: Id, events: $ReadOnlyArray<EntityUpdate>) {
 		const lastForGroup = this._lastEntityEventIds[groupId] || []
+		// find the position for inserting into last entity events (negative value is considered as not present in the array)
 		const index = binarySearch(lastForGroup, batchId, compareOldestFirst)
 		if (index < 0) {
 			lastForGroup.splice(-index, 0, batchId)
+			// only add the batch if it was not process before
+			this._eventQueue.add(batchId, groupId, events)
 		}
 		if (lastForGroup.length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
 			lastForGroup.shift()
@@ -494,15 +514,6 @@ export class EventBusClient {
 		// TODO handle lost updates (old event surpassed by newer one, we store the new id and retrieve instances from the newer one on next login
 		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ?
 			this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
-	}
-
-	_isAlreadyProcessed(groupId: Id, eventId: Id): boolean {
-		if (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) {
-			return firstBiggerThanSecond(this._lastEntityEventIds[groupId][0], eventId)
-				|| contains(this._lastEntityEventIds[groupId], eventId)
-		} else {
-			return false
-		}
 	}
 
 	_executeIfNotTerminated(call: Function): Promise<void> {
