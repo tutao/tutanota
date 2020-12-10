@@ -108,13 +108,9 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 	                   })
 }
 
-export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["purchaseDate_label", "value_label", "state_label"]
+export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["purchaseDate_label", "value_label"]
 
-export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs { // TODO
-
-	const statusLabel = giftCard.usable
-		? "available_label"
-		: "unavailable_label"
+export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
 
 	const showEditGiftCardMessageDialog = () => {
 		const editor = new HtmlEditor("editMessage_label", {enabled: true})
@@ -157,7 +153,6 @@ export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs { //
 		cells: [
 			formatDate(giftCard.orderDate),
 			formatPrice(parseFloat(giftCard.value), true),
-			lang.get(statusLabel)
 		],
 		actionButtonAttrs: showMoreButtonAttrs
 	}
