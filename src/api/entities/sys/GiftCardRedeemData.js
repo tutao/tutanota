@@ -8,16 +8,25 @@ export const _TypeModel: TypeModel = {
 	"name": "GiftCardRedeemData",
 	"since": 65,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1815,
-	"rootId": "A3N5cwAHFw",
+	"id": 1817,
+	"rootId": "A3N5cwAHGQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1816,
+			"id": 1818,
 			"since": 65,
 			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"keyHash": {
+			"name": "keyHash",
+			"id": 1820,
+			"since": 65,
+			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -26,7 +35,7 @@ export const _TypeModel: TypeModel = {
 	"associations": {
 		"giftCardInfo": {
 			"name": "giftCardInfo",
-			"id": 1817,
+			"id": 1819,
 			"since": 65,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
@@ -47,6 +56,7 @@ export type GiftCardRedeemData = {
 	_type: TypeRef<GiftCardRedeemData>;
 
 	_format: NumberString;
+	keyHash: Uint8Array;
 
 	giftCardInfo: Id;
 }

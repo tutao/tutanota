@@ -14,6 +14,8 @@ import type {LoginFacade} from "./LoginFacade"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {GiftCardRedeemGetReturnTypeRef} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {createGiftCardRedeemData} from "../../entities/sys/GiftCardRedeemData"
+import {hash} from "../crypto/Sha256"
+import {bitArrayToUint8Array} from "../crypto/CryptoUtils"
 
 export class GiftCardFacade {
 
@@ -26,6 +28,7 @@ export class GiftCardFacade {
 	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
 
 		const sessionKey = aes128RandomKey()
+		const keyHash = hash(bitArrayToUint8Array(sessionKey))
 		let adminGroupIds = this._logins.getGroupIds(GroupType.Admin)
 		if (adminGroupIds.length === 0) {
 			throw new Error("missing admin membership")
@@ -35,6 +38,7 @@ export class GiftCardFacade {
 
 		const data = createGiftCardCreateData({
 			message: message,
+			keyHash,
 			value,
 			country: countryCode,
 			ownerEncSessionKey
@@ -44,16 +48,9 @@ export class GiftCardFacade {
 			.then((returnData: GiftCardCreateReturn) => returnData.giftCard)
 	}
 
-	updateGiftCard() {
-
-	}
-
-	deleteGiftCard() {
-
-	}
-
 	getGiftCardInfo(id: Id, key: Aes128Key): Promise<GiftCardRedeemGetReturn> {
-		const data = createGiftCardRedeemData({giftCardInfo: id})
+		const keyHash = hash(bitArrayToUint8Array(key))
+		const data = createGiftCardRedeemData({giftCardInfo: id, keyHash: keyHash})
 		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, null, key)
 	}
 }
