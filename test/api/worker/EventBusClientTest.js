@@ -83,7 +83,7 @@ o.spec("EventBusClient test", function () {
 	// 	})
 	// })
 
-	// TODO: do we need to adapt this?
+	// TODO: rewrite this test when networking is stupped less painfully
 	// o("parallel received event batches are passed sequentially to the entity rest cache", node(async function () {
 	// 	o.timeout(500)
 	//

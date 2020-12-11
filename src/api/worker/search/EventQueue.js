@@ -57,7 +57,7 @@ export function batchMod(batch: $ReadOnlyArray<EntityUpdate>, entityId: Id): Ent
 			}
 		}
 	}
-	throw new ProgrammingError(`Empty batch?`)
+	throw new ProgrammingError(`Batch does not have events for ${entityId}`)
 }
 
 export class EventQueue {
@@ -65,10 +65,10 @@ export class EventQueue {
 	+_eventQueue: Array<QueuedBatch>;
 	+_lastOperationForEntity: Map<Id, QueuedBatch>;
 	+_queueAction: QueueAction;
+	+_optimizationEnabled: boolean;
 
 	_processingBatch: ?QueuedBatch;
 	_paused: boolean;
-	_optimizationEnabled: boolean;
 
 	/**
 	 * @param queueAction which is executed for each batch. Must *never* throw.
@@ -76,10 +76,12 @@ export class EventQueue {
 	constructor(optimizationEnabled: boolean, queueAction: QueueAction) {
 		this._eventQueue = []
 		this._lastOperationForEntity = new Map()
-		this._processingBatch = null
-		this._paused = false
 		this._queueAction = queueAction
 		this._optimizationEnabled = optimizationEnabled
+
+		this._processingBatch = null
+		this._paused = false
+
 	}
 
 	addBatches(batches: $ReadOnlyArray<QueuedBatch>) {
@@ -88,7 +90,10 @@ export class EventQueue {
 		}
 	}
 
-	add(batchId: Id, groupId: Id, newEvents: $ReadOnlyArray<EntityUpdate>) {
+	/**
+	 * @return whether the batch was added (not optimized away)
+	 */
+	add(batchId: Id, groupId: Id, newEvents: $ReadOnlyArray<EntityUpdate>): boolean {
 		const newBatch: QueuedBatch = {events: [], groupId, batchId}
 		if (!this._optimizationEnabled) {
 			newBatch.events.push(...newEvents)
@@ -104,6 +109,7 @@ export class EventQueue {
 		}
 		// ensures that events are processed when not paused
 		this.start()
+		return newBatch.events.length > 0
 	}
 
 	_optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: $ReadOnlyArray<EntityUpdate>): void {
@@ -222,11 +228,15 @@ export class EventQueue {
 			    .then(() => {
 				    this._eventQueue.shift()
 				    this._processingBatch = null
+				    // When we are done with the batch, we don't want to merge with it anymore
+				    for (const event of next.events) {
+					    if (this._lastOperationForEntity.get(event.instanceId) === next) {
+						    this._lastOperationForEntity.delete(event.instanceId)
+					    }
+				    }
 				    this._processNext()
 			    })
 			    .catch((e) => {
-				    // TODO: is this ok? we probably want to resume sooner for EventBus and maybe we want to skip the event if it's not
-				    //  handled
 				    // processing continues if the event bus receives a new event
 				    this._processingBatch = null
 				    if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {

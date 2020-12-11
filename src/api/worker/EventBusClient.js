@@ -24,9 +24,9 @@ import {
 	SessionExpiredError
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
+import {assertNotNull, downcast, identity, neverNull, randomIntFromInterval} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
-import {binarySearch, contains, lastThrow} from "../common/utils/ArrayUtils"
+import {binarySearch, lastThrow} from "../common/utils/ArrayUtils"
 import type {Indexer} from "./search/Indexer"
 import type {CloseEventBusOptionEnum} from "../common/TutanotaConstants"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
@@ -66,12 +66,12 @@ const MEDIUM_RECONNECT_INTERVAL = [20, 40]
 export class EventBusClient {
 	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
 
-	_indexer: Indexer;
-	_cache: EntityRestInterface;
-	_entity: EntityClient;
-	_worker: WorkerImpl;
-	_mail: MailFacade;
-	_login: LoginFacade;
+	+_indexer: Indexer;
+	+_cache: EntityRestInterface;
+	+_entity: EntityClient;
+	+_worker: WorkerImpl;
+	+_mail: MailFacade;
+	+_login: LoginFacade;
 
 	_state: EventBusStateEnum;
 	_socket: ?WebSocket;
@@ -82,17 +82,23 @@ export class EventBusClient {
 	 *
 	 * We do not have to update these event ids if the groups of the user change because we always take the current users groups from the
 	 * LoginFacade.
-	 *
-	 * @private
 	 */
-	_lastEntityEventIds: {[groupId: Id]: Array<Id>};
-	_lastUpdateTime: number; // the last time we received an EntityEventBatch or checked for updates. we use this to find out if our data has expired, see ENTITY_EVENT_BATCH_EXPIRE_MS
+	_lastEntityEventIds: Map<Id, Array<Id>>;
+	/**
+	 * Last batch which was actually added to the queue. We need it to find out when the group is processed
+	 */
+	_lastAddedBatchForGroup: Map<Id, Id>;
+	/**
+	 * The last time we received an EntityEventBatch or checked for updates. we use this to find out if our data has expired.
+	 * see ENTITY_EVENT_BATCH_EXPIRE_MS
+	 */
+	_lastUpdateTime: number;
 	_lastAntiphishingMarkersId: ?Id;
 
 	/* queue to process all events. */
-	_eventQueue: EventQueue;
+	+_eventQueue: EventQueue;
 	/* queue that handles incoming websocket messages while. */
-	_entityUpdateMessageQueue: EventQueue;
+	+_entityUpdateMessageQueue: EventQueue;
 
 	_reconnectTimer: ?TimeoutID;
 	_connectTimer: ?TimeoutID;
@@ -105,14 +111,17 @@ export class EventBusClient {
 	_progressMonitor: IProgressMonitor;
 
 	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
-		this._worker = worker
 		this._indexer = indexer
 		this._cache = cache
 		this._entity = new EntityClient(cache)
+		this._worker = worker
 		this._mail = mail
 		this._login = login
-		this._socket = null
+
 		this._state = EventBusState.Automatic
+		this._lastEntityEventIds = new Map()
+		this._lastAddedBatchForGroup = new Map()
+		this._socket = null
 		this._reconnectTimer = null
 		this._connectTimer = null
 		this._progressMonitor = new NoopProgressMonitor()
@@ -125,8 +134,8 @@ export class EventBusClient {
 				           throw e
 			           })
 			           .then(() => {
-				           // If we completed the event, it cannot be empty
-				           const lastForGroup = lastThrow(this._lastEntityEventIds[modification.groupId])
+				           // If we completed the event, it was added before
+				           const lastForGroup = assertNotNull(this._lastAddedBatchForGroup.get(modification.groupId))
 				           if (isSameId(modification.batchId, lastForGroup) || firstBiggerThanSecond(modification.batchId, lastForGroup)) {
 					           this._progressMonitor && this._progressMonitor.workDone(1)
 				           }
@@ -134,8 +143,9 @@ export class EventBusClient {
 		})
 
 		this._entityUpdateMessageQueue = new EventQueue(false, (batch) => {
-			return Promise.resolve(this._addBatch(batch.batchId, batch.groupId, batch.events))
-			              .then(() => this._eventQueue.resume())
+			this._addBatch(batch.batchId, batch.groupId, batch.events)
+			this._eventQueue.resume()
+			return Promise.resolve()
 		})
 
 		this._reset()
@@ -148,7 +158,8 @@ export class EventBusClient {
 
 	_reset(): void {
 		this._immediateReconnect = false
-		this._lastEntityEventIds = {}
+		this._lastEntityEventIds.clear()
+		this._lastAddedBatchForGroup.clear()
 		this._lastUpdateTime = 0
 		this._eventQueue.pause()
 		this._eventQueue.clear()
@@ -191,17 +202,19 @@ export class EventBusClient {
 		let url = getWebsocketOrigin() + "/event?" + authQuery;
 		this._unsubscribeFromOldWebsocket()
 		this._socket = new WebSocket(url);
-		this._socket.onopen = () => {
-			this._failedConnectionAttempts = 0
-			console.log("ws open: ", new Date(), "state:", this._state);
-			// Indicate some progress right away
-			this._progressMonitor.workDone(1)
-			this._initEntityEvents(reconnect)
-			this._worker.updateWebSocketState("connected")
-		};
+		this._socket.onopen = () => this._onOpen(reconnect)
 		this._socket.onclose = (event: CloseEvent) => this._close(event);
 		this._socket.onerror = (error: any) => this._error(error);
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
+	}
+
+	_onOpen(reconnect: boolean) {
+		this._failedConnectionAttempts = 0
+		console.log("ws open: ", new Date(), "state:", this._state);
+		// Indicate some progress right away
+		this._progressMonitor.workDone(1)
+		this._initEntityEvents(reconnect)
+		this._worker.updateWebSocketState("connected")
 	}
 
 	_initEntityEvents(reconnect: boolean) {
@@ -209,7 +222,7 @@ export class EventBusClient {
 		this._entityUpdateMessageQueue.pause()
 		// pause event queue and add all missed entity events first
 		this._eventQueue.pause()
-		let existingConnection = reconnect && Object.keys(this._lastEntityEventIds).length > 0
+		let existingConnection = reconnect && this._lastEntityEventIds.size > 0
 		let p = existingConnection ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds()
 		p.then(() => {
 			this._entityUpdateMessageQueue.resume()
@@ -226,7 +239,8 @@ export class EventBusClient {
 			// for an existing connection we just keep the current state and continue loading missed events for the other groups
 			// for a new connection we reset the last entity event ids because otherwise this would not be completed in the next try
 			if (!existingConnection) {
-				this._lastEntityEventIds = {}
+				// FIXME: why?
+				this._lastEntityEventIds.clear()
 				this._lastUpdateTime = 0
 			}
 			console.log("retry init entity events in 30s", e)
@@ -405,12 +419,10 @@ export class EventBusClient {
 	 */
 	_setLatestEntityEventIds(): Promise<void> {
 		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
-		let lastIds: {[key: Id]: Id[]} = {}
+		const lastIds: Map<Id, Array<Id>> = new Map()
 		return Promise.each(this._eventGroups(), groupId => {
 			return this._entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				lastIds[groupId] = [
-					(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
-				]
+				lastIds.set(groupId, [(batches.length === 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID])
 			})
 		}).then(() => {
 			this._lastEntityEventIds = lastIds
@@ -454,19 +466,25 @@ export class EventBusClient {
 	}
 
 	_addBatch(batchId: Id, groupId: Id, events: $ReadOnlyArray<EntityUpdate>) {
-		const lastForGroup = this._lastEntityEventIds[groupId] || []
+		const lastForGroup = this._lastEntityEventIds.get(groupId) || []
 		// find the position for inserting into last entity events (negative value is considered as not present in the array)
 		const index = binarySearch(lastForGroup, batchId, compareOldestFirst)
+		let wasAdded
 		if (index < 0) {
 			lastForGroup.splice(-index, 0, batchId)
 			// only add the batch if it was not process before
-			this._eventQueue.add(batchId, groupId, events)
+			wasAdded = this._eventQueue.add(batchId, groupId, events)
+		} else {
+			wasAdded = false
 		}
 		if (lastForGroup.length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
 			lastForGroup.shift()
 		}
-		this._lastEntityEventIds[batchId] = lastForGroup
-		this._eventQueue.add(batchId, groupId, events)
+		this._lastEntityEventIds.set(batchId, lastForGroup)
+
+		if (wasAdded) {
+			this._lastAddedBatchForGroup.set(groupId, batchId)
+		}
 	}
 
 	_processEventBatch(batch: QueuedBatch): Promise<void> {
@@ -511,9 +529,8 @@ export class EventBusClient {
 	}
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
-		// TODO handle lost updates (old event surpassed by newer one, we store the new id and retrieve instances from the newer one on next login
-		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ?
-			this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
+		const lastIds = this._lastEntityEventIds.get(groupId)
+		return (lastIds && lastIds.length > 0) ? lastThrow(lastIds) : GENERATED_MIN_ID
 	}
 
 	_executeIfNotTerminated(call: Function): Promise<void> {
