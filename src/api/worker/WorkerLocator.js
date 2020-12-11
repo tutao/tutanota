@@ -80,7 +80,8 @@ export function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator.mail = new MailFacade(locator.login, locator.file, locator.cachingEntityClient)
 	locator.calendar = new CalendarFacade(locator.login, locator.userManagement, cache)
 	locator.mailAddress = new MailAddressFacade(locator.login)
-	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login)
+	locator.eventBusClient = new EventBusClient(worker, locator.indexer, locator.cache, locator.mail, locator.login,
+		locator.cachingEntityClient)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.login)

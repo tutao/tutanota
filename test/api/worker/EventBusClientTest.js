@@ -1,66 +1,72 @@
 // @flow
 import o from "ospec/ospec.js"
-import {EventBusClient} from "../../../src/api/worker/EventBusClient"
+import {EventBusClient, EventBusState} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import {spy} from "../TestUtils"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
+import {EntityRestClientMock} from "./EntityRestClientMock"
+import {EntityClient} from "../../../src/api/common/EntityClient"
+import {defer, downcast} from "../../../src/api/common/utils/Utils"
+import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
+import {LoginFacade} from "../../../src/api/worker/facades/LoginFacade"
+import {createUser} from "../../../src/api/entities/sys/User"
+import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
+import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
 
 o.spec("EventBusClient test", function () {
 
-	let ebc: any = null
-	let cacheMock: any = null
+	let ebc: EventBusClient
+	let cacheMock: $Shape<EntityRestCache>
+	let restClient: EntityRestClientMock
+	let workerMock: WorkerImpl
+	let loginMock: LoginFacade
 
 	o.beforeEach(function () {
-		cacheMock = ({
-			cacheCallState: "initial",
-			entityEventsReceived: (data: Array<EntityUpdate>) => {
-				//console.log("enter", cacheCallState)
-				if (cacheMock.cacheCallState === "initial") {
-					cacheMock.cacheCallState = "firstEntered"
-				} else if (cacheMock.cacheCallState === "firstFinished") {
-					cacheMock.cacheCallState = "secondEntered"
-				} else {
-					o(cacheMock.cacheCallState).equals("invalid state found entering entityEventsReceived")
+		cacheMock = downcast({
+			entityEventsReceived: (data: $ReadOnlyArray<EntityUpdate>): Promise<Array<EntityUpdate>> => Promise.resolve(data.slice()),
+		})
+		const user = createUser({
+			userGroup: createGroupMembership({group: "userGroupId"}),
+		})
+		loginMock = downcast(({
+				entityEventsReceived: () => {
+					return Promise.resolve()
+				},
+				getLoggedInUser() {
+					return user;
 				}
-				return Promise.delay(10).then(() => {
-					//console.log("finish", cacheCallState)
-					if (cacheMock.cacheCallState === "firstEntered") {
-						cacheMock.cacheCallState = "firstFinished"
-					} else if (cacheMock.cacheCallState === "secondEntered") {
-						cacheMock.cacheCallState = "secondFinished"
-					} else {
-						o(cacheMock.cacheCallState).equals("invalid state found finishing entityEventsReceived")
-					}
-					return data
-				})
-			}
-		}: any)
-		let loginMock: any = {
-			entityEventsReceived: () => {
-				return Promise.resolve()
-			}
-		}
+			}: $Shape<LoginFacade>
+		))
 		let mailMock: any = {
 			entityEventsReceived: () => {
 				return Promise.resolve()
 			}
 		}
-		let workerMock: any = {
-			entityEventsReceived: () => {
-				return Promise.resolve()
-			},
-			updateCounter: () => {
-				return Promise.resolve()
-			}
-		}
+		workerMock = downcast(({
+				entityEventsReceived: () => {
+					return Promise.resolve()
+				},
+				updateCounter: () => {
+					return Promise.resolve()
+				},
+				updateWebSocketState(state) {
+					return Promise.resolve();
+				},
+				sendError(e) {
+					throw e
+				}
+			}: $Shape<WorkerImpl>
+		))
+
 		let indexerMock: any = {
 			processEntityEvents: (filteredEvents, groupId, batchId) => {
 				return Promise.resolve()
 			}
 		}
+		restClient = new EntityRestClientMock()
+		const entityClient = new EntityClient(restClient)
 
-
-		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock)
+		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock, entityClient)
 		let e = (ebc: any)
 		e.connect = function (reconnect: boolean) {
 		}
@@ -83,25 +89,28 @@ o.spec("EventBusClient test", function () {
 	// 	})
 	// })
 
-	// TODO: rewrite this test when networking is stupped less painfully
-	// o("parallel received event batches are passed sequentially to the entity rest cache", node(async function () {
-	// 	o.timeout(500)
-	//
-	// 	let messageData1 = _createMessageData(1)
-	// 	let messageData2 = _createMessageData(2)
-	//
-	// 	// call twice as if it was received in parallel
-	// 	let p1 = ebc._message({data: messageData1})
-	// 	let p2 = ebc._message({data: messageData2})
-	// 	await Promise.all([p1, p2])
-	// 	// make sure the second queued event was also processed
-	// 	o(cacheMock.cacheCallState).equals("secondFinished")
-	// }))
+	o("parallel received event batches are passed sequentially to the entity rest cache", node(async function () {
+		o.timeout(500)
+		ebc._state = EventBusState.Automatic
+		await ebc._onOpen(false)
+
+		let messageData1 = _createMessageData(1)
+		let messageData2 = _createMessageData(2)
+
+		const cacheDefer = defer()
+		downcast(cacheMock).entityEventsReceived = o.spy(() => cacheDefer.promise)
+		// call twice as if it was received in parallel
+		let p1 = ebc._message(downcast({data: messageData1}))
+		let p2 = ebc._message(downcast({data: messageData2}))
+		await Promise.all([p1, p2])
+		// make sure the second queued event was also processed
+		cacheMock.entityEventsReceived.calls.length = 1
+	}))
 
 	o("counter update", node(async function () {
 		let counterUpdate = _createCounterData("group1", 4, "list1")
-		ebc._worker.updateCounter = spy(ebc._worker.updateCounter)
-		await ebc._message({data: counterUpdate})
+		downcast(workerMock).updateCounter = spy(ebc._worker.updateCounter)
+		await ebc._message(downcast({data: counterUpdate}))
 		o(ebc._worker.updateCounter.invocations).deepEquals([
 			[
 				{

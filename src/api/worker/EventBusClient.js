@@ -47,7 +47,7 @@ import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
 assertWorkerOrNode()
 
 
-const EventBusState = Object.freeze({
+export const EventBusState = Object.freeze({
 	Automatic: "automatic", // automatic reconnection is enabled
 	Suspended: "suspended", // automatic reconnection is suspended but can be enabled again
 	Terminated: "terminated" // automatic reconnection is disabled and websocket is closed but can be opened again by calling connect explicit
@@ -110,10 +110,12 @@ export class EventBusClient {
 	_failedConnectionAttempts: number = 0;
 	_progressMonitor: IProgressMonitor;
 
-	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade) {
+	constructor(worker: WorkerImpl, indexer: Indexer, cache: EntityRestInterface, mail: MailFacade, login: LoginFacade,
+	            entityClient: EntityClient
+	) {
 		this._indexer = indexer
 		this._cache = cache
-		this._entity = new EntityClient(cache)
+		this._entity = entityClient
 		this._worker = worker
 		this._mail = mail
 		this._login = login
@@ -208,23 +210,25 @@ export class EventBusClient {
 		this._socket.onmessage = (message: MessageEvent) => this._message(message);
 	}
 
-	_onOpen(reconnect: boolean) {
+	// Returning promise for tests
+	_onOpen(reconnect: boolean): Promise<void> {
 		this._failedConnectionAttempts = 0
 		console.log("ws open: ", new Date(), "state:", this._state);
 		// Indicate some progress right away
 		this._progressMonitor.workDone(1)
-		this._initEntityEvents(reconnect)
+		const p = this._initEntityEvents(reconnect)
 		this._worker.updateWebSocketState("connected")
+		return p
 	}
 
-	_initEntityEvents(reconnect: boolean) {
+	_initEntityEvents(reconnect: boolean): Promise<void> {
 		// pause processing entity update message while initializing event queue
 		this._entityUpdateMessageQueue.pause()
 		// pause event queue and add all missed entity events first
 		this._eventQueue.pause()
 		let existingConnection = reconnect && this._lastEntityEventIds.size > 0
 		let p = existingConnection ? this._loadMissedEntityEvents() : this._setLatestEntityEventIds()
-		p.then(() => {
+		return p.then(() => {
 			this._entityUpdateMessageQueue.resume()
 			this._eventQueue.resume()
 		}).catch(ConnectionError, e => {
