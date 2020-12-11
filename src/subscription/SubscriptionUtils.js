@@ -196,7 +196,7 @@ export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): Tra
 /**
  * @returns True if it failed, false otherwise
  */
-export function bookItem(featureType: BookingItemFeatureTypeEnum, errorMessageId: TranslationKey | lazy<string>, amount: number): Promise<boolean> {
+export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number): Promise<boolean> {
 	const bookingData = createBookingServiceData({
 		amount: amount.toString(),
 		featureType,
@@ -206,30 +206,30 @@ export function bookItem(featureType: BookingItemFeatureTypeEnum, errorMessageId
 		console.log(error)
 		return Dialog.error(error.data === "balance.insufficient"
 			? "insufficientBalanceError_msg"
-			: errorMessageId).return(true)
+			: getBookingItemErrorMsg(featureType)).return(true)
 	})
 }
 
 export function buyAliases(amount: number): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Alias, "emailAliasesTooManyActivatedForBooking_msg", amount)
+	return bookItem(BookingItemFeatureType.Alias, amount)
 }
 
 export function buyStorage(amount: number): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Storage, "storageCapacityTooManyUsedForBooking_msg", amount);
+	return bookItem(BookingItemFeatureType.Storage, amount);
 }
 
 /**
  * @returns True if it failed, false otherwise
  */
 export function buyWhitelabel(enable: boolean): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Whitelabel, "whitelabelDomainExisting_msg", enable ? 1 : 0)
+	return bookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
 }
 
 /**
  * @returns True if it failed, false otherwise
  */
 export function buySharing(enable: boolean): Promise<boolean> {
-	return bookItem(BookingItemFeatureType.Sharing, "unknownError_msg", enable ? 1 : 0)
+	return bookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
 }
 
 /**
@@ -238,7 +238,7 @@ export function buySharing(enable: boolean): Promise<boolean> {
  * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
  */
 export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
-	return showBuyDialog(BookingItemFeatureType.Whitelabel, "whitelabelDomainExisting_msg", enable)
+	return showBuyDialog(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
 }
 
 /**
@@ -249,7 +249,7 @@ export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
 export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
 	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
 		if (ok) {
-			return showBuyDialog(BookingItemFeatureType.Sharing, "unknownError_msg", enable)
+			return showBuyDialog(BookingItemFeatureType.Sharing, enable ? 1 : 0)
 		} else {
 			return true
 		}
@@ -259,12 +259,11 @@ export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
 /**
  * @returns True if it failed, false otherwise
  */
-export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, errorMessageId: TranslationKey, enable: boolean): Promise<boolean> {
-	const amount = enable ? 1 : 0
-	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, 0, false))
+export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
+	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, freeAmount, reactivate))
 		.then(accepted => {
 			if (accepted) {
-				return bookItem(bookingItemFeatureType, errorMessageId, enable ? 1 : 0)
+				return bookItem(bookingItemFeatureType, amount)
 			} else {
 				return true
 			}
@@ -299,5 +298,20 @@ export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
 				view: () => m(".text-break", m.trust(sanitizedTerms))
 			}).show()
 		})
+}
+
+function getBookingItemErrorMsg(feature: BookingItemFeatureTypeEnum): TranslationKey {
+	switch (feature) {
+		case BookingItemFeatureType.Alias:
+			return "emailAliasesTooManyActivatedForBooking_msg"
+		case BookingItemFeatureType.Storage:
+			return "storageCapacityTooManyUsedForBooking_msg"
+		case BookingItemFeatureType.Whitelabel:
+			return "whitelabelDomainExisting_msg"
+		case BookingItemFeatureType.Sharing:
+			return "unknownError_msg"
+		default:
+			return "unknownError_msg"
+	}
 }
 

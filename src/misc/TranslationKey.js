@@ -1233,3 +1233,6 @@ export type TranslationKeyType = "about_label"
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+
+	| "giftCardLoginError_msg"
+	| "paymentMethodAccountBalance_label"

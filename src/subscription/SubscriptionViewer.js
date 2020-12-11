@@ -669,7 +669,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 
 function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): ExpandableAttrs {
 	const purchaseGiftCardButtonAttrs: ButtonAttrs = {
-		label: () => "Purchase a gift card",
+		label: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
 		icon: () => Icons.Add
 	}

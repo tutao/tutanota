@@ -146,10 +146,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						m.redraw()
 					})
 			})
-
-
-		this._loadPostings()
-		this._loadBookings()
+			.then(() => this._loadPostings())
+			.then(() => this._loadBookings())
 	}
 
 	_renderPostings(postingExpanded: Stream<boolean>): Children {
@@ -254,21 +252,20 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return this._amountOwed() < 0;
 	}
 
-	_loadBookings() {
-		logins.getUserController().loadCustomer()
-		      .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		      .then(customerInfo => customerInfo.bookings
-			      ? locator.entityClient.loadAll(BookingTypeRef, customerInfo.bookings.items)
-			      : [])
-		      .then(bookings => {
-			      this._lastBooking = bookings[bookings.length - 1]
-			      console.log("bookings", bookings)
-			      m.redraw()
-		      })
+	_loadBookings(): Promise<void> {
+		return logins.getUserController().loadCustomer()
+		             .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+		             .then(customerInfo => customerInfo.bookings
+			             ? locator.entityClient.loadAll(BookingTypeRef, customerInfo.bookings.items)
+			             : [])
+		             .then(bookings => {
+			             this._lastBooking = bookings[bookings.length - 1]
+			             m.redraw()
+		             })
 	}
 
-	_loadPostings() {
-		serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef)
+	_loadPostings(): Promise<void> {
+		return serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef)
 			.then(result => {
 				this._postings = result.postings
 				this._outstandingBookingsPrice = Number(result.outstandingBookingsPrice)

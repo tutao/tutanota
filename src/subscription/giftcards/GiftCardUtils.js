@@ -19,10 +19,10 @@ import {formatPrice, showServiceTerms} from "../SubscriptionUtils"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {HtmlEditor} from "../../gui/base/HtmlEditor"
+import {HtmlEditor, Mode} from "../../gui/base/HtmlEditor"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {serviceRequest, serviceRequestVoid} from "../../api/main/Entity"
-import {elementIdPart, HttpMethod} from "../../api/common/EntityFunctions"
+import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../../api/common/EntityFunctions"
 import {SysService} from "../../api/entities/sys/Services"
 import {px, size} from "../../gui/size"
 import {assertNotNull} from "../../api/common/utils/Utils"
@@ -38,14 +38,13 @@ import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64} from "../../api/common/utils/Encoding"
 import {getWebRoot, isApp} from "../../api/Env"
-import {splitAt} from "../../api/common/utils/StringUtils"
 import {shareTextNative} from "../../native/SystemApp"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
 
 
-const ID_LENGTH = 12;
+const ID_LENGTH = GENERATED_MAX_ID.length;
 const KEY_LENGTH = 24;
 
 
@@ -113,9 +112,10 @@ export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["pu
 export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
 
 	const showEditGiftCardMessageDialog = () => {
-		const editor = new HtmlEditor("editMessage_label", {enabled: true})
+		const editor = new HtmlEditor("editMessage_label")
 			.setMinHeight(350)
 			.setValue(giftCard.message)
+			.setMode(Mode.HTML)
 
 		Dialog.showActionDialog({
 			title: lang.get("editMessage_label"),

@@ -8,13 +8,12 @@ import {load} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {bookItem, buyAliases, formatPrice} from "../subscription/SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import * as BuyDialog from "./BuyDialog"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {formatPrice, showBuyDialog} from "./SubscriptionUtils"
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
@@ -25,13 +24,9 @@ export function show(): Promise<void> {
 			return new Promise(resolve => {
 				const changeEmailAliasPackageAction = (amount: number) => {
 					dialog.close()
-					BuyDialog.show(BookingItemFeatureType.Alias, amount, freeEmailAliases, false).then(confirm => {
-						if (confirm) {
-							return bookItem(BookingItemFeatureType.Alias, "emailAliasesTooManyActivatedForBooking_msg", amount)
-						} else {
-							show()
-						}
-					}).then(() => resolve())
+					showBuyDialog(BookingItemFeatureType.Alias, amount, freeEmailAliases)
+						.then(confirmed => {if (!confirmed) show()})
+						.then(() => resolve())
 				}
 
 				const emailAliasesBuyOptionsAttrs = [

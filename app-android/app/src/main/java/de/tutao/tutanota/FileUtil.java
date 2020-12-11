@@ -324,7 +324,7 @@ public class FileUtil {
 	}
 
 	public File writeFileToUnencryptedDir(String filename, InputStream inputStream) throws IOException {
-		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_ENCRYPTED);
+		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_DECRYPTED);
 	}
 
 	private File writeFileToEncryptedDir(String filename, InputStream inputStream) throws IOException {

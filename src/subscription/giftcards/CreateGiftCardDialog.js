@@ -57,9 +57,9 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 		const a = vnode.attrs
 		this.selectedPackage = stream(a.initiallySelectedPackage)
 		this.selectedCountry = stream(a.country)
-		this.messageEditor = new HtmlEditor("yourMessage_label", {enabled: false})
+		this.messageEditor = new HtmlEditor("yourMessage_label")
 			.setMinHeight(100)
-			.setMode(Mode.WYSIWYG)
+			.setMode(Mode.HTML)
 			.showBorders()
 			.setValue(a.message)
 			.setEnabled(true)

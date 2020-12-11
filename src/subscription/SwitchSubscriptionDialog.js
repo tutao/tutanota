@@ -21,7 +21,7 @@ import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {bookItem, buyAliases, buySharing, buyStorage, buyWhitelabel, SubscriptionType} from "./SubscriptionUtils"
+import {buyAliases, buySharing, buyStorage, buyWhitelabel, SubscriptionType} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {neverNull} from "../api/common/utils/Utils"
@@ -474,9 +474,7 @@ function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
 		}
 	}).then(previousFailed => {
 		if (isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
-			return bookItem(BookingItemFeatureType.Storage,
-				"storageCapacityTooManyUsedForBooking_msg",
-				subscriptions[targetSubscription].orderStorageGb)
+			return buyStorage(subscriptions[targetSubscription].orderStorageGb)
 				.then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed
