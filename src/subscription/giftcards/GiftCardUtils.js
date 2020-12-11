@@ -312,12 +312,14 @@ export function renderGiftCardSvg(price: number, link: ?string, portrait: boolea
 					}),
 					m("text", { /* translation of "gift card" */
 						"text-anchor": "end",
+						"font-family": "sans-serif",
 						x: logoTextWidth, y: 43,
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
 			m("text", { /* price */
 				"text-anchor": "start",
+				"font-family": "sans-serif",
 				x: portrait ? 25 : qrcodeSize + 20 + 10,
 				y: portrait ? 270 : height - 20,
 				fill: theme.elevated_bg,

@@ -8,11 +8,16 @@ import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN} from "../gui/base/ButtonN"
 
 
 export type BuyOptionBoxAttr = {|
 	heading: string,
-	actionButton: ?Component,
+	// lazy<ButtonAttrs> because you can't do actionButton instanceof ButtonAttrs since ButtonAttrs doesn't exist in the javascript side
+	// there is a strange interaction between the HTMLEditor in HTML mode and the ButtonN when you pass the ButtonN in via a component
+	// that doesn't occur when you pass in the attrs
+	actionButton: ?(Component | lazy<ButtonAttrs>),
 	price?: string,
 	originalPrice: string,
 	helpLabel: TranslationKey | lazy<string>,
@@ -77,8 +82,7 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 									width: "0",
 									height: "0",
 								},
-								// TODO: translate
-							}, "Original price: "),
+							}, lang.get("originalPrice_label") + ": "),
 							m("s.pl", "(" + vnode.attrs.originalPrice + ")"),
 						]
 						: null
@@ -89,13 +93,16 @@ export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 					items: PaymentIntervalItems
 				}) : null,
 				vnode.attrs.actionButton ? m(".button-min-height", {
-					style: {
-						position: "absolute",
-						bottom: px(10),
-						left: px(10),
-						right: px(10)
-					}
-				}, m(neverNull(vnode.attrs.actionButton))) : null
+						style: {
+							position: "absolute",
+							bottom: px(10),
+							left: px(10),
+							right: px(10)
+						}
+					}, (typeof vnode.attrs.actionButton === "function"
+					? m(ButtonN, vnode.attrs.actionButton())
+					: m(neverNull(vnode.attrs.actionButton))))
+					: null
 			]), m("div.mt.pl", vnode.attrs.features().map(f => m(".flex",
 				[
 					m(Icon, {

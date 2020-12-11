@@ -1236,3 +1236,4 @@ export type TranslationKeyType = "about_label"
 
 	| "giftCardLoginError_msg"
 	| "paymentMethodAccountBalance_label"
+	| "originalPrice_label"

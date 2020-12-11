@@ -82,14 +82,14 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 				a.availablePackages.map((option, index) =>
 					m(BuyOptionBox, {
 						heading: formatPrice(parseFloat(option.value), true),
-						actionButton: {
-							view: () => m(ButtonN, {
+						actionButton: () => {
+							return {
 								label: "pricing.select_action",
 								click: () => {
 									this.selectedPackage(index)
 								},
 								type: ButtonType.Login,
-							})
+							}
 						},
 						originalPrice: formatPrice(parseFloat(option.value), true),
 						helpLabel: "pricing.basePriceIncludesTaxes_msg",

@@ -12,12 +12,13 @@ import {checkApprovalStatus} from "../misc/LoginUtils"
 import {
 	appendEmailSignature,
 	conversationTypeString,
-	createInlineImage, getDefaultSignature,
-	getEmailSignature,
+	createInlineImage,
+	getDefaultSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
 	parseMailtoUrl,
 	replaceCidsWithInlineImages,
+	replaceHtmlEntities,
 	replaceInlineImagesWithCids
 } from "./MailUtils"
 import {PermissionError} from "../api/common/error/PermissionError"
@@ -44,7 +45,7 @@ import {
 	createAttachmentButtonAttrs,
 	createPasswordField,
 	getConfidentialStateMessage,
-	MailEditorRecipientField
+	MailEditorRecipientField,
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {newMouseEvent} from "../gui/HtmlUtils"
@@ -57,11 +58,10 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import type {File as TutanotaFile} from "../api/entities/tutanota/File"
 import type {InlineImages} from "./MailViewer"
 import {FileOpenError} from "../api/common/error/FileOpenError"
-import {downcast} from "../api/common/utils/Utils"
+import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
-import {stringToBase64} from "../api/common/utils/Encoding"
-import {renderGiftCardSvg} from "../subscription/giftcards/GiftCardUtils"
+import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -120,7 +120,6 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		a._focusEditorOnLoad = () => { this.editor.initialized.promise.then(() => this.editor.focus()) }
 
 		const onEditorChanged = () => {
-
 			cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())
 			model.setMailChanged(true)
 			m.redraw()
@@ -172,12 +171,11 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 		if (a.inlineImages) {
 			a.inlineImages.then((loadedInlineImages) => {
 				try {
-					Object.keys(loadedInlineImages).forEach((key) => {
-						const {file} = loadedInlineImages[key]
-						if (!model.getAttachments().includes(file)) {
-							model.attachFiles([file])
+					for (let file of loadedInlineImages.values()) {
+						if (!model.getAttachments().includes(file.file)) {
+							model.attachFiles([file.file])
 						}
-					})
+					}
 				} catch (e) {
 					if (e instanceof UserError) {
 						showUserError(downcast(e))
@@ -192,10 +190,10 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 						createDropdown(() => [
 							{
 								label: "download_action",
-								click: () => {
-									fileController.downloadAndOpen(file, true)
-									              .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
-								},
+								click: () => file._type !== "DataFile" // it's a TutanotaFile
+									? fileController.downloadAndOpen(downcast(file), true)
+									                .catch(FileOpenError, () => Dialog.error("canNotOpenFileOnDevice_msg"))
+									: noOp,
 								type: ButtonType.Dropdown
 							}
 						])(downcast(event), dom)
@@ -539,11 +537,11 @@ export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 	})
 }
 
-export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages: ?Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+export function newMailEditorAsResponse(args: ResponseMailParameters, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
 	return _mailboxPromise(mailboxDetails)
 		.then(defaultSendMailModel)
 		.then(model => model.initAsResponse(args))
-		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages || undefined))
+		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
 }
 
 export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaFile>, bodyText: string, blockExternalContent: boolean, inlineImages?: Promise<InlineImages>, mailboxDetails?: MailboxDetail): Promise<Dialog> {
@@ -551,7 +549,6 @@ export function newMailEditorFromDraft(draft: Mail, attachments: Array<TutanotaF
 		.then(defaultSendMailModel)
 		.then(model => model.initWithDraft(draft, attachments, bodyText))
 		.then(model => createMailEditorDialog(model, blockExternalContent, inlineImages))
-
 }
 
 export function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
@@ -642,17 +639,34 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
  */
 export function writeGiftCardMail(link: string, svg: string, mailboxDetails?: MailboxDetail) {
 	_mailboxPromise(mailboxDetails).then(mailbox => {
+			const bodyText = lang.get("defaultShareGiftCardBody_msg", {
+				'{link}': link,
+				'{username}': logins.getUserController().userGroupInfo.name,
+			})
 
-		const username = logins.getUserController().userGroupInfo.name;
-		let imgTag = `<img src="data:image/svg+xml,${encodeURIComponent(svg)}">`
-		const body = lang.get("defaultShareGiftCardBody_msg", {
-			'{link}': link,
-			'{username}': logins.getUserController().userGroupInfo.name,
-		})
-		const subject = lang.get("defaultShareGiftCardSubject_msg")
-		newMailEditorFromTemplate(mailbox, {}, subject, imgTag + body + getDefaultSignature(), [], false)
-			.then(dialog => dialog.show())
-	})
+			const data = stringToUtf8Uint8Array(replaceHtmlEntities(svg));
+
+			const attachment: DataFile = {
+				_type: "DataFile",
+				name: "tutanota-giftcard.svg",
+				mimeType: "image/svg+xml",
+				data,
+				size: data.byteLength,
+				id: null
+			}
+			const inlineImageReference = createInlineImage(attachment)
+			const cid = inlineImageReference.cid
+			const imgTag = `<div style="text-align: center;"><img style="max-width: 300px; border-radius: 20px;" src="cid:${cid}"></div><br />`
+			const subject = lang.get("defaultShareGiftCardSubject_msg")
+			const body = imgTag + bodyText + getDefaultSignature()
+			const inlineImages = new Map()
+			inlineImages.set(cid, {file: attachment, url: inlineImageReference.objectUrl})
+			defaultSendMailModel(mailbox)
+				.initWithTemplate({}, subject, body, [attachment], false)
+				.then(model => createMailEditorDialog(model, false, Promise.resolve(inlineImages)))
+				.then(dialog => dialog.show())
+		}
+	)
 }
 
 function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
@@ -660,3 +674,4 @@ function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
 		? Promise.resolve(mailbox)
 		: locator.mailModel.getUserMailboxDetails()
 }
+

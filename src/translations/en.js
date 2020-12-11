@@ -1248,5 +1248,7 @@ module.exports = {
 		"you_label": "You",
 		"giftCardLoginError_msg": "Your new account was created but we had trouble logging you in to order to redeem your gift card. Please try logging in again later with the same gift card link",
 		"paymentMethodAccountBalance_label": "Account balance",
+
+		"originalPrice_label": "Original price"
 	}
 }
