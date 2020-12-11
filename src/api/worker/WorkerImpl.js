@@ -349,6 +349,10 @@ export class WorkerImpl {
 
 			getGiftCardInfo: (message: Request) => {
 				return locator.giftCards.getGiftCardInfo(message.args[0], base64ToKey(message.args[1]))
+			},
+
+			redeemGiftCard: (message: Request) => {
+				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
 			}
 		})
 

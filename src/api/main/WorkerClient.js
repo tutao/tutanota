@@ -605,6 +605,10 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("getGiftCardInfo", arguments))
 	}
 
+	redeemGiftCard(id: Id, key: string): Promise<void> {
+		return this._queue.postMessage(new Request("redeemGiftCard", arguments))
+	}
+
 	isLeader(): boolean {
 		return this._leaderStatus.leaderStatus
 	}

@@ -1,15 +1,15 @@
 // @flow
 
-import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
+import {aes128RandomKey} from "../crypto/Aes"
 import {GroupType} from "../../common/TutanotaConstants"
 import {firstThrow} from "../../common/utils/ArrayUtils"
 import {encryptKey} from "../crypto/KeyCryptoUtils"
 import {createGiftCardCreateData} from "../../entities/sys/GiftCardCreateData"
-import {serviceRequest} from "../EntityWorker"
+import {serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {SysService} from "../../entities/sys/Services"
-import {HttpMethod, listIdPart} from "../../common/EntityFunctions"
-import {GiftCardCreateReturnTypeRef} from "../../entities/sys/GiftCardCreateReturn"
+import {elementIdPart, HttpMethod} from "../../common/EntityFunctions"
 import type {GiftCardCreateReturn} from "../../entities/sys/GiftCardCreateReturn"
+import {GiftCardCreateReturnTypeRef} from "../../entities/sys/GiftCardCreateReturn"
 import type {LoginFacade} from "./LoginFacade"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {GiftCardRedeemGetReturnTypeRef} from "../../entities/sys/GiftCardRedeemGetReturn"
@@ -52,6 +52,12 @@ export class GiftCardFacade {
 		const keyHash = hash(bitArrayToUint8Array(key))
 		const data = createGiftCardRedeemData({giftCardInfo: id, keyHash: keyHash})
 		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, null, key)
+	}
+
+	redeemGiftCard(id: Id, key: Aes128Key): Promise<void> {
+		const keyHash = hash(bitArrayToUint8Array(key))
+		const data = createGiftCardRedeemData({giftCardInfo: id, keyHash: keyHash})
+		return serviceRequestVoid(SysService.GiftCardRedeemService, HttpMethod.POST, data)
 	}
 }
 

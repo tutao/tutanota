@@ -48,7 +48,9 @@ type RedeemGiftCardWizardData = {
 
 	credentialsMethod: GetCredentialsMethod,
 	credentials: Stream<?Credentials>,
-	newAccountData: Stream<?NewAccountData>
+	newAccountData: Stream<?NewAccountData>,
+
+	key: string
 }
 
 type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardWizardData>
@@ -268,7 +270,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 					Dialog.error("termsAcceptedNeutral_msg")
 					return
 				}
-				redeemGiftCard(data.giftCardInfo.giftCard, data.giftCardInfo.country, Dialog.confirm)
+				redeemGiftCard(data.giftCardInfo.giftCard, data.key, data.giftCardInfo.country, Dialog.confirm)
 					.then(() => Dialog.error("success_label", lang.get("giftCardRedeemed_msg") + (wasFree ? "\n"
 						+ lang.get("redeemedToPremium_msg") : "")))
 					.then(() => emitWizardEvent(vnode.dom, WizardEventType.CLOSEDIALOG))
@@ -298,7 +300,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 }
 
 
-export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn): Promise<Dialog> {
+export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 
 		const giftCardRedeemData: RedeemGiftCardWizardData = {
@@ -308,6 +310,7 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn):
 			credentialsMethod: "signup",
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),
+			key
 		}
 
 

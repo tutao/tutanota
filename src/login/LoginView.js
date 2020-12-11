@@ -393,7 +393,7 @@ export class LoginView {
 				       .spread((id, key) => {
 					       return worker.initialized
 					                    .then(() => worker.getGiftCardInfo(id, key))
-					                    .then(giftCardInfo => loadRedeemGiftCardWizard(giftCardInfo))
+					                    .then(giftCardInfo => loadRedeemGiftCardWizard(giftCardInfo, key))
 				       })
 
 			showProgressDialog("loading_msg", showWizardPromise)
