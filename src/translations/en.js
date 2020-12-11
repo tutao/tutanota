@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-12-10T08:15:06Z",
+	"updated_at": "2020-12-11T17:53:10Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -119,7 +119,7 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Usage",
 		"businessUseUpgradeNeeded_msg": "Sorry, you are currently not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you have a business account which is only allowed with paid subscriptions. Please upgrade to a paid subscription now.",
 		"buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. The booked email aliases can be used by any user.",
-		"buyGiftCardDescription_msg": "Buy a gift card for your loved ones! When redeeming a gift card, they can sign up for a new premium account or upgrade their existing account to a premium subscription and/or get credit to order additional features. You can choose from the following options and leave a message which will be shown on the gift card. The message is - of course - end to end encrypted.",
+		"buyGiftCardDescription_msg": "Buy a gift card for your loved ones! When redeeming a gift card, they can sign up for a new paid account or upgrade their existing account and/or get credit to order additional features. You can choose from the following options and leave a message which will be shown on the gift card. The message is - of course - end to end encrypted.",
 		"buyGiftCard_label": "Buy a gift card",
 		"buyStorageCapacityInfo_msg": "Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
 		"buy_action": "Buy",
@@ -199,7 +199,7 @@ module.exports = {
 		"closeSession_action": "Close session",
 		"closeWindowConfirmation_msg": "Do you really want to close this window without saving your changes?",
 		"close_alt": "Close",
-		"codeInput_msg": "Enter the code",
+		"codeInput_msg": "Enter gift card code",
 		"color_label": "Color",
 		"comboBoxSelectionNone_msg": "None",
 		"comment_label": "Comment",
@@ -321,7 +321,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Register Tutanota Desktop as the default email handler, e.g. to open email address links. This operation may require administrator permissions.",
 		"defaultSenderMailAddressInfo_msg": "The default sender mail address for new emails.",
 		"defaultSenderMailAddress_label": "Default sender",
-		"defaultShareGiftCardBody_msg": "Hi, <br /><br />I bought you a gift card for Tutanota, <a href='{link}'>click here to redeem it!</a><br /><br />If you do not have an account yet, you can use the link to sign up and reclaim your privacy.<br /><br />  Happy Holidays, {username}",
+		"defaultShareGiftCardBody_msg": "Hi, <br /><br />I bought you a gift card for Tutanota, use this link to redeem it!<br /><br /><div style=\"text-align: center\"><a href=\"{link}\">{link}</a></div><br /><br />If you do not have an account yet, you can use the link to sign up and reclaim your privacy.<br /><br />  Happy Holidays,<br />{username}",
 		"defaultShareGiftCardSubject_msg": "You have received a Tutanota gift card!",
 		"deleteAccountConfirm_msg": "Do you really want to delete your account? The account can't be restored and the email address can't be registered again.",
 		"deleteAccountReasonInfo_msg": "Optional: We would appreciate it if you gave us a reason why you want to delete the account so that we can improve Tutanota further.",
@@ -474,6 +474,7 @@ module.exports = {
 		"functionNotSupported_msg": "This function is not supported by your device or browser.",
 		"germanLanguageFile_label": "German language file",
 		"giftCardCopied_msg": "Gift card link copied to clipboard!",
+		"giftCardLoginError_msg": "Your new account was created but we had trouble logging you in to order to redeem your gift card. Please try logging in again later with the same gift card link.",
 		"giftCardPurchaseFailed_msg": "Unable to purchase gift card",
 		"giftCardRedeemed_msg": "The gift card was successfully redeemed.",
 		"giftCardSection_label": "Purchase and manage gift cards",
@@ -777,6 +778,7 @@ module.exports = {
 		"orderProcessingAgreement_label": "Order processing agreement",
 		"order_action": "Order",
 		"organizer_label": "Organizer",
+		"originalPrice_label": "Original price",
 		"otherCalendars_label": "Other calendars",
 		"otherPaymentProviderError_msg": "The payment provider returned an error. Please try again later.",
 		"other_label": "Other",
@@ -817,6 +819,7 @@ module.exports = {
 		"paymentDataPayPalFinished_msg": "Assigned PayPal account: {accountAddress}",
 		"paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. You will be redirected to the PayPal website.",
 		"paymentDataValidation_action": "Confirm",
+		"paymentMethodAccountBalance_label": "Account balance",
 		"paymentMethodCreditCard_label": "Credit card",
 		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
 		"paymentMethodOnAccount_label": "Purchase on account",
@@ -1245,10 +1248,6 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"giftCardLoginError_msg": "Your new account was created but we had trouble logging you in to order to redeem your gift card. Please try logging in again later with the same gift card link",
-		"paymentMethodAccountBalance_label": "Account balance",
-
-		"originalPrice_label": "Original price"
+		"you_label": "You"
 	}
 }

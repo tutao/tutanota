@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2020-12-10T08:15:41Z",
+	"updated_at": "2020-12-11T16:42:14Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -475,6 +475,7 @@ module.exports = {
 		"functionNotSupported_msg": "Tato funkce není Vaším zařízením nebo prohlížečem podporována.",
 		"germanLanguageFile_label": "Soubor s německým jazykem",
 		"giftCardCopied_msg": "Odkaz dárkového poukazu byl zkopírován do schránky.",
+		"giftCardLoginError_msg": "Váš nový účet byl vytvořen, ale nastaly problémy při přihlášení a uplatnění dárkového poukazu. Zkuste se prosím přihlásit později přes stejný odkaz dárkového poukazu.",
 		"giftCardPurchaseFailed_msg": "Není možné koupit dárkový poukaz",
 		"giftCardRedeemed_msg": "Dárkový poukaz byl úspěšně uplatněn.",
 		"giftCardSection_label": "Zakoupit nebo spravovat dárkové poukazy",
@@ -817,6 +818,7 @@ module.exports = {
 		"paymentDataPayPalFinished_msg": "Připojeno k PayPal účtu: {accountAddress}",
 		"paymentDataPayPalLogin_msg": "Pro přihlášení prosím klikněte na tlačítko PayPal. Budete přesměrováni na stránku PayPal.",
 		"paymentDataValidation_action": "Potvrdit",
+		"paymentMethodAccountBalance_label": "Zůstatek na účtu",
 		"paymentMethodCreditCard_label": "Platební karta",
 		"paymentMethodNotAvailable_msg": "Tato možnost platby není ve Vaší zemi dostupná.",
 		"paymentMethodOnAccount_label": "Na účet",
@@ -1101,6 +1103,7 @@ module.exports = {
 		"subscriptionChange_msg": "Vaše předplatné bude změněno po konci současného období předplatného.",
 		"subscriptionPeriod_label": "Období předplatného",
 		"subscription_label": "Předplatné",
+		"success_label": "Úspěšné",
 		"summary_label": "Shrnutí",
 		"supportMenu_label": "Podpora",
 		"switchAgendaView_action": "Přepnout na zobrazení agendy",

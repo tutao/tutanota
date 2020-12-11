@@ -13,7 +13,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2020-12-10T08:11:08Z",
+	"updated_at": "2020-12-11T11:02:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

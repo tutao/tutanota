@@ -68,16 +68,18 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 			})
 		}
 
+		let message = htmlSanitizer.sanitize(a.data.giftCardInfo.message, true).text
+
 		return [
 			m(".flex-center.full-width.pt-l",
 				m("", {style: {width: "480px"}},
 					[
 						m(".flex-center.full-width.pt-l.editor-border.noprint",
 							m(".pt-s.pb-s", {style: {width: "260px"}},
-								m.trust(htmlSanitizer.sanitize(a.data.giftCardInfo.message, true).text),
+								m.trust(message),
 							),
 						),
-						m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null)),
+						m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, message)),
 					])
 			),
 			m(".flex-center.full-width.pt-l",

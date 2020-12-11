@@ -656,9 +656,9 @@ export function writeGiftCardMail(link: string, svg: string, mailboxDetails?: Ma
 			}
 			const inlineImageReference = createInlineImage(attachment)
 			const cid = inlineImageReference.cid
-			const imgTag = `<div style="text-align: center;"><img style="max-width: 300px; border-radius: 20px;" src="cid:${cid}"></div><br />`
+			const imgTag = `<br /><br /><div style="text-align: center;"><img style="max-width: 500px; border-radius: 20px;" src="cid:${cid}"></div><br />`
 			const subject = lang.get("defaultShareGiftCardSubject_msg")
-			const body = imgTag + bodyText + getDefaultSignature()
+			const body = bodyText + imgTag + getDefaultSignature()
 			const inlineImages = new Map()
 			inlineImages.set(cid, {file: attachment, url: inlineImageReference.objectUrl})
 			defaultSendMailModel(mailbox)

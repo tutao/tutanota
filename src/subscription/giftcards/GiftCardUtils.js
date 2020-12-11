@@ -190,6 +190,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 		.then(link => {
 			let dialog: Dialog
 			let infoMessage = "emptyString_msg"
+			let message = htmlSanitizer.sanitize(giftCard.message, true).text
 			let giftCardDomElement: HTMLElement
 			dialog = Dialog.largeDialog(
 				{
@@ -206,19 +207,14 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 					view: () =>
 						m("", {style: {padding: px(size.vpad_large)}},
 							[
-								m(".flex-center.full-width.pt-l",
+								m(".flex-center.full-width.pt-l.pb-l",
 									m("", {style: {width: "480px"}},
 										[
-											m(".flex-center.full-width.pt-l.editor-border.noprint",
-												m(".pt-s.pb-s", {style: {width: "260px"}},
-													m.trust(htmlSanitizer.sanitize(giftCard.message, true).text),
-												),
-											),
 											m(".pt-l", {
 												oncreate: (vnode) => {
 													giftCardDomElement = vnode.dom
 												}
-											}, renderGiftCardSvg(parseFloat(giftCard.value), link))
+											}, renderGiftCardSvg(parseFloat(giftCard.value), link, message))
 										]
 									)
 								),
@@ -272,9 +268,9 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 		})
 }
 
-export function renderGiftCardSvg(price: number, link: ?string, portrait: boolean = true): Children {
+export function renderGiftCardSvg(price: number, link: ?string, message: ?string, portrait: boolean = true): Children {
 	let qrCode = null
-	const qrcodeSize = portrait ? 120 : 60
+	const qrcodeSize = portrait ? 80 : 60
 	if (link) {
 		let qrcodeGenerator = new QRCode({
 			height: qrcodeSize,
@@ -295,15 +291,20 @@ export function renderGiftCardSvg(price: number, link: ?string, portrait: boolea
 	const centered = (elementWidth, totalWidth = width) => totalWidth / 2 - elementWidth / 2
 
 	return m("svg", {
+			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(20), filter: "drop-shadow(10px 10px 10px #00000088)"},
 			xmlns: "http://www.w3.org/2000/svg",
-			style: {
-				maxWidth: "960px", minwidth: "480px", background: theme.content_accent, borderRadius: px(20),
-				"-webkit-print-color-adjust": "exact",
-				"color-adjust": "exact"
-			},
 			viewBox: `0 0 ${width} ${height}`
 		},
 		[
+			m("rect", {
+				width: "100%", height: "100%",
+				style: {
+					fill: theme.content_accent,
+					rx: px(20), ry: px(20),
+					"-webkit-print-color-adjust": "exact",
+					"color-adjust": "exact",
+				},
+			}),
 			m("g", {transform: `translate(${centered(logoTextWidth)}, 20)`},
 				[
 					m("path", { /* tutanota logo text */
@@ -317,6 +318,26 @@ export function renderGiftCardSvg(price: number, link: ?string, portrait: boolea
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
+			(portrait && message)
+				? m("foreignObject", {x: centered(logoTextWidth), y: 70, width: logoTextWidth, height: 75},
+				m("p", {
+					'xmlns': 'http://www.w3.org/1999/xhtml',
+					style: {
+						fontFamily: "monospace",
+						color: theme.elevated_bg,
+						textAlign: "center",
+						fontSize: ".6rem"
+					}
+				}, message))
+				/*? m("text", {
+					"text-anchor": "center",
+					"inline-size": logoTextWidth,
+					"font-family": "sans-serif",
+					x: width / 2, y: 60,
+					fill: theme.elevated_bg,
+					"font-size": ".8rem"
+				}, message)*/
+				: null,
 			m("text", { /* price */
 				"text-anchor": "start",
 				"font-family": "sans-serif",
@@ -327,7 +348,9 @@ export function renderGiftCardSvg(price: number, link: ?string, portrait: boolea
 			}, formattedPrice),
 			qrCode
 				? m("g", {
-					transform: portrait ? `translate(${centered(qrcodeSize)} 90)` : `translate(20 ${height - qrcodeSize - 20})`
+					transform: portrait
+						? `translate(25 ${70 + 75 + 20})`
+						: `translate(20 ${height - qrcodeSize - 20})`
 				}, m.trust(qrCode))
 				: null,
 			m("path", {

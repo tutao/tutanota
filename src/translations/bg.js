@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2020-12-10T08:11:08Z",
+	"updated_at": "2020-12-11T11:02:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -491,7 +491,7 @@ module.exports = {
 		"importUsers_action": "Импортиране на потребители",
 		"importVCardError_msg": "vCard файла не може да се прочете.",
 		"importVCardSuccess_msg": "{1} контакти успешно импортирани",
-		"importVCard_action": "Внеси vCard",
+		"importVCard_action": "Импортирай от vCard",
 		"import_action": "Импортиране",
 		"imprintUrl_label": "Кои сме ние",
 		"imprint_label": "Кои сме ние",
