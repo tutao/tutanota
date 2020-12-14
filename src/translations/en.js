@@ -1248,6 +1248,12 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"giftCardUpgradeNotify_msg": "You will be automatically upgraded up to a Premium account with a yearly subscription. The cost of the first year ({price}) will be payed for with your gift card and the remaining {credit} will be credited to your account.",
+		"giftCardCreditNotify_msg": "Your account will receive {credit} credit.",
+		"creditUsageOptions_msg": "Credit can be used to purchase various packages (go to Settings -> Subscription Settings once logged in), or can be held on to until the next subscription period to pay for a renewal!",
+		"giftCardOptionTextA_msg": "For {fullCredit} credit or a Premium subscription",
+		"giftCardOptionTextB_msg": "For {fullCredit} credit or a Premium subscription with {remainingCredit} credit",
+		"validInCountry_msg": "Valid in {country}"
 	}
 }

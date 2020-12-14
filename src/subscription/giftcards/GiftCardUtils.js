@@ -25,7 +25,7 @@ import {serviceRequest, serviceRequestVoid} from "../../api/main/Entity"
 import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../../api/common/EntityFunctions"
 import {SysService} from "../../api/entities/sys/Services"
 import {px, size} from "../../gui/size"
-import {assertNotNull} from "../../api/common/utils/Utils"
+import {assertNotNull, neverNull} from "../../api/common/utils/Utils"
 import {LocationServiceGetReturnTypeRef} from "../../api/entities/sys/LocationServiceGetReturn"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {createGiftCardRedeemData} from "../../api/entities/sys/GiftCardRedeemData"
@@ -42,6 +42,7 @@ import {shareTextNative} from "../../native/SystemApp"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
+import type {Country} from "../../api/common/CountryList"
 
 
 const ID_LENGTH = GENERATED_MAX_ID.length;
@@ -214,7 +215,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 												oncreate: (vnode) => {
 													giftCardDomElement = vnode.dom
 												}
-											}, renderGiftCardSvg(parseFloat(giftCard.value), link, message))
+											}, renderGiftCardSvg(parseFloat(giftCard.value), neverNull(getByAbbreviation(giftCard.country)), link, message))
 										]
 									)
 								),
@@ -268,7 +269,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 		})
 }
 
-export function renderGiftCardSvg(price: number, link: ?string, message: ?string, portrait: boolean = true): Children {
+export function renderGiftCardSvg(price: number, country: Country, link: ?string, message: ?string, portrait: boolean = true): Children {
 	let qrCode = null
 	const qrcodeSize = portrait ? 80 : 60
 	if (link) {
@@ -346,6 +347,16 @@ export function renderGiftCardSvg(price: number, link: ?string, message: ?string
 				fill: theme.elevated_bg,
 				"font-size": "1.6rem"
 			}, formattedPrice),
+			portrait
+				? m("text", { /* price */
+					"text-anchor": "start",
+					"font-family": "sans-serif",
+					x: 25,
+					y: 285,
+					fill: theme.elevated_bg,
+					"font-size": ".4rem"
+				}, lang.get("validInCountry_msg", {"{country}": country.n}))
+				: null,
 			qrCode
 				? m("g", {
 					transform: portrait

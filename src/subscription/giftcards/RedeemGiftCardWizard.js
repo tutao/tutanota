@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {neverNull, noOp} from "../../api/common/utils/Utils"
+import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {createWizardDialog, emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {logins} from "../../api/main/LoginController"
@@ -36,8 +36,14 @@ import {getLoginErrorMessage} from "../../misc/LoginUtils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
-import {BookingItemFeatureType} from "../../api/common/TutanotaConstants"
-import {formatPrice} from "../SubscriptionUtils"
+import {BookingItemFeatureType, getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
+import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {TextField} from "../../gui/base/TextField"
+import {getPaymentMethodName} from "../PriceUtils"
+import {TextFieldN} from "../../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
+import type {PaymentMethodTypeEnum} from "../../api/common/TutanotaConstants"
+import {getByAbbreviation} from "../../api/common/CountryList"
 
 type GetCredentialsMethod = "login" | "signup"
 
@@ -50,7 +56,9 @@ type RedeemGiftCardWizardData = {
 	credentials: Stream<?Credentials>,
 	newAccountData: Stream<?NewAccountData>,
 
-	key: string
+	key: string,
+
+	premiumPrice: number
 }
 
 type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardWizardData>
@@ -73,14 +81,8 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 		return [
 			m(".flex-center.full-width.pt-l",
 				m("", {style: {width: "480px"}},
-					[
-						m(".flex-center.full-width.pt-l.editor-border.noprint",
-							m(".pt-s.pb-s", {style: {width: "260px"}},
-								m.trust(message),
-							),
-						),
-						m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, message)),
-					])
+					m(".pt-l", renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), neverNull(getByAbbreviation(a.data.giftCardInfo.country)), null, message)),
+				)
 			),
 			m(".flex-center.full-width.pt-l",
 				m("", {style: {width: "260px"}},
@@ -251,12 +253,16 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 
 class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 	isConfirmed: Stream<boolean>
-	premiumPrice: number
+	paymentMethod: string
 
 	constructor() {
 		this.isConfirmed = stream(false)
-		worker.getPrice(BookingItemFeatureType.Users, 1, false).then(price => {
-			this.premiumPrice = price.currentPriceThisPeriod ? parseFloat(price.currentPriceThisPeriod.price) : 0
+
+		this.paymentMethod = ""
+		logins.getUserController().loadAccountingInfo().then(accountingInfo => {
+			this.paymentMethod = accountingInfo.paymentMethod
+				? getPaymentMethodName(getPaymentMethodType(accountingInfo))
+				: getPaymentMethodName(PaymentMethodType.AccountBalance)
 			m.redraw()
 		})
 	}
@@ -286,24 +292,63 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 			data.newAccountData()
 				? m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode})
 				: null,
-			m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-				m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}})),
-			data.newAccountData() || wasFree
-				? m("div", "You will automatically be upgraded up to a Premium account yearly subscription."
-				+ ` The cost of the first year of (${formatPrice(this.premiumPrice, true)}) will be payed for with your gift card and the remaining value will be credited to your account.`)
-				: null,
-			m(".flex-center.full-width.pt-l",
-				m("flex-v-center", [
+			wasFree ? [
+					m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+					m(".flex-space-around.flex-wrap", [
+						m(".flex-grow-shrink-half.plr-l", [
+							m(TextFieldN, {label: "subscription_label", value: () => "Premium", disabled: true}),
+							m(TextFieldN, {label: "subscriptionPeriod_label", value: () => lang.get("pricing.yearly_label"), disabled: true}),
+							m(TextFieldN, {
+								label: "price_label",
+								value: () => formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
+								disabled: true
+							}),
+							m(TextFieldN, {label: "paymentMethod_label", value: () => this.paymentMethod, disabled: true})
+						]),
+						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
+					]),
+					m(".pt-l.plr-l",
+						`${lang.get("giftCardUpgradeNotify_msg", {
+							"{price}": formatPrice(data.premiumPrice, true),
+							"{credit}": formatPrice(Number(data.giftCardInfo.value) - data.premiumPrice, true)
+						})} ${lang.get("creditUsageOptions_msg")}`
+					)
+				]
+				: [
+					m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+						m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}})),
+					m(".pt-l.plr-l.flex-center",
+						`${lang.get("giftCardCreditNotify_msg", {"{credit}": formatPrice(Number(data.giftCardInfo.value), true)})} ${lang.get("creditUsageOptions_msg")}`
+					)
+				],
+			m(".flex-center",
+				m(".pt", [
 					renderAcceptGiftCardTermsCheckbox(this.isConfirmed),
-					m(".pt-l", {style: {width: "260px"}}, m(ButtonN, confirmButtonAttrs))
-				]))
+					m(".flex-grow-shrink-auto.max-width-m.pt-l.pb.plr-l", m(ButtonN, confirmButtonAttrs)
+					)
+				])
+			)
 		])
 	}
+
+
 }
 
 
 export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
+
+
+		const priceData = {
+			options: {
+				businessUse: () => false,
+				paymentInterval: () => 12
+			},
+			premiumPrices: prices.premiumPrices,
+			teamsPrices: prices.teamsPrices,
+			proPrices: prices.proPrices
+		}
 
 		const giftCardRedeemData: RedeemGiftCardWizardData = {
 			newAccountData: stream(null),
@@ -312,7 +357,8 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 			credentialsMethod: "signup",
 			giftCardInfo: giftCardInfo,
 			credentials: stream(null),
-			key
+			key,
+			premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 		}
 
 

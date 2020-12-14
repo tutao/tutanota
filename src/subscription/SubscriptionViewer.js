@@ -62,7 +62,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
-import {showPurchaseGiftCardDialog} from "./giftcards/CreateGiftCardDialog"
+import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {
 	createGiftCardTableLine,
 	getTokenFromUrl,

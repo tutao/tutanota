@@ -22,7 +22,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {formatPrice} from "../SubscriptionUtils"
+import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -32,6 +32,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {CheckboxN} from "../../gui/base/CheckboxN"
+import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 
 export type CreateGiftCardViewAttrs = {
 	purchaseLimit: number,
@@ -40,8 +41,12 @@ export type CreateGiftCardViewAttrs = {
 	initiallySelectedPackage: number;
 	message: string;
 	country: ?Country;
-	outerDialog: lazy<Dialog>
+	outerDialog: lazy<Dialog>,
+	premiumPrice: number
 }
+
+// only allow 200 characters as message, longer breaks the Giftcard layout
+const MAX_LETTERS_MSG = 200
 
 class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
@@ -62,6 +67,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 			.setMode(Mode.HTML)
 			.showBorders()
 			.setValue(a.message)
+			.setMaxLength(MAX_LETTERS_MSG)
 			.setEnabled(true)
 
 		this.countrySelector = createCountryDropdown(
@@ -70,6 +76,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 			"selectRecipientCountry_msg")
 
 		this.isConfirmed = stream(false)
+
 	}
 
 	view(vnode: Vnode<CreateGiftCardViewAttrs>): Children {
@@ -79,27 +86,33 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 				m(".pt-l", {style: {maxWidth: "620px"}},
 					lang.get("buyGiftCardDescription_msg"))),
 			m(".flex.center-horizontally.wrap",
-				a.availablePackages.map((option, index) =>
-					m(BuyOptionBox, {
-						heading: formatPrice(parseFloat(option.value), true),
-						actionButton: () => {
-							return {
-								label: "pricing.select_action",
-								click: () => {
-									this.selectedPackage(index)
-								},
-								type: ButtonType.Login,
-							}
-						},
-						originalPrice: formatPrice(parseFloat(option.value), true),
-						helpLabel: "pricing.basePriceIncludesTaxes_msg",
-						features: () => [],
-						width: 230,
-						height: 250,
-						paymentInterval: null,
-						highlighted: this.selectedPackage() === index,
-						showReferenceDiscount: false,
-					})
+				a.availablePackages.map((option, index) => {
+						const value = parseFloat(option.value)
+						const withSubscriptionAmount = value - a.premiumPrice
+						return m(BuyOptionBox, {
+							heading: formatPrice(parseFloat(value), true),
+							actionButton: () => {
+								return {
+									label: "pricing.select_action",
+									click: () => {
+										this.selectedPackage(index)
+									},
+									type: ButtonType.Login,
+								}
+							},
+							originalPrice: formatPrice(parseFloat(value), true),
+							helpLabel: () => lang.get(withSubscriptionAmount === 0 ? "giftCardOptionTextA_msg" : "giftCardOptionTextB_msg", {
+								"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
+								"{fullCredit}": formatPrice(value, true)
+							}),
+							features: () => [],
+							width: 230,
+							height: 250,
+							paymentInterval: null,
+							highlighted: this.selectedPackage() === index,
+							showReferenceDiscount: false,
+						})
+					}
 				)),
 			m(".flex-center",
 				m(".flex-grow", {style: {maxWidth: "620px"}}, [
@@ -131,10 +144,9 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 		const message = this.messageEditor.getValue().replace(/[\r\n]{2,}/g, "\n")
 		const country = this.selectedCountry()
 
-		// only allow 400 characters as message, longer breaks the Giftcard layout
-		const maxLetters = 200
-		if (message.length > maxLetters) {
-			Dialog.error(() => lang.get("messageTooLong_msg", {"{length}": maxLetters}))
+
+		if (message.length > MAX_LETTERS_MSG) {
+			Dialog.error(() => lang.get("messageTooLong_msg", {"{length}": MAX_LETTERS_MSG}))
 			return
 		}
 
@@ -176,9 +188,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
  * Create a dialog to buy a giftcard or show error if the user cannot do so
  * @returns {Promise<unknown>|Promise<void>|Promise<Promise<void>>}
  */
-export function
-
-showPurchaseGiftCardDialog(): Promise<void> {
+export function showPurchaseGiftCardDialog(): Promise<void> {
 	const loadDialogPromise =
 		logins.getUserController()
 		      .loadAccountingInfo()
@@ -191,9 +201,10 @@ showPurchaseGiftCardDialog(): Promise<void> {
 		      })
 		      .then(() => Promise.all([
 			      serviceRequest(SysService.GiftCardService, HttpMethod.GET, null, GiftCardGetReturnTypeRef),
-			      logins.getUserController().loadCustomerInfo()
+			      logins.getUserController().loadCustomerInfo(),
+			      loadUpgradePrices()
 		      ]))
-		      .spread((giftCardInfo, customerInfo) => {
+		      .spread((giftCardInfo, customerInfo, prices) => {
 			      // User can't buy too many gift cards so we have to load their giftcards in order to check how many they ordered
 			      const loadGiftCardsPromise = customerInfo.giftCards
 				      ? locator.entityClient.loadAll(GiftCardTypeRef, customerInfo.giftCards.items)
@@ -213,8 +224,16 @@ showPurchaseGiftCardDialog(): Promise<void> {
 				      }
 
 				      return logins.getUserController().loadAccountingInfo().then((accountingInfo: AccountingInfo) => {
+					      const priceData = {
+						      options: {
+							      businessUse: () => false,
+							      paymentInterval: () => 12
+						      },
+						      premiumPrices: prices.premiumPrices,
+						      teamsPrices: prices.teamsPrices,
+						      proPrices: prices.proPrices
+					      }
 					      let dialog
-
 					      const attrs: CreateGiftCardViewAttrs = {
 						      purchaseLimit: giftCardInfo.maxPerPeriod,
 						      purchasePeriodMonths: giftCardInfo.period,
@@ -224,7 +243,8 @@ showPurchaseGiftCardDialog(): Promise<void> {
 						      country: accountingInfo.invoiceCountry
 							      ? getByAbbreviation(accountingInfo.invoiceCountry)
 							      : null,
-						      outerDialog: () => dialog
+						      outerDialog: () => dialog,
+						      premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 					      };
 
 					      const headerBarAttrs: DialogHeaderBarAttrs = {
