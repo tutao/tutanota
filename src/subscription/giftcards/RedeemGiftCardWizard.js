@@ -76,7 +76,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 			})
 		}
 
-		let message = htmlSanitizer.sanitize(a.data.giftCardInfo.message, true).text
+		let message = a.data.giftCardInfo.message
 
 		return [
 			m(".flex-center.full-width.pt-l",
@@ -293,11 +293,21 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 				? m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode})
 				: null,
 			wasFree ? [
+					m(".pt-l.plr-l",
+						`${lang.get("giftCardUpgradeNotify_msg", {
+							"{price}": formatPrice(data.premiumPrice, true),
+							"{credit}": formatPrice(Number(data.giftCardInfo.value) - data.premiumPrice, true)
+						})} ${lang.get("creditUsageOptions_msg")}`
+					),
 					m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 					m(".flex-space-around.flex-wrap", [
 						m(".flex-grow-shrink-half.plr-l", [
 							m(TextFieldN, {label: "subscription_label", value: () => "Premium", disabled: true}),
-							m(TextFieldN, {label: "subscriptionPeriod_label", value: () => lang.get("pricing.yearly_label"), disabled: true}),
+							m(TextFieldN, {
+								label: "subscriptionPeriod_label",
+								value: () => `${lang.get("pricing.yearly_label")}, ${lang.get("automaticRenewal_label")}`,
+								disabled: true
+							}),
 							m(TextFieldN, {
 								label: "price_label",
 								value: () => formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
@@ -307,27 +317,19 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 						]),
 						m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
-					]),
-					m(".pt-l.plr-l",
-						`${lang.get("giftCardUpgradeNotify_msg", {
-							"{price}": formatPrice(data.premiumPrice, true),
-							"{credit}": formatPrice(Number(data.giftCardInfo.value) - data.premiumPrice, true)
-						})} ${lang.get("creditUsageOptions_msg")}`
-					)
+					])
 				]
 				: [
-					m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-						m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}})),
 					m(".pt-l.plr-l.flex-center",
 						`${lang.get("giftCardCreditNotify_msg", {"{credit}": formatPrice(Number(data.giftCardInfo.value), true)})} ${lang.get("creditUsageOptions_msg")}`
-					)
+					),
+					m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+						m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
 				],
-			m(".flex-center",
-				m(".pt", [
-					renderAcceptGiftCardTermsCheckbox(this.isConfirmed),
-					m(".flex-grow-shrink-auto.max-width-m.pt-l.pb.plr-l", m(ButtonN, confirmButtonAttrs)
-					)
-				])
+			m(".pt", [
+					m("", renderAcceptGiftCardTermsCheckbox(this.isConfirmed)),
+					m(".flex-grow-shrink-auto.max-width-m", m(ButtonN, confirmButtonAttrs))
+				]
 			)
 		])
 	}

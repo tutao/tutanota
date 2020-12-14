@@ -65,21 +65,14 @@ import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {
 	createGiftCardTableLine,
-	getTokenFromUrl,
 	GIFT_CARD_TABLE_HEADER,
 	loadGiftCards,
-	redeemGiftCard
 } from "./giftcards/GiftCardUtils"
 import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
-import {UserError} from "../api/common/error/UserError"
-import {showUserError} from "../misc/ErrorHandlerImpl"
-import {CancelledError} from "../api/common/error/CancelledError"
 import {Expandable} from "../settings/Expandable"
 import type {ExpandableAttrs} from "../settings/Expandable"
-import {px, size} from "../gui/size"
-import {theme} from "../gui/theme"
 
 assertMainOrNode()
 

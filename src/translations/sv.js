@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2020-12-11T16:42:14Z",
+	"updated_at": "2020-12-14T12:34:14Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -321,7 +321,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Registrera Tutanotas skrivbordsapp som förvald hanterare av e-post, t.ex. för att öppna mail-länkar. Den här åtgärden kan kräva administratörsbehörighet.",
 		"defaultSenderMailAddressInfo_msg": "Förvald avsändaradress för nya e-postmeddelanden.",
 		"defaultSenderMailAddress_label": "Förvald avsändare",
-		"defaultShareGiftCardBody_msg": "Hej! <br /><br />Jag har gett dig ett presentkort på Tutanota, <a href='{link}'>klicka här för att lösa in det!</a> <br /><br />Om du inte har ett konto än kan du använda länken för att registrera dig.<br /><br />Trevliga Helgdagar, {username}",
+		"defaultShareGiftCardBody_msg": "Hej!<br /><br />Jag har gett dig ett presentkort på Tutanota.<br /><br /><div style=\"text-align: center\"><a href=\"{link}\">{link}</a></div><br /><br />Om du inte har ett konto än kan du använda länken för att registrera dig.<br /><br /> Trevliga Helgdagar<br />{username}",
 		"defaultShareGiftCardSubject_msg": "Du har fått ett Tutanota presentkort!",
 		"deleteAccountConfirm_msg": "Vill du verkligen radera ditt konto? Kontot kan inte återskapas och e-postadressen kan inte återanvändas.",
 		"deleteAccountReasonInfo_msg": "Tillval: Vi skulle uppskatta om du vill berätta varför du vill ta bort kontot så att vi kan förbättra Tutanota ytterligare.",
@@ -778,6 +778,7 @@ module.exports = {
 		"orderProcessingAgreement_label": "Beställ bearbetningsavtal",
 		"order_action": "Order",
 		"organizer_label": "Planerare",
+		"originalPrice_label": "Ordinarie pris",
 		"otherCalendars_label": "Andra kalendrar",
 		"otherPaymentProviderError_msg": "Betalningsleverantören returnerade ett fel. Försök igen senare.",
 		"other_label": "Annat",

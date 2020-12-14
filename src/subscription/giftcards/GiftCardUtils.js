@@ -45,9 +45,9 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import type {Country} from "../../api/common/CountryList"
 
 
-const ID_LENGTH = GENERATED_MAX_ID.length;
-const KEY_LENGTH = 24;
-
+const ID_LENGTH = GENERATED_MAX_ID.length
+const KEY_LENGTH = 24
+export const GIFT_CARD_MESSAGE_MAX_LENGTH = 200
 
 export function getTokenFromUrl(url: string): [Id, string] {
 	let id: Id, key: string;
@@ -116,12 +116,14 @@ export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
 			.setMinHeight(350)
 			.setValue(giftCard.message)
 			.setMode(Mode.HTML)
+			.setMaxLength(GIFT_CARD_MESSAGE_MAX_LENGTH)
 
 		Dialog.showActionDialog({
 			title: lang.get("editMessage_label"),
 			child: () => m(".gift-card-editor.pl-l.pr-l", m(editor)),
 			okAction: dialog => {
-				giftCard.message = editor.getValue()
+				// collapse chains of newlines to make the message fit better on the giftcard
+				giftCard.message = editor.getValue().replace(/[\r\n]{2,}/g, "\n")
 				locator.entityClient.update(giftCard)
 				       .then(() => dialog.close())
 				       .catch(e => Dialog.error("giftCardUpdateError_msg"))
@@ -191,7 +193,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 		.then(link => {
 			let dialog: Dialog
 			let infoMessage = "emptyString_msg"
-			let message = htmlSanitizer.sanitize(giftCard.message, true).text
+			let message = giftCard.message
 			let giftCardDomElement: HTMLElement
 			dialog = Dialog.largeDialog(
 				{
@@ -374,7 +376,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 }
 
 export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): Children {
-	return m(CheckboxN, { // TODO
+	return m(CheckboxN, {
 		checked: confirmed,
 		label: () => [
 			m(".pt-l", lang.get("giftCardsTerms_label")),
@@ -385,7 +387,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 						e.preventDefault()
 					}
 				}
-			}, lang.get("acceptPrivacyPolicy_msg", {"{privacyPolicy}": "gift card terms"}))),
+			}, lang.get("acceptGiftCardTerms_label")))
 		],
 	})
 }

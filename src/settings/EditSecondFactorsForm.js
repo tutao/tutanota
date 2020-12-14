@@ -184,7 +184,7 @@ export class EditSecondFactorsForm {
 				const copyButtonAttrs: ButtonAttrs = {
 					label: "copy_action",
 					click: () => copyToClipboard(totpKeys.readableKey),
-					icon: () => Icons.Copy
+					icon: () => Icons.Clipboard
 				}
 
 				let totpQRCodeSvg

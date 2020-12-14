@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2020-12-11T16:42:14Z",
+	"updated_at": "2020-12-14T12:34:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -783,6 +783,7 @@ module.exports = {
 		"orderProcessingAgreement_label": "Contract de procesare a comenzii",
 		"order_action": "Comandă",
 		"organizer_label": "Organizator",
+		"originalPrice_label": "Preț original",
 		"otherCalendars_label": "Alte calendare",
 		"otherPaymentProviderError_msg": "Plata prin acest furnizor a returnat o eroare. Te rugăm încearcă mai tîrziu.",
 		"other_label": "Altele",

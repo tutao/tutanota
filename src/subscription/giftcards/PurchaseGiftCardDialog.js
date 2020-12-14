@@ -23,7 +23,7 @@ import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
-import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
+import {GIFT_CARD_MESSAGE_MAX_LENGTH, renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {UserError} from "../../api/common/error/UserError"
@@ -33,6 +33,8 @@ import {NotAuthorizedError, PreconditionFailedError} from "../../api/common/erro
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
+import {Icons} from "../../gui/base/icons/Icons"
+import {Icon} from "../../gui/base/Icon"
 
 export type CreateGiftCardViewAttrs = {
 	purchaseLimit: number,
@@ -44,9 +46,6 @@ export type CreateGiftCardViewAttrs = {
 	outerDialog: lazy<Dialog>,
 	premiumPrice: number
 }
-
-// only allow 200 characters as message, longer breaks the Giftcard layout
-const MAX_LETTERS_MSG = 200
 
 class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
@@ -67,7 +66,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 			.setMode(Mode.HTML)
 			.showBorders()
 			.setValue(a.message)
-			.setMaxLength(MAX_LETTERS_MSG)
+			.setMaxLength(GIFT_CARD_MESSAGE_MAX_LENGTH)
 			.setEnabled(true)
 
 		this.countrySelector = createCountryDropdown(
@@ -90,7 +89,9 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 						const value = parseFloat(option.value)
 						const withSubscriptionAmount = value - a.premiumPrice
 						return m(BuyOptionBox, {
-							heading: formatPrice(parseFloat(value), true),
+							heading: m(".flex-center",
+								Array(index + 1).fill(m(Icon, {icon: Icons.Gift, large: true}))
+							),
 							actionButton: () => {
 								return {
 									label: "pricing.select_action",
@@ -100,8 +101,10 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 									type: ButtonType.Login,
 								}
 							},
+							price: formatPrice(parseFloat(value), true),
 							originalPrice: formatPrice(parseFloat(value), true),
-							helpLabel: () => lang.get(withSubscriptionAmount === 0 ? "giftCardOptionTextA_msg" : "giftCardOptionTextB_msg", {
+							helpLabel: () => lang.get(withSubscriptionAmount
+							=== 0 ? "giftCardOptionTextA_msg" : "giftCardOptionTextB_msg", {
 								"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
 								"{fullCredit}": formatPrice(value, true)
 							}),
@@ -119,17 +122,15 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 					m(this.messageEditor),
 					m(this.countrySelector)
 				])),
-			m(".flex-center",
-				m(".pt", [
-					renderAcceptGiftCardTermsCheckbox(this.isConfirmed),
-					m(".flex-grow-shrink-auto.max-width-m.pt-l.pb.plr-l", m(ButtonN, {
-							label: "buy_action",
-							click: () => this.buyButtonPressed(a),
-							type: ButtonType.Login,
-						})
-					)
-				])
-			)
+
+			m(".flex-center.full-width.pt-l", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
+			m(".flex-center.full-width.pt-s", m("", {style: {width: "260px"}}, m(ButtonN, {
+					label: "buy_action",
+					click: () => this.buyButtonPressed(a),
+					type: ButtonType.Login,
+				})
+			))
+
 		]
 	}
 
@@ -145,8 +146,8 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 		const country = this.selectedCountry()
 
 
-		if (message.length > MAX_LETTERS_MSG) {
-			Dialog.error(() => lang.get("messageTooLong_msg", {"{length}": MAX_LETTERS_MSG}))
+		if (message.length > GIFT_CARD_MESSAGE_MAX_LENGTH) {
+			Dialog.error(() => lang.get("messageTooLong_msg", {"{length}": GIFT_CARD_MESSAGE_MAX_LENGTH}))
 			return
 		}
 
@@ -218,8 +219,8 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 
 				      if (numPurchasedGiftCards >= parseInt(giftCardInfo.maxPerPeriod)) {
 					      throw new UserError(() => lang.get("tooManyGiftCards_msg", {
-						      amount: giftCardInfo.maxPerPeriod,
-						      period: `${giftCardInfo.period} months`
+						      "{amount}": giftCardInfo.maxPerPeriod,
+						      "{period}": `${giftCardInfo.period} months`
 					      }))
 				      }
 

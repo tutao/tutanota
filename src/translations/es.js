@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2020-12-11T17:52:53Z",
+	"updated_at": "2020-12-14T12:34:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -325,7 +325,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Registra Tutanota Desktop como el controlador de correo electrónico predeterminado, por ejemplo, para abrir vínculos de dirección de correo electrónico. Esta operación puede requerir permisos de administrador.",
 		"defaultSenderMailAddressInfo_msg": "Dirección de correo remitente por defecto para nuevos correos.",
 		"defaultSenderMailAddress_label": "Remitente predeterminado",
-		"defaultShareGiftCardBody_msg": "Hola, <br /><br />Te compré una tarjeta de regalo para Tutanota, <a href='{link}'>¡haz clic aquí para canjearla!</a><br /><br />Si aún no tienes una cuenta, puedes usar el enlace para registrarte y reclamar tu privacidad.<br /><br />  Felices Fiestas {username}",
+		"defaultShareGiftCardBody_msg": "Hola <br /><br />Te compré una tarjeta de regalo para Tutanota, ¡usa este enlace para canjearla!<br /><br /><div style=\"text-align: center\"><a href=\"{link}\">•Enlace</a></div><br /><br />Si aún no tienes una cuenta, puedes usar el enlace para registrarte y reclamar tu privacidad.<br /><br />  Felices Fiestas,<br />{username}",
 		"defaultShareGiftCardSubject_msg": "¡Has recibido una tarjeta de regalo de Tutanota!",
 		"deleteAccountConfirm_msg": "¿Realmente quieres borrar tu cuenta? La cuenta no puede ser recuperada posteriormente.",
 		"deleteAccountReasonInfo_msg": "Opcional: Te agradeceríamos que nos dijeras por qué quieres borrar tu cuenta para que podamos mejorar Tutanota.",

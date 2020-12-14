@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2020-12-11T16:42:14Z",
+	"updated_at": "2020-12-14T12:34:14Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -325,7 +325,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Registre o Tutanota Desktop como seu programa de email padrão, para abrir links de email. Pode ser necessário ser administrador neste dispositivo.",
 		"defaultSenderMailAddressInfo_msg": "Remetente padrão para novos emails.",
 		"defaultSenderMailAddress_label": "Remetente padrão",
-		"defaultShareGiftCardBody_msg": "Oi, <br /><br />Comprei um cartão presente Tutanota para você, <a href='{link}'>clique aqui para obtê-lo!</a><br /><br />Se ainda não tem uma conta, pode usar o link para criar uma conta e recuperar sua privacidade.<br /><br />Boas festas,\n{username}\n",
+		"defaultShareGiftCardBody_msg": "Oi! <br /><br />Comprei um cartão presente Tutanota para você, use esse link para resgatá-lo: <br /><br /><div style=\"text-align: center\"><a href=\"{link}\"> </a></div><br /><br />Se ainda não tem uma conta, pode usar o link para criar uma conta e recuperar sua privacidade.<br /><br />Boas festas,<br />{username}\n",
 		"defaultShareGiftCardSubject_msg": "Você recebeu um cartão presente Tutanota!",
 		"deleteAccountConfirm_msg": "Deseja mesmo apagar sua conta? A conta não pode ser recuperada e o endereço de email não pode ser registrado de novo.",
 		"deleteAccountReasonInfo_msg": "Opcional: Nós apreciaríamos se você nos explicasse por que deseja apagar sua conta, para que possamos aprimorar o Tutanota.",
@@ -782,6 +782,7 @@ module.exports = {
 		"orderProcessingAgreement_label": "Acordo de processamento de pedidos",
 		"order_action": "Pedido",
 		"organizer_label": "Organizador",
+		"originalPrice_label": "Preço original",
 		"otherCalendars_label": "Outros calendários",
 		"otherPaymentProviderError_msg": "O sistema de pagamentos apontou um erro. Por favor tente mais tarde.",
 		"other_label": "Outro",
