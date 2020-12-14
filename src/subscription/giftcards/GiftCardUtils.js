@@ -28,7 +28,6 @@ import {px, size} from "../../gui/size"
 import {assertNotNull, neverNull} from "../../api/common/utils/Utils"
 import {LocationServiceGetReturnTypeRef} from "../../api/entities/sys/LocationServiceGetReturn"
 import {getByAbbreviation} from "../../api/common/CountryList"
-import {createGiftCardRedeemData} from "../../api/entities/sys/GiftCardRedeemData"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {theme} from "../../gui/theme"
@@ -37,7 +36,7 @@ import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64} from "../../api/common/utils/Encoding"
-import {getWebRoot, isApp} from "../../api/Env"
+import {getWebRoot, isAndroidApp, isApp, isIOSApp} from "../../api/Env"
 import {shareTextNative} from "../../native/SystemApp"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
@@ -231,7 +230,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 											label: "shareViaEmail_action",
 											icon: () => BootIcons.Mail
 										}),
-										isApp()
+										isAndroidApp()
 											? m(ButtonN, {
 												click: () => {
 													shareTextNative(lang.get("nativeShareGiftCard_msg", {"{link}": link}), lang.get("nativeShareGiftCard_label"))
