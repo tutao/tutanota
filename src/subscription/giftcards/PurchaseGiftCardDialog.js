@@ -90,7 +90,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 						const withSubscriptionAmount = value - a.premiumPrice
 						return m(BuyOptionBox, {
 							heading: m(".flex-center",
-								Array(index + 1).fill(m(Icon, {icon: Icons.Gift, large: true}))
+								Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
 							),
 							actionButton: () => {
 								return {
@@ -130,7 +130,6 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 					type: ButtonType.Login,
 				})
 			))
-
 		]
 	}
 

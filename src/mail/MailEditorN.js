@@ -639,18 +639,18 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
  */
 export function writeGiftCardMail(link: string, svg: string, mailboxDetails?: MailboxDetail) {
 	_mailboxPromise(mailboxDetails).then(mailbox => {
-			const bodyText = lang.get("defaultShareGiftCardBody_msg", {
-				'{link}': link,
-				'{username}': logins.getUserController().userGroupInfo.name,
-			})
+		let bodyText = lang.get("defaultShareGiftCardBody_msg", {
+			'{link}': '<a href="' + link + '">' + link + '</a>',
+			'{username}': logins.getUserController().userGroupInfo.name,
+		}).split("\n").join("<br />");
 
-			const data = stringToUtf8Uint8Array(replaceHtmlEntities(svg));
+		const data = stringToUtf8Uint8Array(replaceHtmlEntities(svg));
 
-			const attachment: DataFile = {
-				_type: "DataFile",
-				name: "tutanota-giftcard.svg",
-				mimeType: "image/svg+xml",
-				data,
+		const attachment: DataFile = {
+			_type: "DataFile",
+			name: "tutanota-giftcard.svg",
+			mimeType: "image/svg+xml",
+			data,
 				size: data.byteLength,
 				id: null
 			}

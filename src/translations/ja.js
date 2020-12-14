@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2020-11-22T13:55:28Z",
+	"updated_at": "2020-12-14T15:01:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",

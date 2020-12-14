@@ -306,7 +306,7 @@ export class LanguageViewModel {
 		}
 		if (params instanceof Object) {
 			for (var param in params) {
-				text = text.replaceAll(param, params[param])
+				text = text.replace(param, params[param])
 			}
 		}
 		return text

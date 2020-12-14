@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2020-12-14T12:34:14Z",
+	"updated_at": "2020-12-14T15:01:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -273,6 +273,7 @@ module.exports = {
 		"creditCardNumberFormat_msg": "Prosím vložte číslo své platební karty.",
 		"creditCardNumberInvalid_msg": "Číslo platební karty je neplatné.",
 		"creditCardNumber_label": "Číslo platební karty",
+		"creditUsageOptions_msg": "Kredit může být využit pro nákup různých balíčků (v nastavení - předplatné). Může být také ponechán až do dalšího období pro obnovení předplatného. Kredit, který vznikl z dárkového poukazu, nemá omezenou platnost!",
 		"credit_label": "Kredit",
 		"currentBalance_label": "Aktuální zůstatek účtu",
 		"currentlyBooked_label": "Přehled objednávky ",

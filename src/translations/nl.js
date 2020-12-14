@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2020-12-14T12:38:09Z",
+	"updated_at": "2020-12-14T15:01:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -19,6 +19,7 @@ module.exports = {
 	},
 	"keys": {
 		"about_label": "Over",
+		"acceptGiftCardTerms_label": "Ik heb de gebruiksvoorwaarden voor vouchers gelezen en accepteer ze.",
 		"acceptInvitation_action": "Uitnodiging accepteren",
 		"acceptPrivacyPolicyReminder_msg": "Graag het privacybeleid accepteren door het aankruisvakje te selecteren.",
 		"acceptPrivacyPolicy_msg": "Ik heb de {privacyPolicy} gelezen en ga ermee akkoord.",
@@ -276,7 +277,7 @@ module.exports = {
 		"creditCardNumberFormat_msg": "Graag uw kredietkaartnummer invullen.",
 		"creditCardNumberInvalid_msg": "Ongeldig kredietkaartnummer.",
 		"creditCardNumber_label": "Kredietkaartnummer",
-		"creditUsageOptions_msg": "Krediet kan worden gebruikt om verschillende pakketten te kopen (ga naar \"Instellingen → Abonnementsinstellingen\" nadat u bent ingelogd), of kan worden vastgehouden tot de volgende abonnementsperiode om te betalen voor een verlenging!",
+		"creditUsageOptions_msg": "Kredit kan worden gebruikt om verschillende pakketten te bestellen (onder \"Instellingen → Abonnement\"). Het tegoed kan ook worden gespaard, zodat het de volgende keer dat het abonnement wordt verlengd voor betaling kan worden gebruikt. Tegoed van ingewisselde cadeaubonnen vervalt niet.",
 		"credit_label": "Krediet",
 		"currentBalance_label": "Huidige saldo",
 		"currentlyBooked_label": "Reservering overzicht",
