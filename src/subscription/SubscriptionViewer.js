@@ -2,7 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
-import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
+import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
@@ -104,6 +104,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_currentSubscription: SubscriptionTypeEnum;
 	_isCancelled: boolean;
 	_giftCards: Map<Id, GiftCard>;
+	_giftCardsExpanded: Stream<boolean>
 
 	constructor() {
 		let subscriptionAction = new Button("subscription_label", () => {
@@ -233,7 +234,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			.then(giftCards => {
 				giftCards.forEach(giftCard => this._giftCards.set(elementIdPart(giftCard._id), giftCard))
 			})
-
+		this._giftCardsExpanded = stream(false)
 
 		this.view = (): VirtualElement => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
@@ -320,7 +321,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
 				}),
-				m(Expandable, renderGiftCardExpandable(Array.from(this._giftCards.values()), isPremiumPredicate)),
+				m(Expandable, renderGiftCardExpandable(Array.from(this._giftCards.values()), isPremiumPredicate, this._giftCardsExpanded)),
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
 				m(TextFieldN, {
 					label: "bookingItemUsers_label",
@@ -623,6 +624,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
 			return locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId]).then(giftCard => {
 				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+				if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 			})
 		} else {
 			return Promise.resolve()
@@ -660,7 +662,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 	}
 }
 
-function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): ExpandableAttrs {
+function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean, expanded: Stream<boolean>): ExpandableAttrs {
 	const purchaseGiftCardButtonAttrs: ButtonAttrs = {
 		label: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
@@ -678,7 +680,8 @@ function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () 
 				addButtonAttrs: purchaseGiftCardButtonAttrs,
 				lines: giftCards.filter(giftCard => giftCard.usable).map(giftCard => createGiftCardTableLine(giftCard)),
 			})
-		]
+		],
+		expanded,
 	}
 }
 
