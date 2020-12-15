@@ -1,4 +1,4 @@
-/*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.0.8/LICENSE */
+/*! @license DOMPurify | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.2.2/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -209,7 +209,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '2.2.2';
+    DOMPurify.version = '2.2.3';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -683,13 +683,13 @@
       });
 
       /* Take care of an mXSS pattern using p, br inside svg, math */
-      if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, form, table').length !== 0) {
+      if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, form, table, h1, h2, h3, h4, h5, h6').length !== 0) {
         _forceRemove(currentNode);
         return true;
       }
 
       /* Detect mXSS attempts abusing namespace confusion */
-      if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[!/\w]/g, currentNode.innerHTML) && regExpTest(/<[!/\w]/g, currentNode.textContent)) {
+      if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
         _forceRemove(currentNode);
         return true;
       }
