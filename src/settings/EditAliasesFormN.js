@@ -68,7 +68,7 @@ export class EditAliasesFormN implements MComponent<EditAliasesFormAttrs> {
 	}
 
 	_showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
-		if (aliasFormAttrs.aliasCount.availableToEnable === 0) {
+		if (aliasFormAttrs.aliasCount.availableToCreate === 0) {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(true)
 			} else {
