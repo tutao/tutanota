@@ -26,6 +26,7 @@ import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
 import {locator} from "../api/main/MainLocator"
 import {newMailEditorFromTemplate} from "../mail/MailEditorN"
 import {neverNull} from "../api/common/utils/Utils"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -211,7 +212,8 @@ export class ContactViewer {
 	_writeMail(mailAddress: string): Promise<*> {
 		return locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
 			const name = `${this.contact.firstName} ${this.contact.lastName}`.trim()
-			return newMailEditorFromTemplate(mailboxDetails, {to: [{name, address: mailAddress}]}, "", appendEmailSignature(""))
+			return newMailEditorFromTemplate(mailboxDetails, {to: [{name, address: mailAddress}]},
+				"", appendEmailSignature("", logins.getUserController().props))
 				.then(editor => editor.show())
 		})
 	}

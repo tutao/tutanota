@@ -35,7 +35,8 @@ import {theme} from "../gui/theme"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import {
-	archiveMails, getDefaultSignature,
+	appendEmailSignature,
+	archiveMails,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -166,7 +167,7 @@ export class MailView implements CurrentView {
 								this._getMailboxDetails(),
 								fileController.readLocalFiles(ev.dataTransfer.files),
 								(mailbox, dataFiles) => {
-									newMailEditorFromTemplate(mailbox, {}, "", getDefaultSignature(), dataFiles).then(dialog => dialog.show())
+									newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", logins.getUserController().props), dataFiles).then(dialog => dialog.show())
 								}).catch(PermissionError, noOp)
 							       .catch(UserError, showUserError)
 						}

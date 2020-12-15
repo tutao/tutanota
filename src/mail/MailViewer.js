@@ -1256,7 +1256,7 @@ export class MailViewer {
 							bccRecipients,
 							attachments: [],
 							subject,
-							bodyText: prependEmailSignature(body),
+							bodyText: prependEmailSignature(body, logins),
 							replyTos: [],
 						}, this._contentBlocked, this._inlineImages, mailboxDetails)
 					}).then(editor => {
@@ -1317,7 +1317,7 @@ export class MailViewer {
 				bccRecipients: [],
 				attachments: this._attachments.slice(),
 				subject: "FWD: " + this.mail.subject,
-				bodyText: addSignature ? prependEmailSignature(body) : body,
+				bodyText: addSignature ? prependEmailSignature(body, logins) : body,
 				replyTos,
 			}
 		})
