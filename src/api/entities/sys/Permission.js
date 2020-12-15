@@ -136,7 +136,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "64"
+	"version": "65"
 }
 
 export function createPermission(values?: $Shape<$Exact<Permission>>): Permission {

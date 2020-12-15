@@ -178,7 +178,7 @@ export class LoginViewController implements ILoginViewController {
 		            })
 		            .catch(AccessExpiredError, e => {
 			            this.view.helpText = lang.get('inactiveAccount_msg')
-		            	this.view.accessExpired = true
+			            this.view.accessExpired = true
 			            m.redraw()
 			            return errorAction()
 		            })

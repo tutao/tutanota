@@ -250,6 +250,7 @@ let initialized = lang.init(en).then(() => {
 		"/calendar": calendarViewResolver,
 		"/calendar/:view": calendarViewResolver,
 		"/calendar/:view/:date": calendarViewResolver,
+		"/giftcard/": loginViewResolver,
 		"/:path...": {
 			onmatch: (args: {[string]: string}, requestedPath: string): void => {
 				console.log("Not found", args, requestedPath)

@@ -44,7 +44,7 @@ export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 export const baseLabelPosition = size.text_field_label_top
 
-export class _TextField {
+export class TextFieldN implements MComponent<TextFieldAttrs> {
 	active: boolean;
 	webkitAutofill: boolean;
 	onblur: ?Function;
@@ -300,4 +300,3 @@ export class _TextField {
 	}
 }
 
-export const TextFieldN: Class<MComponent<TextFieldAttrs>> = _TextField

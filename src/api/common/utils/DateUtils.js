@@ -113,3 +113,14 @@ export function formatSortableDateTime(date: Date): string {
 export function sortableTimestamp(): string {
 	return formatSortableDateTime(new Date())
 }
+
+// TODO TEST AND MAKE SURE IT WORKS !!!!!
+/**
+ * Calculate the absolute difference in days between two dates
+ * @param a
+ * @param b
+ * @returns {number}
+ */
+export function getDifferenceInDays(a: Date, b: Date): number {
+	return Math.abs(a - b) / DAY_IN_MILLIS
+}

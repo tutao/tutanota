@@ -99,7 +99,7 @@ export class CustomerFacade {
 
 	uploadCertificate(domainName: string, pemCertificateChain: ?string, pemPrivateKey: ?string): Promise<void> {
 		return load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+			return load(CustomerInfoTypeRef, customer.customerInfo) .then(customerInfo => {
 				let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 				return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 					.then(keyData => {

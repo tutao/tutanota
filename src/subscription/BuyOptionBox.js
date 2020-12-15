@@ -8,12 +8,17 @@ import {neverNull} from "../api/common/utils/Utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Icon} from "../gui/base/Icon"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
+import {ButtonN} from "../gui/base/ButtonN"
 
 
 export type BuyOptionBoxAttr = {|
-	heading: string,
-	actionButton: ?Component,
-	price: string,
+	heading: string | Children,
+	// lazy<ButtonAttrs> because you can't do actionButton instanceof ButtonAttrs since ButtonAttrs doesn't exist in the javascript side
+	// there is a strange interaction between the HTMLEditor in HTML mode and the ButtonN when you pass the ButtonN in via a component
+	// that doesn't occur when you pass in the attrs
+	actionButton: ?(Component | lazy<ButtonAttrs>),
+	price?: string,
 	originalPrice: string,
 	helpLabel: TranslationKey | lazy<string>,
 	features: () => string[],
@@ -38,13 +43,9 @@ export function getActiveSubscriptionActionButtonReplacement(): {|view: () => Vn
 
 export const BOX_MARGIN = 10
 
-class _BuyOptionBox {
+export class BuyOptionBox implements MComponent<BuyOptionBoxAttr> {
 
-	constructor() {
-
-	}
-
-	view(vnode: Vnode<BuyOptionBoxAttr>) {
+	view(vnode: Vnode<BuyOptionBoxAttr>): Children {
 
 		return m("", {
 			style: {
@@ -71,7 +72,7 @@ class _BuyOptionBox {
 					}
 				}, vnode.attrs.heading),
 				m(".text-center.pt.flex.center-vertically.center-horizontally", [
-					m("span.h1", vnode.attrs.price),
+					vnode.attrs.price ? m("span.h1", vnode.attrs.price) : null,
 					(vnode.attrs.showReferenceDiscount && vnode.attrs.price !== vnode.attrs.originalPrice)
 						? [
 							// This element is for the screen reader because they tend to not announce strikethrough.
@@ -81,8 +82,7 @@ class _BuyOptionBox {
 									width: "0",
 									height: "0",
 								},
-								// TODO: translate
-							}, "Original price: "),
+							}, lang.get("originalPrice_label") + ": "),
 							m("s.pl", "(" + vnode.attrs.originalPrice + ")"),
 						]
 						: null
@@ -93,13 +93,16 @@ class _BuyOptionBox {
 					items: PaymentIntervalItems
 				}) : null,
 				vnode.attrs.actionButton ? m(".button-min-height", {
-					style: {
-						position: "absolute",
-						bottom: px(10),
-						left: px(10),
-						right: px(10)
-					}
-				}, m(neverNull(vnode.attrs.actionButton))) : null
+						style: {
+							position: "absolute",
+							bottom: px(10),
+							left: px(10),
+							right: px(10)
+						}
+					}, (typeof vnode.attrs.actionButton === "function"
+					? m(ButtonN, vnode.attrs.actionButton())
+					: m(neverNull(vnode.attrs.actionButton))))
+					: null
 			]), m("div.mt.pl", vnode.attrs.features().map(f => m(".flex",
 				[
 					m(Icon, {
@@ -119,14 +122,4 @@ class _BuyOptionBox {
 		])
 	}
 }
-
-export const BuyOptionBox: Class<MComponent<BuyOptionBoxAttr>> = _BuyOptionBox
-
-
-
-
-
-
-
-
 

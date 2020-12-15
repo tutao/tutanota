@@ -1,7 +1,9 @@
 //@flow
+import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {AccountType, BookingItemFeatureType} from "../api/common/TutanotaConstants"
+import type {BookingItemFeatureTypeEnum} from "../api/common/TutanotaConstants"
+import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -9,6 +11,18 @@ import type {PlanPrices} from "../api/entities/sys/PlanPrices"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {Booking} from "../api/entities/sys/Booking"
+import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
+import {serviceRequestVoid} from "../api/main/Entity"
+import {SysService} from "../api/entities/sys/Services"
+import {HttpMethod} from "../api/common/EntityFunctions"
+import {Dialog} from "../gui/base/Dialog"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import * as BuyDialog from "./BuyDialog"
+import {asyncImport} from "../api/common/utils/Utils"
+import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
+import {htmlSanitizer} from "../misc/HtmlSanitizer"
+import {ButtonType} from "../gui/base/ButtonN"
+
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>,
@@ -98,7 +112,7 @@ export function getUpgradePrice(attrs: SubscriptionData, subscription: Subscript
 	return Number(monthlyPriceString) * monthsFactor - discount
 }
 
-export function getFormattetUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
+export function getFormattedUpgradePrice(attrs: SubscriptionData, subscription: SubscriptionTypeEnum, type: UpgradePriceTypeEnum): string {
 	return formatPrice(getUpgradePrice(attrs, subscription, type), true)
 }
 
@@ -132,7 +146,7 @@ export function getNbrOfUsers(lastBooking: ?Booking): number {
 }
 
 export function isWhitelabelActive(lastBooking: ?Booking): boolean {
-	return getCurrentCount(BookingItemFeatureType.Branding, lastBooking) !== 0
+	return getCurrentCount(BookingItemFeatureType.Whitelabel, lastBooking) !== 0
 }
 
 export function isSharingActive(lastBooking: ?Booking): boolean {
@@ -178,3 +192,126 @@ export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): Tra
 			return "payContactUsError_msg"
 	}
 }
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function bookItem(featureType: BookingItemFeatureTypeEnum, amount: number): Promise<boolean> {
+	const bookingData = createBookingServiceData({
+		amount: amount.toString(),
+		featureType,
+		date: Const.CURRENT_DATE
+	})
+	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData).return(false).catch(PreconditionFailedError, error => {
+		console.log(error)
+		return Dialog.error(error.data === "balance.insufficient"
+			? "insufficientBalanceError_msg"
+			: getBookingItemErrorMsg(featureType)).return(true)
+	})
+}
+
+export function buyAliases(amount: number): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Alias, amount)
+}
+
+export function buyStorage(amount: number): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Storage, amount);
+}
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function buyWhitelabel(enable: boolean): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
+}
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function buySharing(enable: boolean): Promise<boolean> {
+	return bookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+}
+
+/**
+ * Shows the buy dialog to enable or disable the whitelabel package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
+	return showBuyDialog(BookingItemFeatureType.Whitelabel, enable ? 1 : 0)
+}
+
+/**
+ * Shows the buy dialog to enable or disable the sharing package.
+ * @param enable true if the whitelabel package should be enabled otherwise false.
+ * @returns false if the execution was successfull. True if the action has been cancelled by user or the precondition has failed.
+ */
+export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
+	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
+		if (ok) {
+			return showBuyDialog(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+		} else {
+			return true
+		}
+	})
+}
+
+/**
+ * @returns True if it failed, false otherwise
+ */
+export function showBuyDialog(bookingItemFeatureType: BookingItemFeatureTypeEnum, amount: number, freeAmount: number = 0, reactivate: boolean = false): Promise<boolean> {
+	return showProgressDialog("pleaseWait_msg", BuyDialog.show(bookingItemFeatureType, amount, freeAmount, reactivate))
+		.then(accepted => {
+			if (accepted) {
+				return bookItem(bookingItemFeatureType, amount)
+			} else {
+				return true
+			}
+		})
+}
+
+
+export function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
+	asyncImport(typeof module !== "undefined"
+		? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
+		.then(terms => {
+			let dialog: Dialog
+			let visibleLang = lang.code
+			let sanitizedTerms: string
+			let headerBarAttrs: DialogHeaderBarAttrs = {
+				left: [
+					{
+						label: () => "EN/DE",
+						click: () => {
+							visibleLang = visibleLang === "de" ? "en" : "de"
+							sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+							m.redraw()
+						},
+						type: ButtonType.Secondary
+					}
+				],
+				right: [{label: 'ok_action', click: () => dialog.close(), type: ButtonType.Primary}]
+			}
+
+			sanitizedTerms = htmlSanitizer.sanitize(terms[section + "_" + visibleLang], false).text
+			dialog = Dialog.largeDialog(headerBarAttrs, {
+				view: () => m(".text-break", m.trust(sanitizedTerms))
+			}).show()
+		})
+}
+
+function getBookingItemErrorMsg(feature: BookingItemFeatureTypeEnum): TranslationKey {
+	switch (feature) {
+		case BookingItemFeatureType.Alias:
+			return "emailAliasesTooManyActivatedForBooking_msg"
+		case BookingItemFeatureType.Storage:
+			return "storageCapacityTooManyUsedForBooking_msg"
+		case BookingItemFeatureType.Whitelabel:
+			return "whitelabelDomainExisting_msg"
+		case BookingItemFeatureType.Sharing:
+			return "unknownError_msg"
+		default:
+			return "unknownError_msg"
+	}
+}
+

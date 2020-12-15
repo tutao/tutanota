@@ -57,6 +57,7 @@ declare class Promise<+R> {
 
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
 	catch<U, ErrorT: Error>(err: (Class<ErrorT> | (Error) => boolean), onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
+	catch<U, ErrorT1: Error, ErrorT2: Error>(e1: Class<ErrorT1>, e2: Class<ErrorT2>, onReject: (error: (ErrorT1 | ErrorT2)) => ?Promise<U> | U): Promise<U>;
 
 	finally<R>(onDone?: () => mixed): Promise<R>;
 

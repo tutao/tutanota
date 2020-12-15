@@ -4,4 +4,5 @@
     <string name="notificationSync_msg">Synchronizowanie zawiadomień</string>
     <string name="scheduleAlarmError_msg">Nie można było ustawić alarmu. Zaktualizuj proszę aplikację.</string>
     <string name="wantToSendReport_msg">Coś poszło nie tak. Chcesz wysłać raport o błędzie? Możesz dodać wiadomość, która pomoże nam naprawić ten błąd.</string>
+    <string name="downloadCompleted_msg">Pobieranie zakończone</string>
 </resources>

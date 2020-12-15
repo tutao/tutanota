@@ -19,12 +19,9 @@ import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api
 import {worker} from "../api/main/WorkerClient"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream/stream.js"
-import {buyAliases} from "./EmailAliasOptionsDialog"
-import {buyStorage} from "./StorageCapacityOptionsDialog"
-import {buySharing, buyWhitelabel} from "./WhitelabelAndSharingBuyDialog"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
-import {SubscriptionType} from "./SubscriptionUtils"
+import {buyAliases, buySharing, buyStorage, buyWhitelabel, SubscriptionType} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {createPlanPrices} from "../api/entities/sys/PlanPrices"
 import {neverNull} from "../api/common/utils/Utils"
@@ -182,8 +179,8 @@ function getPrices(currentSubscription: SubscriptionTypeEnum, currentNbrOfUsers:
 		worker.getPrice(BookingItemFeatureType.Storage, 0, false),
 		worker.getPrice(BookingItemFeatureType.Sharing, 1, false),
 		worker.getPrice(BookingItemFeatureType.Sharing, 0, false),
-		worker.getPrice(BookingItemFeatureType.Branding, 1, false),
-		worker.getPrice(BookingItemFeatureType.Branding, 0, false),
+		worker.getPrice(BookingItemFeatureType.Whitelabel, 1, false),
+		worker.getPrice(BookingItemFeatureType.Whitelabel, 0, false),
 		worker.getPrice(BookingItemFeatureType.ContactForm, 1, false),
 
 		(addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice) => {
@@ -214,7 +211,7 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 	let contactFormPrice = getMonthlySinglePrice(contactFormReturn, BookingItemFeatureType.ContactForm, paymentIntervalFactor)
 	let singleUserPriceMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Users, paymentIntervalFactor)
 	let currentSharingPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Sharing, paymentIntervalFactor)
-	let currentWhitelabelPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Branding, paymentIntervalFactor)
+	let currentWhitelabelPerUserMonthly = getMonthlySinglePrice(addUserReturn, BookingItemFeatureType.Whitelabel, paymentIntervalFactor)
 
 	prices.contactFormPriceMonthly = subscriptions[targetSubscription].whitelabel ? String(contactFormPrice) : "0"
 	prices.firstYearDiscount = "0"
@@ -253,7 +250,7 @@ function getPrice(currentSubscription: SubscriptionTypeEnum, targetSubscription:
 		prices.monthlyPrice = String(monthlyPrice)
 		prices.monthlyReferencePrice = String(monthlyPrice)
 		prices.additionalUserPriceMonthly = String(singleUserPriceMonthly
-			+ (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? getMonthlySinglePrice(upgradeWhitelabelPrice, BookingItemFeatureType.Branding, paymentIntervalFactor) : currentWhitelabelPerUserMonthly)
+			+ (isUpgradeWhitelabelNeeded(targetSubscription, currentlyWhitelabelOrdered) ? getMonthlySinglePrice(upgradeWhitelabelPrice, BookingItemFeatureType.Whitelabel, paymentIntervalFactor) : currentWhitelabelPerUserMonthly)
 			+ (isUpgradeSharingNeeded(targetSubscription, currentlySharingOrdered) ? getMonthlySinglePrice(upgradeSharingPrice, BookingItemFeatureType.Sharing, paymentIntervalFactor) : currentSharingPerUserMonthly))
 	} else {
 		// downgrade. show the current prices minus all features not in the target subscription (keep users as is)
@@ -477,7 +474,8 @@ function cancelAllAdditionalFeatures(targetSubscription: SubscriptionTypeEnum,
 		}
 	}).then(previousFailed => {
 		if (isDowngradeStorageNeeded(targetSubscription, currentAmountOfStorage, includedStorage)) {
-			return buyStorage(subscriptions[targetSubscription].orderStorageGb).then(thisFailed => thisFailed || previousFailed)
+			return buyStorage(subscriptions[targetSubscription].orderStorageGb)
+				.then(thisFailed => thisFailed || previousFailed)
 		} else {
 			return previousFailed
 		}

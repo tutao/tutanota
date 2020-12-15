@@ -1,40 +1,21 @@
 // @flow
 import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
-import {BookingItemFeatureType, Const, Keys} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType, Keys} from "../api/common/TutanotaConstants"
 import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
-import {load, serviceRequestVoid} from "../api/main/Entity"
+import {load} from "../api/main/Entity"
 import {worker} from "../api/main/WorkerClient"
 import {getCountFromPriceData, getPriceFromPriceData} from "./PriceUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {formatPrice} from "../subscription/SubscriptionUtils"
+import {buyStorage, formatPrice} from "../subscription/SubscriptionUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
-import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
-import {PreconditionFailedError} from "../api/common/error/RestError"
-import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import * as BuyDialog from "./BuyDialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-
-/**
- * @returns True if it failed, false otherwise
- */
-export function buyStorage(amount: number): Promise<boolean> {
-	const bookingData = createBookingServiceData()
-	bookingData.amount = amount.toString()
-	bookingData.featureType = BookingItemFeatureType.Storage
-	bookingData.date = Const.CURRENT_DATE
-	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
-		.return(false)
-		.catch(PreconditionFailedError, error => {
-			return Dialog.error("storageCapacityTooManyUsedForBooking_msg").return(true)
-		})
-}
 
 export function show(): Promise<void> {
 	return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))

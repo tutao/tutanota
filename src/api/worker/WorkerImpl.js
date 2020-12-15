@@ -12,7 +12,7 @@ import {nativeApp} from "../../native/NativeWrapper"
 import {TotpVerifier} from "./crypto/TotpVerifier"
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {loadContactForm} from "./facades/ContactFormFacade"
-import {keyToBase64} from "./crypto/CryptoUtils"
+import {base64ToKey, keyToBase64} from "./crypto/CryptoUtils"
 import {aes256RandomKey} from "./crypto/Aes"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
@@ -342,6 +342,18 @@ export class WorkerImpl {
 			getEventByUid: (message: Request) => {
 				return locator.calendar.getEventByUid(...message.args)
 			},
+
+			generateGiftCard: (message: Request) => {
+				return locator.giftCards.generateGiftCard(message.args[0], message.args[1], message.args[2])
+			},
+
+			getGiftCardInfo: (message: Request) => {
+				return locator.giftCards.getGiftCardInfo(message.args[0], base64ToKey(message.args[1]))
+			},
+
+			redeemGiftCard: (message: Request) => {
+				return locator.giftCards.redeemGiftCard(message.args[0], base64ToKey(message.args[1]))
+			}
 		})
 
 		// only register oncaught error handler if we are in the *real* worker scope

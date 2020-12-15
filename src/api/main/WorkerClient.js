@@ -51,6 +51,7 @@ import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
+import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {ProgressMonitor} from "../common/utils/ProgressMonitor"
 
 assertMainOrNode()
@@ -122,7 +123,6 @@ export class WorkerClient implements EntityRestInterface {
 				this.infoMessages(downcast(message.args[0]))
 				return Promise.resolve()
 			},
-
 			createProgressMonitor: (message: Message) => {
 				const work = downcast(message.args[0])
 				const reference = locator.progressTracker.registerMonitor(work)
@@ -585,8 +585,8 @@ export class WorkerClient implements EntityRestInterface {
 		return this._queue.postMessage(new Request("acceptGroupInvitation", [invitation]))
 	}
 
-	rejectGroupInvitation(receivedGroupInvitaitonId: IdTuple): Promise<void> {
-		return this._queue.postMessage(new Request("rejectGroupInvitation", [receivedGroupInvitaitonId]))
+	rejectGroupInvitation(receivedGroupInvitationId: IdTuple): Promise<void> {
+		return this._queue.postMessage(new Request("rejectGroupInvitation", [receivedGroupInvitationId]))
 	}
 
 	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
@@ -595,6 +595,18 @@ export class WorkerClient implements EntityRestInterface {
 
 	getEventByUid(uid: string): Promise<?CalendarEvent> {
 		return this._queue.postMessage(new Request("getEventByUid", [uid]))
+	}
+
+	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
+		return this._queue.postMessage(new Request("generateGiftCard", arguments))
+	}
+
+	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
+		return this._queue.postMessage(new Request("getGiftCardInfo", arguments))
+	}
+
+	redeemGiftCard(id: Id, key: string): Promise<void> {
+		return this._queue.postMessage(new Request("redeemGiftCard", arguments))
 	}
 
 	isLeader(): boolean {

@@ -17,10 +17,13 @@ import {AriaLandmarks, landmarkAttrs} from "../../api/common/utils/AriaUtils"
 import {attachDropdown} from "../base/DropdownN"
 import {noOp} from "../../api/common/utils/Utils"
 import {keyManager} from "../../misc/KeyManager"
+import {showPurchaseGiftCardDialog} from "../../subscription/giftcards/PurchaseGiftCardDialog"
+import {createNotAvailableForFreeClickHandler} from "../../subscription/PriceUtils"
 
 type Attrs = void
 
 export class DrawerMenu implements MComponent<Attrs> {
+
 	view(vnode: Vnode<Attrs>): Children {
 		return m("drawer-menu" + landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"), {
 			style: {
@@ -28,6 +31,18 @@ export class DrawerMenu implements MComponent<Attrs> {
 			},
 		}, m(".flex.col.height-100p.items-center.pt.pb", [
 			m(".flex-grow"),
+			logins.getUserController().isPremiumAccount() && logins.isGlobalAdminUserLoggedIn()
+				? m(ButtonN, {
+					icon: () => Icons.Gift,
+					label: "buyGiftCard_label",
+					click: () => {
+						m.route.set("/settings/subscription")
+						showPurchaseGiftCardDialog()
+					},
+					type: ButtonType.ActionLarge,
+					colors: ButtonColors.DrawerNav
+				})
+				: null,
 			isDesktop()
 				? m(ButtonN, {
 					icon: () => Icons.NewWindow,

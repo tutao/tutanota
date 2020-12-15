@@ -367,3 +367,6 @@ export function decodeQuotedPrintable(charset: string, input: string): string {
 export function decodeBase64(charset: string, input: string): string {
 	return uint8ArrayToString(charset, base64ToUint8Array(input))
 }
+export function stringToBase64(str: string): string {
+	return uint8ArrayToBase64(stringToUtf8Uint8Array(str))
+}

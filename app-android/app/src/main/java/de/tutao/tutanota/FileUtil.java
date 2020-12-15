@@ -291,7 +291,7 @@ public class FileUtil {
 			File encryptedFile = null;
 			if (con.getResponseCode() == 200) {
 				InputStream inputStream = con.getInputStream();
-				encryptedFile = writeFileToUnencryptedDIr(filename, inputStream);
+				encryptedFile = writeFileToEncryptedDir(filename, inputStream);
 			}
 
 			JSONObject result = new JSONObject();
@@ -311,20 +311,29 @@ public class FileUtil {
 		}
 	}
 
-	private File writeFileToUnencryptedDIr(String filename, InputStream inputStream) throws IOException {
-		File encryptedFile;
-		File encryptedDir = new File(Utils.getDir(activity), Crypto.TEMP_DIR_ENCRYPTED);
-		encryptedDir.mkdirs();
-		encryptedFile = new File(encryptedDir, filename);
+	private File writeFileToDir(String filename, InputStream inputStream, String directory) throws IOException {
 
-		IOUtils.copyLarge(inputStream, new FileOutputStream(encryptedFile),
+		File file;
+		File dir = new File(Utils.getDir(activity), directory);
+		dir.mkdirs();
+		file = new File(dir, filename);
+
+		IOUtils.copyLarge(inputStream, new FileOutputStream(file),
 				new byte[1024 * 1000]);
-		return encryptedFile;
+		return file;
+	}
+
+	public File writeFileToUnencryptedDir(String filename, InputStream inputStream) throws IOException {
+		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_DECRYPTED);
+	}
+
+	private File writeFileToEncryptedDir(String filename, InputStream inputStream) throws IOException {
+		return  writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_ENCRYPTED);
 	}
 
 	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {
 		try {
-			File localFile = writeFileToUnencryptedDIr(name, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
+			File localFile = writeFileToUnencryptedDir(name, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
 			return this.putToDownloadFolder(Utils.fileToUri(localFile));
 		} catch (IOException e) {
 			DeferredObject<Object, Exception, Void> result = new DeferredObject<>();

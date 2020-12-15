@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2020-11-13T13:27:19Z",
+	"updated_at": "2020-12-14T15:01:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -827,6 +827,7 @@ module.exports = {
 		"priceForCurrentAccountingPeriod_label": "Srazmjerna cijena za trenutni period pretplate je {1}.",
 		"priceForNextYear_label": "Cijena za sljedeću godinu",
 		"priceFrom_label": "Cijena od {date}",
+		"priceSpecialOffer_label": "Tutanota ponuda: Jedna godina besplatno",
 		"priceTill_label": "Cijena do {date}",
 		"price_label": "Cijena",
 		"pricing.basePriceExcludesTaxes_msg": "Osnovna cijena. Ne obuhvaća poreze.",

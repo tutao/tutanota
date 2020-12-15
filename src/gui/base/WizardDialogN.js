@@ -158,7 +158,6 @@ class WizardDialogAttrs<T> {
 		}
 	}
 
-
 	_getEnabledPages(): WizardPageWrapper<T>[] {
 		return this.pages.filter(p => p.attrs.isEnabled())
 	}
@@ -167,7 +166,6 @@ class WizardDialogAttrs<T> {
 		const pages = this._getEnabledPages()
 		this.currentPage = pages[targetIndex]
 	}
-
 
 	goToNextPageOrCloseWizard() {
 		const pages = this._getEnabledPages()
@@ -180,8 +178,6 @@ class WizardDialogAttrs<T> {
 			this.currentPage = currentIndex < lastIndex ? pages[currentIndex + 1] : pages[lastIndex]
 		}
 	}
-
-
 }
 
 

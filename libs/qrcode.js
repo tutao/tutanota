@@ -296,7 +296,7 @@ QRCode.prototype.svg = function(opt) {
   var xsize = width / (length + 2 * options.padding);
   var ysize = height / (length + 2 * options.padding);
 
-  var rect = '<rect x="0" y="0" width="' + width + '" height="' + height + '" style="fill:' + options.background + ';shape-rendering:crispEdges;"/>' + EOL;
+  var rect = '<rect x="0" y="0" width="' + width + '" height="' + height + '" style="fill:' + options.background + ';shape-rendering:crispEdges;"></rect>' + EOL;
 
   for (var y = 0; y < length; y++) {
     for (var x = 0; x < length; x++) {
@@ -304,7 +304,7 @@ QRCode.prototype.svg = function(opt) {
       if (module) {
         var px = (x * xsize + options.padding * xsize).toString();
         var py = (y * ysize + options.padding * ysize).toString();
-        rect += '<rect x="' + px + '" y="' + py + '" width="' + xsize + '" height="' + ysize + '" style="fill:' + options.color + ';shape-rendering:crispEdges;"/>' + EOL;
+        rect += '<rect x="' + px + '" y="' + py + '" width="' + xsize + '" height="' + ysize + '" style="fill:' + options.color + ';shape-rendering:crispEdges;"></rect>' + EOL;
       }
     }
   }

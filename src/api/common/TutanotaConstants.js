@@ -137,7 +137,7 @@ export const BookingItemFeatureType = Object.freeze({
 	Storage: '1',
 	Alias: '2',
 	SharedMailGroup: '3',
-	Branding: '4',
+	Whitelabel: '4',
 	ContactForm: '5',
 	WhitelabelChild: '6',
 	LocalAdminGroup: '7',
@@ -152,7 +152,8 @@ export const PaymentMethodType = Object.freeze({
 	Invoice: '0',
 	CreditCard: '1',
 	Sepa: '2',
-	Paypal: '3'
+	Paypal: '3',
+	AccountBalance: '4'
 })
 export type PaymentMethodTypeEnum = $Values<typeof PaymentMethodType>;
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodTypeEnum => downcast(accountingInfo.paymentMethod)

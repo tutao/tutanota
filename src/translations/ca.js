@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2020-10-21T12:54:35Z",
+	"updated_at": "2020-12-14T15:01:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",

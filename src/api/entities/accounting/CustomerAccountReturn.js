@@ -40,6 +40,15 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
+		},
+		"outstandingBookingsPrice": {
+			"name": "outstandingBookingsPrice",
+			"id": 92,
+			"since": 4,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -54,7 +63,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "accounting",
-	"version": "3"
+	"version": "4"
 }
 
 export function createCustomerAccountReturn(values?: $Shape<$Exact<CustomerAccountReturn>>): CustomerAccountReturn {
@@ -68,6 +77,7 @@ export type CustomerAccountReturn = {
 	_format: NumberString;
 	_ownerGroup: ?Id;
 	_ownerPublicEncSessionKey: ?Uint8Array;
+	outstandingBookingsPrice: NumberString;
 
 	postings: CustomerAccountPosting[];
 }

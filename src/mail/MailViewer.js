@@ -129,9 +129,7 @@ import {MailModel} from "./MailModel"
 
 assertMainOrNode()
 
-export type InlineImages = {
-	[referencedCid: string]: {file: TutanotaFile, url: string} // map from cid to file and its URL (data or Blob)
-}
+export type InlineImages = Map<string, {file: TutanotaFile | DataFile, url: string}>
 
 // synthetic events are fired in code to distinguish between double and single click events
 type MaybeSyntheticEvent = TouchEvent & {synthetic?: boolean}
@@ -825,17 +823,19 @@ export class MailViewer {
 	_replaceInlineImages() {
 		this._inlineImages.then((loadedInlineImages) => {
 			this._domBodyDeferred.promise.then(domBody => {
-				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) => {
-					createDropdown(() => [
-						{
-							label: "download_action",
-							click: () => {
-								this._downloadAndOpenAttachment(file, true)
-							},
-							type: ButtonType.Dropdown
-						}
-					])(downcast(event), dom)
-				})
+				replaceCidsWithInlineImages(domBody, loadedInlineImages, (file, event, dom) =>
+					file._type !== "DataFile"
+						? createDropdown(() => [
+							{
+								label: "download_action",
+								click: () => {
+									this._downloadAndOpenAttachment(downcast(file), true)
+								},
+								type: ButtonType.Dropdown
+							}
+						])(downcast(event), dom)
+						: noOp
+				)
 			})
 		})
 	}
@@ -878,14 +878,14 @@ export class MailViewer {
 	_loadAttachments(mail: Mail): Promise<InlineImages> {
 		if (mail.attachments.length === 0) {
 			this._loadingAttachments = false
-			return Promise.resolve({})
+			return Promise.resolve(new Map())
 		} else {
 			//We wait for _inlineFileIds to resolve in order to make the server requests sequentially
 			return this._inlineFileIds.then((inlineCids) => {
 				this._loadingAttachments = true
 				const attachmentsListId = listIdPart(mail.attachments[0])
-				const attchmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attchmentElementIds)
+				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+				return this._entityClient.loadMultipleEntities(FileTypeRef, attachmentsListId, attachmentElementIds)
 				           .then(files => {
 					           const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 					           if (calendarFile
@@ -909,22 +909,21 @@ export class MailViewer {
 					           this._loadingAttachments = false
 					           m.redraw()
 					           const filesToLoad = files.filter(file => inlineCids.find(inline => file.cid === inline))
-					           const inlineImages: InlineImages = {}
+					           const inlineImages: InlineImages = new Map()
 					           return Promise
 						           .each(filesToLoad, (file) => worker.downloadFileContent(file).then(dataFile => {
-								           const blob = new Blob([dataFile.data], {
-									           type: dataFile.mimeType
-								           })
-								           inlineImages[neverNull(file.cid)] = {
-									           file,
-									           url: URL.createObjectURL(blob)
-								           }
+							           const blob = new Blob([dataFile.data], {
+								           type: dataFile.mimeType
 							           })
-						           ).return(inlineImages)
+							           inlineImages.set(neverNull(file.cid), {
+								           file,
+								           url: URL.createObjectURL(blob)
+							           })
+						           })).return(inlineImages)
 				           })
 				           .catch(NotFoundError, e => {
 					           console.log("could load attachments as they have been moved/deleted already", e)
-					           return {}
+					           return new Map()
 				           })
 			})
 		}
@@ -1062,9 +1061,9 @@ export class MailViewer {
 		// e.g. it is not called when switching to contact view
 		this.onbeforeremove = () => {
 			this._inlineImages.then((inlineImages) => {
-				Object.keys(inlineImages).forEach((key) => {
-					URL.revokeObjectURL(inlineImages[key].url)
-				})
+				for (let img of inlineImages.values()) {
+					URL.revokeObjectURL(img.url)
+				}
 			})
 		}
 	}

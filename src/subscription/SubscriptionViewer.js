@@ -2,13 +2,13 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
-import {AccountType, AccountTypeNames, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
+import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {downcast, neverNull, noOp} from "../api/common/utils/Utils"
+import {assertNotNull, downcast, neverNull, noOp} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {load, loadRange, serviceRequest} from "../api/main/Entity"
+import {serviceRequest} from "../api/main/Entity"
 import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel.js"
 import {Button} from "../gui/base/Button"
@@ -16,7 +16,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {worker} from "../api/main/WorkerClient"
-import {GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
+import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../api/common/EntityFunctions"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -29,7 +29,6 @@ import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
 import * as AddGroupDialog from "../settings/AddGroupDialog"
 import * as ContactFormEditor from "../settings/ContactFormEditor"
-import * as WhitelabelAndSharingBuyDialog from "./WhitelabelAndSharingBuyDialog"
 import * as StorageCapacityOptionsDialog from "./StorageCapacityOptionsDialog"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
@@ -53,16 +52,32 @@ import {
 	getTotalAliases,
 	getTotalStorageCapacity,
 	isSharingActive,
-	isWhitelabelActive
+	isWhitelabelActive,
+	showSharingBuyDialog,
+	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
+import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
+import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
+import {
+	createGiftCardTableLine,
+	GIFT_CARD_TABLE_HEADER,
+	loadGiftCards,
+} from "./giftcards/GiftCardUtils"
+import type {GiftCard} from "../api/entities/sys/GiftCard"
+import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
+import {locator} from "../api/main/MainLocator"
+import {Expandable} from "../settings/Expandable"
+import type {ExpandableAttrs} from "../settings/Expandable"
 
 assertMainOrNode()
 
 const DAY = 1000 * 60 * 60 * 24;
+
 
 export class SubscriptionViewer implements UpdatableSettingsViewer {
 	view: () => Children;
@@ -88,6 +103,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_orderAgreement: ?OrderProcessingAgreement;
 	_currentSubscription: SubscriptionTypeEnum;
 	_isCancelled: boolean;
+	_giftCards: Map<Id, GiftCard>;
+	_giftCardsExpanded: Stream<boolean>
 
 	constructor() {
 		let subscriptionAction = new Button("subscription_label", () => {
@@ -121,8 +138,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 		const showOrderAgreementActionAttrs = {
 			label: "show_action",
-			click: () => load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-				.then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
+			click: () => locator.entityClient.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+			                    .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
 			icon: () => Icons.Download,
 
 		}
@@ -181,25 +198,25 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		const enableWhiteLabelActionAttrs = {
 			label: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(false,
-				() => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(true), isPremiumPredicate),
+				() => showWhitelabelBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
 		}
 		const disableWhiteLabelActionAttrs = {
 			label: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(false,
-				() => WhitelabelAndSharingBuyDialog.showWhitelabelBuyDialog(false), isPremiumPredicate),
+				() => showWhitelabelBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
 		}
 		const enableSharingActionAttrs = {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(false,
-				() => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(true), isPremiumPredicate),
+				() => showSharingBuyDialog(true), isPremiumPredicate),
 			icon: () => Icons.Edit,
 		}
 		const disableSharingActionAttrs = {
 			label: "sharingFeature_label",
 			click: createNotAvailableForFreeClickHandler(false,
-				() => WhitelabelAndSharingBuyDialog.showSharingBuyDialog(false), isPremiumPredicate),
+				() => showSharingBuyDialog(false), isPremiumPredicate),
 			icon: () => Icons.Cancel,
 		}
 		const deleteButtonAttrs = {
@@ -210,6 +227,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
 			view: () => m(".flex-center.mb-l", m("", {style: {"width": '200px'}}, m(ButtonN, deleteButtonAttrs)))
 		}), false)
+
+
+		this._giftCards = new Map()
+		loadGiftCards(assertNotNull(logins.getUserController().user.customer))
+			.then(giftCards => {
+				giftCards.forEach(giftCard => this._giftCards.set(elementIdPart(giftCard._id), giftCard))
+			})
+		this._giftCardsExpanded = stream(false)
 
 		this.view = (): VirtualElement => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
@@ -296,6 +321,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
 				}),
+				m(Expandable, renderGiftCardExpandable(Array.from(this._giftCards.values()), isPremiumPredicate, this._giftCardsExpanded)),
+				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
+				m(TextFieldN, {
+					label: "bookingItemUsers_label",
+					value: this._usersFieldValue,
+					disabled: true,
+					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
+				}),
 				m(TextFieldN, {
 					label: "storageCapacity_label",
 					value: this._storageFieldValue,
@@ -318,7 +351,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					label: "whitelabel_label",
 					value: this._whitelabelFieldValue,
 					disabled: true,
-					injectionsRight: () => (getCurrentCount(BookingItemFeatureType.Branding, this._lastBooking) === 0)
+					injectionsRight: () => (getCurrentCount(BookingItemFeatureType.Whitelabel, this._lastBooking) === 0)
 						? m(ButtonN, enableWhiteLabelActionAttrs)
 						: m(ButtonN, disableWhiteLabelActionAttrs),
 				}),
@@ -345,18 +378,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			])
 		}
 
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => {
-				this._updateOrderProcessingAgreement(customer)
-				return load(CustomerInfoTypeRef, customer.customerInfo)
-			})
-			.then(customerInfo => {
-				this._customerInfo = customerInfo
-				return load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-			})
-			.then(accountingInfo => {
-				this._updateAccountInfoData(accountingInfo)
-			})
+		locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		       .then(customer => {
+			       this._updateOrderProcessingAgreement(customer)
+			       return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		       })
+		       .then(customerInfo => {
+			       this._customerInfo = customerInfo
+			       return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		       })
+		       .then(accountingInfo => {
+			       this._updateAccountInfoData(accountingInfo)
+		       })
 
 		const loadingString = lang.get("loading_msg")
 		this._currentPriceFieldValue = stream(loadingString)
@@ -387,7 +420,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		let p = Promise.resolve()
 		this._customer = customer
 		if (this._customer.orderProcessingAgreement) {
-			p = load(OrderProcessingAgreementTypeRef, this._customer.orderProcessingAgreement).then(a => {
+			p = locator.entityClient.load(OrderProcessingAgreementTypeRef, this._customer.orderProcessingAgreement).then(a => {
 				this._orderAgreement = a
 			})
 		} else {
@@ -462,32 +495,32 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	_updateBookings(): Promise<void> {
-		return load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			return load(CustomerInfoTypeRef, customer.customerInfo)
-				.catch(NotFoundError, e => console.log("could not update bookings as customer info does not exist (moved between free/premium lists)"))
-				.then(customerInfo => {
-					if (!customerInfo) {
-						return
-					}
-					this._customerInfo = customerInfo
-					return loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-						.then(bookings => {
-							this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-							this._isCancelled = customer.canceledPremiumAccount
-							this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
-							this._updateSubscriptionField(this._isCancelled)
-							return Promise.all([
-									this._updateUserField(),
-									this._updateStorageField(customer, customerInfo),
-									this._updateAliasField(customer, customerInfo),
-									this._updateGroupsField(),
-									this._updateWhitelabelField(),
-									this._updateSharingField(),
-									this._updateContactFormsField()
-								]
-							).then(() => m.redraw())
-						})
-				})
+		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+			              .catch(NotFoundError, e => console.log("could not update bookings as customer info does not exist (moved between free/premium lists)"))
+			              .then(customerInfo => {
+				              if (!customerInfo) {
+					              return
+				              }
+				              this._customerInfo = customerInfo
+				              return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+				                            .then(bookings => {
+					                            this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+					                            this._isCancelled = customer.canceledPremiumAccount
+					                            this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
+					                            this._updateSubscriptionField(this._isCancelled)
+					                            return Promise.all([
+							                            this._updateUserField(),
+							                            this._updateStorageField(customer, customerInfo),
+							                            this._updateAliasField(customer, customerInfo),
+							                            this._updateGroupsField(),
+							                            this._updateWhitelabelField(),
+							                            this._updateSharingField(),
+							                            this._updateContactFormsField()
+						                            ]
+					                            ).then(() => m.redraw())
+				                            })
+			              })
 		})
 	}
 
@@ -573,9 +606,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	processUpdate(update: EntityUpdateData): Promise<void> {
-		const {instanceId} = update
+		const {instanceListId, instanceId} = update
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			return load(AccountingInfoTypeRef, instanceId).then(accountingInfo => this._updateAccountInfoData(accountingInfo)).then(() => {
+			return locator.entityClient.load(AccountingInfoTypeRef, instanceId).then(accountingInfo => this._updateAccountInfoData(accountingInfo)).then(() => {
 				return this._updatePriceInfo()
 			})
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
@@ -587,7 +620,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				return this._updatePriceInfo()
 			})
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			return load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
+			return locator.entityClient.load(CustomerTypeRef, instanceId).then(customer => this._updateOrderProcessingAgreement(customer))
+		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
+			return locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId]).then(giftCard => {
+				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+				if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
+			})
 		} else {
 			return Promise.resolve()
 		}
@@ -623,3 +661,27 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 		})
 	}
 }
+
+function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean, expanded: Stream<boolean>): ExpandableAttrs {
+	const purchaseGiftCardButtonAttrs: ButtonAttrs = {
+		label: "buyGiftCard_label",
+		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
+		icon: () => Icons.Add
+	}
+
+	return {
+		title: "giftCards_label",
+		infoMsg: "giftCardSection_label",
+		children: [
+			m(TableN, {
+				columnHeading: GIFT_CARD_TABLE_HEADER,
+				columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
+				showActionButtonColumn: true,
+				addButtonAttrs: purchaseGiftCardButtonAttrs,
+				lines: giftCards.filter(giftCard => giftCard.usable).map(giftCard => createGiftCardTableLine(giftCard)),
+			})
+		],
+		expanded,
+	}
+}
+

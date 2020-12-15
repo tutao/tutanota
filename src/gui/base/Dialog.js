@@ -355,6 +355,7 @@ export class Dialog {
 		})
 	}
 
+
 	/**
 	 * Show a dialog with multiple selection options below the message.
 	 * @param messageIdOrMessageFunction which displayed in the body
