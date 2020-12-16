@@ -64,7 +64,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {
-	createGiftCardTableLine,
+	createGiftCardTableLine, GIFT_CARD_TABLE_COLUMNS,
 	GIFT_CARD_TABLE_HEADER,
 	loadGiftCards,
 } from "./giftcards/GiftCardUtils"
@@ -675,7 +675,7 @@ function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () 
 		children: [
 			m(TableN, {
 				columnHeading: GIFT_CARD_TABLE_HEADER,
-				columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
+				columnWidths: GIFT_CARD_TABLE_COLUMNS,
 				showActionButtonColumn: true,
 				addButtonAttrs: purchaseGiftCardButtonAttrs,
 				lines: giftCards.filter(giftCard => giftCard.usable).map(giftCard => createGiftCardTableLine(giftCard)),

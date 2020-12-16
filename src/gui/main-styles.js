@@ -15,7 +15,7 @@ export function requiresStatusBarHack(): boolean {
 	return isApp() && client.device === "iPhone" && client.browserVersion < 11
 }
 
-function getFonts(): string {
+export function getFonts(): string {
 	// see https://bitsofco.de/the-new-system-font-stack/
 	const fonts: Array<string> = [
 		'-apple-system', 'system-ui', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'
