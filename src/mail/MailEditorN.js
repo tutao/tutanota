@@ -18,7 +18,6 @@ import {
 	getSupportMailSignature,
 	parseMailtoUrl,
 	replaceCidsWithInlineImages,
-	replaceHtmlEntities,
 	replaceInlineImagesWithCids
 } from "./MailUtils"
 import {PermissionError} from "../api/common/error/PermissionError"
@@ -61,7 +60,8 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {base64ToUint8Array} from "../api/common/utils/Encoding"
+import {convertGiftCardSvgToPng} from "../subscription/giftcards/GiftCardUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -634,37 +634,42 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
 
 /**
  * Create and show a new mail editor with an invite message
+ * @param link: the link to the giftcard
+ * @param svg: an SVGElement that is the DOM node of the rendered gift card (note: This should be an SVGElement, but flow doesn't have declarations for that)
  * @param mailboxDetails
  * @returns {*}
  */
-export function writeGiftCardMail(link: string, svg: string, mailboxDetails?: MailboxDetail) {
+export function writeGiftCardMail(link: string, svg: HTMLElement, mailboxDetails?: MailboxDetail) {
 	_mailboxPromise(mailboxDetails).then(mailbox => {
-		let bodyText = lang.get("defaultShareGiftCardBody_msg", {
-			'{link}': '<a href="' + link + '">' + link + '</a>',
-			'{username}': logins.getUserController().userGroupInfo.name,
-		}).split("\n").join("<br />");
+			let bodyText = lang.get("defaultShareGiftCardBody_msg", {
+				'{link}': '<a href="' + link + '">' + link + '</a>',
+				'{username}': logins.getUserController().userGroupInfo.name,
+			}).split("\n").join("<br />");
 
-		const data = stringToUtf8Uint8Array(replaceHtmlEntities(svg));
-
-		const attachment: DataFile = {
-			_type: "DataFile",
-			name: "tutanota-giftcard.svg",
-			mimeType: "image/svg+xml",
-			data,
-				size: data.byteLength,
-				id: null
-			}
-			const inlineImageReference = createInlineImage(attachment)
-			const cid = inlineImageReference.cid
-			const imgTag = `<br /><br /><div style="text-align: center;"><img style="max-width: 500px; border-radius: 20px;" src="cid:${cid}"></div><br />`
-			const subject = lang.get("defaultShareGiftCardSubject_msg")
-			const body = bodyText + imgTag + getDefaultSignature()
-			const inlineImages = new Map()
-			inlineImages.set(cid, {file: attachment, url: inlineImageReference.objectUrl})
-			defaultSendMailModel(mailbox)
-				.initWithTemplate({}, subject, body, [attachment], false)
-				.then(model => createMailEditorDialog(model, false, Promise.resolve(inlineImages)))
-				.then(dialog => dialog.show())
+			// const pngDataUrl = svgToPng(svg)
+			convertGiftCardSvgToPng(svg).then(pngDataUrl => {
+				const pngBase64 = pngDataUrl.split(",")[1]
+				const data = base64ToUint8Array(pngBase64)
+				const attachment: DataFile = {
+					_type: "DataFile",
+					name: "tutanota-giftcard.svg",
+					mimeType: "image/png",
+					data: data,
+					size: data.byteLength,
+					id: null
+				}
+				const inlineImageReference = createInlineImage(attachment)
+				const cid = inlineImageReference.cid
+				const imgTag = `<br /><br /><img style="max-width: 500px; border-radius: 20px;" src="cid:${cid}"><br />`
+				const subject = lang.get("defaultShareGiftCardSubject_msg")
+				const body = bodyText + imgTag + getDefaultSignature()
+				const inlineImages = new Map()
+				inlineImages.set(cid, {file: attachment, url: inlineImageReference.objectUrl})
+				defaultSendMailModel(mailbox)
+					.initWithTemplate({}, subject, body, [attachment], false)
+					.then(model => createMailEditorDialog(model, false, Promise.resolve(inlineImages)))
+					.then(dialog => dialog.show())
+			})
 		}
 	)
 }

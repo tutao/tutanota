@@ -21,12 +21,13 @@ import {attachDropdown} from "../../gui/base/DropdownN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {HtmlEditor, Mode} from "../../gui/base/HtmlEditor"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {serviceRequest, serviceRequestVoid} from "../../api/main/Entity"
+import {serviceRequest} from "../../api/main/Entity"
 import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../../api/common/EntityFunctions"
 import {SysService} from "../../api/entities/sys/Services"
 import {px, size} from "../../gui/size"
 import {assertNotNull, neverNull} from "../../api/common/utils/Utils"
 import {LocationServiceGetReturnTypeRef} from "../../api/entities/sys/LocationServiceGetReturn"
+import type {Country} from "../../api/common/CountryList"
 import {getByAbbreviation} from "../../api/common/CountryList"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -35,13 +36,13 @@ import {writeGiftCardMail} from "../../mail/MailEditorN"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64} from "../../api/common/utils/Encoding"
-import {getWebRoot, isAndroidApp, isApp, isIOSApp} from "../../api/Env"
+import {base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64, stringToBase64} from "../../api/common/utils/Encoding"
+import {getWebRoot, isAndroidApp, isApp} from "../../api/Env"
 import {shareTextNative} from "../../native/SystemApp"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
-import type {Country} from "../../api/common/CountryList"
+import {replaceHtmlEntities} from "../../mail/MailUtils"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -213,7 +214,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										[
 											m(".pt-l", {
 												oncreate: (vnode) => {
-													giftCardDomElement = vnode.dom
+													giftCardDomElement = vnode.children[0].dom
 												}
 											}, renderGiftCardSvg(parseFloat(giftCard.value), neverNull(getByAbbreviation(giftCard.country)), link, message))
 										]
@@ -224,7 +225,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										m(ButtonN, {
 											click: () => {
 												dialog.close()
-												setTimeout(() => writeGiftCardMail(link, giftCardDomElement.innerHTML), DefaultAnimationTime)
+												setTimeout(() => writeGiftCardMail(link, giftCardDomElement), DefaultAnimationTime)
 											},
 											label: "shareViaEmail_action",
 											icon: () => BootIcons.Mail
@@ -383,5 +384,44 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 				}
 			}, lang.get("acceptGiftCardTerms_label")))
 		],
+	})
+}
+
+const GIFT_CARD_PNG_WIDTH = 400
+
+/**
+ *
+ * @param giftCardSvgElement@param: an SVGElement that is the DOM node of the rendered gift card
+ *        (note: This should be an SVGElement, but flow doesn't have declarations for that)
+ * @returns A promise of a PNG DataURL
+ */
+export function convertGiftCardSvgToPng(giftCardSvgElement: HTMLElement): Promise<string> {
+	return new Promise(resolve => {
+		const cloneElement = giftCardSvgElement.cloneNode(true)
+		// The drop shadow doesnt get rendered properly so we need to
+		// remove it from the svg dom element and apply it as a filter on the canvas
+		cloneElement.style.filter = "none"
+		// make a data url of the svg string of the passed in element
+		const svgString = new XMLSerializer().serializeToString(cloneElement)
+		const encodedData = 'data:image/svg+xml;base64,' + stringToBase64(replaceHtmlEntities(svgString))
+		const canvas = document.createElement('canvas')
+		const {width, height} = giftCardSvgElement.getBoundingClientRect()
+		// scale the giftcard to be a constant size, not just the size that it happens to have been rendered on screen at
+		const targetWidth = GIFT_CARD_PNG_WIDTH
+		const ratio = targetWidth / width
+		const targetHeight = height * ratio
+		// add a bit of buffer so the drop shadow gets rendered
+		canvas.width = targetWidth + 10
+		canvas.height = targetHeight + 10
+		const ctx = canvas.getContext('2d')
+
+		const img = new Image()
+		img.onload = function () {
+			ctx.filter = "drop-shadow(5px 5px 5px #00000088)"
+			ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+			resolve(canvas.toDataURL())
+		}
+		// assigning src causes img.onload to be triggered
+		img.src = encodedData
 	})
 }
