@@ -43,7 +43,6 @@ import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {Country} from "../../api/common/CountryList"
 
-
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
 export const GIFT_CARD_MESSAGE_MAX_LENGTH = 200
@@ -270,13 +269,13 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 		})
 }
 
-export function renderGiftCardSvg(price: number, country: Country, link: ?string, message: ?string, portrait: boolean = true): Children {
+export function renderGiftCardSvg(price: number, country: Country, link: ?string, message: string): Children {
 	let qrCode = null
-	const qrcodeSize = portrait ? 80 : 60
+	const qrCodeSize = 80
 	if (link) {
 		let qrcodeGenerator = new QRCode({
-			height: qrcodeSize,
-			width: qrcodeSize,
+			height: qrCodeSize,
+			width: qrCodeSize,
 			content: link,
 			background: theme.content_accent,
 			color: theme.content_bg
@@ -285,15 +284,25 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 	}
 
 	const formattedPrice = formatPrice(price, true)
-	const height = portrait ? 300 : 140
+	const baseHeight = 220
+	const height = link ? baseHeight + qrCodeSize : baseHeight + 5 // a bit of padding if there's no qrcode
 	const width = 240
+
+	const borderRadius = 20
 
 	// Needs to remain consistent with the SVG path data
 	const logoTextWidth = 153
+
+	const messageBoxTop = 70
+	const messageBoxHeight = 75
+	const qrCodeTopPadding = 20
+
+	const giftCardLabelTop = 43
+
 	const centered = (elementWidth, totalWidth = width) => totalWidth / 2 - elementWidth / 2
 
 	return m("svg", {
-			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(20), filter: "drop-shadow(10px 10px 10px #00000088)"},
+			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(borderRadius), filter: "drop-shadow(10px 10px 10px #00000088)"},
 			xmlns: "http://www.w3.org/2000/svg",
 			viewBox: `0 0 ${width} ${height}`
 		},
@@ -302,7 +311,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 				width: "100%", height: "100%",
 				style: {
 					fill: theme.content_accent,
-					rx: px(20), ry: px(20),
+					rx: px(borderRadius), ry: px(borderRadius),
 					"-webkit-print-color-adjust": "exact",
 					"color-adjust": "exact",
 				},
@@ -316,12 +325,11 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					m("text", { /* translation of "gift card" */
 						"text-anchor": "end",
 						"font-family": "sans-serif",
-						x: logoTextWidth, y: 43,
+						x: logoTextWidth, y: giftCardLabelTop,
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
-			(portrait && message)
-				? m("foreignObject", {x: centered(logoTextWidth), y: 70, width: logoTextWidth, height: 75},
+			m("foreignObject", {x: centered(logoTextWidth), y: messageBoxTop, width: logoTextWidth, height: messageBoxHeight},
 				m("p", {
 					'xmlns': 'http://www.w3.org/1999/xhtml',
 					style: {
@@ -330,39 +338,26 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 						textAlign: "center",
 						fontSize: ".6rem"
 					}
-				}, message))
-				/*? m("text", {
-					"text-anchor": "center",
-					"inline-size": logoTextWidth,
-					"font-family": "sans-serif",
-					x: width / 2, y: 60,
-					fill: theme.elevated_bg,
-					"font-size": ".8rem"
-				}, message)*/
-				: null,
+				}, message)),
 			m("text", { /* price */
 				"text-anchor": "start",
 				"font-family": "sans-serif",
-				x: portrait ? 25 : qrcodeSize + 20 + 10,
-				y: portrait ? 270 : height - 20,
+				x: 25,
+				y: height - 30,
 				fill: theme.elevated_bg,
 				"font-size": "1.6rem"
 			}, formattedPrice),
-			portrait
-				? m("text", { /* price */
-					"text-anchor": "start",
-					"font-family": "sans-serif",
-					x: 25,
-					y: 285,
-					fill: theme.elevated_bg,
-					"font-size": ".4rem"
-				}, lang.get("validInCountry_msg", {"{country}": country.n}))
-				: null,
+			m("text", {
+				"text-anchor": "start",
+				"font-family": "sans-serif",
+				x: 25,
+				y: height - 15,
+				fill: theme.elevated_bg,
+				"font-size": ".4rem"
+			}, lang.get("validInCountry_msg", {"{country}": country.n})),
 			qrCode
 				? m("g", {
-					transform: portrait
-						? `translate(25 ${70 + 75 + 20})`
-						: `translate(20 ${height - qrcodeSize - 20})`
+					transform: `translate(25 ${messageBoxTop + messageBoxHeight + qrCodeTopPadding})`
 				}, m.trust(qrCode))
 				: null,
 			m("path", {

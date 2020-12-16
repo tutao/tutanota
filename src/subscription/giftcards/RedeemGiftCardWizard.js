@@ -327,7 +327,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 						m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {style: {width: "200px"}}))
 				],
 			m(".flex-center.full-width.pt-l", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
-			m(".flex-center.full-width.pt-s", m("", {style: {width: "260px"}}, m(ButtonN, confirmButtonAttrs)))
+			m(".flex-center.full-width.pt-s.pb", m("", {style: {width: "260px"}}, m(ButtonN, confirmButtonAttrs)))
 		])
 	}
 
