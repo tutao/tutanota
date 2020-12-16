@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createCustomerInfoReturn(values?: $Shape<$Exact<CustomerInfoReturn>>): CustomerInfoReturn {

@@ -172,8 +172,8 @@ export function getSubscriptionType(lastBooking: ?Booking, customer: Customer, c
 	}
 }
 
-export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): TranslationKey {
-	switch (e.data) {
+export function getPreconditionFailedPaymentMsg(data: ?string): TranslationKey {
+	switch (data) {
 		case "paypal.change":
 			return "payChangeError_msg"
 		case "paypal.confirm_again":
@@ -188,6 +188,12 @@ export function getPreconditionFailedPaymentMsg(e: PreconditionFailedError): Tra
 			return "payCardExpiredError_msg"
 		case "card.change":
 			return "payChangeError_msg"
+		case "card.3ds2_needed":
+			return "creditCardPaymentErrorVerificationNeeded_msg"
+		case "card.3ds2_pending":
+			return "creditCardPendingVerification_msg"
+		case "card.3ds2_failed":
+			return "creditCardDeclined_msg"
 		default:
 			return "payContactUsError_msg"
 	}

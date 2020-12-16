@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createU2fResponseData(values?: $Shape<$Exact<U2fResponseData>>): U2fResponseData {

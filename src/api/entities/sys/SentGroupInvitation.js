@@ -91,7 +91,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createSentGroupInvitation(values?: $Shape<$Exact<SentGroupInvitation>>): SentGroupInvitation {

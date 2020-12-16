@@ -64,7 +64,7 @@ module.exports.renderHtml = function (scripts, env) {
 				m("meta[name=apple-itunes-app][content=app-id=id922429609, affiliate-data=10lSfb]"),
 			]),
 			m("body", m("noscript",
-				"This site requires javascript to be enabled. Please, activate it in the settings of your browser."))
+				"This site requires javascript to be enabled. Please activate it in the settings of your browser."))
 		])
 	).then((html) => {
 		delete global.window

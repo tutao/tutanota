@@ -449,7 +449,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 				country: invoiceCountry,
 				vatNumber: ""
-			}, "pricing.businessUse_label", "businessChangeInfo_msg")
+			}, accountingInfo, "pricing.businessUse_label", "businessChangeInfo_msg")
 		}
 	}
 

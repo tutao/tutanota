@@ -136,7 +136,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createSession(values?: $Shape<$Exact<Session>>): Session {

@@ -34,7 +34,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createSaltData(values?: $Shape<$Exact<SaltData>>): SaltData {

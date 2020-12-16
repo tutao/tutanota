@@ -118,6 +118,7 @@ function buildWebapp() {
 	              .then(() => console.log("started copying images", measure()))
 	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/dist/images')))
 	              .then(() => fs.copyAsync(path.join(__dirname, '/resources/images'), path.join(__dirname, '/build/dist/images')))
+	              .then(() => fs.copyAsync(path.join(__dirname, '/src/braintree.html'), path.join(__dirname, '/build/braintree.html')))
 	              .then(() => fs.readFileAsync('src/api/worker/WorkerBootstrap.js', 'utf-8').then(bootstrap => {
 		              let lines = bootstrap.split("\n")
 		              lines[0] = `importScripts('libs.js')`

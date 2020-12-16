@@ -266,7 +266,7 @@ module.exports = {
 		"creditCardCVVFormat_label": "Please enter the 3 or 4 digit security code.",
 		"creditCardCVVInvalid_msg": "Security code is invalid.",
 		"creditCardCVV_label": "Security code",
-		"creditCardDeclined_msg": "Unfortunately, your credit card was declined. Please get in contact with your bank to solve this or select a different payment method.",
+		"creditCardDeclined_msg": "Unfortunately, your credit card was declined. Please verify that all entered information is correct, get in contact with your bank to solve this or select a different payment method.",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 		"creditCardExpirationDate_label": "Expiration date",
 		"creditCardExprationDateInvalid_msg": "Expiration date is invalid.",
@@ -1255,6 +1255,11 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your credit at a later time if this problem persists.",
+		"creditCardVerification_msg": "Your credit card will be verified now...",
+		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
+		"creditCardVerification_label": "Verify card",
+		"creditCardPaymentErrorVerificationNeeded_msg": "Please enter your credit card data again. Your bank requires an additional verification."
 	}
 }

@@ -8,7 +8,7 @@ import {TextField} from "../gui/base/TextField"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {HtmlEditor, Mode} from "../gui/base/HtmlEditor"
-import {createNotAvailableForFreeClickHandler, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
+import {createNotAvailableForFreeClickHandler, formatPriceDataWithInfo, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -83,7 +83,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 							invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 							country: invoiceCountry,
 							vatNumber: accountingInfo.invoiceVatIdNo
-						}
+						},
+						accountingInfo
 					)
 				}
 			}, () => logins.getUserController().isPremiumAccount()),
@@ -93,12 +94,18 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			label: "paymentMethod_label",
 			click: createNotAvailableForFreeClickHandler(true, () => {
 					if (this._accountingInfo) {
-						PaymentDataDialog.show(this._accountingInfo).then(success => {
-							if (success) {
-								if (this._isPayButtonVisible()) {
-									return this._showPayDialog(this._amountOwed())
+						let lastPosting = neverNull(this._postings[0])
+						let nextPayment = Number(lastPosting.balance) * -1
+						showProgressDialog("pleaseWait_msg", worker.getCurrentPrice().then(priceServiceReturn => {
+							return Math.max(nextPayment, Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price), Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price))
+						})).then(price => {
+							return PaymentDataDialog.show(neverNull(this._accountingInfo), price).then(success => {
+								if (success) {
+									if (this._isPayButtonVisible()) {
+										return this._showPayDialog(this._amountOwed())
+									}
 								}
-							}
+							})
 						})
 					}
 				},
@@ -177,7 +184,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				(this._isAmountOwed() && this._accountingInfo && this._accountingInfo.paymentMethod !== PaymentMethodType.Invoice)
 					? (
 						(this._invoiceInfo && this._invoiceInfo.paymentErrorInfo)
-							? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(new PreconditionFailedError("dummy-msg", this._invoiceInfo.paymentErrorInfo.errorCode))))
+							? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this._invoiceInfo.paymentErrorInfo.errorCode)))
 							: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
 					)
 					: null,
@@ -231,10 +238,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	_accountBalance(): number {
-		const balance =
-			this._postings && this._postings.length > 0
-				? Number(this._postings[0].balance)
-				: 0
+		const balance = this._postings && this._postings.length > 0
+			? Number(this._postings[0].balance)
+			: 0
 		return balance - this._outstandingBookingsPrice
 	}
 
@@ -322,7 +328,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						})
 						.catch(LockedError, e => "operationStillActive_msg")
 						.catch(PreconditionFailedError, error => {
-							return getPreconditionFailedPaymentMsg(error)
+							return getPreconditionFailedPaymentMsg(error.data)
 						}).catch(BadGatewayError, error => {
 							return "paymentProviderNotAvailableError_msg"
 						}).catch(TooManyRequestsError, error => {

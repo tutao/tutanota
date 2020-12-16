@@ -70,7 +70,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "65"
+	"version": "66"
 }
 
 export function createU2fRegisteredDevice(values?: $Shape<$Exact<U2fRegisteredDevice>>): U2fRegisteredDevice {
