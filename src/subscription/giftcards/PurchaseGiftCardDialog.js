@@ -23,7 +23,11 @@ import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
-import {GIFT_CARD_MESSAGE_MAX_LENGTH, renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
+import {
+	GiftCardMessageEditorField,
+	renderAcceptGiftCardTermsCheckbox,
+	showGiftCardToShare
+} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {UserError} from "../../api/common/error/UserError"
@@ -49,9 +53,8 @@ export type CreateGiftCardViewAttrs = {
 
 class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
-	messageEditor: HtmlEditor
 	countrySelector: DropDownSelector<?Country>
-
+	message: Stream<string>
 	selectedPackage: Stream<number>
 	selectedCountry: Stream<?Country>
 
@@ -61,13 +64,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 		const a = vnode.attrs
 		this.selectedPackage = stream(a.initiallySelectedPackage)
 		this.selectedCountry = stream(a.country)
-		this.messageEditor = new HtmlEditor("yourMessage_label")
-			.setMinHeight(100)
-			.setMode(Mode.HTML)
-			.showBorders()
-			.setValue(a.message)
-			.setMaxLength(GIFT_CARD_MESSAGE_MAX_LENGTH)
-			.setEnabled(true)
+		this.message = stream(a.message)
 
 		this.countrySelector = createCountryDropdown(
 			this.selectedCountry,
@@ -117,12 +114,12 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 						})
 					}
 				)),
-			m(".flex-center",
+			m(".flex-center", [
 				m(".flex-grow", {style: {maxWidth: "620px"}}, [
-					m(this.messageEditor),
-					m(this.countrySelector)
-				])),
-
+					m(".pt-s", m(GiftCardMessageEditorField, {message: this.message})),
+					m(this.countrySelector),
+				]),
+			]),
 			m(".flex-center.full-width.pt-l", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
 			m(".flex-center.full-width.pt-s", m("", {style: {width: "260px"}}, m(ButtonN, {
 					label: "buy_action",
@@ -141,14 +138,8 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
 		const value = attrs.availablePackages[this.selectedPackage()].value
 		// replace multiple new lines
-		const message = this.messageEditor.getValue().replace(/[\r\n]{2,}/g, "\n")
+		const message = this.message()
 		const country = this.selectedCountry()
-
-
-		if (message.length > GIFT_CARD_MESSAGE_MAX_LENGTH) {
-			Dialog.error(() => lang.get("messageTooLong_msg", {"{length}": GIFT_CARD_MESSAGE_MAX_LENGTH}))
-			return
-		}
 
 		if (!country) {
 			Dialog.error("selectRecipientCountry_msg")

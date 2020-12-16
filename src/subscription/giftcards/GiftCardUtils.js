@@ -1,9 +1,10 @@
 // @flow
 
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import QRCode from "qrcode"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {TableLineAttrs} from "../../gui/base/TableN"
+import type {ColumnWidthEnum, TableLineAttrs} from "../../gui/base/TableN"
 import {formatDate} from "../../misc/Formatter"
 import {worker} from "../../api/main/WorkerClient"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
@@ -43,10 +44,13 @@ import {CheckboxN} from "../../gui/base/CheckboxN"
 import {ParserError} from "../../misc/parsing"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {replaceHtmlEntities} from "../../mail/MailUtils"
+import {getFonts} from "../../gui/main-styles"
+import {ColumnWidth} from "../../gui/base/TableN"
+import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
+import {baseLabelPosition, TextFieldN, Type} from "../../gui/base/TextFieldN"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
-export const GIFT_CARD_MESSAGE_MAX_LENGTH = 200
 
 export function getTokenFromUrl(url: string): [Id, string] {
 	let id: Id, key: string;
@@ -107,27 +111,79 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 }
 
 export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["purchaseDate_label", "value_label"]
+export const GIFT_CARD_TABLE_COLUMNS: Array<ColumnWidthEnum> = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
+
+const GIFT_CARD_MESSAGE_COLS = 26
+const GIFT_CARD_MESSAGE_HEIGHT = 5
+type Attrs = {
+	message: Stream<string>,
+	cols?: number,
+	rows?: number
+}
+
+/**
+ * A text area that allows you to edit some text that is limited to fit within a certain rows/columns boundary
+ */
+export class GiftCardMessageEditorField implements MComponent<Attrs> {
+	textAreaDom: HTMLTextAreaElement
+
+	view(vnode: Vnode<Attrs>): Children {
+		const a = vnode.attrs
+		return [
+			m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
+				style: {
+					transform: `translateY(${-5}px)`
+				}
+			}, lang.get("yourMessage_label")),
+			m("textarea.mt.monospace.center", {
+				wrap: "hard",
+				cols: a.cols || GIFT_CARD_MESSAGE_COLS,
+				rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
+				oncreate: vnode => {
+					this.textAreaDom = vnode.dom
+					this.textAreaDom.value = a.message()
+				},
+				oninput: e => {
+					const origStart = this.textAreaDom.selectionStart
+					const origEnd = this.textAreaDom.selectionEnd
+					// remove characters from the end
+					while (this.textAreaDom.clientHeight < this.textAreaDom.scrollHeight) {
+						this.textAreaDom.value = this.textAreaDom.value.substr(0, this.textAreaDom.value.length - 1)
+					}
+					a.message(this.textAreaDom.value)
+					// the cursor gets pushed to the end when we chew up tailing characters so we put it back where it started in that case
+					if (this.textAreaDom.selectionStart - origStart > 1) {
+						this.textAreaDom.selectionStart = origStart
+						this.textAreaDom.selectionEnd = origEnd
+					}
+				},
+				style: {
+					overflow: "hidden",
+					resize: "none"
+				}
+			})
+		]
+	}
+}
+
 
 export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
 
 	const showEditGiftCardMessageDialog = () => {
-		const editor = new HtmlEditor("editMessage_label")
-			.setMinHeight(350)
-			.setValue(giftCard.message)
-			.setMode(Mode.HTML)
-			.setMaxLength(GIFT_CARD_MESSAGE_MAX_LENGTH)
-
+		let message = stream(giftCard.message)
 		Dialog.showActionDialog({
 			title: lang.get("editMessage_label"),
-			child: () => m(".gift-card-editor.pl-l.pr-l", m(editor)),
+			child: () => m(".flex-center", m(GiftCardMessageEditorField, {message})),
 			okAction: dialog => {
+				giftCard.message = message()
 				// collapse chains of newlines to make the message fit better on the giftcard
-				giftCard.message = editor.getValue().replace(/[\r\n]{2,}/g, "\n")
 				locator.entityClient.update(giftCard)
 				       .then(() => dialog.close())
 				       .catch(e => Dialog.error("giftCardUpdateError_msg"))
+				showGiftCardToShare(giftCard)
 			},
-			type: DialogType.EditLarger
+			okActionTextId: "save_action",
+			type: DialogType.EditSmall
 		})
 	}
 
@@ -194,6 +250,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 			let infoMessage = "emptyString_msg"
 			let message = giftCard.message
 			let giftCardDomElement: HTMLElement
+
 			dialog = Dialog.largeDialog(
 				{
 					right: [
@@ -209,16 +266,15 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 					view: () =>
 						m("", {style: {padding: px(size.vpad_large)}},
 							[
-								m(".flex-center.full-width.pt-l.pb-l",
-									m("", {style: {width: "480px"}},
-										[
+								m(".flex-center.full-width.pt-l.pb-l", [
+										m("", {style: {width: "480px"}},
 											m(".pt-l", {
 												oncreate: (vnode) => {
 													giftCardDomElement = vnode.children[0].dom
 												}
 											}, renderGiftCardSvg(parseFloat(giftCard.value), neverNull(getByAbbreviation(giftCard.country)), link, message))
-										]
-									)
+										)
+									]
 								),
 								m(".flex-center",
 									[
@@ -291,8 +347,12 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 
 	const borderRadius = 20
 
-	// Needs to remain consistent with the SVG path data
-	const logoTextWidth = 153
+	// Do not change  this value. Needs to remain consistent with the SVG path data
+	const logoPathWidth = 153
+
+	const logoWidth = 180
+	const topBottomPadding = 20
+	const logoScale = logoWidth / logoPathWidth
 
 	const messageBoxTop = 70
 	const messageBoxHeight = 75
@@ -302,11 +362,11 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 
 	const centered = (elementWidth, totalWidth = width) => totalWidth / 2 - elementWidth / 2
 
-	const logoTop = 20
 	const squiggleStart = 117
 	const qrCodePadding = 5
 	const qrCodeLeft = 32
 
+	const priceY = 35
 	return m("svg", {
 			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(borderRadius), filter: "drop-shadow(10px 10px 10px #00000088)"},
 			xmlns: "http://www.w3.org/2000/svg",
@@ -317,12 +377,11 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 				width: "100%", height: "100%",
 				style: {
 					fill: theme.content_accent,
-					rx: px(borderRadius), ry: px(borderRadius),
 					"-webkit-print-color-adjust": "exact",
 					"color-adjust": "exact",
 				},
 			}),
-			m("g", {transform: `translate(${centered(logoTextWidth)}, ${logoTop})`},
+			m("g", {transform: `translate(${centered(logoWidth)}, ${topBottomPadding}) scale(${logoScale})`},
 				[
 					m("path", { /* tutanota logo text */
 						fill: theme.elevated_bg,
@@ -330,13 +389,12 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					}),
 					m("text", { /* translation of "gift card" */
 						"text-anchor": "end",
-						"font-family": "sans-serif",
-						x: logoTextWidth, y: giftCardLabelTopOffse,
+						x: logoPathWidth, y: giftCardLabelTopOffse,
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
-			m("foreignObject", {x: centered(logoTextWidth), y: messageBoxTop, width: logoTextWidth, height: messageBoxHeight},
-				m("p", {
+			m("foreignObject", {x: centered(logoPathWidth), y: messageBoxTop, width: logoPathWidth, height: messageBoxHeight},
+				m("p.text-preline.text-break", {
 					'xmlns': 'http://www.w3.org/1999/xhtml',
 					style: {
 						fontFamily: "monospace",
@@ -347,17 +405,15 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 				}, message)),
 			m("text", { /* price */
 				"text-anchor": "start",
-				"font-family": "sans-serif",
 				x: qrCodeLeft,
-				y: height - 30,
+				y: height - priceY,
 				fill: theme.elevated_bg,
 				"font-size": "1.6rem"
 			}, formattedPrice),
-			m("text", {
+			m("text", { /* valid in */
 				"text-anchor": "start",
-				"font-family": "sans-serif",
 				x: qrCodeLeft,
-				y: height - 15,
+				y: height - topBottomPadding - 5,
 				fill: theme.elevated_bg,
 				"font-size": ".4rem"
 			}, lang.get("validInCountry_msg", {"{country}": country.n})),
@@ -406,6 +462,10 @@ export function convertGiftCardSvgToPng(giftCardSvgElement: HTMLElement): Promis
 		// The drop shadow doesnt get rendered properly so we need to
 		// remove it from the svg dom element and apply it as a filter on the canvas
 		cloneElement.style.filter = "none"
+		// The canvas doesnt use the fonts from the global styles for some reason
+		cloneElement.style.fontFamily = getFonts()
+		cloneElement.style.fontSize = px(size.font_size_base)
+
 		// make a data url of the svg string of the passed in element
 		const svgString = new XMLSerializer().serializeToString(cloneElement)
 		const encodedData = 'data:image/svg+xml;base64,' + stringToBase64(replaceHtmlEntities(svgString))
