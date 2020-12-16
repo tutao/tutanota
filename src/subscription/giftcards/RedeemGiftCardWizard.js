@@ -290,7 +290,8 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 
 		return m("", [
 			data.newAccountData()
-				? m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode})
+				? m(".pt-l.plr-l",
+				m(RecoverCodeField, {showMessage: true, recoverCode: neverNull(data.newAccountData()).recoverCode}))
 				: null,
 			wasFree ? [
 					m(".pt-l.plr-l",
