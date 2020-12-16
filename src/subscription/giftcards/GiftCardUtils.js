@@ -298,9 +298,14 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 	const messageBoxHeight = 75
 	const qrCodeTopPadding = 20
 
-	const giftCardLabelTop = 43
+	const giftCardLabelTopOffse = 45
 
 	const centered = (elementWidth, totalWidth = width) => totalWidth / 2 - elementWidth / 2
+
+	const logoTop = 20
+	const squiggleStart = 117
+	const qrCodePadding = 5
+	const qrCodeLeft = 32
 
 	return m("svg", {
 			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(borderRadius), filter: "drop-shadow(10px 10px 10px #00000088)"},
@@ -317,7 +322,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					"color-adjust": "exact",
 				},
 			}),
-			m("g", {transform: `translate(${centered(logoTextWidth)}, 20)`},
+			m("g", {transform: `translate(${centered(logoTextWidth)}, ${logoTop})`},
 				[
 					m("path", { /* tutanota logo text */
 						fill: theme.elevated_bg,
@@ -326,7 +331,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					m("text", { /* translation of "gift card" */
 						"text-anchor": "end",
 						"font-family": "sans-serif",
-						x: logoTextWidth, y: giftCardLabelTop,
+						x: logoTextWidth, y: giftCardLabelTopOffse,
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
@@ -343,7 +348,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 			m("text", { /* price */
 				"text-anchor": "start",
 				"font-family": "sans-serif",
-				x: 25,
+				x: qrCodeLeft,
 				y: height - 30,
 				fill: theme.elevated_bg,
 				"font-size": "1.6rem"
@@ -351,19 +356,19 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 			m("text", {
 				"text-anchor": "start",
 				"font-family": "sans-serif",
-				x: 25,
+				x: qrCodeLeft,
 				y: height - 15,
 				fill: theme.elevated_bg,
 				"font-size": ".4rem"
 			}, lang.get("validInCountry_msg", {"{country}": country.n})),
 			qrCode
 				? m("g", {
-					transform: `translate(25 ${messageBoxTop + messageBoxHeight + qrCodeTopPadding})`
+					transform: `translate(${qrCodeLeft - qrCodePadding} ${messageBoxTop + messageBoxHeight + qrCodeTopPadding})`
 				}, m.trust(qrCode))
 				: null,
 			m("path", {
 				fill: theme.elevated_bg,
-				transform: `translate(117 ${height - 80})`,
+				transform: `translate(${squiggleStart} ${height - 80})`,
 				d: "M74.483 0s8.728 1.406 8.713 4.992c0 .12-.011.237-.029.357-.612 3.86-13.283 3.762-18.682 4.23-5.394.459-20.04.149-23.739 6.625a1.996 1.996 0 00-.28.97c-.043 5.903 30.74 9.897 32.5 22.778.06.422.088.844.088 1.262-.025 13.047-27.86 24.602-61.907 38.193C7.43 80.891 3.78 82.585 0 83.896h127.618v-28.16c-3.2-8.982-9.027-17.293-19.193-22.564C87.613 22.37 55.084 20.366 53.693 16.204c-.06-.177-.09-.35-.085-.516.03-2.846 8.905-3.51 14.734-3.802 6.162-.302 15.481-1.135 16.622-5.56.056-.213.08-.422.08-.624C85.075 1.582 74.484 0 74.484 0z"
 			})
 		]
