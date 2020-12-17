@@ -292,7 +292,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 
 	const borderRadius = 20
 
-	// Do not change  this value. Needs to remain consistent with the SVG path data
+	// Do not change this value. Needs to remain consistent with the SVG path data
 	const logoPathWidth = 153
 
 	const logoWidth = 180
@@ -313,7 +313,13 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 
 	const priceY = 35
 	return m("svg", {
-			style: {maxWidth: "960px", minwidth: "480px", "border-radius": px(borderRadius), filter: "drop-shadow(10px 10px 10px #00000088)"},
+			style: {
+				color: theme.elevated_bg,
+				maxWidth: "960px",
+				minwidth: "480px",
+				"border-radius": px(borderRadius),
+				filter: "drop-shadow(10px 10px 10px #00000088)"
+			},
 			xmlns: "http://www.w3.org/2000/svg",
 			viewBox: `0 0 ${width} ${height}`
 		},
@@ -338,14 +344,17 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
-			m("foreignObject", {x: centered(logoPathWidth), y: messageBoxTop, width: logoPathWidth, height: messageBoxHeight},
-				m("p.text-preline.text-break", {
+			m("foreignObject", {
+					x: centered(logoPathWidth),
+					y: messageBoxTop,
+					width: logoPathWidth,
+					height: messageBoxHeight,
+				},
+				m("p.text-preline.text-break.color-adjust-exact.monospace.text-center", {
 					'xmlns': 'http://www.w3.org/1999/xhtml',
 					style: {
-						fontFamily: "monospace",
-						color: theme.elevated_bg,
-						textAlign: "center",
-						fontSize: ".6rem"
+						fontSize: ".6rem",
+						color: theme.elevated_bg
 					}
 				}, message)),
 			m("text", { /* price */

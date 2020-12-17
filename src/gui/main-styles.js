@@ -1352,8 +1352,11 @@ styles.registerStyle('main', () => {
 		".noscreen": {
 			"display": "none",
 		},
-
 		"@media print": {
+			".color-adjust-exact": {
+				"color-adjust": "exact",
+				"-webkit-print-color-adjust": "exact"
+			},
 			".noprint": {
 				"display": "none",
 			},
@@ -1421,7 +1424,7 @@ styles.registerStyle('main', () => {
 			},
 			".expander-panel": {
 				display: "none"
-			}
+			},
 		},
 
 		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7
