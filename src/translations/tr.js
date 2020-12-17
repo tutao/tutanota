@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2020-12-14T15:01:25Z",
+	"updated_at": "2020-12-17T09:36:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -324,7 +324,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Tutanota Desktop varsayılan e-posta işleyicisi olarak kaydettirin, ör. e-posta adres bağlantılarını açmak için. Bu işlem yönetici izinleri gerektirebilir.",
 		"defaultSenderMailAddressInfo_msg": "Yeni epostalar için varsayılan gönderici adresi.",
 		"defaultSenderMailAddress_label": "Varsayılan gönderici",
-		"defaultShareGiftCardBody_msg": "Merhaba, <br /> <br /> Sana Tutanota için bir hediye kartı aldım, <a href='{link}'> onu kullanmak için burayı tıkla! </a> <br /> <br /> Henüz bir hesabınız yoksa, kaydolmak ve gizliliğinizi geri almak için bağlantıyı kullanabilirsiniz. <br /> <br /> İyi Tatiller, {username}",
+		"defaultShareGiftCardBody_msg": "Merhaba,\n\nSana Tutanota için bir hediye kartı aldım, \n\n{link}\n\nHenüz bir hesabınız yoksa, kaydolmak ve gizliliğinizi geri almak için bağlantıyı kullanabilirsiniz. \n\nİyi Tatiller,\n{username}",
 		"defaultShareGiftCardSubject_msg": "Bir Tutanota hediye kartı aldınız!",
 		"deleteAccountConfirm_msg": "Hesabınızı gerçekten silmek istiyor musunuz? Hesabınız geri alınamaz ve bu eposta adresi yeniden kaydedilemez.",
 		"deleteAccountReasonInfo_msg": "İsteğe bağlı: Hesabınızı silmek istemenizin nedenini bizimle paylaşırsanız minnettar olur, böylece Tutanota'yı daha da geliştirebiliriz.",

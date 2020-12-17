@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2020-12-14T15:01:26Z",
+	"updated_at": "2020-12-17T09:32:12Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -323,7 +323,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Registrujte aplikaci Tutanota Desktop jako výchozí e-mailovou aplikaci, abyste mohli např. otevřít odkaz e-mailové adresy. Tato operace může vyžadovat oprávnění správce systému.",
 		"defaultSenderMailAddressInfo_msg": "Výchozí emailová adresa odesílatele pro nové zprávy.",
 		"defaultSenderMailAddress_label": "Výchozí odesílatel",
-		"defaultShareGiftCardBody_msg": "Ahoj, <br /><br />koupil jsem ti dárkový poukaz od Tutanoty, klikni na odkaz pro jeho uplatnění!<br /><br /><div style=\"text-align: center\"><a href=\"{link}\">{link}</a></div><br /><br />Pokud ještě nemáš účet od Tutanoty, můžeš se přes odkaz také zaregistrovat a získat tak zpět své soukromí.<br /><br /> Hezké svátky, <br />{username}",
+		"defaultShareGiftCardBody_msg": "Ahoj,\n\nkoupil jsem ti dárkový poukaz od Tutanoty, klikni na odkaz pro jeho uplatnění!\n\n{link}\n\nPokud ještě nemáš účet od Tutanoty, můžeš se přes odkaz také zaregistrovat a získat tak zpět své soukromí.\n\nHezké svátky,\n{username}",
 		"defaultShareGiftCardSubject_msg": "Obdrželi jste dárkový poukaz Tutanoty!",
 		"deleteAccountConfirm_msg": "Opravdu si přejete smazat svůj účet? Nebude možné jej obnovit a Vaši adresu nebude možné znovu použít.",
 		"deleteAccountReasonInfo_msg": "Volitelné: Byli bychom vděční, kdybyste nám sdělili důvod, proč chcete svůj účet vymazat, abychom mohli službu Tutanota dále zlepšovat.",

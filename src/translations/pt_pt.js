@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2020-12-14T15:01:25Z",
+	"updated_at": "2020-12-15T15:31:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -474,6 +474,7 @@ module.exports = {
 		"functionNotSupported_msg": "Esta função não é suportada pelo seu dispositivo ou navegador.",
 		"germanLanguageFile_label": "Ficheiro de língua Alemã",
 		"giftCardPurchaseFailed_msg": "Não foi possível comprar o cartão presente",
+		"giftCardRedeemed_msg": "O cartão presente foi resgatado com sucesso.",
 		"giftCardSection_label": "Comprar e gerir cartões presente",
 		"giftCards_label": "Cartões presente",
 		"giftCardUpdateError_msg": "Impossível atualizar cartão presente",
@@ -1187,6 +1188,7 @@ module.exports = {
 		"userEmailSignature_label": "Assinatura do correio eletrónico",
 		"userManagementRedirect_msg": "Será redirecionado para o menu de configurações de utilizador. Poderá retornar à configuração do seu domínio personalizado mais tarde.",
 		"userSettings_label": "Definições do utilizador",
+		"validInCountry_msg": "Válido em {country}.",
 		"validInputFormat_msg": "Formato ok.",
 		"value_label": "Valor",
 		"verifyDNSRecords_msg": "Finalmente, terá de configurar os registos de DNS abaixo listados para permitir a entrega de email de e para o servidor de mail Tutanota.",

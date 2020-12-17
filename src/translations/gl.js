@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2020-12-14T15:01:26Z",
+	"updated_at": "2020-12-17T09:34:13Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -324,7 +324,7 @@ module.exports = {
 		"defaultMailHandler_msg": "Rexistrar Tutanota Desktop como xestor de correo por omisión, ex. para abrir ligazóns a correos electrónicos. Esta operación precisa permiso de administración.",
 		"defaultSenderMailAddressInfo_msg": "O enderezo por omisión para enviar novos correos.",
 		"defaultSenderMailAddress_label": "Remitente por omisión",
-		"defaultShareGiftCardBody_msg": "Ola, <br/><br/>Merqueiche unha tarxeta agasallo para Tutanota, <a href='{link}'>preme aquí para recollela!</a><br /><br />Se aínda non tes unha conta podes usar a ligazón para conseguila e recuperar a túa privacidade. <br /><br /> Felices Festas, {username}",
+		"defaultShareGiftCardBody_msg": "Ola,\n\nMerqueiche unha tarxeta agasallo para Tutanota, \n\n{link}\n\nSe aínda non tes unha conta podes usar a ligazón para conseguila e recuperar a túa privacidade.\n\nFelices Festas,\n{username}",
 		"defaultShareGiftCardSubject_msg": "Recibiches unha tarxeta agasallo de Tutanota!",
 		"deleteAccountConfirm_msg": "De verdade quere eliminar a súa conta? A conta non se pode restaurar e o enderezo de correo non se pode rexistrar de novo.",
 		"deleteAccountReasonInfo_msg": "Opción: agradeceriámoslle si nos contase o motivo polo que quere eliminar a conta, así poderiamos mellorar aínda máis Tutanota.",
