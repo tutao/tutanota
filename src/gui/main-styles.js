@@ -952,6 +952,10 @@ styles.registerStyle('main', () => {
 			display: 'none'
 		},
 
+		'.resize-none': {
+			resize: 'none'
+		},
+
 		// table
 
 		'.table': {

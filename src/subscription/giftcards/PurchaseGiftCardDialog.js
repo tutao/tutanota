@@ -17,14 +17,12 @@ import {SysService} from "../../api/entities/sys/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {GiftCardGetReturnTypeRef} from "../../api/entities/sys/GiftCardGetReturn"
 import type {GiftCardOption} from "../../api/entities/sys/GiftCardOption"
-import {HtmlEditor, Mode} from "../../gui/base/HtmlEditor"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {
-	GiftCardMessageEditorField,
 	renderAcceptGiftCardTermsCheckbox,
 	showGiftCardToShare
 } from "./GiftCardUtils"
@@ -34,11 +32,10 @@ import {UserError} from "../../api/common/error/UserError"
 import {Keys, PaymentMethodType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {CheckboxN} from "../../gui/base/CheckboxN"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
+import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 
 export type CreateGiftCardViewAttrs = {
 	purchaseLimit: number,
@@ -78,9 +75,6 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 	view(vnode: Vnode<CreateGiftCardViewAttrs>): Children {
 		const a = vnode.attrs
 		return [
-			m(".flex-center",
-				m(".pt-l", {style: {maxWidth: "620px"}},
-					lang.get("buyGiftCardDescription_msg"))),
 			m(".flex.center-horizontally.wrap",
 				a.availablePackages.map((option, index) => {
 						const value = parseFloat(option.value)
@@ -114,15 +108,16 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 						})
 					}
 				)),
-			m(".flex-center", m("", m(GiftCardMessageEditorField, {message: this.message}))),
-			m(".flex-center", m("", {style: {maxWidth: "620px"}}, m(this.countrySelector))),
-			m(".flex-center.full-width.pt-m", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
-			m(".flex-center.full-width.pt-m", m("", {style: {width: "260px"}}, m(ButtonN, {
+			m(".flex-center", m(GiftCardMessageEditorField, {message: this.message})),
+			m(".flex-center", m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+				m("", m(this.countrySelector)),
+				m(".pt", renderAcceptGiftCardTermsCheckbox(this.isConfirmed)),
+				m(".mt-l.mb-l", m(ButtonN, {
 					label: "buy_action",
 					click: () => this.buyButtonPressed(a),
 					type: ButtonType.Login,
-				})
-			))
+				}))
+			]))
 		]
 	}
 

@@ -20,7 +20,6 @@ import {formatPrice, showServiceTerms} from "../SubscriptionUtils"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {HtmlEditor, Mode} from "../../gui/base/HtmlEditor"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {serviceRequest} from "../../api/main/Entity"
 import {elementIdPart, GENERATED_MAX_ID, HttpMethod} from "../../api/common/EntityFunctions"
@@ -46,8 +45,7 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import {replaceHtmlEntities} from "../../mail/MailUtils"
 import {getFonts} from "../../gui/main-styles"
 import {ColumnWidth} from "../../gui/base/TableN"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {baseLabelPosition, TextFieldN, Type} from "../../gui/base/TextFieldN"
+import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -112,59 +110,6 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 
 export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["purchaseDate_label", "value_label"]
 export const GIFT_CARD_TABLE_COLUMNS: Array<ColumnWidthEnum> = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
-
-const GIFT_CARD_MESSAGE_COLS = 26
-const GIFT_CARD_MESSAGE_HEIGHT = 5
-type Attrs = {
-	message: Stream<string>,
-	cols?: number,
-	rows?: number
-}
-
-/**
- * A text area that allows you to edit some text that is limited to fit within a certain rows/columns boundary
- */
-export class GiftCardMessageEditorField implements MComponent<Attrs> {
-	textAreaDom: HTMLTextAreaElement
-
-	view(vnode: Vnode<Attrs>): Children {
-		const a = vnode.attrs
-		return [
-			m(".small.mt-form.i", {
-				style: {
-					// fontSize: px(12),
-				}
-			}, lang.get("yourMessage_label")),
-			m("textarea.monospace.center", {
-				wrap: "hard",
-				cols: a.cols || GIFT_CARD_MESSAGE_COLS,
-				rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
-				oncreate: vnode => {
-					this.textAreaDom = vnode.dom
-					this.textAreaDom.value = a.message()
-				},
-				oninput: e => {
-					const origStart = this.textAreaDom.selectionStart
-					const origEnd = this.textAreaDom.selectionEnd
-					// remove characters from the end
-					while (this.textAreaDom.clientHeight < this.textAreaDom.scrollHeight) {
-						this.textAreaDom.value = this.textAreaDom.value.substr(0, this.textAreaDom.value.length - 1)
-					}
-					a.message(this.textAreaDom.value)
-					// the cursor gets pushed to the end when we chew up tailing characters so we put it back where it started in that case
-					if (this.textAreaDom.selectionStart - origStart > 1) {
-						this.textAreaDom.selectionStart = origStart
-						this.textAreaDom.selectionEnd = origEnd
-					}
-				},
-				style: {
-					overflow: "hidden",
-					resize: "none"
-				}
-			})
-		]
-	}
-}
 
 
 export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
@@ -264,9 +209,9 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 				},
 				{
 					view: () =>
-						m("", {style: {padding: px(size.vpad_large)}},
+						m("",
 							[
-								m(".flex-center.full-width.pt-l.pb-l", [
+								m(".flex-center.full-width.pt.pb", [
 										m("", {style: {width: "480px"}},
 											m(".pt-l", {
 												oncreate: (vnode) => {
@@ -457,7 +402,7 @@ const GIFT_CARD_PNG_WIDTH = 400
  * @returns A promise of a PNG DataURL
  */
 export function convertGiftCardSvgToPng(giftCardSvgElement: HTMLElement): Promise<string> {
-	return new Promise(resolve => {
+	return new Promise((resolve, reject) => {
 		const cloneElement = giftCardSvgElement.cloneNode(true)
 		// The drop shadow doesnt get rendered properly so we need to
 		// remove it from the svg dom element and apply it as a filter on the canvas
@@ -485,6 +430,9 @@ export function convertGiftCardSvgToPng(giftCardSvgElement: HTMLElement): Promis
 			ctx.filter = "drop-shadow(5px 5px 5px #00000088)"
 			ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 			resolve(canvas.toDataURL())
+		}
+		img.onerror = function () {
+			reject(new Error("Failed to render gift card image"))
 		}
 		// assigning src causes img.onload to be triggered
 		img.src = encodedData
