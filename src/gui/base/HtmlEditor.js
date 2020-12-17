@@ -27,7 +27,6 @@ export class HtmlEditor {
 	_borderDomElement: HTMLElement;
 	_showBorders: boolean;
 	_minHeight: ?number;
-	_maxLength: ?number;
 	_placeholderId: ?TranslationKey;
 	view: Function;
 	_placeholderDomElement: HTMLElement;
@@ -124,7 +123,6 @@ export class HtmlEditor {
 							this._domTextArea.style.height = '0px';
 							this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';
 						},
-						maxlength: this._maxLength ? this._maxLength : undefined,
 						style: {
 							'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
@@ -161,11 +159,6 @@ export class HtmlEditor {
 
 	setPlaceholderId(placeholderId: TranslationKey): HtmlEditor {
 		this._placeholderId = placeholderId
-		return this
-	}
-
-	setMaxLength(length: number): HtmlEditor {
-		this._maxLength = length
 		return this
 	}
 
