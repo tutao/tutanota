@@ -1,16 +1,16 @@
 {
-  "name": "tutanota",
-  "version": "3.79.0",
-  "license": "GPL-3.0",
-  "repository": {
-	"type": "git",
-	"url": "https://github.com/tutao/tutanota.git"
-  },
-  "scripts": {
-	"flow": "flow; test $? -eq 0 -o $? -eq 2",
-	"start": "./start-desktop.sh",
-	"test": "cd test && node --icu-data-dir=../node_modules/full-icu test api && node --icu-data-dir=../node_modules/full-icu test client",
-	"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
+	"name": "tutanota",
+	"version": "3.79.1",
+	"license": "GPL-3.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tutao/tutanota.git"
+	},
+	"scripts": {
+		"flow": "flow; test $? -eq 0 -o $? -eq 2",
+		"start": "./start-desktop.sh",
+		"test": "cd test && node --icu-data-dir=../node_modules/full-icu test api && node --icu-data-dir=../node_modules/full-icu test client",
+		"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
 		"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 		"postinstall": "electron-builder install-app-deps"
 	},
