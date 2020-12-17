@@ -60,8 +60,6 @@ import {FileOpenError} from "../api/common/error/FileOpenError"
 import {downcast, noOp} from "../api/common/utils/Utils"
 import {showUpgradeWizard} from "../subscription/UpgradeSubscriptionWizard"
 import {showUserError} from "../misc/ErrorHandlerImpl"
-import {base64ToUint8Array} from "../api/common/utils/Encoding"
-import {convertGiftCardSvgToPng} from "../subscription/giftcards/GiftCardUtils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,
@@ -641,37 +639,16 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
  */
 export function writeGiftCardMail(link: string, svg: HTMLElement, mailboxDetails?: MailboxDetail) {
 	_mailboxPromise(mailboxDetails).then(mailbox => {
-			let bodyText = lang.get("defaultShareGiftCardBody_msg", {
-				'{link}': '<a href="' + link + '">' + link + '</a>',
-				'{username}': logins.getUserController().userGroupInfo.name,
-			}).split("\n").join("<br />");
-
-			// const pngDataUrl = svgToPng(svg)
-			convertGiftCardSvgToPng(svg).then(pngDataUrl => {
-				const pngBase64 = pngDataUrl.split(",")[1]
-				const data = base64ToUint8Array(pngBase64)
-				const attachment: DataFile = {
-					_type: "DataFile",
-					name: "tutanota-giftcard.svg",
-					mimeType: "image/png",
-					data: data,
-					size: data.byteLength,
-					id: null
-				}
-				const inlineImageReference = createInlineImage(attachment)
-				const cid = inlineImageReference.cid
-				const imgTag = `<br /><br /><img style="max-width: 500px; border-radius: 20px;" src="cid:${cid}"><br />`
-				const subject = lang.get("defaultShareGiftCardSubject_msg")
-				const body = bodyText + imgTag + getDefaultSignature()
-				const inlineImages = new Map()
-				inlineImages.set(cid, {file: attachment, url: inlineImageReference.objectUrl})
-				defaultSendMailModel(mailbox)
-					.initWithTemplate({}, subject, body, [attachment], false)
-					.then(model => createMailEditorDialog(model, false, Promise.resolve(inlineImages)))
-					.then(dialog => dialog.show())
-			})
-		}
-	)
+		let bodyText = lang.get("defaultShareGiftCardBody_msg", {
+			'{link}': '<a href="' + link + '">' + link + '</a>',
+			'{username}': logins.getUserController().userGroupInfo.name,
+		}).split("\n").join("<br />");
+		const subject = lang.get("defaultShareGiftCardSubject_msg")
+		defaultSendMailModel(mailbox)
+			.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false)
+			.then(model => createMailEditorDialog(model, false))
+			.then(dialog => dialog.show())
+	})
 }
 
 function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
