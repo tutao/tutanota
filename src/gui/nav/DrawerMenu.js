@@ -31,7 +31,7 @@ export class DrawerMenu implements MComponent<Attrs> {
 			},
 		}, m(".flex.col.height-100p.items-center.pt.pb", [
 			m(".flex-grow"),
-			logins.getUserController().isPremiumAccount() && logins.isGlobalAdminUserLoggedIn()
+			logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()
 				? m(ButtonN, {
 					icon: () => Icons.Gift,
 					label: "buyGiftCard_label",
