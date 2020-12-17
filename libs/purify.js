@@ -209,7 +209,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '2.2.3';
+    DOMPurify.version = '2.2.4';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -518,7 +518,11 @@
       try {
         node.parentNode.removeChild(node);
       } catch (_) {
-        node.outerHTML = emptyHTML;
+        try {
+          node.outerHTML = emptyHTML;
+        } catch (_) {
+          node.remove();
+        }
       }
     };
 
@@ -682,12 +686,6 @@
         allowedTags: ALLOWED_TAGS
       });
 
-      /* Take care of an mXSS pattern using p, br inside svg, math */
-      if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, form, table, h1, h2, h3, h4, h5, h6').length !== 0) {
-        _forceRemove(currentNode);
-        return true;
-      }
-
       /* Detect mXSS attempts abusing namespace confusion */
       if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
         _forceRemove(currentNode);
@@ -708,8 +706,18 @@
         return true;
       }
 
-      /* Remove in case a noscript/noembed XSS is suspected */
       if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
+        _forceRemove(currentNode);
+        return true;
+      }
+
+      if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length > 0) {
+        _forceRemove(currentNode);
+        return true;
+      }
+
+      /* Take care of an mXSS using HTML inside SVG affecting old Chrome */
+      if (tagName === 'svg' && currentNode.querySelectorAll('p, br, table, form, noscript').length > 0) {
         _forceRemove(currentNode);
         return true;
       }
