@@ -22,7 +22,7 @@
 // Licensed under the MIT license:
 //   http://www.opensource.org/licenses/mit-license.php
 //
-// The word "QR Code" is registered trademark of 
+// The word "QR Code" is registered trademark of
 // DENSO WAVE INCORPORATED
 //   http://www.denso-wave.com/qrcode/faqpatent-e.html
 //
@@ -282,49 +282,106 @@ function QRCode(options) {
 
 /** Generates QR Code as SVG image */
 QRCode.prototype.svg = function(opt) {
-  if (typeof opt == "undefined") {
-    opt = { container: "svg" };
-  }
-
-  var options = this.options;
+  var options = this.options || { };
   var modules = this.qrcode.modules;
 
-  var EOL = '\r\n';
+  if (typeof opt == "undefined") {
+    opt = { container: options.container || "svg" };
+  }
+
+  //Apply new lines and indents in SVG?
+  var pretty = typeof options.pretty != "undefined" ? !!options.pretty : true;
+
+  var indent = pretty ? '  ' : '';
+  var EOL = pretty ? '\r\n' : '';
   var width = options.width;
   var height = options.height;
   var length = modules.length;
   var xsize = width / (length + 2 * options.padding);
   var ysize = height / (length + 2 * options.padding);
 
-  var rect = '<rect x="0" y="0" width="' + width + '" height="' + height + '" style="fill:' + options.background + ';shape-rendering:crispEdges;"></rect>' + EOL;
+  //Swap the X and Y modules, pull request #2
+  var swap = typeof options.swap != "undefined" ? !!options.swap : false;
+
+  //Apply <?xml...?> declaration in SVG?
+  var xmlDeclaration = typeof options.xmlDeclaration != "undefined" ? !!options.xmlDeclaration : true;
+
+  //Populate with predefined shape instead of "rect" elements, thanks to @kkocdko
+  var predefined = typeof options.predefined != "undefined" ? !!options.predefined : false;
+  var defs = predefined ? indent + '<defs><path id="qrmodule" d="M0 0 h' + ysize + ' v' + xsize + ' H0 z" style="fill:' + options.color + ';shape-rendering:crispEdges;" /></defs>' + EOL : '';
+
+  //Background rectangle
+  var bgrect = indent + '<rect x="0" y="0" width="' + width + '" height="' + height + '" style="fill:' + options.background + ';shape-rendering:optimizeSpeed;"></rect>' + EOL;
+
+  //Rectangles representing modules
+  var modrect = '';
+  var pathdata = '';
 
   for (var y = 0; y < length; y++) {
     for (var x = 0; x < length; x++) {
       var module = modules[x][y];
       if (module) {
-        var px = (x * xsize + options.padding * xsize).toString();
-        var py = (y * ysize + options.padding * ysize).toString();
-        rect += '<rect x="' + px + '" y="' + py + '" width="' + xsize + '" height="' + ysize + '" style="fill:' + options.color + ';shape-rendering:crispEdges;"></rect>' + EOL;
+
+        var px = (x * xsize + options.padding * xsize);
+        var py = (y * ysize + options.padding * ysize);
+
+        //Some users have had issues with the QR Code, thanks to @danioso for the solution
+        if (swap) {
+          var t = px;
+          px = py;
+          py = t;
+        }
+
+          //Module as a part of svg path data, thanks to @danioso
+          var w = xsize + px
+          var h = ysize + py
+
+          px = (Number.isInteger(px))? Number(px): px.toFixed(2);
+          py = (Number.isInteger(py))? Number(py): py.toFixed(2);
+          w = (Number.isInteger(w))? Number(w): w.toFixed(2);
+          h = (Number.isInteger(h))? Number(h): h.toFixed(2);
+
+          pathdata += ('M' + px + ',' + py + ' V' + h + ' H' + w + ' V' + py + ' H' + px + ' Z ');
+        }
       }
     }
-  }
+
+
+  modrect = indent + '<path x="0" y="0" style="fill:' + options.color + ';shape-rendering:optimizeSpeed;" d="' + pathdata + '" />';
 
   var svg = "";
   switch (opt.container) {
+    //Wrapped in SVG document
     case "svg":
-      svg += '<?xml version="1.0" standalone="yes"?>' + EOL + '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="' + width + '" height="' + height + '">' + EOL;
-      svg += rect;
+      if (xmlDeclaration) {
+        svg += '<?xml version="1.0" standalone="yes"?>' + EOL;
+      }
+      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="' + width + '" height="' + height + '">' + EOL;
+      svg += defs + bgrect + modrect;
       svg += '</svg>';
       break;
 
+    //Viewbox for responsive use in a browser, thanks to @danioso
+    case "svg-viewbox":
+      if (xmlDeclaration) {
+        svg += '<?xml version="1.0" standalone="yes"?>' + EOL;
+      }
+      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 ' + width + ' ' + height + '">' + EOL;
+      svg += defs + bgrect + modrect;
+      svg += '</svg>';
+      break;
+
+
+    //Wrapped in group element
     case "g":
       svg += '<g width="' + width + '" height="' + height + '">' + EOL;
-      svg += rect;
+      svg += defs + bgrect + modrect;
       svg += '</g>';
       break;
 
+    //Without a container
     default:
-      svg += rect;
+      svg += (defs + bgrect + modrect).replace(/^\s+/, ""); //Clear indents on each line
       break;
   }
 
