@@ -25,7 +25,7 @@ export function show(): Promise<void> {
 				const changeEmailAliasPackageAction = (amount: number) => {
 					dialog.close()
 					showBuyDialog(BookingItemFeatureType.Alias, amount, freeEmailAliases)
-						.then(confirmed => {if (!confirmed) show()})
+						.then(cancelled => {if (cancelled) show()})
 						.then(() => resolve())
 				}
 
