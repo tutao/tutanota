@@ -114,14 +114,10 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 						})
 					}
 				)),
-			m(".flex-center", [
-				m(".flex-grow", {style: {maxWidth: "620px"}}, [
-					m(".pt-s", m(GiftCardMessageEditorField, {message: this.message})),
-					m(this.countrySelector),
-				]),
-			]),
-			m(".flex-center.full-width.pt-l", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
-			m(".flex-center.full-width.pt-s", m("", {style: {width: "260px"}}, m(ButtonN, {
+			m(".flex-center", m("", m(GiftCardMessageEditorField, {message: this.message}))),
+			m(".flex-center", m("", {style: {maxWidth: "620px"}}, m(this.countrySelector))),
+			m(".flex-center.full-width.pt-m", m("", {style: {maxWidth: "620px"}}, renderAcceptGiftCardTermsCheckbox(this.isConfirmed))),
+			m(".flex-center.full-width.pt-m", m("", {style: {width: "260px"}}, m(ButtonN, {
 					label: "buy_action",
 					click: () => this.buyButtonPressed(a),
 					type: ButtonType.Login,

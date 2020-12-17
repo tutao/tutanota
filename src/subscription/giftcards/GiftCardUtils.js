@@ -130,12 +130,12 @@ export class GiftCardMessageEditorField implements MComponent<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		const a = vnode.attrs
 		return [
-			m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
+			m(".small.mt-form.i", {
 				style: {
-					transform: `translateY(${-5}px)`
+					// fontSize: px(12),
 				}
 			}, lang.get("yourMessage_label")),
-			m("textarea.mt.monospace.center", {
+			m("textarea.monospace.center", {
 				wrap: "hard",
 				cols: a.cols || GIFT_CARD_MESSAGE_COLS,
 				rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
@@ -435,7 +435,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 	return m(CheckboxN, {
 		checked: confirmed,
 		label: () => [
-			m(".pt-l", lang.get("giftCardsTerms_label")),
+			m("", lang.get("giftCardsTerms_label")),
 			m("div", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
 				onclick: e => {
 					if (isApp()) {
