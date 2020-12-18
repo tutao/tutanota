@@ -302,8 +302,9 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 	const messageBoxTop = 80
 	const messageBoxHeight = 75
 	const qrCodeTopPadding = 10
+	const qrCodeTop = messageBoxTop + messageBoxHeight + qrCodeTopPadding
 
-	const giftCardLabelTopOffse = 45
+	const giftCardLabelTopOffset = 45
 
 	const centered = (elementWidth, totalWidth = width) => totalWidth / 2 - elementWidth / 2
 
@@ -340,7 +341,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					}),
 					m("text", { /* translation of "gift card" */
 						"text-anchor": "end",
-						x: logoPathWidth, y: giftCardLabelTopOffse,
+						x: logoPathWidth, y: giftCardLabelTopOffset,
 						fill: theme.elevated_bg
 					}, lang.get("giftCard_label")),
 				]),
@@ -353,6 +354,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 				m("p.text-preline.text-break.color-adjust-exact.monospace.text-center", {
 					'xmlns': 'http://www.w3.org/1999/xhtml',
 					style: {
+						margin: 0,
 						fontSize: ".6rem",
 						color: theme.elevated_bg,
 						"font-family": "monospace",
@@ -374,7 +376,7 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 			}, lang.get("validInCountry_msg", {"{country}": country.n})),
 			qrCode
 				? m("g", {
-					transform: `translate(${qrCodeLeft - qrCodePadding} ${messageBoxTop + messageBoxHeight + qrCodeTopPadding})`
+					transform: `translate(${qrCodeLeft - qrCodePadding} ${qrCodeTop})`
 				}, m.trust(qrCode))
 				: null,
 			m("path", {
