@@ -299,9 +299,9 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 	const topBottomPadding = 20
 	const logoScale = logoWidth / logoPathWidth
 
-	const messageBoxTop = 70
+	const messageBoxTop = 80
 	const messageBoxHeight = 75
-	const qrCodeTopPadding = 20
+	const qrCodeTopPadding = 10
 
 	const giftCardLabelTopOffse = 45
 
@@ -354,7 +354,8 @@ export function renderGiftCardSvg(price: number, country: Country, link: ?string
 					'xmlns': 'http://www.w3.org/1999/xhtml',
 					style: {
 						fontSize: ".6rem",
-						color: theme.elevated_bg
+						color: theme.elevated_bg,
+						"font-family": "monospace",
 					}
 				}, message)),
 			m("text", { /* price */
