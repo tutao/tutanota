@@ -20,7 +20,7 @@ export const BannerType = Object.freeze({
 })
 export type BannerTypeEnum = $Values<typeof BannerType>
 
-export type Attrs = {
+export type BannerAttrs = {
 	icon: AllIconsEnum,
 	title: string,
 	message: string,
@@ -29,8 +29,8 @@ export type Attrs = {
 	type: BannerTypeEnum
 }
 
-export class Banner implements MComponent<Attrs> {
-	view({attrs}: Vnode<Attrs>): Children {
+export class Banner implements MComponent<BannerAttrs> {
+	view({attrs}: Vnode<BannerAttrs>): Children {
 		const colors = getColors(attrs.type)
 		const isVertical = attrs.type === BannerType.Warning
 		return m(MessageBoxN, {

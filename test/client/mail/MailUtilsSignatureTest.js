@@ -12,7 +12,7 @@ import {appendEmailSignature, prependEmailSignature} from "../../../src/mail/sig
 
 const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 
-o.spec("MailUtilsSignature", function () {
+o.spec("MailUtilsSignatureTest", function () {
 
 	const mockedAttributes = []
 

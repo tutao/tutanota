@@ -14,7 +14,7 @@ import {
 	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, serviceRequestVoid, update} from "../api/main/Entity"
-import {assertMainOrNode, isAdminClient, isApp, LOGIN_TITLE, Mode} from "../api/common/Env"
+import {assertMainOrNode, isAdminClient, isApp, isTutanotaDomain, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull, noOp} from "../api/common/utils/Utils"
@@ -37,6 +37,10 @@ import {TutanotaService} from "../api/entities/tutanota/Services"
 import {locator} from "../api/main/MainLocator"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {getHourCycle} from "../misc/Formatter"
+import {showEditOutOfOfficeNotificationDialog} from "../settings/EditOutOfOfficeNotificationDialog"
+import * as notificationOverlay from "../gui/base/NotificationOverlay"
+import {ButtonType} from "../gui/base/ButtonN"
+import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../settings/OutOfOfficeNotificationUtils"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
@@ -264,10 +268,34 @@ export class LoginViewController implements ILoginViewController {
 				if (!isAdminClient()) {
 					return locator.calendarModel.init()
 				}
-			}).then(() => {
-			lang.updateFormats({
-				hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
 			})
+			.then(() => {
+				lang.updateFormats({
+					hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot)
+				})
+			})
+			.then(() => {
+				return this._remindActiveOutOfOfficeNotification()
+			})
+	}
+
+	_remindActiveOutOfOfficeNotification(): Promise<void> {
+		return loadOutOfOfficeNotification().then((notification) => {
+			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
+				const notificationMessage: Component = {
+					view: () => {
+						return m("", lang.get("outOfOfficeReminder_label"))
+					}
+				}
+				notificationOverlay.show(notificationMessage, {label: "close_alt"}, [
+					{
+						label: "deactivate_action",
+						click: () => showEditOutOfOfficeNotificationDialog(notification),
+						type: ButtonType.Primary
+					}
+				])
+
+			}
 		})
 	}
 

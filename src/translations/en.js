@@ -1281,6 +1281,25 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"dragAndDropExport_action": "Drag & drop export",
+		"outOfOfficeNotification_title": "Out of office notification",
+		"outOfOfficeDefault_msg": "Hello,\n<br>\n<br>thanks for your email. I am out of the office and will be back soon. Until then I will have limited access to my email.\n<br>\n<br>Kind Regards",
+		"outOfOfficeDefaultSubject_msg": "I am out of the office",
+		"invalidTimePeriod_msg": "The entered time period is invalid.",
+		"message_label": "Message",
+		"outOfOfficeInternal_msg": "Inside your organization",
+		"outOfOfficeExternal_msg": "Outside your organization",
+		"outOfOfficeEveryone_msg": "To everyone",
+		"outOfOfficeMessageInvalid_msg": "The subject and/or message is invalid.\nEmpty subjects or messages are not allowed.\nMaximum subject size: 128 characters. Maximum message size: 20kb.",
+		"outOfOfficeTimeRange_msg": "Only send during this time range:",
+		"outOfOfficeTimeRangeHelp_msg": "Check to pick dates.",
+		"outOfOfficeReminder_label": "Out of office notifications are activated.",
+		"outOfOfficeRecipients_label": "Notification recipients",
+		"outOfOfficeRecipientsHelp_label": "Select who receives the out of office notifications and if distinct notifications are sent to members of your organization and other recipients.",
+		"insideOnly_label": "Inside only",
+		"insideOutside_label": "Inside/outside",
+		"everyone_label": "Everyone",
+		"outOfOfficeUnencrypted_msg": "Please note that out of office notifications are sent in plaintext to the server and to future recipients."
 	}
 }

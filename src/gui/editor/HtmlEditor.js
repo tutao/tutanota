@@ -108,7 +108,12 @@ export class HtmlEditor {
 							this._editor.isEnabled() && injections ? injections() : null,
 						]),
 						this._editor.isEnabled() ? m("hr.hr.mb-s") : null,
-						m(this._editor)
+						m(this._editor,
+							{
+								oncreate: vnode => this._editor.initialized.promise.then(() => this._editor.setHTML(this._value())),
+								onremove: vnode => this._value(this.getValue())
+							}
+						)
 					]) : null,
 					this._mode() === Mode.HTML ? m(".html", m("textarea.input-area.selectable", {
 						oncreate: vnode => {

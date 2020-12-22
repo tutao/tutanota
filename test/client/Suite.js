@@ -27,11 +27,13 @@ import "./gui/base/WizardDialogNTest"
 import "./calendar/CalendarEventViewModelTest"
 import "./gui/ColorTest"
 import "./mail/SendMailModelTest"
+import "./common/OutOfOfficeNotificationTest"
+import "./subscription/SubscriptionUtilsTest"
+import "./subscription/SwitchSubscriptionDialogModelTest"
 import o from "ospec"
 import {random} from "../../src/api/worker/crypto/Randomizer"
 import {EntropySrc} from "../../src/api/common/TutanotaConstants"
 import {preTest, reportTest} from "../api/TestUtils"
-import {noOp} from "../../src/api/common/utils/Utils"
 
 (async () => {
 	if (typeof process != "undefined") {
