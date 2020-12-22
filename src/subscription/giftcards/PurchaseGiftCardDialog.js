@@ -36,6 +36,8 @@ import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
 import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
+import {client} from "../../misc/ClientDetector"
+import {noOp} from "../../api/common/utils/Utils"
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,
@@ -83,29 +85,31 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 						heading: m(".flex-center",
 							Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
 						),
-							actionButton: () => {
-								return {
-									label: "pricing.select_action",
-									click: () => {
-										this.selectedPackage(index)
-									},
-									type: ButtonType.Login,
-								}
-							},
-							price: formatPrice(parseFloat(value), true),
-							originalPrice: formatPrice(parseFloat(value), true),
-							helpLabel: () => lang.get(withSubscriptionAmount
-							=== 0 ? "giftCardOptionTextA_msg" : "giftCardOptionTextB_msg", {
+						actionButton: () => {
+							return {
+								label: "pricing.select_action",
+								click: () => {
+									this.selectedPackage(index)
+								},
+								type: ButtonType.Login,
+							}
+						},
+						price: formatPrice(parseFloat(value), true),
+						originalPrice: formatPrice(parseFloat(value), true),
+						helpLabel: () => lang.get(withSubscriptionAmount === 0
+							? "giftCardOptionTextA_msg"
+							: "giftCardOptionTextB_msg",
+							{
 								"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
 								"{fullCredit}": formatPrice(value, true)
 							}),
-							features: () => [],
-							width: 230,
-							height: 250,
-							paymentInterval: null,
-							highlighted: this.selectedPackage() === index,
-							showReferenceDiscount: false,
-						})
+						features: () => [],
+						width: 230,
+						height: 250,
+						paymentInterval: null,
+						highlighted: this.selectedPackage() === index,
+						showReferenceDiscount: false,
+					})
 					}
 				)),
 			m(".flex-center", m(GiftCardMessageEditorField, {message: this.message})),
@@ -248,6 +252,10 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 						                     exec: () => dialog.close(),
 						                     help: "close_alt"
 					                     })
+					      if (client.isMobileDevice()) {
+						      // Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
+						      dialog.setFocusOnLoadFunction(noOp)
+					      }
 					      return dialog
 				      })
 			      })
