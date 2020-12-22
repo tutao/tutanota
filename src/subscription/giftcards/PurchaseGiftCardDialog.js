@@ -164,7 +164,7 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 							throw new UserError("invalidGiftCardPaymentMethod_msg")
 					}
 				} else {
-					throw new UserError(getPreconditionFailedPaymentMsg(e))
+					throw new UserError(getPreconditionFailedPaymentMsg(e.data))
 				}
 			})
 			.catch(BadGatewayError, e => {
