@@ -21,7 +21,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {formatPrice, getPreconditionFailedPaymentMsg, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {
 	renderAcceptGiftCardTermsCheckbox,
 	showGiftCardToShare
@@ -31,13 +31,13 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {UserError} from "../../api/common/error/UserError"
 import {Keys, PaymentMethodType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
-import {NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {BadGatewayError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
 import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 
-export type CreateGiftCardViewAttrs = {
+export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,
 	purchasePeriodMonths: number,
 	availablePackages: Array<GiftCardOption>;
@@ -48,7 +48,7 @@ export type CreateGiftCardViewAttrs = {
 	premiumPrice: number
 }
 
-class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
+class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 
 	countrySelector: DropDownSelector<?Country>
 	message: Stream<string>
@@ -57,7 +57,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
 	isConfirmed: Stream<boolean>
 
-	constructor(vnode: Vnode<CreateGiftCardViewAttrs>) {
+	constructor(vnode: Vnode<GiftCardPurchaseViewAttrs>) {
 		const a = vnode.attrs
 		this.selectedPackage = stream(a.initiallySelectedPackage)
 		this.selectedCountry = stream(a.country)
@@ -72,17 +72,17 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 
 	}
 
-	view(vnode: Vnode<CreateGiftCardViewAttrs>): Children {
+	view(vnode: Vnode<GiftCardPurchaseViewAttrs>): Children {
 		const a = vnode.attrs
 		return [
 			m(".flex.center-horizontally.wrap",
 				a.availablePackages.map((option, index) => {
-						const value = parseFloat(option.value)
-						const withSubscriptionAmount = value - a.premiumPrice
-						return m(BuyOptionBox, {
-							heading: m(".flex-center",
-								Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
-							),
+					const value = parseFloat(option.value)
+					const withSubscriptionAmount = value - a.premiumPrice
+					return m(BuyOptionBox, {
+						heading: m(".flex-center",
+							Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
+						),
 							actionButton: () => {
 								return {
 									label: "pricing.select_action",
@@ -121,7 +121,7 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 		]
 	}
 
-	buyButtonPressed(attrs: CreateGiftCardViewAttrs) {
+	buyButtonPressed(attrs: GiftCardPurchaseViewAttrs) {
 		if (!this.isConfirmed()) {
 			Dialog.error("termsAcceptedNeutral_msg");
 			return
@@ -145,22 +145,25 @@ class GiftCardCreateView implements MComponent<CreateGiftCardViewAttrs> {
 				showGiftCardToShare(giftCard)
 			})
 			.catch(PreconditionFailedError, e => {
-				switch (e.data) {
-					case "giftcard.limitreached":
-						throw new UserError(() => lang.get("tooManyGiftCards_msg", {
-							"{amount}": `${attrs.purchaseLimit}`,
-							"{period}": `${attrs.purchasePeriodMonths} months`
-						}))
-					case "giftcard.noaccountinginfo":
-						throw new UserError("providePaymentDetails_msg")
-					case "giftcard.invalidpaymentmethod":
-						throw new UserError("invalidGiftCardPaymentMethod_msg")
-					default:
-						throw e // If this happens then the server changed and we need to handle it
+				const message = e.data
+				if (message && message.startsWith("giftcard")) {
+					switch (message) {
+						case "giftcard.limitreached":
+							throw new UserError(() => lang.get("tooManyGiftCards_msg", {
+								"{amount}": `${attrs.purchaseLimit}`,
+								"{period}": `${attrs.purchasePeriodMonths} months`
+							}))
+						case "giftcard.noaccountinginfo":
+							throw new UserError("providePaymentDetails_msg")
+						case "giftcard.invalidpaymentmethod":
+							throw new UserError("invalidGiftCardPaymentMethod_msg")
+					}
+				} else {
+					throw new UserError(getPreconditionFailedPaymentMsg(e))
 				}
 			})
-			.catch(NotAuthorizedError, e => {
-				throw new UserError("giftCardPurchaseFailed_msg")
+			.catch(BadGatewayError, e => {
+				throw new UserError("paymentProviderNotAvailableError_msg")
 			})
 			.catch(UserError, showUserError)
 	}
@@ -216,7 +219,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 						      proPrices: prices.proPrices
 					      }
 					      let dialog
-					      const attrs: CreateGiftCardViewAttrs = {
+					      const attrs: GiftCardPurchaseViewAttrs = {
 						      purchaseLimit: giftCardInfo.maxPerPeriod,
 						      purchasePeriodMonths: giftCardInfo.period,
 						      availablePackages: giftCardInfo.options,
@@ -239,7 +242,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 						      ],
 						      middle: () => lang.get("buyGiftCard_label")
 					      }
-					      dialog = Dialog.largeDialogN(headerBarAttrs, GiftCardCreateView, attrs)
+					      dialog = Dialog.largeDialogN(headerBarAttrs, GiftCardPurchaseView, attrs)
 					                     .addShortcut({
 						                     key: Keys.ESC,
 						                     exec: () => dialog.close(),
