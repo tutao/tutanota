@@ -273,7 +273,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		locator.eventController.addEntityListener(entityEventListener)
 
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(braintree3ds.bin)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}`
-		Dialog.error("creditCardVerificationNeeded_msg")
+		Dialog.error("creditCardVerificationNeededPopup_msg")
 		      .then(() => {
 			      window.open(`${getWebRoot()}/braintree.html#${params}`)
 			      progressDialog.show()
