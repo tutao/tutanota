@@ -22,8 +22,8 @@ function prepareFiles(buildType) {
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = glob.sync(prefix + "images/*")
 		for (let file of imageFiles) {
-			const discard = imagesToKeep.find(name => file.endsWith(name)) == null
-			if (discard) {
+			const doDiscard = !imagesToKeep.find(name => file.endsWith(name))
+			if (doDiscard) {
 				console.log("unlinking ", file)
 				fs.unlinkSync(file)
 			}
