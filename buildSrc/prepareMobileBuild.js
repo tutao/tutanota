@@ -16,10 +16,14 @@ function prepareFiles(buildType) {
 	}
 
 	const imagesPath = prefix + "images"
+	const imagesToKeep = [
+		"ionicons.ttf", "logo-solo-red.png"
+	]
 	if (fs.existsSync(imagesPath)) {
 		const imageFiles = glob.sync(prefix + "images/*")
 		for (let file of imageFiles) {
-			if (!file.endsWith("ionicons.ttf")) {
+			const discard = imagesToKeep.find(name => file.endsWith(name)) == null
+			if (discard) {
 				console.log("unlinking ", file)
 				fs.unlinkSync(file)
 			}

@@ -272,7 +272,7 @@ public final class Native {
 					return Utils.resolvedDeferred(LogReader.getLogFile(activity).toString());
 //				case "unscheduleAlarms":
 //					Log.d(TAG, "unschedule alarms");
-				// TODO: sse alarm storage may not work because SharedPreferences are not synced between processes	
+				// TODO: sse alarm storage may not work because SharedPreferences are not synced between processes
 //					new AlarmNotificationsManager(new AndroidKeyStoreFacade(activity), sseStorage, new Crypto(activity), new SystemAlarmFacade(activity))
 //							.unscheduleAlarms(args.getString(0));
 //					return Utils.resolvedDeferred(null);
@@ -337,20 +337,20 @@ public final class Native {
 		// In order to show a logo thumbnail with the app chooser we need to pass a URI of a file in the filesystem
 		// we just save one of our resources to the temp directory and then pass that as ClipData
 		// because you can't share non 'content' URIs with other apps
-		Uri logoUri;
+		String imageName = "logo-solo-red.png";
 		try {
-			InputStream logoInputStream = activity.getAssets().open("tutanota/images/logo-solo-red.png");
-			File logoFile = this.files.writeFileToUnencryptedDir("logo-solo-red.png", logoInputStream);
-			logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile);
+			InputStream logoInputStream = activity.getAssets().open("tutanota/images/" + imageName);
+			File logoFile = this.files.writeFileToUnencryptedDir(imageName, logoInputStream);
+			Uri logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile);
+			ClipData thumbnail = ClipData.newUri(
+					activity.getContentResolver(),
+					"tutanota_logo",
+					logoUri
+			);
+			sendIntent.setClipData(thumbnail);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			Log.e(TAG, "Error attaching thumbnail to share intent:\n" + e.getMessage() );
 		}
-		ClipData thumbnail = ClipData.newUri(
-				activity.getContentResolver(),
-				"tutanota_logo",
-				logoUri
-		);
-		sendIntent.setClipData(thumbnail);
 		sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		Intent intent = Intent.createChooser(sendIntent, null);
