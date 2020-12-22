@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2020-12-22T11:09:46Z",
+	"updated_at": "2020-12-22T15:01:30Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
