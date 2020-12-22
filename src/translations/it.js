@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2020-12-17T09:22:32Z",
+	"updated_at": "2020-12-22T11:09:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -124,7 +124,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Utilizzo",
 		"businessUseUpgradeNeeded_msg": "Siamo spiacenti, al momento non ti è consentito inviare o ricevere email (ad eccezione del supporto vendite Tutanota all'indirizzo sales@tutao.de) perché hai un account business che è consentito solo con abbonamenti a pagamento. Passa subito a un abbonamento a pagamento.",
 		"buyEmailAliasInfo_msg": "Per favore scegli uno dei pacchetti alias per cambiare il numero di alias disponibili. Gli alias\triservati possono essere utilizzati da qualsiasi utente.",
-		"buyGiftCardDescription_msg": "Acquista una carta regalo per i tuoi cari! Quando riscattano una carta regalo, possono registrarsi per un nuovo account a pagamento o aggiornare il proprio account esistente e/o ottenere credito per ordinare funzionalità aggiuntive. Puoi scegliere tra le seguenti opzioni e lasciare un messaggio che verrà visualizzato sulla carta regalo. Il messaggio è, ovviamente, crittografato end to end.",
 		"buyGiftCard_label": "Acquista una carta regalo",
 		"buyStorageCapacityInfo_msg": "Scegli uno dei pacchetti di archiviazione per modificare la capacità di archiviazione totale. Lo spazio a disposizione è condiviso da tutti gli utenti.",
 		"buy_action": "Acquista",
@@ -483,7 +482,7 @@ module.exports = {
 		"giftCardCreditNotify_msg": "Il tuo account riceverà {credit} credit.",
 		"giftCardLoginError_msg": "Il tuo nuovo account è stato creato ma abbiamo riscontrato problemi durante l'accesso per riscattare la tua carta regalo. Prova ad accedere di nuovo più tardi con lo stesso link della carta regalo.",
 		"giftCardOptionTextA_msg": "Per un credito di {fullCredit} o un abbonamento Premium.",
-		"giftCardOptionTextB_msg": "Per un credito di {fullCredit} o un abbonamento Premium con credito di {lastingCredit}.",
+		"giftCardOptionTextB_msg": "Per un credito di {fullCredit} o un abbonamento Premium con credito di {remainingCredit}.",
 		"giftCardPurchaseFailed_msg": "Impossibile acquistare la carta regalo.",
 		"giftCardRedeemed_msg": "La carta regalo è stata riscattata con successo.",
 		"giftCardSection_label": "Acquista e gestisci carte regalo",

@@ -14,7 +14,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2020-12-17T09:34:13Z",
+	"updated_at": "2020-12-22T11:09:46Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -122,7 +122,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Uso",
 		"businessUseUpgradeNeeded_msg": "Lamentámolo, mais neste momento non tes permitido enviar ou recibir emails (excepción feita coa axuda de vendas de Tutanota sales@tutao.de) porque tes unha conta de empresa, un tipo de conta que só permite subscricións de pagamento. Por favor, mellora a unha subscrición de pagamento.",
 		"buyEmailAliasInfo_msg": "Por favor, escolle un dos paquetes de alias de email para cambiar o número de alias dispoñibles. Os alias contratados poden ser utilizados por calquera usuaria.",
-		"buyGiftCardDescription_msg": "Mércalles unha tarxeta agasallo ós teus seres queridos! Ó recoller a tarxeta agasallo poden rexistrarse cunha conta premium ou mellorar a súa conta actual a unha subscrición premium e/ou obter crédito para solicitar características adicionais. Podes escoller nas seguintes opcións e deixar unha mensaxe que verán ó recollela. A mensaxe está - por suposto - cifrada de extremo a extremo.",
 		"buyGiftCard_label": "Merca unha tarxeta agasallo",
 		"buyStorageCapacityInfo_msg": "Por favor, escolla un dos paquetes de almacenamento para cambiar a capacidade de almacenamento dispoñible. O almacenamento contratado compártese entre todas as usuarias.",
 		"buy_action": "Mercar",

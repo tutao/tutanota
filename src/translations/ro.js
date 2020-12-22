@@ -12,7 +12,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2020-12-17T09:35:29Z",
+	"updated_at": "2020-12-22T11:09:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -125,7 +125,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Folosire",
 		"businessUseUpgradeNeeded_msg": "Ne pare rău, dar pe moment nu ai permisiunea de a trimite sau primi e-mailuri (cu excepția celor către serviciul cu clienții Tutanota la adresa sales@tutao.de) pentru că ai un cont de afaceri care funcționează doar pe baza unui abonament. Te rugăm să comanzi un abonament.",
 		"buyEmailAliasInfo_msg": "Te rugăm să alegi unul din pachetele de alias de e-mail pentru a schimba numărul pseudonimelor de e-mail disponibile. Pseudonimele de e-mail rezervate pot fi folosite de orice utilizator.",
-		"buyGiftCardDescription_msg": "Cumpără un cupon cadou pentru cei dragi! Atunci cînd valorifică un cupon cadou, aceștia se pot înscrie pentru un nou cont premium sau își pot actualiza contul existent la un abonament premium și/sau pot primi credit pentru a comanda funcții suplimentare. Poți alege dintre următoarele opțiuni și poți lăsa un mesaj care va fi vizibil pe cuponul cadou. Mesajul este - desigur - cifrat de la trimitere la primire.",
 		"buyGiftCard_label": "Cumpără un cupon cadou",
 		"buyStorageCapacityInfo_msg": "Te rugăm alege unul dintre pachetele de stocare pentru a schimba capacitatea de stocare disponibilă pentru tine. Capacitatea de stocare rezervată este distribuită intre toți utilizatorii.",
 		"buy_action": "Cumpără",
@@ -481,7 +480,10 @@ module.exports = {
 		"functionNotSupported_msg": "Această funcție nu e suportată de navigatorul sau dispozitivul tău.",
 		"germanLanguageFile_label": "Fișier cu limba germană",
 		"giftCardCopied_msg": "Adresa cuponului cadou a fost copiată în notițe!",
+		"giftCardCreditNotify_msg": "Contul tău va primi {credit} credit.",
 		"giftCardLoginError_msg": "Noul tău cont a fost creat, dar am avut probleme la conectarea pentru valorificarea cuponului cadou. Te rugăm să încerci să te conectezi din nou mai tîrziu cu aceeași adresă web a cuponului cadou.",
+		"giftCardOptionTextA_msg": "Pentru {fullCredit} credit sau un abonament Premium.",
+		"giftCardOptionTextB_msg": "Pentru {fullCredit} credit sau un abonament Premium cu {remainingCredit} credit rămas.",
 		"giftCardPurchaseFailed_msg": "Imposibil de cumpărat cuponul cadou",
 		"giftCardRedeemed_msg": "Cuponul cadou a fost valorificat cu succes.",
 		"giftCardSection_label": "Cumpără, valorifică și gestionează cupoane cadou",

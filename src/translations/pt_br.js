@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2020-12-17T09:22:32Z",
+	"updated_at": "2020-12-22T11:09:45Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -124,7 +124,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Uso",
 		"businessUseUpgradeNeeded_msg": "Desculpe, no momento você não tem permissão para enviar ou receber emails (exceto para o suporte de vendas do Tutanota em sales@tutao.de), pois você tem uma conta comercial que somente é permitida com assinaturas pagas. Atualize para uma assinatura paga agora.",
 		"buyEmailAliasInfo_msg": "Escolha um dos planos para alterar o número de contas disponíveis. As contas criadas poderão ser usados por qualquer usuário. ",
-		"buyGiftCardDescription_msg": "Compre um cartão de presente para seus amados! Quando resgatar um cartão de presente, eles podem cadastrar um noa conta premium ou dar um upgrade em suas contas existentes para inscrições premium e/ou conseguir crédito para pedir recursos adicionais. Você pode escolher das seguintes opções e deixar um mensagem na qual podem ser mostradas no cartão de presente. A mensagem está - é claro - criptografada de ponta a ponta.",
 		"buyGiftCard_label": "Compre cartões de presente",
 		"buyStorageCapacityInfo_msg": "Por favor, escolha um pacote de armazenamento para alterar a capacidade disponível. O pacote será compartilhado com todos os usuários.",
 		"buy_action": "Comprar",
@@ -322,7 +321,7 @@ module.exports = {
 		"defaultEmailSignature_msg": "--\n<br>\nEnviado com o Tutanota, o email seguro e livre de anúncios:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Configuração padrão para o envio de novo email para um destinatário externo: confidencial (criptografado de ponta-a-ponta) ou não-confidencial (não criptografado de ponta-a-ponta).",
 		"defaultExternalDelivery_label": "Entrega padrão",
-		"defaultGiftCardMessage_msg": "Oi! Espero que goste desse cartão presente.",
+		"defaultGiftCardMessage_msg": "Eu espero que você curta a segurança e a privacidade que você consegue com a Tutanota!",
 		"defaultMailHandler_label": "Programa de email padrão",
 		"defaultMailHandler_msg": "Registre o Tutanota Desktop como seu programa de email padrão, para abrir links de email. Pode ser necessário ser administrador neste dispositivo.",
 		"defaultSenderMailAddressInfo_msg": "Remetente padrão para novos emails.",

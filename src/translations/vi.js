@@ -10,7 +10,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2020-12-17T09:22:32Z",
+	"updated_at": "2020-12-22T11:09:46Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -119,7 +119,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Mục đích sử dụng",
 		"businessUseUpgradeNeeded_msg": "Rất tiếc, hiện bạn không được phép gửi hay nhận email (trừ gửi đến bộ phận hỗ trợ bán hàng của Tutanota ở sales@tutao.de) vì bạn có một tài khoản doanh nghiệp, nó chỉ được thừa nhận với các thuê bao tính phí. Vui lòng nâng cấp lên một thuê bao tính phí ngay.",
 		"buyEmailAliasInfo_msg": "Vui lòng chọn một gói biệt danh email để thay đổi số lượng biệt danh email khả dụng. Bất kì người dùng nào cũng có thể dùng các biệt danh email đã đặt.",
-		"buyGiftCardDescription_msg": "Mua một thẻ quà tặng cho những người mà bạn yêu thương! Khi lấy thẻ quà tặng, họ có thể đăng kí một tài khoản tính phí mới hoặc nâng cấp tài khoản sẵn có của họ và/hoặc nhận tín dụng để đặt mua các tính năng bổ sung. Bạn có thể chọn trong các lựa chọn sau và để lại một lời nhắn để hiển thị trên thẻ quà tặng. Lời nhắn đó - tất nhiên - được mật mã hoá nối đầu.",
 		"buyGiftCard_label": "Mua một thẻ quà tặng",
 		"buyStorageCapacityInfo_msg": "Hãy chọn một trong các gói lưu trữ để thay đổi dung lượng lưu trữ có sẵn. Gói lưu trữ sẽ được chia sẻ cho tất cả người dùng.",
 		"buy_action": "Mua",

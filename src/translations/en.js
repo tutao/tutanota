@@ -11,7 +11,7 @@ module.exports = {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2020-12-17T09:22:32Z",
+	"updated_at": "2020-12-22T11:21:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -120,7 +120,6 @@ module.exports = {
 		"businessOrPrivateUsage_label": "Usage",
 		"businessUseUpgradeNeeded_msg": "Sorry, you are currently not allowed to send or receive emails (except to the Tutanota sales support at sales@tutao.de) because you have a business account which is only allowed with paid subscriptions. Please upgrade to a paid subscription now.",
 		"buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. The booked email aliases can be used by any user.",
-		"buyGiftCardDescription_msg": "Buy a gift card for your loved ones! When redeeming a gift card, they can sign up for a new paid account or upgrade their existing account and/or get credit to order additional features. You can choose from the following options and leave a message which will be shown on the gift card. The message is - of course - end to end encrypted.",
 		"buyGiftCard_label": "Buy a gift card",
 		"buyStorageCapacityInfo_msg": "Please choose one of the storage packages to change the available storage capacity. The booked storage is shared by all users.",
 		"buy_action": "Buy",
@@ -266,13 +265,17 @@ module.exports = {
 		"creditCardCVVFormat_label": "Please enter the 3 or 4 digit security code.",
 		"creditCardCVVInvalid_msg": "Security code is invalid.",
 		"creditCardCVV_label": "Security code",
-		"creditCardDeclined_msg": "Unfortunately, your credit card was declined. Please verify that all entered information is correct, get in contact with your bank to solve this or select a different payment method.",
+		"creditCardDeclined_msg": "Unfortunately, your credit card was declined. Please verify that all entered information is correct, get in contact with your bank or select a different payment method.",
 		"creditCardExpirationDateFormat_msg": "Format: MM/YYYY",
 		"creditCardExpirationDate_label": "Expiration date",
 		"creditCardExprationDateInvalid_msg": "Expiration date is invalid.",
 		"creditCardNumberFormat_msg": "Please enter your credit card number.",
 		"creditCardNumberInvalid_msg": "Credit card number is invalid.",
 		"creditCardNumber_label": "Credit card number",
+		"creditCardPaymentErrorVerificationNeeded_msg": "Please update your payment details. Your bank requires an additional verification of the credit card.",
+		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your credit at a later time if this problem persists.",
+		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
+		"creditCardVerification_msg": "Your credit card will be verified now...",
 		"creditUsageOptions_msg": "Credit can be used to purchase various packages (go to 'Settings' ⇨ 'Subscription' once logged in), or can be held on to until the next subscription period to pay for a renewal. Credit created from gift cards does not expire!",
 		"credit_label": "Credit",
 		"currentBalance_label": "Current Account Balance",
@@ -715,7 +718,7 @@ module.exports = {
 		"moveUp_action": "Move up",
 		"move_action": "Move",
 		"name_label": "Name",
-		"nativeShareGiftCard_label": "Share Tutanota gift card",
+		"nativeShareGiftCard_label": "Share a Tutanota gift card",
 		"nativeShareGiftCard_msg": "Hey, I got you a gift card for Tutanota, the secure encrypted email service! Follow this link to redeem it! {link}",
 		"nbrOfContactsSelected_msg": "{1} contacts selected.",
 		"nbrOfInboxRules_msg": "You have defined {1} inbox rule(s).",
@@ -1255,11 +1258,6 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"creditCardPendingVerification_msg": "The verification of your credit card has not been completed yet. Please try to verify your credit at a later time if this problem persists.",
-		"creditCardVerification_msg": "Your credit card will be verified now...",
-		"creditCardVerificationNeededPopup_msg": "Your credit card needs to be verified with your bank. A new window will be opened for this purpose.",
-		"creditCardVerification_label": "Verify card",
-		"creditCardPaymentErrorVerificationNeeded_msg": "Please enter your credit card data again. Your bank requires an additional verification."
+		"you_label": "You"
 	}
 }
