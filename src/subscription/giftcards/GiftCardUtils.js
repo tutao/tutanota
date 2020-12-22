@@ -108,58 +108,6 @@ export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 	                   })
 }
 
-export const GIFT_CARD_TABLE_HEADER: Array<lazy<string> | TranslationKey> = ["purchaseDate_label", "value_label"]
-export const GIFT_CARD_TABLE_COLUMNS: Array<ColumnWidthEnum> = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
-
-
-export function createGiftCardTableLine(giftCard: GiftCard): TableLineAttrs {
-
-	const showEditGiftCardMessageDialog = () => {
-		let message = stream(giftCard.message)
-		Dialog.showActionDialog({
-			title: lang.get("editMessage_label"),
-			child: () => m(".flex-center", m(GiftCardMessageEditorField, {message})),
-			okAction: dialog => {
-				giftCard.message = message()
-				// collapse chains of newlines to make the message fit better on the giftcard
-				locator.entityClient.update(giftCard)
-				       .then(() => dialog.close())
-				       .catch(e => Dialog.error("giftCardUpdateError_msg"))
-				showGiftCardToShare(giftCard)
-			},
-			okActionTextId: "save_action",
-			type: DialogType.EditSmall
-		})
-	}
-
-	const showMoreButtonAttrs = attachDropdown({
-			label: "options_action",
-			click: () => showGiftCardToShare(giftCard),
-			icon: () => Icons.More,
-			type: ButtonType.Dropdown
-		},
-		() => [
-			{
-				label: "view_label",
-				click: () => showGiftCardToShare(giftCard),
-				type: ButtonType.Dropdown
-			},
-			{
-				label: "edit_action",
-				click: showEditGiftCardMessageDialog,
-				type: ButtonType.Dropdown
-			}
-		])
-
-	return {
-		cells: [
-			formatDate(giftCard.orderDate),
-			formatPrice(parseFloat(giftCard.value), true),
-		],
-		actionButtonAttrs: showMoreButtonAttrs
-	}
-}
-
 export function generateGiftCardLink(giftCard: GiftCard): Promise<string> {
 	return worker.resolveSessionKey(GiftCardTypeModel, giftCard).then(key => {
 		// This should not assert false and if it does we want to know about it

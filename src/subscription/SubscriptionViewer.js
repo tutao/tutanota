@@ -45,6 +45,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
+	formatPrice,
 	getIncludedAliases,
 	getIncludedStorageCapacity,
 	getNbrOfUsers,
@@ -60,19 +61,21 @@ import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {
-	createGiftCardTableLine, GIFT_CARD_TABLE_COLUMNS,
-	GIFT_CARD_TABLE_HEADER,
-	loadGiftCards,
+	loadGiftCards, showGiftCardToShare,
 } from "./giftcards/GiftCardUtils"
 import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
 import {Expandable} from "../settings/Expandable"
 import type {ExpandableAttrs} from "../settings/Expandable"
+import type {TranslationKey} from "../misc/LanguageViewModel.js"
+import type {ColumnWidthEnum, TableLineAttrs} from "../gui/base/TableN"
+import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
+import {attachDropdown} from "../gui/base/DropdownN"
 
 assertMainOrNode()
 
@@ -663,22 +666,65 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 }
 
 function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean, expanded: Stream<boolean>): ExpandableAttrs {
-	const purchaseGiftCardButtonAttrs: ButtonAttrs = {
+	const addButtonAttrs = {
 		label: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
 		icon: () => Icons.Add
 	}
+	const columnHeading = ["purchaseDate_label", "value_label"]
+	const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
+	const lines = giftCards.filter(giftCard => giftCard.usable).map(giftCard => {
+		return {
+			cells: [
+				formatDate(giftCard.orderDate),
+				formatPrice(parseFloat(giftCard.value), true),
+			],
+			actionButtonAttrs: attachDropdown({
+					label: "options_action",
+					click: () => showGiftCardToShare(giftCard),
+					icon: () => Icons.More,
+					type: ButtonType.Dropdown
+				},
+				() => [
+					{
+						label: "view_label",
+						click: () => showGiftCardToShare(giftCard),
+						type: ButtonType.Dropdown
+					},
+					{
+						label: "edit_action",
+						click: () => {
+							let message = stream(giftCard.message)
+							Dialog.showActionDialog({
+								title: lang.get("editMessage_label"),
+								child: () => m(".flex-center", m(GiftCardMessageEditorField, {message})),
+								okAction: dialog => {
+									giftCard.message = message()
+									locator.entityClient.update(giftCard)
+									       .then(() => dialog.close())
+									       .catch(e => Dialog.error("giftCardUpdateError_msg"))
+									showGiftCardToShare(giftCard)
+								},
+								okActionTextId: "save_action",
+								type: DialogType.EditSmall
+							})
+						},
+						type: ButtonType.Dropdown
+					}
+				])
+		}
+	})
 
 	return {
 		title: "giftCards_label",
 		infoMsg: "giftCardSection_label",
 		children: [
 			m(TableN, {
-				columnHeading: GIFT_CARD_TABLE_HEADER,
-				columnWidths: GIFT_CARD_TABLE_COLUMNS,
+				addButtonAttrs,
+				columnHeading,
+				columnWidths,
+				lines,
 				showActionButtonColumn: true,
-				addButtonAttrs: purchaseGiftCardButtonAttrs,
-				lines: giftCards.filter(giftCard => giftCard.usable).map(giftCard => createGiftCardTableLine(giftCard)),
 			})
 		],
 		expanded,
