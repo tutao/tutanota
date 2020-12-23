@@ -293,6 +293,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 			return load(InvoiceInfoTypeRef, instanceId).then(invoiceInfo => {
 				this._invoiceInfo = invoiceInfo
+				m.redraw()
 			})
 		} else {
 			return Promise.resolve()
