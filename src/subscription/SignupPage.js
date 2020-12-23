@@ -252,7 +252,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			? module.id : __moduleName, `${env.rootPathPrefix}src/subscription/terms.js`)
 			.then(terms => {
 				let dialog: Dialog
-				let visibleLang = lang.code
+				let visibleLang = lang.code.startsWith("de") ? "de" : "en"
 				let sanitizedTerms: string
 				let headerBarAttrs: DialogHeaderBarAttrs = {
 					left: [
