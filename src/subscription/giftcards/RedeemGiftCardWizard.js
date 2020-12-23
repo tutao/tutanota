@@ -394,6 +394,12 @@ export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, 
 				componentClass: RedeemGiftCardPage
 			}
 		]
-		return createWizardDialog(giftCardRedeemData, wizardPages, () => Promise.resolve(m.route.set("/login"))).dialog
+		return createWizardDialog(giftCardRedeemData, wizardPages,
+			() => {
+				const route = giftCardRedeemData.credentialsMethod === "signup"
+					? `/login?loginWith=${giftCardRedeemData.mailAddress()}`
+					: "/login"
+				return Promise.resolve(m.route.set(route))
+			}).dialog
 	})
 }
