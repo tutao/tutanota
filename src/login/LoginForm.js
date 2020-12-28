@@ -4,21 +4,21 @@ import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {liveDataAttrs} from "../api/common/utils/AriaUtils"
 import {show} from "./RecoverLoginDialog"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {showTakeOverDialog} from "./TakeOverDeletedAddressDialog"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
+import {client} from "../misc/ClientDetector"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => void,
 	mailAddress: Stream<string>,
 	password: Stream<string>,
 	savePassword?: Stream<boolean>,
-	helpText?: TranslationKey | lazy<string>,
-	invalidCredentials?: Stream<boolean>,
-	showRecoveryOption?: Stream<boolean>,
-	accessExpired?: Stream<boolean>
+	helpText?: Vnode<any> | string,
+	invalidCredentials?: boolean,
+	showRecoveryOption?: boolean,
+	accessExpired?: boolean
 }
 
 export class LoginForm implements MComponent<LoginFormAttrs> {
@@ -47,13 +47,16 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 			},
 		}, [
 			m(TextFieldN, mailAddressFieldAttrs),
+			// TODO focus this on creation if the mailaddress is already filled in
 			m(TextFieldN, passwordFieldAttrs),
 			(a.savePassword && (!whitelabelCustomizations ||
 				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1))
 				? m(CheckboxN, {
 					label: () => lang.get("storePassword_action"),
 					checked: a.savePassword,
-					helpLabel: "onlyPrivateComputer_msg"
+					helpLabel: "onlyPrivateComputer_msg",
+					disabled: !client.localStorage(),
+					disabledTextId: "functionNotSupported_msg"
 				})
 				: null,
 			m(".pt", m(ButtonN, {
@@ -63,9 +66,9 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 			})),
 			m("p.center.statusTextColor", m("small" + liveDataAttrs(),
 				[
-					a.helpText ? lang.getMaybeLazy(a.helpText) : null,
+					a.helpText ? a.helpText : null,
 					" ",
-					a.invalidCredentials && a.showRecoveryOption && a.invalidCredentials() && a.showRecoveryOption()
+					a.invalidCredentials && a.showRecoveryOption
 						? m('a', {
 							href: '/recover',
 							onclick: e => {
@@ -74,7 +77,7 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 								e.preventDefault()
 							}
 						}, lang.get("recoverAccountAccess_action"))
-						: (a.accessExpired && a.accessExpired() ? m('a', {
+						: (a.accessExpired && a.accessExpired ? m('a', {
 							href: '/takeover',
 							onclick: e => {
 								m.route.set('/takeover')

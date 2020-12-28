@@ -31,6 +31,9 @@ import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
 import {worker} from "../api/main/WorkerClient"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {LoginForm} from "./LoginForm"
+import type {LoginFormAttrs} from "./LoginForm"
+import {CredentialsSelector} from "./CredentialsSelector"
 
 assertMainOrNode()
 
@@ -42,12 +45,12 @@ const DisplayMode = Object.freeze({
 export class LoginView {
 
 	targetPath: string;
-	mailAddress: TextField;
-	password: TextField;
+	mailAddress: Stream<string>;
+	password: Stream<string>;
 	helpText: Vnode<any> | string;
 	invalidCredentials: boolean;
 	accessExpired: boolean;
-	savePassword: Checkbox;
+	savePassword: Stream<boolean>;
 	_requestedPath: string; // redirect to this path after successful login (defined in app.js)
 	view: Function;
 	_knownCredentials: Credentials[];
@@ -65,20 +68,12 @@ export class LoginView {
 		this.targetPath = '/mail'
 		this._requestedPath = this.targetPath
 
-		this.mailAddress = new TextField('mailAddress_label')
-			.setType(Type.Email)
-		this.mailAddress.autocomplete = "username"
+		this.mailAddress = stream("")
 		this.helpText = lang.get('emptyString_msg')
 		this.invalidCredentials = false
 		this.accessExpired = false
-		this.password = new TextField("password_label")
-			.setType(Type.Password)
-		this.password.autocomplete = "password"
-		this.savePassword = new Checkbox(() => lang.get("storePassword_action"), () => lang.get("onlyPrivateComputer_msg"))
-		if (!client.localStorage()) {
-			this.savePassword.setDisabled("functionNotSupported_msg")
-		}
-
+		this.password = stream("")
+		this.savePassword = stream(false)
 		this._knownCredentials = []
 		this._isDeleteCredentials = false;
 		this._moreExpanded = stream(false)
@@ -125,9 +120,34 @@ export class LoginView {
 							width: client.isDesktopDevice() ? "360px" : null,
 						}
 					}, [
-						this._displayMode === DisplayMode.Credentials ? this.renderCredentialsSelector() : this.renderLoginForm(),
-						(this._anyMoreItemVisible()) ? this._renderOptionsExpander() : null,
-						(!isApp() || isDesktop()) ? renderPrivacyAndImprintLinks() : null
+						this._displayMode === DisplayMode.Credentials
+							? m(CredentialsSelector, {
+								credentials: this._knownCredentials,
+								isDeleteCredentials: this._isDeleteCredentials,
+								onCredentialsSelected: c => {
+									this._viewController
+									    .then(viewController => viewController.autologin(c))
+								},
+								onCredentialsDeleted: this._isDeleteCredentials
+									? c => {
+										this._viewController
+										    .then(viewController => viewController.deleteCredentialsNotLoggedIn(c))
+									} : null
+							})
+							: m(LoginForm, {
+								onSubmit: () => this.login(),
+								mailAddress: this.mailAddress,
+								password: this.password,
+								helpText: this.helpText,
+								invalidCredentials: this.invalidCredentials,
+								showRecoveryOption: this._recoverLoginVisible(),
+								accessExpired: this.accessExpired
+							}),
+						!(isApp() || isDesktop()) && isTutanotaDomain()
+							? this.renderAppButtons()
+							: null,
+						this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
+						!isApp() ? renderPrivacyAndImprintLinks() : null
 					])
 				),
 			])
@@ -202,24 +222,25 @@ export class LoginView {
 	}
 
 	_setupHooks() {
-		this.oncreate = () => {
-			// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
-			// it only sends one input/change event for all fields so we didn't know if fields
-			// were updated. So we kindly ask our fields to update themselves with real DOM values.
-			this._formsUpdateStream = stream.combine(() => {
-				requestAnimationFrame(() => {
-					this.mailAddress.updateValue()
-					this.password.updateValue()
-				})
-			}, [this.mailAddress.value, this.password.value])
-		}
-		this.onremove = () => {
-			this.password.value("")
-
-			if (this._formsUpdateStream) {
-				this._formsUpdateStream.end(true)
-			}
-		}
+		// TODO not sure if this is necessary when using TextFieldN in the LoginForm anyway
+		// this.oncreate = () => {
+		// 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
+		// 	// it only sends one input/change event for all fields so we didn't know if fields
+		// 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
+		// 	this._formsUpdateStream = stream.combine(() => {
+		// 		requestAnimationFrame(() => {
+		// 			this.mailAddress.updateValue()
+		// 			this.password.updateValue()
+		// 		})
+		// 	}, [this.mailAddress.value, this.password.value])
+		// }
+		// this.onremove = () => {
+		// 	this.password.value("")
+		//
+		// 	if (this._formsUpdateStream) {
+		// 		this._formsUpdateStream.end(true)
+		// 	}
+		// }
 	}
 
 	_signupLinkVisible(): boolean {
@@ -259,52 +280,6 @@ export class LoginView {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
 	}
 
-	// TODO Replace this with LoginForm
-	renderLoginForm(): Children {
-		return m("form", {
-			onsubmit: (e) => {
-				// do not post the form, the form is just here to enable browser auto-fill
-				e.preventDefault()
-				this.login()
-			},
-		}, [
-			m(this.mailAddress),
-			m(this.password),
-			(!whitelabelCustomizations ||
-				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1)
-				? m(this.savePassword)
-				: null,
-			m(".pt", m(ButtonN, {
-				label: 'login_action',
-				click: () => this.login(),
-				type: ButtonType.Login,
-			})),
-			m("p.center.statusTextColor", m("small" + liveDataAttrs(),
-				[
-					this.helpText, " ",
-					this.invalidCredentials && this._recoverLoginVisible()
-						? m('a', {
-							href: '/recover',
-							onclick: e => {
-								m.route.set('/recover')
-								show(this.mailAddress.value(), "password")
-								e.preventDefault()
-							}
-						}, lang.get("recoverAccountAccess_action"))
-						: ((this.accessExpired) ? m('a', {
-							href: '/takeover',
-							onclick: e => {
-								m.route.set('/takeover')
-								showTakeOverDialog(this.mailAddress.value(), this.password.value())
-								e.preventDefault()
-							}
-						}, lang.get("help_label")) : null)
-				])),
-			!(isApp() || isDesktop())
-			&& isTutanotaDomain() ? this.renderAppButtons() : null
-		])
-	}
-
 	renderAppButtons(): Children {
 		return m(".flex-center.pt-l", [
 			m(ButtonN, {
@@ -338,30 +313,6 @@ export class LoginView {
 				type: ButtonType.ActionLarge,
 			})
 		])
-	}
-
-	// TODO Replace this with CredentialsSelector
-	renderCredentialsSelector(): Children {
-		return this._knownCredentials.map(c => {
-			const credentialButtons = [];
-
-			credentialButtons.push(m(ButtonN, {
-				label: () => c.mailAddress,
-				click: () => this._viewController.then(
-					(viewController: ILoginViewController) => viewController.autologin(c)),
-				type: ButtonType.Login
-			}))
-
-			if (this._isDeleteCredentials) {
-				credentialButtons.push(m(ButtonN, {
-					label: "delete_action",
-					click: () => this._viewController.then(
-						(viewController: ILoginViewController) => viewController.deleteCredentialsNotLoggedIn(c)),
-					type: ButtonType.Secondary
-				}))
-			}
-			return m(".flex-space-between.pt-l.child-grow.last-child-fixed", credentialButtons)
-		})
 	}
 
 	setKnownCredentials(credentials: Credentials[]) {
@@ -443,18 +394,17 @@ export class LoginView {
 			if ((args.loginWith || args.userId) && !(args.loginWith && deviceConfig.get(args.loginWith) ||
 				args.userId && deviceConfig.getByUserId(args.userId))) {
 				// there are no credentials stored for the desired email address or user id, so let the user enter the password
-				this.mailAddress.setValue(args.loginWith)
+				this.mailAddress(args.loginWith)
 				// ensure that input fields have been created after app launch
-				if (this.mailAddress._domInput) {
-					this.mailAddress.animate()
-				}
+				// if (this.mailAddress._domInput) {
+				// 	this.mailAddress.animate()
+				// }
 				// when we pre-fill the email address field we need to delete all current state
 				this.helpText = lang.get('emptyString_msg')
 				this.invalidCredentials = false
 				this.accessExpired = false
-				this.password.value("")
+				this.password("")
 
-				this.password.focus()
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
 				m.redraw()
@@ -487,7 +437,7 @@ export class LoginView {
 	}
 
 	_showLoginForm(mailAddress: string) {
-		this.mailAddress.value(mailAddress)
+		this.mailAddress(mailAddress)
 		this._isDeleteCredentials = false;
 		this._displayMode = DisplayMode.Form
 		m.redraw()
