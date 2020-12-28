@@ -1017,6 +1017,7 @@ export class MailViewer {
 			},
 			{
 				key: Keys.H,
+				enabled: () => this.mail.state !== MailState.DRAFT,
 				exec: () => this._showHeaders(),
 				help: "showHeaders_action"
 			},
@@ -1025,6 +1026,7 @@ export class MailViewer {
 				exec: (key: KeyPress) => {
 					this._reply(false)
 				},
+				enabled: () => this.mail.state !== MailState.DRAFT,
 				help: "reply_action"
 			},
 			{
@@ -1033,6 +1035,7 @@ export class MailViewer {
 				exec: (key: KeyPress) => {
 					this._reply(true)
 				},
+				enabled: () => this.mail.state !== MailState.DRAFT,
 				help: "replyAll_action"
 			},
 		]
@@ -1040,6 +1043,7 @@ export class MailViewer {
 			shortcuts.push({
 				key: Keys.F,
 				shift: true,
+				enabled: () => this.mail.state !== MailState.DRAFT,
 				exec: (key: KeyPress) => {
 					this._forward()
 				},
