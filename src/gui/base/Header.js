@@ -77,7 +77,7 @@ class Header {
 						this._currentView && this._currentView.headerRightView ? this._currentView.headerRightView() : null)
 						: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
 							this._renderDesktopSearchBar(),
-							m(NavBar, this._renderButtons(isNotSignup()))
+							m(NavBar, this._renderButtons())
 						])
 				]))
 		}
@@ -138,39 +138,38 @@ class Header {
 		viewSlider && viewSlider.getMainColumn().focus()
 	}
 
-	_renderButtons(isNotSignup: boolean): Children {
+	_renderButtons(): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
-		return [
-			isNotSignup && logins.isInternalUserLoggedIn()
-				? m(NavButtonN, {
+		return logins.isInternalUserLoggedIn() && isNotSignup()
+			? [
+				m(NavButtonN, {
 					label: 'emails_label',
 					icon: () => BootIcons.Mail,
 					href: navButtonRoutes.mailUrl,
 					isSelectedPrefix: MAIL_PREFIX,
 					colors: NavButtonColors.Header,
 					click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain()
-				})
-				: null,
-			isNotSignup && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
-				? m(NavButtonN, {
-					label: 'contacts_label',
-					icon: () => BootIcons.Contacts,
-					href: navButtonRoutes.contactsUrl,
-					isSelectedPrefix: CONTACTS_PREFIX,
-					colors: NavButtonColors.Header,
-					click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain()
-				})
-				: null,
-			isNotSignup && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
-				? m(NavButtonN, {
-					label: "calendar_label",
-					icon: () => BootIcons.Calendar,
-					href: CALENDAR_PREFIX,
-					colors: NavButtonColors.Header,
-					click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain()
-				})
-				: null
-		]
+				}),
+				!logins.isEnabled(FeatureType.DisableContacts)
+					? m(NavButtonN, {
+						label: 'contacts_label',
+						icon: () => BootIcons.Contacts,
+						href: navButtonRoutes.contactsUrl,
+						isSelectedPrefix: CONTACTS_PREFIX,
+						colors: NavButtonColors.Header,
+						click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain()
+					})
+					: null,
+				!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+					? m(NavButtonN, {
+						label: "calendar_label",
+						icon: () => BootIcons.Calendar,
+						href: CALENDAR_PREFIX,
+						colors: NavButtonColors.Header,
+						click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain()
+					})
+					: null
+			] : null
 	}
 
 	_mobileSearchBarVisible(): boolean {
@@ -367,7 +366,7 @@ class Header {
 }
 
 function isNotSignup(): boolean {
-	return !m.route.get().startsWith("/signup")
+	return !m.route.get().startsWith("/signup") && !m.route.get().startsWith("/giftcard")
 }
 
 export const header: Header = new Header()
