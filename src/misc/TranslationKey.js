@@ -1,7 +1,6 @@
 //@flow
 
 export type TranslationKeyType = "about_label"
-	| "acceptGiftCardTerms_label"
 	| "acceptInvitation_action"
 	| "acceptPrivacyPolicyReminder_msg"
 	| "acceptPrivacyPolicy_msg"
@@ -473,7 +472,7 @@ export type TranslationKeyType = "about_label"
 	| "giftCardRedeemed_msg"
 	| "giftCardSection_label"
 	| "giftCardSignupErrorLoggingIn_msg"
-	| "giftCardsTerms_label"
+	| "giftCardTerms_label"
 	| "giftCards_label"
 	| "giftCardUpdateError_msg"
 	| "giftCardUpgradeNotify_msg"
