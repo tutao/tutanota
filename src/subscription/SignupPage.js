@@ -33,6 +33,8 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {SubscriptionType} from "./SubscriptionUtils"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import {CheckboxN} from "../gui/base/CheckboxN"
+import {px} from "../gui/size"
 
 
 type ConfirmStatus = {
@@ -47,11 +49,13 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	_confirm: Checkbox
 	_confirmAge: Checkbox
 	_confirmStatus: Stream<ConfirmStatus>
+	_acceptedTermsAndConditions: Stream<boolean>
 
 	constructor() {
 		this._mailAddressForm = new SelectMailAddressForm(isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains())
 		this._passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
 		this._codeField = new TextField("whitelabelRegistrationCode_label")
+		this._acceptedTermsAndConditions = stream(false)
 		this._confirm = new Checkbox(() => [
 			m("div", lang.get("termsAndConditions_label")),
 			m("div", m(`a[href=${lang.getInfoLink("terms_link")}][target=_blank]`, {
@@ -74,11 +78,11 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		this._confirmAge = new Checkbox(() => [
 			m("div", lang.get("ageConfirmation_msg"))
 		])
-		this._confirmStatus = this._confirm.checked.map(checked => {
-			if (!checked) {
-				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
-			} else {
+		this._confirmStatus = this._acceptedTermsAndConditions.map(accepted => {
+			if (accepted) {
 				return {type: "valid", text: "emptyString_msg"}
+			} else {
+				return {type: "neutral", text: "termsAcceptedNeutral_msg"}
 			}
 		})
 	}
@@ -125,7 +129,32 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 						m(this._mailAddressForm),
 						m(this._passwordForm),
 						(getWhitelabelRegistrationDomains().length > 0) ? m(this._codeField) : null,
-						m(this._confirm),
+						m(CheckboxN, {
+							label: () => lang.get("termsAndConditions_label"),
+							checked: this._acceptedTermsAndConditions
+						}),
+						m(".flex.flex-column", {
+							style: {
+								marginLeft: px(26) // margin has to be hardcoded to align with text above
+							}
+						}, [
+							m(`a[href=${lang.getInfoLink("terms_link")}][target=_blank]`, {
+								onclick: (e) => {
+									if (isApp()) {
+										this.showTerms("terms")
+										e.preventDefault()
+									}
+								}
+							}, lang.get("termsAndConditionsLink_label")),
+							m(`a[href=${lang.getInfoLink("privacy_link")}][target=_blank]`, {
+								onclick: (e) => {
+									if (isApp()) {
+										this.showTerms("privacy")
+										e.preventDefault()
+									}
+								}
+							}, lang.get("privacyLink_label"))
+						]),
 						m(this._confirmAge),
 						m(".mt-l.mb-l", m(ButtonN, {
 							label: "next_action",
