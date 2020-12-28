@@ -106,15 +106,15 @@ export class LoginViewController implements ILoginViewController {
 
 	formLogin(): void {
 		if (this._loginPromise.isPending()) return
-		let mailAddress = this.view.mailAddress.value()
-		let pw = this.view.password.value()
+		let mailAddress = this.view.mailAddress()
+		let pw = this.view.password()
 		if (mailAddress === "" || pw === "") {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
 			this.view.invalidCredentials = false
 			this.view.accessExpired = false
-			let persistentSession = this.view.savePassword.checked()
+			let persistentSession = this.view.savePassword()
 			this._loginPromise = logins.createSession(mailAddress, pw, client.getIdentifier(), persistentSession, true)
 			                           .then(newCredentials => {
 				                           let storedCredentials = deviceConfig.get(mailAddress)

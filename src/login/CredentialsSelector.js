@@ -4,27 +4,28 @@ import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 export type CredentialsSelectorAttrs = {
-	credentials: Stream<Credentials[]>;
-	isDeleteCredentials: Stream<boolean>;
+	credentials: Credentials[];
 	onCredentialsSelected: Credentials => void;
-	onCredentialsDelete: Credentials => void;
+	// will show the delete options if this is provided
+	onCredentialsDeleted?: ?(Credentials => void);
 }
 
 export class CredentialsSelector implements MComponent<CredentialsSelectorAttrs> {
 	view(vnode: Vnode<CredentialsSelectorAttrs>): Children {
-		let a = vnode.attrs
-		return a.credentials().map(c => {
+		const a = vnode.attrs
+		return a.credentials.map(c => {
 			const buttons = []
+			const onCredentialsDeleted = a.onCredentialsDeleted
 			buttons.push(m(ButtonN, {
 				label: () => c.mailAddress,
 				click: () => a.onCredentialsSelected(c),
 				type: ButtonType.Login
 			}))
 
-			if (a.isDeleteCredentials()) {
+			if (onCredentialsDeleted) {
 				buttons.push(m(ButtonN, {
 					label: "delete_action",
-					click: () => a.onCredentialsDelete(c),
+					click: () => onCredentialsDeleted(c),
 					type: ButtonType.Secondary
 				}))
 			}

@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
-import {downcast, neverNull, noOp} from "../../api/common/utils/Utils"
+import {neverNull, noOp} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {createWizardDialog, emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
 import {logins} from "../../api/main/LoginController"
@@ -33,16 +33,12 @@ import {
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {lang} from "../../misc/LanguageViewModel"
 import {getLoginErrorMessage} from "../../misc/LoginUtils"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
-import {BookingItemFeatureType, getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
+import {getPaymentMethodType, PaymentMethodType} from "../../api/common/TutanotaConstants"
 import {formatPrice, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
-import {TextField} from "../../gui/base/TextField"
 import {getPaymentMethodName} from "../PriceUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import type {PaymentMethodTypeEnum} from "../../api/common/TutanotaConstants"
 import {getByAbbreviation} from "../../api/common/CountryList"
 
 type GetCredentialsMethod = "login" | "signup"
@@ -147,7 +143,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			},
 			mailAddress: data.mailAddress,
 			password: data.password,
-			helpText: () => this._loginFormHelpText
+			helpText: this._loginFormHelpText
 		}
 
 		const onCredentialsSelected = credentials => {
@@ -171,10 +167,8 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 
 		const credentials = deviceConfig.getAllInternal()
 		const credentialsSelectorAttrs: CredentialsSelectorAttrs = {
-			credentials: () => credentials,
-			isDeleteCredentials: stream(false),
+			credentials: credentials,
 			onCredentialsSelected,
-			onCredentialsDelete: noOp
 		}
 
 		return [
