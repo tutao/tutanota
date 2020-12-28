@@ -395,15 +395,20 @@ export class LoginView {
 				args.userId && deviceConfig.getByUserId(args.userId))) {
 				// there are no credentials stored for the desired email address or user id, so let the user enter the password
 				this.mailAddress(args.loginWith)
-				// ensure that input fields have been created after app launch
+
+				// TODO ensure that input fields have been created after app launch
 				// if (this.mailAddress._domInput) {
 				// 	this.mailAddress.animate()
 				// }
+
 				// when we pre-fill the email address field we need to delete all current state
 				this.helpText = lang.get('emptyString_msg')
 				this.invalidCredentials = false
 				this.accessExpired = false
 				this.password("")
+
+				const passwordInput = document.querySelector("input[type=password]")
+				passwordInput && passwordInput.click()
 
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
