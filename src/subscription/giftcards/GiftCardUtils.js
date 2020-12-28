@@ -340,7 +340,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 	return m(CheckboxN, {
 		checked: confirmed,
 		label: () => [
-			m("", lang.get("giftCardsTerms_label")),
+			m("", lang.get("termsAndConditions_label")),
 			m("div", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
 				onclick: e => {
 					if (isApp()) {
@@ -348,7 +348,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 						e.preventDefault()
 					}
 				}
-			}, lang.get("acceptGiftCardTerms_label")))
+			}, lang.get("giftCardTerms_label")))
 		],
 	})
 }

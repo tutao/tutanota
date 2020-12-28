@@ -19,7 +19,6 @@ module.exports = {
 	},
 	"keys": {
 		"about_label": "Über",
-		"acceptGiftCardTerms_label": "Ich habe die AGB für Gutscheine gelesen und erkenne sie an.",
 		"acceptInvitation_action": "Einladung annehmen",
 		"acceptPrivacyPolicyReminder_msg": "Bitte erkenne die Datenschutzerklärung an, indem du das Häkchen setzt.",
 		"acceptPrivacyPolicy_msg": "Ich habe die {privacyPolicy} gelesen und erkenne sie an.",
@@ -491,7 +490,7 @@ module.exports = {
 		"giftCardRedeemed_msg": "Der Gutschein wurde erfolgreich eingelöst.",
 		"giftCardSection_label": "Gutscheine kaufen und verwalten",
 		"giftCardSignupErrorLoggingIn_msg": "Dein Account wurde erfolgreich erstellt. Allerdings trat beim Login ein Fehler auf. Bitte lade diese Seite erneut und benutze deinen neuen Account zum Einlösen des Gutscheins.",
-		"giftCardsTerms_label": "Bitte akzeptiere die Geschäftsbedingungen für Gutscheine",
+		"giftCardTerms_label": "Geschäftsbedingungen für Gutscheine",
 		"giftCards_label": "Gutscheine",
 		"giftCardUpdateError_msg": "Gutschein konnte nicht aktualisiert werden.",
 		"giftCardUpgradeNotify_msg": "Dein Account wird automatisch auf einen Premium-Account mit einem jährlichen Abonnement umgestellt. Der Preis des ersten Jahres ({price}) wird von dem Guthaben des Gutscheins abgezogen und der Restbetrag ({credit}) wird deinem Guthabenkonto gutgeschrieben.",
