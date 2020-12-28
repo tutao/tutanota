@@ -1,8 +1,7 @@
 //@flow
 import m from "mithril"
 import {px, size} from "../size"
-import {animations, fontSize, transform} from "../animation/Animations"
-import {ease} from "../animation/Easing"
+import {DefaultAnimationTime} from "../animation/Animations"
 import {theme} from "../theme"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -46,7 +45,6 @@ export const baseLabelPosition = size.text_field_label_top
 
 export class TextFieldN implements MComponent<TextFieldAttrs> {
 	active: boolean;
-	webkitAutofill: boolean;
 	onblur: ?Function;
 	_domWrapper: HTMLElement;
 	_domLabel: HTMLElement;
@@ -55,11 +53,12 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
-		this.webkitAutofill = false
 	}
 
 	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
+		const labelBase = !this.active && a.value() === "" && !a.disabled
+
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
@@ -70,14 +69,12 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 				class: this.active ? "content-accent-fg" : "",
 				oncreate: (vnode) => {
 					this._domLabel = vnode.dom
-					if (this.isEmpty(a.value()) && !a.disabled) { // if the text field is disabled do not show the label in base position.
-						this._domLabel.style.fontSize = px(size.font_size_base)
-						this._domLabel.style.transform = 'translateY(' + baseLabelPosition + "px)"
-					} else {
-						this._domLabel.style.fontSize = px(size.font_size_small)
-						this._domLabel.style.transform = 'translateY(' + 0 + "px)"
-					}
 				},
+				style: {
+					fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
+					transform: `translateY(${labelBase ? baseLabelPosition : 0}px)`,
+					transition: `transform ${DefaultAnimationTime}ms ease-out, font-size ${DefaultAnimationTime}ms  ease-out`
+				}
 			}, lang.getMaybeLazy(a.label)),
 			m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
 				m(".flex.items-end.flex-wrap", {
@@ -122,6 +119,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 			//
 			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
 			// This is mostly done to prevent autofill which happens if the field type="password".
+
 			const autofillGuard = a.preventAutofill ? [
 				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Text}),
 				m("input.abs", {style: {opacity: '0', height: '0'}, type: Type.Password}),
@@ -140,14 +138,6 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 						if (a.type === Type.ExternalPassword) {
 							vnode.dom.style.opacity = '0' // Setting it in style block doesn't work somehow
 						} else if (a.type === Type.Password) {
-							vnode.dom.addEventListener('animationstart', e => {
-								if (e.animationName === "onAutoFillStart") {
-									this.animate(true)
-									this.webkitAutofill = true
-								} else if (e.animationName === "onAutoFillCancel") {
-									this.webkitAutofill = false
-								}
-							})
 						}
 					},
 					onfocus: (e) => {
@@ -162,27 +152,12 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					},
 					onupdate: () => {
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
-						if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
-							const initialValue = this._domInput.value
-							const newValue = a.value()
-
+						// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+						if (this._domInput.value !== a.value()) {
 							this._domInput.value = a.value()
-
-							// in the case that the input value is changed programatically
-							// animate in when going from empty to nonempty
-							// animate out when going from nonempty to empty
-							if (!this.active && initialValue === "" && newValue !== "") {
-								this.animate(true)
-							} else if (!this.active && initialValue !== "" && newValue === "") {
-								this.animate(false)
-							}
 						}
 					},
 					oninput: () => {
-						if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active
-							&& !this.webkitAutofill) {
-							this.animate(true) // animate in case of browser autocompletion (non-webkit)
-						}
 						a.value(this._domInput.value) // update the input on each change
 						a.oninput && a.oninput(this._domInput.value, this._domInput)
 					},
@@ -231,19 +206,14 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 					return a.keyHandler != null ? a.keyHandler(key) : true
 				},
 				oninput: e => {
-					if (this.isEmpty(a.value()) && this._domInput.value !== "" && !this.active) {
-						this.animate(true) // animate in case of browser autocompletion
-					}
 					this._domInput.style.height = '0px'
 					this._domInput.style.height = px(this._domInput.scrollHeight)
 					a.value(this._domInput.value) // update the input on each change
 				},
 				onupdate: () => {
-					if (this._domInput.value !== a.value()) { // only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+					// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
+					if (this._domInput.value !== a.value()) {
 						this._domInput.value = a.value()
-						if (a.value() && !this.active) { // animate in case the value of the stream has changed, we prefer to animate in onupdate instead of subscribing to the stream.
-							this.animate(true)
-						}
 					}
 				},
 				style: {
@@ -260,9 +230,6 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 			this.active = true
 			this._domInput.focus()
 			this._domWrapper.classList.add("active")
-			if (this.isEmpty(a.value())) {
-				this.animate(true)
-			}
 		}
 	}
 
@@ -272,9 +239,6 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 		 } else {
 		 */
 		this._domWrapper.classList.remove("active")
-		if (this.isEmpty(a.value())) {
-			this.animate(false)
-		}
 		this.active = false
 		if (a.onblur instanceof Function) a.onblur(e)
 		/*}
@@ -284,19 +248,6 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 
 	isEmpty(value: string): boolean {
 		return value === ''
-	}
-
-	animate(fadeIn: boolean): Promise<void> {
-		let fontSizes = [size.font_size_base, size.font_size_small]
-		let top = [baseLabelPosition, 0]
-		if (!fadeIn) {
-			fontSizes.reverse()
-			top.reverse()
-		}
-		return animations.add(this._domLabel, [
-			fontSize(fontSizes[0], fontSizes[1]),
-			transform(transform.type.translateY, top[0], top[1])
-		], {easing: ease.out})
 	}
 }
 
