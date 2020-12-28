@@ -47,7 +47,6 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 			},
 		}, [
 			m(TextFieldN, mailAddressFieldAttrs),
-			// TODO focus this on creation if the mailaddress is already filled in
 			m(TextFieldN, passwordFieldAttrs),
 			(a.savePassword && (!whitelabelCustomizations ||
 				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1))
