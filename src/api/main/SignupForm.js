@@ -40,6 +40,7 @@ export type SignupFormAttrs = {
 	isBusinessUse: lazy<boolean>,
 	isPaidSubscription: lazy<boolean>,
 	campaign: lazy<?string>,
+	// only used if readonly is true
 	prefilledMailAddress?: string,
 	readonly: boolean,
 }
@@ -182,7 +183,6 @@ function signup(mailAddress: string, pw: string, registrationCode: string, isBus
  *
  * TODO:
  *  * Refactor token usage
- *  * Is 'recursion' on runCaptcha a smart move?
  */
 function runCaptcha(mailAddress: string, isBusinessUse: boolean, isPaidSubscription: boolean, campaignToken: ?string): Promise<?string> {
 	let data = createRegistrationCaptchaServiceGetData()
