@@ -1,6 +1,6 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isApp} from "../api/Env"
 import type {AccountTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
@@ -53,7 +53,7 @@ import {
 	getTotalAliases,
 	getTotalStorageCapacity,
 	isSharingActive,
-	isWhitelabelActive,
+	isWhitelabelActive, showServiceTerms,
 	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
@@ -725,7 +725,15 @@ function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () 
 				columnWidths,
 				lines,
 				showActionButtonColumn: true,
-			})
+			}),
+			m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
+				onclick: e => {
+					if (isApp()) {
+						showServiceTerms("giftCards")
+						e.preventDefault()
+					}
+				}
+			}, lang.get("giftCardTerms_label")))
 		],
 		expanded,
 	}

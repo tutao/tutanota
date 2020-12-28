@@ -15,7 +15,6 @@ module.exports = {
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
-		"acceptGiftCardTerms_label": "I have read and agree to the gift card terms.",
 		"acceptInvitation_action": "Accept invitation",
 		"acceptPrivacyPolicyReminder_msg": "Please accept the privacy policy by selecting the checkbox.",
 		"acceptPrivacyPolicy_msg": "I have read and agree to the {privacyPolicy}.",
@@ -487,7 +486,7 @@ module.exports = {
 		"giftCardRedeemed_msg": "The gift card was successfully redeemed.",
 		"giftCardSection_label": "Purchase and manage gift cards",
 		"giftCardSignupErrorLoggingIn_msg": "Your account was created successfully but there was an error logging you in. Please reload the page and use the new account to redeem the gift card.",
-		"giftCardsTerms_label": "Please agree to the gift card terms and conditions",
+		"giftCardTerms_label": "Gift card terms and conditions",
 		"giftCards_label": "Gift cards",
 		"giftCardUpdateError_msg": "Unable to update gift card.",
 		"giftCardUpgradeNotify_msg": "You will be automatically upgraded to a Premium account with a yearly subscription. The cost of the first year ({price}) will be payed for with your gift card and the remaining value ({credit}) will be credited to your account.",
