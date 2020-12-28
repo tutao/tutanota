@@ -135,7 +135,7 @@ export class SignupForm implements MComponent<SignupFormAttrs> {
 function renderTermsLabel(): Children {
 	return [
 		m("div", lang.get("termsAndConditions_label")),
-		m("div", m(`a[href=${lang.getInfoLink("termsFree_link")}][target=_blank]`, {
+		m("div", m(`a[href=${lang.getInfoLink("terms_link")}][target=_blank]`, {
 			onclick: e => {
 				if (isApp()) {
 					showServiceTerms("terms")
@@ -143,7 +143,7 @@ function renderTermsLabel(): Children {
 				}
 			}
 		}, lang.get("termsAndConditionsLink_label"))),
-		m("div", m(`a[href=${lang.getInfoLink("termsPrivacy_link")}][target=_blank]`, {
+		m("div", m(`a[href=${lang.getInfoLink("privacy_link")}][target=_blank]`, {
 			onclick: e => {
 				if (isApp()) {
 					showServiceTerms("privacy")
