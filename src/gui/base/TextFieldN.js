@@ -58,7 +58,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const labelBase = !this.active && a.value() === "" && !a.disabled
-
+		const labelTransitionSpeed = DefaultAnimationTime / 2
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
@@ -73,7 +73,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 				style: {
 					fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
 					transform: `translateY(${labelBase ? baseLabelPosition : 0}px)`,
-					transition: `transform ${DefaultAnimationTime}ms ease-out, font-size ${DefaultAnimationTime}ms  ease-out`
+					transition: `transform ${labelTransitionSpeed}ms ease-out, font-size ${labelTransitionSpeed}ms  ease-out`
 				}
 			}, lang.getMaybeLazy(a.label)),
 			m(".flex.flex-column", [ // another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items

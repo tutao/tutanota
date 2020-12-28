@@ -222,7 +222,7 @@ export class LoginView {
 	}
 
 	_setupHooks() {
-		// TODO not sure if this is necessary when using TextFieldN in the LoginForm anyway
+		// TODO Test on iOS and figure out if we still have to do something like this
 		// this.oncreate = () => {
 		// 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 		// 	// it only sends one input/change event for all fields so we didn't know if fields
