@@ -478,6 +478,7 @@ export class SearchBar implements Component {
 		if (this.expanded) {
 			this.expanded = false
 			this._updateState({query: ""})
+			locator.search.lastQuery("")
 			this._domInput.blur() // remove focus from the input field in case ESC is pressed
 		}
 		if (m.route.get().startsWith("/search")) {
