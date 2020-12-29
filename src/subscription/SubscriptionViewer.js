@@ -34,7 +34,6 @@ import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream/stream.js"
 import {showDeleteAccountDialog} from "./DeleteAccountDialog"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
@@ -57,7 +56,6 @@ import {
 	showSharingBuyDialog,
 	showWhitelabelBuyDialog
 } from "./SubscriptionUtils"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -70,10 +68,7 @@ import {
 import type {GiftCard} from "../api/entities/sys/GiftCard"
 import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
-import {Expandable} from "../settings/Expandable"
-import type {ExpandableAttrs} from "../settings/Expandable"
-import type {TranslationKey} from "../misc/LanguageViewModel.js"
-import type {ColumnWidthEnum, TableLineAttrs} from "../gui/base/TableN"
+import {SettingsExpander} from "../settings/SettingsExpander"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
 
@@ -227,9 +222,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			click: showDeleteAccountDialog,
 			type: ButtonType.Login,
 		}
-		let deleteAccountExpander = new ExpanderButton("adminDeleteAccount_action", new ExpanderPanel({
-			view: () => m(".flex-center.mb-l", m("", {style: {"width": '200px'}}, m(ButtonN, deleteButtonAttrs)))
-		}), false)
+		const deleteAccountExpanded = stream(false)
 
 
 		this._giftCards = new Map()
@@ -324,7 +317,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)]
 				}),
-				m(Expandable, renderGiftCardExpandable(Array.from(this._giftCards.values()), isPremiumPredicate, this._giftCardsExpanded)),
+				m(SettingsExpander,
+					{
+						title: "giftCards_label",
+						infoMsg: "giftCardSection_label",
+						expanded: this._giftCardsExpanded,
+					}, renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate)),
 				m(".h4.mt-l", lang.get('adminPremiumFeatures_action')),
 				m(TextFieldN, {
 					label: "bookingItemUsers_label",
@@ -373,11 +371,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addContactFormActionAttrs), m(ButtonN, editContactFormsActionAttrs)],
 				}),
-				m(".flex-space-between.items-center.mt-l.mb", [
-					m(".h4", lang.get('adminDeleteAccount_action')),
-					m(deleteAccountExpander)
-				]),
-				m(deleteAccountExpander.panel),
+				m(".mb-l", m(SettingsExpander, {
+					title: "adminDeleteAccount_action",
+					buttonText: "adminDeleteAccount_action",
+					expanded: deleteAccountExpanded
+				}, m(".flex-center", m("", {style: {"width": '200px'}}, m(ButtonN, deleteButtonAttrs)))))
 			])
 		}
 
@@ -665,7 +663,7 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 	}
 }
 
-function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () => boolean, expanded: Stream<boolean>): ExpandableAttrs {
+function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
 	const addButtonAttrs = {
 		label: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
@@ -715,27 +713,22 @@ function renderGiftCardExpandable(giftCards: GiftCard[], isPremiumPredicate: () 
 		}
 	})
 
-	return {
-		title: "giftCards_label",
-		infoMsg: "giftCardSection_label",
-		children: [
-			m(TableN, {
-				addButtonAttrs,
-				columnHeading,
-				columnWidths,
-				lines,
-				showActionButtonColumn: true,
-			}),
-			m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
-				onclick: e => {
-					if (isApp()) {
-						showServiceTerms("giftCards")
-						e.preventDefault()
-					}
+	return [
+		m(TableN, {
+			addButtonAttrs,
+			columnHeading,
+			columnWidths,
+			lines,
+			showActionButtonColumn: true,
+		}),
+		m(".small", m(`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`, {
+			onclick: e => {
+				if (isApp()) {
+					showServiceTerms("giftCards")
+					e.preventDefault()
 				}
-			}, lang.get("giftCardTerms_label")))
-		],
-		expanded,
-	}
+			}
+		}, lang.get("giftCardTerms_label")))
+	]
 }
 

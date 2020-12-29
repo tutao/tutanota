@@ -203,6 +203,9 @@ styles.registerStyle('main', () => {
 		'.ml-l': {'margin-left': px(size.hpad_large)},
 		'.mr-m': {'margin-right': px(size.hpad_medium)},
 		'.mr-l': {'margin-right': px(size.hpad_large)},
+		'.mlr-s': {'margin-left': px(size.hpad_small), 'margin-right': px(size.hpad_small)},
+		'.mtb-0': {'margin-top': px(0), 'margin-bottom': px(0)},
+
 
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
@@ -254,6 +257,7 @@ styles.registerStyle('main', () => {
 		'.ml-negative-bubble': {'margin-left': px(-7)},
 		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
 		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad), right: px(size.hpad_large)},
+		'.mr-negative-xs': {'margin-right': px(-3)},
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},

@@ -29,14 +29,14 @@ import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {client} from "../misc/ClientDetector"
 import type {Guest} from "./CalendarEventViewModel"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {RecipientInfoType} from "../api/common/RecipientInfo"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
-import {animations, height} from "../gui/animation/Animations"
+import {animations, height, opacity} from "../gui/animation/Animations"
 import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
@@ -218,8 +218,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					        type: TextFieldType.ExternalPassword,
 					        label: () => lang.get("passwordFor_label", {"{1}": guest.address.address}),
 					        helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
-					        oncreate: ({dom}) => animations.add(dom, height(0, dom.offsetHeight)),
-					        onbeforeremove: ({dom}) => animations.add(dom, height(dom.offsetHeight, 0)),
 					        key: guest.address.address,
 					        oninput: (newValue) => viewModel.updatePassword(guest, newValue)
 				        })
@@ -355,27 +353,26 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	function renderDialogContent() {
 
 		return m(".calendar-edit-container.pb", [
-				renderHeading(),
-				renderChangesMessage(),
-				m(ExpanderPanelN, {
-						expanded: attendeesExpanded,
-						class: "mb",
-					},
-					[
-						m(".flex-grow", renderInvitationField()),
-						m(".flex-grow", renderAttendees())
-					],
-				),
-				renderDateTimePickers(),
-				m(".flex.items-center.mt-s", [
-					m(CheckboxN, {
-						checked: viewModel.allDay,
-						disabled: viewModel.isReadOnlyEvent(),
-						label: () => lang.get("allDay_label")
-					}),
-					m(".flex-grow"),
-				]),
-				renderRepeatRulePicker(),
+			renderHeading(),
+			renderChangesMessage(),
+			m(".mb", m(ExpanderPanelN, {
+					expanded: attendeesExpanded,
+				},
+				[
+					m(".flex-grow", renderInvitationField()),
+					m(".flex-grow", renderAttendees())
+				],
+			)),
+			renderDateTimePickers(),
+			m(".flex.items-center.mt-s", [
+				m(CheckboxN, {
+					checked: viewModel.allDay,
+					disabled: viewModel.isReadOnlyEvent(),
+					label: () => lang.get("allDay_label")
+				}),
+				m(".flex-grow"),
+			]),
+			renderRepeatRulePicker(),
 				m(".flex", [
 					renderCalendarPicker(),
 					viewModel.canModifyAlarms()
@@ -417,12 +414,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			value: viewModel.summary,
 			disabled: viewModel.isReadOnlyEvent(),
 			class: "big-input pt flex-grow",
-			injectionsRight: () => m(ExpanderButtonN, {
+			injectionsRight: () => m(".mr-s", m(ExpanderButtonN, {
 				label: "guests_label",
 				expanded: attendeesExpanded,
 				style: {paddingTop: 0},
-				class: ".mr-s",
-			})
+			}))
 		})
 	}
 

@@ -2,123 +2,103 @@
 import m from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {animations, height, opacity, transform} from "../../../src/gui/animation/Animations"
+import {addFlash, removeFlash} from "./Flash"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
-import {addFlash, removeFlash} from "./Flash"
 import {px} from "../size"
+import {DefaultAnimationTime} from "../animation/Animations"
 
-export class ExpanderButton {
-	panel: ExpanderPanel;
-	getLabel: lazy<string>;
-	_domIcon: ?HTMLElement;
-	view: Function;
-	_showWarning: boolean;
-
-	constructor(labelTextIdOrLabelFunction: TranslationKey | lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: () => string = () => theme.content_button) {
-		this.panel = panel
-		this.getLabel = typeof labelTextIdOrLabelFunction === "function"
-			? labelTextIdOrLabelFunction
-			: lang.get.bind(lang, labelTextIdOrLabelFunction)
-		this._showWarning = showWarning
-
-		this.view = (): VirtualElement => {
-			style.color = color()
-			return m(".flex.limit-width",
-				[ // .limit-width does not work without .flex in IE11
-					m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
-
-						style,
-						onclick: (event: MouseEvent) => {
-							this.toggle()
-							event.stopPropagation()
-						},
-						oncreate: vnode => addFlash(vnode.dom),
-						onremove: (vnode) => removeFlash(vnode.dom),
-						// Must be "true" or "false" strings, mere presence of attribute doesn't signify anything
-						"aria-expanded": String(!!this.panel.expanded),
-					}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
-						(this._showWarning) ? m(Icon, {
-							icon: Icons.Warning,
-							style: {fill: color()}
-						}) : null,
-						m("small.b.text-ellipsis", this.getLabel().toUpperCase()),
-						m(Icon, {
-							icon: BootIcons.Expand,
-							class: "flex-center items-center",
-							style: {
-								fill: color(),
-								'margin-right': px(-4) // icon is has 4px whitespace to the right
-							},
-							oncreate: vnode => {
-								this._domIcon = vnode.dom
-								if (this.panel.expanded) this._domIcon.style.transform = 'rotateZ(180deg)'
-							},
-						}),
-					])),
-				])
-		}
-	}
-
-	toggle() {
-		if (this._domIcon) {
-			let start = this.panel.expanded ? 180 : 0
-			animations.add(this._domIcon, transform('rotateZ', start, start + 180))
-		}
-		this.panel.setExpanded(!this.panel.expanded)
-	}
-
-	setShowWarning(showWarning: boolean): void {
-		this._showWarning = showWarning
-	}
-
+export type ExpanderAttrs = {
+	label: TranslationKey | lazy<string>,
+	expanded: Stream<boolean>,
+	showWarning?: boolean,
+	color?: string,
 }
 
-export class ExpanderPanel {
-	child: Component;
-	expanded: boolean;
-	_domPanel: HTMLElement;
+export type ExpanderPanelAttrs = {
+	expanded: Stream<boolean>,
+}
 
-	view: Function;
+export class ExpanderButtonN implements MComponent<ExpanderAttrs> {
+	_domIcon: ?HTMLElement;
 
-	constructor(child: Component) {
-		this.child = child
-		this.expanded = false
-		this.view = (): VirtualElement => m(".expander-panel.overflow-hidden.no-shrink", [
-			this.expanded
-				? m("div", {
-					oncreate: vnode => {
-						this._domPanel = vnode.dom
-						vnode.dom.style.height = 0
-						this._animate(true)
+	view(vnode: Vnode<ExpanderAttrs>): Children {
+		const a = vnode.attrs
+		return m(".flex.limit-width", [ // .limit-width does not work without .flex in IE11
+			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
+				onclick: (event: MouseEvent) => {
+					a.expanded(!a.expanded())
+					event.stopPropagation()
+				},
+				oncreate: vnode => addFlash(vnode.dom),
+				onremove: (vnode) => removeFlash(vnode.dom),
+				"aria-expanded": String(!!a.expanded()),
+			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
+				(a.showWarning) ? m(Icon, {
+					icon: Icons.Warning,
+					style: {
+						fill: a.color ? a.color : theme.content_button,
+					}
+				}) : null,
+				m("small.b.text-ellipsis", {style: {color: a.color || theme.content_button}}, lang.getMaybeLazy(a.label).toUpperCase()),
+				m(Icon, {
+					icon: BootIcons.Expand,
+					class: "flex-center items-center",
+					style: {
+						fill: a.color ? a.color : theme.content_button,
+						'margin-right': px(-4), // icon is has 4px whitespace to the right,
+						transform: `rotateZ(${a.expanded() ? 180 : 0}deg)`,
+						transition: `transform ${DefaultAnimationTime}ms`
 					},
-					onbeforeremove: vnode => this._animate(false),
-				}, m(this.child))
-				: null
+				}),
+			])),
 		])
 	}
+}
 
-	_animate(fadeIn: boolean): Promise<void> {
-		animations.add(this._domPanel, fadeIn ? opacity(0, 1, true) : opacity(1, 0, true))
-		let childHeight = Array.from(this._domPanel.children)
-		                       .map((domElement: HTMLElement) => domElement.offsetHeight)
-		                       .reduce((current: number, previous: number) => current + previous, 0)
-		return animations.add(this._domPanel, height(fadeIn ? 0 : childHeight, fadeIn ? childHeight : 0))
-		                 .then(() => {
-			                 if (fadeIn) {
-				                 this._domPanel.style.height = ''
-			                 }
-		                 })
+export class ExpanderPanelN implements MComponent<ExpanderPanelAttrs> {
+	childDiv: HTMLElement
+
+	// There are some cases where the child div will be added to and a redraw won't be triggered, in which case
+	// the expander panel wont update until some kind of interaction
+	observer: MutationObserver
+
+	lastCalculatedHeight: number
+
+	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
+		this.observer = new MutationObserver(mutations => {
+			// redraw if a child has been added that wont be getting displayed
+			if (this.childDiv && this.childDiv.offsetHeight !== this.lastCalculatedHeight) {
+				m.redraw()
+			}
+		})
 	}
 
-	setExpanded(expanded: boolean): ExpanderPanel {
-		this.expanded = expanded
-		let c = (this.child: any)
-		if (c['setExpanded']) {
-			c['setExpanded'](expanded)
-		}
-		return this
+	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
+		const expanded = vnode.attrs.expanded
+		this.lastCalculatedHeight = this.childDiv
+			? this.childDiv.offsetHeight
+			: 0
+		// The expander panel children are wrapped in an extra div so that we can calculate the height properly,
+		// since offsetHeight doesn't include borders or margins
+		return m(".expander-panel.overflow-hidden",
+			m("div", {
+				style: {
+					opacity: expanded() ? "1" : "0",
+					height: expanded() ? `${this.lastCalculatedHeight}px` : "0px",
+					transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`
+				}
+			}, m(".expander-child-wrapper", {
+				oncreate: vnode => {
+					this.childDiv = vnode.dom
+					this.observer.observe(this.childDiv, {childList: true, subtree: true})
+				},
+				onremove: () => {
+					this.observer.disconnect()
+				}
+			}, vnode.children))
+		)
 	}
 }

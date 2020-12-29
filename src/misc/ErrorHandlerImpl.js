@@ -33,7 +33,7 @@ import {formatPrice} from "../subscription/SubscriptionUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {locator} from "../api/main/MainLocator"
 import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
@@ -407,7 +407,7 @@ function showErrorDialogNotLoggedIn(e) {
 		m(".flex.col.items-end.plr", {
 			style: {marginTop: "-16px"},
 		}, [
-			m("div", {style: {marginRight: px(-3)}}, m(ExpanderButtonN, {expanded, label: "showMore_action"})),
+			m("div.mr-negative-xs", m(ExpanderButtonN, {expanded, label: "showMore_action"})),
 		]),
 		m(ExpanderPanelN, {expanded}, [
 			m(".flex-end.plr", m(ButtonN, {

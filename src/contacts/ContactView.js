@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
@@ -26,7 +27,6 @@ import {logins} from "../api/main/LoginController"
 import {vCardFileToVCards, vCardListToContacts} from "./VCardImporter"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {MultiContactViewer} from "./MultiContactViewer"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -44,6 +44,7 @@ import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {flat} from "../api/common/utils/ArrayUtils"
+import {FolderExpander} from "../gui/base/FolderExpander"
 
 assertMainOrNode()
 
@@ -61,7 +62,8 @@ export class ContactView implements CurrentView {
 	_throttledSetUrl: (string) => void;
 
 	constructor() {
-		let expander = this.createContactFoldersExpander()
+
+		const contactsExpanded = stream(true)
 		this._throttledSetUrl = throttleRoute()
 
 		this.folderColumn = new ViewColumn({
@@ -73,8 +75,10 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
-						m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(expander)),
-						m(expander.panel)
+						m(FolderExpander, {
+							label: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo),
+							expanded: contactsExpanded,
+						}, this.createContactFoldersExpanderChildren())
 					],
 					ariaLabel: "folderTitle_label"
 				})
@@ -198,23 +202,19 @@ export class ContactView implements CurrentView {
 		this.onremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
-	createContactFoldersExpander(): ExpanderButton {
+	createContactFoldersExpanderChildren(): Children {
 		let folderMoreButton = this.createFolderMoreButton()
-		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
-				view: () => m(".folders", [
-					m(".folder-row.flex-space-between.plr-l.row-selected", [
-						m(NavButtonN, {
-							label: "all_contacts_label",
-							icon: () => BootIcons.Contacts,
-							href: () => m.route.get(),
-						}),
-						m(folderMoreButton),
-					])
-				])
-			}), false, {}, () => theme.navigation_button
-		)
-		contactExpander.toggle()
-		return contactExpander
+		return m(".folders", [
+			m(".folder-row.flex-space-between.plr-l.row-selected", [
+				m(NavButtonN, {
+					label: "all_contacts_label",
+					icon: () => BootIcons.Contacts,
+					href: () => m.route.get(),
+				}),
+				m(folderMoreButton),
+			])
+		])
+
 	}
 
 	createFolderMoreButton(): Button {
