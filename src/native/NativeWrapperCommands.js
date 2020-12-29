@@ -8,7 +8,7 @@ import {nativeApp} from "./NativeWrapper"
 const createMailEditor = (msg: Request): Promise<void> => {
 	return Promise.all([
 		_asyncImport('src/api/main/MainLocator.js'),
-		_asyncImport('src/mail/MailEditorN.js'),
+		_asyncImport('src/mail/MailEditor.js'),
 		_asyncImport('src/mail/MailUtils.js'),
 		_asyncImport('src/api/main/LoginController.js')
 	]).spread((mainLocatorModule, mailEditorModule, mailUtilsModule, {logins}) => {

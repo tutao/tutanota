@@ -14,7 +14,7 @@ import {assertMainOrNode} from "../api/Env"
 import {faq} from "./FaqModel"
 import {Keys} from "../api/common/TutanotaConstants"
 import {debounce} from "../api/common/utils/Utils"
-import {writeSupportMail} from "../mail/MailEditorN"
+import {writeSupportMail} from "../mail/MailEditor"
 
 assertMainOrNode()
 

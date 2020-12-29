@@ -12,7 +12,7 @@ import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
 import {isColorLight} from "../gui/Color"
 import {lang} from "../misc/LanguageViewModel"
-import {newMailEditorFromTemplate} from "../mail/MailEditorN"
+import {newMailEditorFromTemplate} from "../mail/MailEditor"
 import {UserError} from "../api/common/error/UserError"
 
 export class AboutDialog implements MComponent<void> {

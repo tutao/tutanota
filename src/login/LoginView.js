@@ -61,7 +61,6 @@ export class LoginView {
 	onremove: Function;
 	permitAutoLogin: boolean;
 	_showingSignup: boolean;
-	_formsUpdateStream: ?Stream<*>;
 	_moreExpanded: Stream<boolean>;
 
 	constructor() {
