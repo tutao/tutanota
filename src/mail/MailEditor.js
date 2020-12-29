@@ -157,11 +157,11 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		}
 
 		if (model.logins().isInternalUserLoggedIn()) {
-			this.recipientFields.to.component.textField._injectionsRight = () => m(ExpanderButtonN, {
-				label: "show_action",
-				expanded: a.areDetailsExpanded,
-				class: ".mr-s",
-			})
+			this.recipientFields.to.component.textField._injectionsRight = () =>
+				m(".mr-s", m(ExpanderButtonN, {
+					label: "show_action",
+					expanded: a.areDetailsExpanded,
+				}))
 		} else {
 			this.recipientFields.to.component.textField.setDisabled()
 		}

@@ -407,7 +407,7 @@ function showErrorDialogNotLoggedIn(e) {
 		m(".flex.col.items-end.plr", {
 			style: {marginTop: "-16px"},
 		}, [
-			m("div", {style: {marginRight: px(-3)}}, m(ExpanderButtonN, {expanded, label: "showMore_action"})),
+			m("div.mr-negative-xs", m(ExpanderButtonN, {expanded, label: "showMore_action"})),
 		]),
 		m(ExpanderPanelN, {expanded}, [
 			m(".flex-end.plr", m(ButtonN, {

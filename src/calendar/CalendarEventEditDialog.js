@@ -36,7 +36,7 @@ import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEv
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {RecipientInfoType} from "../api/common/RecipientInfo"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
-import {animations, height} from "../gui/animation/Animations"
+import {animations, height, opacity} from "../gui/animation/Animations"
 import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
@@ -355,27 +355,26 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 	function renderDialogContent() {
 
 		return m(".calendar-edit-container.pb", [
-				renderHeading(),
-				renderChangesMessage(),
-				m(ExpanderPanelN, {
-						expanded: attendeesExpanded,
-						class: "mb",
-					},
-					[
-						m(".flex-grow", renderInvitationField()),
-						m(".flex-grow", renderAttendees())
-					],
-				),
-				renderDateTimePickers(),
-				m(".flex.items-center.mt-s", [
-					m(CheckboxN, {
-						checked: viewModel.allDay,
-						disabled: viewModel.isReadOnlyEvent(),
-						label: () => lang.get("allDay_label")
-					}),
-					m(".flex-grow"),
-				]),
-				renderRepeatRulePicker(),
+			renderHeading(),
+			renderChangesMessage(),
+			m(".mb", m(ExpanderPanelN, {
+					expanded: attendeesExpanded,
+				},
+				[
+					m(".flex-grow", renderInvitationField()),
+					m(".flex-grow", renderAttendees())
+				],
+			)),
+			renderDateTimePickers(),
+			m(".flex.items-center.mt-s", [
+				m(CheckboxN, {
+					checked: viewModel.allDay,
+					disabled: viewModel.isReadOnlyEvent(),
+					label: () => lang.get("allDay_label")
+				}),
+				m(".flex-grow"),
+			]),
+			renderRepeatRulePicker(),
 				m(".flex", [
 					renderCalendarPicker(),
 					viewModel.canModifyAlarms()
@@ -417,12 +416,11 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 			value: viewModel.summary,
 			disabled: viewModel.isReadOnlyEvent(),
 			class: "big-input pt flex-grow",
-			injectionsRight: () => m(ExpanderButtonN, {
+			injectionsRight: () => m(".mr-s", m(ExpanderButtonN, {
 				label: "guests_label",
 				expanded: attendeesExpanded,
 				style: {paddingTop: 0},
-				class: ".mr-s",
-			})
+			}))
 		})
 	}
 

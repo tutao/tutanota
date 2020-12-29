@@ -230,9 +230,14 @@ export class MailViewer {
 
 		const bubbleMenuWidth = 300
 
-		const expanderStyle = {}
-		const detailsExpander = this._createDetailsExpander(bubbleMenuWidth, mail, expanderStyle)
-
+		const details = this._createDetailsExpanderChildren(bubbleMenuWidth, mail)
+		const detailsExpanded = stream(false)
+		const expanderButtonStyle = {}
+		const detailsExpanderButtonAttrs = {
+			label: "showMore_action",
+			expanded: detailsExpanded,
+			style: expanderButtonStyle
+		}
 
 		//We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
 		this._inlineFileIds = this._loadMailBody(mail)
@@ -243,10 +248,8 @@ export class MailViewer {
 			    .catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 		})
 
-
 		this.view = () => {
 			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
-			expanderStyle.paddingTop = styles.isUsingBottomNavigation() ? "0" : "16px"
 			return [
 				m("#mail-viewer.fill-absolute"
 					+ (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"), {
@@ -255,7 +258,7 @@ export class MailViewer {
 						m(".header.plr-l.margin-are-inset-lr", [
 							m(".flex-space-between.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m(".flex.flex-column-reverse", [
-									(detailsExpander.panel.expanded)
+									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
 										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
@@ -264,11 +267,13 @@ export class MailViewer {
 										]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
-								this._isAnnouncement() || styles.isUsingBottomNavigation()
+								!this._isAnnouncement() && styles.isUsingBottomNavigation()
 									? null
-									: m(detailsExpander)
+									: m(".pt-0", m(ExpanderButtonN, detailsExpanderButtonAttrs))
 							]),
-							m(detailsExpander.panel),
+							m(".mb-m", m(ExpanderPanelN, {
+								expanded: detailsExpanded
+							}, details)),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
 								m(".left.flex-grow-shrink-150", [
 									m(".subject.text-break.selectable", {
@@ -285,7 +290,9 @@ export class MailViewer {
 										m("small.date.mt-xs", dateTime),
 										m(".flex-grow"),
 										m(".flex.flex-column-reverse",
-											this._isAnnouncement() || !styles.isUsingBottomNavigation() ? null : m(detailsExpander)),
+											!this._isAnnouncement() && styles.isUsingBottomNavigation()
+												? m(".pt-m", m(ExpanderButtonN, detailsExpanderButtonAttrs))
+												: null),
 									]),
 								]),
 								styles.isUsingBottomNavigation() ? null : this.actionButtons(),
@@ -399,74 +406,70 @@ export class MailViewer {
 			: null
 	}
 
-	_createDetailsExpander(bubbleMenuWidth: number, mail: Mail, expanderStyle: {}): ExpanderButton {
-		return new ExpanderButton("showMore_action", new ExpanderPanel({
-			view: () => {
-				const envelopeSender = this.mail.differentEnvelopeSender
-				return m("", [
+	_createDetailsExpanderChildren(bubbleMenuWidth: number, mail: Mail): Children {
+		const envelopeSender = this.mail.differentEnvelopeSender
+		return [
+			m(RecipientButton, {
+				label: getDisplayText(this.mail.sender.name, this.mail.sender.address, false),
+				click: createAsyncDropdown(() =>
+					this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth),
+			}),
+			envelopeSender
+				? [
+					m(".small", lang.get("sender_label")),
 					m(RecipientButton, {
-						label: getDisplayText(this.mail.sender.name, this.mail.sender.address, false),
+						label: getDisplayText("", envelopeSender, false),
+						click: () => this._showEnvelopeSenderDialog(envelopeSender),
+					})
+				]
+				: null,
+			mail.toRecipients.length
+				? [
+					m(".small", lang.get("to_label")),
+					m(".flex-start.flex-wrap", this.mail.toRecipients.map(recipient => m(RecipientButton, {
+							label: getDisplayText(recipient.name, recipient.address, false),
+							click: createAsyncDropdown(() =>
+								this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), bubbleMenuWidth),
+							// To wrap text inside flex container, we need to allow element to shrink and pick own width
+							style: {flex: "0 1 auto"},
+						}))
+					),
+				]
+				: null,
+			mail.ccRecipients.length
+				? [
+					m(".small", lang.get("cc_label")),
+					m(".flex-start.flex-wrap", this.mail.ccRecipients.map(recipient => m(RecipientButton, {
+						label: getDisplayText(recipient.name, recipient.address, false),
 						click: createAsyncDropdown(() =>
-							this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth),
-					}),
-					envelopeSender
-						? [
-							m(".small", lang.get("sender_label")),
-							m(RecipientButton, {
-								label: getDisplayText("", envelopeSender, false),
-								click: () => this._showEnvelopeSenderDialog(envelopeSender),
-							})
-						]
-						: null,
-					mail.toRecipients.length
-						? [
-							m(".small", lang.get("to_label")),
-							m(".flex-start.flex-wrap", this.mail.toRecipients.map(recipient => m(RecipientButton, {
-									label: getDisplayText(recipient.name, recipient.address, false),
-									click: createAsyncDropdown(() =>
-										this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS), bubbleMenuWidth),
-									// To wrap text inside flex container, we need to allow element to shrink and pick own width
-									style: {flex: "0 1 auto"},
-								}))
-							),
-						]
-						: null,
-					mail.ccRecipients.length
-						? [
-							m(".small", lang.get("cc_label")),
-							m(".flex-start.flex-wrap", this.mail.ccRecipients.map(recipient => m(RecipientButton, {
-								label: getDisplayText(recipient.name, recipient.address, false),
-								click: createAsyncDropdown(() =>
-									this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), bubbleMenuWidth),
-								style: {flex: "0 1 auto"},
-							}))),
-						]
-						: null,
-					mail.bccRecipients.length
-						? [
-							m(".small", lang.get("bcc_label")),
-							m(".flex-start.flex-wrap", this.mail.bccRecipients.map(recipient => m(RecipientButton, {
-								label: getDisplayText(recipient.name, recipient.address, false),
-								click: createAsyncDropdown(() =>
-									this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), bubbleMenuWidth),
-								style: {flex: "0 1 auto"},
-							}))),
-						]
-						: null,
-					mail.replyTos.length
-						? [
-							m(".small", lang.get("replyTo_label")),
-							m(".flex-start.flex-wrap", this.mail.replyTos.map(recipient => m(RecipientButton, {
-								label: getDisplayText(recipient.name, recipient.address, false),
-								click: createAsyncDropdown(() =>
-									this._createBubbleContextButtons(recipient, null), bubbleMenuWidth),
-								style: {flex: "0 1 auto"},
-							}))),
-						]
-						: null,
-				])
-			}
-		}), false, expanderStyle)
+							this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS), bubbleMenuWidth),
+						style: {flex: "0 1 auto"},
+					}))),
+				]
+				: null,
+			mail.bccRecipients.length
+				? [
+					m(".small", lang.get("bcc_label")),
+					m(".flex-start.flex-wrap", this.mail.bccRecipients.map(recipient => m(RecipientButton, {
+						label: getDisplayText(recipient.name, recipient.address, false),
+						click: createAsyncDropdown(() =>
+							this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS), bubbleMenuWidth),
+						style: {flex: "0 1 auto"},
+					}))),
+				]
+				: null,
+			mail.replyTos.length
+				? [
+					m(".small", lang.get("replyTo_label")),
+					m(".flex-start.flex-wrap", this.mail.replyTos.map(recipient => m(RecipientButton, {
+						label: getDisplayText(recipient.name, recipient.address, false),
+						click: createAsyncDropdown(() =>
+							this._createBubbleContextButtons(recipient, null), bubbleMenuWidth),
+						style: {flex: "0 1 auto"},
+					}))),
+				]
+				: null,
+		]
 	}
 
 	_showEnvelopeSenderDialog(envelopeSender: string): Dialog {
@@ -942,14 +945,10 @@ export class MailViewer {
 					this._attachmentButtons.length > spoilerLimit
 						? [
 							this._attachmentButtons.slice(0, spoilerLimit).map(m),
-							m(ExpanderButtonN, {
+							m(".pt-0.mtb-0.mlr-s", (ExpanderButtonN, {
 								label: "showAll_action",
 								expanded: this._filesExpanded,
-								style: {
-									margin: "0 6px",
-									paddingTop: "0"
-								}
-							}),
+							})),
 							m(ExpanderPanelN, {
 								expanded: this._filesExpanded
 							}, this._attachmentButtons.slice(spoilerLimit).map(m))
