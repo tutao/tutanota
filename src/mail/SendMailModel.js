@@ -1,6 +1,6 @@
 // @flow
 import type {ConversationTypeEnum, MailMethodEnum} from "../api/common/TutanotaConstants"
-import {ConversationType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
+import {ConversationType, MailFolderType, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../api/common/TutanotaConstants"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {isExternal} from "../api/common/RecipientInfo"
 import {
@@ -31,7 +31,7 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../api/entities/tutanota/Mail"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
-import {isSameId, stringToCustomId} from "../api/common/EntityFunctions"
+import {getListId, isSameId, stringToCustomId} from "../api/common/EntityFunctions"
 import {FileNotFoundError} from "../api/common/error/FileNotFoundError"
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
@@ -784,9 +784,20 @@ export class SendMailModel {
 		blockingWaitHandler: (TranslationKey | lazy<string>, Promise<any>) => Promise<any> = (_, p) => p): Promise<void> {
 		const attachments = (saveAttachments) ? this._attachments : null
 		const {_draft} = this
-		const savePromise = Promise.resolve(_draft == null
+
+		// Create new drafts for drafts edited from trash or spam folder
+		const doCreateNewDraft = _draft
+			? this._mailModel.getMailboxFolders(_draft)
+			      .then(folders => folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM))
+			      .then(trashAndMailFolders =>
+				      trashAndMailFolders.find(folder =>
+					      isSameId(folder._id, neverNull(this._mailModel.getMailFolder(getListId(_draft)))._id)) != null)
+
+			: Promise.resolve(true)
+
+		const savePromise = doCreateNewDraft.then(createNewDraft => createNewDraft
 			? this._createDraft(this.getBody(), attachments, mailMethod)
-			: this._updateDraft(this.getBody(), attachments, _draft)
+			: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
 		).then((draft) => {
 			this._draft = draft
 			return Promise.map(draft.attachments, fileId => this._entity.load(FileTypeRef, fileId)).then(attachments => {
