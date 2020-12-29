@@ -65,7 +65,7 @@ import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {modal} from "../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import type {MailFolder} from "../api/entities/tutanota/MailFolder"
-import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditorN"
+import {newMailEditor, newMailEditorFromTemplate, newMailtoUrlMailEditor, writeSupportMail} from "./MailEditor"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 

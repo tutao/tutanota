@@ -90,7 +90,7 @@ export function createMailEditorAttrs(model: SendMailModel, doBlockExternalConte
 }
 
 
-export class MailEditorN implements MComponent<MailEditorAttrs> {
+export class MailEditor implements MComponent<MailEditorAttrs> {
 
 	editor: Editor;
 	toolbar: RichTextToolbar;
@@ -383,7 +383,7 @@ export class MailEditorN implements MComponent<MailEditorAttrs> {
 
 
 /**
- * Creates a new Dialog with a MailEditorN inside.
+ * Creates a new Dialog with a MailEditor inside.
  * @param model
  * @param blockExternalContent
  * @param inlineImages
@@ -466,7 +466,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	mailEditorAttrs = createMailEditorAttrs(model, blockExternalContent, model.toRecipients().length !== 0, inlineImages);
 
-	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditorN, mailEditorAttrs)
+	dialog = Dialog.largeDialogN(headerBarAttrs, MailEditor, mailEditorAttrs)
 	               .addShortcut({
 		               key: Keys.ESC,
 		               exec() { closeButtonAttrs.click(newMouseEvent(), domCloseButton) },

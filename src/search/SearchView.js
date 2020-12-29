@@ -63,7 +63,7 @@ import {LazyContactListId} from "../contacts/ContactUtils";
 import {styles} from "../gui/styles"
 import {isNewMailActionAvailable} from "../mail/MailView"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
-import {newMailEditor} from "../mail/MailEditorN"
+import {newMailEditor} from "../mail/MailEditor"
 
 assertMainOrNode()
 

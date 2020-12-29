@@ -111,7 +111,7 @@ export class SendMailModel {
 	_mailboxDetails: MailboxDetail;
 
 	_conversationType: ConversationTypeEnum;
-	_subject: string;// we're setting subject to the value of the subject TextField in the MailEditorN
+	_subject: string;// we're setting subject to the value of the subject TextField in the MailEditor
 	_body: string;
 	_draft: ?Mail;
 	_recipients: Map<RecipientField, Array<RecipientInfo>>
