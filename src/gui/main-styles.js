@@ -1422,7 +1422,7 @@ styles.registerStyle('main', () => {
 			".mobile .view-column:nth-child(2)": {
 				display: "initial",
 			},
-			".expander-panel": {
+			".folder-column": {
 				display: "none"
 			},
 		},
