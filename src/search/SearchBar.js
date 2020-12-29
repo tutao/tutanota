@@ -95,6 +95,7 @@ export class SearchBar implements Component {
 	_closeOverlayFunction: ?(() => void);
 	_overlayContentComponent: {view: () => ?Children};
 	_returnListener: () => void;
+	_confirmDialogShown: boolean;
 
 	constructor() {
 		this._groupInfoRestrictionListId = null
@@ -406,9 +407,11 @@ export class SearchBar implements Component {
 		if (isSameTypeRef(restriction.type, GroupInfoTypeRef)) {
 			restriction.listId = this._groupInfoRestrictionListId
 		}
-		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)) {
+		if (!locator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef)
+			&& !this._confirmDialogShown) {
 			this.expanded = false
 			this.focused = false
+			this._confirmDialogShown = true;
 			Dialog.confirm("enableSearchMailbox_msg", "search_label").then(confirmed => {
 				if (confirmed) {
 					worker.enableMailIndexing().then(() => {
@@ -418,7 +421,9 @@ export class SearchBar implements Component {
 						Dialog.error(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					})
 				}
-			})
+			}).finally(
+				() => this._confirmDialogShown = false
+			)
 		} else {
 			if (!locator.search.isNewSearch(query, restriction) && oldQuery === query) {
 				const result = locator.search.result()
