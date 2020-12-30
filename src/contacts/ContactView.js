@@ -27,7 +27,6 @@ import {logins} from "../api/main/LoginController"
 import {vCardFileToVCards, vCardListToContacts} from "./VCardImporter"
 import {LockedError, NotFoundError} from "../api/common/error/RestError"
 import {MultiContactViewer} from "./MultiContactViewer"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
@@ -45,7 +44,7 @@ import {styles} from "../gui/styles"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {flat} from "../api/common/utils/ArrayUtils"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {FolderExpander} from "../gui/base/FolderExpander"
 
 assertMainOrNode()
 
@@ -76,14 +75,9 @@ export class ContactView implements CurrentView {
 							click: () => this.createNewContact(),
 						},
 					content: [
-						m(".mr-negative-s.flex-space-between.plr-l.flex-no-grow-no-shrink-auto", m(ExpanderButtonN, {
+						m(FolderExpander, {
 							label: () => getGroupInfoDisplayName(logins.getUserController().userGroupInfo),
-							color: theme.navigation_button,
 							expanded: contactsExpanded,
-						})),
-						m(ExpanderPanelN, {
-							expanded: contactsExpanded,
-
 						}, this.createContactFoldersExpanderChildren())
 					],
 					ariaLabel: "folderTitle_label"

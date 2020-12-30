@@ -46,7 +46,7 @@ import {
 	getConfidentialStateMessage,
 	MailEditorRecipientField,
 } from "./MailEditorViewModel"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {newMouseEvent} from "../gui/HtmlUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {UserError} from "../api/common/error/UserError"

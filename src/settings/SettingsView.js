@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ViewSlider} from "../gui/base/ViewSlider"
 import {SettingsFolder} from "./SettingsFolder"
-import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {CurrentView} from "../gui/base/Header"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
@@ -45,6 +44,7 @@ import {navButtonRoutes} from "../misc/RouteChange"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {nativeApp} from "../native/NativeWrapper"
+import {FolderExpander} from "../gui/base/FolderExpander"
 
 assertMainOrNode()
 
@@ -104,19 +104,23 @@ export class SettingsView implements CurrentView {
 
 		this._selectedFolder = this._userFolders[0]
 
-		let userFolderExpander = this._createFolderExpander("userSettings_label", this._userFolders)
-		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
+		const userFolderExpanded = stream(true)
+		const adminFolderExpanded = stream(true)
 
 		this._settingsFoldersColumn = new ViewColumn({
 			view: () => m(FolderColumnView, {
 				button: null,
 				content: m(".flex.flex-grow.col", [
-					m(".plr-l", m(userFolderExpander)),
-					m(userFolderExpander.panel),
+					m(FolderExpander, {
+						label: "userSettings_label",
+						expanded: userFolderExpanded
+					}, this._createFolderExpanderChildren(this._userFolders)),
 					logins.isUserLoggedIn() && logins.getUserController().isGlobalOrLocalAdmin()
 						? [
-							m(".plr-l", m(adminFolderExpander)),
-							m(adminFolderExpander.panel),
+							m(FolderExpander, {
+								label: "adminSettings_label",
+								expanded: adminFolderExpanded
+							}, this._createFolderExpanderChildren(this._adminFolders)),
 						]
 						: null,
 					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
@@ -151,7 +155,7 @@ export class SettingsView implements CurrentView {
 		this._customDomains.getAsync().then(() => m.redraw())
 	}
 
-	_createFolderExpander(textId: TranslationKey, folders: SettingsFolder[]): ExpanderButton {
+	_createFolderExpanderChildren(folders: SettingsFolder[]): Children {
 		let importUsersButton = new Button('importUsers_action',
 			() => showUserImportDialog(this._customDomains.getLoaded()),
 			() => Icons.ContactImport
@@ -166,20 +170,18 @@ export class SettingsView implements CurrentView {
 				isVisible: () => folder.isVisible()
 			}
 		})
-		let expander = new ExpanderButton(textId, new ExpanderPanel({
-			view: () => m(".folders", buttons.map(fb => fb.isVisible()
-				? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
-					m(NavButtonN, fb),
-					!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users')
-					&& this._customDomains.isLoaded()
-					&& this._customDomains.getLoaded().length > 0
-						? m(importUsersButton)
-						: null
-				])
-				: null))
-		}), false, {}, () => theme.navigation_button)
-		expander.toggle()
-		return expander
+
+		return (".folders", buttons.map(fb => fb.isVisible()
+			? m(".folder-row.flex-start.plr-l" + (isNavButtonSelected(fb) ? ".row-selected" : ""), [
+				m(NavButtonN, fb),
+				!isApp() && isNavButtonSelected(fb) && this._selectedFolder && m.route.get().startsWith('/settings/users')
+				&& this._customDomains.isLoaded()
+				&& this._customDomains.getLoaded().length > 0
+					? m(importUsersButton)
+					: null
+			])
+			: null))
+
 	}
 
 	_getCurrentViewer(): Component {

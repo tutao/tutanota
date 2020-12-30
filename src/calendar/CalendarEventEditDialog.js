@@ -29,7 +29,7 @@ import type {AllIconsEnum} from "../gui/base/Icon"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/ExpanderN"
+import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {client} from "../misc/ClientDetector"
 import type {Guest} from "./CalendarEventViewModel"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
@@ -218,8 +218,6 @@ export function showCalendarEventDialog(date: Date, calendars: Map<Id, CalendarI
 					        type: TextFieldType.ExternalPassword,
 					        label: () => lang.get("passwordFor_label", {"{1}": guest.address.address}),
 					        helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
-					        oncreate: ({dom}) => animations.add(dom, height(0, dom.offsetHeight)),
-					        onbeforeremove: ({dom}) => animations.add(dom, height(dom.offsetHeight, 0)),
 					        key: guest.address.address,
 					        oninput: (newValue) => viewModel.updatePassword(guest, newValue)
 				        })
