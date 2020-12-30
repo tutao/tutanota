@@ -189,6 +189,11 @@ export class Dialog {
 		return this
 	}
 
+	setShortcuts(shortcuts: Shortcut[]): Dialog {
+		this._shortcuts = shortcuts
+		return this
+	}
+
 	/**
 	 * Sets a close handler to the dialog. If set the handler will be notified when onClose is called on the dialog.
 	 * The handler must is then responsible for closing the dialog.

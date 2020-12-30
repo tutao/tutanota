@@ -37,7 +37,7 @@ export function showProgressDialog<T>(messageIdOrMessageFunction: TranslationKey
 		])
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event
-	})
+	}).setShortcuts([]) // remove any shortcuts
 
 	progressDialog.show()
 	let start = new Date().getTime()
