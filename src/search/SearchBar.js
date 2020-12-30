@@ -568,37 +568,64 @@ export class SearchBar implements Component {
 			},
 			onkeydown: e => {
 				const {selected, entities} = this._state()
-				let keyCode = e.which
-				if (keyCode === Keys.ESC.code) {
-					this.close()
-				} else if (keyCode === Keys.RETURN.code) {
-					if (selected) {
-						this._selectResult(selected)
-					} else {
-						if (isApp()) {
-							this._domInput.blur()
-						} else {
-							this.search()
+
+				const keyHandlers = [
+					{
+						key: Keys.F1,
+						exec: () => keyManager.openF1Help(),
+					},
+					{
+						key: Keys.ESC,
+						exec: () => this.close()
+					},
+					{
+						key: Keys.RETURN,
+						exec: () => {
+							if (selected) {
+								this._selectResult(selected)
+							} else {
+								if (isApp()) {
+									this._domInput.blur()
+								} else {
+									this.search()
+								}
+							}
+							this._returnListener()
+						}
+					},
+					{
+						key: Keys.UP,
+						exec: () => {
+							if (entities.length > 0) {
+								let oldSelected = selected || entities[0]
+								this._updateState({
+									selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
+								})
+							}
+							e.preventDefault()
+						}
+					},
+					{
+						key: Keys.DOWN,
+						exec: () => {
+							if (entities.length > 0) {
+								let newSelected = selected || entities[0]
+								this._updateState({
+									selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
+								})
+							}
+							e.preventDefault()
 						}
 					}
-					this._returnListener()
-				} else if (keyCode === Keys.UP.code) {
-					if (entities.length > 0) {
-						let oldSelected = selected || entities[0]
-						this._updateState({
-							selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)]
-						})
-					}
-					e.preventDefault()
-				} else if (keyCode === Keys.DOWN.code) {
-					if (entities.length > 0) {
-						let newSelected = selected || entities[0]
-						this._updateState({
-							selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)]
-						})
-					}
+				]
+
+				let keyCode = e.which
+				let keyHandler = keyHandlers.find(handler => handler.key.code === keyCode)
+				if (keyHandler) {
+					keyHandler.exec()
 					e.preventDefault()
 				}
+
 				// disable key bindings
 				e.stopPropagation()
 				return true
