@@ -480,38 +480,35 @@ export class MailView implements CurrentView {
 	                              folderAddButton: Button): Children {
 		const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
 		return m(".folders",
-			systemFolderButtons
-				.map(({id, button}) => {
-					const count = groupCounters[id]
-					return m(MailFolderView, {
-						count: count,
-						button,
-						rightButton: null,
-						key: id,
-					})
+			systemFolderButtons.map(({id, button}) => {
+				const count = groupCounters[id]
+				return m(MailFolderView, {
+					count: count,
+					button,
+					rightButton: null,
+					key: id,
 				})
-				.concat(logins.isInternalUserLoggedIn()
-					? [
-						m(".folder-row.flex-space-between.plr-l", {key: "yourFolders"}, [
-							m("small.b.align-self-center.ml-negative-xs",
-								{style: {color: theme.navigation_button}},
-								lang.get("yourFolders_action").toLocaleUpperCase()),
-							m(folderAddButton)
-						])
-					]
-					: []
-				)
-				.concat(customFolderButtons.map(({id, button, folder}) => {
-					const count = groupCounters[id]
-					return m(MailFolderView, {
-						count,
-						button,
-						rightButton: isNavButtonSelected(button)
-							? this.createFolderMoreButton(mailGroupId, folder)
-							: null,
-						key: id
-					})
-				})))
+			}).concat(logins.isInternalUserLoggedIn()
+				? [
+					m(".folder-row.flex-space-between.plr-l", {key: "yourFolders"}, [
+						m("small.b.align-self-center.ml-negative-xs",
+							{style: {color: theme.navigation_button}},
+							lang.get("yourFolders_action").toLocaleUpperCase()),
+						m(folderAddButton)
+					])
+				]
+				: []
+			).concat(customFolderButtons.map(({id, button, folder}) => {
+				const count = groupCounters[id]
+				return m(MailFolderView, {
+					count,
+					button,
+					rightButton: isNavButtonSelected(button)
+						? this.createFolderMoreButton(mailGroupId, folder)
+						: null,
+					key: id
+				})
+			})))
 	}
 
 	/**
@@ -574,7 +571,7 @@ export class MailView implements CurrentView {
 
 
 	isInitialized(): boolean {
-		return Object.keys(this._mailboxExpanders).length > 0 && this.selectedFolder != null
+		return this._mailboxExpanders.size > 0 && this.selectedFolder != null
 	}
 
 	_setUrl(url: string) {
@@ -593,7 +590,7 @@ export class MailView implements CurrentView {
 	 * @returns True if the list could be shown, i.e. it exists, false otherwise
 	 */
 	_showList(mailListId: Id, mailElementId: ? Id): boolean {
-		this.mailList = new MailListView(mailListId, (this: any))
+		this.mailList = new MailListView(mailListId, this)
 		let folder = locator.mailModel.getMailFolder(mailListId)
 		if (folder) {
 			this.selectedFolder = folder
