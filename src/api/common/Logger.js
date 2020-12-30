@@ -42,7 +42,7 @@ export class Logger {
 
 	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
 		const formattedArgs = rest.map((obj) => {
-			return (obj instanceof Error ? errorToString(obj) : JSON.stringify(obj))
+			return (obj instanceof Error ? errorToString(obj) : JSON.stringify(decycleObject(obj)))
 		})
 		const message = formattedArgs.join(",")
 		return `${date.toISOString()} ${level} ${message}`
@@ -93,4 +93,27 @@ export function replaceNativeLogger(global: any, loggerInstance: Logger, force: 
 			}
 		}
 	}
+}
+
+// Inspired by https://github.com/douglascrockford/JSON-js/blob/master/cycle.js
+function decycleObject(o: Object): Object {
+	// keep a list of objects and their path
+	const objects = new WeakMap()
+	const builtIns = [Boolean, Date, Number, RegExp, String]
+
+	let recurse = (o, path) => {
+		if (typeof o === "object" && o !== null && !builtIns.find(type => o instanceof type)) {
+			if (objects.has(o)) {
+				return {$ref: objects.get(o)};
+			}
+			objects.set(o, path);
+			return Array.isArray(o)
+				? o.map((e, i) => recurse(e, path + "." + i))
+				: Object.fromEntries(
+					Object.entries(o).map(([k, v]) => [k, recurse(o[k], path + "." + k)]))
+		} else {
+			return o
+		}
+	}
+	return recurse(o, ".")
 }
