@@ -71,6 +71,10 @@ export class PaymentMethodInput {
 			return m(".flex-center", m(MessageBoxN, {
 				style: {marginTop: px(16)},
 			}, lang.get(this.isOnAccountAllowed() ? "paymentMethodOnAccount_msg" : "paymentMethodNotAvailable_msg")))
+		} else if (this._selectedPaymentMethod === PaymentMethodType.AccountBalance) {
+			return m(".flex-center", m(MessageBoxN, {
+				style: {marginTop: px(16)},
+			}, lang.get("paymentMethodAccountBalance_msg")))
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Paypal) {
 			return m(PaypalInput, this._payPalAttrs)
 		} else {
@@ -151,6 +155,15 @@ export class PaymentMethodInput {
 				value: PaymentMethodType.Invoice
 			})
 		}
+
+		// show account balance only if this is the current payment method
+		if (this._accountingInfo.paymentMethod === PaymentMethodType.AccountBalance) {
+			availablePaymentMethods.push({
+				name: lang.get("paymentMethodAccountBalance_label"),
+				value: PaymentMethodType.AccountBalance
+			})
+		}
+
 		return availablePaymentMethods
 	}
 

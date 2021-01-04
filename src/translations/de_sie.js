@@ -554,6 +554,7 @@ module.exports = {
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
 		"invalidDateFormat_msg": "Ungültiges Format. Gültig: {1}. Jahr ist optional.",
 		"invalidGiftCardPaymentMethod_msg": "Ihr eingetragenes Zahlungsmittel erlaubt keine Bestellung von Gutscheinen.",
+		"paymentMethodAccountBalance_msg" : "Sie bezahlen Rechnungen mit Guthaben aus Ihrem Account. Sie können das Guthaben nur durch Einlösen von Gutscheinen aufladen.",
 		"invalidGiftCard_msg": "Dieser Gutschein kann nicht verwendet werden",
 		"invalidInputFormat_msg": "Ungültiges Format.",
 		"invalidInterval_msg": "Ungültiges Intervall",
