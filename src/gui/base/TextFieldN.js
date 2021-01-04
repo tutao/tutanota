@@ -50,6 +50,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 	_domLabel: HTMLElement;
 	_domInput: HTMLInputElement;
 	_domInputWrapper: HTMLElement;
+	_didAutofill: boolean;
 
 	constructor(vnode: Vnode<TextFieldAttrs>) {
 		this.active = false
@@ -57,7 +58,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 
 	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
-		const labelBase = !this.active && a.value() === "" && !a.disabled
+		const labelBase = !this.active && a.value() === "" && !a.disabled && !this._didAutofill
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
@@ -135,9 +136,16 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 						this._domInput = vnode.dom
 						this._domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 						this._domInput.value = a.value()
-						if (a.type === Type.ExternalPassword) {
-							vnode.dom.style.opacity = '0' // Setting it in style block doesn't work somehow
-						} else if (a.type === Type.Password) {
+						if (a.type !== Type.Area) {
+							vnode.dom.addEventListener('animationstart', e => {
+								if (e.animationName === "onAutoFillStart") {
+									this._didAutofill = true
+									m.redraw()
+								} else if (e.animationName === "onAutoFillCancel") {
+									this._didAutofill = false
+									m.redraw()
+								}
+							})
 						}
 					},
 					onfocus: (e) => {
