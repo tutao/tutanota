@@ -111,7 +111,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			let encoding = encodingObj ? encodingObj.split('=')[1] : ''
 
 			let charsetObj = vCardLines[j].split(';').find((line) => line.includes('CHARSET='))
-			let charset = charsetObj ? charsetObj.split('=')[1] : ''
+			let charset = charsetObj ? charsetObj.split('=')[1] : 'utf-8'
 
 			tagValue = _decodeTag(encoding, charset, tagValue)
 
