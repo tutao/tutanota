@@ -32,7 +32,6 @@ import {worker} from "../api/main/WorkerClient"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
-import type {LoginFormAttrs} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 
 assertMainOrNode()
@@ -117,28 +116,8 @@ export class LoginView {
 						}
 					}, [
 						this._displayMode === DisplayMode.Credentials
-							? m(CredentialsSelector, {
-								credentials: this._knownCredentials,
-								isDeleteCredentials: this._isDeleteCredentials,
-								onCredentialsSelected: c => {
-									this._viewController
-									    .then(viewController => viewController.autologin(c))
-								},
-								onCredentialsDeleted: this._isDeleteCredentials
-									? c => {
-										this._viewController
-										    .then(viewController => viewController.deleteCredentialsNotLoggedIn(c))
-									} : null
-							})
-							: m(LoginForm, {
-								onSubmit: () => this.login(),
-								mailAddress: this.mailAddress,
-								password: this.password,
-								helpText: this.helpText,
-								invalidCredentials: this.invalidCredentials,
-								showRecoveryOption: this._recoverLoginVisible(),
-								accessExpired: this.accessExpired
-							}),
+							? this.renderCredentialsSelector()
+							: this.renderLoginForm(),
 						!(isApp() || isDesktop()) && isTutanotaDomain()
 							? this.renderAppButtons()
 							: null,
@@ -252,6 +231,35 @@ export class LoginView {
 
 	login() {
 		this._viewController.then((viewController: ILoginViewController) => viewController.formLogin())
+	}
+
+	renderLoginForm(): Children {
+		return m(LoginForm, {
+			onSubmit: () => this.login(),
+			mailAddress: this.mailAddress,
+			password: this.password,
+			savePassword: this.savePassword,
+			helpText: this.helpText,
+			invalidCredentials: this.invalidCredentials,
+			showRecoveryOption: this._recoverLoginVisible(),
+			accessExpired: this.accessExpired
+		})
+	}
+
+	renderCredentialsSelector(): Children {
+		return m(CredentialsSelector, {
+			credentials: this._knownCredentials,
+			isDeleteCredentials: this._isDeleteCredentials,
+			onCredentialsSelected: c => {
+				this._viewController
+				    .then(viewController => viewController.autologin(c))
+			},
+			onCredentialsDeleted: this._isDeleteCredentials
+				? c => {
+					this._viewController
+					    .then(viewController => viewController.deleteCredentialsNotLoggedIn(c))
+				} : null
+		})
 	}
 
 	renderAppButtons(): Children {
