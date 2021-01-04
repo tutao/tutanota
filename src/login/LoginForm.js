@@ -1,5 +1,6 @@
 // @flow
 import m from "mithril"
+import stream from "mithril/stream/stream.js"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {liveDataAttrs} from "../api/common/utils/AriaUtils"
@@ -22,6 +23,40 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements MComponent<LoginFormAttrs> {
+
+
+	mailAddressInputState: TextFieldN
+	passwordInputState: TextFieldN
+
+	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
+	// it only sends one input/change event for all fields so we didn't know if fields
+	// were updated. So we kindly ask our fields to update themselves with real DOM values.
+	autofillUpdateHandler: Stream<void>
+
+	oncreate(vnode: Vnode<LoginFormAttrs>) {
+		const a = vnode.attrs
+
+		this.autofillUpdateHandler = stream.combine(() => {
+			requestAnimationFrame(() => {
+				const oldAddress = a.mailAddress()
+				const newAddress = this.mailAddressInputState._domInput.value
+
+				const oldPassword = a.password()
+				const newPassword = this.passwordInputState._domInput.value
+
+				// only update values when they are different or we get stuck in an infinite loop
+				if (oldAddress !== newAddress) a.mailAddress(newAddress)
+				if (oldPassword !== newPassword) a.password(newPassword)
+
+			})
+		}, [a.mailAddress, a.password])
+	}
+
+	onremove(vnode: Vnode<LoginFormAttrs>) {
+		vnode.attrs.password("")
+		this.autofillUpdateHandler.end(true)
+	}
+
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
 
@@ -46,8 +81,16 @@ export class LoginForm implements MComponent<LoginFormAttrs> {
 				// a.onSubmit(a.mailAddress(), a.password())
 			},
 		}, [
-			m(TextFieldN, mailAddressFieldAttrs),
-			m(TextFieldN, passwordFieldAttrs),
+			m("", {
+				oncreate: vnode => {
+					this.mailAddressInputState = vnode.children[0].state
+				}
+			}, m(TextFieldN, mailAddressFieldAttrs)),
+			m("", {
+				oncreate: vnode => {
+					this.passwordInputState = vnode.children[0].state
+				}
+			}, m(TextFieldN, passwordFieldAttrs)),
 			(a.savePassword && (!whitelabelCustomizations ||
 				whitelabelCustomizations.bootstrapCustomizations.indexOf(BootstrapFeatureType.DisableSavePassword) === -1))
 				? m(CheckboxN, {

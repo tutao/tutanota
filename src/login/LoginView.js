@@ -91,9 +91,6 @@ export class LoginView {
 			this.permitAutoLogin = true
 		}
 
-
-		this._setupHooks()
-
 		let bottomMargin = 0
 		const keyboardListener = (keyboardSize) => {
 			bottomMargin = keyboardSize
@@ -218,28 +215,6 @@ export class LoginView {
 				])
 			])
 		]
-	}
-
-	_setupHooks() {
-		// TODO Test on iOS and figure out if we still have to do something like this
-		// this.oncreate = () => {
-		// 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
-		// 	// it only sends one input/change event for all fields so we didn't know if fields
-		// 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
-		// 	this._formsUpdateStream = stream.combine(() => {
-		// 		requestAnimationFrame(() => {
-		// 			this.mailAddress.updateValue()
-		// 			this.password.updateValue()
-		// 		})
-		// 	}, [this.mailAddress.value, this.password.value])
-		// }
-		// this.onremove = () => {
-		// 	this.password.value("")
-		//
-		// 	if (this._formsUpdateStream) {
-		// 		this._formsUpdateStream.end(true)
-		// 	}
-		// }
 	}
 
 	_signupLinkVisible(): boolean {
@@ -399,10 +374,11 @@ export class LoginView {
 				this.helpText = lang.get('emptyString_msg')
 				this.invalidCredentials = false
 				this.accessExpired = false
+
 				this.password("")
 
 				const passwordInput = document.querySelector("input[type=password]")
-				passwordInput && passwordInput.click()
+				passwordInput && passwordInput.focus()
 
 				this._knownCredentials = deviceConfig.getAllInternal()
 				this._displayMode = DisplayMode.Form
